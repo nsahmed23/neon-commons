@@ -62,8 +62,9 @@ export class SceneManager {
     this.fog.color.setHex(night ? NIGHT_FOG : DAY_FOG);
   }
 
-  render(camera: THREE.Camera): void {
-    this.renderer.render(this.scene, camera);
+  /** Render the hub scene by default; modes may supply their own scene. */
+  render(camera: THREE.Camera, scene: THREE.Scene = this.scene): void {
+    this.renderer.render(scene, camera);
   }
 
   get info(): THREE.WebGLInfo {

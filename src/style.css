@@ -231,3 +231,168 @@ body,
   padding: 6px;
   font-family: inherit;
 }
+
+/* Race mode ------------------------------------------------------------ */
+.race-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.race-countdown {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  font-size: 96px;
+  font-weight: bold;
+  color: var(--accent);
+  text-shadow: 0 0 28px rgba(125, 249, 255, 0.8);
+  display: none;
+}
+
+.race-lap {
+  position: absolute;
+  top: 44px;
+  right: 16px;
+  font-size: 26px;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(125, 249, 255, 0.5);
+}
+
+.race-time {
+  position: absolute;
+  top: 78px;
+  right: 16px;
+  font-size: 20px;
+}
+
+.race-best {
+  position: absolute;
+  top: 104px;
+  right: 16px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.race-pos {
+  position: absolute;
+  top: 44px;
+  left: 16px;
+  font-size: 26px;
+  color: #ffd166;
+  text-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
+}
+
+.race-speed {
+  position: absolute;
+  bottom: 40px;
+  right: 16px;
+  font-size: 22px;
+}
+
+.race-speed.boosting {
+  color: #35ffa8;
+  text-shadow: 0 0 12px rgba(53, 255, 168, 0.7);
+}
+
+.race-warn {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  font-size: 30px;
+  font-weight: bold;
+  color: #ff5470;
+  text-shadow: 0 0 16px rgba(255, 84, 112, 0.8);
+  animation: race-warn-flash 0.5s steps(2) infinite;
+  display: none;
+}
+
+@keyframes race-warn-flash {
+  50% { opacity: 0.25; }
+}
+
+.race-ghost-note {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  opacity: 0.75;
+  display: none;
+}
+
+.race-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+.race-panel {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 5, 12, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.race-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  border-radius: 5px;
+  padding: 26px 32px;
+  width: min(480px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.race-card h1 {
+  font-size: 22px;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(125, 249, 255, 0.5);
+}
+
+.race-sub {
+  font-size: 11px;
+  opacity: 0.6;
+  margin: 4px 0 18px;
+}
+
+.race-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+
+.race-table th {
+  text-align: left;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  padding: 4px 8px;
+}
+
+.race-table td {
+  padding: 5px 8px;
+  border-top: 1px solid var(--line);
+}
+
+.race-row-player td {
+  color: var(--accent);
+}
+
+.race-laptimes {
+  font-size: 11px;
+  opacity: 0.75;
+  margin: 4px 0 14px;
+}
