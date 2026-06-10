@@ -1,0 +1,26 @@
+{
+  "stage": "A",
+  "phases": [1, 2],
+  "branch": "stage-a-foundation-hub",
+  "completedAt": "2026-06-10",
+  "gates": {
+    "tsc": "clean",
+    "vitest": { "files": 6, "tests": 52, "failed": 0 },
+    "viteBuild": "clean",
+    "devServerSmoke": "HTTP 200 + #app shell",
+    "headlessBrowser": { "consoleErrors": 0, "selfAudit": "8/8" }
+  },
+  "measured": {
+    "drawCallsNightHigh": 32,
+    "trianglesHigh": 98000,
+    "windowCellsExampleSeed": 11974,
+    "headlessFpsCap": "~56-60 (SwiftShader compositor cap, before and after +3000 stress props)"
+  },
+  "seams": {
+    "modeInterface": "src/modes/Mode.ts",
+    "modeIds": ["race", "battle", "board", "flight", "shader"],
+    "events": "src/core/EventBus.ts#GameEvents",
+    "settings": "src/systems/Serialization.ts#SettingsData",
+    "qualityProfiles": "src/rendering/PerformanceScaler.ts"
+  }
+}

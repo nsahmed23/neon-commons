@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Unit tests
+        run: npx vitest run
+      - name: Production build
+        run: npm run build
+      - name: Boot smoke (dev server serves the app shell)
+        run: |
+          npx vite --port 5199 --strictPort &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5199/ | grep -q 'id="app"'; then
+              echo "shell OK"; exit 0
+            fi
+            sleep 1
+          done
+          echo "dev server never served the shell"; exit 1
