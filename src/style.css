@@ -1,0 +1,233 @@
+:root {
+  --ink: #d7e4ff;
+  --accent: #7df9ff;
+  --panel: rgba(10, 13, 31, 0.92);
+  --line: #3a3f55;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #06070f;
+  font-family: 'Cascadia Code', Consolas, monospace;
+  color: var(--ink);
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* HUD --------------------------------------------------------------- */
+#crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent);
+  font-size: 18px;
+  opacity: 0.8;
+  pointer-events: none;
+  text-shadow: 0 0 6px var(--accent);
+}
+
+#hud-mode {
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(125, 249, 255, 0.6);
+  pointer-events: none;
+}
+
+#hud-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  padding: 8px 18px;
+  font-size: 14px;
+  border-radius: 3px;
+  pointer-events: none;
+  box-shadow: 0 0 14px rgba(125, 249, 255, 0.35);
+}
+
+#hud-hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  opacity: 0.55;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Minimap ------------------------------------------------------------ */
+#minimap {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border-radius: 4px;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+/* Debug overlay ------------------------------------------------------- */
+#debug-overlay {
+  position: absolute;
+  top: 40px;
+  left: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre;
+  pointer-events: none;
+  border-radius: 3px;
+}
+
+/* Toasts --------------------------------------------------------------- */
+#toast-log {
+  position: absolute;
+  top: 214px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 300px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 8px 12px;
+  font-size: 12px;
+  animation: toast-in 0.25s ease-out;
+}
+
+.toast-success { border-left: 3px solid #51e08a; }
+.toast-warn { border-left: 3px solid #ffb454; }
+.toast-info { border-left: 3px solid var(--accent); }
+
+.toast-out {
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+@keyframes toast-in {
+  from { transform: translateX(24px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Menu ------------------------------------------------------------------ */
+#menu {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 5, 12, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+
+#menu-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  border-radius: 5px;
+  padding: 26px 32px;
+  width: min(460px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+#menu-card h1 {
+  font-size: 22px;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(125, 249, 255, 0.5);
+}
+
+.menu-sub {
+  font-size: 11px;
+  opacity: 0.6;
+  margin: 4px 0 18px;
+}
+
+#menu-card h2 {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  margin: 18px 0 8px;
+  opacity: 0.8;
+}
+
+.menu-button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px 14px;
+  background: #141830;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.menu-button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.menu-button.danger:hover {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.settings-row.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-row input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.settings-row select {
+  background: #141830;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 6px;
+  font-family: inherit;
+}

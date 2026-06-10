@@ -3,11 +3,9 @@
  * so emit/on payloads are checked at compile time.
  */
 
-export type EventMap = Record<string, unknown>;
-
 export type Unsubscribe = () => void;
 
-export class EventBus<E extends EventMap> {
+export class EventBus<E extends object> {
   private listeners = new Map<keyof E, Set<(payload: never) => void>>();
 
   on<K extends keyof E>(event: K, fn: (payload: E[K]) => void): Unsubscribe {
