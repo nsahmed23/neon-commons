@@ -522,3 +522,127 @@ Approximations (documented, not faked):
   shift + arrow glyph, not a 3D reticle.
 - Sentry anchors sit at rings 2/4/6/8 regardless of seed; no
   quality/difficulty scaling of enemy counts yet.
+
+## Stage F — Shader Mode: Gravity Well (2026-06-11)
+
+The brief's menu offered an interior-mapped city or gravitational
+lensing; the hub's facade window illusion already demonstrates
+interior-mapping, so lensing is the differentiator built here.
+
+## Gates
+
+| Gate | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npx vitest run` | 313/313 tests, 33 files (279 prior + 34 new shader tests) |
+| `npm run build` | clean (same pre-existing Three.js chunk-size note) |
+| dev server + `curl` | HTTP 200, app shell served |
+| Headless Chromium session (playwright-cli) | 0 console errors / 0 warnings; entered via the pedestal interact event, pixel readback proved a non-blank render, every slider verified against a real uniform AND a real pixel change, Esc round-trip to hub clean |
+
+## What is tested (vitest, node env, pure modules only)
+
+- `shaderlensing.test.ts` (18): deflection step bends the ray TOWARD
+  the mass, magnitude falls off as ~1/r^2 (ratio 4.0 at 2r, tol 1%),
+  scales linearly with mass, output stays normalized, zero-mass
+  straight-line limit, bitwise determinism, a 400-step marched ray
+  accumulates a net curl around the mass; disk temperature
+  monotonically non-increasing in radius / 1 at the inner edge /
+  bounded (0,1]; color ramp channels each monotonic in temperature and
+  hotter-is-bluer (b/r ratio rises); disk weight zero outside the
+  annulus, maximal at the midplane, monotone in |y|, thicker disk
+  brighter off-plane (the slider's testable effect); doppler boost
+  monotonic/bounded/1-at-transverse; photon-ring glow peaks exactly at
+  1.5 rs and decays monotonically; rs linear in mass.
+- `shaderparams.test.ts` (16): defaults in range, clampParams clamps
+  every field + rounds raySteps + returns a new object, 3 presets with
+  distinct ids/names/values all inside every range, seeded
+  randomization in-range across 200 seeds + same-seed identity +
+  cross-seed divergence (core Rng), quality mapping bounded (steps
+  inside the slider range, scale in (0,1]) and monotone high >= medium
+  >= low on both axes; the GLSL template embeds every LENSING constant
+  value verbatim (`const float NAME = value;` asserted per constant),
+  the compile-time loop bound equals the raySteps slider max, every
+  exposed parameter has a uniform declaration, and the exact GLSL
+  deflection line mirrors `deflectStep`.
+
+## Real vs. approximation
+
+Real (backed by state/simulation/logic):
+- Every slider drives a real uniform, verified live through the DOM
+  path (dispatching `input` on the actual slider): mass 1.2 -> 2.5
+  changed uMass AND 3726/4096 center pixels (>20/765 delta); disk
+  brightness 0 vs 3 changed summed center luminance 540116 -> 679558;
+  ray steps 48 -> 256 changed uSteps; time-speed 3x advanced the time
+  uniform 1.55 s in 0.5 s wall and 0x froze it.
+- The GLSL is GENERATED from the same LENSING constants the tested TS
+  mirrors use, and the unit tests assert the embedded values and the
+  deflection line verbatim, so the test suite genuinely constrains
+  the shader (anti-faking clause for shader code).
+- Doppler-ish disk asymmetry measured from pixels: equator patches at
+  +-~240 px from center read left/right luminance ratio 0.768 in the
+  Feeding Frenzy preset (approaching side brighter).
+- Quality changes real renderer state through the PerformanceScaler
+  path: low set effective pixel ratio 1.0 -> 0.55 and baseline steps
+  to 72 (verified via renderer.getPixelRatio()); exit restores the
+  profile's own cap (verified 0.55 -> 1.0 on Esc).
+- The time uniform runs on the fixed-step simulation clock, so P-pause
+  freezes the piece, and motion-effects OFF froze it live (shaderTime
+  delta exactly 0 over 1 s while disabled, advancing before/after).
+- Orbit drag (movementX/Y -> yaw/pitch, verified live), wheel zoom
+  (camDistance 21 -> 51.24 from a deltaY=1200 wheel event, clamped to
+  the param range), randomize draws a visible 32-bit seed from a Rng
+  chain forked off the world seed (seed 3240913507 observed, params
+  all in range), presets restore exact authored values (verified
+  Photon Ring Study field-for-field).
+- FPS readout is a real frame-delta average (FPS 56 observed in
+  headless SwiftShader at 1280x720, the compositor cap).
+
+Approximations (documented, on the placard, not faked):
+- The lensing is a per-step inverse-square bending of the ray
+  direction (d' = normalize(d - k*M*(p/|p|^3)*ds)), NOT a null-geodesic
+  integrator of the Schwarzschild metric. It reproduces the look
+  (shadow, photon ring, far-side disk arcs, background warp) but not
+  exact deflection angles; k = 2.6 is tuned by eye.
+- Doppler asymmetry is a linear brightness bias in the approach
+  cosine, not relativistic beaming; disk colors are an artistic
+  temperature ramp T ~ (r_in/r)^0.75, not blackbody spectra; no
+  gravitational redshift; the photon "ring" is a gaussian glow in
+  closest-approach radius, not a true higher-order image stack.
+- The disk's spiral streaks are a time-driven sine pattern, not an
+  orbiting fluid; stars are hash cells on the direction sphere, the
+  nebula is value noise.
+
+## Measured numbers (headless Chromium, software GL, 1280x720)
+
+- 1 draw call for the whole piece (one full-screen quad); cost lives
+  in the fragment shader and scales with uSteps x resolution.
+- FPS pinned at the ~56 compositor cap at high quality / 176 steps /
+  res x1.00 in SwiftShader; quality low drops to 72 steps at 0.55
+  pixel ratio for real GPU headroom.
+- Center 64x64 readback after enter: 4096/4096 pixels lit (non-blank
+  proof), mean channel sum 229/765.
+
+## Bugs found and fixed during this verification pass
+
+1. Photon-ring glow was added to captured rays too, so the shadow
+   rendered pale grey after tone-map + gamma (glaring in the close-up
+   Photon Ring Study screenshot). Glow is now masked to escaped rays;
+   the shadow is genuinely black.
+2. Disk accumulation showed concentric step-quantization bands
+   (visible in the first live screenshot). Fixed with per-pixel
+   ray-start jitter — static per pixel, so a reduced-motion frame
+   stays calm grain, not shimmer.
+
+## Known rough edges
+
+- Captured-ray grain: the jitter dither leaves fine static noise near
+  the shadow edge at low step counts; raising ray steps cleans it.
+- The orbit camera always looks at the hole; there is no pan, and the
+  disk is always equatorial (no inclination parameter).
+- uSteps is a uniform int driving an early break out of a fixed
+  256-iteration loop, so very low step counts pay a small residual
+  loop-overhead cost on some drivers.
+- The placard is always visible (no collapse toggle); on small
+  windows it can overlap the controls panel.
+- F2 / quality buttons reset the ray-steps slider to the quality
+  baseline, intentionally clobbering a hand-tuned steps value.
