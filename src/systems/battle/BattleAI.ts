@@ -37,7 +37,9 @@ export interface ScoredOption {
   parts: ScoreParts;
 }
 
-const KO_BONUS = 60;
+// Larger than any achievable chip-damage total (dmg cap ~78 + type 15 +
+// status 16 + focus 8), so a guaranteed KO always wins the argmax.
+const KO_BONUS = 100;
 const DAMAGE_SCALE = 0.5;
 const TYPE_SCALE = 15;
 const HEAL_SCALE = 0.5;

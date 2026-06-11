@@ -46,6 +46,8 @@ import {
 export const ENERGY_REGEN = 10;
 export const VARIANCE_MIN = 0.9;
 export const VARIANCE_SPAN = 0.1;
+/** Global pacing scale: a neutral power-55 hit lands ~3-hit-KO range. */
+export const DAMAGE_TUNING = 0.62;
 
 export type Side = 0 | 1;
 
@@ -210,7 +212,7 @@ export function previewDamage(user: UnitState, target: UnitState, move: MoveDef)
 function rawDamage(user: UnitState, target: UnitState, move: MoveDef): number {
   const atk = effectiveStat(user, 'atk');
   const def = effectiveStat(target, 'def');
-  let dmg = move.power * (atk / def) * typeMultiplier(move.type, target.spec.type);
+  let dmg = move.power * (atk / def) * DAMAGE_TUNING * typeMultiplier(move.type, target.spec.type);
   if (user.spec.passive === 'surgeCore' && user.hp < user.spec.maxHp * SURGE_CORE_THRESHOLD) {
     dmg *= SURGE_CORE_MUL;
   }
