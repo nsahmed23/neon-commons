@@ -30,6 +30,16 @@ export const RING_NEXT_COLOR = 0x47e6ff;
 export const RING_PASSED_COLOR = 0x35ffa8;
 export const RING_FUTURE_COLOR = 0x6a5acd;
 
+// Shared geometries: every drone body (player, 6 enemies, boss) reuses
+// the same five buffers; only materials and scales differ.
+const GEO = {
+  body: new THREE.BoxGeometry(1.6, 0.5, 2.2),
+  canopy: new THREE.BoxGeometry(0.7, 0.35, 0.9),
+  arm: new THREE.BoxGeometry(1.3, 0.16, 0.5),
+  rotor: new THREE.CylinderGeometry(0.55, 0.55, 0.1, 10),
+  tail: new THREE.BoxGeometry(0.3, 0.3, 1.0),
+};
+
 function droneBody(hull: number, accent: number, scale: number): THREE.Group {
   const g = new THREE.Group();
   const hullMat = new THREE.MeshLambertMaterial({ color: hull });
@@ -38,20 +48,20 @@ function droneBody(hull: number, accent: number, scale: number): THREE.Group {
     emissive: accent,
     emissiveIntensity: 0.7,
   });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.2), hullMat);
+  const body = new THREE.Mesh(GEO.body, hullMat);
   g.add(body);
-  const canopy = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.35, 0.9), accentMat);
+  const canopy = new THREE.Mesh(GEO.canopy, accentMat);
   canopy.position.set(0, 0.4, 0.3);
   g.add(canopy);
   for (const sx of [-1, 1]) {
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.16, 0.5), hullMat);
+    const arm = new THREE.Mesh(GEO.arm, hullMat);
     arm.position.set(sx * 1.3, 0, -0.2);
     g.add(arm);
-    const rotor = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.1, 10), accentMat);
+    const rotor = new THREE.Mesh(GEO.rotor, accentMat);
     rotor.position.set(sx * 1.85, 0.14, -0.2);
     g.add(rotor);
   }
-  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 1.0), accentMat);
+  const tail = new THREE.Mesh(GEO.tail, accentMat);
   tail.position.set(0, 0.1, -1.4);
   g.add(tail);
   g.scale.setScalar(scale);
