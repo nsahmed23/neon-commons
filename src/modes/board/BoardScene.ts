@@ -7,7 +7,7 @@
  */
 
 import * as THREE from 'three';
-import { makeLabelTexture } from '../../rendering/Materials';
+import { makeLabelTexture, makePylonRing } from '../../rendering/Materials';
 import {
   BOARD,
   BOARD_SIZE,
@@ -272,15 +272,9 @@ export function buildBoardScene(): BoardSceneParts {
   };
   const dice: [THREE.Mesh, THREE.Mesh] = [mkDie(-1.2), mkDie(1.2)];
 
-  // Ring of distant pylons for depth, matching the arena look.
-  const pylonMat = new THREE.MeshLambertMaterial({ color: 0x232842 });
-  const pylonGeo = new THREE.BoxGeometry(1.5, 8, 1.5);
-  for (let i = 0; i < 10; i++) {
-    const a = (i / 10) * Math.PI * 2;
-    const p = new THREE.Mesh(pylonGeo, pylonMat);
-    p.position.set(Math.cos(a) * (RING_RADIUS + 13), 4, Math.sin(a) * (RING_RADIUS + 13));
-    scene.add(p);
-  }
+  // Ring of distant pylons for depth, matching the arena look
+  // (one instanced draw; see makePylonRing).
+  scene.add(makePylonRing(new THREE.BoxGeometry(1.5, 8, 1.5), 10, RING_RADIUS + 13, 4));
 
   let entityCount = 0;
   scene.traverse(() => entityCount++);

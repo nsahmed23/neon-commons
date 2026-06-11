@@ -10,6 +10,7 @@
  */
 
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PROJECTILE } from '../../systems/flight/Projectiles';
 import type { CourseData } from '../../systems/flight/Rings';
 
@@ -30,15 +31,45 @@ export const RING_NEXT_COLOR = 0x47e6ff;
 export const RING_PASSED_COLOR = 0x35ffa8;
 export const RING_FUTURE_COLOR = 0x6a5acd;
 
-// Shared geometries: every drone body (player, 6 enemies, boss) reuses
-// the same five buffers; only materials and scales differ.
-const GEO = {
-  body: new THREE.BoxGeometry(1.6, 0.5, 2.2),
-  canopy: new THREE.BoxGeometry(0.7, 0.35, 0.9),
-  arm: new THREE.BoxGeometry(1.3, 0.16, 0.5),
-  rotor: new THREE.CylinderGeometry(0.55, 0.55, 0.1, 10),
-  tail: new THREE.BoxGeometry(0.3, 0.3, 1.0),
-};
+/** Translate a clone of `geo` for merging. */
+function at(geo: THREE.BufferGeometry, x: number, y: number, z: number): THREE.BufferGeometry {
+  return geo.clone().translate(x, y, z);
+}
+
+/**
+ * Shared MERGED geometries: every drone (player, 6 enemies, boss) is
+ * two meshes — hull (body + arms) and accent (canopy + rotors + tail).
+ *
+ * Stage G optimization: the original build used 7 meshes per drone
+ * (8 drones = up to 56 worst-case draw calls when the whole course is
+ * in frustum, the Stage E known rough edge). Drones only ever animate
+ * at the group level (position/rotation/visibility), so the parts merge
+ * losslessly: 7 -> 2 draws per drone. Built once at module load; both
+ * buffers are shared by all eight drones.
+ */
+const DRONE_GEO = (() => {
+  const body = new THREE.BoxGeometry(1.6, 0.5, 2.2);
+  const canopy = new THREE.BoxGeometry(0.7, 0.35, 0.9);
+  const arm = new THREE.BoxGeometry(1.3, 0.16, 0.5);
+  const rotor = new THREE.CylinderGeometry(0.55, 0.55, 0.1, 10);
+  const tail = new THREE.BoxGeometry(0.3, 0.3, 1.0);
+  const hullParts = [
+    at(body, 0, 0, 0),
+    at(arm, -1.3, 0, -0.2),
+    at(arm, 1.3, 0, -0.2),
+  ];
+  const accentParts = [
+    at(canopy, 0, 0.4, 0.3),
+    at(rotor, -1.85, 0.14, -0.2),
+    at(rotor, 1.85, 0.14, -0.2),
+    at(tail, 0, 0.1, -1.4),
+  ];
+  const hull = mergeGeometries(hullParts, false);
+  const accent = mergeGeometries(accentParts, false);
+  for (const g of [body, canopy, arm, rotor, tail, ...hullParts, ...accentParts]) g.dispose();
+  if (!hull || !accent) throw new Error('drone geometry merge failed');
+  return { hull, accent };
+})();
 
 function droneBody(hull: number, accent: number, scale: number): THREE.Group {
   const g = new THREE.Group();
@@ -48,22 +79,8 @@ function droneBody(hull: number, accent: number, scale: number): THREE.Group {
     emissive: accent,
     emissiveIntensity: 0.7,
   });
-  const body = new THREE.Mesh(GEO.body, hullMat);
-  g.add(body);
-  const canopy = new THREE.Mesh(GEO.canopy, accentMat);
-  canopy.position.set(0, 0.4, 0.3);
-  g.add(canopy);
-  for (const sx of [-1, 1]) {
-    const arm = new THREE.Mesh(GEO.arm, hullMat);
-    arm.position.set(sx * 1.3, 0, -0.2);
-    g.add(arm);
-    const rotor = new THREE.Mesh(GEO.rotor, accentMat);
-    rotor.position.set(sx * 1.85, 0.14, -0.2);
-    g.add(rotor);
-  }
-  const tail = new THREE.Mesh(GEO.tail, accentMat);
-  tail.position.set(0, 0.1, -1.4);
-  g.add(tail);
+  g.add(new THREE.Mesh(DRONE_GEO.hull, hullMat));
+  g.add(new THREE.Mesh(DRONE_GEO.accent, accentMat));
   g.scale.setScalar(scale);
   return g;
 }

@@ -8,7 +8,8 @@
  */
 
 import * as THREE from 'three';
-import { makeLabelTexture } from '../../rendering/Materials';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { makeLabelTexture, makePylonRing } from '../../rendering/Materials';
 import type { UnitState } from '../../systems/battle/Resolution';
 import { TYPE_HUE } from '../../systems/battle/TypeChart';
 
@@ -39,7 +40,28 @@ export function slotPosition(id: number): THREE.Vector3 {
   return new THREE.Vector3(side * RANK_X, 0, (file - 1) * FILE_Z);
 }
 
-/** One robot: torso, head, visor, shoulder pods, legs — type-tinted. */
+/** Translate a clone of `geo` and hand it to a merge list. */
+function placed(geo: THREE.BufferGeometry, x: number, y: number, z: number): THREE.BufferGeometry {
+  return geo.clone().translate(x, y, z);
+}
+
+/** Merge part geometries into one buffer and free the intermediates. */
+function mergeParts(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
+  const merged = mergeGeometries(parts, false);
+  for (const p of parts) p.dispose();
+  if (!merged) throw new Error('battle robot geometry merge failed');
+  return merged;
+}
+
+/**
+ * One robot: torso, head, visor, shoulder pods, legs — type-tinted.
+ *
+ * Stage G optimization: the limbs never animate independently (lunge/
+ * flinch/pulse/KO are whole-group transforms + material emissive), so
+ * all body-material parts merge into ONE mesh and all dark-material
+ * parts into another. 11 meshes -> 5 per robot (body, dark, visor,
+ * ring, plate), measured 89 -> ~44 draw calls for the full arena.
+ */
 function buildRobot(unit: UnitState): RobotRig {
   const hue = TYPE_HUE[unit.spec.type];
   const color = new THREE.Color().setHSL(hue, 0.75, 0.55);
@@ -55,41 +77,35 @@ function buildRobot(unit: UnitState): RobotRig {
 
   // Heavier chassis read as tanks; speed reads as slimmer.
   const bulk = 0.8 + (unit.spec.maxHp - 110) / 160;
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.5 * bulk, 1.5, 1.1 * bulk), bodyMat);
-  torso.position.y = 1.7;
-  group.add(torso);
 
-  const pelvis = new THREE.Mesh(new THREE.BoxGeometry(1.0 * bulk, 0.45, 0.8), darkMat);
-  pelvis.position.y = 0.85;
-  group.add(pelvis);
+  // Body-material parts: torso + the two shoulder pods.
+  const podGeo = new THREE.CylinderGeometry(0.28, 0.34, 0.8, 8);
+  const bodyGeo = mergeParts([
+    placed(new THREE.BoxGeometry(1.5 * bulk, 1.5, 1.1 * bulk), 0, 1.7, 0),
+    placed(podGeo, -(0.95 * bulk + 0.15), 2.15, 0),
+    placed(podGeo, 0.95 * bulk + 0.15, 2.15, 0),
+  ]);
+  podGeo.dispose();
+  group.add(new THREE.Mesh(bodyGeo, bodyMat));
 
+  // Dark-material parts: pelvis, legs, head, antenna.
   const legGeo = new THREE.BoxGeometry(0.38, 0.85, 0.5);
-  for (const side of [-1, 1]) {
-    const leg = new THREE.Mesh(legGeo, darkMat);
-    leg.position.set(side * 0.42 * bulk, 0.42, 0);
-    group.add(leg);
-  }
+  const darkGeo = mergeParts([
+    placed(new THREE.BoxGeometry(1.0 * bulk, 0.45, 0.8), 0, 0.85, 0),
+    placed(legGeo, -0.42 * bulk, 0.42, 0),
+    placed(legGeo, 0.42 * bulk, 0.42, 0),
+    placed(new THREE.BoxGeometry(0.7, 0.55, 0.7), 0, 2.75, 0),
+    placed(new THREE.CylinderGeometry(0.03, 0.03, 0.7, 5), 0.25, 3.3, -0.1),
+  ]);
+  legGeo.dispose();
+  group.add(new THREE.Mesh(darkGeo, darkMat));
 
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.55, 0.7), darkMat);
-  head.position.y = 2.75;
-  group.add(head);
   const visor = new THREE.Mesh(
     new THREE.BoxGeometry(0.55, 0.16, 0.1),
     new THREE.MeshBasicMaterial({ color }),
   );
   visor.position.set(0, 2.78, 0.38);
   group.add(visor);
-
-  const podGeo = new THREE.CylinderGeometry(0.28, 0.34, 0.8, 8);
-  for (const side of [-1, 1]) {
-    const pod = new THREE.Mesh(podGeo, bodyMat);
-    pod.position.set(side * (0.95 * bulk + 0.15), 2.15, 0);
-    group.add(pod);
-  }
-
-  const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.7, 5), darkMat);
-  antenna.position.set(0.25, 3.3, -0.1);
-  group.add(antenna);
 
   // Active-turn ground ring.
   const ringMat = new THREE.MeshBasicMaterial({
@@ -154,15 +170,8 @@ export function buildBattleScene(units: readonly UnitState[]): BattleSceneParts 
     scene.add(strip);
   }
 
-  // Distant ring of pylons for depth (cheap, static).
-  const pylonMat = new THREE.MeshLambertMaterial({ color: 0x232842 });
-  const pylonGeo = new THREE.BoxGeometry(1.6, 9, 1.6);
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2;
-    const p = new THREE.Mesh(pylonGeo, pylonMat);
-    p.position.set(Math.cos(a) * (ARENA_HALF + 14), 4.5, Math.sin(a) * (ARENA_HALF + 14));
-    scene.add(p);
-  }
+  // Distant ring of pylons for depth (static; one instanced draw).
+  scene.add(makePylonRing(new THREE.BoxGeometry(1.6, 9, 1.6), 12, ARENA_HALF + 14, 4.5));
 
   const robots: RobotRig[] = [];
   for (const u of units) {
