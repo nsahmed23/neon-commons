@@ -1,0 +1,49 @@
+{
+  "stage": "E",
+  "phase": 6,
+  "mode": "flight",
+  "branch": "stage-e-flight",
+  "completedAt": "2026-06-10",
+  "gates": {
+    "tsc": "clean",
+    "vitest": { "files": 31, "tests": 279, "failed": 0, "newFlightTests": 56 },
+    "viteBuild": "clean",
+    "devServerSmoke": "HTTP 200 + #app shell",
+    "headlessBrowser": {
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "smoke": "pedestal interact -> briefing (SKYLINE RUN) -> LAUNCH -> active; ring 1 pass from real sphere detection (HUD RING 2/10, SCORE 100, arrow 74m); full win run: 10/10 rings in order, boss shielded -> vulnerable on real add-death -> enraged mid-burn -> kill by real swept bolts, COURSE CLEAR breakdown 1000+1000+500=2500 matching HUD; organic fail path (sentry/boss shot down hovering drone -> DRONE DOWN -> Fly Again); hub round-trip clean, self-audit 8/8",
+      "winRunHull": "68/100 from real boss fire, accuracy 22/22"
+    }
+  },
+  "content": {
+    "rings": 10,
+    "ringRadius": 7,
+    "sentries": 4,
+    "bossEscorts": 2,
+    "bossPhases": ["shielded", "vulnerable", "enraged"],
+    "bossMaxHp": 220,
+    "playerMaxHp": 100,
+    "projectilePoolMax": 96,
+    "score": { "ring": 100, "droneKill": 250, "bossKill": 1000, "accuracyMax": 500 }
+  },
+  "measured": {
+    "flightLaunchViewDrawCalls": 18,
+    "flightLaunchViewTriangles": 92616,
+    "flightGroupEntities": 18
+  },
+  "seams": {
+    "pureSystems": "src/systems/flight/ (FlightModel, Rings, Projectiles, DroneAI, Scoring)",
+    "mode": "src/modes/FlightMode.ts (id 'flight', registered in App)",
+    "scene": "src/modes/flight/FlightScene.ts (a Group added to the HUB scene on enter, removed on exit; no separate scene)",
+    "hud": "src/ui/FlightHUD.ts",
+    "renderBranch": "App.loop renders sceneMgr.scene with flight.camera and keeps city/water animating on sim time",
+    "mouseLook": "App routes consumeMouseDelta to flight.applyLook while mode is 'flight'",
+    "devHandle": "window.__neonApp (main.ts)"
+  },
+  "sharedFileEdits": [
+    "src/core/App.ts (import + construct/register flight mode, applyLook routing, flight render branch, entity report + camera pick — additive, mirrors board)",
+    "src/core/Input.ts (added 'fire' continuous action on KeyF — additive)",
+    "src/style.css (appended .flight-* rules; reuses .menu-button and the race-warn-flash keyframes)"
+  ]
+}
