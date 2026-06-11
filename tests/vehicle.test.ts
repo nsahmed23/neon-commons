@@ -155,6 +155,37 @@ describe('track boundary collision', () => {
     expect(s.vx).toBe(before.vx);
   });
 
+  test('grinding a wall scrubs speed but never dead-stops the kart', () => {
+    // Regression: per-tick wall friction once collapsed all speed, so a
+    // throttle-only kart crawled at ~2 km/h along the first curve.
+    const t = generateTrack(12345);
+    const q = createQueryResult();
+    const input = createInput();
+    input.throttle = 1;
+    const i = 0;
+    const s = createVehicle(
+      t.xs[i] as number,
+      t.zs[i] as number,
+      Math.atan2(t.tx[i] as number, t.tz[i] as number),
+    );
+    // Drive straight (no steering) for 12 s: the curve guarantees
+    // sustained wall contact somewhere in the first stretch.
+    let hits = 0;
+    for (let k = 0; k < 12 * 60; k++) {
+      queryTrack(t, s.x, s.z, s.segHint, q);
+      s.segHint = q.seg;
+      stepVehicle(s, input, q.surface, 1 / 60);
+      queryTrack(t, s.x, s.z, s.segHint, q);
+      s.segHint = q.seg;
+      if (collideWithWall(s, q, t.wallDist)) hits++;
+    }
+    expect(hits).toBeGreaterThan(0); // the wall was genuinely engaged
+    queryTrack(t, s.x, s.z, s.segHint, q);
+    // Still making real progress along the track, not pinned at ~0.
+    const speed = Math.hypot(s.vx, s.vz);
+    expect(speed).toBeGreaterThan(4);
+  });
+
   test('full-physics integration: a kart driven by the surface query slows off-road', () => {
     // Drive straight along the track tangent on asphalt vs the shoulder,
     // querying the REAL track each step, and compare distance covered.

@@ -53,7 +53,18 @@ export const VEHICLE = {
   boostSpeedMul: 1.4,
   /** wall response */
   wallRestitution: 0.25,
-  wallFriction: 0.86,
+  /**
+   * Tangential scrub per CONTACT TICK (60 Hz): grinding a wall bleeds
+   * speed continuously (~0.4x per second of sustained grind) but never
+   * dead-stops the kart, so riding a barrier is slow, not sticky.
+   */
+  wallFriction: 0.985,
+  /**
+   * Barrier glance: each contact tick rotates the heading this fraction
+   * of the way toward the wall tangent, so a kart nosed into the wall
+   * deflects and slides along instead of pinning (bumper-rail feel).
+   */
+  wallGlance: 0.12,
 } as const;
 
 export interface VehicleState {
@@ -234,5 +245,13 @@ export function collideWithWall(s: VehicleState, q: TrackQueryResult, wallDist: 
     s.vx *= VEHICLE.wallFriction;
     s.vz *= VEHICLE.wallFriction;
   }
+  // Glance: deflect the heading toward the wall tangent (in whichever
+  // direction the kart is already traveling) so it slides, not pins.
+  const dirSign = s.vx * q.tangentX + s.vz * q.tangentZ >= 0 ? 1 : -1;
+  const target = Math.atan2(q.tangentX * dirSign, q.tangentZ * dirSign);
+  let dh = target - s.heading;
+  while (dh > Math.PI) dh -= Math.PI * 2;
+  while (dh < -Math.PI) dh += Math.PI * 2;
+  s.heading += dh * VEHICLE.wallGlance;
   return true;
 }

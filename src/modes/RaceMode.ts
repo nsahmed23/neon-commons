@@ -523,7 +523,7 @@ export class RaceMode implements Mode {
       this.hud.setCountdown('');
     }
     const tr = player.tracker;
-    this.hud.setLap(tr.lap, TOTAL_LAPS);
+    this.hud.setLap(tr.lap, TOTAL_LAPS, tr.passedTotal, this.track.gates.length);
     this.hud.setTimes(tr.finished ? 0 : tr.currentLapMs, tr.bestLapMs);
     this.hud.setPosition(this.playerPos, this.variant === 'gp' ? this.racers.length : 1);
     this.hud.setSpeed(speed, s.boostTimer > 0);

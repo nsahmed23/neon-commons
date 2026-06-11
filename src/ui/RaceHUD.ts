@@ -137,8 +137,8 @@ export class RaceHUD {
     this.countdownEl.style.display = text ? 'block' : 'none';
   }
 
-  setLap(lap: number, total: number): void {
-    const s = `LAP ${Math.min(lap + 1, total)}/${total}`;
+  setLap(lap: number, total: number, gatesPassed: number, gateCount: number): void {
+    const s = `LAP ${Math.min(lap + 1, total)}/${total} · CP ${gatesPassed % gateCount}/${gateCount}`;
     if (s !== this.lastLap) {
       this.lastLap = s;
       this.lapEl.textContent = s;
