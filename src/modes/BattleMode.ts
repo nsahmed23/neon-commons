@@ -11,7 +11,7 @@
 
 import * as THREE from 'three';
 import type { GameBus } from '../core/EventBus';
-import type { Input } from '../core/Input';
+import { isEditableTarget, type Input } from '../core/Input';
 import { Rng } from '../core/Rng';
 import type { AudioSystem } from '../systems/Audio';
 import {
@@ -343,6 +343,7 @@ export class BattleMode implements Mode {
 
   private onKeyDown(e: KeyboardEvent): void {
     if (!this.active) return;
+    if (isEditableTarget(e.target as { tagName?: string } | null)) return;
     if (this.phase === 'pick-move') {
       if (e.code.startsWith('Digit')) {
         const n = Number(e.code.slice(5));

@@ -36,6 +36,30 @@ export function pedestalRingMaterial(hue: number): THREE.MeshBasicMaterial {
 }
 
 /**
+ * Static decorative pylon ring shared by the battle and board arenas.
+ * Stage G optimization: one InstancedMesh instead of N meshes (12 + 10
+ * draw calls became 2 across the two scenes). Matrices are written once
+ * at build time; the ring never animates.
+ */
+export function makePylonRing(
+  geo: THREE.BoxGeometry,
+  count: number,
+  radius: number,
+  y: number,
+): THREE.InstancedMesh {
+  const mat = new THREE.MeshLambertMaterial({ color: 0x232842 });
+  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  const m = new THREE.Matrix4();
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2;
+    m.makeTranslation(Math.cos(a) * radius, y, Math.sin(a) * radius);
+    mesh.setMatrixAt(i, m);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  return mesh;
+}
+
+/**
  * Render a text label to a canvas texture (procedural, generated once
  * per pedestal at world build, never in the render loop).
  */
