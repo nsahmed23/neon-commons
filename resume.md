@@ -63,6 +63,27 @@ session resume with zero conversation history.
       from the event stream), organic fail path, 0 console errors.
       Branch `stage-e-flight`.
 
+- [x] Stage F / Phase 7 (Shader): black-hole gravitational lensing
+      showcase ("Gravity Well") — full-screen raymarched quad whose
+      GLSL is generated from the SAME constants the tested TS mirrors
+      under src/systems/shader use (LensingMath deflection step /
+      disk temperature ramp / disk weight / doppler boost / photon
+      ring glow; ShaderParams ranges/clamping/presets/seeded
+      randomize/quality map; ShaderSource template). ShaderMode +
+      ShaderHUD: sliders for mass, disk brightness, disk thickness,
+      camera distance, ray steps, time speed — each verified live
+      against a real uniform AND a pixel-readback change; drag orbit +
+      wheel zoom; 3 presets + randomize with visible 32-bit seed from
+      a core-Rng chain; quality -> steps + resolution scale through
+      the PerformanceScaler path (pixel ratio restored on exit);
+      uTime on the sim clock (pause freezes, motion-effects OFF froze
+      it live); museum placard with the formula and an honest
+      "sketch, not geodesic integrator" note; local FPS readout.
+      34 new tests (313 total). Headless: pedestal entry, non-blank
+      readback, slider-driven pixel diffs, doppler asymmetry 0.768
+      measured, Esc round-trip, 0 console errors.
+      Branch `stage-f-shader`.
+
 Stage A branch: `stage-a-foundation-hub` (no remote). 52 tests, tsc
 clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
@@ -72,12 +93,10 @@ clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
 ## Next (other agents' stages — do NOT stub their content)
 
-- [ ] Phase 7 Shader (`shader`): implement `Mode`, register with the
-      ModeManager; the pedestal interact event already routes to
-      `modes.switchTo(id)` once registered.
 - [ ] Phase 8 Optimization + release: continuous VERIFICATION.md
       already started; final pass adds before/after numbers on a real
-      GPU and a deployed smoke run.
+      GPU and a deployed smoke run. Stage B's deferred browser pass
+      (race loop) is still owed to this audit.
 
 ## Seams and contracts future stages rely on
 

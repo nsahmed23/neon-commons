@@ -1,0 +1,57 @@
+{
+  "stage": "F",
+  "phase": 7,
+  "mode": "shader",
+  "branch": "stage-f-shader",
+  "completedAt": "2026-06-11",
+  "gates": {
+    "tsc": "clean",
+    "vitest": { "files": 33, "tests": 313, "failed": 0, "newShaderTests": 34 },
+    "viteBuild": "clean",
+    "devServerSmoke": "HTTP 200 + #app shell",
+    "headlessBrowser": {
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "smoke": "pedestal interact -> shader mode; center 64x64 gl.readPixels 4096/4096 lit (non-blank proof); mass slider via real DOM input event: uMass 1.2 -> 2.5 AND 3726/4096 center pixels changed; disk brightness 0 vs 3: luminance 540116 -> 679558; ray steps 48 -> 256 in uSteps; wheel zoom camDistance 21 -> 51.24; drag orbit yaw 0.6 -> 0.2; time-speed 3x advanced uTime 1.55s in 0.5s wall, 0x froze; motionEffects=false froze shaderTime delta to exactly 0; quality low: pixelRatio 1.0 -> 0.55 + steps 72, restored to 1.0 on Esc; doppler left/right luminance ratio 0.768; presets exact; randomize seed 3240913507 visible + in-range; Esc -> hub clean"
+    }
+  },
+  "content": {
+    "piece": "Gravity Well - Schwarzschild-inspired lensing sketch (NOT a geodesic integrator; placard says so)",
+    "deflection": "d' = normalize(d - k*M*(p/|p|^3)*ds), k = 2.6",
+    "uniforms": ["uTime", "uMass", "uDiskBrightness", "uDiskThickness", "uCamDist", "uCamYaw", "uCamPitch", "uSteps", "uResolution"],
+    "presets": ["Quiet Giant", "Feeding Frenzy", "Photon Ring Study"],
+    "paramRanges": {
+      "mass": [0.4, 2.5],
+      "diskBrightness": [0, 3],
+      "diskThickness": [0.02, 0.6],
+      "camDistance": [7, 60],
+      "raySteps": [48, 256],
+      "timeScale": [0, 3]
+    },
+    "qualityMap": {
+      "high": { "raySteps": 176, "resolutionScale": 1 },
+      "medium": { "raySteps": 120, "resolutionScale": 0.75 },
+      "low": { "raySteps": 72, "resolutionScale": 0.55 }
+    }
+  },
+  "measured": {
+    "drawCalls": 1,
+    "headlessFps": "56 (SwiftShader compositor cap) at high / 176 steps / res x1.0, 1280x720"
+  },
+  "bugsFixedLive": [
+    "photon-ring glow on captured rays washed the shadow grey after gamma; masked to escaped rays",
+    "concentric disk step-banding; per-pixel ray-start jitter dither (static, reduced-motion safe)"
+  ],
+  "seams": {
+    "pureSystems": "src/systems/shader/ (LensingMath constants + mirrors, ShaderParams, ShaderSource GLSL template)",
+    "mode": "src/modes/ShaderMode.ts (id 'shader', registered in App; own Scene + OrthographicCamera, single quad)",
+    "hud": "src/ui/ShaderHUD.ts (placard text exported as PLACARD_* constants)",
+    "renderBranch": "App.loop renders shader.scene with shader.camera",
+    "constantsRule": "physics constants live ONLY in LENSING (LensingMath.ts); the GLSL is generated from them and tests assert the embedded values",
+    "devHandle": "window.__neonApp.shader.uniformSnapshot() for scripted uniform readback"
+  },
+  "sharedFileEdits": [
+    "src/core/App.ts (import + construct/register shader mode with setQuality/setPixelRatioCap deps, shader render branch, entity report + camera pick - additive, mirrors flight)",
+    "src/style.css (appended .shader-* rules; reuses .menu-button; prefers-reduced-motion block)"
+  ]
+}

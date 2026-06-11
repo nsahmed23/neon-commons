@@ -30,6 +30,7 @@ import { FlightMode } from '../modes/FlightMode';
 import { HubMode } from '../modes/HubMode';
 import { ModeManager } from '../modes/Mode';
 import { RaceMode } from '../modes/RaceMode';
+import { ShaderMode } from '../modes/ShaderMode';
 import { AudioSystem } from '../systems/Audio';
 import {
   deserializeSettings,
@@ -71,6 +72,7 @@ export class App {
   private battle: BattleMode;
   private board: BoardMode;
   private flight: FlightMode;
+  private shader: ShaderMode;
   private modes: ModeManager;
 
   private overlay: DebugOverlay;
@@ -202,6 +204,28 @@ export class App {
       getMotionEffects: () => this.settings.motionEffects,
     });
     this.modes.register(this.flight);
+    this.shader = new ShaderMode({
+      parent,
+      bus: this.bus,
+      input: this.input,
+      audio: this.audio,
+      seed: this.state.seed,
+      exitToHub: () => this.modes.switchTo('hub'),
+      setLockWanted: (wanted) => {
+        this.input.setLockWanted(wanted);
+        if (wanted) this.input.requestLock();
+      },
+      getMotionEffects: () => this.settings.motionEffects,
+      getQuality: () => this.scaler.current,
+      setQuality: (q) => {
+        this.scaler.set(q);
+        this.settings = { ...this.settings, quality: q };
+        this.save.save(this.settings);
+      },
+      setPixelRatioCap: (cap) => this.sceneMgr.setPixelRatioCap(cap),
+      getProfilePixelRatioCap: () => this.scaler.profile.pixelRatioCap,
+    });
+    this.modes.register(this.shader);
     this.modes.switchTo('hub');
     this.state.modeId = 'hub';
     this.bus.on('mode:changed', ({ to }) => {
@@ -306,6 +330,9 @@ export class App {
       this.city.update(this.time.elapsed, this.flight.camera.position.x, this.flight.camera.position.z);
       this.flight.frame(this.time.elapsed, this.time.frameDelta);
       this.sceneMgr.render(this.flight.camera);
+    } else if (modeId === 'shader') {
+      this.shader.frame(this.time.elapsed, this.time.frameDelta);
+      this.sceneMgr.render(this.shader.camera, this.shader.scene);
     } else {
       this.water.update(this.time.elapsed);
       this.city.update(this.time.elapsed, this.hub.x, this.hub.z);
@@ -341,11 +368,13 @@ export class App {
       this.state.reportEntities('battle', modeId === 'battle' ? this.battle.entityCount : 0);
       this.state.reportEntities('board', modeId === 'board' ? this.board.entityCount : 0);
       this.state.reportEntities('flight', modeId === 'flight' ? this.flight.entityCount : 0);
+      this.state.reportEntities('shader', modeId === 'shader' ? this.shader.entityCount : 0);
       const cam =
         modeId === 'race' ? this.race.camera :
         modeId === 'battle' ? this.battle.camera :
         modeId === 'board' ? this.board.camera :
-        modeId === 'flight' ? this.flight.camera : this.rig.camera;
+        modeId === 'flight' ? this.flight.camera :
+        modeId === 'shader' ? this.shader.camera : this.rig.camera;
       const s = this.stats;
       s.fps = this.currentFps();
       s.frameMs = dt * 1000;
