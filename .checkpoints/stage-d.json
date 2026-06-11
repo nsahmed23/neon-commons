@@ -1,0 +1,49 @@
+{
+  "stage": "D",
+  "phase": 5,
+  "mode": "board",
+  "branch": "stage-d-board",
+  "completedAt": "2026-06-10",
+  "gates": {
+    "tsc": "clean",
+    "vitest": { "files": 25, "tests": 223, "failed": 0, "newBoardTests": 68 },
+    "viteBuild": "clean",
+    "devServerSmoke": "HTTP 200 + #app shell",
+    "headlessBrowser": {
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "smoke": "pedestal interact -> intro -> START -> roll (pos 0->7 from real 2+5) -> bot turns w/ purchases -> rent paid from real ownership -> share code exported -> hub -> re-enter -> restore = identical debug state",
+      "f1DebugPanel": "money/position/holdings per player, ownership map, level map, deck index + next cards, rng cursor"
+    }
+  },
+  "content": {
+    "spaces": 28,
+    "districts": 14,
+    "colorSets": 6,
+    "transitNodes": 4,
+    "utilities": 2,
+    "taxSpaces": 2,
+    "eventSpaces": 3,
+    "eventCards": 16,
+    "players": "2-4 hot-seat, human or bot per seat",
+    "upgradeLevels": 3,
+    "shareCodePrefix": "NCB1."
+  },
+  "measured": {
+    "boardSceneDrawCalls": 69,
+    "boardSceneTriangles": 886,
+    "boardSceneNodes": 127
+  },
+  "seams": {
+    "pureSystems": "src/systems/board/ (BoardData, BoardRng, EventDeck, Engine, Bot, ShareCode)",
+    "mode": "src/modes/BoardMode.ts (id 'board', registered in App)",
+    "scene": "src/modes/board/BoardScene.ts",
+    "hud": "src/ui/BoardHUD.ts",
+    "saveKey": "neon-commons:board:v1 (SaveSystem.loadRaw/saveRaw of the share-code encoding)",
+    "devHandle": "window.__neonApp (main.ts)"
+  },
+  "sharedFileEdits": [
+    "src/core/App.ts (import + register board mode, render/measure branches — additive, mirrors battle)",
+    "src/style.css (appended .board-* rules; reuses .battle-log/.battle-panel/.battle-move-btn/.menu-button classes)"
+  ]
+}

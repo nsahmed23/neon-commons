@@ -32,6 +32,20 @@ session resume with zero conversation history.
       47 new tests (155 total). Headless bout played to victory,
       0 console errors. Branch `stage-c-battle`.
 
+- [x] Stage D / Phase 5 (Board): pure board systems under
+      src/systems/board (BoardData 28-space ring w/ 6 color sets,
+      BoardRng serializable cursor, EventDeck 16 flux cards, Engine
+      event-sourced rules — rent from real ownership/sets/levels,
+      echo-roll doubles + surge recall, liquidation + bankruptcy,
+      last-solvent / round-cap + net-worth wins, Bot deterministic
+      policy, ShareCode versioned base64 full-state round-trip),
+      BoardMode + BoardHUD + BoardScene (tile ring, pawns, real-result
+      dice, owner strips/level markers, seat setup, save/load + share
+      codes, F1 engine-state panel), 68 new tests (223 total).
+      Headless: pedestal entry, human+bot rounds, live share-code
+      restore to identical state, 0 console errors.
+      Branch `stage-d-board`.
+
 Stage A branch: `stage-a-foundation-hub` (no remote). 52 tests, tsc
 clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
@@ -41,10 +55,9 @@ clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
 ## Next (other agents' stages — do NOT stub their content)
 
-- [ ] Phase 5 Board (`board`), Phase 6 Flight (`flight`),
-      Phase 7 Shader (`shader`): implement `Mode`, register with the
-      ModeManager; the pedestal interact event already routes to
-      `modes.switchTo(id)` once registered.
+- [ ] Phase 6 Flight (`flight`), Phase 7 Shader (`shader`): implement
+      `Mode`, register with the ModeManager; the pedestal interact
+      event already routes to `modes.switchTo(id)` once registered.
 - [ ] Phase 8 Optimization + release: continuous VERIFICATION.md
       already started; final pass adds before/after numbers on a real
       GPU and a deployed smoke run.

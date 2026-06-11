@@ -620,7 +620,7 @@ export function describeBoardEvent(state: BoardGameState, e: BoardEvent): string
     case 'turn-start':
       return `— Round ${e.round}: ${name(e.player)} to roll —`;
     case 'roll':
-      return `${name(e.player)} rolls ${e.d1} + ${e.d2}${e.doubles ? ' — echo roll!' : ''}.`;
+      return `${name(e.player)} rolls ${e.d1} + ${e.d2}${e.doubles ? ' — an echo roll' : ''}.`;
     case 'surge-recall':
       return `${name(e.player)} overloads the grid (three echoes) — fined ${e.fine} cr and recalled to the Maintenance Bay.`;
     case 'move':
