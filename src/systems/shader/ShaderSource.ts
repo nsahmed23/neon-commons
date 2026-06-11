@@ -158,6 +158,11 @@ void main() {
   float pathLen = uCamDist * 2.0 + ESCAPE_RADIUS * rs;
   float ds = pathLen / float(uSteps);
 
+  // Per-pixel ray-start jitter: dithers the step-quantization bands in
+  // the disk into fine noise (static per pixel, so reduced motion stays
+  // a calm frame).
+  pos += dir * ds * hash13(vec3(gl_FragCoord.xy, 7.0));
+
   vec3 col = vec3(0.0);
   float minR = 1e9;
   float captured = 0.0;
@@ -196,7 +201,9 @@ void main() {
   }
 
   // Photon-ring brightening near the closest approach to 1.5 rs.
-  col += vec3(1.0, 0.93, 0.80) * (photonRingGlow(minR, rs) * 0.85);
+  // Escaped rays only: captured rays are the shadow and must stay
+  // black (adding glow to them washed the shadow grey after gamma).
+  col += vec3(1.0, 0.93, 0.80) * (photonRingGlow(minR, rs) * 0.85 * (1.0 - captured));
 
   // Tone map + gamma.
   col = col / (col + 1.0);
