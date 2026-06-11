@@ -31,6 +31,28 @@ export class SaveSystem {
     }
   }
 
+  /**
+   * Generic raw-string persistence for other systems (race ghosts,
+   * later board saves). Callers own validation of what comes back;
+   * storage failures degrade to null/false, never throw.
+   */
+  loadRaw(key: string): string | null {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  saveRaw(key: string, raw: string): boolean {
+    try {
+      localStorage.setItem(key, raw);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Wipe the save and return fresh defaults. */
   reset(): SettingsData {
     try {

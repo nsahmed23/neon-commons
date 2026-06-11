@@ -31,6 +31,11 @@ export class Minimap {
     this.renderStatic(world);
   }
 
+  /** Hidden while a non-hub mode owns the screen. */
+  setVisible(v: boolean): void {
+    this.canvas.style.display = v ? 'block' : 'none';
+  }
+
   private toPx(v: number): number {
     return (v + WORLD.half) * this.scale;
   }

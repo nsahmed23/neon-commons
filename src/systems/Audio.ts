@@ -88,6 +88,49 @@ export class AudioSystem {
     this.blip(140 + Math.random() * 30, 0.04, 'triangle');
   }
 
+  // ---- Engine loop (Race mode) -----------------------------------------
+
+  private engineOsc: OscillatorNode | null = null;
+  private engineGain: GainNode | null = null;
+  private engineFilter: BiquadFilterNode | null = null;
+
+  /** Start the persistent engine drone (sawtooth through a lowpass). */
+  engineStart(): void {
+    if (!this.ctx || !this.sfx || this.engineOsc) return;
+    const t = this.ctx.currentTime;
+    this.engineOsc = this.ctx.createOscillator();
+    this.engineOsc.type = 'sawtooth';
+    this.engineOsc.frequency.value = 50;
+    this.engineFilter = this.ctx.createBiquadFilter();
+    this.engineFilter.type = 'lowpass';
+    this.engineFilter.frequency.value = 320;
+    this.engineGain = this.ctx.createGain();
+    this.engineGain.gain.setValueAtTime(0.0001, t);
+    this.engineGain.gain.exponentialRampToValueAtTime(0.035, t + 0.4);
+    this.engineOsc.connect(this.engineFilter).connect(this.engineGain).connect(this.sfx);
+    this.engineOsc.start(t);
+  }
+
+  /** Pitch/brightness follow normalized speed; call per frame, cheap. */
+  engineSet(speedNorm: number, boosting: boolean): void {
+    if (!this.ctx || !this.engineOsc || !this.engineFilter) return;
+    const t = this.ctx.currentTime;
+    const freq = 46 + speedNorm * 150 + (boosting ? 35 : 0);
+    this.engineOsc.frequency.setTargetAtTime(freq, t, 0.08);
+    this.engineFilter.frequency.setTargetAtTime(260 + speedNorm * 900, t, 0.1);
+  }
+
+  engineStop(): void {
+    if (!this.ctx || !this.engineOsc || !this.engineGain) return;
+    const t = this.ctx.currentTime;
+    this.engineGain.gain.setTargetAtTime(0.0001, t, 0.1);
+    const osc = this.engineOsc;
+    osc.stop(t + 0.5);
+    this.engineOsc = null;
+    this.engineGain = null;
+    this.engineFilter = null;
+  }
+
   /**
    * Endless ambient pad: two detuned triangle oscillators through a
    * lowpass whose cutoff is swept by a very slow LFO.

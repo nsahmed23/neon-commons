@@ -10,7 +10,8 @@ export type ContinuousAction =
   | 'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump';
 
 export type EdgeAction =
-  | 'menu' | 'pause' | 'debug' | 'quality' | 'reset' | 'interact' | 'daynight';
+  | 'menu' | 'pause' | 'debug' | 'quality' | 'reset' | 'interact' | 'daynight'
+  | 'modeDebug' | 'escape';
 
 const CONTINUOUS_BINDINGS: Record<string, ContinuousAction> = {
   KeyW: 'forward',
@@ -30,6 +31,8 @@ const EDGE_BINDINGS: Record<string, EdgeAction> = {
   KeyR: 'reset',
   KeyE: 'interact',
   KeyN: 'daynight',
+  KeyB: 'modeDebug',
+  Escape: 'escape',
 };
 
 export class Input {

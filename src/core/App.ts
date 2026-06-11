@@ -26,6 +26,7 @@ import {
 } from '../rendering/SceneManager';
 import { HubMode } from '../modes/HubMode';
 import { ModeManager } from '../modes/Mode';
+import { RaceMode } from '../modes/RaceMode';
 import { AudioSystem } from '../systems/Audio';
 import {
   deserializeSettings,
@@ -63,6 +64,7 @@ export class App {
   private water: Water;
   private vegetation: Vegetation;
   private hub: HubMode;
+  private race: RaceMode;
   private modes: ModeManager;
 
   private overlay: DebugOverlay;
@@ -134,8 +136,27 @@ export class App {
       (text) => this.hud.setPrompt(text),
     );
     this.modes.register(this.hub);
+    this.race = new RaceMode({
+      parent,
+      bus: this.bus,
+      input: this.input,
+      audio: this.audio,
+      save: this.save,
+      seed: this.state.seed,
+      isDebugVisible: () => this.overlay.isVisible,
+      exitToHub: () => this.modes.switchTo('hub'),
+      setLockWanted: (wanted) => {
+        this.input.setLockWanted(wanted);
+        if (wanted) this.input.requestLock();
+      },
+    });
+    this.modes.register(this.race);
     this.modes.switchTo('hub');
     this.state.modeId = 'hub';
+    this.bus.on('mode:changed', ({ to }) => {
+      this.state.modeId = to;
+      this.minimap.setVisible(to === 'hub');
+    });
 
     // Input ------------------------------------------------------------
     this.input.attach(this.sceneMgr.canvas);
@@ -213,12 +234,17 @@ export class App {
     }
 
     // Visual updates driven by simulation time (freeze on pause).
-    this.water.update(this.time.elapsed);
-    this.city.update(this.time.elapsed, this.hub.x, this.hub.z);
-    this.rig.follow(this.hub.x, this.hub.y, this.hub.z);
-    this.minimap.update(this.hub.x, this.hub.z, this.rig.yaw);
-
-    this.sceneMgr.render(this.rig.camera);
+    const racing = this.modes.currentId === 'race';
+    if (racing) {
+      this.race.frame(this.time.elapsed, this.time.frameDelta);
+      this.sceneMgr.render(this.race.camera, this.race.scene);
+    } else {
+      this.water.update(this.time.elapsed);
+      this.city.update(this.time.elapsed, this.hub.x, this.hub.z);
+      this.rig.follow(this.hub.x, this.hub.y, this.hub.z);
+      this.minimap.update(this.hub.x, this.hub.z, this.rig.yaw);
+      this.sceneMgr.render(this.rig.camera);
+    }
     this.lastDrawCalls = this.sceneMgr.info.render.calls;
     this.lastTriangles = this.sceneMgr.info.render.triangles;
 
@@ -242,6 +268,9 @@ export class App {
       this.state.reportEntities('city', this.city.activeInstances);
       this.state.reportEntities('vegetation', this.vegetation.activeInstances);
       this.state.reportEntities('player', 1);
+      const racing = this.modes.currentId === 'race';
+      this.state.reportEntities('race', racing ? this.race.entityCount : 0);
+      const cam = racing ? this.race.camera : this.rig.camera;
       const s = this.stats;
       s.fps = this.currentFps();
       s.frameMs = dt * 1000;
@@ -250,9 +279,9 @@ export class App {
       s.entities = this.state.totalEntities;
       s.mode = this.modes.currentId;
       s.quality = this.scaler.current;
-      s.camX = this.rig.camera.position.x;
-      s.camY = this.rig.camera.position.y;
-      s.camZ = this.rig.camera.position.z;
+      s.camX = cam.position.x;
+      s.camY = cam.position.y;
+      s.camZ = cam.position.z;
       s.seed = this.state.seed;
       s.windows = this.world.totalWindows;
       this.overlay.update(s);

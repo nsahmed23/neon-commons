@@ -112,3 +112,28 @@ Approximations (documented, not faked):
    while the menu was closed; the panel now rebuilds on every open.
 5. `terrainHeight` returned `-0` inside the city (multiply by 0 blend),
    caught by a determinism test; normalized to `0`.
+
+## Stage B — Race Mode (2026-06-10)
+
+Note on provenance: the Stage B build agent hit its session limit after its
+final fix iteration but before writing this section. This entry was written
+post-mortem by the orchestrator from observable evidence (commits d692a5b,
+e6834db, recovered WIP commit; test suite; file inspection). Claims here are
+limited to what was independently verified.
+
+Verified by orchestrator:
+- tsc --noEmit clean; vite build clean (1.08s); 108/108 tests green
+  (52 Stage A + 56 race: track 12, raceai 13, vehicle 12, checkpoints 11,
+  ghost 8).
+- Systems present as pure modules under src/systems/race/ (Track,
+  Vehicle, Checkpoints, RaceAI, Ghost) with RaceMode + RaceHUD wiring,
+  per the spec's testable-without-three.js requirement.
+- Ordered-checkpoint and wrong-way logic, AI steering decisions, ghost
+  record/replay round-trip, and surface-slowdown all covered by named
+  unit tests.
+
+Not verified (agent died before doing/recording it):
+- Headless browser pass of the full race loop (enter from pedestal →
+  countdown → lap increment). Carried forward to Stage G's full audit.
+- The agent's own real-vs-approximation and bugs-found notes for this
+  stage are lost; Stage G's self-audit should re-derive them.
