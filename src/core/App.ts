@@ -24,6 +24,7 @@ import {
   NIGHT_FOG,
   SceneManager,
 } from '../rendering/SceneManager';
+import { BattleMode } from '../modes/BattleMode';
 import { HubMode } from '../modes/HubMode';
 import { ModeManager } from '../modes/Mode';
 import { RaceMode } from '../modes/RaceMode';
@@ -65,6 +66,7 @@ export class App {
   private vegetation: Vegetation;
   private hub: HubMode;
   private race: RaceMode;
+  private battle: BattleMode;
   private modes: ModeManager;
 
   private overlay: DebugOverlay;
@@ -151,6 +153,20 @@ export class App {
       },
     });
     this.modes.register(this.race);
+    this.battle = new BattleMode({
+      parent,
+      bus: this.bus,
+      input: this.input,
+      audio: this.audio,
+      seed: this.state.seed,
+      isDebugVisible: () => this.overlay.isVisible,
+      exitToHub: () => this.modes.switchTo('hub'),
+      setLockWanted: (wanted) => {
+        this.input.setLockWanted(wanted);
+        if (wanted) this.input.requestLock();
+      },
+    });
+    this.modes.register(this.battle);
     this.modes.switchTo('hub');
     this.state.modeId = 'hub';
     this.bus.on('mode:changed', ({ to }) => {
@@ -234,10 +250,13 @@ export class App {
     }
 
     // Visual updates driven by simulation time (freeze on pause).
-    const racing = this.modes.currentId === 'race';
-    if (racing) {
+    const modeId = this.modes.currentId;
+    if (modeId === 'race') {
       this.race.frame(this.time.elapsed, this.time.frameDelta);
       this.sceneMgr.render(this.race.camera, this.race.scene);
+    } else if (modeId === 'battle') {
+      this.battle.frame(this.time.elapsed, this.time.frameDelta);
+      this.sceneMgr.render(this.battle.camera, this.battle.scene);
     } else {
       this.water.update(this.time.elapsed);
       this.city.update(this.time.elapsed, this.hub.x, this.hub.z);
@@ -268,9 +287,12 @@ export class App {
       this.state.reportEntities('city', this.city.activeInstances);
       this.state.reportEntities('vegetation', this.vegetation.activeInstances);
       this.state.reportEntities('player', 1);
-      const racing = this.modes.currentId === 'race';
-      this.state.reportEntities('race', racing ? this.race.entityCount : 0);
-      const cam = racing ? this.race.camera : this.rig.camera;
+      const modeId = this.modes.currentId;
+      this.state.reportEntities('race', modeId === 'race' ? this.race.entityCount : 0);
+      this.state.reportEntities('battle', modeId === 'battle' ? this.battle.entityCount : 0);
+      const cam =
+        modeId === 'race' ? this.race.camera :
+        modeId === 'battle' ? this.battle.camera : this.rig.camera;
       const s = this.stats;
       s.fps = this.currentFps();
       s.frameMs = dt * 1000;
