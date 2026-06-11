@@ -11,7 +11,7 @@
 
 import * as THREE from 'three';
 import type { GameBus } from '../core/EventBus';
-import type { Input } from '../core/Input';
+import { isEditableTarget, type Input } from '../core/Input';
 import type { SaveSystem } from '../core/SaveSystem';
 import type { AudioSystem } from '../systems/Audio';
 import { BOARD, BOARD_SIZE, type DistrictDef } from '../systems/board/BoardData';
@@ -146,6 +146,7 @@ export class BoardMode implements Mode {
     });
     window.addEventListener('keydown', (e) => {
       if (!this.active || !this.playing) return;
+      if (isEditableTarget(e.target as { tagName?: string } | null)) return;
       if (e.code === 'KeyR') this.humanAction('roll');
     });
   }

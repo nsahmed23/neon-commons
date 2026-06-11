@@ -36,6 +36,23 @@ const EDGE_BINDINGS: Record<string, EdgeAction> = {
   Escape: 'escape',
 };
 
+/**
+ * True when a key event targets a text-entry element (input, textarea,
+ * select, or contenteditable). Game bindings must NOT fire then: typing
+ * a board share code that contains N/B/W/R was swallowed by
+ * preventDefault AND toggled day-night, race debug, menus and dice
+ * rolls mid-type (found live in the Stage G audit). Shaped to be
+ * DOM-agnostic so the node-env test suite can cover it.
+ */
+export function isEditableTarget(
+  t: { tagName?: string; isContentEditable?: boolean } | null,
+): boolean {
+  if (!t) return false;
+  if (t.isContentEditable === true) return true;
+  const tag = t.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+}
+
 export class Input {
   mouseSensitivity = 1.0;
 
@@ -99,6 +116,7 @@ export class Input {
   }
 
   private onKeyDown = (e: KeyboardEvent): void => {
+    if (isEditableTarget(e.target as { tagName?: string } | null)) return;
     const cont = CONTINUOUS_BINDINGS[e.code];
     if (cont) {
       this.down.add(cont);
@@ -115,6 +133,9 @@ export class Input {
   };
 
   private onKeyUp = (e: KeyboardEvent): void => {
+    // No editable-target guard here: a key released over an input must
+    // still clear a held action (e.g. W held, click into the share-code
+    // box, release W — otherwise the kart drives forever).
     const cont = CONTINUOUS_BINDINGS[e.code];
     if (cont) this.down.delete(cont);
   };
