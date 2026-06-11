@@ -783,3 +783,206 @@ body,
   font-size: 11px;
   padding: 6px 8px;
 }
+
+/* Flight mode ----------------------------------------------------------- */
+.flight-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.flight-rings {
+  position: absolute;
+  top: 44px;
+  right: 16px;
+  font-size: 26px;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(125, 249, 255, 0.5);
+}
+
+.flight-score {
+  position: absolute;
+  top: 78px;
+  right: 16px;
+  font-size: 18px;
+  color: #ffd166;
+}
+
+.flight-speed {
+  position: absolute;
+  bottom: 40px;
+  right: 16px;
+  font-size: 18px;
+}
+
+.flight-boss {
+  position: absolute;
+  left: 50%;
+  top: 56px;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff5470;
+  text-shadow: 0 0 14px rgba(255, 84, 112, 0.7);
+  display: none;
+}
+
+.flight-warn {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  font-size: 26px;
+  font-weight: bold;
+  color: #ff5470;
+  text-shadow: 0 0 16px rgba(255, 84, 112, 0.8);
+  animation: race-warn-flash 0.5s steps(2) infinite;
+  display: none;
+}
+
+.flight-arrow-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.flight-arrow {
+  font-size: 34px;
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(125, 249, 255, 0.8);
+  transition: transform 90ms linear;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flight-arrow {
+    transition: none;
+  }
+  .flight-warn {
+    animation: none;
+  }
+}
+
+.flight-arrow-dist {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.flight-hull {
+  position: absolute;
+  bottom: 44px;
+  left: 16px;
+  width: 200px;
+}
+
+.flight-hull-bar {
+  height: 10px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: rgba(4, 5, 12, 0.6);
+  overflow: hidden;
+}
+
+.flight-hull-fill {
+  height: 100%;
+  width: 100%;
+  background: #35ffa8;
+  box-shadow: 0 0 8px rgba(53, 255, 168, 0.7);
+}
+
+.flight-hull-fill.low {
+  background: #ff5470;
+  box-shadow: 0 0 8px rgba(255, 84, 112, 0.8);
+}
+
+.flight-hull-text {
+  margin-top: 3px;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.flight-hint {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+.flight-panel {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 5, 12, 0.66);
+  backdrop-filter: blur(3px);
+}
+
+.flight-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  border-radius: 5px;
+  padding: 26px 32px;
+  width: min(500px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.flight-card h1 {
+  font-size: 22px;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(125, 249, 255, 0.5);
+}
+
+.flight-card h1.flight-win { color: #35ffa8; }
+.flight-card h1.flight-loss { color: #ff5470; }
+
+.flight-sub {
+  font-size: 11px;
+  opacity: 0.6;
+  margin: 4px 0 14px;
+}
+
+.flight-brief {
+  font-size: 12.5px;
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.flight-brief p {
+  margin: 0 0 8px;
+}
+
+.flight-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin: 10px 0 16px;
+}
+
+.flight-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.flight-table td:last-child {
+  text-align: right;
+  color: #ffd166;
+}
+
+.flight-table tr.flight-total td {
+  border-bottom: none;
+  font-weight: bold;
+  color: var(--accent);
+  font-size: 15px;
+}

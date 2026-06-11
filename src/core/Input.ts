@@ -7,7 +7,7 @@
  */
 
 export type ContinuousAction =
-  | 'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump';
+  | 'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump' | 'fire';
 
 export type EdgeAction =
   | 'menu' | 'pause' | 'debug' | 'quality' | 'reset' | 'interact' | 'daynight'
@@ -21,6 +21,7 @@ const CONTINUOUS_BINDINGS: Record<string, ContinuousAction> = {
   ShiftLeft: 'sprint',
   ShiftRight: 'sprint',
   Space: 'jump',
+  KeyF: 'fire',
 };
 
 const EDGE_BINDINGS: Record<string, EdgeAction> = {
