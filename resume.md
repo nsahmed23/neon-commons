@@ -46,6 +46,23 @@ session resume with zero conversation history.
       restore to identical state, 0 console errors.
       Branch `stage-d-board`.
 
+- [x] Stage E / Phase 6 (Flight): pure flight systems under
+      src/systems/flight (FlightModel hover-drone with per-axis
+      drag/caps + altitude band + velocity-derived banking, Rings
+      course generated from real WorldData skyline clearance +
+      RingTracker extending the race checkpoint order pattern to 3D,
+      Projectiles bounded SoA pool with swept segment-sphere collision,
+      DroneAI patrol/engage/evade sentries + 3-phase boss
+      shielded/vulnerable/enraged from real state, Scoring typed
+      FlightEvent stream + accuracy bonus), FlightMode + FlightHUD +
+      FlightScene — flies over the LIVE hub scene with its own chase
+      camera, real building push-out, briefing -> active -> ending ->
+      results lifecycle, reduced-motion-aware camera shake, 56 new
+      tests (279 total). Headless: pedestal entry, full win run
+      (10 rings ordered, boss through all phases, 2500-point breakdown
+      from the event stream), organic fail path, 0 console errors.
+      Branch `stage-e-flight`.
+
 Stage A branch: `stage-a-foundation-hub` (no remote). 52 tests, tsc
 clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
@@ -55,9 +72,9 @@ clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
 ## Next (other agents' stages — do NOT stub their content)
 
-- [ ] Phase 6 Flight (`flight`), Phase 7 Shader (`shader`): implement
-      `Mode`, register with the ModeManager; the pedestal interact
-      event already routes to `modes.switchTo(id)` once registered.
+- [ ] Phase 7 Shader (`shader`): implement `Mode`, register with the
+      ModeManager; the pedestal interact event already routes to
+      `modes.switchTo(id)` once registered.
 - [ ] Phase 8 Optimization + release: continuous VERIFICATION.md
       already started; final pass adds before/after numbers on a real
       GPU and a deployed smoke run.

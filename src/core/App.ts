@@ -26,6 +26,7 @@ import {
 } from '../rendering/SceneManager';
 import { BattleMode } from '../modes/BattleMode';
 import { BoardMode } from '../modes/BoardMode';
+import { FlightMode } from '../modes/FlightMode';
 import { HubMode } from '../modes/HubMode';
 import { ModeManager } from '../modes/Mode';
 import { RaceMode } from '../modes/RaceMode';
@@ -69,6 +70,7 @@ export class App {
   private race: RaceMode;
   private battle: BattleMode;
   private board: BoardMode;
+  private flight: FlightMode;
   private modes: ModeManager;
 
   private overlay: DebugOverlay;
@@ -184,6 +186,22 @@ export class App {
       },
     });
     this.modes.register(this.board);
+    this.flight = new FlightMode({
+      parent,
+      bus: this.bus,
+      input: this.input,
+      audio: this.audio,
+      scene: this.sceneMgr.scene,
+      world: this.world,
+      seed: this.state.seed,
+      exitToHub: () => this.modes.switchTo('hub'),
+      setLockWanted: (wanted) => {
+        this.input.setLockWanted(wanted);
+        if (wanted) this.input.requestLock();
+      },
+      getMotionEffects: () => this.settings.motionEffects,
+    });
+    this.modes.register(this.flight);
     this.modes.switchTo('hub');
     this.state.modeId = 'hub';
     this.bus.on('mode:changed', ({ to }) => {
@@ -259,7 +277,11 @@ export class App {
     // Mouse look applies per frame for responsiveness.
     this.input.consumeMouseDelta(this.mouseDelta);
     if (this.input.pointerLocked && !this.menu.isOpen) {
-      this.rig.applyLook(this.mouseDelta.x, this.mouseDelta.y);
+      if (this.modes.currentId === 'flight') {
+        this.flight.applyLook(this.mouseDelta.x, this.mouseDelta.y);
+      } else {
+        this.rig.applyLook(this.mouseDelta.x, this.mouseDelta.y);
+      }
     }
 
     for (let i = 0; i < steps; i++) {
@@ -277,6 +299,13 @@ export class App {
     } else if (modeId === 'board') {
       this.board.frame(this.time.elapsed, this.time.frameDelta);
       this.sceneMgr.render(this.board.camera, this.board.scene);
+    } else if (modeId === 'flight') {
+      // Flight plays INSIDE the hub scene: keep the city/water animating
+      // (on simulation time, so pause still freezes everything).
+      this.water.update(this.time.elapsed);
+      this.city.update(this.time.elapsed, this.flight.camera.position.x, this.flight.camera.position.z);
+      this.flight.frame(this.time.elapsed, this.time.frameDelta);
+      this.sceneMgr.render(this.flight.camera);
     } else {
       this.water.update(this.time.elapsed);
       this.city.update(this.time.elapsed, this.hub.x, this.hub.z);
@@ -311,10 +340,12 @@ export class App {
       this.state.reportEntities('race', modeId === 'race' ? this.race.entityCount : 0);
       this.state.reportEntities('battle', modeId === 'battle' ? this.battle.entityCount : 0);
       this.state.reportEntities('board', modeId === 'board' ? this.board.entityCount : 0);
+      this.state.reportEntities('flight', modeId === 'flight' ? this.flight.entityCount : 0);
       const cam =
         modeId === 'race' ? this.race.camera :
         modeId === 'battle' ? this.battle.camera :
-        modeId === 'board' ? this.board.camera : this.rig.camera;
+        modeId === 'board' ? this.board.camera :
+        modeId === 'flight' ? this.flight.camera : this.rig.camera;
       const s = this.stats;
       s.fps = this.currentFps();
       s.frameMs = dt * 1000;

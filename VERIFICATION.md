@@ -371,3 +371,154 @@ Approximations (documented, not faked):
 - R rolls only; there are no hotkeys for buy/develop/end.
 - Hot-seat trust model: the action bar always drives the current
   player, so any human at the keyboard can act for any human seat.
+
+## Stage E — Flight Mode (2026-06-10)
+
+## Gates
+
+| Gate | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npx vitest run` | 279/279 tests, 31 files (223 prior + 56 new flight tests) |
+| `npm run build` | clean (same pre-existing Three.js chunk-size note) |
+| dev server + `curl` | HTTP 200, app shell served |
+| Headless Chromium session (playwright-cli) | 0 console errors / 0 warnings; entered flight via the pedestal interact event, briefing -> LAUNCH -> active, all 10 rings passed in order from real sphere detection, boss fought through all three phases with real bolts to COURSE CLEAR, fail path hit twice for real (see below), hub round-trip clean, self-audit still 8/8 |
+
+## What is tested (vitest, node env, pure modules only)
+
+- `flightmodel.test.ts` (11): bit-identical state from a 600-step
+  scripted input tape (integration-step determinism), thrust along the
+  heading, hard forward/reverse caps, altitude floor AND ceiling clamps
+  that kill only the offending velocity component, strafe banking sign
+  + bankMax clamp, nose pitch from real forward velocity, drag decay to
+  hover, exact yaw rate over one second, reset state.
+- `flightrings.test.ts` (11): course generation determinism (deep
+  equality across 4 seeds) + seed divergence, exactly 10 rings inside
+  world bounds, EVERY ring clearing the real skyline near its center
+  (maxRoofNear over actual building footprints), boss arena over the
+  lake, ordered tracking (later ring first = no progress + missed flag,
+  ordered passes complete exactly once), sphere pass detection at the
+  radius boundary, dirToNext unit vector + distance into a caller
+  buffer.
+- `flightprojectiles.test.ts` (11): pool refuses to grow past its hard
+  max (spawn returns -1, storage length constant), slot free + reuse,
+  ttl expiry, velocity integration, swept segment-vs-sphere math (pass
+  through, wide miss, graze exactly at radius, segment that STOPS short
+  misses), anti-tunneling (a 95 m/s bolt cannot skip a 0.3 m sphere
+  between 60 Hz steps), hit reports id/damage/owner and kills the bolt,
+  friendly fire off by team.
+- `flightdroneai.test.ts` (13): patrol->engage at engage range,
+  engage->patrol only past the LOSE range (hysteresis proven inside the
+  band), engage->evade at the hp fraction and evade persists, evade
+  actually flees (distance grows), fire only in engage + in range + on
+  the real cooldown (shot timestamps >= interval apart), patrol orbits
+  its anchor, killing-hit reported exactly once; boss: damage BLOCKED
+  while shielded, shielded->vulnerable the step the last add dies,
+  vulnerable->enraged at the real hp threshold (1 hp above = no
+  transition), down-phase inertness, distinct fire behavior per phase
+  (counted shots: enraged > vulnerable > shielded), vulnerable boss
+  holds the arena center.
+- `flightscoring.test.ts` (7): scripted event stream folds to the exact
+  expected total (rings + kills + boss + accuracy), non-scoring events
+  never move the score, zero-shot accuracy is 0 not NaN, breakdown rows
+  sum to the total and carry the real counts, no boss row when it
+  survived, exact callout sentences, per-shot events stay silent.
+- `flightrun.test.ts` (3): a full scripted run (autopilot through the
+  pure modules: course flight, sentry fights, escort adds, boss) from
+  one seed reproduces the identical event log twice; the run completes
+  with rings 0..9 strictly in order and boss phases in order
+  (vulnerable < enraged < boss-kill in the log); a different seed
+  produces a different log.
+
+## Real vs. approximation
+
+Real (backed by state/simulation/logic):
+- Flight happens over the LIVE hub scene: the mode renders the same
+  scene/city/water the hub walks through, with its own chase camera;
+  the city shader animation stays on simulation time, so pause freezes
+  the skyline mid-flight too.
+- Ring passes are 3D sphere-proximity tests against the ordered course
+  in the fixed-step update; the HUD counter, the +100s, the indicator
+  arrow (bearing/pitch/distance to the actual next ring) and the
+  "WRONG RING" warning all read the tracker.
+- The course is generated from the same WorldData buildings the hub
+  renders: each ring's altitude is derived from the tallest real roof
+  near it (unit-tested clearance), so the course genuinely rides the
+  skyline rather than clipping through it.
+- Projectile collision is swept segment-vs-sphere per fixed step (no
+  tunneling at 95 m/s); every hit, kill, hull hit and shield block is
+  an event from that collision path. The pool is hard-bounded at 96.
+- Enemy drones run real patrol/engage/evade machines; their callout
+  toasts fire from the transition events. The live fail path was
+  triggered organically twice during verification: a sentry (then the
+  boss) shot down the hovering test drone, producing player-down ->
+  DRONE DOWN results.
+- Boss phases derive from real state (escort-adds-alive count, real
+  hp thresholds); damage while shielded is rejected by the engine, and
+  the headless session showed shielded -> vulnerable flip the moment
+  the last add died, then enraged mid-burn, then the kill.
+- Score and the results breakdown fold ONLY the typed FlightEvent
+  stream (applyFlightEvent is the single writer); the live results
+  table (10 rings +1000 / boss +1000 / 22-of-22 accuracy +500 = 2500)
+  matched the HUD score exactly.
+- Player drone collides with the real city: building push-out uses an
+  AABB grid built from the same WorldData (Y-band aware: flying OVER a
+  roof does not collide), and the terrain floor uses the shared height
+  function.
+- Camera shake on hull hits is gated by the motion-effects setting
+  (reduced-motion rule); the HUD arrow CSS transition is disabled
+  under prefers-reduced-motion.
+
+Approximations (documented, not faked):
+- Ring pass detection is sphere proximity (per spec), not a torus
+  plane-crossing test: flying very near the rim counts as a pass.
+- Enemy/boss movement is kinematic seek (moveToward at a speed cap),
+  not the player inertial flight model; enemy bolts aim at the player
+  CURRENT position with no lead, which is the intended arcade dodge
+  window.
+- Enemy drones do not collide with buildings (sentries patrol above
+  the skyline; a chase can clip a tower corner).
+- The boss "burst" is interval fire, not choreographed volleys; spread
+  fans are yaw-offset only (no vertical spread).
+- Drone meshes are shared-geometry box assemblies; hit feedback is
+  camera shake + audio, no explosion particles.
+
+## Measured numbers (headless Chromium, software GL, 1280x720)
+
+- Flight over the night city at launch view: 18 draw calls, ~93k
+  triangles (the whole skyline is still the single instanced facade
+  call; rings/drones/bolts add ~15 visible calls worst case at this
+  view, all 96 bolts are 1 instanced call).
+- Full headless win run: 10/10 rings, boss through all 3 phases,
+  COURSE CLEAR with 2500 points (1000 rings + 1000 boss + 500 accuracy
+  at 22/22), player hull 68/100 from real boss fire; console 0 errors
+  / 0 warnings; hub self-audit 8/8 after exit.
+
+## Bugs found and fixed during this verification pass
+
+1. The flight model soft speed cap (decay toward cap) lost to thrust
+   equilibrium on the LOW reverse cap: sustained reverse settled at
+   -19.5 m/s against a -14 limit. Caught by the reverse-cap unit test;
+   replaced with hard per-axis clamps (flight has no boost mechanic,
+   so there is no legitimate over-cap state).
+2. First headless full-course attempt "froze" at ring 2 — actually the
+   fail lifecycle working: a sentry shot down the hovering test drone
+   between script steps and the world correctly stopped at the results
+   panel. The smoke script was rewritten to keep moving; the bug was
+   in the script, not the game, and it proved player-down -> DRONE
+   DOWN -> Fly Again end to end.
+
+## Known rough edges
+
+- Worst-case drone/ring draw calls are unmerged (~60 if everything is
+  in frustum at once); merging per-drone geometry would cut each body
+  from ~10 calls to 2, mirroring the battle-mode note.
+- Enemy drones and bolts ignore building collision; bolts can pass
+  through a tower to hit you (rare in practice; the course flies above
+  the roofline).
+- Respawn (R) keeps current hull; there is no checkpoint healing or
+  penalty, so respawn-spamming through the sentry gauntlet is viable.
+- The next-ring arrow is bearing-only 2D; the up/down cue is a color
+  shift + arrow glyph, not a 3D reticle.
+- Sentry anchors sit at rings 2/4/6/8 regardless of seed; no
+  quality/difficulty scaling of enemy counts yet.
