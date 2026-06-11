@@ -240,3 +240,134 @@ Approximations (documented, not faked):
   browser play (a Lockup application + expiry appeared in the live
   log), but a full browser defeat was not staged.
 - Rematch reuses the same six robots; no team selection screen.
+
+## Stage D — Board Mode (2026-06-10)
+
+## Gates
+
+| Gate | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npx vitest run` | 223/223 tests, 25 files (155 prior + 68 new board tests) |
+| `npm run build` | clean (same pre-existing Three.js chunk-size note) |
+| dev server + `curl` | HTTP 200, app shell served |
+| Headless Chromium session (playwright-cli) | 0 console errors / 0 warnings; entered board via the pedestal interact event, started a Human-vs-Bot game, rolled, bought, paid rent, watched bot turns, restored from a live share code |
+
+## What is tested (vitest, node env, pure modules only)
+
+- `boarddata.test.ts` (5): 28-space ring shape, corner/start/rest
+  positions, space census (14 districts / 4 transit / 2 utilities /
+  2 levies / 3 events), 6 color sets of 2-3 covering all districts,
+  strictly increasing rent tables, transit/utility index lookups.
+- `boardrng.test.ts` (4): the serializable cursor reproduces the core
+  mulberry32 stream value-for-value, dice determinism per seed +
+  bounds + divergence, mid-stream cursor resume equals one continuous
+  stream (the share-code property), Fisher-Yates shuffle permutation +
+  determinism.
+- `boardrent.test.ts` (15): table-driven rent — unowned pays nothing,
+  lone district pays rent[0], full set doubles level-0 rent, split set
+  does NOT, levels 1-3 read their own table entry for every district
+  on the board, transit rent by nodes owned (25/50/100/200), utility
+  rent = dice x4 / x10.
+- `boardturns.test.ts` (7): seat rotation with round increment on
+  wrap, phase-gated roll/end rejection, echo roll (doubles) grants the
+  same player another roll, third echo = Surge Recall (fine + recall +
+  turn over), pass-start stipend exactly once per lap, provably-free
+  landing leaves money untouched, dead seats skipped.
+- `boardbuy.test.ts` (8): buying transfers money and sets real
+  ownership, insufficient funds rejected via typed event with no state
+  change, owned/non-purchasable/wrong-phase rejected, upgrades require
+  the full color set, raise the real level and spend real money, cap
+  at level 3, reject empty wallets and rivals' districts.
+- `boardbankruptcy.test.ts` (7): full-cash rent into the owner pocket,
+  liquidation order (developments first at half refund, then cheapest
+  property), asset exhaustion = bankruptcy with creditor receiving
+  only what was recovered, last-solvent win, 3-player game continues
+  after one bankruptcy, net-worth formula, round-cap end with
+  net-worth tiebreak.
+- `boarddeck.test.ts` (9): seeded deck permutation determinism +
+  divergence, deterministic reshuffle on exhaustion (twin states stay
+  identical), money cards, per-level repair charges, collect-from/pay-
+  each-rival, movement cards that resolve the destination for real
+  (rent on arrival), direct recall without stipend, ride-to-transit,
+  move-back-3.
+- `boardsharecode.test.ts` (6): fresh + 40-turn round-trip deep
+  equality, a restored game continues identically to the original for
+  10 more turns, compactness (< 600 chars) and format, malformed input
+  returns null, tampered fields (position/ownership/levels/deck) are
+  rejected by validation.
+- `boarddeterminism.test.ts` (7): two full 4-bot games from one seed
+  produce the identical event log sentence-for-sentence and identical
+  final state, games reach a definite winner, seeds diverge, bot
+  policy is a provable deterministic plan (buy above reserve, refuse
+  below it, develop cheapest-first, always end).
+
+## Real vs. approximation
+
+Real (backed by state/simulation/logic):
+- The game log is generated exclusively by `describeBoardEvent` over
+  the typed BoardEvent stream the engine emits while mutating state;
+  there are no parallel strings (anti-faking clause, same pattern as
+  BattleMode's describeEvent).
+- Rent is computed from the actual ownership/levels arrays at landing
+  time; the headless session showed `Player 1 pays 20 cr rent to
+  Bot 2 for Uptown Glass` immediately after the bot's real purchase.
+- Dice are two seeded d6 draws through the serializable rng cursor;
+  the 3D dice tumble is presentation, but the settle rotation maps the
+  REAL rolled faces (+x=3 -x=4 +y=1 -y=6 +z=2 -z=5), and the same
+  numbers appear in the log and debug panel.
+- Share codes are base64 of a versioned minimal array encoding of the
+  ENTIRE state (seed, rng cursor, players, ownership, levels, deck
+  order/index, turn machine). A live code was exported, the mode was
+  exited and re-entered, and the restore reproduced the identical
+  debug panel (same cursor 4230224449, money, ownership map).
+- Save/load goes through SaveSystem.loadRaw/saveRaw with the same
+  encoding; the intro panel only offers Load when a valid save exists.
+- The F1 debug panel prints engine state directly: per-player money/
+  position/holdings, a 28-char ownership map, level map, deck index +
+  upcoming cards, rng cursor, doubles streak.
+- Owner strips and development markers on the 3D tiles are toggled
+  from the ownership/levels arrays, never animated independently.
+
+Approximations (documented, not faked):
+- The dice tumble is a cosmetic spin before the exact settle; physics
+  is not simulated.
+- Pawn movement glides along the ring with a hop; it does not step
+  tile-by-tile, and pawns coexist on a tile via fixed offsets.
+- Only corners and Skyrail nodes carry 3D name plates (8 labels);
+  district identification on the table is by set color, with names in
+  the HUD log/cards/debug. Keeps the scene at 69 draw calls.
+- Bots are 0-ply policy bots (reserve-gated buy + cheapest-first
+  develop); they do not value sets or block opponents.
+- No mortgage system: forced liquidation sells developments at half
+  upgrade cost, then properties at half price (the mortgage-analog the
+  spec allowed as optional is folded into this single rule).
+- No auction or trading; declined purchases simply stay with the bank.
+
+## Measured numbers (headless Chromium, software GL)
+
+- Board scene: 69 draw calls, ~0.9k triangles, 127 scene nodes.
+- Live session: Human v Bot, 3 rounds, 3 bot purchases, 1 rent
+  payment, 1 levy, 1 card draw, echo rolls on both sides, restore
+  from share code — console 0 errors / 0 warnings.
+
+## Bugs found and fixed during this verification pass
+
+1. Test design caught that "money unchanged after a free landing"
+   could be falsified by event-space cards (a +50 card landing on
+   space 2); the test now constrains dice totals so the assertion is
+   provable, and documents why.
+2. The roll sentence rendered "echo roll!." with double punctuation in
+   the live session; rephrased ("— an echo roll.").
+
+## Known rough edges
+
+- The Develop button opens a picker; it does not preview the next
+  rent value (the log reports it after the fact).
+- The share-code panel offers select+copy and writes the clipboard
+  when the browser allows it, but there is no "copied!" confirmation.
+- Surge Recall sends the pawn straight to the Maintenance Bay without
+  a special animation (it glides like a normal move).
+- R rolls only; there are no hotkeys for buy/develop/end.
+- Hot-seat trust model: the action bar always drives the current
+  player, so any human at the keyboard can act for any human seat.
