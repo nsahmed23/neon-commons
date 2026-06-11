@@ -1,0 +1,8 @@
+{
+  "projects": { "default": "personal-website-44b59" },
+  "targets": {
+    "personal-website-44b59": {
+      "hosting": { "neon-commons": ["neon-commons"] }
+    }
+  }
+}
