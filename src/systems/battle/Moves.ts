@@ -45,7 +45,7 @@ export const MOVES: Record<string, MoveDef> = {
   },
   stormcellBurst: {
     id: 'stormcellBurst', name: 'Stormcell Burst', type: 'volt', target: 'enemy',
-    energy: 22, cooldown: 2, power: 80,
+    energy: 22, cooldown: 2, power: 72,
     blurb: 'heavy capacitor dump',
   },
   staticShackles: {
@@ -66,7 +66,7 @@ export const MOVES: Record<string, MoveDef> = {
   },
   furnaceSlam: {
     id: 'furnaceSlam', name: 'Furnace Slam', type: 'pyre', target: 'enemy',
-    energy: 24, cooldown: 2, power: 85,
+    energy: 24, cooldown: 2, power: 76,
     blurb: 'white-hot body check',
   },
   shieldbreakerMaul: {
@@ -86,7 +86,7 @@ export const MOVES: Record<string, MoveDef> = {
   },
   glacierDriver: {
     id: 'glacierDriver', name: 'Glacier Driver', type: 'cryo', target: 'enemy',
-    energy: 26, cooldown: 3, power: 90,
+    energy: 26, cooldown: 3, power: 78,
     blurb: 'slow, enormous pile-driver',
   },
   hailwall: {

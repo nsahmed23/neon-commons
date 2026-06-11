@@ -1,0 +1,43 @@
+{
+  "stage": "C",
+  "phase": 4,
+  "mode": "battle",
+  "branch": "stage-c-battle",
+  "completedAt": "2026-06-10",
+  "gates": {
+    "tsc": "clean",
+    "vitest": { "files": 16, "tests": 155, "failed": 0, "newBattleTests": 47 },
+    "viteBuild": "clean",
+    "devServerSmoke": "HTTP 200 + #app shell",
+    "headlessBrowser": {
+      "consoleErrors": 0,
+      "consoleWarnings": 0,
+      "boutPlayed": "ENGAGE -> rounds -> 3 KOs -> VICTORY -> hub",
+      "aiDebugBreakdownInLog": true
+    }
+  },
+  "content": {
+    "types": 4,
+    "namedMoves": 15,
+    "statuses": 6,
+    "passives": 6,
+    "units": 6
+  },
+  "measured": {
+    "battleSceneDrawCalls": 88,
+    "battleSceneTriangles": 1768,
+    "battleSceneNodes": 92
+  },
+  "seams": {
+    "pureSystems": "src/systems/battle/",
+    "mode": "src/modes/BattleMode.ts (id 'battle', registered in App)",
+    "scene": "src/modes/battle/BattleScene.ts",
+    "hud": "src/ui/BattleHUD.ts",
+    "devHandle": "window.__neonApp (main.ts)"
+  },
+  "sharedFileEdits": [
+    "src/core/App.ts (register battle mode, render/measure branches)",
+    "src/style.css (appended .battle-* rules)",
+    "src/main.ts (window.__neonApp dev handle)"
+  ]
+}

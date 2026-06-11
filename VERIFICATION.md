@@ -137,3 +137,106 @@ Not verified (agent died before doing/recording it):
   countdown → lap increment). Carried forward to Stage G's full audit.
 - The agent's own real-vs-approximation and bugs-found notes for this
   stage are lost; Stage G's self-audit should re-derive them.
+
+## Stage C — Battle Mode (2026-06-10)
+
+## Gates
+
+| Gate | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npx vitest run` | 155/155 tests, 16 files (108 prior + 47 new battle tests) |
+| `npm run build` | clean (same pre-existing Three.js chunk-size note) |
+| dev server + `curl` | HTTP 200, app shell served |
+| Headless Chromium session (playwright-cli) | 0 console errors/warnings; full bout played to VICTORY and back to hub |
+
+## What is tested (vitest, node env, pure modules only)
+
+- `typechart.test.ts` (7): 4-type cycle (volt>aero>pyre>cryo>volt at
+  2x), self/reverse resistance at 0.5x, full matrix only {0.5,1,2},
+  content minimums (>=12 named moves + Vent, >=6 statuses, >=6
+  passives, every unit has exactly 4 known moves).
+- `statuses.test.ts` (11): apply/refresh-not-stack, passive immunities
+  (Thermal Shroud vs Corrosion, Gyro Gimbal vs Servo Lag), seeded
+  resist rolls, tick magnitudes (6% corrosion, 8% nanorepair, 8 energy
+  flux leak) and expiry timing at end of the unit's OWN turn,
+  corrosion-tick KO clearing statuses, stage multiplier table,
+  additive stage stacking clamped at +/-3, Servo Lag halving speed on
+  top of stages.
+- `resolution.test.ts` (18): damage inside deterministic preview
+  bounds, 2x vs 0.5x changing real numbers, atk/def stages modifying
+  real computed damage (5/3 ratio verified), Aegis halving + flagged
+  in the event, Reactive Plating and Surge Core multipliers, KO events
+  and winner detection, Siphon Circuit healing 20% of damage dealt,
+  energy gating (only Vent legal when broke), cooldown enforcement
+  turn-by-turn, illegal-move throw, turn order from effective speed
+  with stable index tiebreak and dead-unit exclusion, and
+  describeEvent producing the exact expected sentences from events.
+- `battleai.test.ts` (8): guaranteed KO beats chip damage (KO bonus
+  100 chosen to dominate the max achievable chip total ~80), healing
+  chosen at low HP when no KO is on the board, cooldowns/energy
+  respected (cooling moves absent from the option list; empty tank
+  Vents), type advantage as a named modifier steering target choice,
+  status options worth 0 once the status is present, seeded tie
+  breaks, and every option's named parts summing to its total.
+- `battledeterminism.test.ts` (3): a full AI-vs-AI battle from one
+  seed reproduces the identical event log sentence-for-sentence,
+  completes with a winner and >=3 KOs, and diverges across seeds.
+
+## Real vs. approximation
+
+Real (backed by state/simulation/logic):
+- The battle log is generated exclusively by `describeEvent` over the
+  typed BattleEvent stream that the resolution engine emits while
+  mutating state; there are no parallel strings (anti-faking clause).
+- The AI debug lines (F1) print the actual ScoredOption breakdown the
+  enemy used for the turn, e.g.
+  `> Concussion Ram -> PYR-4 Kilnguard: 54.3 = type +15.0, dmg +38.5, status +4.8, cd -4.0`
+  captured live from the headless session.
+- HP/energy bars, status badges, stage badges, cooldown labels and
+  move legality on the HUD all read UnitState directly after each
+  presented event.
+- Turn order, statuses, stages, cooldowns, energy, passives and the
+  type chart all flow through the same pure modules the tests cover.
+- Pause freezes presentation pacing (it runs on fixed-step sim time).
+
+Approximations (documented, not faked):
+- Attack/hit/heal/KO animations are transform-and-emissive tweens on
+  the procedural robots (lunge toward target, flinch, pulse, fall);
+  there is no skeletal animation or particles.
+- AI is 1-ply: it scores the current board only (no lookahead, no
+  multi-turn planning); modifiers like cooldownTiming approximate
+  timing judgement.
+- Robots are shared static meshes; the arena is its own scene (cheap
+  lights, no shadows), like Race.
+
+## Measured numbers (headless Chromium, software GL)
+
+- Battle scene: 88 draw calls, ~1.8k triangles, 92 scene nodes.
+- Full bout (enemy HP pinned to 1 for the lifecycle check): 2 rounds
+  to VICTORY, results panel correct, return-to-hub clean, console
+  0 errors / 0 warnings, hub self-audit still 8/8.
+
+## Bugs found and fixed during this verification pass
+
+1. TS narrowing bug in the robot anim chain (`anim.kind !== 'ko'` in
+   an unreachable else branch) caught by tsc; restructured.
+2. First playtest showed 2x type-advantage heavies one-shotting
+   full-HP units (Glacier Driver hit 117 of Arclight's 118 HP);
+   trimmed the three nuke powers (80/85/90 -> 72/76/78) and re-ran
+   the full suite (155/155 still green).
+3. KO_BONUS at 60 could lose the argmax to a big 2x chip hit
+   (computed during test design, before it shipped); raised to 100
+   with a comment deriving the bound.
+
+## Known rough edges
+
+- 88 draw calls for 6 robots (~10 meshes each, 2 materials each);
+  merging per-robot geometry would cut this to ~14 if a later
+  optimization pass wants it.
+- Target selection by keyboard uses 1-N over the targetable list, but
+  the cards do not show those ordinal numbers; clicking is clearer.
+- Defeat path and Lockup-skip were exercised by unit tests and partial
+  browser play (a Lockup application + expiry appeared in the live
+  log), but a full browser defeat was not staged.
+- Rematch reuses the same six robots; no team selection screen.

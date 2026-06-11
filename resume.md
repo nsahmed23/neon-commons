@@ -18,9 +18,22 @@ session resume with zero conversation history.
       HUD/ToastLog, 5 future-mode pedestals with a real interact
       system, stress test with measured before/after FPS.
 
-Branch: `stage-a-foundation-hub` (no remote yet). 52 vitest tests,
-tsc clean, vite build clean, headless browser session: 0 errors,
-self-audit 8/8.
+- [x] Stage B / Phase 3 (Race): pure race systems under
+      src/systems/race (Track/Vehicle/Checkpoints/RaceAI/Ghost),
+      RaceMode + RaceHUD + RaceScene, 56 race tests. Merged to main;
+      browser pass deferred to Stage G (see VERIFICATION.md).
+- [x] Stage C / Phase 4 (Battle): pure battle systems under
+      src/systems/battle (TypeChart 4-type cycle, Statuses x6 + stat
+      stages, Moves x15 + Vent, Units x6 with passives x6, Resolution
+      event-sourced engine, TurnOrder, BattleAI with 9 named score
+      modifiers + seeded tie breaks), BattleMode + BattleHUD +
+      BattleScene (procedural robots, transform animations, unit
+      cards, event-derived battle log, F1 AI score breakdown),
+      47 new tests (155 total). Headless bout played to victory,
+      0 console errors. Branch `stage-c-battle`.
+
+Stage A branch: `stage-a-foundation-hub` (no remote). 52 tests, tsc
+clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
 ## In flight
 
@@ -28,11 +41,10 @@ self-audit 8/8.
 
 ## Next (other agents' stages — do NOT stub their content)
 
-- [ ] Phase 3 Race: implement `Mode`, register as id `race`; the Race
-      pedestal interact event already routes to `modes.switchTo('race')`
-      once registered.
-- [ ] Phase 4 Battle (`battle`), Phase 5 Board (`board`),
-      Phase 6 Flight (`flight`), Phase 7 Shader (`shader`): same seam.
+- [ ] Phase 5 Board (`board`), Phase 6 Flight (`flight`),
+      Phase 7 Shader (`shader`): implement `Mode`, register with the
+      ModeManager; the pedestal interact event already routes to
+      `modes.switchTo(id)` once registered.
 - [ ] Phase 8 Optimization + release: continuous VERIFICATION.md
       already started; final pass adds before/after numbers on a real
       GPU and a deployed smoke run.
@@ -48,3 +60,5 @@ self-audit 8/8.
   (validated), wire side effects in `App.applySetting`.
 - Keep: zero allocations in the render loop, bounded instance counts,
   simulation-time-driven shader animation (pause must freeze).
+- `window.__neonApp` (main.ts): dev/audit handle used by scripted
+  browser sessions to drive mode switches; keep it.
