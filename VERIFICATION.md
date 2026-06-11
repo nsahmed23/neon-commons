@@ -646,3 +646,230 @@ Approximations (documented, on the placard, not faked):
   windows it can overlap the controls panel.
 - F2 / quality buttons reset the ray-steps slider to the quality
   baseline, intentionally clobbering a hand-tuned steps value.
+
+## Stage G — Optimization + Verification (final) (2026-06-11)
+
+Phase 8 of the brief: full-product audit, measured optimization pass,
+and ledger close. Run headless (playwright-cli, Chromium/SwiftShader,
+1280x720) against the dev server, seed 12345.
+
+## Gates
+
+| Gate | Result |
+|---|---|
+| `npx tsc --noEmit` | clean |
+| `npx vitest run` | 318/318 tests, 34 files (313 prior + 5 new input-guard regression tests) |
+| `npm run build` | clean (same pre-existing Three.js chunk-size note) |
+| dev server + `curl` | HTTP 200, app shell served |
+| Headless full-loop pass | 0 console errors / 0 warnings across boot, all six modes, stress test, settings, reload |
+
+## Full-product audit (the complete loop, headless)
+
+Every step below was driven through real input paths (window key
+events, DOM clicks, slider `input` events); the `window.__neonApp` dev
+handle was used for readback and for steering yaw (pointer-lock mouse
+look is not available to scripted sessions).
+
+- Boot: self-audit 8/8 PASS, welcome toast, seed pinned via `?seed=12345`.
+- Hub: walked spawn (0,22) to all five pedestals with real W-key
+  movement; collision stopped movement at pedestal bases; `[E] Dock at
+  ...` prompts appeared per pedestal and cleared on exit.
+- Race (the Stage B carried-forward browser pass, now PAID): entered
+  via pedestal E. Grand Prix: countdown 3-2-1 observed on the HUD,
+  phase select -> countdown -> active confirmed; an input-level
+  autopilot (writing the same key-down set the keyboard fills) drove
+  the kart through ordered gates — 10 gates passed inside the first
+  10 s, lap counter advanced 1 -> 2 only through in-order passes, lap
+  toasts fired, full 3-lap race ran to the results table (4 finishers:
+  VECTOR 0:44.35, HALOGEN, QUARTZ, YOU 0:59.32 / best lap 0:13.97).
+  B+F1 racing-line debug layer toggled on with its toast. Time Trial:
+  full 3-lap run, "ghost saved" path hit, 15 KB ghost in localStorage,
+  "Ghost on file: 0:43.05" offered after a page reload.
+- Battle: entered via pedestal, ENGAGE, picked Ion Lance by hotkey 1 +
+  target 1; full round resolved with the F1 AI breakdown visible in the
+  log (`> Concussion Ram -> PYR-4 Kilnguard: 54.3 = type +15.0, dmg
+  +38.5, status +4.8, cd -4.0` captured live), type-advantage damage,
+  passives (Siphon heal, regeneration), and a Lockup resist sentence.
+- Board: entered via pedestal, Human v Bot: rolls from real seeded
+  dice, a flux card fine (-75 cr), pass-start stipend, echo rolls on
+  both sides, bot purchases, a real rent payment (20 cr to Bot 2 for
+  Uptown Glass right after the bot bought it), one human purchase
+  (Cargo Canals, 60 cr). Share code exported, mode exited and
+  re-entered, restore reproduced the IDENTICAL F1 engine panel (rng
+  cursor 2334717439, money 1545/1120, ownership map `.2..1....2...`).
+  Save button persisted `neon-commons:board:v1` (345 chars); "Load
+  saved game" offered after reload.
+- Flight: pedestal -> briefing (SKYLINE RUN) -> LAUNCH -> active.
+  Autopilot flew the course: 6 ordered ring passes (SCORE 600, RING
+  7/10), a real enemy hit took hull to 92/100. The organic fail path
+  fired once more (sentries shot down the drone on the first, slower
+  attempt: DRONE DOWN results with all-zero breakdown -> Fly Again),
+  re-confirming Stage E's full-lifecycle observation.
+- Shader: pedestal -> non-blank render; mass slider via real DOM input
+  event 1.2 -> 2.2 confirmed in `uniformSnapshot()` on the next frame.
+- Esc returned to the hub from every mode; mode switches re-ran clean.
+- Stress test: M menu -> button -> "before 56 fps / after 56 fps
+  (+3000 props)". Headless caveat: SwiftShader pins at the ~56 fps
+  compositor cap, so before == after here by construction; the
+  harness measures, the absolute numbers need a real GPU.
+- Settings: F2 cycled high -> low (shadows off, fog 260, vegetation
+  920 instances, pixel-ratio cap 1); motion-effects unchecked in the
+  settings panel (rig.bobEnabled false, water waves frozen). Both
+  persisted; after `reload` quality=low + motionEffects=false restored.
+
+## Defects found (severity, disposition)
+
+1. **HIGH — game keys swallow text entry (FIXED).** Typing a share
+   code into the board intro textbox: bound keys (W/A/S/D/R/E/N/M/P/
+   B/F/Space) were preventDefault'd away AND fired their actions —
+   typing "NCBW" produced "C" while N toggled day-night and B toggled
+   race debug; R would have rolled the dice mid-type. Fixed with an
+   `isEditableTarget` guard in `Input.onKeyDown` and the two
+   mode-level keydown listeners (board roll, battle hotkeys); keyup
+   intentionally unguarded so held keys still release when focus moves
+   into a textbox. 5 regression tests; re-typed the same string live
+   and it arrived intact with zero side effects.
+2. **LOW — board R-roll works while the pause menu is open
+   (DEFERRED).** The board keydown listener checks mode-active and
+   playing, not menu state; the engine rolls while the sim clock is
+   paused (presentation catches up on resume). Same family as Stage
+   A's "R resets while the menu is open" note. Harmless under the
+   hot-seat trust model; fix belongs to a future input-scoping pass.
+3. **LOW — race HUD shows stale `LAP 1/3 · CP 0/8 / 0:00.00 / POS
+   1/4` behind the event-select panel (DEFERRED).** Cosmetic: the HUD
+   strip renders before a race starts. Hidden behind the select panel
+   in practice.
+4. **GAP — hub NPC dialogue (spec section 4, mode 1) was never built
+   in any stage (DOCUMENTED).** The hub has interact pedestals,
+   minimap, day/night and collision, but no conversational NPCs. A
+   known scope gap, listed under limitations rather than faked.
+
+## Optimization pass (measure first, then change)
+
+Baselines, headless Chromium SwiftShader 1280x720, HIGH quality,
+night, renderer.info after render:
+
+| Mode | Draw calls before | After | Triangles before | After |
+|---|---|---|---|---|
+| Hub | 32 | 32 (untouched) | 98,348 | 98,348 |
+| Race | 38 | 38 (declined) | 4,472 | 4,472 |
+| Battle | **89** | **47** | 1,780 | 1,840 |
+| Board (intro / in-game) | 50 / 69-71 | 45 / **61** | 486 / 910 | 534 / 898 |
+| Flight (launch view) | 17 | 12 | 92,244 | 92,244 |
+| Shader | 1 | 1 | 2 | 2 |
+
+Changes (one commit, `perf(scenes)`):
+
+- Battle robots merged 11 meshes -> 5 per robot (one merged
+  body-material buffer, one merged dark-material buffer, visor, ring,
+  plate). Safe because every animation is a whole-group transform or a
+  material emissive pulse — verified by reading the anim code and by a
+  live bout after the change. Arena pylons 12 meshes -> 1
+  InstancedMesh. 89 -> 47 calls (-47%).
+- Flight drones merged 7 meshes -> 2 (hull, accent), the two merged
+  buffers shared by all eight drones. Launch view 17 -> 12; computed
+  worst case with every drone and ring in frustum (Stage E's recorded
+  rough edge, ~70) drops to ~30.
+- Board pylons 10 -> 1 instanced draw; in-game 69-71 -> 61 calls.
+
+Leak check (5x enter/exit per mode, CDP-forced GC before/after,
+`performance.memory.usedJSHeapSize`):
+
+| Mode | Heap delta after 5 cycles |
+|---|---|
+| Race | -21 KB |
+| Battle | +13 KB |
+| Board | -26 KB |
+| Flight | +12 KB |
+| Shader | +38 KB |
+
+All within GC noise (< 8 KB/cycle): no geometry, material, or listener
+leaks. This is by construction — every scene is built once in the mode
+constructor and reused; all listeners are constructor-registered with
+`active` guards, never added in `enter()`.
+
+Steady-state allocation churn (hub, 10 s, forced GC at start): 622
+KB/10 s with the F1 overlay on, 557 KB/10 s with it off — about 1
+KB/frame total, attributable to Three.js renderer internals plus the
+0.2 s overlay string refresh. Code review of every `update()`/`frame()`
+path found no app-level per-frame allocations (scratch vectors, SoA
+pools, preallocated query/standings/input objects throughout).
+
+Declined (measurement does not justify):
+
+- Race (38 calls, 4.5k tris) and hub (32 calls, the whole skyline in
+  one instanced facade draw) are already at their floor.
+- Board tile merge (28 -> ~11 calls): tiles carry per-tile material
+  emissive tints and the parts contract exposes per-tile materials;
+  898 in-game triangles make the GPU cost negligible. Not worth the
+  visual risk.
+- Dice (6 textured materials each): real pip faces are the honesty
+  feature; an atlas would save ~10 calls only while dice are visible.
+- Per-frame churn (~1 KB/frame, framework-level): no GC spikes
+  observed in frame times; micro-tuning Three.js internals is out of
+  scope.
+
+## Self-verification — the closing questions
+
+Answers to HANDOVER section 4's self-verification list (12 questions
+as printed, plus the two acceptance-clause questions — persistence and
+real-vs-fake — that the list implies; 14 total):
+
+1. **Install/dev work?** Yes — `npm install` + `npm run dev` on Node
+   24/Windows 11; dev server HTTP 200; `npm run build` clean.
+2. **Hub navigable?** Yes — real W-key walks between all five
+   pedestals this stage, collision blocking at pedestal bases and
+   building walls (Stage A: lake/rim walls, spawn-collision audit
+   check still 8/8 every boot).
+3. **Every mode enterable/exitable with full state lifecycle?** Yes —
+   all five entered via real pedestal E events this stage; race
+   select->countdown->active->finishing->results, battle
+   select->pick->present->results, board intro->play (->over in
+   determinism tests), flight briefing->active->ending->results (win
+   AND fail observed live), shader enter->interact->exit; Esc returned
+   to the hub from each; 5x enter/exit cycling leaked nothing.
+4. **Race counts laps correctly?** Yes — ordered checkpoints only:
+   tests (checkpoints 11, incl. wrong-way and missed-gate) plus the
+   live pass: 8 gates in order advanced the lap counter, results laps
+   L1-L3 sum to the finish time.
+5. **Battle resolves correctly with explained AI?** Yes — 47
+   resolution/status/typechart/AI tests plus the live round; every log
+   sentence derives from typed events; the F1 breakdown shows each
+   scored option's named parts summing to its total.
+6. **Board economy correct and deterministic?** Yes — 68 tests (rent
+   from real ownership/sets/levels, bankruptcy, deck, share codes,
+   full-game determinism) plus live rent/purchase/card/stipend and a
+   share-code restore to an identical engine panel.
+7. **Flight has real combat and end states?** Yes — swept projectile
+   collision (anti-tunneling test at 95 m/s), drone state machines,
+   3-phase boss; live: ring passes, hull damage from real enemy fire,
+   and both end states (COURSE CLEAR in Stage E, DRONE DOWN twice
+   live).
+8. **Shader interactive?** Yes — every slider verified against a real
+   uniform and a pixel-readback change (Stage F), re-verified live
+   this stage (uMass 1.2 -> 2.2 via DOM input event).
+9. **Overlay live?** Yes — FPS/frame-time from a wall-clock ring
+   buffer, draw calls/triangles from `renderer.info` (they moved with
+   this stage's merges: battle 89 -> 47 on the overlay itself),
+   entities from per-system reports, camera/mode/seed/quality real.
+10. **Stress test survivable?** Yes — +3000 instanced props measured
+    90 frames before/after, both 56 fps at the headless compositor
+    cap; survives and reports; real-GPU deltas are machine-dependent.
+11. **What was optimized?** See the table above: battle -47% draw
+    calls, flight drones 7 -> 2 meshes each, pylon rings instanced;
+    leak check clean; declined items listed with reasons.
+12. **What remains rough?** The per-stage "known rough edges" lists
+    remain accurate; top items: no NPC dialogue in the hub (spec gap),
+    board R-roll while menu-paused, race pre-select HUD strip, battle
+    target ordinals not shown on cards, flight respawn keeps hull,
+    shader placard overlaps controls on small windows.
+13. **(Acceptance) Save/load real?** Yes — settings, board save, race
+    ghost, all re-offered and correct after a real page reload this
+    stage; share codes restore identical state cross-session.
+14. **(Acceptance) Real systems, not fake UI?** Yes with named
+    approximations — every mode's HUD reads engine state (event-
+    sourced logs in battle/board/flight; uniforms in shader; tracker/
+    physics state in race); the per-stage "Real vs. approximation"
+    sections enumerate every visual shortcut honestly (window cells
+    not rooms, kinematic enemy seek, dice tumble cosmetic over real
+    rolls, lensing sketch not geodesics).

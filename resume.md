@@ -84,19 +84,42 @@ session resume with zero conversation history.
       measured, Esc round-trip, 0 console errors.
       Branch `stage-f-shader`.
 
+- [x] Stage G / Phase 8 (Optimization + Verification, FINAL): full
+      headless product audit through real input paths — hub walks to
+      all 5 pedestals, race countdown + ordered-gate laps to results +
+      ghost persistence (Stage B's deferred browser pass PAID), battle
+      round with the F1 AI breakdown, board roll/buy/rent/share-code
+      restore + save, flight briefing->active + 6 ordered rings + real
+      hull damage, shader uniform readback, stress test, settings +
+      reload persistence. 1 HIGH defect found and fixed (game keys
+      swallowed text typed into the share-code box; isEditableTarget
+      guard + 5 regression tests), 2 LOW deferred, 1 spec gap (hub NPC
+      dialogue) documented. Optimization measured-first: battle 89->47
+      draw calls (robot part merge + instanced pylons), flight drones
+      7->2 meshes each (17->12 launch view), board 69->61; leak check
+      clean (5x enter/exit per mode, <40 KB drift); ~1 KB/frame churn
+      is framework-level, declined items documented. README finalized
+      with the real-vs-approximation section; 14-question closing
+      self-verification in VERIFICATION.md. 318 tests, tsc clean,
+      build clean, final loop 0 console errors.
+      Branch `stage-g-closer`.
+
 Stage A branch: `stage-a-foundation-hub` (no remote). 52 tests, tsc
 clean, vite build clean, headless: 0 errors, self-audit 8/8.
 
 ## In flight
 
-- Nothing.
+- Nothing. The stage ledger is CLOSED; all eight phases shipped.
 
-## Next (other agents' stages — do NOT stub their content)
+## Next (only if the project reopens)
 
-- [ ] Phase 8 Optimization + release: continuous VERIFICATION.md
-      already started; final pass adds before/after numbers on a real
-      GPU and a deployed smoke run. Stage B's deferred browser pass
-      (race loop) is still owed to this audit.
+- [ ] Before/after FPS on a real GPU (headless pins at the ~56 fps
+      compositor cap; the harness ships, the numbers are machine-bound).
+- [ ] Deploy + re-run the full smoke against the shipped artifact
+      (HANDOVER 8.6's release step; no deploy target was in scope).
+- [ ] Candidates, in priority order: input scoping (menu-open
+      hotkeys), hub NPC dialogue, battle target ordinals on cards,
+      flight respawn penalty.
 
 ## Seams and contracts future stages rely on
 

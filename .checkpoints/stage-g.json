@@ -1,0 +1,43 @@
+{
+  "stage": "G",
+  "phase": 8,
+  "role": "optimization + verification (final)",
+  "branch": "stage-g-closer",
+  "completedAt": "2026-06-11",
+  "gates": {
+    "tsc": "clean",
+    "vitest": { "files": 34, "tests": 318, "failed": 0, "newInputGuardTests": 5 },
+    "viteBuild": "clean",
+    "devServerSmoke": "HTTP 200, app shell served",
+    "finalHeadlessLoop": { "consoleErrors": 0, "consoleWarnings": 0 }
+  },
+  "audit": {
+    "loop": "boot -> hub walk to all 5 pedestals (real keys) -> race GP countdown + ordered gates + full results + TT ghost saved -> battle round w/ F1 AI breakdown -> board roll/buy/rent/card/echo + share-code restore identical + save -> flight briefing->active + 6 ordered rings + real hull damage + organic fail path -> shader uniform readback -> stress test -> F2 quality + motion-off -> reload persistence (settings/board/ghost)",
+    "stageBDeferredRacePass": "paid",
+    "defects": [
+      { "severity": "HIGH", "summary": "game keybindings swallowed text typed into editable fields (share-code box) and fired actions mid-type", "disposition": "fixed", "fix": "isEditableTarget guard in Input.onKeyDown + board/battle mode keydown listeners; 5 regression tests; verified live" },
+      { "severity": "LOW", "summary": "board R-roll fires while the pause menu is open", "disposition": "deferred (documented)" },
+      { "severity": "LOW", "summary": "stale race HUD strip behind the event-select panel", "disposition": "deferred (documented)" },
+      { "severity": "GAP", "summary": "hub NPC dialogue from the spec was never built in any stage", "disposition": "documented as known limitation" }
+    ]
+  },
+  "optimization": {
+    "method": "renderer.info per mode + CDP forced-GC heap deltas + 10s churn sampling, before any change",
+    "drawCalls": {
+      "hub": { "before": 32, "after": 32, "note": "untouched; skyline already 1 instanced draw" },
+      "race": { "before": 38, "after": 38, "note": "declined; already at floor" },
+      "battle": { "before": 89, "after": 47, "note": "robot 11->5 mesh merge + 12 pylons -> 1 InstancedMesh" },
+      "boardInGame": { "before": 70, "after": 61, "note": "10 pylons -> 1 instanced; tile merge declined (per-tile emissive contract, 0.9k tris)" },
+      "flightLaunchView": { "before": 17, "after": 12, "note": "drone 7->2 mesh merge shared by all 8 drones; computed worst case ~70 -> ~30" },
+      "shader": { "before": 1, "after": 1 }
+    },
+    "leakCheck5xEnterExitKB": { "race": -21, "battle": 13, "board": -26, "flight": 12, "shader": 38 },
+    "steadyChurn": "622 KB/10s overlay on, 557 KB/10s overlay off (~1 KB/frame, framework-level); no app-side per-frame allocations found",
+    "headlessFpsCaveat": "SwiftShader pins at ~56 fps compositor cap; stress test before==after by construction; real-GPU numbers remain machine-dependent"
+  },
+  "docs": {
+    "verification": "Stage G section: audit log, defect table, before/after tables, declined-with-reasons, 14-question closing self-verification",
+    "readme": "finalized: setup, global + per-mode controls, feature checklist, architecture, real-vs-approximation section, performance notes, known limitations",
+    "resume": "all stages checked; ledger closed"
+  }
+}
