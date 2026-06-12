@@ -163,6 +163,13 @@ mechanism is confirmed.** Concretely:
 
 ## 7. Rollback point
 
-- Tag `pre-migration-2026-06-12` → `bee55c0` (tip of main at audit time),
-  pushed to origin. `main` itself was not touched; this audit lives on branch
+- Annotated tag `pre-migration-2026-06-12` → `bee55c0` (tip of main at audit
+  time) was created, but this session's git proxy rejects tag pushes (HTTP
+  403, branch refs only). As the pushed rollback ref, branch
+  `pre-migration-2026-06-12` was created on origin at the same commit
+  `bee55c0` via the GitHub API. Follow-up: push the real tag from a machine
+  with full git access (`git tag -a pre-migration-2026-06-12 bee55c0 && git
+  push origin pre-migration-2026-06-12`), then the marker branch can be
+  deleted.
+- `main` itself was not touched; this audit lives on branch
   `claude/neon-commons-migration-audit-vtoaks`.
