@@ -341,6 +341,7 @@ intune_iac/approval_authority.py
 intune_iac/atmos.py
 intune_iac/blob_lease.py
 intune_iac/capture.py
+intune_iac/capture_adapter.py
 intune_iac/cli.py
 intune_iac/engine.py
 intune_iac/execution.py
@@ -370,6 +371,9 @@ intune_iac/synthetic.py
 intune_iac/target.py
 intune_iac/wizard.py
 intune_iac/workbench.py
+intune_iac/workbench_health.py
+intune_iac/workbench_provenance.py
+intune_iac/workbench_scheduler.py
 intune_iac/workbench_store.py
 intune_iac/workflow.py
 labs/atmos-adoption/README.md
@@ -443,14 +447,15 @@ microsoft-workflows.yaml
 permission-matrix.csv
 plugin.json
 plugin_tests/__init__.py
+plugin_tests/signing_fixture.py
 plugin_tests/test_adoption_lab.py
 plugin_tests/test_approval_authority_v5.py
-plugin_tests/signing_fixture.py
 plugin_tests/test_approval_independent_v5.py
 plugin_tests/test_atmos_audit.py
 plugin_tests/test_blob_lease_independent_v5.py
 plugin_tests/test_blob_lease_v5.py
 plugin_tests/test_capture.py
+plugin_tests/test_capture_adapter.py
 plugin_tests/test_capture_audit.py
 plugin_tests/test_catalog_acquisition_security.py
 plugin_tests/test_ci_contract.py
@@ -482,8 +487,8 @@ plugin_tests/test_native_smoke_observation_epoch.py
 plugin_tests/test_oracle_edge_types.py
 plugin_tests/test_powershell_preview.py
 plugin_tests/test_preservation_audit.py
-plugin_tests/test_production.py
 plugin_tests/test_process_cleanup.py
+plugin_tests/test_production.py
 plugin_tests/test_protected_completion.py
 plugin_tests/test_provider_completion.py
 plugin_tests/test_provider_contract_lab.py
@@ -507,8 +512,12 @@ plugin_tests/test_terminal_security_epoch.py
 plugin_tests/test_verifier_contract.py
 plugin_tests/test_wizard.py
 plugin_tests/test_wizard_repository.py
+plugin_tests/test_workbench_capture_store.py
 plugin_tests/test_workbench_cli.py
+plugin_tests/test_workbench_health.py
 plugin_tests/test_workbench_independent.py
+plugin_tests/test_workbench_provenance.py
+plugin_tests/test_workbench_scheduler.py
 plugin_tests/test_workbench_store.py
 plugin_tests/test_workflow.py
 plugin_tests/test_workflow_audit.py

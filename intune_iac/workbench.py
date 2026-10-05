@@ -28,6 +28,34 @@ def add_parser(commands):
     restore.add_argument('--input', required=True)
     restore.add_argument('--root', required=True)
     restore.add_argument('--tenant', required=True)
+    migrate = sub.add_parser('migrate', help='Back up and explicitly migrate the observation schema')
+    migrate.add_argument('--root', required=True)
+    migrate.add_argument('--backup', required=True)
+    capture = sub.add_parser('import-capture', help='Import an existing Graph capture directory and its raw-page receipts without network access')
+    capture.add_argument('--root', required=True)
+    capture.add_argument('--capture', required=True)
+    for name in ('device-evidence-import', 'workflow-import'):
+        item = sub.add_parser(name, help='Import inert tenant/object-bound local evidence')
+        item.add_argument('--root', required=True)
+        item.add_argument('--input', required=True)
+    reference = sub.add_parser('reference-import', help='Record exact pinned local reference bytes without adoption authority')
+    for name in ('root', 'input', 'sha256', 'revision', 'source-url', 'license'):
+        reference.add_argument('--' + name, required=True)
+    reference.add_argument('--assertion-class', choices=['community_reference', 'organization_annotation'], default='community_reference')
+    reference_compare = sub.add_parser('reference-compare')
+    for name in ('root', 'object', 'reference'):
+        reference_compare.add_argument('--' + name, required=True)
+    reference_compare.add_argument('--company')
+    schedule = sub.add_parser('schedule-create', help='Create a bounded local synthetic collection schedule; installs no daemon')
+    for name in ('root', 'service-root', 'output'):
+        schedule.add_argument('--' + name, required=True)
+    schedule.add_argument('--interval-seconds', type=float, required=True)
+    run = sub.add_parser('schedule-run', help='Run an explicit finite local collection window')
+    run.add_argument('--job', required=True)
+    run.add_argument('--max-runs', type=int, required=True)
+    run.add_argument('--max-duration-seconds', type=float, required=True)
+    status = sub.add_parser('schedule-status')
+    status.add_argument('--job', required=True)
     lab = sub.add_parser('lab-create', aliases=['lab-init'], help='Create the existing local synthetic service from a synthetic capture')
     lab.add_argument('--service-root', '--root', dest='service_root', required=True)
     lab.add_argument('--input', required=True)
@@ -42,19 +70,20 @@ def add_parser(commands):
     collect.add_argument('--stack', help='Physical manifest selector for --repo')
     collect.add_argument('--component', help='Component selector for --repo')
     collect.add_argument('--fault', choices=['deny', 'throttle', 'cross-origin', 'loop'])
-    for name in ('overview', 'health', 'queue', 'dictionary', 'search', 'inspect', 'settings', 'relationships', 'history', 'compare', 'operations', 'terminal'):
+    for name in ('overview', 'health', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'history', 'compare', 'operations', 'terminal'):
         item = sub.add_parser(name)
         item.add_argument('--root', required=True)
-        if name in ('inspect', 'settings', 'relationships', 'history', 'compare'):
+        if name in ('inspect', 'settings', 'relationships', 'history', 'compare', 'workflows'):
             item.add_argument('--object', required=True, help='Exact immutable object ID, never a display name')
         if name in ('search', 'dictionary'): item.add_argument('--query', default='')
-        if name == 'operations': item.add_argument('--object')
-        if name in ('history', 'operations'):
+        if name in ('operations', 'health', 'collection-history'): item.add_argument('--object')
+        if name in ('history', 'operations', 'collection-history', 'references'):
             item.add_argument('--limit', type=int, help='Explicit bounded page size, 1 through 1000')
             item.add_argument('--offset', type=int, default=0)
         if name == 'compare':
             item.add_argument('--before', required=True)
             item.add_argument('--after', required=True)
+        if name == 'collection': item.add_argument('--run', type=int, required=True)
         if name == 'terminal': item.add_argument('--service-root')
     propose = sub.add_parser('propose', help='Prepare a bounded correction with existing engine evidence; synthetic service only')
     for name in ('root', 'service-root', 'object', 'desired', 'output'):
@@ -97,17 +126,20 @@ def _search(store, query):
                or query.casefold() in row['object_id'].casefold()
                or any(query.casefold() in str(edge.get('target_id', '')).casefold()
                       for edge in row.get('relationships', []) if edge.get('relation') == 'setting')]
-    return {'evidence_class': 'synthetic', 'query': query, 'objects': matched,
+    return {'evidence_class': overview.get('evidence_class', 'unknown'), 'query': query, 'objects': matched,
             'freshness': overview.get('freshness'), 'last_attempt': overview.get('last_attempt'),
             'selection': 'Use an exact immutable object_id; duplicate names are not identities.'}
 
 
-def _health(store):
+def _health(store, object_id=None):
+    from .workbench_health import device_health
+    if object_id is not None: return device_health(store, object_id)
     value = store.overview()
     return {key: item for key, item in value.items() if key != 'objects'} | {
-        'objects': [{key: row.get(key) for key in ('object_id', 'name', 'observed_at', 'coverage', 'health')}
-                    for row in value.get('objects', [])],
-        'qualification': 'Synthetic observations only; service acceptance is not endpoint success.'}
+        'collection_health': value.get('health'),
+        'objects': [{**{key: row.get(key) for key in ('object_id', 'name', 'observed_at', 'coverage')},
+                     'health': device_health(store, row['object_id'])} for row in value.get('objects', [])],
+        'qualification': 'Collection aggregates and policy-bound imported device evidence are separate; neither grants rollout approval.'}
 
 
 def _queue(store):
@@ -133,7 +165,7 @@ def _queue(store):
             findings.append({'tenant_id': overview['tenant_id'], 'object_id': row['object_id'],
                 'owner': source.get('owner'), 'owner_assertion': 'source_declared' if source.get('owner') else 'unknown',
                 'finding': finding, 'evidence': {'snapshot_id': row['snapshot_id'], 'observed_at': row['observed_at'],
-                    'last_attempt': attempt, 'evidence_class': 'synthetic'},
+                    'last_attempt': attempt, 'evidence_class': row.get('evidence_class', 'unknown')},
                 'freshness': row.get('freshness'), 'priority': 'review', 'priority_rationale': rationale,
                 'review_due': None, 'related_proposals': related, 'exception_expiry': None,
                 'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
@@ -144,40 +176,28 @@ def _queue(store):
                          'freshness': 'unknown', 'priority': 'review', 'priority_rationale': 'Collect before assessing policy state.',
                          'review_due': None, 'related_proposals': [], 'exception_expiry': None,
                          'compatibility': 'unqualified', 'action_state': 'collection_required', 'automatic_remediation': False})
-    return {'evidence_class': 'synthetic', 'cloud_authority': False, 'findings': findings}
+    return {'evidence_class': overview.get('evidence_class', 'unknown'), 'cloud_authority': False, 'findings': findings}
 
 
 def _dictionary(store, query=''):
     """Observed setting identifiers and exact uses, without invented vendor facts."""
-    entries = {}
-    for row in store.overview().get('objects', []):
-        pending = [row['body'].get('settings')]
-        while pending:
-            value = pending.pop()
-            if isinstance(value, dict):
-                identifier = value.get('settingDefinitionId')
-                if isinstance(identifier, str) and query.casefold() in identifier.casefold():
-                    entry = entries.setdefault(identifier, {'identifier': identifier, 'name': None, 'aliases': [],
-                        'meaning': 'unknown', 'applicability': 'Vendor applicability unqualified',
-                        'assertion_class': 'observed', 'vendor_dictionary': 'unresolved', 'actual_uses': []})
-                    entry['actual_uses'].append({'object_id': row['object_id'], 'name': row['name'],
-                        'type': value.get('@odata.type'), 'value': value, 'snapshot_id': row['snapshot_id'],
-                        'observed_at': row['observed_at'], 'source': row.get('source'), 'ownership': 'unknown'})
-                pending.extend(value.values())
-            elif isinstance(value, list): pending.extend(value)
-    return {'evidence_class': 'synthetic', 'query': query, 'entries': [entries[key] for key in sorted(entries)],
-            'qualification': 'Observed IDs and values only; vendor meaning, applicability and recommendations remain unresolved.'}
+    from .workbench_provenance import dictionary
+    return dictionary(store, query)
 
 
 def _facet(store, object_id, facet):
     value = store.inspect(object_id)
+    body = value.get('body') or {}
     if facet == 'settings':
         return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
-                'settings': value.get('body', {}).get('settings'), 'source': value.get('source'),
-                'dictionary': {'status': 'unresolved', 'reason': 'No authenticated setting-definition dictionary was collected.'}}
+                'settings': body.get('settings'), 'source': value.get('source'), 'coverage': value.get('coverage'),
+                'dictionary': _dictionary(store)}
+    from .workbench_health import workflow_lineage
+    lineage = workflow_lineage(store, object_id)
     return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
-            'relationships': value.get('relationships', []), 'source': value.get('source'),
-            'assignments': value.get('body', {}).get('assignments'),
+            'relationships': value.get('relationships', []) + [edge for row in lineage['runs'] for edge in row['data'].get('relationships', [])],
+            'source': value.get('source'), 'workflows': lineage, 'coverage': value.get('coverage'),
+            'assignments': body.get('assignments'),
             'ownership': 'Source-declared only; an observation does not establish managed ownership.'}
 
 
@@ -191,6 +211,12 @@ def command(args):
     if name == 'backup':
         return dict(_store(args.root).backup(args.output),
                     integrity_limit='Retain and compare the backup receipt independently; a self-supplied digest does not authenticate provenance.')
+    if name == 'migrate': return _store(args.root).migrate(args.backup)
+    if name in ('schedule-create', 'schedule-run', 'schedule-status'):
+        from . import workbench_scheduler as scheduler
+        if name == 'schedule-create': return scheduler.create_schedule(_store(args.root), args.service_root, args.interval_seconds, args.output)
+        if name == 'schedule-run': return scheduler.run_schedule(args.job, args.max_runs, args.max_duration_seconds)
+        return scheduler.schedule_status(args.job)
     if name == 'restore':
         from .workbench_store import WorkbenchStore
         store = WorkbenchStore.restore(args.input, args.root, tenant_id=args.tenant)
@@ -211,13 +237,32 @@ def command(args):
         return maintenance.propose(args.root, args.service_root, args.object, args.desired, args.output, context_path=args.context)
     if name == 'terminal': return run_terminal(args.root, service_root=args.service_root)
     store = _store(args.root)
+    if name == 'import-capture': return store.import_capture(args.capture)
+    if name == 'collection-history': return {'collections': store.collection_history(args.object, limit=args.limit, offset=args.offset), 'limit': args.limit, 'offset': args.offset}
+    if name == 'collection': return store.collection_detail(args.run)
+    if name == 'device-evidence-import':
+        from .workbench_health import import_device_evidence
+        return import_device_evidence(store, args.input)
+    if name == 'workflow-import':
+        from .workbench_health import import_workflow_run
+        return import_workflow_run(store, args.input)
+    if name == 'workflows':
+        from .workbench_health import workflow_lineage
+        return workflow_lineage(store, args.object)
+    if name == 'reference-import':
+        from .workbench_provenance import reference_import
+        return reference_import(store, args.input, args.sha256, args.revision, args.source_url, args.license, args.assertion_class)
+    if name == 'reference-compare':
+        from .workbench_provenance import compare_reference
+        return compare_reference(store, args.object, args.reference, args.company)
+    if name == 'references': return {'references': store.artifacts(kind='source_reference', limit=args.limit, offset=args.offset)}
     if name == 'collect':
         from .modeled_service import ModeledService
         return store.collect(ModeledService(args.service_root), observed_at=args.observed_at, fault=args.fault,
                              deployment=load_json(args.deployment) if args.deployment else None,
                              source=_source_metadata(args))
     if name == 'overview': return store.overview()
-    if name == 'health': return _health(store)
+    if name == 'health': return _health(store, args.object)
     if name == 'queue': return _queue(store)
     if name == 'dictionary': return _dictionary(store, args.query)
     if name == 'search': return _search(store, args.query)
@@ -233,12 +278,18 @@ def command(args):
 
 HELP = {
     'navigation': ['overview', 'search TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
-                   'relationships', 'dictionary [SETTING_ID_QUERY]', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT', 'health', 'queue', 'operations [LIMIT [OFFSET]]', 'back', 'cancel', 'quit'],
+                   'relationships', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
+                   'workflows', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT', 'health', 'queue', 'operations [LIMIT [OFFSET]]', 'back', 'cancel', 'quit'],
     'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
-    'collection': ['collect (requires --service-root; also runs as a separate headless command)'],
-    'limits': 'Local synthetic service only. No native provider, GitHub, Azure, Intune or endpoint qualification.',
+    'collection': ['collect (requires --service-root; also runs as a separate headless command)',
+                   'import-capture CAPTURE_DIRECTORY', 'collection-history [LIMIT [OFFSET]]', 'collection RUN_ID',
+                   'migrate NEW_BACKUP_PATH', 'schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)',
+                   'schedule-run JOB_DIR MAX_RUNS MAX_DURATION_SECONDS', 'schedule-status JOB_DIR'],
+    'evidence': ['device-evidence-import ENVELOPE_JSON', 'workflow-import ENVELOPE_JSON',
+                 'reference-import JSON SHA256 FULL_REVISION HTTPS_SOURCE_URL LICENSE_ID [ASSERTION_CLASS]'],
+    'limits': 'Imported captures and reports remain unverified local evidence. Collection and execution adapters are synthetic; no deployment or rollout authority.',
 }
 
 
@@ -261,8 +312,9 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
     output_fn = print if output_fn is None else output_fn
     store = _store(root)
     selected = None
-    _render({'title': 'Intune Workbench', 'evidence_class': 'synthetic', 'commands': HELP}, output_fn)
-    _render(store.overview(), output_fn)
+    initial_overview = store.overview()
+    _render({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP}, output_fn)
+    _render(initial_overview, output_fn)
     while True:
         try:
             line = input_fn('workbench> ')
@@ -271,7 +323,7 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             if not parts: continue
             name, values = parts[0].lower(), parts[1:]
             if name in ('quit', 'exit') and not values:
-                return {'status': 'closed', 'evidence_class': 'synthetic', 'history_persisted': True}
+                return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
             if name == 'help' and not values: result = HELP
             elif name in ('back', 'cancel') and not values:
                 selected = None
@@ -281,16 +333,47 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             elif name == 'select' and len(values) == 1:
                 result = store.inspect(values[0])
                 selected = values[0]
-            elif name == 'health' and not values: result = _health(store)
+            elif name == 'health' and not values: result = _health(store, selected)
             elif name == 'queue' and not values: result = _queue(store)
             elif name == 'dictionary': result = _dictionary(store, ' '.join(values))
+            elif name == 'references' and not values: result = {'references': store.artifacts(kind='source_reference')}
+            elif name == 'collection-history' and len(values) <= 2:
+                result = {'collections': store.collection_history(selected, limit=int(values[0]) if values else None,
+                          offset=int(values[1]) if len(values) == 2 else 0)}
+            elif name == 'collection' and len(values) == 1: result = store.collection_detail(int(values[0]))
+            elif name == 'import-capture' and len(values) == 1: result = store.import_capture(values[0])
+            elif name == 'migrate' and len(values) == 1: result = store.migrate(values[0])
+            elif name == 'device-evidence-import' and len(values) == 1:
+                from .workbench_health import import_device_evidence
+                result = import_device_evidence(store, values[0])
+            elif name == 'workflow-import' and len(values) == 1:
+                from .workbench_health import import_workflow_run
+                result = import_workflow_run(store, values[0])
+            elif name == 'reference-import' and len(values) in (5, 6):
+                from .workbench_provenance import reference_import
+                result = reference_import(store, *values)
+            elif name in ('schedule-create', 'schedule-run', 'schedule-status'):
+                from . import workbench_scheduler as scheduler
+                if name == 'schedule-create' and len(values) == 2:
+                    if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')
+                    result = scheduler.create_schedule(store, service_root, float(values[1]), values[0])
+                elif name == 'schedule-run' and len(values) == 3:
+                    result = scheduler.run_schedule(values[0], int(values[1]), float(values[2]))
+                elif name == 'schedule-status' and len(values) == 1: result = scheduler.schedule_status(values[0])
+                else: raise ValueError('invalid command arguments')
             elif name == 'operations' and len(values) <= 2:
                 result = {'operations': store.operations(object_id=selected, limit=int(values[0]) if values else None,
                           offset=int(values[1]) if len(values) == 2 else 0)}
-            elif name in ('inspect', 'settings', 'relationships', 'history', 'compare', 'propose'):
+            elif name in ('inspect', 'settings', 'relationships', 'history', 'compare', 'propose', 'workflows', 'reference-compare'):
                 if selected is None: raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 if name == 'inspect' and not values: result = store.inspect(selected)
                 elif name in ('settings', 'relationships') and not values: result = _facet(store, selected, name)
+                elif name == 'workflows' and not values:
+                    from .workbench_health import workflow_lineage
+                    result = workflow_lineage(store, selected)
+                elif name == 'reference-compare' and len(values) in (1, 2):
+                    from .workbench_provenance import compare_reference
+                    result = compare_reference(store, selected, *values)
                 elif name == 'history' and len(values) <= 2:
                     result = {'object_id': selected, 'history': store.history(selected,
                               limit=int(values[0]) if values else None, offset=int(values[1]) if len(values) == 2 else 0)}
@@ -315,10 +398,10 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             else: raise ValueError('unknown command')
             _render(result, output_fn)
         except EOFError:
-            return {'status': 'closed', 'evidence_class': 'synthetic', 'history_persisted': True}
+            return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
         except KeyboardInterrupt:
             _render({'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'}, output_fn)
-            return {'status': 'interrupted', 'evidence_class': 'synthetic'}
+            return {'status': 'interrupted', 'evidence_class': 'local_interface_result'}
         except AppError as error:
             _render({'status': 'error', 'error': {'code': error.code, 'message': error.message}}, output_fn)
         except (ValueError, TypeError, KeyError, OSError):

@@ -1,5 +1,7 @@
 """Actual subprocess terminal and headless collection integration contracts."""
 import copy
+from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -257,6 +259,122 @@ class WorkbenchCLITests(unittest.TestCase):
         restored = self.call('restore', '--input', backup, '--root', restored_root, '--tenant', self.tenant)
         self.assertFalse(restored['remote_infrastructure_restored'])
         self.assertEqual(len(self.call('history', '--root', restored_root, '--object', self.ids[0])['history']), 1)
+
+    def test_local_capture_import_and_collection_details_remain_unverified(self):
+        from intune_iac.capture import capture as capture_pages
+        capture = self.root / 'single-capture'
+        source = json.loads((ROOT / 'examples/supported/input/export.json').read_text())
+        original_id = source['collections'][1]['owner_id']
+        responses = {}
+        for collection in source['collections']:
+            for page in collection['pages']:
+                body = copy.deepcopy(page['body'])
+                if collection['kind'] == 'policies': body['value'][0]['id'] = self.ids[0]
+                if collection['kind'] == 'assignments':
+                    for assignment in body['value']: assignment.update(source='direct', sourceId=None)
+                responses[page['request_url'].replace(original_id, self.ids[0])] = (page['http_status'], json.dumps(body).encode())
+        capture_pages(self.tenant, self.ids[0], capture, transport=lambda url: responses[url])
+        before = ModeledService(self.service).snapshot()
+        run = self.call('import-capture', '--root', self.store, '--capture', capture)
+        self.assertEqual(run['status'], 'complete')
+        self.assertEqual(run['evidence_class'], 'graph_capture_unverified')
+        self.assertFalse(run['assurance']['source_authenticity_verified'])
+        self.assertEqual(self.call('collection', '--root', self.store, '--run', run['run_id']), run)
+        history = self.call('collection-history', '--root', self.store, '--object', self.ids[0])
+        self.assertEqual(history['collections'], [run])
+        result = self.process('terminal', '--root', self.store,
+            input=f'select {self.ids[0]}\ncollection-history\ncollection {run["run_id"]}\nsettings\nquit\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('graph_capture_unverified', result.stdout)
+        self.assertEqual(ModeledService(self.service).snapshot(), before)
+
+    def test_device_evidence_health_and_workflow_lineage_are_policy_bound(self):
+        from plugin_tests.test_workbench_health import document
+        self.collect()
+        observed = self.call('inspect', '--root', self.store, '--object', self.ids[0])
+        evidence = document(); stamp = datetime.now(timezone.utc).isoformat()
+        evidence['as_of'] = stamp
+        for row in evidence['rows']: row['observed_at'] = stamp
+        envelope = {'schema_version': 'workbench-device-evidence/1', 'tenant_id': self.tenant,
+                    'object_id': self.ids[0], 'evidence': evidence}
+        path = self.root / 'device.json'; path.write_text(json.dumps(envelope))
+        imported = self.call('device-evidence-import', '--root', self.store, '--input', path)
+        self.assertEqual(imported['data']['source_sha256'], hashlib.sha256(path.read_bytes()).hexdigest())
+        health = self.call('health', '--root', self.store, '--object', self.ids[0])
+        self.assertEqual(health['stages']['execution']['reporting_success_percent'], 100)
+        self.assertEqual(health['stages']['execution']['targeted_success_percent'], 8)
+        self.assertEqual(health['stages']['effective_state']['unknown'], 100)
+        self.assertFalse(health['rollout_ready'])
+        other = self.call('health', '--root', self.store, '--object', self.ids[1])
+        self.assertEqual(other['evidence_class'], 'unknown')
+        self.assertIsNone(other['stages']['execution']['targeted'])
+        workflow = {'schema_version': 'workbench-workflow-run/1', 'tenant_id': self.tenant,
+            'object_id': self.ids[0], 'run_url': 'https://github.com/example/repo/actions/runs/42',
+            'repository_revision': 'b' * 40, 'run_id': '42', 'status': 'success',
+            'observed_at': datetime.now(timezone.utc).isoformat(), 'observed_after': observed['snapshot_id']}
+        path = self.root / 'workflow.json'; path.write_text(json.dumps(workflow))
+        self.call('workflow-import', '--root', self.store, '--input', path)
+        lineage = self.call('workflows', '--root', self.store, '--object', self.ids[0])
+        self.assertEqual(len(lineage['runs']), 1)
+        self.assertFalse(lineage['external_execution_verified'])
+        result = self.process('terminal', '--root', self.store,
+            input=f'select {self.ids[0]}\nhealth\nworkflows\nrelationships\nquit\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('caller_asserted_time_order', result.stdout)
+        envelope['tenant_id'] = self.ids[0]; path.write_text(json.dumps(envelope))
+        self.assertNotEqual(self.process('device-evidence-import', '--root', self.store, '--input', path).returncode, 0)
+
+    def test_reference_import_comparison_and_terminal_preserve_exact_ids(self):
+        self.collect()
+        policy = self.estate['truth']['policies'][0]
+        reference = {'id': self.ids[1], 'name': 'Community reference',
+                     'settings': policy['settings']['settings']}
+        path = self.root / 'reference.json'; path.write_text(json.dumps(reference))
+        sha = hashlib.sha256(path.read_bytes()).hexdigest()
+        imported = self.call('reference-import', '--root', self.store, '--input', path, '--sha256', sha,
+            '--revision', 'b' * 40, '--source-url', 'https://example.invalid/pinned/reference.json', '--license', 'MIT')
+        reference_id = imported['artifact_id']
+        compared = self.call('reference-compare', '--root', self.store, '--object', self.ids[0], '--reference', reference_id)
+        self.assertIn('upstream_vs_observed', compared['comparisons'])
+        self.assertFalse(compared['execution_authorized'])
+        references = self.call('references', '--root', self.store)['references']
+        self.assertEqual(references[0]['artifact_id'], reference_id)
+        result = self.process('terminal', '--root', self.store,
+            input=f'select {self.ids[0]}\nreferences\nreference-compare {reference_id}\ndictionary\nquit\n')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('community_reference', result.stdout)
+
+    def test_explicit_migration_backups_legacy_store_before_mutation(self):
+        import sqlite3
+        from intune_iac.workbench_store import _SCHEMA_SQL_V1
+        root = self.root / 'legacy'; root.mkdir(mode=0o700)
+        path = root / 'observations.sqlite3'
+        with sqlite3.connect(path) as db:
+            db.executescript(_SCHEMA_SQL_V1)
+            db.execute('INSERT INTO metadata VALUES (?,?)', ('tenant_id', self.tenant))
+        path.chmod(0o600)
+        backup = self.root / 'legacy-backup.sqlite3'
+        with sqlite3.connect(path) as db: before = list(db.iterdump())
+        migrated = self.call('migrate', '--root', root, '--backup', backup)
+        self.assertEqual((migrated['from_version'], migrated['to_version']), (1, 2))
+        with sqlite3.connect(backup) as db:
+            self.assertEqual(list(db.iterdump()), before)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0], 1)
+        self.assertEqual(hashlib.sha256(backup.read_bytes()).hexdigest(), migrated['backup']['sha256'])
+        self.assertEqual(self.call('overview', '--root', root)['objects'], [])
+
+    def test_explicit_bounded_schedule_runs_after_terminal_closes(self):
+        job = self.root / 'job'
+        self.call('schedule-create', '--root', self.store, '--service-root', self.service,
+                  '--interval-seconds', 0.1, '--output', job)
+        self.process('terminal', '--root', self.store, input='quit\n')
+        result = self.call('schedule-run', '--job', job, '--max-runs', 1, '--max-duration-seconds', 5)
+        self.assertFalse(result.get('cloud_authority', False))
+        self.assertEqual(len(self.call('collection-history', '--root', self.store)['collections']), 1)
+        status = self.call('schedule-status', '--job', job)
+        self.assertIsInstance(status, dict)
+        history = self.call('history', '--root', self.store, '--object', self.ids[0])['history']
+        self.assertEqual(len(history), 1)
 
 
 if __name__ == '__main__': unittest.main()

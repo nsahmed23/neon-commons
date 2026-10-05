@@ -151,7 +151,13 @@ class Run:
                 'no native GitHub/Azure/Entra, device, or organizational approval evidence'],
             'python': sys.version, 'platform': platform.platform(), 'started_at': time.time(),
             'source_sha256': {}, 'checks': [], 'commands': []}
-        files = [Path(__file__), PROJECT / 'scripts/intune-iac.py', PROJECT / 'examples/supported/input/export.json']
+        # Keep an external checker distinguishable from the product being graded.
+        self.checker = Path(__file__).resolve()
+        self.results['checker'] = {'path': str(self.checker),
+            'sha256': hashlib.sha256(self.checker.read_bytes()).hexdigest()}
+        files = [PROJECT / 'scripts/intune-iac.py', PROJECT / 'examples/supported/input/export.json']
+        if self.checker.is_relative_to(PROJECT):
+            files.insert(0, self.checker)
         files += sorted((PROJECT / 'intune_iac').glob('*.py'))
         for path in files:
             self.results['source_sha256'][str(path.relative_to(PROJECT))] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -161,6 +167,9 @@ class Run:
         dump(self.root / 'receipt.json', self.results)
 
     def source_end(self):
+        self.results['checker']['end_sha256'] = hashlib.sha256(self.checker.read_bytes()).hexdigest()
+        if self.results['checker']['end_sha256'] != self.results['checker']['sha256']:
+            raise AssertionError('Independent checker changed during qualification')
         self.results['source_end_sha256'] = {name: hashlib.sha256((PROJECT / name).read_bytes()).hexdigest()
             for name in self.results['source_sha256']}
         changed = [name for name, digest in self.results['source_sha256'].items()
@@ -234,10 +243,13 @@ class Run:
                         prompt_count = prompts
                 if process.poll() is not None and not ready:
                     break
-            if process.poll() is None:
+            # PTY EOF/EIO can precede waitpid visibility. Use only the
+            # remaining original deadline to observe exit before declaring it late.
+            try:
+                code = process.wait(timeout=max(0.0, deadline - time.monotonic()))
+            except subprocess.TimeoutExpired:
                 process.kill()
                 raise AssertionError('PTY did not terminate within 30 seconds')
-            code = process.wait(timeout=2)
         finally:
             if process.poll() is None:
                 process.kill()

@@ -1,3 +1,7 @@
+# Intune Workbench — 0.7.0 connected observation candidate
+
+This candidate connects captured policy observations, persistent per-collection history, typed reference comparisons, policy-specific device/workflow evidence, and a bounded local collection scheduler. It includes the independently qualified process-cleanup repair from 0.6.2 and the separately tested terminal-checker correction. See [commands, evidence meanings and remaining limits](docs/WORKBENCH.md). Exact artifact receipts determine qualification; older totals below remain historical. Production execution and organizational approval remain blocked.
+
 # Intune Workbench — 0.6.1 process cleanup candidate
 
 This milestone repairs bounded descendant cleanup in the local and provider supervisors. Its exact source, packages and new qualification are tracked separately from the preserved 0.6.0 failure. Platform and organizational approval remain incomplete.
