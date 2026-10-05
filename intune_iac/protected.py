@@ -478,10 +478,11 @@ def _release_process_resources(process, selector, release):
     return errors
 
 
-def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_limit=MAX_OUTPUT, executable=None, evidence=None):
+def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_limit=MAX_OUTPUT, executable=None, evidence=None, cleanup_evidence=None):
     """Private primitive: byte-bounded pipes and process-group deadline on Linux."""
     if type(timeout) is not int or not 1<=timeout<=60 or type(output_limit)is not int or not 1<=output_limit<=MAX_OUTPUT: _fail('invalid_process_bound')
     if evidence is not None and type(evidence)is not dict:_fail('invalid_process_evidence')
+    if cleanup_evidence is not None and type(cleanup_evidence)is not dict:_fail('invalid_process_evidence')
     process=None; selector=selectors.DefaultSelector(); output=bytearray(); errors=bytearray(); total=0
     release_guard=lambda:None
     try:
@@ -515,9 +516,10 @@ def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_l
             if evidence is not None:
                 evidence.update(stdout_bytes=bytes(output),stderr_bytes=bytes(errors),
                                 exit_code=process.returncode if process is not None else None,
-                                output_truncated=total>output_limit,process_cleanup=cleanup,
-                                resource_errors=resource_errors,
-                                primary_error=getattr(primary,'code',type(primary).__name__) if primary else None)
+                                output_truncated=total>output_limit)
+        if cleanup_evidence is not None:
+            cleanup_evidence.update(process_cleanup=cleanup,resource_errors=resource_errors,
+                                    primary_error=getattr(primary,'code',type(primary).__name__) if primary else None)
         if cleanup_error is not None:raise cleanup_error from primary
         if resource_errors and primary is None:_fail('process_cleanup_resources')
 

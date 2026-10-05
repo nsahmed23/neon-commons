@@ -27,7 +27,7 @@ class ProcessCleanupTests(unittest.TestCase):
     def call(self, profile, code, *, evidence=None, **kwargs):
         argv = [self.python, '-I', '-S', '-c', code]
         if profile == 'protected':
-            return protected._supervise(argv, cwd=self.root, env={}, evidence=evidence, **kwargs)
+            return protected._supervise(argv, cwd=self.root, env={}, cleanup_evidence=evidence, **kwargs)
         return provider_execution._supervise(argv, cwd=self.root, env={}, executable=self.python,
                                               pass_fds=(), evidence=evidence, **kwargs)
 
