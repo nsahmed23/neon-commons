@@ -19,6 +19,7 @@ import selectors
 import signal
 import stat
 import subprocess
+import sys
 import time
 import uuid
 import zipfile
@@ -26,6 +27,7 @@ import zipfile
 from .io import AppError, canonical, digest, load_json, parse_json, parse_provider_schema_json, write_json
 from .production import RESOURCE, _setting, _uuid
 from .native_pins import OPENTOFU_CURRENT_SHA256, OPENTOFU_PINS
+from . import protected
 
 SOURCE = 'registry.terraform.io/deploymenttheory/microsoft365'
 ADDRESS = RESOURCE + '.selected'
@@ -675,11 +677,13 @@ class ProviderExecutor:
         return report
 
 
-def _supervise(argv, *, cwd, env, executable, pass_fds, timeout=60, output_limit=MAX_BYTES, active_check=None):
+def _supervise(argv, *, cwd, env, executable, pass_fds, timeout=60, output_limit=MAX_BYTES, active_check=None, evidence=None):
     """Fixed argv, no shell/stdin, bounded pipes, deadline, descendant cleanup."""
+    if evidence is not None and type(evidence) is not dict: _fail('provider_invalid_process_evidence')
     process = None; selector = selectors.DefaultSelector(); output = bytearray(); total = 0
-    guard, release = _network_guard()
+    release = lambda: None
     try:
+        guard, release = _network_guard()
         if active_check is not None: active_check()
         process = subprocess.Popen(argv, cwd=cwd, env=env, executable=executable, pass_fds=pass_fds,
                                    stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -698,21 +702,24 @@ def _supervise(argv, *, cwd, env, executable, pass_fds, timeout=60, output_limit
                 if key.fileobj is process.stdout: output.extend(chunk)
         # A child may close both output pipes while it continues running. Keep
         # checking authority and the deadline until the process itself exits.
-        while process.poll() is None:
-            if active_check is not None: active_check()
-            if time.monotonic() >= deadline: _fail('provider_process_timeout')
-            time.sleep(min(0.05, max(0.001, deadline - time.monotonic())))
-        code = process.returncode
+        code = protected._wait_process_exit(process, deadline=deadline, active_check=active_check,
+                                            timeout_code='provider_process_timeout')
         if active_check is not None: active_check()
         return {'code': code, 'stdout': bytes(output)}
     finally:
-        release()
-        selector.close()
-        if process is not None:
-            try: os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError: pass
-            process.wait()
-            process.stdout.close(); process.stderr.close()
+        primary = sys.exc_info()[1]; cleanup = {}; cleanup_error = None
+        try:
+            if process is not None: protected._cleanup_process_group(process, evidence=cleanup)
+        except BaseException as error:
+            cleanup_error = error
+        finally:
+            resource_errors = protected._release_process_resources(process, selector, release)
+            if evidence is not None:
+                evidence.update(process_cleanup=cleanup, resource_errors=resource_errors,
+                                primary_error=getattr(primary, 'code', type(primary).__name__) if primary else None,
+                                exit_code=process.returncode if process is not None else None)
+        if cleanup_error is not None: raise cleanup_error from primary
+        if resource_errors and primary is None: _fail('process_cleanup_resources')
 
 
 def _network_guard():

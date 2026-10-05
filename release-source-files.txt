@@ -483,6 +483,7 @@ plugin_tests/test_oracle_edge_types.py
 plugin_tests/test_powershell_preview.py
 plugin_tests/test_preservation_audit.py
 plugin_tests/test_production.py
+plugin_tests/test_process_cleanup.py
 plugin_tests/test_protected_completion.py
 plugin_tests/test_provider_completion.py
 plugin_tests/test_provider_contract_lab.py

@@ -27,6 +27,10 @@ from .native_pins import OPENTOFU_CURRENT_SHA256, OPENTOFU_PINS
 NATIVE_SHA256 = OPENTOFU_CURRENT_SHA256
 MAX_OUTPUT = 2 * 1024 * 1024
 PROCESS_TIMEOUT = 30
+PROCESS_CLEANUP_TIMEOUT = 2.0
+PROCESS_CLEANUP_POLL = 0.005
+MAX_PROC_ENTRIES = 65536
+MAX_GROUP_TASKS = 65536
 CHILD_ADDRESS_SPACE_BYTES = 4 * 1024**3
 CHILD_CPU_SECONDS = 20
 CHILD_FILE_BYTES = 64 * 1024**2
@@ -296,13 +300,192 @@ def _network_filter():
     return child,lambda:lib.seccomp_release(context)
 
 
+def _read_process_stat(path):
+    """Read bounded Linux procfs identity; comm may contain ')' or newlines."""
+    with Path(path).open('rb') as stream:
+        raw = stream.read(8193)
+    if len(raw) > 8192:
+        _fail('process_cleanup_observation_invalid')
+    try:
+        prefix, separator, tail = raw.rpartition(b') ')
+        pid, opening, _ = prefix.partition(b' (')
+        fields = tail.split()
+        if not separator or not opening or len(fields) < 20 or fields[0] not in tuple(bytes([c]) for c in b'RSDZTWtXxKWPIN'):
+            raise ValueError()
+        value = {'pid': int(pid), 'state': fields[0].decode('ascii'),
+                 'pgrp': int(fields[2]), 'session': int(fields[3]), 'starttime': int(fields[19])}
+        if value['pid'] <= 0 or min(value['pgrp'], value['session'], value['starttime']) < 0:
+            raise ValueError()
+        return value
+    except (ValueError, IndexError, UnicodeError):
+        _fail('process_cleanup_observation_invalid')
+
+
+def _process_group_members(pgid, *, deadline):
+    """Census the original group, including threads of zombie group leaders.
+
+    This requires readable Linux procfs in the caller's PID namespace. Missing
+    entries are ordinary exits; denied/malformed/incomplete observations are
+    failures. It is not a detector for processes that escaped this group.
+    """
+    members = []; entries = 0; tasks = 0
+    with os.scandir('/proc') as processes:
+        for entry in processes:
+            entries += 1
+            if entries > MAX_PROC_ENTRIES:
+                _fail('process_cleanup_observation_limit')
+            if time.monotonic() >= deadline:
+                _fail('process_cleanup_timeout')
+            if not entry.name.isascii() or not entry.name.isdigit():
+                continue
+            try:
+                leader = _read_process_stat(Path(entry.path) / 'stat')
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+            if leader['pid'] != int(entry.name):
+                _fail('process_cleanup_observation_invalid')
+            if leader['pgrp'] != pgid:
+                continue
+            if leader['session'] != pgid:
+                _fail('process_cleanup_group_changed')
+            try:
+                with os.scandir(Path(entry.path) / 'task') as threads:
+                    for thread in threads:
+                        tasks += 1
+                        if tasks > MAX_GROUP_TASKS:
+                            _fail('process_cleanup_observation_limit')
+                        if time.monotonic() >= deadline:
+                            _fail('process_cleanup_timeout')
+                        if not thread.name.isascii() or not thread.name.isdigit():
+                            _fail('process_cleanup_observation_invalid')
+                        try:
+                            observed = _read_process_stat(Path(thread.path) / 'stat')
+                        except (FileNotFoundError, ProcessLookupError):
+                            continue
+                        if observed['pid'] != int(thread.name) or observed['pgrp'] != pgid or observed['session'] != pgid:
+                            _fail('process_cleanup_group_changed')
+                        members.append({'pid': leader['pid'], 'tid': observed['pid'],
+                                        'state': observed['state'], 'starttime': observed['starttime']})
+            except (FileNotFoundError, ProcessLookupError):
+                continue
+    return members
+
+
+def _peek_process_exit(process):
+    """Observe, but do not reap, the owned child that reserves the group ID."""
+    observed = os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT)
+    if observed is None:
+        return None
+    if observed.si_pid != process.pid or observed.si_code not in (os.CLD_EXITED, os.CLD_KILLED, os.CLD_DUMPED):
+        _fail('process_cleanup_anchor_lost')
+    return observed.si_status if observed.si_code == os.CLD_EXITED else -observed.si_status
+
+
+def _wait_process_exit(process, *, deadline, active_check=None, timeout_code='process_timeout'):
+    while True:
+        if active_check is not None:
+            active_check()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            _fail(timeout_code)
+        result = _peek_process_exit(process)
+        if result is not None:
+            return result
+        time.sleep(min(0.01, remaining))
+
+
+def _cleanup_process_group(process, *, evidence):
+    """Kill and confirm bounded cleanup before releasing the original PID.
+
+    The unreaped direct child anchors its PID/PGID against reuse. Two complete
+    procfs censuses must contain no live group thread. This is cooperative
+    process-group cleanup, not host containment: protected execution denies
+    new processes; the provider guard permits them but denies group escape.
+    """
+    deadline = time.monotonic() + PROCESS_CLEANUP_TIMEOUT
+    evidence.update(status='unverified', group_id=process.pid,
+                    scope='original_linux_process_group_only', observations=0,
+                    deadline_seconds=PROCESS_CLEANUP_TIMEOUT, direct_child_reaped=False)
+    cleanup_error = None; owned_child = False; group_signalled = False
+    try:
+        # waitid also proves this is still our child before any group signal.
+        _peek_process_exit(process)
+        owned_child = True
+        if os.getpgid(process.pid) != process.pid or os.getsid(process.pid) != process.pid:
+            _fail('process_cleanup_anchor_lost')
+        # Procfs observation may itself fail. First stop the already-confirmed
+        # owned group, so an unreadable stat cannot leave a known child live.
+        os.killpg(process.pid, signal.SIGKILL)
+        group_signalled = True
+        anchor = _read_process_stat(Path('/proc') / str(process.pid) / 'stat')
+        if anchor['pid'] != process.pid or anchor['pgrp'] != process.pid or anchor['session'] != process.pid:
+            _fail('process_cleanup_anchor_lost')
+        evidence['leader_starttime'] = anchor['starttime']
+        quiet = 0; previous_terminal = None
+        while True:
+            if time.monotonic() >= deadline:
+                _fail('process_cleanup_timeout')
+            # Repeated signals include children created just before the first
+            # signal; no group signal is issued after the leader is reaped.
+            os.killpg(process.pid, signal.SIGKILL)
+            members = _process_group_members(process.pid, deadline=deadline)
+            evidence['observations'] += 1
+            live = [item for item in members if item['state'] not in ('Z', 'X', 'x')]
+            evidence['live_members'] = live
+            terminal = frozenset((item['pid'], item['tid'], item['starttime']) for item in members)
+            quiet = quiet + 1 if not live and terminal == previous_terminal else 1 if not live else 0
+            previous_terminal = terminal if not live else None
+            if quiet >= 2 and _peek_process_exit(process) is not None:
+                break
+            time.sleep(min(PROCESS_CLEANUP_POLL, max(0, deadline - time.monotonic())))
+    except BaseException as error:
+        cleanup_error = error
+        evidence['observation_error'] = getattr(error, 'code', type(error).__name__)
+        if owned_child and not group_signalled:
+            # Group identity was not established. Signal only our unreaped
+            # direct child, never an unverified or possibly reused group.
+            try: os.kill(process.pid, signal.SIGKILL)
+            except ProcessLookupError: pass
+            except BaseException as signal_error:
+                evidence['signal_error'] = getattr(signal_error, 'code', type(signal_error).__name__)
+    finally:
+        # Bounded direct-child reaping also runs on incomplete observation.
+        # It is never used as evidence that an orphan descendant exited.
+        try:
+            process.wait(timeout=max(0, deadline - time.monotonic()))
+            evidence['direct_child_reaped'] = owned_child
+        except BaseException as error:
+            if cleanup_error is None:
+                cleanup_error = error
+            evidence['reap_error'] = getattr(error, 'code', type(error).__name__)
+    if cleanup_error is not None:
+        code = 'process_cleanup_timeout' if (getattr(cleanup_error, 'code', None) == 'process_cleanup_timeout'
+                                             or isinstance(cleanup_error, subprocess.TimeoutExpired)) else 'process_cleanup_unverified'
+        _fail(code)
+    evidence['status'] = 'confirmed'
+
+
+def _release_process_resources(process, selector, release):
+    """Attempt every local release even when an earlier release fails."""
+    callbacks = [release, selector.close]
+    if process is not None:
+        callbacks.extend(pipe.close for pipe in (process.stdout, process.stderr) if pipe is not None)
+    errors = []
+    for callback in callbacks:
+        try: callback()
+        except BaseException as error:
+            errors.append(getattr(error, 'code', type(error).__name__))
+    return errors
+
+
 def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_limit=MAX_OUTPUT, executable=None, evidence=None):
     """Private primitive: byte-bounded pipes and process-group deadline on Linux."""
     if type(timeout) is not int or not 1<=timeout<=60 or type(output_limit)is not int or not 1<=output_limit<=MAX_OUTPUT: _fail('invalid_process_bound')
     if evidence is not None and type(evidence)is not dict:_fail('invalid_process_evidence')
     process=None; selector=selectors.DefaultSelector(); output=bytearray(); errors=bytearray(); total=0
-    guard,release_guard=_network_filter()
+    release_guard=lambda:None
     try:
+        guard,release_guard=_network_filter()
         process=subprocess.Popen(argv,cwd=cwd,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
                                  shell=False,close_fds=True,pass_fds=pass_fds,start_new_session=True,executable=executable,preexec_fn=guard)
         for pipe in (process.stdout,process.stderr):
@@ -318,26 +501,25 @@ def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_l
                 if total>output_limit: _fail('process_output_limit')
                 if key.fileobj is process.stdout:output.extend(chunk)
                 else:errors.extend(chunk)
-        remaining=deadline-time.monotonic()
-        if remaining<=0: _fail('process_timeout')
-        try:return_code=process.wait(timeout=remaining)
-        except subprocess.TimeoutExpired:_fail('process_timeout')
+        return_code=_wait_process_exit(process,deadline=deadline)
         if return_code!=0: _fail('process_failed')
         return bytes(output)
     finally:
-        release_guard()
-        selector.close()
-        if process is not None:
-            # Kill descendants too, even when the direct child already exited.
-            try:os.killpg(process.pid,signal.SIGKILL)
-            except ProcessLookupError:pass
-            process.wait()
-            for pipe in (process.stdout,process.stderr):
-                if pipe:pipe.close()
-        if evidence is not None:
-            evidence.update(stdout_bytes=bytes(output),stderr_bytes=bytes(errors),
-                            exit_code=process.returncode if process is not None else None,
-                            output_truncated=total>output_limit)
+        primary=sys.exc_info()[1];cleanup={};cleanup_error=None
+        try:
+            if process is not None:_cleanup_process_group(process,evidence=cleanup)
+        except BaseException as error:
+            cleanup_error=error
+        finally:
+            resource_errors=_release_process_resources(process,selector,release_guard)
+            if evidence is not None:
+                evidence.update(stdout_bytes=bytes(output),stderr_bytes=bytes(errors),
+                                exit_code=process.returncode if process is not None else None,
+                                output_truncated=total>output_limit,process_cleanup=cleanup,
+                                resource_errors=resource_errors,
+                                primary_error=getattr(primary,'code',type(primary).__name__) if primary else None)
+        if cleanup_error is not None:raise cleanup_error from primary
+        if resource_errors and primary is None:_fail('process_cleanup_resources')
 
 
 def _run(executor, command):

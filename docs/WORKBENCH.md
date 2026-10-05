@@ -1,6 +1,6 @@
 # Persistent maintenance workbench
 
-Version 0.6.0 is a local engineering candidate extending the recovered engine. The first profile uses the existing bounded synthetic Settings Catalog service and protected local plan executor. It accepts no tenant credentials, sends no Graph requests, and grants no cloud mutation authority. Native provider RPC, actual GitHub/Azure/Intune controls and endpoint qualification are separate.
+Version 0.6.1 is a local engineering candidate extending the recovered engine. The first profile uses the existing bounded synthetic Settings Catalog service and protected local plan executor. It accepts no tenant credentials, sends no Graph requests, and grants no cloud mutation authority. Native provider RPC, actual GitHub/Azure/Intune controls and endpoint qualification are separate.
 
 The actual entrypoint is `python -B scripts/intune-iac.py workbench --help`. Commands are connected through the same on-disk store so collection can run with the terminal closed. `wizard --journey` remains the existing adoption/generation journey; `repository` and `graph` retain existing inspection/resolution behavior. The new workbench provides subsequent investigation and modeled maintenance.
 
@@ -67,3 +67,9 @@ Pass it with `workbench collect --root STORE --service-root SERVICE --deployment
 The existing main validation workflow runs the same local checker. No GitHub workflow dispatch or production schedule was enabled. Run a closed-terminal collection explicitly, then reopen the terminal to view the new observation.
 
 Repository context can be collected with explicit `--repo ROOT --stack STACK --component COMPONENT`; all three are required together. This reuses the existing bounded literal resolver, records inherited-source hashes and provenance, and executes no repository commands. It does not authenticate an Entra tenant or prove native Atmos evaluation. `history` and `operations` accept `--limit` and `--offset`; unpaged queries beyond 1,000 rows fail visibly instead of silently truncating history.
+
+## Linux child-process cleanup
+
+Local and provider runners retain their direct child until group cleanup completes. They send SIGKILL, inspect bounded Linux procfs process/thread state in the original session/group, and require repeated complete observations with no live member before reaping the direct child. Timeout, output-limit, cancellation and ordinary completion use the same cleanup boundary. The original execution error is retained separately from a cleanup error. A missing observation capability or unresolved deadline blocks verification; signal delivery alone is not success.
+
+This requires readable procfs and Linux waitid WNOWAIT in the caller's PID namespace. Protected local execution denies new processes; the pinned provider profile allows process creation but denies session/group escape. These supported profiles are not hostile-host or cgroup isolation, arbitrary detached-process containment, power-loss durability, or native Windows qualification. Dead zombies may remain pending their actual parent's reap; they cannot execute or mutate state. Exact test and package receipts establish the qualified scope.

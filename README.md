@@ -1,3 +1,7 @@
+# Intune Workbench — 0.6.1 process cleanup candidate
+
+This milestone repairs bounded descendant cleanup in the local and provider supervisors. Its exact source, packages and new qualification are tracked separately from the preserved 0.6.0 failure. Platform and organizational approval remain incomplete.
+
 # Intune Workbench — 0.6.0 local engineering candidate
 
 This continuation adds persistent inspection/history, closed-terminal synthetic collection, health/freshness and bounded maintenance using the existing engine and service model. Start with [Workbench commands and limits](docs/WORKBENCH.md). Qualification evidence for this source is separate from the preserved 0.5.1 results below. **Platform qualification and enterprise approval remain incomplete.** No cloud execution authority is added.
