@@ -1,0 +1,19 @@
+{
+  "public_download_bytes": 1156114547,
+  "public_download_sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214",
+  "expected_sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214",
+  "release_url": "https://github.com/nsahmed23/neon-commons/releases/tag/intune-full-handoff-20261004",
+  "exact_archive_match": true,
+  "extracted_tree_verification": {
+    "status": "FAIL",
+    "files_verified": 30274,
+    "errors": [],
+    "extra_files": [
+      "work/.EVIDENCE-INVENTORY.json.npW3LO",
+      "work/releases/.Intune_Wally_Epoch_20261004_Evidence.zip.pakHc1",
+      "work/releases/provider/.Historical_Provider_Binary_1_25_8.zip.bTiIxb"
+    ],
+    "application_code_executed": false
+  },
+  "unexpected_extracted_files_present_in_zip": []
+}
