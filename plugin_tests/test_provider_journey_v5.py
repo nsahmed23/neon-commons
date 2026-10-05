@@ -19,6 +19,7 @@ from intune_iac import cli, provider_execution as pe, approval_authority as aa
 from intune_iac import provider_journey as pj
 from intune_iac.io import AppError, canonical, digest, load_json, write_json
 from plugin_tests.test_provider_execution_v5 import FIXTURE, OBJECT_ID, SCHEMA, raw_state, shown, plan
+from plugin_tests.signing_fixture import verifier_pin
 
 
 class ModelCommands:
@@ -73,7 +74,7 @@ class ProviderJourneyTests(unittest.TestCase):
         self.key = self.base / 'independent-issuer.pem'
         subprocess.run(['/usr/bin/openssl', 'genpkey', '-algorithm', 'ED25519', '-out', str(self.key)], check=True, capture_output=True)
         public = subprocess.run(['/usr/bin/openssl', 'pkey', '-in', str(self.key), '-pubout', '-outform', 'DER'], check=True, capture_output=True).stdout[-32:]
-        pin = aa.VerifierPin(Path('/usr/bin/openssl'), pe._sha(Path('/usr/bin/openssl')))
+        pin = verifier_pin(Path('/usr/bin/openssl'), pe._sha(Path('/usr/bin/openssl')))
         self.policy = {'schema_version': 'provider-operator-policy/1.0', 'authority_root': str(self.host / 'authority'),
             'verifier': {k: str(v) if isinstance(v, Path) else v for k, v in asdict(pin).items()},
             'approvers': [{'issuer': 'fixture-issuer', 'key_id': 'fixture-key', 'approver_id': 'fixture-reviewer',

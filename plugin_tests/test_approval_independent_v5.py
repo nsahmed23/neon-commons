@@ -21,6 +21,7 @@ import uuid
 
 from intune_iac import approval_authority as api
 from intune_iac.io import AppError, canonical, digest
+from plugin_tests.signing_fixture import verifier_pin
 
 
 def _race_enter(root, verifier, approver, request, receipt, start, results):
@@ -43,7 +44,7 @@ class IndependentApprovalTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.openssl = Path('/usr/bin/openssl')
-        self.pin = api.VerifierPin(self.openssl, hashlib.sha256(self.openssl.read_bytes()).hexdigest())
+        self.pin = verifier_pin(self.openssl, hashlib.sha256(self.openssl.read_bytes()).hexdigest())
         self.key = self.root / 'private.pem'
         subprocess.run([str(self.openssl), 'genpkey', '-algorithm', 'ED25519', '-out', str(self.key)], check=True, capture_output=True)
         public = subprocess.run([str(self.openssl), 'pkey', '-in', str(self.key), '-pubout', '-outform', 'DER'], check=True, capture_output=True).stdout[-32:]

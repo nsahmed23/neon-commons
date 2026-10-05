@@ -12,6 +12,7 @@ from unittest.mock import patch
 import uuid
 
 from intune_iac.io import AppError, canonical, digest
+from plugin_tests.signing_fixture import verifier_pin
 
 
 class ApprovalAuthorityTests(unittest.TestCase):
@@ -21,7 +22,7 @@ class ApprovalAuthorityTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.openssl = Path('/usr/bin/openssl')
-        self.pin = api.VerifierPin(self.openssl, hashlib.sha256(self.openssl.read_bytes()).hexdigest())
+        self.pin = verifier_pin(self.openssl, hashlib.sha256(self.openssl.read_bytes()).hexdigest())
         self.key = self.root / 'issuer.pem'
         subprocess.run([str(self.openssl), 'genpkey', '-algorithm', 'ED25519', '-out', str(self.key)], check=True, capture_output=True)
         pub = subprocess.run([str(self.openssl), 'pkey', '-in', str(self.key), '-pubout', '-outform', 'DER'], check=True, capture_output=True).stdout

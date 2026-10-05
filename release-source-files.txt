@@ -445,6 +445,7 @@ plugin.json
 plugin_tests/__init__.py
 plugin_tests/test_adoption_lab.py
 plugin_tests/test_approval_authority_v5.py
+plugin_tests/signing_fixture.py
 plugin_tests/test_approval_independent_v5.py
 plugin_tests/test_atmos_audit.py
 plugin_tests/test_blob_lease_independent_v5.py
