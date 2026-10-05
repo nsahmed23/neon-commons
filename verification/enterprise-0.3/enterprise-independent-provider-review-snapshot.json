@@ -1,0 +1,28 @@
+{
+  "scope": "Provider source candidate and exact Schema extraction; no native provider or service qualification",
+  "verdict": "pass_with_stated_scope",
+  "production_ready": false,
+  "open_findings": 0,
+  "repaired_findings": [
+    "PR01"
+  ],
+  "files": {
+    "scripts/qualify-provider-contract.py": "7dd208ed53dde18181f793d8e381b85e10c2267e7fcb1ef1f74cd6968610f91b",
+    "plugin_tests/test_provider_contract_lab.py": "bd92c7af132e6b374b81ec555ec05a1f8873bb27a61f35534e892e067391825c",
+    "labs/provider-contract/README.md": "e2e0cd987fa0e3b765e33003db7c1167dc5b455c2af670965d68c64a13e6e214",
+    "labs/provider-contract/contract_test.go": "5658e9785444c7445b13d0c2f8d5a52b513a707aba7f2351a002ab6124931f86",
+    "labs/provider-contract/sdk_contract_test.go": "f778b9e36a467dff6086e273a7de3b4d2ccc9843315ce83b37a6478548de9ac6",
+    "labs/provider-contract/patch_contract_test.go": "5a706563bc01556e2197638ec274407c217e276c0b52da2ff6c8a3c3da8c0dce",
+    "labs/provider-contract/schema/extract.go": "39fdee801c284a0071ef5e78dc0c28296a82943a6c1ca2b1a6d38c5296b8dca7",
+    "labs/provider-contract/schema/schema_contract_test.go": "744490adac6a771f7472cb646921462a6aeca419e5541dce8b9f5d3ceb2ee5ce",
+    "labs/provider-contract/patched/get_request.go": "7c0f31739132ab4613f7e939f68df755275f657d02a42d74a0638b6e408a6f7d",
+    "labs/provider-contract/source-manifest.json": "20c23e8a7788865f02e60c49549165e2b3d6e309d6bdac7293dad70fd560f896",
+    "labs/provider-contract/schema-source-manifest.json": "a215a047d995037d586082029fc2af2a4363b9b69c154ad8d43a9730d2ceb6a2",
+    "labs/provider-contract/patch-manifest.json": "5d5c03b1d42e44110dc4e621a73f21244b89e69b132a25a192fb132e22f995b6",
+    "research/provider-qualification/patches/0001-bound-custom-graph-GET.patch": "814b9a4c1014ca63557a72cd4f3c739249ca5212c9ce88b619746df425cca91f",
+    "research/provider-qualification/patches/README.md": "2f1ab26d23b6d9d6774287c556bf60bf522ad616e1b6c445c798b2b9852c1807",
+    "research/provider-qualification/schema-extraction.json": "e1f59ef6fb10018ab704040bfc0108a169ddd237013475238e6dbf3842dae08b",
+    "research/provider-qualification/descendant-cleanup-red.log": "172bb1090f73cf2bfa3bc06db243f97e3a7e1c96472bc4edfc7b097d7dbb95d8",
+    "research/provider-qualification/runner-green.log": "f84e3b04dab67ef91f251fce179b460b9937ecc4bb88e22779699f7fa2588905"
+  }
+}

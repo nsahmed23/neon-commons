@@ -1,0 +1,15 @@
+test_low_order_identity_public_key_cannot_authorize_static_forgery (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_low_order_identity_public_key_cannot_authorize_static_forgery) ... FAIL
+
+======================================================================
+FAIL: test_low_order_identity_public_key_cannot_authorize_static_forgery (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_low_order_identity_public_key_cannot_authorize_static_forgery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_independent_v5.py", line 90, in test_low_order_identity_public_key_cannot_authorize_static_forgery
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.024s
+
+FAILED (failures=1)

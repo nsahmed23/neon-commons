@@ -1,0 +1,13 @@
+original_footnote,source_id,candidate_url,status,note
+source-02,hashicorp-skills,https://github.com/hashicorp/agent-skills/blob/f706481af9b8fedb66de909f6243ad29601afa0c/SKILLS.md,repaired_claim_support,"Current pinned catalogue supports listed skills, not a reconstruction of opaque original token."
+source-03,hashicorp-skills,https://github.com/hashicorp/agent-skills/blob/f706481af9b8fedb66de909f6243ad29601afa0c/SKILLS.md,repaired_claim_support,Same pinned catalogue independently supports corrected name/path.
+source-09,atmos,https://github.com/cloudposse/atmos/blob/d5790b2b11cce4b1c1ed96da9a73716510d6d03a/agent-skills/skills/atmos-terraform/SKILL.md,partial,Binary/version distinction rechecked; deploy details outside retrieved range.
+source-11,terraform-corpus,https://github.com/stephrobert/terraform-dsoxlab-training/blob/86b69d2292485d179698f5b9bf648a29f935e216/conftest.py,partial,"Replay fixture directly rechecked; helper executable claim retained from supplied original source, not re-read in this range."
+source-12,dsoxlab,https://github.com/stephrobert/dsoxlab/blob/67afe5d7c7f859f8cdeebaa89679258593db6da7/README.md,unresolved,Matching pinned runner not retrieved; do not treat Linux README as substitute.
+source-13,azure-skills,https://github.com/microsoft/azure-skills/blob/f07c05364353925f7c8b0e474aa95afa291bce54/README.md,unresolved,Payload catalogue not re-fetched in this pass.
+source-14,azure-skills,https://github.com/microsoft/azure-skills/blob/f07c05364353925f7c8b0e474aa95afa291bce54/.github/plugins/azure-skills,unresolved,Directory/manifest catalogue not acquired.
+source-15,azure-skills,https://github.com/microsoft/azure-skills/blob/f07c05364353925f7c8b0e474aa95afa291bce54/.github/plugins/azure-skills/skills/azure-prepare/SKILL.md,repaired_claim_support,Frontmatter azd-only vs broad body and plan artifact rechecked.
+source-16,powerstacks,https://github.com/powerstacks-corp/intune-advanced-troubleshooting/blob/68e04d3374f93d5895d66fc28581f25e1e250fdf/SKILL.md,unresolved,Retained named pinned retrieval target; not independently re-fetched.
+source-17,powerstacks,https://github.com/powerstacks-corp/intune-advanced-troubleshooting/blob/68e04d3374f93d5895d66fc28581f25e1e250fdf/scripts/Invoke-ImeDecompile.ps1,unresolved,Side-effect claim retained from inputs; no current re-fetch.
+source-19,claude-m,https://github.com/TheLobbi/Claude-m/blob/703f383198963a3596f7a86ff63c9f98574a21b6/microsoft-intune/README.md,unresolved,Knowledge-only claim needs pinned re-fetch before reuse.
+source-20,claude-m,https://github.com/TheLobbi/Claude-m/blob/703f383198963a3596f7a86ff63c9f98574a21b6/microsoft-intune/commands/intune-setup.md,unresolved,Do not run named routes; needs pinned re-fetch/adapter evidence.

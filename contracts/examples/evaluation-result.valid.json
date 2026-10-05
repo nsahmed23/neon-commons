@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "case_id": "B01-supported-adoption",
+  "arm": "proposed_plus_controls",
+  "host": "offline-reference",
+  "status": "not_run",
+  "assertions": [
+    {
+      "id": "policy-id-preserved",
+      "passed": null,
+      "evidence": []
+    }
+  ],
+  "usage": {
+    "estimated_tokens": null,
+    "observed_input_tokens": null,
+    "observed_output_tokens": null,
+    "cached_tokens": null,
+    "latency_seconds": null,
+    "list_price_estimate": null,
+    "billed_cost": null
+  },
+  "critical_effects": [],
+  "model_id": null,
+  "host_version": null,
+  "skill_digest": null
+}

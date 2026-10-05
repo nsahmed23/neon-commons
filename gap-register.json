@@ -1,0 +1,357 @@
+{
+  "audited_on": "2026-09-30",
+  "closed_scope": "G01 dossier/traceability structure only; offline repair does not close production qualification",
+  "counts": {
+    "closed": 1,
+    "partial": 11,
+    "blocked": 0
+  },
+  "gaps": [
+    {
+      "artifacts": [
+        "requirements-traceability.csv",
+        "BUILD-PLAN.md",
+        "CHANGELOG-REPAIR.md",
+        "repair-traceability.csv"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Integrated repair, historical baselines, defect trace and runnable verification supplied.",
+      "id": "G01",
+      "remaining": "None for dossier structure.",
+      "requirement": "Dossier/traceability",
+      "status": "closed"
+    },
+    {
+      "artifacts": [
+        "provider-api-coverage.csv",
+        "recipes/settings-catalog-adoption.md",
+        "recipes/assignment-preservation.md"
+      ],
+      "assurance": {
+        "acquisition": "selected_connector_text_no_full_source_archive",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Typed candidate source/import/assignment path and full reference files provided.",
+      "id": "G02",
+      "remaining": "Assign replacement/merge semantics, common serializer and pagination, provider execution remain unqualified.",
+      "requirement": "Provider/assignment feasibility",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "contracts/export-intake.schema.json",
+        "contracts/NORMALIZATION.md",
+        "examples/missing-page/input/export.json",
+        "examples/access-denied/input/export.json",
+        "reference/validation.py",
+        "evaluations/test_repaired_contracts.py",
+        "evaluations/test_repaired_pipeline.py"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_qualification_boundary"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Strict capture roots/chains, denied/error handling and duplicate-reference rejection integrated.",
+      "id": "G03",
+      "remaining": "Real exporter acquisition/adaptation, authenticity and cross-request consistency remain unqualified.",
+      "requirement": "Offline export contract",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "contracts/observed-inventory.schema.json",
+        "reference/core.py",
+        "evaluations/test_invariants.py",
+        "reference/invariants.py",
+        "reference/field_accounting.py",
+        "corrections/contracts/capability-map.json",
+        "evaluations/test_repaired_oracle.py"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_qualification_boundary"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Typed projection, explicit field rules, bounded capability map, restricted unknown retention and independent preservation oracle integrated.",
+      "id": "G04",
+      "remaining": "Provider/SDK/state roundtrip and additional setting definitions/polymorphs remain unqualified.",
+      "requirement": "Normalization contracts",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "examples/supported/expected/project",
+        "examples/partial/expected/project",
+        "evaluations/plans",
+        "reference/invariants.py",
+        "verification/golden-regeneration.json",
+        "evaluations/test_repaired_cli.py"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Four CLI-generated golden fixtures verified independently; actual generated HCL parsed and compared.",
+      "id": "G05",
+      "remaining": "Provider-schema validation, wire serialization and observed import/no-change behavior remain unperformed.",
+      "requirement": "Golden projects and assertions",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "wizard/wizard-state-machine.yaml",
+        "wizard/wizard-questions.yaml",
+        "wizard/FILES-AND-RESUME.md",
+        "wizard/transcripts",
+        "reference/workflow.py",
+        "tools/session-reference.py",
+        "workflowdocs/LOCAL-WORKFLOW.md",
+        "evaluations/test_repaired_workflow.py"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_qualification_boundary"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Local receipt store and create/inspect/resume/suspend/cancel CLI integrated with current-byte and prerequisite verification.",
+      "id": "G06",
+      "remaining": "Interactive/native host interface, authenticated acquisition and interrupted concurrent host operations remain unqualified.",
+      "requirement": "Wizard specification",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "wizard/PLATFORM-AND-COMMANDS.md",
+        "wizard/argv-vectors.json",
+        "tools/build-reference.py",
+        "evaluations/test_cli.py",
+        "tools/runtime-check.py",
+        "verification/runtime-receipt.json"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Real dependency preflight, noninteractive CLIs, registered preview commands and Bash argv roundtrip checks implemented.",
+      "id": "G07",
+      "remaining": "Native Windows/PowerShell, PTY interaction and executable provenance require qualification.",
+      "requirement": "Runtime/shell interaction",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "examples/azure-integration/expected/project",
+        "recipes/atmos-integration.md",
+        "permission-matrix.csv",
+        "reference/approval.py",
+        "corrections/contracts/approval-context.schema.json",
+        "evaluations/test_repaired_workflow.py"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Structured approval consistency comparison integrated, including cloud and full backend identity.",
+      "id": "G08",
+      "remaining": "Effective Atmos inspection, authenticated approver/protected delivery and privileged execution adapter remain unqualified.",
+      "requirement": "Atmos/Azure/CI",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "source-lock.json",
+        "code-catalog.jsonl",
+        "reuse-ledger.csv",
+        "citation-repair-ledger.csv",
+        "sources/ACQUISITION.md"
+      ],
+      "assurance": {
+        "acquisition": "selected_connector_text_no_full_source_archive",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Selected immutable code-unit records and pinned retrieval script; citation repair status explicit.",
+      "id": "G09",
+      "remaining": "Raw upstream bytes/dependency/license closure incomplete; some original citations unresolved.",
+      "requirement": "Provenance/acquisition",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "examples/host-package",
+        "evaluations/HOSTS-AND-HARNESSES.md",
+        "evaluations/plugin-eval.native-example.json",
+        "evaluations/cases.json"
+      ],
+      "assurance": {
+        "acquisition": "selected_connector_text_no_full_source_archive",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Current-source contract differences, native examples,16case suite and four-arm plan supplied.",
+      "id": "G10",
+      "remaining": "Native parsers/install/runtime, protected effect recorder and paid behavioral tests not run.",
+      "requirement": "Host/evaluation",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "examples/diagnostics",
+        "DIAGNOSTICS.md",
+        "INTUNE-ROLLOUT.md",
+        "family-coverage.csv"
+      ],
+      "assurance": {
+        "acquisition": "original_material_authored",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "Complete offline synthetic diagnostic/evidence case and app/script review contracts supplied.",
+      "id": "G11",
+      "remaining": "Collector source adaptation and additional family implementations still staged.",
+      "requirement": "Diagnostics and broader families",
+      "status": "partial"
+    },
+    {
+      "artifacts": [
+        "catalog-manifest.json",
+        "tools/inventory-catalog.py",
+        "evaluations/CORPUS.md"
+      ],
+      "assurance": {
+        "acquisition": "selected_connector_text_no_full_source_archive",
+        "authored": true,
+        "behavioral_evaluation": "not_run",
+        "fixture_tests": "see verification/result-summary.json",
+        "host_tests": "not_run",
+        "live_qualification": "not_run",
+        "review": "performed_for_supplied_contracts_and_selected_sources",
+        "static_validation": "see verification/result-summary.json"
+      },
+      "blocker_classes": [
+        "implementation_or_public_material_gap",
+        "platform_or_live_qualification_where_applicable"
+      ],
+      "closure_scope": "offline material/specification only",
+      "delivered": "All88 actual meta.yml declarations recorded; Terraform replay source rechecked.",
+      "id": "G12",
+      "remaining": "Individual88lab files/grader/effect/attestation and matching runner audit not complete;0labs run.",
+      "requirement": "Corpus audit",
+      "status": "partial"
+    }
+  ],
+  "schema_version": "1.0.0"
+}

@@ -1,0 +1,15 @@
+{
+  "evidence_hash_mismatches": [],
+  "evidence_references_checked": 111,
+  "files": {
+    "artifact-leak-scan.json": "6b00a9a4d9917a3ec95b150202c48d322203972d5b045c9ebae8344a18c5523d",
+    "build_security_records.py": "f2dbf763580ee2f9aff5c02b7ff504b77dbaed2166893a954dfc5f09d5fcab34",
+    "findings-ledger.json": "0bf36cc11f06c49405f6d85a8937427c45038e744ce9380ff61abc18b5eb79a9",
+    "threat-control-matrix.json": "36cab132ac1fb312a5c028b4fec097586d09d976b5d0ef2faf790b40bdeb4380"
+  },
+  "json_documents_valid": 3,
+  "scan_unresolved_candidates": 0,
+  "scan_unstable_files": [],
+  "schema_version": "security-supplement-validation/1.0",
+  "test_or_service_calls": 0
+}

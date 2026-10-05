@@ -1,0 +1,7 @@
+{
+  "sha256": "bdd7f0866d23e9874c1c2cfe0ba2be4406202d68bab3a08b0024acb8054f9a49",
+  "path": "plugin_tests/test_graph_budget.py",
+  "change": "Correct digest mock namespace only; no production edit",
+  "negative_control": "Early actual envelope hashing: old assertion passes, corrected assertion fails",
+  "normal_replay": "PASS"
+}

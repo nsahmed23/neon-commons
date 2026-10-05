@@ -1,0 +1,10 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+  "id": "aaaaaaaa-aaaa-4aaa-8aaa-000000000001",
+  "target": {
+    "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+    "groupId": "44444444-4444-4444-8444-444444444444",
+    "deviceAndAppManagementAssignmentFilterType": "include",
+    "deviceAndAppManagementAssignmentFilterId": "77777777-7777-4777-8777-777777777777"
+  }
+}

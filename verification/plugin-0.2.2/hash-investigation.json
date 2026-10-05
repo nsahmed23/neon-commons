@@ -1,0 +1,22 @@
+{
+  "first_run": "/workspace/scratch/26b6d364cfda/adoption-lab-final",
+  "semantic_result": "18 assertions passed across 25 native commands",
+  "integrity_result": "111 of 113 artifact hashes matched; desired-change stdout and stderr differed from their stored command and artifact hashes",
+  "original_evidence_modified": false,
+  "independent_rerun": "/workspace/scratch/26b6d364cfda/adoption-lab-hash-repro",
+  "rerun_result": "18 assertions and 25 native commands passed; all 113 hashes matched",
+  "causation": "The earlier mismatch has not been conclusively attributed. Waiting only for the direct process leaves an inherited-output lifecycle weakness, so the runner is being repaired to drain output before finalizing and reject inconsistent transcripts.",
+  "release_disposition": "The mismatching run is not release integrity evidence. Final source and extraction runs must pass semantic and hash verification.",
+  "resolution": {
+    "changes": [
+      "Drain inherited stdout/stderr pipes to EOF or deadline with a combined 2 MiB limit",
+      "Only parent writes and fsyncs final transcripts",
+      "Final report validates each transcript against captured-byte command receipt hashes",
+      "Main exits nonzero if report detects transcript mismatch"
+    ],
+    "regressions": "Late descendant output, over-limit output, changed transcript and failed-report exit code",
+    "final_run": "/workspace/scratch/26b6d364cfda/adoption-lab-final-captured",
+    "final_result": "18 assertions,25 native commands,113 hashes verified",
+    "initial_mismatch_root_cause": "not conclusively established"
+  }
+}

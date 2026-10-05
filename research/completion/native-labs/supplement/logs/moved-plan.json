@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "plan",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode",
+    "-out=moved.tfplan"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 2,
+  "expected_exit_codes": [
+    2
+  ],
+  "name": "moved-plan",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "9fdc303fe26bee46b1b166b9d55916f81a10372b9840018bc1b12adb0d8c2de0",
+  "tool": "tofu",
+  "transcript_complete": true
+}

@@ -1,0 +1,76 @@
+{
+  "review_date": "2026-10-04",
+  "review_kind": "read_only_final_acceptance_security_review",
+  "source_snapshot": {
+    "intune_iac/identity_binding.py": {
+      "sha256": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+      "bytes": 28145
+    },
+    "intune_iac/approval_authority.py": {
+      "sha256": "7770a65bf142491768cd74a10871e601ea0ffabeed1afbe21315e1d03fbe7c0e",
+      "bytes": 23666
+    },
+    "intune_iac/blob_lease.py": {
+      "sha256": "473827427b199f8af515787d5db1b5f75cc2dbcdaef4c35dedb99138503c7a57",
+      "bytes": 15724
+    },
+    "intune_iac/provider_execution.py": {
+      "sha256": "78933f15bca93d268f41cdd29c94f8f2cc80210762f4f26e994af17af81c4cfa",
+      "bytes": 43006
+    },
+    "intune_iac/provider_journey.py": {
+      "sha256": "0ba7ceb8763cd0236713b436074bd4beffff8631c3c98f5433b0943640ff62bf",
+      "bytes": 27105
+    },
+    "intune_iac/cli.py": {
+      "sha256": "b3cb502e2a3ae79494d627b0ba3fef7bbb62f540a027392ac952d70128bc3d7f",
+      "bytes": 18323
+    },
+    "docs/PRODUCTION-COMPLETION-ACCEPTANCE.md": {
+      "sha256": "aa05a68593c1f1ba07632ffb392f3ff8921f4db2d06765d39a6bc3e56627bf78",
+      "bytes": 9265
+    },
+    "docs/SIGNED-APPROVAL.md": {
+      "sha256": "4490235688049b14ee7b0d0a0ed3e8c66209a4b20d5aba043f5447bc73b9350c",
+      "bytes": 5821
+    },
+    "docs/PROVIDER-JOURNEY.md": {
+      "sha256": "ce5a34cac54df5325f852819b8fc0d80e555400aea570ab8a16645a29f96c062",
+      "bytes": 12780
+    },
+    "docs/BLOB-LEASE.md": {
+      "sha256": "a743d7905f8468a5179d802b8ebd9b207983735fe4b493a35517fc2223a0455f",
+      "bytes": 6162
+    },
+    "plugin_tests/test_blob_lease_independent_v5.py": {
+      "sha256": "5e5c4c5b21e5223509af479351b2b9c65ecaa74c9dbebbc47f16567159c8e587",
+      "bytes": 18020
+    },
+    "plugin_tests/test_approval_independent_v5.py": {
+      "sha256": "0b24ace78d255cd44ec41172645c128d2a8a7676d46de1baaddc2aa0e65725b8",
+      "bytes": 14944
+    },
+    "plugin_tests/test_provider_journey_v5.py": {
+      "sha256": "b73b9943d2bff629bf7dedf88312aaa28bc2f062abbde4b4a1a92cead97aa129",
+      "bytes": 21398
+    }
+  },
+  "replay": {
+    "selected_existing_test_methods": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "new_test_methods": 0,
+    "native_socketpair_positive_path_assertions_reached": true,
+    "scope": "Existing regressions replayed by final reviewer; provider orchestration in journal cases modeled."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+  },
+  "new_confirmed_high_impact_defects": 0,
+  "enterprise_acceptance": "BLOCKED",
+  "live_service_calls": 0,
+  "model_calls": 0,
+  "independence": "Different agent, same shared filesystem; not blinded or organizationally independent."
+}

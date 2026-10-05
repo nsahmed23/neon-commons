@@ -1,0 +1,23 @@
+test_policy_none_template_requires_explicit_observation (evaluations.test_repaired_contracts.RepairedContractTests.test_policy_none_template_requires_explicit_observation) ... FAIL
+test_pipeline_missing_policy_template_is_review_only (evaluations.test_repaired_contracts.RepairedContractTests.test_pipeline_missing_policy_template_is_review_only) ... FAIL
+
+======================================================================
+FAIL: test_policy_none_template_requires_explicit_observation (evaluations.test_repaired_contracts.RepairedContractTests.test_policy_none_template_requires_explicit_observation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 97, in test_policy_none_template_requires_explicit_observation
+    self.assertTrue(schema_errors('observed-policy',policy))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_pipeline_missing_policy_template_is_review_only (evaluations.test_repaired_contracts.RepairedContractTests.test_pipeline_missing_policy_template_is_review_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 105, in test_pipeline_missing_policy_template_is_review_only
+    self.assertFalse(normalized['offline_mapping_complete'])
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.016s
+
+FAILED (failures=2)

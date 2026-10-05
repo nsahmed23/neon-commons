@@ -1,0 +1,81 @@
+{
+  "records": [
+    {
+      "repository": "https://github.com/opentofu/opentofu",
+      "revision": "1ffecd7f37654f92b680a70c838d24fc9a363669",
+      "path": "internal/backend/remote-state/azure/backend_state.go",
+      "raw_url": "https://raw.githubusercontent.com/opentofu/opentofu/1ffecd7f37654f92b680a70c838d24fc9a363669/internal/backend/remote-state/azure/backend_state.go",
+      "file": "research/enterprise-target/raw/opentofu-backend_state.go",
+      "sha256": "9acdfb14b22a4249711c52fb48f08d1fa75660d65f81f04e08ed039b3a18edab",
+      "bytes": 5521,
+      "lines": 210
+    },
+    {
+      "repository": "https://github.com/opentofu/opentofu",
+      "revision": "1ffecd7f37654f92b680a70c838d24fc9a363669",
+      "path": "internal/backend/remote-state/azure/backend.go",
+      "raw_url": "https://raw.githubusercontent.com/opentofu/opentofu/1ffecd7f37654f92b680a70c838d24fc9a363669/internal/backend/remote-state/azure/backend.go",
+      "file": "research/enterprise-target/raw/opentofu-backend.go",
+      "sha256": "823435ca9e843c64b6dfc6f0eb7e9c2fa639bcdd261596a8267caf18fd1cce44",
+      "bytes": 10494,
+      "lines": 297
+    },
+    {
+      "repository": "https://github.com/opentofu/opentofu",
+      "revision": "1ffecd7f37654f92b680a70c838d24fc9a363669",
+      "path": "internal/backend/remote-state/azure/arm_client.go",
+      "raw_url": "https://raw.githubusercontent.com/opentofu/opentofu/1ffecd7f37654f92b680a70c838d24fc9a363669/internal/backend/remote-state/azure/arm_client.go",
+      "file": "research/enterprise-target/raw/opentofu-arm_client.go",
+      "sha256": "ccd796d428a08ca89aa6846e1e4f7040de60c0dba96cd98e042372f2ae8ead69",
+      "bytes": 8882,
+      "lines": 257
+    },
+    {
+      "repository": "https://github.com/opentofu/opentofu",
+      "revision": "1ffecd7f37654f92b680a70c838d24fc9a363669",
+      "path": "LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/opentofu/opentofu/1ffecd7f37654f92b680a70c838d24fc9a363669/LICENSE",
+      "file": "research/enterprise-target/raw/opentofu-LICENSE",
+      "sha256": "142b957651baf401646dd7f3d855cb7c4f6f0921d645faa27e7cb540bc33cf4c",
+      "bytes": 16048,
+      "lines": 357
+    },
+    {
+      "repository": "https://github.com/cloudposse/atmos",
+      "revision": "10886fe5b17f034c01e2396c0c47de19575a8065",
+      "path": "internal/exec/stack_utils.go",
+      "raw_url": "https://raw.githubusercontent.com/cloudposse/atmos/10886fe5b17f034c01e2396c0c47de19575a8065/internal/exec/stack_utils.go",
+      "file": "research/enterprise-target/raw/cloudposse-stack_utils.go",
+      "sha256": "457d6009f8dae9d868542ff804364d91ad13857c3b87445c3db991f52659b2b1",
+      "bytes": 8849,
+      "lines": 235
+    },
+    {
+      "repository": "https://github.com/cloudposse/atmos",
+      "revision": "10886fe5b17f034c01e2396c0c47de19575a8065",
+      "path": "internal/exec/describe_component.go",
+      "raw_url": "https://raw.githubusercontent.com/cloudposse/atmos/10886fe5b17f034c01e2396c0c47de19575a8065/internal/exec/describe_component.go",
+      "file": "research/enterprise-target/raw/cloudposse-describe_component.go",
+      "sha256": "daf97fddac953b2f9220843772b6e4fe6844c1d1416407cbd79a1682237dbe82",
+      "bytes": 19228,
+      "lines": 572
+    },
+    {
+      "repository": "https://github.com/cloudposse/atmos",
+      "revision": "10886fe5b17f034c01e2396c0c47de19575a8065",
+      "path": "LICENSE",
+      "raw_url": "https://raw.githubusercontent.com/cloudposse/atmos/10886fe5b17f034c01e2396c0c47de19575a8065/LICENSE",
+      "file": "research/enterprise-target/raw/cloudposse-LICENSE",
+      "sha256": "c9f16bdfa1cc9b1db75e64e59e83b1a71f19ec53d64a3146eab7791bc1cd4269",
+      "bytes": 11351,
+      "lines": 201
+    }
+  ],
+  "acquisition_failures": [
+    {
+      "path": "internal/backend/remote-state/azure/api_client.go",
+      "status": 404,
+      "resolution": "Inspected GitHub directory; correct file is arm_client.go, acquired separately."
+    }
+  ]
+}

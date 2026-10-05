@@ -1,0 +1,14 @@
+component,version,platform,status,limit
+reference code,Python3.11+ source; observed3.13.5,Linux x86_64,fixture-tested,Windows3.11+ execution not run
+validation,PyYAML6.0.3;jsonschema4.26.0,Linux,fixture-tested,exact environment receipt; no dependencies auto-installed
+commands,Bash argv renderer,Linux Bash,fixture-tested,actual trusted argv roundtrip; no cloud process
+commands,PowerShell7.3+ Standard passing,Windows target,authored/static-only,pwsh absent; native argv tests not run; PS5.1 excluded
+engine,OpenTofu1.10.0 reference pin,Windows/Linux intended,not-run,fmt/validate/provider test absent; do not infer from Python tests
+orchestrator,Atmos1.199.0 reference pin,Windows/Linux intended,not-run,context example only; tagged behavior and pass-through still qualification
+typed provider,deploymenttheory/microsoft3651.0.0,Graph beta Windows plain policy,source-reviewed,no engine/provider/tenant test or organization approval
+comparison provider,microsoft/msgraph0.5.0,Graph /$ref path,source-reviewed,Update special case verified in pinned source; not Intune assign proof
+host,OpenAI portable root +Codex fallback,Codex host,authored/static-only,official host/schema parser and installed version not executed
+host,Claude .claude-plugin manifest,Claude Code,authored/static-only,host not installed/tested
+harness,plugin-eval public source pin5fd93af,Codex runner/schema2,source-reviewed,local audit0.1.2/0.1.0 not re-observed; no paid calls
+harness,Claude case schema1.1,Claude plugin eval,documented only,native config example; no paid/host validation
+Terraform,interoperability only,separately permitted,not-run,never substitutes into enterprise path

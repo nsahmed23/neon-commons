@@ -1,0 +1,9 @@
+test_journey_and_guided_cannot_be_combined (plugin_tests.test_completion_cli.CompletionCLITests.test_journey_and_guided_cannot_be_combined) ... ok
+test_new_commands_visible_in_help (plugin_tests.test_completion_cli.CompletionCLITests.test_new_commands_visible_in_help) ... ok
+test_nonpassing_qualification_status_has_nonzero_exit (plugin_tests.test_completion_cli.CompletionCLITests.test_nonpassing_qualification_status_has_nonzero_exit) ... ok
+test_synthetic_generation_and_inspection_are_real_commands (plugin_tests.test_completion_cli.CompletionCLITests.test_synthetic_generation_and_inspection_are_real_commands) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.499s
+
+OK

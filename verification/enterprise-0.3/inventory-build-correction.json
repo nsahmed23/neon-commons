@@ -1,0 +1,8 @@
+{
+  "initial_build": "rejected before producing archives",
+  "reason": "A newly selected documentation path contained the explicitly excluded build directory name.",
+  "removed_from_new_inventory": [
+    "docs/build/IMPLEMENTATION-PLAN.md"
+  ],
+  "runtime_implementation_changed": false
+}

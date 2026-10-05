@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "prod-isolated-plan.tfplan"
+  ],
+  "cwd": "repository/components/terraform/policy",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "prod-isolated-plan-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "ace5bf46cea09c856cf7bdd1d5ae00fa25cff0dc4df0f7bc17460829313a6d03",
+  "tool": "tofu",
+  "transcript_complete": true
+}

@@ -1,0 +1,77 @@
+test_deleted_exclusion_is_detected (test_invariants.IndependentInvariants.test_deleted_exclusion_is_detected) ... ERROR
+test_field_lineage_missing_detected (test_invariants.IndependentInvariants.test_field_lineage_missing_detected) ... ERROR
+test_filter_mode_mutation_is_detected (test_invariants.IndependentInvariants.test_filter_mode_mutation_is_detected) ... ERROR
+test_id_change_detected (test_invariants.IndependentInvariants.test_id_change_detected) ... ERROR
+test_reference_preserves (test_invariants.IndependentInvariants.test_reference_preserves) ... ERROR
+test_setting_value_change_detected (test_invariants.IndependentInvariants.test_setting_value_change_detected) ... ERROR
+
+======================================================================
+ERROR: test_deleted_exclusion_is_detected (test_invariants.IndependentInvariants.test_deleted_exclusion_is_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_invariants.py", line 12, in test_deleted_exclusion_is_detected
+    self.assertIn('assignment_multiset_changed',invariants.compare(self.raw,self.n))
+                                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/invariants.py", line 2, in compare
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_field_lineage_missing_detected (test_invariants.IndependentInvariants.test_field_lineage_missing_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_invariants.py", line 21, in test_field_lineage_missing_detected
+    self.assertIn('source_field_accounting_not_closed',invariants.compare(self.raw,self.n))
+                                                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/invariants.py", line 2, in compare
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_filter_mode_mutation_is_detected (test_invariants.IndependentInvariants.test_filter_mode_mutation_is_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_invariants.py", line 15, in test_filter_mode_mutation_is_detected
+    self.assertIn('assignment_multiset_changed',invariants.compare(self.raw,self.n))
+                                                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/invariants.py", line 2, in compare
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_id_change_detected (test_invariants.IndependentInvariants.test_id_change_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_invariants.py", line 18, in test_id_change_detected
+    self.assertIn('selected_id_not_present',invariants.compare(self.raw,self.n))
+                                            ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/invariants.py", line 2, in compare
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_reference_preserves (test_invariants.IndependentInvariants.test_reference_preserves)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_invariants.py", line 9, in test_reference_preserves
+    def test_reference_preserves(self): self.assertEqual(invariants.compare(self.raw,self.n),[])
+                                                         ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/invariants.py", line 2, in compare
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_setting_value_change_detected (test_invariants.IndependentInvariants.test_setting_value_change_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_invariants.py", line 24, in test_setting_value_change_detected
+    self.assertIn('settings_subtree_changed',invariants.compare(self.raw,self.n))
+                                             ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/invariants.py", line 2, in compare
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.003s
+
+FAILED (errors=6)

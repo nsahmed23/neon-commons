@@ -1,0 +1,23 @@
+{
+  "scope": "Executed source-body comparison; selected resource wiring checked separately by Python regression and pending native tests",
+  "functions": [
+    {
+      "path": "internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go",
+      "original_function_sha256": "2dc194a878746db7befb45b320d0602c9c799663a4449eff9605e1d2cfaf48b3",
+      "pre_isolation_matches_original": false,
+      "candidate_matches_original": true
+    },
+    {
+      "path": "internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go",
+      "original_function_sha256": "99b372fd3b08f0402d38102b9a2f644a64e6977cdd5b10e5e18fd4b35d85c6ba",
+      "pre_isolation_matches_original": false,
+      "candidate_matches_original": true
+    },
+    {
+      "path": "internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go",
+      "original_function_sha256": "943cab2f52cef87f5c9226b42df643af70c9389ead550ffa697eb61d5f01cdb7",
+      "pre_isolation_matches_original": false,
+      "candidate_matches_original": true
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "review_scope": "independent review of newly implemented approval module and provider integration; not inherited-source findings",
+  "final_independent_tests": 16,
+  "failures": 0,
+  "errors": 0,
+  "test_log": "review-independent-final.log",
+  "initial_original_suite": {
+    "tests": 15,
+    "result": "PASS",
+    "log": "review-original-tests.log"
+  },
+  "confirmed_and_repaired": [
+    {
+      "id": "A1",
+      "issue": "expiry checked before but not after host callback",
+      "variants": 2,
+      "red_log": "review-independent-red.log"
+    },
+    {
+      "id": "A2",
+      "issue": "provider child spawned before first active authority check",
+      "red_log": "review-independent-red.log"
+    },
+    {
+      "id": "A3",
+      "issue": "weak installed identity-point issuer key accepted static signature forgery",
+      "condition": "invalid weak trust key installed; valid generated keys not shown forgeable",
+      "red_log": "review-weak-key-red.log"
+    },
+    {
+      "id": "A4",
+      "issue": "native validator image mismatch from recycled dlopen descriptor pathname",
+      "red_log": "review-validator-red.log"
+    },
+    {
+      "id": "A5",
+      "issue": "missing validator escaped fixed AppError contract",
+      "security_effect": "failed closed; diagnostic/API consistency defect",
+      "red_log": "review-validator-red.log"
+    }
+  ],
+  "additional_checks": [
+    "actual different-key signature",
+    "signature domain",
+    "signature scalar canonicality",
+    "full request binding",
+    "two-process consumption race",
+    "post-commit fsync failure remains spent",
+    "database symlink and hardlink rejection",
+    "weak/noncanonical/mixed-order key rejection",
+    "validator pin and dependency failure",
+    "real authority to modeled provider orchestration",
+    "None-only guard success contract"
+  ],
+  "environment": {
+    "python": "3.12.14",
+    "system": "Linux",
+    "openssl": "3.0.13",
+    "native_validator_sha256": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5"
+  },
+  "file_hashes": {
+    "intune_iac/approval_authority.py": "00427540528b7ab97bab26c637378c7d6b4eda0ae5bd66c40328bda0570f683a",
+    "intune_iac/provider_execution.py": "fd4c2a42aecb80a3932ee9a2e6740cf73b3b721d26797cc7f081468433149197",
+    "plugin_tests/test_approval_independent_v5.py": "0b24ace78d255cd44ec41172645c128d2a8a7676d46de1baaddc2aa0e65725b8"
+  },
+  "limits": [
+    "No tenant credentials or production effects",
+    "Modeled integration is not native/service qualification",
+    "Trusted callbacks still require a real host adapter",
+    "Cooperative same-store locking is not distributed fencing",
+    "No compromised-interpreter or same-user-writer defense claim",
+    "No performance benchmarks"
+  ]
+}

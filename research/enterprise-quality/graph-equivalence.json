@@ -1,0 +1,15 @@
+{
+  "schema_version": "graph-refactor-equivalence/1.0",
+  "graphs": 6,
+  "query_cases": 918,
+  "exactly_equal": true,
+  "mismatch_count": 0,
+  "canonical_cases_sha256": "3aebc98f7682122cd9626d922db303aece70717038d0b817b8a8fe4a62d16df2",
+  "before_source_sha256": "2e2d08637917803f3c040313c46f9a8e4a83fe83fae5eee9577218eefba8f96b",
+  "runtime_files": {
+    "intune_iac/graph.py": "4959f67c0dd24b23d8d707e0afa6eca5ee13192dbd5f96c60a89ada534c74cad",
+    "intune_iac/graph_contract.py": "faf42f12d61823bb848c3a1e4fe6622e470b1d63cea7ab727a504b4b10d89c7a",
+    "intune_iac/graph_validation.py": "c1c1da016aa1df5f4e46c58128732ec8504b718b5aec4c830f5c4c8190f0b7e4"
+  },
+  "limits": "Finite fixture/mutation evidence; not proof of all inputs or authenticated provenance."
+}

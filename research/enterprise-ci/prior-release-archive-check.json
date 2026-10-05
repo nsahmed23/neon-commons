@@ -1,0 +1,1 @@
+{"archives": [{"archive": "Intune_IaC_Plugin_0.2.2.zip", "files": 71, "listed_hashes": 70}, {"archive": "Intune_IaC_Plugin_0.2.2_Source.zip", "files": 851, "listed_hashes": 850}], "production_approved": false, "scope": "Candidate archive integrity and clean local extraction only.", "shared_runtime_bytes_verified": true, "success": true}

@@ -1,0 +1,365 @@
+[
+  {
+    "name": "baseline",
+    "candidate_mapping_complete": true,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": true
+      }
+    ],
+    "codes": [
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": {
+      "name": "Windows Privacy Pilot",
+      "description": "Synthetic reference; not production advice.",
+      "platforms": "windows10",
+      "technologies": [
+        "mdm"
+      ],
+      "role_scope_tag_ids": [
+        "0"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null,
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+                "children": []
+              }
+            }
+          }
+        ]
+      },
+      "assignments": [
+        {
+          "type": "groupAssignmentTarget",
+          "group_id": "44444444-4444-4444-8444-444444444444",
+          "filter_type": "include",
+          "filter_id": "77777777-7777-4777-8777-777777777777"
+        },
+        {
+          "type": "groupAssignmentTarget",
+          "group_id": "55555555-5555-4555-8555-555555555555",
+          "filter_type": "none"
+        },
+        {
+          "type": "exclusionGroupAssignmentTarget",
+          "group_id": "66666666-6666-4666-8666-666666666666",
+          "filter_type": "none"
+        }
+      ]
+    }
+  },
+  {
+    "name": "empty_with_count",
+    "candidate_mapping_complete": true,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": true
+      }
+    ],
+    "codes": [
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": {
+      "name": "Windows Privacy Pilot",
+      "description": "Synthetic reference; not production advice.",
+      "platforms": "windows10",
+      "technologies": [
+        "mdm"
+      ],
+      "role_scope_tag_ids": [
+        "0"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null,
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+                "children": []
+              }
+            }
+          }
+        ]
+      },
+      "assignments": []
+    }
+  },
+  {
+    "name": "assigned_empty",
+    "candidate_mapping_complete": true,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": true
+      }
+    ],
+    "codes": [
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": {
+      "name": "Windows Privacy Pilot",
+      "description": "Synthetic reference; not production advice.",
+      "platforms": "windows10",
+      "technologies": [
+        "mdm"
+      ],
+      "role_scope_tag_ids": [
+        "0"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null,
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+                "children": []
+              }
+            }
+          }
+        ]
+      },
+      "assignments": []
+    }
+  },
+  {
+    "name": "zero_count_with_rows",
+    "candidate_mapping_complete": true,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": true
+      }
+    ],
+    "codes": [
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": {
+      "name": "Windows Privacy Pilot",
+      "description": "Synthetic reference; not production advice.",
+      "platforms": "windows10",
+      "technologies": [
+        "mdm"
+      ],
+      "role_scope_tag_ids": [
+        "0"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null,
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+                "children": []
+              }
+            }
+          }
+        ]
+      },
+      "assignments": [
+        {
+          "type": "groupAssignmentTarget",
+          "group_id": "44444444-4444-4444-8444-444444444444",
+          "filter_type": "include",
+          "filter_id": "77777777-7777-4777-8777-777777777777"
+        },
+        {
+          "type": "groupAssignmentTarget",
+          "group_id": "55555555-5555-4555-8555-555555555555",
+          "filter_type": "none"
+        },
+        {
+          "type": "exclusionGroupAssignmentTarget",
+          "group_id": "66666666-6666-4666-8666-666666666666",
+          "filter_type": "none"
+        }
+      ]
+    }
+  },
+  {
+    "name": "missing_assignments",
+    "candidate_mapping_complete": false,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": false
+      }
+    ],
+    "codes": [
+      "collection_incomplete",
+      "unexpected_collection_set",
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": null
+  },
+  {
+    "name": "unknown_assignment",
+    "candidate_mapping_complete": false,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": true
+      }
+    ],
+    "codes": [
+      "unsupported_assignment_shape",
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": null
+  },
+  {
+    "name": "case_duplicate_target",
+    "candidate_mapping_complete": true,
+    "coverage": [
+      {
+        "kind": "policies",
+        "complete": true
+      },
+      {
+        "kind": "settings",
+        "complete": true
+      },
+      {
+        "kind": "assignments",
+        "complete": true
+      }
+    ],
+    "codes": [
+      "reference_evidence_unverified",
+      "ownership_unknown",
+      "provider_qualification_required"
+    ],
+    "configuration": {
+      "name": "Windows Privacy Pilot",
+      "description": "Synthetic reference; not production advice.",
+      "platforms": "windows10",
+      "technologies": [
+        "mdm"
+      ],
+      "role_scope_tag_ids": [
+        "0"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null,
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+                "children": []
+              }
+            }
+          }
+        ]
+      },
+      "assignments": [
+        {
+          "type": "groupAssignmentTarget",
+          "group_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "filter_type": "include",
+          "filter_id": "77777777-7777-4777-8777-777777777777"
+        },
+        {
+          "type": "groupAssignmentTarget",
+          "group_id": "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+          "filter_type": "include",
+          "filter_id": "77777777-7777-4777-8777-777777777777"
+        }
+      ]
+    }
+  }
+]

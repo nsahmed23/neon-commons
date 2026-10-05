@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "synthetic": true,
+  "as_of": "2026-09-30T12:00:00Z",
+  "freshness_seconds": 3600,
+  "cohort": {
+    "version": "synthetic-v1",
+    "eligible_ids": [
+      "lab-01",
+      "lab-02"
+    ],
+    "targeted_ids": [
+      "lab-01",
+      "lab-02"
+    ],
+    "excluded_ids": []
+  },
+  "rows": [
+    {
+      "id": "ev-01",
+      "device_id": "lab-01",
+      "stage": "execution",
+      "status": "success",
+      "observed_at": "2026-09-30T11:30:00Z",
+      "source_file": "events.json",
+      "source_pointer": "/0",
+      "coverage": "complete",
+      "synthetic": true
+    },
+    {
+      "id": "ev-02",
+      "device_id": "lab-01",
+      "stage": "effective_state",
+      "status": "failure",
+      "observed_at": "2026-09-30T11:31:00Z",
+      "source_file": "events.json",
+      "source_pointer": "/1",
+      "coverage": "complete",
+      "synthetic": true
+    }
+  ],
+  "capture": {
+    "timezone": "UTC",
+    "clock_skew_seconds": null,
+    "logging_enabled": null,
+    "truncated": false,
+    "access_errors": []
+  },
+  "promotion_thresholds": {
+    "min_reporting_ratio": null,
+    "min_success_ratio": null
+  }
+}

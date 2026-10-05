@@ -1,0 +1,359 @@
+{
+  "production_qualified": false,
+  "scope": "Exact final complete production-source binary; native build provenance, no provider Configure or tenant qualification",
+  "binary_path": "/tmp/intune-provider-20261002/full-build-current/terraform-provider-microsoft365",
+  "binary_bytes": 648888462,
+  "binary_sha256": "28d3af959966dc73ef8c001e8f70b8ac7efc5c394162b51351ea8c8dfc97eb06",
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "provider_metadata_version": "dev (unpublished local build)",
+  "go_version": "go version go1.25.8 linux/amd64",
+  "go_sha256": "46a07f77bf5b080799416d80759feadd8edecc21c26aad81bbcdbc3b4d865f7c",
+  "candidate_manifest_sha256": "25959d78c7c1c790572079e9b46d343ed6d28311c12c4b187235fe5087763932",
+  "source_manifest_sha256": "4253c2a346bc1ba5a3313912abe2efe98c466991f20de3e97d22e1f9d6ef6d1e",
+  "patch_sha256": "29e8a48b5ff1fcbea4e582abf74bdd5a24148152fc6da0fa29917556c5d4d49b",
+  "embedded_module_count": 66,
+  "embedded_modules": [
+    {
+      "Path": "github.com/Azure/azure-sdk-for-go/sdk/azcore",
+      "Version": "v1.23.0",
+      "Sum": "h1:4gRPBpN1f6xt88yi4WR26m7XaD9OlWtVT6bWPdGUIok="
+    },
+    {
+      "Path": "github.com/Azure/azure-sdk-for-go/sdk/azidentity",
+      "Version": "v1.14.0",
+      "Sum": "h1:CU4+EJeJi3TKYWEcYuSdWsjzw0nVsK/H0MSQOiPcymU="
+    },
+    {
+      "Path": "github.com/Azure/azure-sdk-for-go/sdk/internal",
+      "Version": "v1.12.0",
+      "Sum": "h1:fhqpLE3UEXi9lPaBRpQ6XuRW0nU7hgg4zlmZZa+a9q4="
+    },
+    {
+      "Path": "github.com/AzureAD/microsoft-authentication-library-for-go",
+      "Version": "v1.7.2",
+      "Sum": "h1:RHK7bS+HQMslb1sZpAokUt+zTVmue0hKSs2C791hhzU="
+    },
+    {
+      "Path": "github.com/PuerkitoBio/goquery",
+      "Version": "v1.12.0",
+      "Sum": "h1:pAcL4g3WRXekcB9AU/y1mbKez2dbY2AajVhtkO8RIBo="
+    },
+    {
+      "Path": "github.com/agext/levenshtein",
+      "Version": "v1.2.3",
+      "Sum": "h1:YB2fHEn0UJagG8T1rrWknE3ZQzWM06O8AMAatNn7lmo="
+    },
+    {
+      "Path": "github.com/andybalholm/cascadia",
+      "Version": "v1.3.3",
+      "Sum": "h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kktS1LM="
+    },
+    {
+      "Path": "github.com/apparentlymart/go-textseg/v15",
+      "Version": "v15.0.0",
+      "Sum": "h1:uYvfpb3DyLSCGWnctWKGj857c6ew1u1fNQOlOtuGxQY="
+    },
+    {
+      "Path": "github.com/cespare/xxhash/v2",
+      "Version": "v2.3.0",
+      "Sum": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs="
+    },
+    {
+      "Path": "github.com/fatih/color",
+      "Version": "v1.18.0",
+      "Sum": "h1:S8gINlzdQ840/4pfAwic/ZE0djQEH3wM94VfqLTZcOM="
+    },
+    {
+      "Path": "github.com/go-logr/logr",
+      "Version": "v1.4.3",
+      "Sum": "h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI="
+    },
+    {
+      "Path": "github.com/go-logr/stdr",
+      "Version": "v1.2.2",
+      "Sum": "h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag="
+    },
+    {
+      "Path": "github.com/golang-jwt/jwt/v5",
+      "Version": "v5.3.1",
+      "Sum": "h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY="
+    },
+    {
+      "Path": "github.com/golang/protobuf",
+      "Version": "v1.5.4",
+      "Sum": "h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek="
+    },
+    {
+      "Path": "github.com/google/uuid",
+      "Version": "v1.6.0",
+      "Sum": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0="
+    },
+    {
+      "Path": "github.com/hashicorp/go-cty",
+      "Version": "v1.5.0",
+      "Sum": "h1:EkQ/v+dDNUqnuVpmS5fPqyY71NXVgT5gf32+57xY8g0="
+    },
+    {
+      "Path": "github.com/hashicorp/go-hclog",
+      "Version": "v1.6.3",
+      "Sum": "h1:Qr2kF+eVWjTiYmU7Y31tYlP1h0q/X3Nl3tPGdaB11/k="
+    },
+    {
+      "Path": "github.com/hashicorp/go-plugin",
+      "Version": "v1.7.0",
+      "Sum": "h1:YghfQH/0QmPNc/AZMTFE3ac8fipZyZECHdDPshfk+mA="
+    },
+    {
+      "Path": "github.com/hashicorp/go-uuid",
+      "Version": "v1.0.3",
+      "Sum": "h1:2gKiV6YVmrJ1i2CKKa9obLvRieoRGviZFL26PcT/Co8="
+    },
+    {
+      "Path": "github.com/hashicorp/hcl/v2",
+      "Version": "v2.24.0",
+      "Sum": "h1:2QJdZ454DSsYGoaE6QheQZjtKZSUs9Nh2izTWiwQxvE="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-framework",
+      "Version": "v1.19.0",
+      "Sum": "h1:q0bwyhxAOR3vfdgbk9iplv3MlTv/dhBHTXjQOtQDoBA="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-framework-timeouts",
+      "Version": "v0.7.0",
+      "Sum": "h1:jblRy1PkLfPm5hb5XeMa3tezusnMRziUGqtT5epSYoI="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-framework-validators",
+      "Version": "v0.19.0",
+      "Sum": "h1:Zz3iGgzxe/1XBkooZCewS0nJAaCFPFPHdNJd8FgE4Ow="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-go",
+      "Version": "v0.31.0",
+      "Sum": "h1:0Fz2r9DQ+kNNl6bx8HRxFd1TfMKUvnrOtvJPmp3Z0q8="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-log",
+      "Version": "v0.11.0",
+      "Sum": "h1:WjhcpZIVqP8YRe83+dIZXncwSgtu4vh27i23G33PUQY="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-sdk/v2",
+      "Version": "v2.40.1",
+      "Sum": "h1:2yPUd7esMOpuTaG3y1iEla1iw+tla+3ZEkkBnmOAre4="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-plugin-testing",
+      "Version": "v1.16.0",
+      "Sum": "h1:GB97nGnJ1hESpDrCjqZig38RodSF0gdRzxlDupLXP38="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-registry-address",
+      "Version": "v0.4.0",
+      "Sum": "h1:S1yCGomj30Sao4l5BMPjTGZmCNzuv7/GDTDX99E9gTk="
+    },
+    {
+      "Path": "github.com/hashicorp/terraform-svchost",
+      "Version": "v0.2.1",
+      "Sum": "h1:ubvrTFw3Q7CsoEaX7V06PtCTKG3wu7GyyobAoN4eF3Q="
+    },
+    {
+      "Path": "github.com/hashicorp/yamux",
+      "Version": "v0.1.2",
+      "Sum": "h1:XtB8kyFOyHXYVFnwT5C3+Bdo8gArse7j2AQ0DA0Uey8="
+    },
+    {
+      "Path": "github.com/kylelemons/godebug",
+      "Version": "v1.1.0",
+      "Sum": "h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc="
+    },
+    {
+      "Path": "github.com/lithammer/fuzzysearch",
+      "Version": "v1.1.8",
+      "Sum": "h1:/HIuJnjHuXS8bKaiTMeeDlW2/AyIWk2brx1V8LFgLN4="
+    },
+    {
+      "Path": "github.com/mattn/go-colorable",
+      "Version": "v0.1.14",
+      "Sum": "h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE="
+    },
+    {
+      "Path": "github.com/mattn/go-isatty",
+      "Version": "v0.0.20",
+      "Sum": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-abstractions-go",
+      "Version": "v1.9.4",
+      "Sum": "h1:VI3UVzSCQHHhRswe3jyaAQHUQWIFhUMp0z5mtZbTbcs="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-authentication-azure-go",
+      "Version": "v1.3.1",
+      "Sum": "h1:AGta92S6IL1E6ZMDb8YYB7NVNTIFUakbtLKUdY5RTuw="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-http-go",
+      "Version": "v1.5.6",
+      "Sum": "h1:KBdk7sxWYXZnRRExLjIcNt4I7LoOfh/XQJWWid4zBKE="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-serialization-form-go",
+      "Version": "v1.1.3",
+      "Sum": "h1:eUY8eHXPFe4ma8cAdx0ya3g4NPlZgbPT+GlFC3xcgGY="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-serialization-json-go",
+      "Version": "v1.1.4",
+      "Sum": "h1:XAhsBjxiunPgsPLLHEbuvAe81Q3wD1pNOE22Dq2CD3k="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-serialization-multipart-go",
+      "Version": "v1.1.2",
+      "Sum": "h1:1pUyA1QgIeKslQwbk7/ox1TehjlCUUT3r1f8cNlkvn4="
+    },
+    {
+      "Path": "github.com/microsoft/kiota-serialization-text-go",
+      "Version": "v1.1.3",
+      "Sum": "h1:8z7Cebn0YAAr++xswVgfdxZjnAZ4GOB9O7XP4+r5r/M="
+    },
+    {
+      "Path": "github.com/microsoftgraph/msgraph-beta-sdk-go",
+      "Version": "v0.165.0",
+      "Sum": "h1:a92zkfWfDtBTmJLroc5JbYu0gQPtrWaxme2yqIFRERY="
+    },
+    {
+      "Path": "github.com/microsoftgraph/msgraph-sdk-go",
+      "Version": "v1.101.0",
+      "Sum": "h1:9Ox6mlDTm9BroNpj9i4B241OIcnyv0kjwJHHNaeXkoY="
+    },
+    {
+      "Path": "github.com/microsoftgraph/msgraph-sdk-go-core",
+      "Version": "v1.4.1",
+      "Sum": "h1:k3YIaJm57ufoEX0KdsEY4l1X9BAMxEqrwr4a7WMRDzY="
+    },
+    {
+      "Path": "github.com/mitchellh/go-testing-interface",
+      "Version": "v1.14.1",
+      "Sum": "h1:jrgshOhYAUVNMAJiKbEu7EqAwgJJ2JqpQmpLJOu07cU="
+    },
+    {
+      "Path": "github.com/mitchellh/go-wordwrap",
+      "Version": "v1.0.1",
+      "Sum": "h1:TLuKupo69TCn6TQSyGxwI1EblZZEsQ0vMlAFQflz0v0="
+    },
+    {
+      "Path": "github.com/oklog/run",
+      "Version": "v1.2.0",
+      "Sum": "h1:O8x3yXwah4A73hJdlrwo/2X6J62gE5qTMusH0dvz60E="
+    },
+    {
+      "Path": "github.com/pkg/browser",
+      "Version": "v0.0.0-20240102092130-5ac0b6a4141c",
+      "Sum": "h1:+mdjkGKdHQG3305AYmdv1U2eRNDiU2ErMBj1gwrq8eQ="
+    },
+    {
+      "Path": "github.com/sassoftware/relic/v8",
+      "Version": "v8.2.0",
+      "Sum": "h1:9/L4S4I6an/JsPNhmcTpqfiOIsLb/iJaePZD1xR+ulE="
+    },
+    {
+      "Path": "github.com/std-uritemplate/std-uritemplate/go/v2",
+      "Version": "v2.0.3",
+      "Sum": "h1:7hth9376EoQEd1hH4lAp3vnaLP2UMyxuMMghLKzDHyU="
+    },
+    {
+      "Path": "github.com/vmihailenco/msgpack/v5",
+      "Version": "v5.4.1",
+      "Sum": "h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IUPn0Bjt8="
+    },
+    {
+      "Path": "github.com/vmihailenco/tagparser/v2",
+      "Version": "v2.0.0",
+      "Sum": "h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g="
+    },
+    {
+      "Path": "github.com/zclconf/go-cty",
+      "Version": "v1.18.1",
+      "Sum": "h1:yEGE8M4iIZlyKQURZNb2SnEyZlZHUcBCnx6KF81KuwM="
+    },
+    {
+      "Path": "go.opentelemetry.io/auto/sdk",
+      "Version": "v1.2.1",
+      "Sum": "h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64="
+    },
+    {
+      "Path": "go.opentelemetry.io/otel",
+      "Version": "v1.43.0",
+      "Sum": "h1:mYIM03dnh5zfN7HautFE4ieIig9amkNANT+xcVxAj9I="
+    },
+    {
+      "Path": "go.opentelemetry.io/otel/metric",
+      "Version": "v1.43.0",
+      "Sum": "h1:d7638QeInOnuwOONPp4JAOGfbCEpYb+K6DVWvdxGzgM="
+    },
+    {
+      "Path": "go.opentelemetry.io/otel/trace",
+      "Version": "v1.43.0",
+      "Sum": "h1:BkNrHpup+4k4w+ZZ86CZoHHEkohws8AY+WTX09nk+3A="
+    },
+    {
+      "Path": "golang.org/x/crypto",
+      "Version": "v0.54.0",
+      "Sum": "h1:YLIA59K4fiNzHzjnZt2tUJQjQtUWfWbeHBqKtk3eScw="
+    },
+    {
+      "Path": "golang.org/x/exp",
+      "Version": "v0.0.0-20240909161429-701f63a606c0",
+      "Sum": "h1:e66Fs6Z+fZTbFBAxKfP3PALWBtpfqks2bwGcexMxgtk="
+    },
+    {
+      "Path": "golang.org/x/net",
+      "Version": "v0.57.0",
+      "Sum": "h1:K5+3DljvIuDG9/Jv9rvyMywYNFCQ9RSUY6OOTTkT+tE="
+    },
+    {
+      "Path": "golang.org/x/sys",
+      "Version": "v0.47.0",
+      "Sum": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs="
+    },
+    {
+      "Path": "golang.org/x/text",
+      "Version": "v0.41.0",
+      "Sum": "h1:vz/seA0lnX87Othu2f/0L24RcgrXD9/YFTSuGjj3rH8="
+    },
+    {
+      "Path": "google.golang.org/genproto/googleapis/rpc",
+      "Version": "v0.0.0-20251202230838-ff82c1b0f217",
+      "Sum": "h1:gRkg/vSppuSQoDjxyiGfN4Upv/h/DQmIR10ZU8dh4Ww="
+    },
+    {
+      "Path": "google.golang.org/grpc",
+      "Version": "v1.79.3",
+      "Sum": "h1:sybAEdRIEtvcD68Gx7dmnwjZKlyfuc61Dyo9pGXXkKE="
+    },
+    {
+      "Path": "google.golang.org/protobuf",
+      "Version": "v1.36.11",
+      "Sum": "h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE="
+    },
+    {
+      "Path": "software.sslmate.com/src/go-pkcs12",
+      "Version": "v0.7.3",
+      "Sum": "h1:JBQD3FDqYjTeyDAeZQklj2ar88ykBLtALloPJHyAauU="
+    }
+  ],
+  "embedded_module_integrity": "All embedded dependency Version/Sum fields match the113pinned Go inventory",
+  "build_info_sha256": "0fff0cb360d00fd711cdffc7f6e85bd191ef0c1761d5e437e17875e9f4193d55",
+  "command": [
+    "/tmp/intune-provider-20261002/go/bin/go",
+    "build",
+    "-buildvcs=false",
+    "-p=2",
+    "-mod=readonly",
+    "-o",
+    "/tmp/intune-provider-20261002/full-build-current/terraform-provider-microsoft365",
+    "."
+  ]
+}

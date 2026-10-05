@@ -1,0 +1,50 @@
+{
+  "repository": "https://github.com/microsoft/Ontology-Playground",
+  "revision": "42a5e5ec170c1e76343886b9d5ba7a55959cb112",
+  "license": "MIT",
+  "execution": "not_run",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "7df20dcdf9197e9945c14858d41c60f11b52b93e5b69e2b63416b874d598d322",
+      "bytes": 1074,
+      "lines": 21,
+      "url": "https://github.com/microsoft/Ontology-Playground/blob/42a5e5ec170c1e76343886b9d5ba7a55959cb112/LICENSE"
+    },
+    {
+      "path": "README.md",
+      "sha256": "d1680a3549b18b8ee40a463e5df62bb9b933fe40780b6007655fa480f884cfa5",
+      "bytes": 13123,
+      "lines": 302,
+      "url": "https://github.com/microsoft/Ontology-Playground/blob/42a5e5ec170c1e76343886b9d5ba7a55959cb112/README.md"
+    },
+    {
+      "path": "src/data/ontology.ts",
+      "sha256": "3c61a1f823f2f534762820b4af587a4b729e5570f8c6feff880e78ff0b791158",
+      "bytes": 11312,
+      "lines": 283,
+      "url": "https://github.com/microsoft/Ontology-Playground/blob/42a5e5ec170c1e76343886b9d5ba7a55959cb112/src/data/ontology.ts"
+    },
+    {
+      "path": "src/store/designerStore.ts",
+      "sha256": "394201056de77779a1fbd1de1bc042658122344ef52d6022d1e2f34f1d47c55b",
+      "bytes": 17091,
+      "lines": 484,
+      "url": "https://github.com/microsoft/Ontology-Playground/blob/42a5e5ec170c1e76343886b9d5ba7a55959cb112/src/store/designerStore.ts"
+    },
+    {
+      "path": "src/lib/rdf/parser.ts",
+      "sha256": "01f886757f7d746aa8ec6b5771e58a7300b6f6911809b0a4647fc627a410ca5e",
+      "bytes": 11565,
+      "lines": 366,
+      "url": "https://github.com/microsoft/Ontology-Playground/blob/42a5e5ec170c1e76343886b9d5ba7a55959cb112/src/lib/rdf/parser.ts"
+    },
+    {
+      "path": "scripts/validate-rdf.ts",
+      "sha256": "aeff0ce149ff48b738e9eb026deb1616489f4e40a72a24791ba3faad024e5f16",
+      "bytes": 3875,
+      "lines": 120,
+      "url": "https://github.com/microsoft/Ontology-Playground/blob/42a5e5ec170c1e76343886b9d5ba7a55959cb112/scripts/validate-rdf.ts"
+    }
+  ]
+}

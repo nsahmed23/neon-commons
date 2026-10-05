@@ -1,0 +1,22 @@
+{
+  "blockers": [
+    {
+      "code": "capture_contract_violation",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "unfetched_next_page",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "incomplete_collection",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "required_assignments_incomplete",
+      "source_pointer": "/collections"
+    }
+  ],
+  "execution_allowed": false,
+  "schema_version": "1.0.0"
+}

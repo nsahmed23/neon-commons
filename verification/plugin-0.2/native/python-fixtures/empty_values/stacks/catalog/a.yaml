@@ -1,0 +1,9 @@
+vars:
+  empty_string: old
+  zero: 7
+  'false': true
+  null_value: old
+  empty_list:
+  - old
+  empty_map:
+    old: old

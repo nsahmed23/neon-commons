@@ -1,0 +1,38 @@
+vars:
+  stage: qualification
+  selected: root
+  nested:
+    root: root
+    same: root
+terraform:
+  vars:
+    selected: type
+    nested:
+      type: type
+      same: type
+components:
+  terraform:
+    parent:
+      metadata:
+        type: abstract
+      vars:
+        selected: parent
+        nested:
+          parent: parent
+          same: parent
+    leaf:
+      metadata:
+        component: demo
+        inherits:
+        - parent
+      vars:
+        selected: local
+        nested:
+          local: local
+          same: local
+      overrides:
+        vars:
+          selected: override
+          nested:
+            override: override
+            same: override

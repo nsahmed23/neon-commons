@@ -1,0 +1,13 @@
+{
+  "format_version": "1.0",
+  "valid": true,
+  "error_count": 0,
+  "warning_count": 1,
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "summary": "Provider development overrides are in effect",
+      "detail": "The following provider development overrides are set in the CLI configuration:\n - registry.terraform.io/deploymenttheory/microsoft365 in /tmp/intune-provider-20261002/synthetic-rpc-build/bin\n\nThe behavior may therefore not match any released version of the provider and applying changes may cause the state to become incompatible with published releases."
+    }
+  ]
+}

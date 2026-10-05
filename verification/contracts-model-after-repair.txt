@@ -1,0 +1,30 @@
+test_all_positive_schema_examples (corrections.regressions.test_contract_models.ContractTests.test_all_positive_schema_examples) ... ok
+test_approval_all_leaf_changes_detected (corrections.regressions.test_contract_models.ContractTests.test_approval_all_leaf_changes_detected) ... ok
+test_approval_expiry_and_unknown (corrections.regressions.test_contract_models.ContractTests.test_approval_expiry_and_unknown) ... ok
+test_assignment_constraints (corrections.regressions.test_contract_models.ContractTests.test_assignment_constraints) ... ok
+test_capture_boundary (corrections.regressions.test_contract_models.ContractTests.test_capture_boundary) ... ok
+test_capture_chain (corrections.regressions.test_contract_models.ContractTests.test_capture_chain) ... ok
+test_capture_missing_tail_loop_projection (corrections.regressions.test_contract_models.ContractTests.test_capture_missing_tail_loop_projection) ... ok
+test_early_resume_does_not_advance (corrections.regressions.test_contract_models.ContractTests.test_early_resume_does_not_advance) ... ok
+test_executable_tokens (corrections.regressions.test_contract_models.ContractTests.test_executable_tokens) ... ok
+test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) ... ok
+test_partial_resume_uses_dispatch (corrections.regressions.test_contract_models.ContractTests.test_partial_resume_uses_dispatch) ... ok
+test_policy_constraints (corrections.regressions.test_contract_models.ContractTests.test_policy_constraints) ... ok
+test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) ... ok
+test_provider_empty_rejected (corrections.regressions.test_contract_models.ContractTests.test_provider_empty_rejected) ... ok
+test_provider_ids_not_invented (corrections.regressions.test_contract_models.ContractTests.test_provider_ids_not_invented) ... ok
+test_provider_projection (corrections.regressions.test_contract_models.ContractTests.test_provider_projection) ... ok
+test_provider_wrapper_and_values (corrections.regressions.test_contract_models.ContractTests.test_provider_wrapper_and_values) ... ok
+test_reference_duplicates_order_independent (corrections.regressions.test_contract_models.ContractTests.test_reference_duplicates_order_independent) ... ok
+test_resume_cartesian_nonadvancement (corrections.regressions.test_contract_models.ContractTests.test_resume_cartesian_nonadvancement) ... ok
+test_resume_corruption_unknown_inflight (corrections.regressions.test_contract_models.ContractTests.test_resume_corruption_unknown_inflight) ... ok
+test_resume_missing_verified_prerequisite (corrections.regressions.test_contract_models.ContractTests.test_resume_missing_verified_prerequisite) ... ok
+test_schema_definitions (corrections.regressions.test_contract_models.ContractTests.test_schema_definitions) ... ok
+test_valid_coupled_auth_transitions (corrections.regressions.test_contract_models.ContractTests.test_valid_coupled_auth_transitions) ... ok
+test_receipt_index_positive (corrections.regressions.test_contract_models.ReceiptIndexTests.test_receipt_index_positive) ... ok
+test_receipt_index_rejects_paths (corrections.regressions.test_contract_models.ReceiptIndexTests.test_receipt_index_rejects_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 1.391s
+
+OK

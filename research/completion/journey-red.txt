@@ -1,0 +1,203 @@
+EEEEEEEEEEEEE
+======================================================================
+ERROR: test_back_and_edit_invalidate_dependencies_and_preserve_old_output (plugin_tests.test_journey_completion.JourneyCompletionTests.test_back_and_edit_invalidate_dependencies_and_preserve_old_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 69, in test_back_and_edit_invalidate_dependencies_and_preserve_old_output
+    self.complete(); before = (self.output / POLICY / 'README.md').read_bytes()
+    ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_cancel_requires_resume_and_invalidates_unexecuted_approval (plugin_tests.test_journey_completion.JourneyCompletionTests.test_cancel_requires_resume_and_invalidates_unexecuted_approval)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 75, in test_cancel_requires_resume_and_invalidates_unexecuted_approval
+    self.run_flow(BEFORE_GENERATE + AFTER_GENERATE[:5] + ['cancel'])
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_changed_generated_bytes_even_with_rehashed_manifest_are_rejected (plugin_tests.test_journey_completion.JourneyCompletionTests.test_changed_generated_bytes_even_with_rehashed_manifest_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 59, in test_changed_generated_bytes_even_with_rehashed_manifest_are_rejected
+    self.complete(); target = self.output / POLICY / 'README.md'; target.write_text('changed')
+    ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_complete_journey_generates_and_reconciles_real_local_artifacts (plugin_tests.test_journey_completion.JourneyCompletionTests.test_complete_journey_generates_and_reconciles_real_local_artifacts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 43, in test_complete_journey_generates_and_reconciles_real_local_artifacts
+    result = self.complete(); self.assertEqual(result['status'], 'complete_simulation', result)
+             ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_contract_is_closed_and_executable (plugin_tests.test_journey_completion.JourneyCompletionTests.test_contract_is_closed_and_executable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 33, in test_contract_is_closed_and_executable
+    module = self.api(); contract = module.action_contract()
+             ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_interrupt_before_execution_does_not_resume_approval_authority (plugin_tests.test_journey_completion.JourneyCompletionTests.test_interrupt_before_execution_does_not_resume_approval_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 79, in test_interrupt_before_execution_does_not_resume_approval_authority
+    self.run_flow(BEFORE_GENERATE + AFTER_GENERATE[:5])
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_live_mode_reports_gates_without_execution (plugin_tests.test_journey_completion.JourneyCompletionTests.test_live_mode_reports_gates_without_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 83, in test_live_mode_reports_gates_without_execution
+    result = self.run_flow(BEFORE_GENERATE + AFTER_GENERATE[:4] + ['save'], mode='live')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_missing_receipt_and_symlink_stop_chain (plugin_tests.test_journey_completion.JourneyCompletionTests.test_missing_receipt_and_symlink_stop_chain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 87, in test_missing_receipt_and_symlink_stop_chain
+    self.complete(); path = Path(str(self.session) + '.journey') / 'receipts/preservation.json'
+    ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_output_conflict_is_not_overwritten (plugin_tests.test_journey_completion.JourneyCompletionTests.test_output_conflict_is_not_overwritten)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 92, in test_output_conflict_is_not_overwritten
+    result = self.run_flow(BEFORE_GENERATE + ['generate', 'save'])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_production_generation_keeps_inactive_provider_gate (plugin_tests.test_journey_completion.JourneyCompletionTests.test_production_generation_keeps_inactive_provider_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 97, in test_production_generation_keeps_inactive_provider_gate
+    result = self.complete(); self.assertEqual(result['status'], 'complete_simulation', result)
+             ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_rehashed_forged_receipt_cannot_create_target_evidence (plugin_tests.test_journey_completion.JourneyCompletionTests.test_rehashed_forged_receipt_cannot_create_target_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 65, in test_rehashed_forged_receipt_cannot_create_target_evidence
+    self.complete(); path = Path(str(self.session) + '.journey') / 'receipts/target.json'
+    ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_saved_completion_flags_are_not_evidence (plugin_tests.test_journey_completion.JourneyCompletionTests.test_saved_completion_flags_are_not_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 51, in test_saved_completion_flags_are_not_evidence
+    self.run_flow(['save']); state = load_json(self.session)
+    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_source_byte_change_invalidates_inventory_and_descendants (plugin_tests.test_journey_completion.JourneyCompletionTests.test_source_byte_change_invalidates_inventory_and_descendants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 55, in test_source_byte_change_invalidates_inventory_and_descendants
+    self.complete(); self.source.write_bytes(self.source.read_bytes() + b'\n')
+    ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 31, in complete
+    return self.run_flow(BEFORE_GENERATE + AFTER_GENERATE)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 29, in run_flow
+    return self.api().run_journey(self.session, input_fn=read, output_fn=self.messages.append, **paths, **kw)
+           ^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 20, in api
+    from intune_iac import journey
+ImportError: cannot import name 'journey' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.012s
+
+FAILED (errors=13)

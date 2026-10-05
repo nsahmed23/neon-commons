@@ -1,0 +1,16 @@
+{
+  "arguments": [
+    "-m",
+    "pytest",
+    "/workspace/scratch/e2e4042ea5fd/recovered-20261004/locking-replay/upstream/labs/state/state-locking/challenge/tests/test_functional.py",
+    "-q",
+    "-k",
+    "not test_backend_s3",
+    "--junitxml",
+    "/workspace/scratch/e2e4042ea5fd/recovered-20261004/locking-replay/upstream-junit.xml"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 21.573,
+  "stdout": "........                                                                 [100%]\n- generated xml file: /workspace/scratch/e2e4042ea5fd/recovered-20261004/locking-replay/upstream-junit.xml -\n8 passed, 1 deselected in 21.41s\n",
+  "stderr": ""
+}

@@ -1,0 +1,2451 @@
+{
+  "scope": "Installed executor skill enumeration. Every row receives a disposition; listing is not full instruction review.",
+  "skills": [
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/builtins/presentations",
+      "name": "Presentations",
+      "description": "Read, create or edit PowerPoint or Google Slides decks. Use for presentation, slide deck, PowerPoint, PPT, PPTX, or Google Slides requests.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/builtins/presentations/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/builtins/spreadsheets",
+      "name": "Spreadsheets",
+      "description": "Use skill when user requests to create, modify, analyze, visualize, or work with spreadsheet files (`.xlsx`, `.xls`, `.csv`, `.tsv`) or Google Sheets with formulas, formatting, charts, tables, and recalculation.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/builtins/spreadsheets/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/answers-charts",
+      "name": "answers-charts",
+      "description": "Use when a chart would communicate a categorical comparison, trend, composition, or numeric relationship more clearly than prose.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/answers-charts/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/answers-images",
+      "name": "answers-images",
+      "description": "Use when retrieved images would visually ground or meaningfully improve an answer.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/answers-images/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/answers-pronunciation",
+      "name": "answers-pronunciation",
+      "description": "Use when the user explicitly requests pronunciation help. Always use this skill for a short request of the form how do you say <source> in <target language>; render the pronunciation widget even when a prose answer would otherwise suffice.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/answers-pronunciation/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/answers-quizzes",
+      "name": "answers-quizzes",
+      "description": "Use when the user explicitly requests an objective multiple-choice knowledge quiz.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/answers-quizzes/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbec6351c81919a560a80649bc509",
+      "name": "cohesion-emphasis",
+      "description": "Repair cross-sentence and paragraph flow, topic continuity, given-before-new ordering, referential links, clause hierarchy, subject-verb distance, end weight, and buried emphasis. Use for \u201cdoesn\u2019t flow,\u201d unexplained topic shifts, buried main points, weak paragraph progression, or misplaced technical complexity. Do not use for isolated actor-action clarity, pure shortening, memo hierarchy, or ornamental syntax.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbec6351c81919a560a80649bc509/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbe66e5f08191bb17278d7ed912a2",
+      "name": "concision",
+      "description": "Diagnose and remove genuine wordiness, verbal padding, empty framing, repeated meaning, redundant modification, and official or bureaucratic prose while preserving necessary context and qualification. Use for \u201cmake this shorter,\u201d \u201ctoo wordy,\u201d \u201cbureaucratic,\u201d \u201ctighten,\u201d or a measured compression pass. Do not use for actor-action clarity alone, paragraph flow, syntactic variety, memo hierarchy, or usage disputes.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbe66e5f08191bb17278d7ed912a2/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbe31e140819197e47c1f49e0b804",
+      "name": "doc-typing",
+      "description": "Classify and repair technical or API documentation by the reader\u2019s task and knowledge state using Di\u00e1taxis: tutorial, how-to, reference, or explanation. Use for type ambiguity, mixed pages, documentation architecture, quickstarts, endpoint docs, recipes, troubleshooting, migrations, SDK docs, and runbooks. Do not use for memo logic, sentence polish, or a heading-only classification.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbe31e140819197e47c1f49e0b804/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/builtins/documents",
+      "name": "documents",
+      "description": "Create, edit, redline, and comment on `.docx`, Word, and Google Docs-targeted document artifacts inside the container, with a strict render-and-verify workflow. Use `render_docx.py` to generate page PNGs (and optional PDF) for visual QA, then iterate until layout is flawless before delivering the final document.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/builtins/documents/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/.system/imagegen",
+      "name": "imagegen",
+      "description": "Generate or edit raster images when the task benefits from AI-created bitmap visuals such as photos, illustrations, textures, sprites, mockups, or transparent-background cutouts. Use when Codex should create a brand-new image, transform an existing image, or derive visual variants from references, and the output should be a bitmap asset rather than repo-native code or vector. Do not use when the task is better handled by editing existing SVG/vector/code-native assets, extending an established icon or logo system, or building the visual directly in HTML/CSS/canvas.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/.system/imagegen/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbe836d948191a2e4a0ce85fb516d",
+      "name": "memo-structure",
+      "description": "Structure or repair executive memos, recommendations, briefs, decision papers, reports, decks, and argument-led emails around a governing question, answer, and support hierarchy. Use for answer-first requests, SCQA, pyramid logic, weak executive summaries, overlapping reasons, issue trees, or MECE checks. Do not impose this form on tutorials, reference, narratives, incident timelines, or open-ended exploration.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbe836d948191a2e4a0ce85fb516d/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/.system/openai-docs",
+      "name": "openai-docs",
+      "description": "Use for Codex models/pricing, scheduled tasks, skills, settings, setup, troubleshooting, customization, automations, and self-knowledge\u2014including 'you,' 'your,' 'this app,' or 'this coding agent' when they refer to Codex\u2014and for OpenAI APIs/products and ChatGPT Work. Also use for model choice/migration, prompting, SDKs, Responses, Realtime, agents, evals, and Chat/Work/Codex comparisons. Do not use for generic app/software tasks that merely mention Codex.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/.system/openai-docs/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/builtins/pdf",
+      "name": "pdf",
+      "description": "Read, create, inspect, render, and verify PDF files where visual layout matters, including fillable AcroForms. Use Poppler rendering plus Python tools such as reportlab, pdfplumber, and pypdf for generation and extraction.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/builtins/pdf/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/personal-context",
+      "name": "personal-context",
+      "description": "Use this skill when either of the following situations are true. Continuity related: the user explicitly or implicitly refers to prior conversation state, shared work, an earlier artifact, decision, preference, constraint, attempt, or progress item, including elliptical phrases like continue, next, again, still, update it, compare it, same as before, my axes, or our plan. Decision related: a specific unseen prior preference, constraint, history item, or attempt would materially change a concrete choice, and not be a marginal improvement. Reading and tool discovery are only a check; after loading, discover and load Personal Context's full instructions, and call personal_context.search only if they apply. Use it before another tool when the prior state changes retrieval or judgment. Skip first-turn generic facts, generic personal-domain advice, visible-context-complete work, and current-source-only tasks.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/personal-context/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/resolve-recipients",
+      "name": "resolve-recipients",
+      "description": "Resolve and verify the correct people before sending Slack messages, emails, invitations, meeting requests, calendar events, or other person-directed actions. Use whenever a request names, implies, or describes one or more recipients, especially with first names, duplicate names, nicknames, project groups, phrases such as \u201ceveryone,\u201d or ambiguous references such as \u201cthe one I work with.\u201d Search relevant communication and calendar history, compare candidate identities, and ask for clarification instead of silently guessing.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/resolve-recipients/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbf4c74d0819198d26383eab2bf7b",
+      "name": "sentence-clarity",
+      "description": "Repair sentence-level actor-action alignment, buried actions, misleading grammatical subjects, and obstructive subject-verb separation. Use for \u201cclarify this sentence,\u201d \u201cwho is doing what?\u201d, abstract or bureaucratic clauses, or the clarity stage of a coordinated edit. Do not use merely to shorten prose, repair paragraph flow, vary syntax, structure a memo, classify documentation, or decide disputed usage.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbf4c74d0819198d26383eab2bf7b/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbea281048191a69e145cd4c97b23",
+      "name": "sentence-variety",
+      "description": "Diagnose syntactic monotony, choppiness, uncontrolled sprawl, repeated openers, and repeated clause architecture, then choose a syntactic form for a rhetorical purpose. Use for \u201cflat,\u201d \u201crepetitive,\u201d \u201call built the same,\u201d \u201cchoppy,\u201d or purpose-driven rhythm work. Do not activate from sentence length statistics alone, and do not ornament already effective prose or disrupt deliberate repetition.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbea281048191a69e145cd4c97b23/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/skill-creator",
+      "name": "skill-creator",
+      "description": "Guide for creating, installing, updating, uninstalling, and deleting effective skills. This skill should be used when users want to create a new skill (or install, add, update, uninstall, or permanently delete an existing one) that extends Codex's capabilities with specialized knowledge, workflows, or tool integrations. Always use this skill for any general questions about skills in ChatGPT (e.g., what skills are or how they work).",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/skill-creator/SKILL.md",
+      "disposition": "reference",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage.",
+      "rationale": "Complete creator guidance read; applied concise task routing to user-provided project skill source only. No personal skill installed or modified."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbee22f6081919bb72bfea738d61b",
+      "name": "usage-adjudicator",
+      "description": "Adjudicate a specific disputed word, construction, spelling, punctuation, pronunciation, or convention by separating grammar from style and checking Garner\u2019s classification, Language-Change Index, register, dialect, geography, field, audience, dictionaries, and current corpus evidence. Use for \u201cwhich is correct?\u201d or formal-acceptance questions. Do not use for general rewriting or unsupported right/wrong verdicts.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/remote-skills/skill-6a8dbee22f6081919bb72bfea738d61b/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/visualize",
+      "name": "visualize",
+      "description": "Create visualizations and interactive tools directly in conversation. Proactively use to show how something works; explore 'what happens when', 'what changes', or 'help me understand'; compare or inspect; create simulations, maps, charts, graphs, and mockups. Use standard tools for static scientific figures.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/visualize/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "flora-skills"
+      },
+      "package": "skill://flora-skills/root/.codex/skills/oai/writing-blocks",
+      "name": "writing-blocks",
+      "description": "Present complete drafts of requested text in a writing block, including emails, messages, social posts, bios, blurbs, statements, and individual paragraphs. Prefer creating or editing a file for standalone documents or long-form content instead of a writing block.",
+      "main_resource": "skill://flora-skills/root/.codex/skills/oai/writing-blocks/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-apps@openai-curated-remote"
+      },
+      "package": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/frontend-app-builder",
+      "name": "build-web-apps:frontend-app-builder",
+      "description": "Use for new frontend applications, dashboards, games, creative websites, hero sections, and visually driven UI from scratch, or when the user explicitly asks for a redesign/restyle/modernization. Builds from clean, airy, high-taste, readable image-generated concept design with section-specific references, faithful implementation, and browser testing.",
+      "main_resource": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/frontend-app-builder/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-apps@openai-curated-remote"
+      },
+      "package": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/frontend-testing-debugging",
+      "name": "build-web-apps:frontend-testing-debugging",
+      "description": "Use when testing, debugging, or making targeted improvements to rendered frontend apps through the Build Web Apps or web dev plugin: local dev servers, UI regressions, interaction bugs, console errors, responsive layout, and visual QA. Check whether the Browser plugin is available and use it first when it is; otherwise use regular Playwright with the recorded reason.",
+      "main_resource": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/frontend-testing-debugging/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-apps@openai-curated-remote"
+      },
+      "package": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/react-best-practices",
+      "name": "build-web-apps:react-best-practices",
+      "description": "React and Next.js performance optimization guidelines from Vercel Engineering. This skill should be used when writing, reviewing, or refactoring React/Next.js code to ensure optimal performance patterns. Triggers on tasks involving React components, Next.js pages, data fetching, bundle optimization, or performance improvements.",
+      "main_resource": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/react-best-practices/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-apps@openai-curated-remote"
+      },
+      "package": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/shadcn-best-practices",
+      "name": "build-web-apps:shadcn",
+      "description": "Manages shadcn components and projects \u2014 adding, searching, fixing, debugging, styling, and composing UI. Provides project context, component docs, and usage examples. Applies when working with shadcn/ui, component registries, presets, --preset codes, or any project with a components.json file. Also triggers for \"shadcn init\", \"create an app with --preset\", or \"switch to --preset\".",
+      "main_resource": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/shadcn-best-practices/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-apps@openai-curated-remote"
+      },
+      "package": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/stripe-best-practices",
+      "name": "build-web-apps:stripe-best-practices",
+      "description": "Guides Stripe integration decisions \u2014 API selection (Checkout Sessions vs PaymentIntents), Connect platform setup (Accounts v2, controller properties), billing/subscriptions, Treasury financial accounts, integration surfaces (Checkout, Payment Element), and migrating from deprecated Stripe APIs. Use when building, modifying, or reviewing any Stripe integration \u2014 including accepting payments, building marketplaces, integrating Stripe, processing payments, setting up subscriptions, or creating connected accounts.",
+      "main_resource": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/stripe-best-practices/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-apps@openai-curated-remote"
+      },
+      "package": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/supabase-best-practices",
+      "name": "build-web-apps:supabase-postgres-best-practices",
+      "description": "Postgres performance optimization and best practices from Supabase. Use this skill when writing, reviewing, or optimizing Postgres queries, schema designs, or database configurations.",
+      "main_resource": "skill://build-web-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-apps/0.1.2/skills/supabase-best-practices/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "build-web-data-visualization@openai-curated-remote"
+      },
+      "package": "skill://build-web-data-visualization@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-data-visualization/0.1.21/skills/data-visualization",
+      "name": "build-web-data-visualization:data-visualization",
+      "description": "Route web data visualization work. Use when the user needs chart choice, visual critique, dashboards, maps or geospatial views, Gantt timelines, UML/software diagrams, scrollytelling, reports or exports, testing, accessibility, browser implementation, or concept-first visual design.",
+      "main_resource": "skill://build-web-data-visualization@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/build-web-data-visualization/0.1.21/skills/data-visualization/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "defense-factory@openai-curated-remote"
+      },
+      "package": "skill://defense-factory@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/defense-factory/0.1.1/skills/open-defense-factory",
+      "name": "defense-factory:open-defense-factory",
+      "description": "Open Codex Security Cloud for cloud security findings, scans, and continuous repository monitoring.",
+      "main_resource": "skill://defense-factory@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/defense-factory/0.1.1/skills/open-defense-factory/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/analyze-data-quality",
+      "name": "data-analytics:analyze-data-quality",
+      "description": "Investigate whether structured datasets and query results are trustworthy enough to use. Use for underlying data-quality risks such as freshness, grain, missingness, duplicates, broken joins, schema drift, and conflicting source results.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/analyze-data-quality/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/build-dashboard",
+      "name": "data-analytics:build-dashboard",
+      "description": "Build or update a source-backed interactive dashboard for monitoring, exploration, and operational decisions from connected data, uploaded spreadsheets, CSVs, or other structured sources.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/build-dashboard/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/build-report",
+      "name": "data-analytics:build-report",
+      "description": "Build polished analytical reports for executive, product, business, or technical audiences. Use when the task needs a durable narrative answer supported by inspectable evidence.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/build-report/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/create-data-context",
+      "name": "data-analytics:create-data-context",
+      "description": "Create, update, or share reusable context for analysis, reports, and dashboards, including tool preferences, look and feel, analysis practices, and data definitions. Use when asked to remember a working instruction for future tasks, save conventions, or maintain existing context.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/create-data-context/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/design-kpis",
+      "name": "data-analytics:design-kpis",
+      "description": "Design KPI frameworks, metric definitions, targets, guardrails, and measurement plans for product or business decisions. Use when success metrics, drivers, guardrails, targets, or the measurement approach need to be defined or improved.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/design-kpis/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/gather-business-context",
+      "name": "data-analytics:gather-business-context",
+      "description": "Gather business context from connected or provided sources so downstream analysis starts with the right framing. Use when an analytical question depends on missing context, such as what a metric means, what changed recently, or which sources should be checked. If the same prompt asks for diagnosis, recommendation, or a deliverable, gather context first and continue to the focused skill.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/gather-business-context/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/index",
+      "name": "data-analytics:index",
+      "description": "Answer product and business questions with data and route data-related work to the right focused workflow. Use for requests involving data, metrics, trends, comparisons, drivers, KPIs, analysis, dashboards, reports, charts, tables, SQL, notebooks, spreadsheets, market sizing, data quality, reusable data context, data definitions, or working preferences, whether or not Data is at-mentioned. Dashboards can use uploaded spreadsheets, CSVs, or TSVs as source data without making the deliverable a spreadsheet. Do not use Data for general writing, editing, coding, or explanations that require none of these workflows.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/index/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/jupyter-notebooks",
+      "name": "data-analytics:jupyter-notebooks",
+      "description": "Create, edit, or validate reproducible SQL or Python notebooks. Use for notebooks, SQL/Python scratchpads, reproducible exploration, audit trails, or runnable companions where the analysis should be reviewable or rerunnable.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/jupyter-notebooks/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/kpi-reporting",
+      "name": "data-analytics:kpi-reporting",
+      "description": "Prepare KPI readouts, scorecards, WBR/MBR/QBR updates, and executive summaries from quantitative business or product metrics; use when the task is to report status, compare against targets, explain validated drivers, and state operating implications.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/kpi-reporting/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/market-sizing",
+      "name": "data-analytics:market-sizing",
+      "description": "Estimate market, segment, or opportunity size with transparent assumptions and uncertainty. Use for TAM/SAM/SOM, sizing scenarios, or comparing the scale of possible opportunities.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/market-sizing/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/metric-diagnostics",
+      "name": "data-analytics:metric-diagnostics",
+      "description": "Diagnose why a metric changed or differs from expectation. Use when the task is to identify likely drivers of a metric movement, anomaly, gap, or discrepancy.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/metric-diagnostics/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/product-business-analysis",
+      "name": "data-analytics:product-business-analysis",
+      "description": "Analyze product or business data to support a decision or recommendation. Use when a decision depends on metric-backed evidence, such as choosing a direction, prioritizing an opportunity, evaluating a change, segmenting users, sizing tradeoffs, or deciding what to do next.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/product-business-analysis/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/publish-artifact-to-sites",
+      "name": "data-analytics:publish-artifact-to-sites",
+      "description": "Publish an existing Data report or dashboard to Sites, automatically for web/cloud tasks or when the user requests publication.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/publish-artifact-to-sites/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/validate-data",
+      "name": "data-analytics:validate-data",
+      "description": "Validate analysis methodology, sources, calculations, visuals, and conclusions, including report and dashboard completeness, usability, and supported repairs.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/validate-data/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "data-analytics@openai-curated-remote"
+      },
+      "package": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/visualize-data",
+      "name": "data-analytics:visualize-data",
+      "description": "Design, build, revise, and verify quantitative charts and figures while authoring reports, dashboards, notebooks, and other durable artifacts. Do not use for inline chat charts.",
+      "main_resource": "skill://data-analytics@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/data-analytics/1.0.11/skills/visualize-data/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "demos@openai-curated-remote"
+      },
+      "package": "skill://demos@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/demos/0.1.22/skills/answers-ask-user-input",
+      "name": "demos:answers-ask-user-input",
+      "description": "Use when a small amount of missing context would materially improve the answer and tappable options plus a free-text answer can gather it efficiently.",
+      "main_resource": "skill://demos@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/demos/0.1.22/skills/answers-ask-user-input/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "demos@openai-curated-remote"
+      },
+      "package": "skill://demos@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/demos/0.1.22/skills/onboarding-setup-pet",
+      "name": "demos:onboarding-setup-pet",
+      "description": "Run a short, visual onboarding flow to choose a built-in ChatGPT Work pet or create a personalized custom pet. Use when helping someone set up a pet. Start with the labeled built-in lineup in a raw-HTML @visualize surface, defer pet management to the canonical `$pets` skill in `openai/oai-maintained-plugins/plugins/pets`, and finish with a one-at-a-time GIF carousel instead of a sprite sheet. Adapt the conversation to what the user has already shared.",
+      "main_resource": "skill://demos@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/demos/0.1.22/skills/onboarding-setup-pet/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/game-playtest",
+      "name": "game-studio:game-playtest",
+      "description": "Run browser-game playtests and frontend QA. Use when the user asks for smoke tests, screenshot-based verification, browser automation, HUD or overlay review, or structured issue-finding in a browser game.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/game-playtest/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/game-studio",
+      "name": "game-studio:game-studio",
+      "description": "Route early browser-game work. Use when the user needs stack selection and workflow planning across design, implementation, assets, and playtesting before moving to a specialist skill.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/game-studio/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/game-ui-frontend",
+      "name": "game-studio:game-ui-frontend",
+      "description": "Design UI surfaces for browser games. Use when the user asks for HUDs, menus, overlays, responsive layouts, or visual direction that must protect the playfield.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/game-ui-frontend/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/phaser-2d-game",
+      "name": "game-studio:phaser-2d-game",
+      "description": "Implement 2D browser games with Phaser. Use when the user wants a Phaser, TypeScript, and Vite stack for scenes, gameplay systems, cameras, sprite animation, and DOM-overlay HUD patterns.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/phaser-2d-game/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/react-three-fiber-game",
+      "name": "game-studio:react-three-fiber-game",
+      "description": "Build React-hosted 3D browser games with React Three Fiber. Use when the user wants pmndrs-based scene composition, shared React state, and 3D HUD integration inside a React app.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/react-three-fiber-game/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/sprite-pipeline",
+      "name": "game-studio:sprite-pipeline",
+      "description": "Generate and normalize 2D sprite animations. Use when the user asks for full-strip generation from approved source frames, consistent anchor and scale normalization, or preview assets for browser-game animation.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/sprite-pipeline/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/three-webgl-game",
+      "name": "game-studio:three-webgl-game",
+      "description": "Implement browser-game runtimes with plain Three.js. Use when the user wants imperative scene control in TypeScript or Vite with GLB assets, loaders, physics, and low-level WebGL debugging.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/three-webgl-game/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/web-3d-asset-pipeline",
+      "name": "game-studio:web-3d-asset-pipeline",
+      "description": "Prepare and optimize browser-game 3D assets. Use when the user asks for GLB or glTF shipping work, including Blender cleanup and export, collision or LOD setup, compression, texture packaging, and runtime validation.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/web-3d-asset-pipeline/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "game-studio@openai-curated-remote"
+      },
+      "package": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/web-game-foundations",
+      "name": "game-studio:web-game-foundations",
+      "description": "Set browser-game architecture before implementation. Use when the user needs engine choice, simulation and render boundaries, input model, asset organization, or save/debug/performance strategy.",
+      "main_resource": "skill://game-studio@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/game-studio/0.1.2/skills/web-game-foundations/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "google-drive@openai-curated-remote"
+      },
+      "package": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-docs",
+      "name": "google-drive:google-docs",
+      "description": "Prompt- and template-complete Google Docs creation and editing with explicit-instruction-authoritative structural preservation, including semantic roles, relationships, comparison dimensions, and instructed extensions; full-topology native-copy routing; source-grounded per-tab adaptation for past/example references; style-preserving hyperlink and table edits; canonical smart-chip-first authoring for dates and relevant supported people or Google resources; a file-backed advisory trusted read before existing-document writes; automatic protected-control awareness; direct connector APIs by default; DOCX-first import only when no supplied Google Doc template/reference constrains the output; and checked-in code mode only for exact native dropdown mutation. Use when Codex must create, edit, fill, adapt, redesign, or verify Google Docs without overriding explicit user/template instructions, adding unrequested document scope, or carrying stale reference facts into a new deliverable.",
+      "main_resource": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-docs/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "google-drive@openai-curated-remote"
+      },
+      "package": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-drive",
+      "name": "google-drive:google-drive",
+      "description": "Use connected Google Drive as the single entrypoint for Drive, Docs, Sheets, and Slides work. Use when the user wants to find, fetch, organize, share, export, copy, or delete Drive files, or summarize and edit Google Docs, Google Sheets, and Google Slides through one unified Google Drive plugin.",
+      "main_resource": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-drive/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "google-drive@openai-curated-remote"
+      },
+      "package": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-drive-comments",
+      "name": "google-drive:google-drive-comments",
+      "description": "Write, reply to, and resolve Google Drive comments on Docs, Sheets, Slides, and Drive files with evidence-backed location context. Use when the user asks to leave comments, review a file with comments, respond to comment threads, or resolve Drive comments.",
+      "main_resource": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-drive-comments/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "google-drive@openai-curated-remote"
+      },
+      "package": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-sheets",
+      "name": "google-drive:google-sheets",
+      "description": "Analyze and edit connected Google Sheets with range precision. Use when the user wants to create Google Sheets, find a spreadsheet, inspect tabs or ranges, search rows, plan formulas, create or repair charts, clean or restructure tables, write concise summaries, or make explicit cell-range updates.",
+      "main_resource": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-sheets/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "google-drive@openai-curated-remote"
+      },
+      "package": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-slides",
+      "name": "google-drive:google-slides",
+      "description": "Route Google Slides authoring requests and derive a design system from a native template or reference deck. Use this skill when the user provides an existing native Google Slides deck as a template, reference, or prior-period source, or asks to edit, update, repair, restyle, or clean up an existing native Google Slides deck. Use the Presentations skill instead for net-new presentation creation when no existing native Google Slides deck must be followed.",
+      "main_resource": "skill://google-drive@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/google-drive/0.1.16/skills/google-slides/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "health@openai-curated-remote"
+      },
+      "package": "skill://health@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/health/0.1.6/skills/health",
+      "name": "health:health",
+      "description": "Connect and explore your health data.",
+      "main_resource": "skill://health@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/health/0.1.6/skills/health/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/cli",
+      "name": "hugging-face:hf-cli",
+      "description": "Hugging Face Hub CLI (`hf`) for downloading, uploading, and managing repositories, models, datasets, and Spaces on the Hugging Face Hub. Replaces now deprecated `huggingface-cli` command.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/cli/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/community-evals",
+      "name": "hugging-face:huggingface-community-evals",
+      "description": "Run evaluations for Hugging Face Hub models using inspect-ai and lighteval on local hardware. Use for backend selection, local GPU evals, and choosing between vLLM / Transformers / accelerate. Not for HF Jobs orchestration, model-card PRs, .eval_results publication, or community-evals automation.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/community-evals/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/datasets",
+      "name": "hugging-face:huggingface-datasets",
+      "description": "Use this skill for Hugging Face Dataset Viewer API workflows that fetch subset/split metadata, paginate rows, search text, apply filters, download parquet URLs, and read size or statistics.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/datasets/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/gradio",
+      "name": "hugging-face:huggingface-gradio",
+      "description": "Build Gradio web UIs and demos in Python. Use when creating or editing Gradio apps, components, event listeners, layouts, or chatbots.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/gradio/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/jobs",
+      "name": "hugging-face:huggingface-jobs",
+      "description": "This skill should be used when users want to run any workload on Hugging Face Jobs infrastructure. Covers UV scripts, Docker-based jobs, hardware selection, cost estimation, authentication with tokens, secrets management, timeout configuration, and result persistence. Designed for general-purpose compute workloads including data processing, inference, experiments, batch jobs, and any Python-based tasks. Should be invoked for tasks involving cloud compute, GPU workloads, or when users mention running jobs on Hugging Face infrastructure without local setup.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/jobs/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/llm-trainer",
+      "name": "hugging-face:huggingface-llm-trainer",
+      "description": "This skill should be used when users want to train or fine-tune language models using TRL (Transformer Reinforcement Learning) on Hugging Face Jobs infrastructure. Covers SFT, DPO, GRPO and reward modeling training methods, plus GGUF conversion for local deployment. Includes guidance on the TRL Jobs package, UV scripts with PEP 723 format, dataset preparation and validation, hardware selection, cost estimation, Trackio monitoring, Hub authentication, and model persistence. Should be invoked for tasks involving cloud GPU training, GGUF conversion, or when users mention training on Hugging Face Jobs without local GPU setup.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/llm-trainer/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/paper-publisher",
+      "name": "hugging-face:huggingface-paper-publisher",
+      "description": "Publish and manage research papers on Hugging Face Hub. Supports creating paper pages, linking papers to models/datasets, claiming authorship, and generating professional markdown-based research articles.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/paper-publisher/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/papers",
+      "name": "hugging-face:huggingface-papers",
+      "description": "Look up and read Hugging Face paper pages in markdown, and use the papers API for structured metadata such as authors, linked models/datasets/spaces, Github repo and project page. Use when the user shares a Hugging Face paper page URL, an arXiv URL or ID, or asks to summarize, explain, or analyze an AI research paper.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/papers/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/trackio",
+      "name": "hugging-face:huggingface-trackio",
+      "description": "Track and visualize ML training experiments with Trackio. Use when logging metrics during training (Python API), firing alerts for training diagnostics, or retrieving/analyzing logged metrics (CLI). Supports real-time dashboard visualization, alerts with webhooks, HF Space syncing, and JSON output for automation.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/trackio/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/vision-trainer",
+      "name": "hugging-face:huggingface-vision-trainer",
+      "description": "Trains and fine-tunes vision models for object detection (D-FINE, RT-DETR v2, DETR, YOLOS), image classification (timm models \u2014 MobileNetV3, MobileViT, ResNet, ViT/DINOv3 \u2014 plus any Transformers classifier), and SAM/SAM2 segmentation using Hugging Face Transformers on Hugging Face Jobs cloud GPUs. Covers COCO-format dataset preparation, Albumentations augmentation, mAP/mAR evaluation, accuracy metrics, SAM segmentation with bbox/point prompts, DiceCE loss, hardware selection, cost estimation, Trackio monitoring, and Hub persistence. Use when users mention training object detection, image classification, SAM, SAM2, segmentation, image matting, DETR, D-FINE, RT-DETR, ViT, timm, MobileNet, ResNet, bounding box models, or fine-tuning vision models on Hugging Face Jobs.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/vision-trainer/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "hugging-face@openai-curated-remote"
+      },
+      "package": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/transformers.js",
+      "name": "hugging-face:transformers-js",
+      "description": "Use Transformers.js to run state-of-the-art machine learning models directly in JavaScript/TypeScript. Supports NLP (text classification, translation, summarization), computer vision (image classification, object detection), audio (speech recognition, audio classification), and multimodal tasks. Works in Node.js and browsers (with WebGPU/WASM) using pre-trained models from Hugging Face Hub.",
+      "main_resource": "skill://hugging-face@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/transformers.js/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/alphafold-skill",
+      "name": "life-science-research:alphafold-skill",
+      "description": "Submit compact AlphaFold Protein Structure Database API requests for prediction, UniProt summary, sequence summary, and annotation lookups. Use when a user wants AlphaFold metadata or concise structure summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/alphafold-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/bgee-skill",
+      "name": "life-science-research:bgee-skill",
+      "description": "Submit compact Bgee SPARQL requests for healthy wild-type expression metadata and ontology-aware lookup patterns. Use when a user wants concise Bgee summaries; save raw results only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/bgee-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/bindingdb-skill",
+      "name": "life-science-research:bindingdb-skill",
+      "description": "Submit compact BindingDB REST API requests for ligand-target binding lookups by PDB, UniProt, or similarity search. Use when a user wants concise BindingDB summaries; save raw payloads only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/bindingdb-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/biobankjapan-phewas-skill",
+      "name": "life-science-research:biobankjapan-phewas-skill",
+      "description": "Fetch compact BioBank Japan PheWAS summaries for single variants by accepting rsID, GRCh38, or GRCh37 input and resolving to the required GRCh37 query. Use when a user wants concise BBJ association results for one variant",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/biobankjapan-phewas-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/biorxiv-skill",
+      "name": "life-science-research:biorxiv-skill",
+      "description": "Submit compact bioRxiv and medRxiv API requests for details, publication-linkage, and DOI lookups. Use when a user wants concise preprint metadata summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/biorxiv-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/biostudies-arrayexpress-skill",
+      "name": "life-science-research:biostudies-arrayexpress-skill",
+      "description": "Submit compact BioStudies and ArrayExpress API requests for free-text search and accession-based study retrieval. Use when a user wants concise BioStudies summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/biostudies-arrayexpress-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/cbioportal-skill",
+      "name": "life-science-research:cbioportal-skill",
+      "description": "Submit compact cBioPortal API requests for studies, molecular profiles, mutations, clinical data, and samples. Use when a user wants concise cBioPortal summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/cbioportal-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/cellxgene-skill",
+      "name": "life-science-research:cellxgene-skill",
+      "description": "Submit compact CELLxGENE Discover API requests for public collection and dataset metadata. Use when a user wants concise single-cell collection summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/cellxgene-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/chebi-skill",
+      "name": "life-science-research:chebi-skill",
+      "description": "Submit compact ChEBI 2.0 API requests for chemical search, compound lookup, ontology traversal, and structure metadata. Use when a user wants concise ChEBI summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/chebi-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/chembl-skill",
+      "name": "life-science-research:chembl-skill",
+      "description": "Submit compact ChEMBL API requests for activity, molecule, target, mechanism, and text-search endpoints. Use when a user wants concise ChEMBL summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/chembl-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/civic-skill",
+      "name": "life-science-research:civic-skill",
+      "description": "Submit compact CIViC GraphQL requests for cancer variant interpretation schema inspection and targeted evidence retrieval. Use when a user wants concise CIViC summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/civic-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/clinicaltrials-skill",
+      "name": "life-science-research:clinicaltrials-skill",
+      "description": "Submit compact ClinicalTrials.gov API v2 requests for study search, metadata, enums, search areas, and field statistics. Use when a user wants concise ClinicalTrials.gov summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/clinicaltrials-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/clinvar-variation-skill",
+      "name": "life-science-research:clinvar-variation-skill",
+      "description": "Submit compact ClinVar Clinical Tables and NCBI Variation requests for search, VCV, RCV, SCV, and RefSNP lookups. Use when a user wants variant-level summaries or identifier mapping",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/clinvar-variation-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/efo-ontology-skill",
+      "name": "life-science-research:efo-ontology-skill",
+      "description": "Submit compact EFO OLS4 requests for search, term lookup, children, and descendants. Use when a user wants concise EFO resolution or ontology-expansion summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/efo-ontology-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/encode-skill",
+      "name": "life-science-research:encode-skill",
+      "description": "Submit compact ENCODE REST API requests for object lookups, portal-style search, and metadata retrieval. Use when a user wants concise ENCODE summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/encode-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ensembl-skill",
+      "name": "life-science-research:ensembl-skill",
+      "description": "Submit compact Ensembl REST API requests for lookup, overlap, cross-reference, and variation endpoints. Use when a user wants concise Ensembl summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ensembl-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/epigraphdb-skill",
+      "name": "life-science-research:epigraphdb-skill",
+      "description": "Submit compact EpiGraphDB API requests for ontology, literature, MR, gene-drug, and support-path evidence. Use when a user wants concise EpiGraphDB summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/epigraphdb-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/eqtl-catalogue-skill",
+      "name": "life-science-research:eqtl-catalogue-skill",
+      "description": "Submit compact eQTL Catalogue API requests for association retrieval and documented metadata endpoints. Use when a user wants concise public eQTL Catalogue summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/eqtl-catalogue-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/eva-skill",
+      "name": "life-science-research:eva-skill",
+      "description": "Submit compact EVA REST requests for species metadata and archived variant lookups. Use when a user wants concise European Variation Archive summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/eva-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/finngen-phewas-skill",
+      "name": "life-science-research:finngen-phewas-skill",
+      "description": "Fetch compact FinnGen PheWAS summaries for single variants by accepting rsID, GRCh37, or GRCh38 input and resolving to the required GRCh38 query. Use when a user wants concise FinnGen association results for one variant",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/finngen-phewas-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/genebass-gene-burden-skill",
+      "name": "life-science-research:genebass-gene-burden-skill",
+      "description": "Submit compact Genebass gene burden requests for one Ensembl gene ID and one burden set. Use when a user wants concise Genebass PheWAS summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/genebass-gene-burden-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/gnomad-graphql-skill",
+      "name": "life-science-research:gnomad-graphql-skill",
+      "description": "Submit compact gnomAD GraphQL requests for frequency, gene constraint, and variant context queries. Use when a user wants concise gnomAD summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/gnomad-graphql-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/gtex-eqtl-skill",
+      "name": "life-science-research:gtex-eqtl-skill",
+      "description": "Fetch GTEx single-tissue eQTL associations from one variant input by accepting rsID, GRCh37, or GRCh38 input and resolving to the required GRCh38 query for the GTEx v2 API. Use when a user wants eQTL associations returned as JSON.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/gtex-eqtl-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/gwas-catalog-skill",
+      "name": "life-science-research:gwas-catalog-skill",
+      "description": "Submit compact GWAS Catalog REST API v2 requests for studies, associations, SNPs, EFO traits, genes, publications, loci, and metadata. Use when a user wants concise GWAS Catalog summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/gwas-catalog-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/hmdb-skill",
+      "name": "life-science-research:hmdb-skill",
+      "description": "Submit compact HMDB search requests for metabolites, proteins, diseases, and pathways. Use when a user wants concise HMDB summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/hmdb-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/human-protein-atlas-skill",
+      "name": "life-science-research:human-protein-atlas-skill",
+      "description": "Submit compact Human Protein Atlas requests for gene JSON, search downloads, and page-level tissue or cell-line lookups. Use when a user wants concise Human Protein Atlas summaries; save raw JSON or HTML only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/human-protein-atlas-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ipd-skill",
+      "name": "life-science-research:ipd-skill",
+      "description": "Submit compact IPD REST requests for HLA allele and cell-level metadata using the public IPD query API. Use when a user wants concise IPD summaries; save raw JSON or text only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ipd-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/locus-to-gene-mapper-skill",
+      "name": "life-science-research:locus-to-gene-mapper-skill",
+      "description": "Map GWAS loci to ranked candidate genes using a deterministic multi-skill chain (EFO -> GWAS -> coordinates -> Open Targets L2G/coloc -> eQTL -> burden/coding context), with reproducible tables and optional figures. Use when a user provides a trait/EFO term and/or lead variants and needs locus-to-gene prioritization for downstream biology decisions.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/locus-to-gene-mapper-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/metabolights-skill",
+      "name": "life-science-research:metabolights-skill",
+      "description": "Submit compact MetaboLights requests for study discovery and study-level metabolomics metadata. Use when a user wants concise MetaboLights summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/metabolights-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/mgnify-skill",
+      "name": "life-science-research:mgnify-skill",
+      "description": "Submit compact MGnify API requests for microbiome studies, samples, and biome metadata. Use when a user wants concise MGnify summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/mgnify-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-blast-skill",
+      "name": "life-science-research:ncbi-blast-skill",
+      "description": "Submit, poll, and summarize NCBI BLAST Common URL API jobs (Blast.cgi) for nucleotide or protein sequences. Use when a user wants RID status, BLAST results, or compact top-hit summaries; fetch raw Text/JSON2 only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-blast-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-clinicaltables-skill",
+      "name": "life-science-research:ncbi-clinicaltables-skill",
+      "description": "Submit compact Clinical Tables NCBI Gene requests for human gene lookup, pagination, and field selection. Use when a user wants concise autocomplete-style human gene search results",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-clinicaltables-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-datasets-skill",
+      "name": "life-science-research:ncbi-datasets-skill",
+      "description": "Submit compact NCBI Datasets v2 requests for assembly, genome, taxonomy, and related metadata endpoints. Use when a user wants concise NCBI Datasets summaries; save raw JSON or text only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-datasets-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-entrez-skill",
+      "name": "life-science-research:ncbi-entrez-skill",
+      "description": "Submit compact NCBI Entrez E-Utilities requests for PubMed, Gene, Protein, Nucleotide, PMC metadata, and GEO metadata workflows. Use when a user wants concise Entrez search, fetch, summary, or link results; save raw JSON or XML only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-entrez-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-pmc-skill",
+      "name": "life-science-research:ncbi-pmc-skill",
+      "description": "Submit compact NCBI PMC Open Access requests for article/file availability metadata. Use when a user wants concise PMC Open Access summaries; save raw XML only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ncbi-pmc-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/opentargets-skill",
+      "name": "life-science-research:opentargets-skill",
+      "description": "Submit compact Open Targets Platform GraphQL requests for target, disease, drug, variant, study, and search data, including associated-disease datasource heatmap matrices. Use when a user wants concise Open Targets summaries or per-datasource evidence context",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/opentargets-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/pharmgkb-skill",
+      "name": "life-science-research:pharmgkb-skill",
+      "description": "Submit compact PharmGKB API requests for genes, variants, clinical annotations, dosing guidelines, and search. Use when a user wants concise PharmGKB summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/pharmgkb-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/pride-skill",
+      "name": "life-science-research:pride-skill",
+      "description": "Submit compact PRIDE Archive API requests for proteomics project discovery and project-level metadata. Use when a user wants concise PRIDE summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/pride-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/proteomexchange-skill",
+      "name": "life-science-research:proteomexchange-skill",
+      "description": "Submit compact ProteomeXchange PROXI requests for datasets, libraries, peptidoforms, proteins, PSMs, spectra, and USI examples. Use when a user wants concise PROXI summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/proteomexchange-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/pubchem-pug-skill",
+      "name": "life-science-research:pubchem-pug-skill",
+      "description": "Submit compact PubChem PUG REST requests for compound properties, descriptions, assay summaries, and substance metadata. Use when a user wants concise PubChem summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/pubchem-pug-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/quickgo-skill",
+      "name": "life-science-research:quickgo-skill",
+      "description": "Submit compact QuickGO requests for GO terms, annotations, and ontology traversal. Use when a user wants concise QuickGO summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/quickgo-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/rcsb-pdb-skill",
+      "name": "life-science-research:rcsb-pdb-skill",
+      "description": "Submit compact RCSB PDB requests for core metadata, Search API queries, and FASTA downloads. Use when a user wants concise RCSB summaries; save raw JSON or FASTA only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/rcsb-pdb-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/reactome-skill",
+      "name": "life-science-research:reactome-skill",
+      "description": "Submit compact Reactome ContentService requests for pathway, event, participant, search, and diagram-related data. Use when a user wants concise Reactome summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/reactome-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/research-router-skill",
+      "name": "life-science-research:research-router-skill",
+      "description": "Route broad or ambiguous life-sciences research requests to the right skills, normalize core entities, optionally parallelize independent evidence gathering with subagents when available, and synthesize a concise evidence-backed answer. Use when a user asks a general life-sciences question that could span multiple sources or analysis types.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/research-router-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/rhea-skill",
+      "name": "life-science-research:rhea-skill",
+      "description": "Submit compact Rhea reaction search requests for biochemical reactions and reaction IDs. Use when a user wants concise Rhea summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/rhea-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/rnacentral-skill",
+      "name": "life-science-research:rnacentral-skill",
+      "description": "Submit compact RNAcentral API requests for RNA entry browsing, single-entry lookup, and cross-reference retrieval. Use when a user wants concise RNAcentral summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/rnacentral-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/string-skill",
+      "name": "life-science-research:string-skill",
+      "description": "Submit compact STRING API requests for network, interaction partner, and enrichment endpoints. Use when a user wants concise STRING summaries",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/string-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/tpmi-phewas-skill",
+      "name": "life-science-research:tpmi-phewas-skill",
+      "description": "Fetch compact TPMI PheWAS summaries for single variants by accepting rsID, GRCh37, or GRCh38 input and resolving to the required GRCh38 query. Use when a user wants concise TPMI association results for one variant",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/tpmi-phewas-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ukb-topmed-phewas-skill",
+      "name": "life-science-research:ukb-topmed-phewas-skill",
+      "description": "Fetch compact UKB-TOPMed PheWAS summaries for single variants by accepting rsID, GRCh37, or GRCh38 input and resolving to the required GRCh38 query. Use when a user wants concise UKB-TOPMed association results for one variant",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/ukb-topmed-phewas-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "life-science-research@openai-curated-remote"
+      },
+      "package": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/uniprot-skill",
+      "name": "life-science-research:uniprot-skill",
+      "description": "Submit compact UniProt REST API requests for UniProtKB, UniRef, UniParc, and FASTA stream endpoints. Use when a user wants concise UniProt summaries; save raw JSON or FASTA only on request.",
+      "main_resource": "skill://life-science-research@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/life-science-research/1.0.3/skills/uniprot-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-amplicon-microbiome",
+      "name": "ngs-analysis:ngs-amplicon-microbiome",
+      "description": "Kick off public 16S, 18S, ITS, COI, or other marker-gene amplicon microbiome workflows using nf-core/ampliseq, QIIME2, DADA2, and Cutadapt.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-amplicon-microbiome/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-analysis-router",
+      "name": "ngs-analysis:ngs-analysis-router",
+      "description": "Route BCL, FASTQ, BAM/CRAM, count-matrix, or VCF sequencing requests to the right public NGS analysis skill and ask only the missing assay-specific setup questions.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-analysis-router/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-atacseq-peaks-qc",
+      "name": "ngs-analysis:ngs-atacseq-peaks-qc",
+      "description": "Run or plan ATAC-seq QC, alignment, TSS enrichment, fragment-size, blacklist, peak-calling, consensus peak, and differential accessibility workflows.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-atacseq-peaks-qc/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bcl-to-fastq",
+      "name": "ngs-analysis:ngs-bcl-to-fastq",
+      "description": "Validate Illumina BCL run folders and sample sheets, plan demultiplexing, review index/UMI/lane choices, run BCL-to-FASTQ conversion, and interpret demux metrics while surfacing license/download boundaries.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bcl-to-fastq/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bulk-rnaseq",
+      "name": "ngs-analysis:ngs-bulk-rnaseq",
+      "description": "Dispatch bulk RNA-seq requests to FASTQ-to-count QC or count-matrix differential-expression skills using nf-core/rnaseq, STAR, Salmon, featureCounts, MultiQC, and R/Bioconductor workflows.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bulk-rnaseq/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bulk-rnaseq-counts-qc",
+      "name": "ngs-analysis:ngs-bulk-rnaseq-counts-qc",
+      "description": "Run or plan bulk RNA-seq FASTQ-to-count processing with sample-sheet, strandedness, genome annotation, alignment or pseudoalignment, MultiQC, and count-matrix QC checks.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bulk-rnaseq-counts-qc/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bulk-rnaseq-differential-expression",
+      "name": "ngs-analysis:ngs-bulk-rnaseq-differential-expression",
+      "description": "Run or plan bulk RNA-seq differential-expression analysis from count matrices with replicate, design formula, contrast, batch, normalization, QC plot, and result-table checks.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-bulk-rnaseq-differential-expression/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-chip-cutrun-peaks-qc",
+      "name": "ngs-analysis:ngs-chip-cutrun-peaks-qc",
+      "description": "Run or plan ChIP-seq, CUT&RUN, or CUT&Tag QC, control handling, spike-in, peak calling, broad-vs-narrow target selection, replicate, bigWig, and differential binding workflows.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-chip-cutrun-peaks-qc/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-germline-variants",
+      "name": "ngs-analysis:ngs-dna-germline-variants",
+      "description": "Run or plan deep germline WGS, WES, targeted-panel, cohort, or trio variant-calling workflows with reference-build, known-sites, QC, joint-calling, and annotation checks.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-germline-variants/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-somatic-variants",
+      "name": "ngs-analysis:ngs-dna-somatic-variants",
+      "description": "Run or plan tumor-normal, tumor-only, WGS, WES, or cancer-panel somatic variant workflows with pairing, contamination, panel-of-normals, purity, QC, and annotation checks.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-somatic-variants/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-umi-panel-variants",
+      "name": "ngs-analysis:ngs-dna-umi-panel-variants",
+      "description": "Run or plan targeted DNA panel variant workflows that use UMIs, duplex consensus reads, molecular barcodes, low-frequency calling, target coverage, and panel-specific QC.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-umi-panel-variants/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-variant-calling",
+      "name": "ngs-analysis:ngs-dna-variant-calling",
+      "description": "Dispatch WGS, WES, or targeted DNA variant requests to germline, somatic, or UMI-panel skills, then plan public nf-core/sarek, GATK4, DeepVariant, samtools, or bcftools workflows.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-dna-variant-calling/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-epigenomics-peaks",
+      "name": "ngs-analysis:ngs-epigenomics-peaks",
+      "description": "Dispatch ATAC-seq, ChIP-seq, CUT&RUN, or CUT&Tag requests to assay-specific QC, alignment, signal-track, peak-calling, consensus, and differential peak workflows.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-epigenomics-peaks/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-fastq-qc",
+      "name": "ngs-analysis:ngs-fastq-qc",
+      "description": "Validate FASTQ inputs, run local FastQC/MultiQC QC, interpret QC signals, and optionally execute fastp or Cutadapt trimming branches without overwriting raw reads.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-fastq-qc/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-runtime-env",
+      "name": "ngs-analysis:ngs-runtime-env",
+      "description": "Check whether public NGS tools and packages already exist before downloading, installing, or running a sequencing pipeline.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-runtime-env/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-scrna-seq",
+      "name": "ngs-analysis:ngs-scrna-seq",
+      "description": "Route single-cell or single-nucleus RNA-seq FASTQs to public count-generation workflows and defer post-count matrix QC, annotation, clustering, and UMAP analysis to the embedded scrna-seq-qc skill.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-scrna-seq/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-shotgun-metagenomics",
+      "name": "ngs-analysis:ngs-shotgun-metagenomics",
+      "description": "Kick off public shotgun metagenomics QC, host-depletion, taxonomic profiling, and functional profiling workflows using nf-core/taxprofiler, Kraken2, Bracken, MetaPhlAn, and HUMAnN.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/ngs-shotgun-metagenomics/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "ngs-analysis@openai-curated-remote"
+      },
+      "package": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/scrna-seq-qc",
+      "name": "ngs-analysis:scrna-seq-qc",
+      "description": "Process, quality-control, annotate, and visualize single-cell or single-nucleus RNA-seq datasets across tissues and species. Use when Codex needs to build, adapt, or review a general scRNA-seq QC pipeline; choose dataset-appropriate cell-level filters from QC distributions; run required scDblFinder-based doublet and ambient-RNA filtering; annotate cells with matched references or marker-based fallbacks; or generate global and per-group UMAP visualizations for large scRNA-seq datasets.",
+      "main_resource": "skill://ngs-analysis@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/ngs-analysis/1.0.3/skills/scrna-seq-qc/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "linkedin-text-styler@openai-curated-remote"
+      },
+      "package": "skill://linkedin-text-styler@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/linkedin-text-styler/1.0.1/skills/style-linkedin-text",
+      "name": "linkedin-text-styler:style-linkedin-text",
+      "description": "Style, format, or clean LinkedIn posts, comments, profile headlines, About sections, and company-page copy using copy-paste-safe Unicode emphasis, decorative alphabets, bullets, checklists, and numbered lists. Use when the user asks for LinkedIn bold, italics, underline, strikethrough, special fonts, a text formatter, a styled post, Unicode conversion, formatting removal, or variants to compare before posting.",
+      "main_resource": "skill://linkedin-text-styler@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/linkedin-text-styler/1.0.1/skills/style-linkedin-text/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "nvidia@openai-curated-remote"
+      },
+      "package": "skill://nvidia@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/nvidia/1.4.0/skills/nvidia-skill-finder",
+      "name": "nvidia:nvidia-skill-finder",
+      "description": "Use for NVIDIA-related requests where an NVIDIA skill might help, even if the user did not ask for a skill. Trigger on NVIDIA products, hardware, software, SDKs, GPUs, Jetson/JetPack/L4T/BSP/SDK Manager/driver/flashing/setup, CUDA, NIM, NeMo, Omniverse/OpenUSD/SimReady, RAPIDS/cuDF, cuPyNumeric, cuOpt, Dynamo, Holoscan, TensorRT, DeepStream, VSS, TAO, NGC/NVCF. Do not use for generic non-NVIDIA route, optimize, deploy, AI, video, data, or infrastructure tasks.",
+      "main_resource": "skill://nvidia@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/nvidia/1.4.0/skills/nvidia-skill-finder/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "openai-library@openai-curated-remote"
+      },
+      "package": "skill://openai-library@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/openai-library/0.1.60/skills/library",
+      "name": "openai-library:library",
+      "description": "Use ChatGPT Library when the user mentions their Library, asks to find or work with a Library-backed file, Site, or named file that may be in the Library, or wants to organize Library folders, restore a previous version, or share a native Library file or folder. Also use it when the user wants a user-facing file or reusable artifact created or updated, even if they do not mention the Library. It can search and read Library content, bring files into local workflows, save new deliverables, and update existing Library files while preserving their identity and version history.",
+      "main_resource": "skill://openai-library@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/openai-library/0.1.60/skills/library/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "pages@openai-curated-remote"
+      },
+      "package": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/maintain-space",
+      "name": "pages:maintain-space",
+      "description": "Reconcile new evidence into existing ChatGPT Pages or a Space when the user requests upkeep. For a direct text correction, use write-page. Do not use for ordinary chat drafts, writing, or advice, or treat a selected Page as a request to save. Schedule future upkeep only when requested.",
+      "main_resource": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/maintain-space/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "pages@openai-curated-remote"
+      },
+      "package": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/manage-schedules",
+      "name": "pages:manage-schedules",
+      "description": "Review a ChatGPT Space page and its schedules, recommend useful recurring work, and create, update, or remove scheduled automations.",
+      "main_resource": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/manage-schedules/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "pages@openai-curated-remote"
+      },
+      "package": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/organize-space",
+      "name": "pages:organize-space",
+      "description": "Organize existing ChatGPT Pages and Space structure when the user requests changes to that structure. Do not use for ordinary chat drafts or advice; a selected Page alone does not authorize reorganization. A narrow text edit does not need this workflow.",
+      "main_resource": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/organize-space/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "pages@openai-curated-remote"
+      },
+      "package": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/write-page",
+      "name": "pages:write-page",
+      "description": "Create or edit requested Page/Space content, or use for prose you have already decided to save as a standalone Markdown file, only if the user did not explicitly request a Markdown file. Honor established formats, destinations, and repository documentation. A selected Page alone does not authorize a write.",
+      "main_resource": "skill://pages@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/pages/0.1.19/skills/write-page/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "work-pets@openai-curated-remote"
+      },
+      "package": "skill://work-pets@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/create-pet",
+      "name": "work-pets:create-pet",
+      "description": "Create, repair, validate, preview, upload, or activate an animated v2 pet in ChatGPT Work mode from a character idea, brand cue, or reference image. Use for new ChatGPT Pets, custom mascots, non-pixel styles, and unattached sprite sheets requiring nine animation states plus sixteen look directions. Preserve Library artifacts and Pets MCP lifecycle behavior. Exclude real pets, standalone images, and other-app pets; clarify before invoking.",
+      "main_resource": "skill://work-pets@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/create-pet/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "work-pets@openai-curated-remote"
+      },
+      "package": "skill://work-pets@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/pets",
+      "name": "work-pets:pets",
+      "description": "List, inspect, select, download, or delete animated pets in ChatGPT Work mode. Use for an explicit pet in ChatGPT or established ChatGPT Pets context. Exclude real-world and other-app pets; clarify before invoking.",
+      "main_resource": "skill://work-pets@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/pets/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "work-pets@openai-curated-remote"
+      },
+      "package": "skill://work-pets@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/update-pet",
+      "name": "work-pets:update-pet",
+      "description": "Inspect, validate, preview, repair, or update a custom pet in ChatGPT Work mode, including its name, description, or sprite sheet. Use for a pet in ChatGPT or established ChatGPT Pets context. Exclude real-world and other-app pets; clarify before invoking.",
+      "main_resource": "skill://work-pets@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/work-pets/0.1.6/skills/update-pet/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/minimal-plugin/skills/minimal-plugin-skill",
+      "name": "minimal-plugin:minimal-plugin-skill",
+      "description": "Minimal plugin skill fixture. Use when a test needs a valid plugin skill.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/minimal-plugin/skills/minimal-plugin-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/multi-skill-plugin/skills/alpha",
+      "name": "multi-skill-plugin:alpha",
+      "description": "Alpha fixture skill. Use when plugin-eval tests need one of two bundled skills.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/multi-skill-plugin/skills/alpha/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/multi-skill-plugin/skills/beta",
+      "name": "multi-skill-plugin:beta",
+      "description": "Beta fixture skill. Use when plugin-eval tests need the second bundled skill.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/multi-skill-plugin/skills/beta/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/evaluate-plugin",
+      "name": "plugin-eval:evaluate-plugin",
+      "description": "Evaluate a local Codex plugin in engineer-friendly language. Use when the user says \"evaluate this plugin\", \"audit this plugin\", \"why did this score that way\", \"what should I fix first\", \"help me benchmark this plugin\", or asks for a plugin-wide report before comparing versions.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/evaluate-plugin/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/evaluate-skill",
+      "name": "plugin-eval:evaluate-skill",
+      "description": "Evaluate a local Codex skill in engineer-friendly terms. Use when the user says \"evaluate this skill\", \"give me an analysis of the game dev skill\", \"audit this skill\", \"why did this score that way\", \"what should I fix first\", or asks for a skill-specific report before benchmarking it.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/evaluate-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/improve-skill",
+      "name": "plugin-eval:improve-skill",
+      "description": "Turn plugin-eval findings into a concrete rewrite brief for a Codex skill. Use when the user already evaluated a skill and now wants Codex to improve it, especially after asking what to fix first.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/improve-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/metric-pack-designer",
+      "name": "plugin-eval:metric-pack-designer",
+      "description": "Design custom metric packs for plugin-eval so teams can add local evaluation rubrics that emit schema-compatible checks and metrics. Use when the user wants their own evaluation criteria or visualizations.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/metric-pack-designer/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/minimal-skill",
+      "name": "plugin-eval:minimal-skill",
+      "description": "Minimal example skill for plugin-eval tests. Use when the user wants a compact demonstration of a well-structured skill.",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/fixtures/minimal-skill/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-eval@openai-curated-remote"
+      },
+      "package": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/plugin-eval",
+      "name": "plugin-eval:plugin-eval",
+      "description": "Help engineers evaluate a local skill or plugin, explain why it scored that way, show what to fix first, measure real token usage, benchmark starter scenarios, or decide what to run next. Use when the user says things like \"evaluate this skill\", \"give me an analysis of the game dev skill\", \"why did this score that way\", \"what should I fix first\", \"measure the real token usage of this skill\", or \"what should I run next?\".",
+      "main_resource": "skill://plugin-eval@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-eval/0.1.2/skills/plugin-eval/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "plugin-management@openai-curated-remote"
+      },
+      "package": "skill://plugin-management@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-management/0.1.0/skills/plugin-management",
+      "name": "plugin-management:plugin-management",
+      "description": "Discover and suggest relevant plugins, inspect app permissions and dependencies, and manage plugin connections or removal. Use when the user asks about plugins or when a task would materially benefit from an external app, account, service, or data source that available tools cannot access.",
+      "main_resource": "skill://plugin-management@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/plugin-management/0.1.0/skills/plugin-management/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "product-design@openai-curated-remote"
+      },
+      "package": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/audit",
+      "name": "product-design:audit",
+      "description": "Audit or critique a product flow, journey, workflow, funnel, onboarding path, checkout path, settings path, screen, or multi-step product experience by capturing screenshots first, then reporting UX, design, and accessibility findings from that evidence. Default to an inline report; use a canvas for a visual walkthrough when requested or clearly implied by the ongoing task. Use when the user asks to audit, review, critique, inspect, assess, analyze, evaluate, or give feedback on a product experience.",
+      "main_resource": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/audit/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "product-design@openai-curated-remote"
+      },
+      "package": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/ideate",
+      "name": "product-design:ideate",
+      "description": "Generate image-based alternatives, remixes, or new design directions from a Product Design brief. Use when the user asks for design variants, visual exploration, remixes, or image-generated approaches from provided context.",
+      "main_resource": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/ideate/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "product-design@openai-curated-remote"
+      },
+      "package": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/image-to-code",
+      "name": "product-design:image-to-code",
+      "description": "Implement a selected image, screenshot, mockup, or Image Gen reference as a faithful, responsive frontend.",
+      "main_resource": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/image-to-code/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "product-design@openai-curated-remote"
+      },
+      "package": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/index",
+      "name": "product-design:index",
+      "description": "Use when Product Design is explicitly invoked, or when the user's main goal is to explore a design, research UX, audit or critique a flow, faithfully clone a visual source, check a built design, or share a prototype. Do not use Product Design for ordinary implementation unless the user explicitly asks for it.",
+      "main_resource": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/index/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "product-design@openai-curated-remote"
+      },
+      "package": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/url-to-code",
+      "name": "product-design:url-to-code",
+      "description": "Clone a live URL as a runnable frontend-only local app.",
+      "main_resource": "skill://product-design@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/product-design/0.1.56/skills/url-to-code/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "sites@openai-curated-remote"
+      },
+      "package": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-building",
+      "name": "sites:sites-building",
+      "description": "Use Sites when the user wants a complete website built for them, such as a landing page, portfolio, dashboard, portal, tracker, hub, or internal tool, or wants to modify a website built with Sites. Do not use for development work in other web projects unless the user explicitly requests Sites.",
+      "main_resource": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-building/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "sites@openai-curated-remote"
+      },
+      "package": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-hosting",
+      "name": "sites:sites-hosting",
+      "description": "Host websites with Sites. Use after `sites-building` to publish new sites and edits, for requested website publishing or deployment, or for hosting management. A project containing `.openai/hosting.json` uses Sites hosting only when the current request concerns that Site. Publishing an npm package or standalone asset is not website publishing. Honor an explicit request to use another hosting provider.",
+      "main_resource": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-hosting/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "sites@openai-curated-remote"
+      },
+      "package": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-mcp",
+      "name": "sites:sites-mcp",
+      "description": "Build or update a Site-hosted MCP server and help users access its tools through the Site's plugin in ChatGPT or Codex.",
+      "main_resource": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-mcp/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "sites@openai-curated-remote"
+      },
+      "package": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-preview-troubleshooting",
+      "name": "sites:sites-preview-troubleshooting",
+      "description": "Diagnose and recover failed supervised sites-preview sessions after sites-building. Applies only to the managed-linux execution profile, not portable previews.",
+      "main_resource": "skill://sites@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/sites/0.1.75/skills/sites-preview-troubleshooting/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/brainstorming",
+      "name": "superpowers:brainstorming",
+      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/brainstorming/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/diagnosing-superpowers",
+      "name": "superpowers:diagnosing-superpowers",
+      "description": "Use when a superpowers session went wrong and your human partner wants to know why \u2014 repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, \"it took too long\", \"why is it so expensive\", \"what is it doing\" \u2014 or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness.",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/diagnosing-superpowers/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/dispatching-parallel-agents",
+      "name": "superpowers:dispatching-parallel-agents",
+      "description": "Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/dispatching-parallel-agents/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/executing-plans",
+      "name": "superpowers:executing-plans",
+      "description": "Use when executing an implementation plan in the current session as the implementer yourself \u2014 your human partner chose inline execution, or no subagent tool is available",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/executing-plans/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/finishing-a-development-branch",
+      "name": "superpowers:finishing-a-development-branch",
+      "description": "Use when implementation is complete, all tests pass, and you need to decide how to integrate the work",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/finishing-a-development-branch/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/receiving-code-review",
+      "name": "superpowers:receiving-code-review",
+      "description": "Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/receiving-code-review/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/requesting-code-review",
+      "name": "superpowers:requesting-code-review",
+      "description": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/requesting-code-review/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/subagent-driven-development",
+      "name": "superpowers:subagent-driven-development",
+      "description": "Use when executing implementation plans with independent tasks in the current session",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/subagent-driven-development/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/systematic-debugging",
+      "name": "superpowers:systematic-debugging",
+      "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/systematic-debugging/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/test-driven-development",
+      "name": "superpowers:test-driven-development",
+      "description": "Use when implementing any feature or bugfix, before writing implementation code",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/test-driven-development/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/using-git-worktrees",
+      "name": "superpowers:using-git-worktrees",
+      "description": "Use when starting feature work that needs isolation from current workspace or before executing implementation plans - ensures an isolated workspace exists via native tools or git worktree fallback",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/using-git-worktrees/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/using-superpowers",
+      "name": "superpowers:using-superpowers",
+      "description": "Use when starting any conversation - establishes how to find and use skills, requiring skill invocation before ANY response including clarifying questions",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/using-superpowers/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/verification-before-completion",
+      "name": "superpowers:verification-before-completion",
+      "description": "Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/verification-before-completion/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/writing-plans",
+      "name": "superpowers:writing-plans",
+      "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/writing-plans/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "superpowers@openai-curated-remote"
+      },
+      "package": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/writing-skills",
+      "name": "superpowers:writing-skills",
+      "description": "Use when creating new skills, editing existing skills, or verifying skills work before deployment",
+      "main_resource": "skill://superpowers@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/superpowers/6.4.2/skills/writing-skills/SKILL.md",
+      "disposition": "reference",
+      "reason": "Applicable operator workflow; selected instructions loaded as needed, no runtime installation or authority.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "template-creator@openai-curated-remote"
+      },
+      "package": "skill://template-creator@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/template-creator/0.2.6/skills/template-creator",
+      "name": "template-creator:template-creator",
+      "description": "Create or update an installable personal ChatGPT artifact-template skill from a reference document, presentation, spreadsheet, Google Docs, Slides, or Sheets link, ImageGen or Product Design image, email, Slack message, or Site project. Use when the user selects Template Creator, asks to create a reusable template, or explicitly asks to update one exact personal template. Do not use for one-off creation from an existing template.",
+      "main_resource": "skill://template-creator@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/template-creator/0.2.6/skills/template-creator/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "test-android-apps@openai-curated-remote"
+      },
+      "package": "skill://test-android-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/test-android-apps/0.1.2/skills/android-emulator-qa",
+      "name": "test-android-apps:android-emulator-qa",
+      "description": "Use when validating Android feature flows in an emulator with adb-driven launch, input, UI-tree inspection, screenshots, and logcat capture.",
+      "main_resource": "skill://test-android-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/test-android-apps/0.1.2/skills/android-emulator-qa/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    },
+    {
+      "authority": {
+        "kind": "executor",
+        "id": "test-android-apps@openai-curated-remote"
+      },
+      "package": "skill://test-android-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/test-android-apps/0.1.2/skills/android-performance",
+      "name": "test-android-apps:android-performance",
+      "description": "Gather and interpret Android performance evidence on an adb target using Simpleperf CPU profiles, Perfetto or Compose traces, gfxinfo frame data, dumpsys meminfo snapshots, Java heap dumps, and native allocation traces. Use when asked to profile an Android app flow, find CPU-heavy functions, diagnose jank, capture startup or frame timing evidence, compare before/after performance, explain what code is taking time, or gather memory/leak profiling artifacts.",
+      "main_resource": "skill://test-android-apps@openai-curated-remote/root/.codex/plugins/cache/openai-curated-remote/test-android-apps/0.1.2/skills/android-performance/SKILL.md",
+      "disposition": "exclude",
+      "reason": "Not selected for current Python Intune/provider engineering; no demonstrated capability need.",
+      "instruction_review": "Only task-selected skills read; remaining rows metadata triage."
+    }
+  ],
+  "warnings": []
+}

@@ -1,0 +1,52 @@
+{
+  "assets": [
+    {
+      "name": "atmos",
+      "version": "1.199.0",
+      "url": "https://github.com/cloudposse/atmos/releases/download/v1.199.0/atmos_1.199.0_linux_amd64",
+      "binary_sha256": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b",
+      "checksum_manifest_sha256": "d39df6d0159ff00ed31ca085e6944b2f170ed662b8d9757dfbea8a51b2e47f21",
+      "official_published_sha256_verified": true,
+      "signature_verified": false,
+      "archive_sha256": null
+    },
+    {
+      "name": "tofu",
+      "version": "1.10.0",
+      "url": "https://github.com/opentofu/opentofu/releases/download/v1.10.0/tofu_1.10.0_linux_amd64.zip",
+      "binary_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+      "checksum_manifest_sha256": "d5b2c6652f23bbf2a28c43f3d136eda9ff7a7e6e6946dafb95a9ffc305fb9df8",
+      "official_published_sha256_verified": true,
+      "signature_verified": false,
+      "archive_sha256": "ff8aebfd069f15f3f9ba7814444c8cae05428314c2ded0faedb9d040f6936cdb"
+    }
+  ],
+  "upstream_commit": "86b69d2292485d179698f5b9bf648a29f935e216",
+  "upstream_archive_url": "https://codeload.github.com/stephrobert/terraform-dsoxlab-training/tar.gz/86b69d2292485d179698f5b9bf648a29f935e216",
+  "upstream_archive_sha256": "96096b41576566d453c618c9a3e286ea6ff259d81b9bba52d7d28575ac4341d0",
+  "source_files_verified": 1663,
+  "mismatches": [],
+  "initial_attempts": [
+    {
+      "tool": "curl",
+      "target": "Atmos release",
+      "result": "sandbox proxy connection refused (curl 7); approved network acquisition succeeded"
+    },
+    {
+      "tool": "curl",
+      "target": "atmos_1.199.0_checksums.txt",
+      "result": "404; official API located correct SHA256SUMS asset"
+    },
+    {
+      "runner": "locking",
+      "result": "missing pytest; retained failed receipt, then exact requirements installed in disposable venv"
+    }
+  ],
+  "upstream_pytest_runtime": {
+    "pytest": "8.4.2",
+    "iniconfig": "2.3.0",
+    "packaging": "26.3",
+    "pluggy": "1.6.0",
+    "pygments": "2.21.0"
+  }
+}

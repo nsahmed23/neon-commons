@@ -1,0 +1,101 @@
+{
+  "schema_version": "dependency-advisory-check/1",
+  "provider": "OSV",
+  "endpoint": "https://api.osv.dev/v1/querybatch",
+  "retrieved_date": "2026-10-02",
+  "request": {
+    "queries": [
+      {
+        "package": {
+          "name": "attrs",
+          "ecosystem": "PyPI"
+        },
+        "version": "26.1.0"
+      },
+      {
+        "package": {
+          "name": "jsonschema",
+          "ecosystem": "PyPI"
+        },
+        "version": "4.26.0"
+      },
+      {
+        "package": {
+          "name": "jsonschema-specifications",
+          "ecosystem": "PyPI"
+        },
+        "version": "2025.9.1"
+      },
+      {
+        "package": {
+          "name": "lark",
+          "ecosystem": "PyPI"
+        },
+        "version": "1.3.1"
+      },
+      {
+        "package": {
+          "name": "python-hcl2",
+          "ecosystem": "PyPI"
+        },
+        "version": "8.1.4"
+      },
+      {
+        "package": {
+          "name": "PyYAML",
+          "ecosystem": "PyPI"
+        },
+        "version": "6.0.3"
+      },
+      {
+        "package": {
+          "name": "referencing",
+          "ecosystem": "PyPI"
+        },
+        "version": "0.37.0"
+      },
+      {
+        "package": {
+          "name": "regex",
+          "ecosystem": "PyPI"
+        },
+        "version": "2026.9.29"
+      },
+      {
+        "package": {
+          "name": "rpds-py",
+          "ecosystem": "PyPI"
+        },
+        "version": "2026.6.3"
+      },
+      {
+        "package": {
+          "name": "typing_extensions",
+          "ecosystem": "PyPI"
+        },
+        "version": "4.16.0"
+      }
+    ]
+  },
+  "response": {
+    "results": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  "response_sha256": "dd796f6d32a769ccf1404f422654d76b749af429dbce8bf32c2f6e51e0c2612b",
+  "status": "INCONCLUSIVE",
+  "limitations": [
+    "Database absence is not proof of safety",
+    "Only locked Python runtime packages queried; native tools/provider dependencies separate",
+    "No exploitability inference"
+  ]
+}

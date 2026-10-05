@@ -1,0 +1,17 @@
+import:
+- catalog/a
+vars:
+  stage: qualification
+  null_to_scalar: new
+  null_to_list:
+  - new
+  null_to_map:
+    new: 1
+  map_to_null: null
+  list_to_null: null
+  scalar_to_null: null
+components:
+  terraform:
+    leaf:
+      metadata:
+        component: demo

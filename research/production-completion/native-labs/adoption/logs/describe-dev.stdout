@@ -1,0 +1,276 @@
+{
+  "atmos_cli_config": {
+    "base_path": ".",
+    "components": {
+      "terraform": {
+        "base_path": "components/terraform",
+        "apply_auto_approve": false,
+        "append_user_agent": "Atmos/1.199.0 (Cloud Posse; +https://atmos.tools)",
+        "deploy_run_init": false,
+        "init_run_reconfigure": false,
+        "auto_generate_backend_file": false,
+        "command": "tofu",
+        "shell": {
+          "prompt": ""
+        },
+        "init": {
+          "pass_vars": false
+        },
+        "plan": {
+          "skip_planfile": false
+        }
+      },
+      "helmfile": {
+        "base_path": "",
+        "use_eks": true,
+        "kubeconfig_path": "",
+        "helm_aws_profile_pattern": "",
+        "cluster_name_pattern": "",
+        "command": ""
+      },
+      "packer": {
+        "base_path": "",
+        "command": ""
+      },
+      "Plugins": null
+    },
+    "stacks": {
+      "base_path": "stacks",
+      "included_paths": [
+        "deploy/*"
+      ],
+      "excluded_paths": null,
+      "name_pattern": "{stage}",
+      "name_template": ""
+    },
+    "workflows": {
+      "base_path": "",
+      "list": {
+        "format": "",
+        "columns": null
+      }
+    }
+  },
+  "atmos_component": "policy",
+  "atmos_manifest": "deploy/dev",
+  "atmos_stack": "dev",
+  "atmos_stack_file": "deploy/dev",
+  "auth": {},
+  "backend": {},
+  "backend_type": "",
+  "cli_args": [
+    "describe",
+    "component"
+  ],
+  "command": "tofu",
+  "component": "policy",
+  "component_info": {
+    "component_path": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy",
+    "component_type": "terraform",
+    "terraform_config": {
+      "path": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy",
+      "variables": {
+        "excluded_groups": {
+          "name": "excluded_groups",
+          "type": "list(string)",
+          "default": null,
+          "required": true,
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 14
+          }
+        },
+        "included_groups": {
+          "name": "included_groups",
+          "type": "list(string)",
+          "default": null,
+          "required": true,
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 11
+          }
+        },
+        "setting": {
+          "name": "setting",
+          "type": "string",
+          "default": null,
+          "required": true,
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 8
+          }
+        },
+        "stage": {
+          "name": "stage",
+          "type": "string",
+          "default": null,
+          "required": true,
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 5
+          }
+        }
+      },
+      "outputs": {
+        "observed_setting": {
+          "name": "observed_setting",
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 41
+          }
+        },
+        "policy_id": {
+          "name": "policy_id",
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 35
+          }
+        },
+        "targeting_id": {
+          "name": "targeting_id",
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 38
+          }
+        }
+      },
+      "required_core": [
+        "= 1.10.0"
+      ],
+      "required_providers": {
+        "terraform": {}
+      },
+      "managed_resources": {
+        "terraform_data.policy": {
+          "mode": "managed",
+          "type": "terraform_data",
+          "name": "policy",
+          "provider": {
+            "name": "terraform"
+          },
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 20
+          }
+        },
+        "terraform_data.targeting": {
+          "mode": "managed",
+          "type": "terraform_data",
+          "name": "targeting",
+          "provider": {
+            "name": "terraform"
+          },
+          "pos": {
+            "filename": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/repository/components/terraform/policy/main.tf",
+            "line": 27
+          }
+        }
+      },
+      "data_resources": {},
+      "module_calls": {}
+    }
+  },
+  "component_type": "terraform",
+  "deps": [
+    "catalog/policy",
+    "deploy/dev"
+  ],
+  "deps_all": [
+    "catalog/policy",
+    "deploy/dev"
+  ],
+  "env": {},
+  "hooks": {},
+  "imports": [
+    "catalog/policy"
+  ],
+  "inheritance": [
+    "policy-defaults"
+  ],
+  "metadata": {
+    "inherits": [
+      "policy-defaults"
+    ]
+  },
+  "overrides": {},
+  "providers": {},
+  "remote_state_backend": {},
+  "remote_state_backend_type": "",
+  "settings": {},
+  "sources": {
+    "backend": {},
+    "env": {},
+    "settings": {},
+    "vars": {
+      "excluded_groups": {
+        "final_value": [
+          "22222222-2222-4222-8222-222222222222"
+        ],
+        "name": "excluded_groups",
+        "stack_dependencies": [
+          {
+            "dependency_type": "import",
+            "stack_file": "catalog/policy",
+            "stack_file_section": "components.terraform.vars",
+            "variable_value": [
+              "22222222-2222-4222-8222-222222222222"
+            ]
+          }
+        ]
+      },
+      "included_groups": {
+        "final_value": [
+          "11111111-1111-4111-8111-111111111111"
+        ],
+        "name": "included_groups",
+        "stack_dependencies": [
+          {
+            "dependency_type": "import",
+            "stack_file": "catalog/policy",
+            "stack_file_section": "components.terraform.vars",
+            "variable_value": [
+              "11111111-1111-4111-8111-111111111111"
+            ]
+          }
+        ]
+      },
+      "setting": {
+        "final_value": "allow",
+        "name": "setting",
+        "stack_dependencies": [
+          {
+            "dependency_type": "import",
+            "stack_file": "catalog/policy",
+            "stack_file_section": "components.terraform.vars",
+            "variable_value": "allow"
+          }
+        ]
+      },
+      "stage": {
+        "final_value": "dev",
+        "name": "stage",
+        "stack_dependencies": [
+          {
+            "dependency_type": "inline",
+            "stack_file": "deploy/dev",
+            "stack_file_section": "vars",
+            "variable_value": "dev"
+          }
+        ]
+      }
+    }
+  },
+  "stack": "dev",
+  "tf_cli_vars": {},
+  "vars": {
+    "excluded_groups": [
+      "22222222-2222-4222-8222-222222222222"
+    ],
+    "included_groups": [
+      "11111111-1111-4111-8111-111111111111"
+    ],
+    "setting": "allow",
+    "stage": "dev"
+  },
+  "workspace": "dev"
+}

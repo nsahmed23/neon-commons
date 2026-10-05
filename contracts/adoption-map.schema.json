@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/adoption-map.schema.json",
+  "title": "adoption-map",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "minLength": 36,
+            "maxLength": 36,
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "object_id": {
+            "type": "string",
+            "format": "uuid",
+            "minLength": 36,
+            "maxLength": 36,
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "resource_family": {
+            "const": "settings_catalog_policy"
+          },
+          "address": {
+            "type": "string"
+          },
+          "provider_source": {
+            "type": "string"
+          },
+          "provider_version": {
+            "type": "string"
+          },
+          "import_id": {
+            "type": "string",
+            "format": "uuid",
+            "minLength": 36,
+            "maxLength": 36,
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "referenced_objects_owner": {
+            "const": "external"
+          },
+          "import_status": {
+            "enum": [
+              "not_run",
+              "reported_imported",
+              "verified_identity",
+              "reconciliation_required"
+            ]
+          }
+        },
+        "required": [
+          "tenant_id",
+          "object_id",
+          "resource_family",
+          "address",
+          "provider_source",
+          "provider_version",
+          "import_id",
+          "referenced_objects_owner",
+          "import_status"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "objects"
+  ],
+  "additionalProperties": false
+}

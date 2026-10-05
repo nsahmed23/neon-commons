@@ -1,0 +1,67 @@
+test_hard_limits_and_nondumpable_core_budget (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_hard_limits_and_nondumpable_core_budget) ... FAIL
+test_parser_like_oversized_virtual_allocation_fails_without_host_allocation (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_parser_like_oversized_virtual_allocation_fails_without_host_allocation) ... FAIL
+test_process_creation_denied_but_runtime_threads_work (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_process_creation_denied_but_runtime_threads_work) ... FAIL
+test_sparse_file_budget_stops_growth (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_sparse_file_budget_stops_growth) ... FAIL
+
+======================================================================
+FAIL: test_hard_limits_and_nondumpable_core_budget (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_hard_limits_and_nondumpable_core_budget)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 417, in test_hard_limits_and_nondumpable_core_budget
+    self.assertEqual(observed,{'RLIMIT_AS':[4*1024**3]*2,'RLIMIT_CPU':[20]*2,'RLIMIT_FSIZE':[64*1024**2]*2,'RLIMIT_NOFILE':[256]*2,'RLIMIT_CORE':[0,0]})
+AssertionError: {'RLIMIT_AS': [-1, -1], 'RLIMIT_CPU': [-1, -1], 'RLIMIT_[69 chars] -1]} != {'RLIMIT_AS': [4294967296, 4294967296], 'RLIMIT_CPU': [2[92 chars], 0]}
+- {'RLIMIT_AS': [-1, -1],
++ {'RLIMIT_AS': [4294967296, 4294967296],
+-  'RLIMIT_CORE': [0, -1],
+?                     ^^
+
++  'RLIMIT_CORE': [0, 0],
+?                     ^
+
+-  'RLIMIT_CPU': [-1, -1],
+?                 ^^  ^^
+
++  'RLIMIT_CPU': [20, 20],
+?                 ^^  ^^
+
+-  'RLIMIT_FSIZE': [-1, -1],
+?                   ^   ^
+
++  'RLIMIT_FSIZE': [67108864, 67108864],
+?                   ^^ +++++  ^^ +++++
+
+-  'RLIMIT_NOFILE': [16384, 16384]}
+?                    ^ ---  ^ ---
+
++  'RLIMIT_NOFILE': [256, 256]}
+?                    ^^   ^^
+
+
+======================================================================
+FAIL: test_parser_like_oversized_virtual_allocation_fails_without_host_allocation (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_parser_like_oversized_virtual_allocation_fails_without_host_allocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 408, in test_parser_like_oversized_virtual_allocation_fails_without_host_allocation
+    self.assertEqual(self.run_child(code),b'bounded\n')
+AssertionError: b'unbounded\n' != b'bounded\n'
+
+======================================================================
+FAIL: test_process_creation_denied_but_runtime_threads_work (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_process_creation_denied_but_runtime_threads_work)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 412, in test_process_creation_denied_but_runtime_threads_work
+    self.assertEqual(self.run_child(code),b'process-denied-thread-ok\n')
+AssertionError: b'process-allowed\n' != b'process-denied-thread-ok\n'
+
+======================================================================
+FAIL: test_sparse_file_budget_stops_growth (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_sparse_file_budget_stops_growth)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 421, in test_sparse_file_budget_stops_growth
+    self.assertEqual(self.run_child(code),b'bounded\n')
+AssertionError: b'unbounded\n' != b'bounded\n'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.089s
+
+FAILED (failures=4)

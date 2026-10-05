@@ -1,0 +1,34 @@
+
+[0m[1mInitializing the backend...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- terraform.io/builtin/terraform is built in to OpenTofu
+
+[0m[1m[32mOpenTofu has been successfully initialized![0m[32m[0m
+[0m[32mSwitched to workspace "dev".[0m
+terraform_data.policy: Refreshing state... [id=536a05b0-b0e2-dc69-cee0-805ee5d4feeb]
+terraform_data.targeting: Refreshing state... [id=1b70a268-7d44-1466-ed1c-95335fbefc29]
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.policy will be updated in-place
+  ~ resource "terraform_data" "policy" {
+        id     = "536a05b0-b0e2-dc69-cee0-805ee5d4feeb"
+      ~ input  = {
+            name    = "adoption-lab-dev"
+          ~ setting = "ask" -> "allow"
+        }
+      ~ output = {
+          - name    = "adoption-lab-dev"
+          - setting = "ask"
+        } -> (known after apply)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+
+Changes to Outputs:
+  ~ observed_setting = "ask" -> (known after apply)

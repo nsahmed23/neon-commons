@@ -1,0 +1,17 @@
+[
+  {
+    "source_path": "/workspace/scratch/26b6d364cfda/repository-qualification-integrated/candidate/candidates/components/terraform/policy/main.tf.txt",
+    "fixture_path": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/fixtures/provider-candidate/main.tf",
+    "sha256": "1f35c4f596cadedc3d76e3bad438a1f3b9913fe4b6b3adf606bc85a581a21932"
+  },
+  {
+    "source_path": "/workspace/scratch/26b6d364cfda/repository-qualification-integrated/candidate/candidates/components/terraform/policy/configuration.json",
+    "fixture_path": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/fixtures/provider-candidate/configuration.json",
+    "sha256": "437b219ff8472d04f8dbc03faa00acb3d884486b0cd47c3254b8408c8e9c701c"
+  },
+  {
+    "source_path": "/workspace/scratch/26b6d364cfda/repository-qualification-integrated/candidate/candidates/components/terraform/policy/settings.json",
+    "fixture_path": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/fixtures/provider-candidate/settings.json",
+    "sha256": "d23244b34247581f77a6a33e9195974d48b550754bd98ef54a58f1605dec2cfe"
+  }
+]

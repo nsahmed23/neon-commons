@@ -1,0 +1,69 @@
+schema_version: 1.0.0
+paths:
+  windows-adoption:
+  - repository_inspection
+  - inspected
+  - source_selection
+  - local_export
+  - inventory
+  - complete
+  - object_selection
+  - selected
+  - ownership_detection
+  - unowned
+  - ownership_question
+  - propose_only
+  - provider_mapping
+  - complete
+  - generate
+  - staged
+  - local_validation
+  - pass
+  - adoption_preview
+  - review
+  - user_review
+  - local_complete
+  - complete_local
+  bash-emit-only:
+  - repository_inspection
+  - inspected
+  - source_selection
+  - local_export
+  - inventory
+  - complete
+  - object_selection
+  - selected
+  - ownership_detection
+  - unowned
+  - ownership_question
+  - propose_only
+  - provider_mapping
+  - complete
+  - generate
+  - staged
+  - local_validation
+  - pass
+  - adoption_preview
+  - export_commands
+  - commands_exported
+  - done
+  - complete_local
+  partial-recovery:
+  - repository_inspection
+  - inspected
+  - source_selection
+  - local_export
+  - inventory
+  - partial
+  - mapping_gap_decision
+  - preserve_review
+  - partial_generate
+  - written
+  - handoff_only
+invalid_cases:
+- state: handoff_only
+  event: apply
+- state: adoption_preview
+  event: auto_apply
+- state: cancelled
+  event: import

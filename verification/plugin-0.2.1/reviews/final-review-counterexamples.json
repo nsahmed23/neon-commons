@@ -1,0 +1,24 @@
+{
+  "nonstring_selector_keys": {
+    "import_edges": 0,
+    "dependency_edges": 0,
+    "issues": [
+      "atmos_import_evaluation_unqualified",
+      "atmos_dependency_unresolved"
+    ]
+  },
+  "uuid_duplicate_assignment_query": {
+    "coverage": [
+      "unknown"
+    ],
+    "assignment_ids": [
+      "aaaaaaaa-aaaa-4aaa-8aaa-000000000003"
+    ],
+    "issues": [
+      "duplicate_or_missing_source_identity",
+      "incomplete_collection",
+      "required_assignments_incomplete",
+      "duplicate_assignment_identity"
+    ]
+  }
+}

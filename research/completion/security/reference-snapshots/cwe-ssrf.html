@@ -1,0 +1,2612 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    
+        
+
+
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml version="1.0" encoding="iso-8859-1"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head >
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="description" content="Common Weakness Enumeration (CWE) is a list of software weaknesses." />
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<link rel="shortcut icon" href="/favicon.ico" />
+	<link href="/css/main.css?version=4.0.022420" rel="stylesheet" type="text/css" />
+	<link href="/css/custom.css" rel="stylesheet" type="text/css" />
+	<!--[if IE]>
+	<link rel="stylesheet" type="text/css" href="/css/ie.css?version=1.7" />
+	<![endif]-->
+	
+	<script src="/includes/custom_filter.js" language="JavaScript" type="text/javascript"></script>
+	<script src="/includes/browserheight.js" language="JavaScript" type="text/javascript"></script>
+	<script src="/includes/jquery.js" language="JavaScript" type="text/javascript"></script>               	
+    	<script src="/includes/cwe_minimizer.js" language="JavaScript" type="text/javascript"></script>
+	<script src="/includes/cookie.js" language="JavaScript" type="text/javascript"></script>               	
+	<script src="/includes/includeglossarydef.js" language="JavaScript" type="text/javascript"></script>
+	<link href="/css/print.css?version=1.11" rel="stylesheet" media="print" type="text/css" />
+	<link href="/css/user_skins/complete.css" rel="stylesheet" type="text/css" />
+	<noscript>
+	<style type="text/css">
+		#script { visibility:collapse; visibility:hidden; font-size:0px; height:0px; width:0px  }
+		#noscript { visibility:visible; font-size:inherit;  height:inherit; width:inherit}
+	</style>
+	</noscript>
+	<title>CWE -
+
+    CWE-918: Server-Side Request Forgery (SSRF) (4.20)
+    </title>
+</head>
+<body onload="onloadCookie()">
+<a name="top" id="top"></a>
+	<div id="MastHead" style="width:100%">
+	
+	        <div style="width:62%;float:left;padding-top:15px;padding-left:10px;padding-bottom:2px;">
+	                <a href="/index.html" style="color:#32498D; text-decoration:none">
+	                <img src="/images/cwe-20years-logo.png" width="203" height="58" style="float:left;border:0;margin-right:6px" alt="CWE" />
+	                <h1 style="color:#314a8d;font-size:1.5em;font-family:'Verdana',sans-serif;#eee;margin: .1em auto">Common Weakness Enumeration</h1>
+	                <p style="color:#314a8d;font-family:'Times New Roman';font-style:italic;font-size:1em;#eee;margin:.1em auto 0 auto">Celebrating 20 years of community-developed cybersecurity weakness knowledge!</p>
+	                </a>
+	        </div>
+	<div style="float:right;padding-top:0px;text-align:right;padding-left:8px;padding-right:4px;padding-bottom:0px;"><a href="/about/new_to_cwe.html" title="New to CWE click here logo"><img src="/images/new_to_cwe/new_to_cwe_click_here.png" height="90" border="0" alt="New to CWE? click here!" style="text-align:center"/></a></div>
+	<div style="float:right;padding-top:0px;text-align:right;padding-left:0px;padding-right:4px;padding-bottom:0px;"><a href="/topHW/index.html" title="CWE Most Important Hardware Weaknesses"> <img src="/images/mihw_logo.svg" width="90" border="0" alt="CWE Most Important Hardware Weaknesses" style="vertical-align:bottom"/></a></div>
+	<div style="float:right;padding-top:0px;text-align:right;padding-left:0px;padding-right:4px;padding-bottom:0px;"><a href="/top25/" title="CWE Top 25"><img src="/images/cwe_top_25_logo_simple.svg" width="90" border="0" alt="CWE Top 25 Most Dangerous Weaknesses" style="vertical-align:bottom"/></a></div>
+
+	</div><!--End Masthead div-->
+
+
+<div id="HeaderBar" class="noprint">
+<table width="100%" border="0" cellpadding="0" cellspacing="0">  
+	<tr> 
+		<td width="100%" align="left" style="padding-left:10px; font-size:75%;"> 
+                <a href="/" >Home</a>  &gt;  <a href="/data/index.html" >CWE List</a>  &gt;  
+
+    CWE-918: Server-Side Request Forgery (SSRF) (4.20)
+    &nbsp;
+		</td>
+		<td align="right" nowrap="nowrap" style="padding-right:12px">
+		<!-- Begin /includes/search_cwe_id.html -->
+<div class="noprint">
+  <form action="/cgi-bin/jumpmenu.cgi" align="right" style="padding:0px; margin:0px">
+	ID <label for="id" style="padding-right:5px">Lookup:</label>
+    <input id="id" name="id" type="text" style="width:50px; font-size:80%" maxlength="10" />
+	<input value="Go" style="padding: 0px; font-size:80%" type="submit">
+  </form>
+</div>
+<!-- End /includes/search_cwe_id.html --> 
+		</td>
+	</tr>
+</table>
+</div> <!--//HeaderBar-->
+<div class="yesprint">
+<hr width="100%" size="1" style="clear:both" color="#000000" />
+</div>
+
+<div class="topnav">
+<ul>
+<li><a href="/index.html">Home</a></li>
+<li>
+        <div class="dropdown">
+          <button class="dropbtn">About &#x25BC;</button>
+          <div class="dropdown-content">
+            <a href="/about/index.html">Who We Are</a>             
+            <a href="/about/user_stories.html">User Stories</a>        
+            <a href="/about/history.html">History</a>                                                          
+            <a href="/about/documents.html">Documents</a>
+            <a href="/about/cwe_videos.html">Videos</a>
+          </div>
+        </div>
+</li>
+<li>
+        <div class="dropdown">
+          <button class="dropbtn">Learn &#x25BC;</button>
+          <div class="dropdown-content">
+            <a href="/about/new_to_cwe.html">Basics</a>
+            <div class="dropdown-sub-group">
+              <a href="/documents/cwe_usage/guidance.html">Root Cause Mapping &nbsp; &#x25BA;</a>
+              <div class="dropdown-content-submenu">
+                <a href="/documents/cwe_usage/guidance.html">Guidance</a>
+                <a href="/documents/cwe_usage/quick_tips.html">Quick Tips</a>
+                <a href="/documents/cwe_usage/mapping_examples.html">Examples</a>
+              </div>
+            </div>
+            <a href="/community/submissions/overview.html">How to Contribute Weakness Content</a>
+            <a href="/about/faq.html">FAQs</a>
+            <a href="/documents/glossary/index.html">Glossary</a>           
+          </div>
+        </div>
+</li>
+<li>
+        <div class="dropdown">
+          <button class="dropbtn">Access Content &#x25BC;</button>
+          <div class="dropdown-content">
+            <div class="dropdown-sub-group">
+              <a href="/scoring/index.html#top_n_lists">Top-N Lists &nbsp; &#x25BA;</a>
+              <div class="dropdown-content-submenu">
+                <a href="/top25/">Top 25 Software</a>
+                <a href="/topHW/index.html">Top Hardware</a>     
+                <a href="/top25/archive/2025/2025_kev_list.html">Top 10 KEV Weaknesses</a>
+              </div>
+            </div>
+            <div class="dropdown-sub-group">
+              <a href="/data/index.html">CWE List &nbsp; &#x25BA;</a>
+              <div class="dropdown-content-submenu">
+              <a href="/data/index.html">Current Version</a>                
+                <a href="/data/reports.html">Reports</a>
+                <a href="/data/pdfs.html">Visualizations</a>     
+                <a href="/data/archive.html">Releases Archive</a>
+              </div>
+            </div>
+            <a href="/data/downloads.html">Downloads</a>           
+            <a href="https://github.com/CWE-CAPEC/REST-API-wg/blob/main/Quick%20Start.md" target="_blank">REST API</a>
+          </div>
+        </div>
+</li>
+<li>
+        <div class="dropdown">
+          <button class="dropbtn">Community &#x25BC;</button>
+          <div class="dropdown-content">
+            <div class="dropdown-sub-group">
+              <a href="/news/">News &nbsp; &#x25BA;</a>
+              <div class="dropdown-content-submenu">
+                <a href="/news/archives/news2026.html">Current News</a>
+                <a href="https://medium.com/@CWE_CAPEC" target="_blank">Blog</a>
+                <a href="/news/podcast.html">Podcast</a>
+                <a href="/news/archives/index.html">News Archive</a>
+              </div>
+            </div>
+            <a href="/community/board.html">CWE Board</a>            
+            <a href="/community/working_groups.html">Working Groups &amp; Special Interest Groups</a>  
+            <a href="/community/registration.html">Email Lists</a>  
+          </div>
+        </div>
+</li>
+<li>
+        <div class="dropdown">
+          <button class="dropbtn">Search &#x25BC;</button>
+          <div class="dropdown-content">
+            <a href="/">Search CWE List</a>         
+            <a href="/find/index.html">Search Website</a>            
+        </div>
+</li>
+
+</ul>
+
+</div>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" id="MainPane">
+  <tr>
+	<!-- begin left side menu -->
+    <td valign="top" rowspan="2" id="LeftPane">
+	<!--include virtual="/includes/leftsidemenu.html" Removed 11212016--> 
+	<script type="text/javascript">browserheight();</script>
+	</td>
+	<!-- end left side menu -->
+    <td style="height:1px"></td>
+	<!-- begin right column -->
+	<td valign="top" align="center" rowspan="2" nowrap="nowrap" id="RightPane">
+
+
+    	</td>
+	<!-- end right side menu -->
+  </tr>
+  <tr>
+	<!-- begin content pane -->
+    <td valign="top" width="100%" id="Contentpane">
+	
+	<!--Glossary tags-->
+	
+<div id="styled_popup" name="styled_popup" style="display:none; position:fixed; top:300; height:auto; width:300px; z-index:1000">
+<table width="300" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #32498D;">
+<tr style="background-color:#32498D; color:#ffffff;">
+<td width="100%" style="padding:1px 5px 1px 5px; border-bottom:1px solid #000000"><div width="100%" style="font-weight:bold;">CWE Glossary Definition</div></td>
+<td nowrap="nowrap" style="padding:1px; border-bottom:1px solid #000000" valign="top"><a href="javascript:styledPopupClose();"><img src="/images/layout/close.gif" border="0"  alt="x"></a></td>
+</tr>
+<tr><td colspan="2" style="background: url(/images/layout/ylgradient.jpg); background-repeat: repeat-x repeat-y; padding:5px; background-color:#FFFFCC; " valign="top">
+<div id="output" style="max-height:400px; overflow-y:auto"></div>
+</td></tr>
+</table>
+</div>
+
+    <script src="/includes/nav.js" language="JavaScript" type="text/javascript" /></script>
+    <noscript>
+      <style>div.collapseblock { display:inline} </style>
+    </noscript>
+    <link href="/css/indiv-entry.css" rel="stylesheet" type="text/css" />
+<!-- Start main content -->
+<html xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encoding="iso-8859-1">
+<!-- Copyright (c) 2006-2025, The MITRE Corporation. CWE and the CWE logo are trademarks of The MITRE Corporation. -->
+<a xmlns:xhtml="http://www.w3.org/1999/xhtml" name="918"></a>
+<div style="overflow:auto;">
+        <h2 style="display:inline; margin:0px 0px 2px 0px; vertical-align: text-bottom">CWE-918: Server-Side Request Forgery (SSRF)</h2>
+        <div style="text-align:right; margin:5px 0px 0px 5px; padding-bottom:1px; white-space:nowrap;"></div>
+    </div>
+    <div xmlns:xhtml="http://www.w3.org/1999/xhtml" id="CWEDefinition" class="Weakness">
+        <div class="title">
+        <div class="status">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tbody>
+                    <tr>
+                        <td valign="top" align="left" width="33%" nowrap>
+                            <div style="font-weight:bold">
+                                Weakness ID: 918
+                                
+                            </div><span>
+
+                            
+                                <span style="font-weight:bold">
+                                    <a href="#Vulnerability_Mapping_Notes_918">Vulnerability Mapping</a>:<span class="tool">
+                                        <span style="color:#4E8F4A">ALLOWED</span>
+                                        <span class="tip">This CWE ID may be used to map to real-world vulnerabilities</span>
+                                    </span>
+                                    
+                                </span>
+                                <br>
+                            
+                            
+                                <span class="tool">Abstraction:
+                                    <span style="font-weight:normal">Base</span>
+                                    <span class="tip">Base - a weakness that is still mostly independent of a resource or technology, but with sufficient details to provide specific methods for detection and prevention. Base level weaknesses typically describe issues in terms of 2 or 3 of the following dimensions: behavior, property, technology, language, and resource.</span>
+                                </span>
+                            
+                            
+
+                            </span>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div id="Filter_Menu" style="padding-bottom:10px;">
+    <div style="min-width:580px;display:inline-flex;" class="filterButtonList">
+	<div style="font-size:80%; color:#000066; font-style:italic; display:inline;height:40px;line-height:40px;min-width:200px;">View customized information: </div>
+	<span class="tool">
+		<button id="ConceptualButton" type="button" onclick="selectButtonSkin('conceptual');">Conceptual</button>
+		<span class='filter-tip'>For users who are interested in more notional aspects of a weakness. Example: educators, technical writers, and project/program managers.</span>
+	</span>
+	<span class="tool">
+		<button id="OperationalButton" type="button" onclick="selectButtonSkin('operational');">Operational</button>
+        	<span class='filter-tip'>For users who are concerned with the practical application and details about the nature of a weakness and how to prevent it from happening. Example: tool developers, security researchers, pen-testers, incident response analysts.</span>
+	</span>
+	<span class="tool">
+		<button id="MappingFriendlyButton" type="button" onclick="selectButtonSkin('mappingfriendly');">Mapping Friendly</button>
+        	<span class='filter-tip'>For users who are mapping an issue to CWE/CAPEC IDs, i.e., finding the most appropriate CWE for a specific issue (e.g., a CVE record).  Example: tool developers, security researchers.</span>
+	</span>
+	<span class="tool">
+		<button id="CompleteButton" type="button" onclick="selectButtonSkin('complete');">Complete</button>	
+        	<span class='filter-tip'>For users who wish to see all available information for the CWE/CAPEC entry.</span>
+	</span>
+	<span class="tool">
+		<button id="CustomButton" type="button" onclick="openCustomFilterModal();">Custom</button>
+        	<span class='filter-tip'>For users who want to customize what details are displayed.</span>
+	</span>
+</div>
+
+<!-- The Modal -->
+<div id="customFilterModal" class="custom-filter-modal">
+  <!-- Modal content -->
+  <div class="custom-filter-modal-content">
+    <span class="close" onclick="cancelCustomFilter();">&times;</span>
+    <br>
+    <h2 id="customFilterHeader" class="custom-filter-header">Edit Custom Filter</h2>
+    <div id="customFilterCategories" class="custom-filter-categories">
+        <button class="modalFilterButton" onclick="selectCategory('conceptual')" title="For users who are interested in more notional aspects of a weakness. Example: educators, technical writers, and project/program managers.">Conceptual</button>
+        <button class="modalFilterButton" onclick="selectCategory('operational')" title="For users who are concerned with the practical application and details about the nature of a weakness and how to prevent it from happening. Example: tool developers, security researchers, pen-testers, incident response analysts.">Operational</button>
+        <button class="modalFilterButton" onclick="selectCategory('mappingfriendly')" title="For users who are mapping an issue to CWE/CAPEC IDs, i.e., finding the most appropriate CWE for a specific issue (e.g., a CVE record).  Example: tool developers, security researchers.">Mapping Friendly</button>
+        <button class="modalFilterButton" onclick="selectCategory('complete')" title="For users who wish to see all available information for the CWE/CAPEC entry">Select All</button>
+    </div>
+    <div id="customFilterMainBox" class="custom-filter-main-box">
+        <div id="customFilterLeftBox">
+        </div>
+        <div id="customFilterRightBox">
+        </div>
+    </div>
+    <br>
+    <div id="customFilterButtons" class="custom-filter-buttons">
+        <button class="modalFilterButton" onclick="defaultCustomFilter()" title="Reset the selected elements to the current custom filter setting.">Reset</button>
+	<button class="modalFilterButton" onclick="clearCustomFilter();" title="Clear all the selected elements so that nothing is selected.">Clear</button>
+        <button class="modalFilterButton" onclick="submitCustomFilter();" title="Submit your changes for the custom filter">Submit</button>
+        <button class="modalFilterButton" onclick="cancelCustomFilter();" title="Cancel all changes made to the custom filter">Cancel</button>
+    </div>
+  </div>
+
+</div>
+
+<style>
+div.filterButtonList button {
+	height:25px;
+	border-radius:10px;
+	width: 150px; 
+	margin-left:15px;
+	margin-right:15px;
+}
+
+/* The Modal (background) */
+.custom-filter-modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  z-index: 9999;
+}
+
+/* Modal Content */
+.custom-filter-modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 800px;
+  min-width: 800px;
+  border-radius: 25px;	
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.custom-filter-header, 
+.custom-filter-categories,
+.custom-filter-main-box,
+.custom-filter-buttons {
+    padding: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#customFilterLeftBox {
+    float: left;
+    width: 250px;
+    min-width: 250px;
+    padding: 10px;
+    display: inline-block;
+}
+
+#customFilterRightBox {
+    float: right;
+    width: 250px;
+    min-width: 250px;
+    padding: 10px;
+    display: inline-block;
+}
+
+.modalFilterButton {
+        height:25px !important;
+        border-radius:12px !important;
+        width: 150px !important;
+        margin-left:10px !important;
+        margin-right:10px !important;
+}
+</style>
+
+<script> 
+
+// When the user clicks anywhere outside of the modal, close it
+var modal = document.getElementById("customFilterModal");
+window.onclick = function(event) {
+  if (event.target == document.getElementById("customFilterModal")) {
+	modal.style.display = "none";
+	document.getElementById("customFilterLeftBox").innerHTML = "";
+        document.getElementById("customFilterRightBox").innerHTML = "";
+  }
+}
+</script>
+
+    </div>
+
+
+
+
+
+    
+    
+        
+        
+    
+
+    
+    
+<div id="Description">
+    <div class="heading" id="Description_918">
+        <span>
+            <a href="javascript:toggleblocksOC('918_Description');">
+                <img id="ocimg_918_Description" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Description
+    </div>
+    <div name="oc_918_Description" id="oc_918_Description" class="expandblock">
+        <div class="detail">
+            <div class="indent"><table>
+                <tbody>
+                    <tr>
+                        <td style="width:40%">The web server receives a URL or similar request from an upstream component and retrieves the contents of this URL, but it does not sufficiently ensure that the request is being sent to the expected destination.</td>
+                        <td style="width:60%">
+                            <a class="cweimg" href="/data/images/CWE-918-Diagram.png" target="_blank" rel="noopener noreferrer">
+                                <img src="/data/images/CWE-918-Diagram.png" alt="Diagram for CWE-918">
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table></div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+
+    
+    
+<div id="Alternate_Terms">
+    <div class="heading" id="Alternate_Terms_918">
+        <span>
+            <a href="javascript:toggleblocksOC('918_Alternate_Terms');">
+                <img id="ocimg_918_Alternate_Terms" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Alternate Terms
+    </div>
+    <div name="oc_918_Alternate_Terms" id="oc_918_Alternate_Terms" class="expandblock">
+        <div class="detail">
+            <div id="EntryStripedTable" class="indent">
+                <div id="Grouped">
+                    <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                            
+                                
+                                <tr>
+                                    <td valign="top" width="25%" class="subheading">
+                                        XSPA
+                                    </td>
+                                    <td valign="top" width="75%" style="border-left:solid #BAC5E3;">
+                                        <div>Cross Site Port Attack</div> 
+                                    </td>  
+                                </tr>
+                                
+                                <tr>
+                                    <td valign="top" width="25%" class="subheading">
+                                        SSRF
+                                    </td>
+                                    <td valign="top" width="75%" style="border-left:solid #BAC5E3;">
+                                        <div>Server-Side Request Forgery</div> 
+                                    </td>  
+                                </tr>
+                                
+                                                  
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+<div id="Common_Consequences">
+    <div class="heading" id="Common_Consequences_918"><span><a href="javascript:toggleblocksOC('918_Common_Consequences');"><img
+                    id="ocimg_918_Common_Consequences" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Common Consequences</div>
+    <div name="oc_918_Common_Consequences" id="oc_918_Common_Consequences" class="expandblock">
+        <div class="tabledetail">
+            <div id="EntryStripedTable" class="indent"><span class="section tool"><img src="/images/dictionary.gif"
+                        alt="Section Help"><span class="tip">This table specifies different individual consequences
+                        associated with the weakness. The Scope identifies the application security area that is
+                        violated, while the Impact describes the negative technical impact that arises if an
+                        adversary succeeds in exploiting this weakness. The Likelihood provides information about
+                        how likely the specific consequence is expected to be seen relative to the other
+                        consequences in the list. For example, there may be high likelihood that a weakness will be
+                        exploited to achieve a certain impact, but a low likelihood that it will be exploited to
+                        achieve a different impact.</span></span>
+              <table width="98%" cellpadding="0" cellspacing="0" border="0" id="Detail">
+                    <tr>
+                        <th valign="middle" width="135px" nowrap>Impact</th>
+                        <th valign="middle">Details</th>
+                    </tr>
+                            
+                        
+                        <tr>
+                        <td valign="middle" class="subheading">
+                                    <p class="smaller" style="font-weight:normal">
+                                        
+                                        
+                                        <span class="subheading"><i>Read Application Data</i></span>
+                                        
+                                    </p>
+                        </td>
+                        <td valign="middle">
+                            
+                            
+                            <span class="suboptheading">Scope: Confidentiality</span>
+                            
+                            <p/>
+                            
+                            <div style="padding-top:5px; padding-bottom:10px"></div>    
+                        </td>
+                        </tr>
+                        
+                        <tr>
+                        <td valign="middle" class="subheading">
+                                    <p class="smaller" style="font-weight:normal">
+                                        
+                                        
+                                        <span class="subheading"><i>Execute Unauthorized Code or Commands</i></span>
+                                        
+                                    </p>
+                        </td>
+                        <td valign="middle">
+                            
+                            
+                            <span class="suboptheading">Scope: Integrity</span>
+                            
+                            <p/>
+                            
+                            <div style="padding-top:5px; padding-bottom:10px"></div>    
+                        </td>
+                        </tr>
+                        
+                        <tr>
+                        <td valign="middle" class="subheading">
+                                    <p class="smaller" style="font-weight:normal">
+                                        
+                                        
+                                        <span class="subheading"><i>Bypass Protection Mechanism</i></span>
+                                        
+                                    </p>
+                        </td>
+                        <td valign="middle">
+                            
+                            
+                            <span class="suboptheading">Scope: Access Control</span>
+                            
+                            <p/>
+                            
+                            <div style="padding-top:5px; padding-bottom:10px">By providing URLs to unexpected hosts or ports, attackers can make it appear that the server is sending the request, possibly bypassing access controls such as firewalls that prevent the attackers from accessing the URLs directly. The server can be used as a proxy to conduct port scanning of hosts in internal networks, use other URLs such as that can access documents on the system (using file://), or use other protocols such as gopher:// or tftp://, which may provide greater control over the contents of requests.</div>    
+                        </td>
+                        </tr>
+                        
+                                   
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+
+    
+        
+        
+    
+
+    
+        
+
+
+
+
+
+
+    
+        
+    
+    
+    
+
+    
+        
+    
+    
+    
+
+    
+        
+    
+    
+    
+
+
+<div id="Relationships">
+    <div class="heading" id="Relationships_918">
+        <span>
+            <a href="javascript:toggleblocksOC('918_Relationships');"><img id="ocimg_918_Relationships" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>
+        Relationships
+    </div>
+    <div name="oc_918_Relationships" id="oc_918_Relationships" class="expandblock"> 
+                    <span class="section tool">
+                        <img src="/images/dictionary.gif" alt="Section Help">
+                        <span class="tip">This table shows the weaknesses and high level categories that are related to this
+                            weakness. These relationships are defined as ChildOf, ParentOf, MemberOf and give insight to
+                            similar items that may exist at higher and lower levels of abstraction. In addition,
+                            relationships such as PeerOf and CanAlsoBe are defined to show similar weaknesses that the user
+                            may want to explore.</span>
+                    </span>
+        <div class="detail">
+            <div class="indent">
+                
+                    
+                    <div id="relevant_table">
+                        <div class="reltable">
+                            <span><a href="javascript:toggleblocksOC('918_1000_relevant_table');">
+                                <img id="ocimg_918_1000_relevant_table" src="/images/head_more.gif" border="0" alt="+"></a>
+                            </span>Relevant to the view "Research Concepts" (View-1000)
+                            <div name="oc_918_1000_relevant_table" id="oc_918_1000_relevant_table" class="expandblock">
+                                <div class="tabledetail">
+                                    <div class="indent">
+                                        <div xmlns:saxon="http://saxon.sf.net/" xmlns:xalan="http://xml.apache.org/xalan"
+                                            class="tabledetail">
+                                            <table width="98%" cellpadding="0" cellspacing="0" border="0" id="Detail">
+                                                <tr>
+                                                    <th valign="top" width="110px">Nature</th>
+                                                    <th valign="top" width="40px">Type</th>
+                                                    <th valign="top" width="50px">ID</th>
+                                                    <th valign="top">Name</th>
+                                                </tr>
+                                                <tbody>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                             
+                                                    <tr class="primary Weakness">
+                                                        <td valign="top">ChildOf</td> 
+                                                        <td valign="top" nowrap class="right" align="center" style="padding-top:1px">
+                                                            <span class="tool"><img
+                                                                    src="/images/icons/class.gif" alt="Class" class="icon">
+                                                                <span class="tip">Class - a weakness that is described in a very abstract fashion, typically independent of any specific language or technology. More specific than a Pillar Weakness, but more general than a Base Weakness. Class level weaknesses typically describe issues in terms of 1 or 2 of the following dimensions: behavior, property, and resource.</span>
+                                                            </span>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <a href="/data/definitions/441.html" target="_blank" rel="noopener noreferrer">441</a>
+                                                        </td>
+                                                        <td valign="top">
+                                                            
+                                                            Unintended Proxy or Intermediary (&#39;Confused Deputy&#39;)</a>
+                                                            
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    
+                    <div id="relevant_table">
+                        <div class="reltable">
+                            <span><a href="javascript:toggleblocksOC('918_699_relevant_table');">
+                                <img id="ocimg_918_699_relevant_table" src="/images/head_more.gif" border="0" alt="+"></a>
+                            </span>Relevant to the view "Software Development" (View-699)
+                            <div name="oc_918_699_relevant_table" id="oc_918_699_relevant_table" class="expandblock">
+                                <div class="tabledetail">
+                                    <div class="indent">
+                                        <div xmlns:saxon="http://saxon.sf.net/" xmlns:xalan="http://xml.apache.org/xalan"
+                                            class="tabledetail">
+                                            <table width="98%" cellpadding="0" cellspacing="0" border="0" id="Detail">
+                                                <tr>
+                                                    <th valign="top" width="110px">Nature</th>
+                                                    <th valign="top" width="40px">Type</th>
+                                                    <th valign="top" width="50px">ID</th>
+                                                    <th valign="top">Name</th>
+                                                </tr>
+                                                <tbody>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                             
+                                                    <tr class="primary Category">
+                                                        <td valign="top">MemberOf</td> 
+                                                        <td valign="top" nowrap class="right" align="center" style="padding-top:1px">
+                                                            <span class="tool"><img
+                                                                    src="/images/icons/category.gif" alt="Category" class="icon">
+                                                                <span class="tip">Category - a CWE entry that contains a set of other entries that share a common characteristic.</span>
+                                                            </span>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <a href="/data/definitions/417.html" target="_blank" rel="noopener noreferrer">417</a>
+                                                        </td>
+                                                        <td valign="top">
+                                                            
+                                                            Communication Channel Errors</a>
+                                                            
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    
+                    <div id="relevant_table">
+                        <div class="reltable">
+                            <span><a href="javascript:toggleblocksOC('918_1003_relevant_table');">
+                                <img id="ocimg_918_1003_relevant_table" src="/images/head_more.gif" border="0" alt="+"></a>
+                            </span>Relevant to the view "Weaknesses for Simplified Mapping of Published Vulnerabilities" (View-1003)
+                            <div name="oc_918_1003_relevant_table" id="oc_918_1003_relevant_table" class="expandblock">
+                                <div class="tabledetail">
+                                    <div class="indent">
+                                        <div xmlns:saxon="http://saxon.sf.net/" xmlns:xalan="http://xml.apache.org/xalan"
+                                            class="tabledetail">
+                                            <table width="98%" cellpadding="0" cellspacing="0" border="0" id="Detail">
+                                                <tr>
+                                                    <th valign="top" width="110px">Nature</th>
+                                                    <th valign="top" width="40px">Type</th>
+                                                    <th valign="top" width="50px">ID</th>
+                                                    <th valign="top">Name</th>
+                                                </tr>
+                                                <tbody>
+                                                    
+                                                    
+                                                    
+                                                        
+                                                             
+                                                    <tr class="primary Weakness">
+                                                        <td valign="top">ChildOf</td> 
+                                                        <td valign="top" nowrap class="right" align="center" style="padding-top:1px">
+                                                            <span class="tool"><img
+                                                                    src="/images/icons/class.gif" alt="Class" class="icon">
+                                                                <span class="tip">Class - a weakness that is described in a very abstract fashion, typically independent of any specific language or technology. More specific than a Pillar Weakness, but more general than a Base Weakness. Class level weaknesses typically describe issues in terms of 1 or 2 of the following dimensions: behavior, property, and resource.</span>
+                                                            </span>
+                                                        </td>
+                                                        <td valign="top">
+                                                            <a href="/data/definitions/610.html" target="_blank" rel="noopener noreferrer">610</a>
+                                                        </td>
+                                                        <td valign="top">
+                                                            
+                                                            Externally Controlled Reference to a Resource in Another Sphere</a>
+                                                            
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+
+    
+    
+<div id="Modes_Of_Introduction">
+    <div class="heading" id="Modes_Of_Introduction_918"><span><a href="javascript:toggleblocksOC('918_Modes_Of_Introduction');"><img
+                    id="ocimg_918_Modes_Of_Introduction" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Modes
+        Of Introduction</div>
+    <div name="oc_918_Modes_Of_Introduction" id="oc_918_Modes_Of_Introduction" class="expandblock">
+        <div class="tabledetail">
+            <div id="EntryStripedTable" class="indent"><span class="section tool"><img src="/images/dictionary.gif"
+                        alt="Section Help"><span class="tip">The different Modes of Introduction provide information
+                        about how and when this
+                        weakness may be introduced. The Phase identifies a point in the life cycle at which
+                        introduction
+                        may occur, while the Note provides a typical scenario related to introduction during the
+                        given
+                        phase.</span></span>
+                <table width="98%" cellpadding="0" cellspacing="0" border="0" id="Detail">
+                    <tr>
+                        <th valign="middle" width="110px">Phase</th>
+                        <th valign="middle">Note</th>
+                    </tr>
+                        
+                            
+                            <tr>
+                                <td valign="middle" nowrap class="subheading">Architecture and Design</td>
+                                <td valign="middle" width="100%"></td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" nowrap class="subheading">Implementation</td>
+                                <td valign="middle" width="100%"></td>
+                            </tr>
+                            
+                        
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+
+<div id="Applicable_Platforms">
+    <div class="heading" id="Applicable_Platforms_918"><span><a href="javascript:toggleblocksOC('918_Applicable_Platforms');"><img
+                    id="ocimg_918_Applicable_Platforms" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Applicable Platforms</div>
+    <div name="oc_918_Applicable_Platforms" id="oc_918_Applicable_Platforms" class="expandblock">
+        <div class="detail">
+            <div id="EntryStripedTable" class="indent"><span class="section tool"><img src="/images/dictionary.gif"
+                        alt="Section Help"><span class="tip">This listing shows possible areas for which the given
+                        weakness could appear. These
+                        may be for specific named Languages, Operating Systems, Architectures, Paradigms,
+                        Technologies,
+                        or a class of such platforms. The platform is listed along with how frequently the given
+                        weakness appears for that instance.</span></span>
+                <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                
+                <tr><td valign="top" class="subheading">Languages</td>
+		  <td style="border-left:solid #BAC5E3;">
+                    
+                        <div>
+                            <p>  Class: Not Language-Specific
+                                
+                                
+                                <span class="smaller" style="font-style:italic">(Undetermined Prevalence)</span>
+                                
+                            </p>
+                        </div>
+                    
+                </td></tr>
+                
+                
+            
+                
+                    <tr><td valign="top" nowrap class="subheading">Technologies</td>
+                      <td style="border-left:solid #BAC5E3;">
+                    
+                        
+                            <div>
+                                <p>  Class: Web Based
+                                    
+                                    
+                                    <span class="smaller" style="font-style:italic">(Undetermined Prevalence)</span>
+                                    
+                                </p>
+                            </div>
+                        
+                            <div>
+                                <p> AI/ML
+                                    
+                                    
+                                    <span class="smaller" style="font-style:italic">(Often Prevalent)</span>
+                                    
+                                </p>
+                            </div>
+                        
+                            <div>
+                                <p> Web Server
+                                    
+                                    
+                                    <span class="smaller" style="font-style:italic">(Undetermined Prevalence)</span>
+                                    
+                                </p>
+                            </div>
+                        
+                    
+		  </td></tr>
+                
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+
+    
+    
+
+<div id="Demonstrative_Examples">
+    <div class="heading" id="Demonstrative_Examples_918"><span><a href="javascript:toggleblocksOC('918_Demonstrative_Examples');"><img
+                    id="ocimg_918_Demonstrative_Examples" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Demonstrative Examples</div>
+    <div name="oc_918_Demonstrative_Examples" id="oc_918_Demonstrative_Examples" class="expandblock">
+        <div class="detail">
+            <div class="indent">
+            
+                <p class="subheading">Example 1</p>
+                <br/>
+                
+                <p>This code intends to receive a URL from a user, access the URL, and return the results to the user.</p>
+                
+                
+                
+                
+                
+                
+                <div class="indent Bad">
+                    <div id="ExampleCode" style="clear:both; padding-top:5px; padding-bottom:5px;">
+                        <div class="shadow">
+                            <div class="CodeHead">
+                                <div style="float:right; font-style:italic; font-size:10px; color:#98A9B7">(bad code)</div>
+                                <div class="optheading smaller">
+                                    
+                                    <span style="font-weight:normal; font-style:italic">Example Language: </span>PHP&nbsp;
+                                    
+                                </div>
+                            </div>
+                            <div class="top">
+                                
+                  <div>$url = $_GET[&#39;url&#39;];<i># User-controlled input</i>
+                     <br/><br/>
+                     <i># Fetch the content of the provided URL</i>
+                     <br/>$response = file_get_contents($url);<br/>
+					 <br/>echo $response;<br/>
+				  </div>
+               
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                
+                
+                
+                
+                <p>The given PHP code is vulnerable to Server-Side Request Forgery (SSRF) because it directly accepts a user-supplied URL from the $_GET[&#39;url&#39;] parameter and fetches its content using file_get_contents(), without any validation or restrictions. This allows an attacker to request internal or restricted resources within the server&#39;s network, such as internal admin panels, cloud metadata endpoints, or local services running on localhost.</p> 
+                
+                
+                
+                
+                <div class="indent Good">
+                    <div id="ExampleCode" style="clear:both; padding-top:5px; padding-bottom:5px;">
+                        <div class="shadow">
+                            <div class="CodeHead">
+                                <div style="float:right; font-style:italic; font-size:10px; color:#98A9B7">(good code)</div>
+                                <div class="optheading smaller">
+                                    
+                                    <span style="font-weight:normal; font-style:italic">Example Language: </span>PHP&nbsp;
+                                    
+                                </div>
+                            </div>
+                            <div class="top">
+                                
+			   <div><i># Define allowed URLs (or domains)</i><br/>$allowed_urls = [<div style="margin-left:1em;">&#39;https://example.com/data.json&#39;,<br/>&#39;https://api.example.com/info&#39;,<br/></div>];<br/><br/><i># Get the user-provided URL</i><br/>$url = $_GET[&#39;url&#39;] ?? &#39;&#39;;<br/><i># Validate against allowed URLs</i><br/>if (!in_array($url, $allowed_urls)) {<div style="margin-left:1em;">http_response_code(400);<br/>echo &#34;Invalid or unauthorized URL.&#34;;<br/>exit;<br/></div>}<br/><br/><i># Fetch content safely</i><br/>$response = @file_get_contents($url);<br/>if ($response === false) {<div style="margin-left:1em;">http_response_code(500);<br/>echo &#34;Failed to fetch content.&#34;;<br/>exit;<br/></div>}<br/><br/>echo htmlspecialchars($response);<i># Escape output for safety</i>
+			   </div>
+			   
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+                
+                
+                <br/>
+                <p style="border-bottom:solid #BAC5E3; margin-bottom:10px"></p>
+                <br/>
+            
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+<div id="Observed_Examples">
+    <div class="heading" id="Observed_Examples_918"><span><a href="javascript:toggleblocksOC('918_Observed_Examples');"><img
+                    id="ocimg_918_Observed_Examples" src="/images/head_more.gif" border="0" alt="+"></a> </span>Selected Observed
+        Examples</div>
+    <div name="oc_918_Observed_Examples" id="oc_918_Observed_Examples" class="expandblock">
+        <div class="tabledetail">
+	  <p><i>Note: this is a curated list of examples for users to understand the variety of ways in which this
+	      weakness can be introduced. It is not a complete list of all CVEs that are related to this CWE entry.</i></p>
+            <div id="EntryStripedTable" class="indent">
+                <div style="margin-top: 10px; border-width: thin; border:solid #BAC5E3;">
+                  <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                        <tr>
+                            <th valign="top" nowrap>Reference</th>
+                            <th valign="top">Description</th>
+                        </tr>
+                        
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2026-33626" target="_blank" rel="noopener noreferrer">CVE-2026-33626</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>SSRF in LLM toolkit accesses arbitrary URLs for images, as exploited in the wild in April 2026 to conduct port scanning [<a href="#REF-1519_918">REF-1519</a>]</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2024-3095" target="_blank" rel="noopener noreferrer">CVE-2024-3095</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>SSRF in LLM application development framework because the URL retriever allows connections to local addresses using a crafted Location header</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2023-32786" target="_blank" rel="noopener noreferrer">CVE-2023-32786</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>Chain: LLM integration framework has prompt injection
+	     (<a href="/data/definitions/1427.html">CWE-1427</a>) that allows an attacker to force the service to retrieve
+	     data from an arbitrary URL, essentially providing SSRF (<a href="/data/definitions/918.html">CWE-918</a>) and
+	     potentially injecting content into downstream tasks.</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2021-26855" target="_blank" rel="noopener noreferrer">CVE-2021-26855</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>Server Side Request Forgery (SSRF) in mail server, as exploited in the wild per CISA KEV.</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2021-21973" target="_blank" rel="noopener noreferrer">CVE-2021-21973</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>Server Side Request Forgery in cloud platform, as exploited in the wild per CISA KEV.</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2016-4029" target="_blank" rel="noopener noreferrer">CVE-2016-4029</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>Chain: incorrect validation of intended decimal-based IP address format (<a href="/data/definitions/1286.html">CWE-1286</a>) enables parsing of octal or hexadecimal formats (<a href="/data/definitions/1389.html">CWE-1389</a>), allowing bypass of an SSRF protection mechanism (<a href="/data/definitions/918.html">CWE-918</a>).</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2002-1484" target="_blank" rel="noopener noreferrer">CVE-2002-1484</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>Web server allows attackers to request a URL from another server, including other ports, which allows proxied scanning.</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2004-2061" target="_blank" rel="noopener noreferrer">CVE-2004-2061</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>CGI script accepts and retrieves incoming URLs.</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2010-1637" target="_blank" rel="noopener noreferrer">CVE-2010-1637</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>Web-based mail program allows internal network scanning using a modified POP3 port number.</div>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3;" class="nowrap">
+                                    <div>
+                                        
+                                        <a href="https://www.cve.org/CVERecord?id=CVE-2009-0037" target="_blank" rel="noopener noreferrer">CVE-2009-0037</a>
+                                        
+                                    </div>
+                                </td>
+                                <td valign="middle" style="padding-bottom:10px; border-width: 1px; border-bottom:solid #BAC5E3; border-left:solid #BAC5E3;">
+                                    <div>URL-downloading library automatically follows redirects to file:// and scp:// URLs</div>
+                                </td>
+                            </tr>
+                            
+                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    <div id="Weakness_Ordinalities">
+    <div class="heading" id="Weakness_Ordinalities_918"><span><a href="javascript:toggleblocksOC('918_Weakness_Ordinalities');"><img
+                    id="ocimg_918_Weakness_Ordinalities" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Weakness Ordinalities</div>
+    <div name="oc_918_Weakness_Ordinalities" id="oc_918_Weakness_Ordinalities" class="expandblock">
+        <div class="tabledetail">
+            <div class="indent">
+                <div style="margin-top: 10px">
+                    <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                        <tr>
+                            <th valign="top" nowrap>Ordinality</th>
+                            <th valign="top" width="100%">Description</th>
+                        </tr>
+                        <tr>
+                        
+                        
+                        
+                        
+                        
+                                <td valign="top">
+                                    <div style="font-size:90%;">Resultant</div>
+                                </td>
+                                <td valign="top">
+                                    <div style="font-size:90%; font-style:italic; padding:5px;">
+                                        (where the weakness is typically related to the presence of some other weaknesses)
+                                    </div>
+                                    
+                                </td>     
+                            </tr>
+                         
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+<div id="Detection_Methods">
+    <div class="heading" id="Detection_Methods_918"><span><a href="javascript:toggleblocksOC('918_Detection_Methods');"><img
+                    id="ocimg_918_Detection_Methods" src="/images/head_more.gif" border="0" alt="+"></a> </span>Detection
+        Methods</div>
+    <div name="oc_918_Detection_Methods" id="oc_918_Detection_Methods" class="expandblock">
+        <div class="tabledetail">
+            <div id="EntryStripedTable" class="indent">
+                    <table width="98%" cellpadding="0" cellspacing="0" border="0" id="Detail">
+                      <tr>
+			<th>Method</th>
+			<th>Details</th>
+                      </tr>
+                        
+                            
+                            <tr>
+                                <td valign="top">
+                                    <p class="subheading">Automated Static Analysis</p>
+                                </td>
+				<td valign="top" style="border-left:solid #BAC5E3;">
+                                  <div style="p + p { text-indent:3em; }; padding-top:10px; padding-bottom:10px;">
+                                    Automated static analysis, commonly referred to as Static Application Security Testing (SAST), can find some instances of this weakness by analyzing source code (or binary/compiled code) without having to execute it. Typically, this is done by building a model of data flow and control flow, then searching for potentially-vulnerable patterns that connect &#34;sources&#34; (origins of input) with &#34;sinks&#34; (destinations where the data interacts with external components, a lower layer such as the OS, etc.)
+				    </div>
+                                    
+                                    <p class="suboptheading">Effectiveness: High</p>
+                                    
+                                    
+                                </td>
+                            </tr>
+                            
+                        
+                    </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+
+    
+
+    
+    
+
+
+
+<div id="Memberships">
+    <div class="heading" id="Memberships_918"><span><a href="javascript:toggleblocksOC('918_Memberships');"><img
+                    id="ocimg_918_Memberships" src="/images/head_more.gif" border="0" alt="+"></a> </span>Memberships
+    </div>
+    <div name="oc_918_Memberships" id="oc_918_Memberships" class="expandblock">
+        <div class="detail">
+            <div id="EntryStripedTable" class="indent">
+                   <span class="section tool"><img src="/images/dictionary.gif" alt="Section Help"><span
+                                class="tip">This MemberOf Relationships table shows additional CWE Categories and Views that
+                                reference this weakness as a member. This information is often useful in understanding where a
+                                weakness fits within the context of external information sources.</span></span>
+                        <div xmlns:saxon="http://saxon.sf.net/" xmlns:xalan="http://xml.apache.org/xalan" class="tabledetail"
+                        style="padding-top:10px">
+                        <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                            <tr>
+                                <th valign="top">Nature</th>
+                                <th valign="top">Type</th>
+                                <th valign="top">ID</th>
+                                <th valign="top">Name</th>
+                            </tr>
+                            <tbody>
+                            
+                                
+                                
+                                          
+                                         
+                                <tr class="primary View">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/view.gif" alt="View"  class="icon"><span
+                                                class="tip">View - a subset of CWE entries that provides a way of examining CWE content. The two main view structures are Slices (flat lists) and Graphs (containing relationships between entries).</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1337.html" target="_blank" rel="noopener noreferrer">1337</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      Weaknesses in the 2021 CWE Top 25 Most Dangerous Software Weaknesses
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                    
+                                         
+                                <tr class="primary Category">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/category.gif" alt="Category"  class="icon"><span
+                                                class="tip">Category - a CWE entry that contains a set of other entries that share a common characteristic.</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1356.html" target="_blank" rel="noopener noreferrer">1356</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      OWASP Top Ten 2021 Category A10:2021 - Server-Side Request Forgery (SSRF)
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                          
+                                         
+                                <tr class="primary View">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/view.gif" alt="View"  class="icon"><span
+                                                class="tip">View - a subset of CWE entries that provides a way of examining CWE content. The two main view structures are Slices (flat lists) and Graphs (containing relationships between entries).</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1387.html" target="_blank" rel="noopener noreferrer">1387</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      Weaknesses in the 2022 CWE Top 25 Most Dangerous Software Weaknesses
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                    
+                                         
+                                <tr class="primary Category">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/category.gif" alt="Category"  class="icon"><span
+                                                class="tip">Category - a CWE entry that contains a set of other entries that share a common characteristic.</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1396.html" target="_blank" rel="noopener noreferrer">1396</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      Comprehensive Categorization: Access Control
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                          
+                                         
+                                <tr class="primary View">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/view.gif" alt="View"  class="icon"><span
+                                                class="tip">View - a subset of CWE entries that provides a way of examining CWE content. The two main view structures are Slices (flat lists) and Graphs (containing relationships between entries).</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1425.html" target="_blank" rel="noopener noreferrer">1425</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      Weaknesses in the 2023 CWE Top 25 Most Dangerous Software Weaknesses
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                          
+                                         
+                                <tr class="primary View">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/view.gif" alt="View"  class="icon"><span
+                                                class="tip">View - a subset of CWE entries that provides a way of examining CWE content. The two main view structures are Slices (flat lists) and Graphs (containing relationships between entries).</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1430.html" target="_blank" rel="noopener noreferrer">1430</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      Weaknesses in the 2024 CWE Top 25 Most Dangerous Software Weaknesses
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                          
+                                         
+                                <tr class="primary View">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/view.gif" alt="View"  class="icon"><span
+                                                class="tip">View - a subset of CWE entries that provides a way of examining CWE content. The two main view structures are Slices (flat lists) and Graphs (containing relationships between entries).</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1435.html" target="_blank" rel="noopener noreferrer">1435</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      Weaknesses in the 2025 CWE Top 25 Most Dangerous Software Weaknesses
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                    
+                                         
+                                <tr class="primary Category">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/category.gif" alt="Category"  class="icon"><span
+                                                class="tip">Category - a CWE entry that contains a set of other entries that share a common characteristic.</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1436.html" target="_blank" rel="noopener noreferrer">1436</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      OWASP Top Ten 2025 Category A01:2025 - Broken Access Control
+                                    </td>
+                                </tr>
+                            
+                                
+                                
+                                    
+                                         
+                                <tr class="primary Category">
+                                    <td valign="top">MemberOf</td>
+                                    <td valign="top" nowrap class="right" align="center" style="padding-top:5px; border-left:solid #BAC5E3;"><span
+                                            class="tool"><img src="/images/icons/category.gif" alt="Category"  class="icon"><span
+                                                class="tip">Category - a CWE entry that contains a set of other entries that share a common characteristic.</span></span></td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+                                        
+                                        <a href="/data/definitions/1447.html" target="_blank" rel="noopener noreferrer">1447</a>
+                                        
+				    </td>
+                                    <td valign="top" style="padding-top:5px; border-left:solid #BAC5E3;">
+				      General Software Weaknesses that Appear in Products that Use or Support AI/ML Technology
+                                    </td>
+                                </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+
+<div id="Vulnerability_Mapping_Notes">
+    <div class="heading" id="Vulnerability_Mapping_Notes_918"><span><a href="javascript:toggleblocksOC('918_Vulnerability_Mapping_Notes');"><img
+                    id="ocimg_918_Vulnerability_Mapping_Notes" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Vulnerability Mapping Notes</div>
+    <div name="oc_918_Vulnerability_Mapping_Notes" id="oc_918_Vulnerability_Mapping_Notes" class="expandblock">
+        <div class="detail">
+            <div id="EntryStripedTable" class="indent">
+                <div id="Grouped">
+                  <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+		        <tr>
+  <td>
+    <span class="subheading" style="display:inline-block;">Usage</span>
+  </td>
+  <td style="border-left:solid #BAC5E3;">
+    <span style="color:#4E8F4A">
+        <b>ALLOWED</b>
+    </span>
+    <div style="font-size:90%; font-style:italic; padding:5px;display:inline-block;">
+      (this CWE ID may be used to map to real-world vulnerabilities)
+    </div>
+  </td>
+</tr>
+
+
+                        <tr>
+                                    
+                                        
+                                        
+                                            <td valign="top"><span class="subheading">Reason</span></td>
+                                            <td style="border-left:solid #BAC5E3;">
+                                            
+                                                
+                                                    Acceptable-Use
+                                                
+                                            
+                                            </td>
+                                        
+                                    
+                        </tr>
+                        <tr>
+                            <td>
+                              <p class="subheading"> Rationale </p>
+			    </td>
+			    <td style="border-left:solid #BAC5E3;">
+                                This CWE entry is at the Base level of abstraction, which is a preferred level of abstraction for mapping to the root causes of vulnerabilities.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                              <p class="subheading"> Comments </p>
+			    </td>
+			    <td style="border-left:solid #BAC5E3;">
+			      Carefully read both the name and description to ensure that this mapping is an appropriate fit. Do not try to &#39;force&#39; a mapping to a lower-level Base/Variant simply to comply with this preferred level of abstraction.
+                            </td>
+                        </tr>
+                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+<div id="Notes">
+    <div class="heading" id="Notes_918"><span><a href="javascript:toggleblocksOC('918_Notes');"><img id="ocimg_918_Notes"
+                    src="/images/head_more.gif" border="0" alt="+"></a> </span>Notes</div>
+    <div name="oc_918_Notes" id="oc_918_Notes" class="expandblock">
+        <div class="detail">
+            <div class="indent">
+            
+                
+                
+                    
+                                      
+                        <div class="Relationship_Note" style="border-bottom:solid #BAC5E3;">
+                            <p class="subheading">Relationship</p>   
+                            <div class="indent">
+                                <a href="/data/definitions/918.html">CWE-918</a> (SSRF) and <a href="/data/definitions/611.html">CWE-611</a> (XXE) are closely related, because they both involve web-related technologies and can launch outbound requests to unexpected destinations. However, XXE can be performed client-side, or in other contexts in which the software is not acting directly as a server, so the &#34;Server&#34; portion of the SSRF acronym does not necessarily apply.
+                            </div>
+                        </div>                     
+                    
+                
+                    
+                    
+                
+                    
+                    
+                
+                    
+                    
+                
+                    
+                    
+                
+                    
+                    
+                
+                    
+                    
+                        
+            
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+
+    
+    
+
+
+<div id="Related_Attack_Patterns">
+    <div class="heading" id="Related_Attack_Patterns_918"><span><a href="javascript:toggleblocksOC('918_Related_Attack_Patterns');"><img
+                    id="ocimg_918_Related_Attack_Patterns" src="/images/head_more.gif" border="0" alt="+"></a>
+        </span>Related Attack Patterns</div>
+    <div name="oc_918_Related_Attack_Patterns" id="oc_918_Related_Attack_Patterns" class="expandblock">
+        <div class="tabledetail">
+            <div id="EntryStripedTable" class="indent">
+                <div style="margin-top: 10px">
+                    <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                        <tr>
+                            <th valign="top" nowrap width="110px">CAPEC-ID</th>
+                            <th valign="top">Attack Pattern Name</th>
+                        </tr>
+                        
+                            <tr>
+                                <td valign="top"><a href="http://capec.mitre.org/data/definitions/664.html" target="_blank"
+                                        rel="noopener noreferrer">CAPEC-664</a></td>
+                                <td valign="top" style="border-left:solid #BAC5E3;">Server Side Request Forgery</td>
+                            </tr>
+                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    
+
+
+<div id="References">
+    <div class="heading" id="References_918"><span><a href="javascript:toggleblocksOC('918_References');"><img
+                    id="ocimg_918_References" src="/images/head_more.gif" border="0" alt="+"></a> </span>References</div>
+    <div name="oc_918_References" id="oc_918_References" class="expandblock">
+        <div class="detail">
+            <div id="EntryStripedTable" class="indent">
+                <div id="Grouped">
+                    <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-913_918">
+					      <td valign="top" class="nowrap">[REF-913]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Alexander Polyakov and Dmitry Chastukhin. <i>&#34;SSRF vs. Business-critical applications: XXE tunneling in SAP&#34;.</i>     2012-07-26.
+                                            
+                                                <br/>&lt;<a href="https://media.blackhat.com/bh-us-12/Briefings/Polyakov/BH_US_12_Polyakov_SSRF_Business_Slides.pdf" target="_blank" rel="noopener noreferrer">https://media.blackhat.com/bh-us-12/Briefings/Polyakov/BH_US_12_Polyakov_SSRF_Business_Slides.pdf</a>&gt;.
+                                            
+                                            
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            <div id="REF-914_918">
+					      <td valign="top" class="nowrap">[REF-914]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Alexander Polyakov, Dmitry Chastukhin and Alexey Tyurin. <i>&#34;SSRF vs. Business-critical Applications. Part 1: XXE Tunnelling in SAP NetWeaver&#34;.</i>     
+                                            
+                                                <br/>&lt;<a href="http://erpscan.com/wp-content/uploads/2012/08/SSRF-vs-Businness-critical-applications-whitepaper.pdf" target="_blank" rel="noopener noreferrer">http://erpscan.com/wp-content/uploads/2012/08/SSRF-vs-Businness-critical-applications-whitepaper.pdf</a>&gt;.
+                                            
+                                            
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-915_918">
+					      <td valign="top" class="nowrap">[REF-915]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Riyaz Ahemed Walikar. <i>&#34;Cross Site Port Attacks - XSPA - Part 1&#34;.</i>     2012-11-07.
+                                            
+                                                <br/>&lt;<a href="https://ibreak.software/2012/11/cross-site-port-attacks-xspa-part-1/" target="_blank" rel="noopener noreferrer">https://ibreak.software/2012/11/cross-site-port-attacks-xspa-part-1/</a>&gt;.
+                                            
+                                            
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-916_918">
+					      <td valign="top" class="nowrap">[REF-916]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Riyaz Ahemed Walikar. <i>&#34;Cross Site Port Attacks - XSPA - Part 2&#34;.</i>     2012-11-13.
+                                            
+                                                <br/>&lt;<a href="https://ibreak.software/2012/11/cross-site-port-attacks-xspa-part-2/" target="_blank" rel="noopener noreferrer">https://ibreak.software/2012/11/cross-site-port-attacks-xspa-part-2/</a>&gt;.
+                                            
+                                            
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-917_918">
+					      <td valign="top" class="nowrap">[REF-917]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Riyaz Ahemed Walikar. <i>&#34;Cross Site Port Attacks - XSPA - Part 3&#34;.</i>     2012-11-14.
+                                            
+                                                <br/>&lt;<a href="https://ibreak.software/2012/11/cross-site-port-attacks-xspa-part-3/" target="_blank" rel="noopener noreferrer">https://ibreak.software/2012/11/cross-site-port-attacks-xspa-part-3/</a>&gt;.
+                                            
+                                            
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            <div id="REF-918_918">
+					      <td valign="top" class="nowrap">[REF-918]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Vladimir Vorontsov and Alexander Golovko. <i>&#34;SSRF attacks and sockets: smorgasbord of vulnerabilities&#34;.</i>     
+                                            
+                                                <br/>&lt;<a href="https://www.slideshare.net/DefconRussia/vorontsov-golovko-ssrf-attacks-and-sockets-smorgasbord-of-vulnerabilities" target="_blank" rel="noopener noreferrer">https://www.slideshare.net/DefconRussia/vorontsov-golovko-ssrf-attacks-and-sockets-smorgasbord-of-vulnerabilities</a>&gt;.
+                                            
+                                            
+                                                (<i>URL validated: 2023-04-07</i>)
+						
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-919_918">
+					      <td valign="top" class="nowrap">[REF-919]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						ONsec Lab. <i>&#34;SSRF bible. Cheatsheet&#34;.</i>     2013-01-26.
+                                            
+                                                <br/>&lt;<a href="https://docs.google.com/document/d/1v1TkWZtrhzRLy0bYXBcdLUedXGb9njTNIJXa3u9akHM/edit?pli=1#" target="_blank" rel="noopener noreferrer">https://docs.google.com/document/d/1v1TkWZtrhzRLy0bYXBcdLUedXGb9njTNIJXa3u9akHM/edit?pli=1#</a>&gt;.
+                                            
+                                            
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-920_918">
+					      <td valign="top" class="nowrap">[REF-920]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Deral Heiland. <i>&#34;Web Portals: Gateway To Information, Or A Hole In Our Perimeter Defenses&#34;.</i>     2008-02.
+                                            
+                                                <br/>&lt;<a href="https://archive.org/details/Web_Portals_Gateway_to_Information_or_a_Hole_in_our_Perimeter_Defenses_Deral_Hei" target="_blank" rel="noopener noreferrer">https://archive.org/details/Web_Portals_Gateway_to_Information_or_a_Hole_in_our_Perimeter_Defenses_Deral_Hei</a>&gt;.
+                                            
+                                            
+                                                (<i>URL validated: 2025-08-04</i>)
+						
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-1511_918">
+					      <td valign="top" class="nowrap">[REF-1511]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						OWASP. <i>&#34;Server-Side Request Forgery Prevention Cheat Sheet&#34;.</i>     2019-07-16.
+                                            
+                                                <br/>&lt;<a href="https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html</a>&gt;.
+                                            
+                                            
+                                                (<i>URL validated: 2025-12-02</i>)
+						
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                            
+                                
+                                
+                                
+                                
+                                    <tr>
+                                            
+                                            
+                                                
+                                                    
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            
+                                            
+                                                
+                                            
+                                            <div id="REF-1519_918">
+					      <td valign="top" class="nowrap">[REF-1519]</td>
+					      <td style="border-left:solid #BAC5E3;">
+						Sysdig Threat Research Team. <i>&#34;CVE-2026-33626: How attackers exploited LMDeploy LLM Inference Engines in 12 hours&#34;.</i>     2026-04-22.
+                                            
+                                                <br/>&lt;<a href="https://www.sysdig.com/blog/cve-2026-33626-how-attackers-exploited-lmdeploy-llm-inference-engines-in-12-hours" target="_blank" rel="noopener noreferrer">https://www.sysdig.com/blog/cve-2026-33626-how-attackers-exploited-lmdeploy-llm-inference-engines-in-12-hours</a>&gt;.
+                                            
+                                            
+                                                (<i>URL validated: 2026-03-23</i>)
+						
+					      </td>
+                                            </div>
+                                    </tr>
+                                
+                            
+                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+    
+    <div id="Content_History">
+    <div class="heading" id="Content_History_918"><span><a href="javascript:toggleblocksOC('918_Content_History');"><img
+                    id="ocimg_918_Content_History" src="/images/head_more.gif" border="0" alt="+"></a> </span>Content
+        History</div>
+    <div name="oc_918_Content_History" id="oc_918_Content_History" class="expandblock">
+        <div class="tabledetail">
+            <div class="indent">
+                <div style="margin-top: 10px">
+                    <table width="98%" cellpadding="0" cellspacing="0" border="0" class="Detail">
+                        <thead class="Submissions">
+                            <tr>
+                                <th valign="top" colspan="3" class="title"><span><a
+                                            href="javascript:toggleblocksOC('918_Submissions');"><img
+                                                id="ocimg_918_Submissions" src="/images/head_more.gif" border="0"
+                                                alt="+"></a> </span>Submissions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="oc_918_Submissions" class="expandblock">
+                            <tr>
+                                <th valign="top" style="width:200px;">Submission Date</th>
+                                <th valign="top" nowrap>Submitter</th>
+                                <th valign="top" nowrap>Organization</th>
+                            </tr>
+                            <tr>
+                                <td valign="top" nowrap rowspan="2" style="border-bottom:1px solid #BAC5E3">
+                                    2013-02-17
+                                    
+                                        <br><span class="smaller" style="font-style:italic">(CWE 2.4, 2013-02-21)</span>
+                                    
+                                    </td>
+                                <td valign="top">CWE Content Team</td>
+                                <td valign="top">MITRE</td>
+                            </tr>    
+                            <tr>
+                                <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee">
+                                    <span class="smaller"><i></i></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                        
+                        <thead class="Contributions">
+                            <tr>
+                                <th valign="top" colspan="3" class="title"><span><a
+                                            href="javascript:toggleblocksOC('918_Contributions');"><img
+                                                id="ocimg_918_Contributions" src="/images/head_more.gif" border="0"
+                                                alt="+"></a> </span>Contributions</th>
+                            </tr>
+                        </thead>
+                            <tbody id="oc_918_Contributions" class="expandblock">
+                                <tr>
+                                    <th valign="top">Contribution Date</th>
+                                    <th valign="top" nowrap>Contributor</th>
+                                    <th valign="top" nowrap>Organization</th>
+                                </tr>
+                                
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2025-02-08
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.19, 2025-12-11)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">Affan Ahmed</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>Provided a PHP-based demonstrative example</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2024-02-29
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.16, 2024-11-19)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">Abhi Balakrishnan</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>Provided diagram to improve CWE usability</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                
+                            </tbody>
+                        
+                        
+                            <thead class="Modifications">
+                                <tr>
+                                    <th valign="top" colspan="3" class="title"><span><a
+                                                href="javascript:toggleblocksOC('918_Modifications');"><img
+                                                    id="ocimg_918_Modifications" src="/images/head_less.gif" border="0"
+                                                    alt="+"></a> </span>Modifications</th>
+                                </tr>
+                            </thead>
+                            <tbody id="oc_918_Modifications" class="collapseblock">
+                                <tr>
+                                    <th valign="top">Modification Date</th>
+                                    <th valign="top" nowrap>Modifier</th>
+                                    <th valign="top" nowrap>Organization</th>
+                                </tr>
+                                
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2026-04-30
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.20, 2026-04-30)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Applicable_Platforms, Observed_Examples, References, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2025-12-11
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.19, 2025-12-11)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Applicable_Platforms, Demonstrative_Examples, References, Relationships, Weakness_Ordinalities</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2025-09-09
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.18, 2025-09-09)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Applicable_Platforms, Observed_Examples, References</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2024-11-19
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.16, 2024-11-19)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Alternate_Terms, Common_Consequences, Description, Diagram, Observed_Examples, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2023-06-29
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.12, 2023-06-29)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Mapping_Notes, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2023-04-27
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.11, 2023-04-27)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Detection_Factors, References, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2022-10-13
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.9, 2022-10-13)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Observed_Examples</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2022-06-28
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.8, 2022-06-28)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Observed_Examples, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2021-10-28
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.6, 2021-10-28)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2021-07-20
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.5, 2021-07-20)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated References, Related_Attack_Patterns, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2020-02-24
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 4.0, 2020-02-24)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Applicable_Platforms, Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2019-06-20
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 3.3, 2019-06-20)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2018-03-27
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 3.1, 2018-03-27)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated References</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2017-11-08
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 3.0, 2017-11-08)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Applicable_Platforms, References</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2017-01-19
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 2.10, 2017-01-19)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td valign="top" nowrap rowspan="2" style="border-top:solid #BAC5E3; border-bottom:1px solid #BAC5E3">
+                                            2015-12-07
+                                            
+                                            <br><span class="smaller" style="font-style:italic">(CWE 2.9, 2015-12-07)</span>
+                                            
+                                        </td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">CWE Content Team</td>
+                                        <td valign="top" style="border-top:solid #BAC5E3; border-left:solid #BAC5E3;">MITRE</td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top" colspan="2" style="border-bottom:1px solid #BAC5E3; font-size:90%; background-color:#eeeeee; border-left:solid #BAC5E3;">
+                                            <span class="smaller"><i>updated Relationships</i></span>
+                                        </td>
+                                    </tr>
+                                    
+                                
+                            </tbody>
+                        
+                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+</div>
+
+<!-- End main content -->
+	<div id="More_Message_Custom" style="display:none;">
+<div style="padding:15px 0px 0px 0px;color:#ff0000;font-size:95%;font-weight:bold;text-align:center;" >More information is available &mdash; Please edit the custom filter or select a different filter.</div></div>
+
+	</td>
+	<!-- end content pane -->
+  </tr>
+</table>
+<div id="FootPane" class="noprint">
+  <div id="footbar">
+    <b>Page Last Updated: </b>
+
+
+April 30, 2026
+  </div>
+  <div class="Footer noprint">
+  <a name="footer" id="footer"></a>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="ltgreybackground" style="clear:both">
+      <tr>
+        <td colspan="3" id="line"><div class="line">&nbsp;</div></td>
+      </tr>
+      <tr>
+        <td valign="middle" nowrap="nowrap">
+          <div id="footerlinks" class="footlogo">
+            <a href="http://www.mitre.org" target="_blank" rel="noopener noreferrer"><img src="/images/mitre_logo.gif" height="36" border="0" alt="MITRE" title="MITRE"/></a>
+          </div>
+        </td>
+        <td width="100%" valign="top" style="padding:6px 0px;">
+          <div id="footerlinks">
+            <a href="/sitemap.html">Site Map</a> | 
+            <a href="/about/termsofuse.html">Terms of Use</a> | 
+            <a href="#" onclick="Osano.cm.showDrawer('osano-cm-dom-info-dialog-open')">Manage Cookies</a> | 
+            <a href="/about/cookie_notice.html">Cookie Notice</a> | 
+            <a href="/about/privacy_policy.html">Privacy Policy</a> | 
+            <a href="mailto:cwe@mitre.org">Contact Us</a> | 
+            <a target="_blank" href="https://x.com/CweCapec"><img src="/images/x-logo-black.png" width="18" height="18" style="border:0;vertical-align:right;" alt="CWE on X" title="CWE on X"></a>
+            <a target="_blank" href="https://www.linkedin.com/showcase/cve-cwe-capec"><img src="/images/linkedin_sm.jpg" width="20" height="20" style="border:0;vertical-align:right;" alt="CWE on LinkedIn" title="CWE on LinkedIn"></a>
+            <a target="_blank" href="https://bsky.app/profile/cweprogram.bsky.social"><img src="/images/bluesky_logo_sm.png" width="18" height="18" style="border:0;vertical-align:right;" alt="CWE on Bluesky" title="Bluesky"></a>
+            <a target="_blank" href="https://mastodon.social/@CWE_Program"><img src="/images/mastodon-logo.png" width="20" height="20" style="border:0;vertical-align:right;" alt="CWE on Mastodon" title="CWE on Mastodon"></a>
+            <a target="_blank" href="https://www.youtube.com/channel/UCpY9VIpRmFK4ebD6orssifA"><img src="/images/youtube.png" width="20" height="20" style="border:0;vertical-align:right;" alt="CWE YouTube channel" title="CWE YouTube Channel"></a> 
+            <a href="/news/podcast.html"><img src="/images/out_of_bounds_read_logo.png" width="22" height="22" style="border:0;vertical-align:right;" alt="CWE Out-of-Bounds-Read Podcast" title="CWE Out-of-Bounds-Read Podcast"></a>       
+			      <a target="_blank" href="https://medium.com/@CWE_CAPEC"><img src="/images/medium.png" width="20" height="20" style="border:0;vertical-align:right;" alt="CWE Blog on Medium blog" title="CWE Blog on Medium"></a>   
+          </div>
+          <p>Use of the Common Weakness Enumeration (CWE&trade;) and the associated references from this website are subject to the <a href="/about/termsofuse.html">Terms of Use</a>. CWE is sponsored by the <a target="_blank" rel="noopener noreferrer" href="https://www.dhs.gov/">U.S. Department of Homeland Security</a> (DHS) <a target="_blank" rel="noopener noreferrer" href="https://www.dhs.gov/cisa/cybersecurity-division">Cybersecurity and Infrastructure Security Agency</a> (CISA) and managed by the <a href="https://www.dhs.gov/science-and-technology/hssedi" target="_blank" rel="noopener noreferrer">Homeland Security Systems Engineering and Development Institute</a> (HSSEDI) which is operated by <a target="_blank" rel="noopener noreferrer" href="http://www.mitre.org/">The MITRE Corporation</a> (MITRE). Copyright &copy; 2006&ndash;2026, The MITRE Corporation. CWE, CWSS, CWRAF, and the CWE logo are trademarks of The MITRE Corporation.</p>
+        </td>
+        <td valign="middle" nowrap="nowrap">
+          <div id="footerlinks" class="footlogo">
+            <a href="https://www.dhs.gov/science-and-technology/hssedi" target="_blank" rel="noopener noreferrer"><img src="/images/hssedi.png" height="36" border="0" alt="HSSEDI" title="HSSEDI"/></a>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TCLW30GNGV"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TCLW30GNGV');
+</script>
+
+</body>
+</html>
+
+
+    
+    
+    
+
+
+</html>

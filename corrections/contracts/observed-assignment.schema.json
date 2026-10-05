@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/corrections/2.0.0/observed-assignment.schema.json",
+  "title": "observed-assignment",
+  "description": "Original proposed bounded correction contract; not an official Microsoft/provider schema and not live-qualified.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "@odata.type": {
+      "const": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment"
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "@odata.type": {
+          "enum": [
+            "#microsoft.graph.groupAssignmentTarget",
+            "#microsoft.graph.exclusionGroupAssignmentTarget"
+          ]
+        },
+        "groupId": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "not": {
+            "const": "00000000-0000-0000-0000-000000000000"
+          },
+          "minLength": 36,
+          "maxLength": 36
+        },
+        "deviceAndAppManagementAssignmentFilterType": {
+          "enum": [
+            "none",
+            "include",
+            "exclude"
+          ]
+        },
+        "deviceAndAppManagementAssignmentFilterId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "not": {
+                "const": "00000000-0000-0000-0000-000000000000"
+              },
+              "minLength": 36,
+              "maxLength": 36
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "@odata.type",
+        "groupId",
+        "deviceAndAppManagementAssignmentFilterType"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "deviceAndAppManagementAssignmentFilterType": {
+                "enum": [
+                  "include",
+                  "exclude"
+                ]
+              }
+            },
+            "required": [
+              "deviceAndAppManagementAssignmentFilterType"
+            ]
+          },
+          "then": {
+            "required": [
+              "deviceAndAppManagementAssignmentFilterId"
+            ],
+            "properties": {
+              "deviceAndAppManagementAssignmentFilterId": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                "not": {
+                  "const": "00000000-0000-0000-0000-000000000000"
+                },
+                "minLength": 36,
+                "maxLength": 36
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "deviceAndAppManagementAssignmentFilterId": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@odata.type": {
+                "const": "#microsoft.graph.exclusionGroupAssignmentTarget"
+              }
+            },
+            "required": [
+              "@odata.type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "deviceAndAppManagementAssignmentFilterType": {
+                "const": "none"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "target"
+  ],
+  "additionalProperties": false
+}

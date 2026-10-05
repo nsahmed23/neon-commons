@@ -1,0 +1,49 @@
+{
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "files": [
+    {
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go",
+      "sha256": "2c92913bd8f646cc8fc85c410efff901b8337ac9fc1017e29763fe47d167e1ae"
+    },
+    {
+      "path": "internal/services/common/schema/timeouts.go",
+      "sha256": "8ffed71ebb6e6326e5188261478de3d8c5d1fd0f475b69b57135c9d8947b0956"
+    },
+    {
+      "path": "internal/services/common/schema/graph_beta/device_management/device_configuration_assignment.go",
+      "sha256": "eeb3222e20ebdb6e6db718a97d980c6ac8efce682fb76e08e694d93461d9bc3c"
+    },
+    {
+      "path": "internal/constants/regex.go",
+      "sha256": "5d6cfc48546f468151cc7fb6a2bb19172c39f678240b9e0e50333f666584bb01"
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/string.go",
+      "sha256": "5905fc7686045001e5bfe4b2ed32304ed919f81ae446b73673929926d9afe93c"
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/bool.go",
+      "sha256": "9b8ed6ab89177853bf73f6bb7c1fb0e88c3b5a07232d98669688b6ebf7bfbb54"
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/list.go",
+      "sha256": "f20510e6fac417dd202c9bce766e23421bff94ac351027da7655589641c4f33d"
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/set.go",
+      "sha256": "8dffbf078fb5531e77199c05decf0134a7e1a8e9cf1df9450917d3908dea51f4"
+    },
+    {
+      "path": "internal/services/common/validate/attribute/json.go",
+      "sha256": "5e9bead400f1a88a98ed34eab18d9b595df39c35e4d1e0c3ad23b419385f132f"
+    },
+    {
+      "path": "internal/services/common/validate/attribute/string.go",
+      "sha256": "156be2a557969c88459661940964e046058b0723e94fcff006a994a4b00402bb"
+    },
+    {
+      "path": "internal/services/common/validate/attribute/string_list.go",
+      "sha256": "2743215e4430ed1039d905de8be9a30b33b36a67eb9ed6b9795189f203e1afed"
+    }
+  ]
+}

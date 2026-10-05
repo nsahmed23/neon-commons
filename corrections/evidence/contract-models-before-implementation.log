@@ -1,0 +1,21 @@
+E
+======================================================================
+ERROR: test_contract_models (unittest.loader._FailedTest.test_contract_models)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_contract_models
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/usr/lib/python3.13/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/mnt/data/appendix-b-corrections/regressions/test_contract_models.py", line 5, in <module>
+    from contract_model import (schema_errors,provider_settings,capture_errors,reference_errors,
+     resume_decision,approval_mismatches,validate_executable,ContractViolation)
+ModuleNotFoundError: No module named 'contract_model'
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (errors=1)

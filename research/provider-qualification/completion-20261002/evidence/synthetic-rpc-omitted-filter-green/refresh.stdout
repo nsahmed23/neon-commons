@@ -1,0 +1,16 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - registry.terraform.io/deploymenttheory/microsoft365 in /tmp/intune-provider-20261002/synthetic-rpc-build/bin
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture: Refreshing state... [id=33333333-3333-4333-8333-333333333333]
+
+No changes. Your infrastructure still matches the configuration.
+
+OpenTofu has checked that the real remote objects still match the result of
+your most recent changes, and found no differences.

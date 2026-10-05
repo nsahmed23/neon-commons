@@ -1,0 +1,36 @@
+{
+  "checked_at_utc": "2026-09-30T15:21:04.896604+00:00",
+  "all_match": true,
+  "records": [
+    {
+      "file": "01_V3_Research_Brief.md",
+      "expected_sha256": "bd4049bf0375405439f7c3cab264d5c0d6709ef0f82a40c45af5685ee699e40b",
+      "observed_sha256": "bd4049bf0375405439f7c3cab264d5c0d6709ef0f82a40c45af5685ee699e40b",
+      "match": true
+    },
+    {
+      "file": "02_V3_Completed_Report.md",
+      "expected_sha256": "6b656d7c523bd243a82e5ecad37a104da03bf0dacc4fd7bc3094c6839d09f87b",
+      "observed_sha256": "6b656d7c523bd243a82e5ecad37a104da03bf0dacc4fd7bc3094c6839d09f87b",
+      "match": true
+    },
+    {
+      "file": "03_Appendix_A_Research_Brief.md",
+      "expected_sha256": "bcedda3196e4671311de77d6034cb1ab42dc0f62ab7415b7a4f239cf4e1c764a",
+      "observed_sha256": "bcedda3196e4671311de77d6034cb1ab42dc0f62ab7415b7a4f239cf4e1c764a",
+      "match": true
+    },
+    {
+      "file": "04_Appendix_A_Completed_Report.md",
+      "expected_sha256": "927e7f71c899b68da3abd16f96185d9f8ca4783b26b78aea080c895ed1e67beb",
+      "observed_sha256": "927e7f71c899b68da3abd16f96185d9f8ca4783b26b78aea080c895ed1e67beb",
+      "match": true
+    },
+    {
+      "file": "README.md",
+      "expected_sha256": "fbcd85ffb133fb4967c8fb52b42593e7e7c52331d52e741388bf3b00607e96c9",
+      "observed_sha256": "fbcd85ffb133fb4967c8fb52b42593e7e7c52331d52e741388bf3b00607e96c9",
+      "match": true
+    }
+  ]
+}

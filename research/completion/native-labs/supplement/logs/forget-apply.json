@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "apply",
+    "-input=false",
+    "-no-color",
+    "forget.tfplan"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "forget-apply",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "1f2ef2347e4ca7af82ff95e7f030214d0ffaaadd71b278f9b63aaec19bf8c656",
+  "tool": "tofu",
+  "transcript_complete": true
+}

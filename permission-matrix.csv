@@ -1,0 +1,8 @@
+operation,azure_rbac,entra,graph,intune,negative_test,evidence
+offline normalize/generate,none,none,none,none,not needed,no network/auth invoked
+policy/settings/assignment inventory,none,principal model dependent,DeviceManagementConfiguration.Read.All,verify service enforcement,read allowed selected object / forbidden out-of-scope object,documented in pinned provider; not observed
+policy/assignment write,none,principal model dependent,DeviceManagementConfiguration.ReadWrite.All,verify app-only and delegated separately,write allowed disposable policy / reject foreign policy and device wipe,not authorized in this pack
+external group identity read,none,operation-specific,derive per exact Graph GET; not pinned here,external ownership,group read succeeds without membership write,qualification gap
+Azure state blob/lease,container-scoped data-plane role,separate from Azure role assignment,none,not Intune,read/write/lease intended state; forbidden other boundary,backend documentation; verify exact role and scope
+Azure ARM discovery,resource-scoped read permission,none,none,not Intune,allowed resource read; denied other subscription,organization-specific
+CI federation setup,identity resource/bootstrap rights separately scoped,directory app or managed identity path dependent,not a blanket scope,not evidence of Graph object scoping,wrong issuer/subject/audience denied,bootstrap only; no self-grant

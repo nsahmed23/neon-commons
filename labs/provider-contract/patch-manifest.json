@@ -1,0 +1,10 @@
+{
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "path": "internal/services/common/custom_requests/get_request.go",
+  "original_sha256": "38d4f01c0a8530d71b0c3f84b2257083f636c1c6c63985f472b0f2b467b16207",
+  "candidate_sha256": "7c0f31739132ab4613f7e939f68df755275f657d02a42d74a0638b6e408a6f7d",
+  "patch_sha256": "814b9a4c1014ca63557a72cd4f3c739249ca5212c9ce88b619746df425cca91f",
+  "status": "local-source-candidate",
+  "license": "MPL-2.0",
+  "production_qualified": false
+}

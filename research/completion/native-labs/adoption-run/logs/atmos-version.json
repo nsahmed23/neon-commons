@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "version"
+  ],
+  "cwd": "repository",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "atmos-version",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "f42d5418d554a926a3b0deb5305f41d029c7dae69ed73e4ac8dcd14ea5bae946",
+  "tool": "atmos",
+  "transcript_complete": true
+}

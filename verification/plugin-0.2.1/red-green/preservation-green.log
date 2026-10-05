@@ -1,0 +1,16 @@
+test_independent_oracle_rejects_promoted_duplicate_uuid_capture (audit_regressions.PreservationAuditTests.test_independent_oracle_rejects_promoted_duplicate_uuid_capture) ... ok
+test_large_unselected_inventory_keeps_lineage_bounded (audit_regressions.PreservationAuditTests.test_large_unselected_inventory_keeps_lineage_bounded) ... ok
+test_node_budget_rejects_before_lineage_or_output_allocation (audit_regressions.PreservationAuditTests.test_node_budget_rejects_before_lineage_or_output_allocation) ... ok
+test_production_assignment_source_must_be_observed (audit_regressions.PreservationAuditTests.test_production_assignment_source_must_be_observed) ... ok
+test_production_lineage_accounts_for_destinations_and_retention (audit_regressions.PreservationAuditTests.test_production_lineage_accounts_for_destinations_and_retention) ... ok
+test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) ... ok
+test_synthetic_assignment_flag_disagreement_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_assignment_flag_disagreement_blocks_active_output) ... ok
+test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) ... ok
+test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) ... ok
+test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets) ... ok
+test_synthetic_uuid_case_does_not_hide_duplicate_observations (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_observations) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.430s
+
+OK

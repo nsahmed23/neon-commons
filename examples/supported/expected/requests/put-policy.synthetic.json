@@ -1,0 +1,31 @@
+{
+  "provenance": "authored synthetic request shape, not captured SDK serialization",
+  "method": "PUT",
+  "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222",
+  "body": {
+    "name": "Windows Privacy Pilot",
+    "description": "Synthetic reference; not production advice.",
+    "platforms": "windows10",
+    "technologies": "mdm",
+    "roleScopeTagIds": [
+      "0"
+    ],
+    "settings": [
+      {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+        "settingInstance": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+          "settingInstanceTemplateReference": null,
+          "choiceSettingValue": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+            "settingValueTemplateReference": null,
+            "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+            "children": []
+          }
+        }
+      }
+    ]
+  },
+  "execution_allowed": false
+}

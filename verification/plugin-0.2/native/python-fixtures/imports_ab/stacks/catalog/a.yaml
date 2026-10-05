@@ -1,0 +1,7 @@
+vars:
+  selected: a
+  nested:
+    a: a
+    same: a
+  items:
+  - a

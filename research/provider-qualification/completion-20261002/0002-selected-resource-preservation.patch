@@ -1,0 +1,1143 @@
+--- a/internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go
++++ b/internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go
+@@ -1,8 +1,14 @@
++// Local MPL-2.0 provider repair candidate. Legacy callers unchanged.
+ package sharedConstructors
+ 
+ import (
+ 	"context"
+ 	"encoding/json"
++	"fmt"
++	settingsjson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/settingsjson"
++	ser "github.com/microsoft/kiota-abstractions-go/serialization"
++	jsonreader "github.com/microsoft/kiota-serialization-json-go"
++	"sort"
+ 
+ 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
+ 	"github.com/hashicorp/terraform-plugin-framework/types"
+@@ -540,3 +546,63 @@
+ 		}
+ 	}
+ }
++
++// The generated SDK omits nulls and adds default discriminators. Retain the
++// validated input JSON for serialization while populating actual SDK getters.
++// This deliberately preserves every input field and array position.
++type exactSetting struct {
++	*graphmodels.DeviceManagementConfigurationSetting
++	raw map[string]any
++}
++
++func (s *exactSetting) Serialize(writer ser.SerializationWriter) error {
++	keys := make([]string, 0, len(s.raw))
++	for k := range s.raw {
++		keys = append(keys, k)
++	}
++	sort.Strings(keys)
++	for _, key := range keys {
++		var err error
++		if s.raw[key] == nil {
++			err = writer.WriteNullValue(key)
++		} else {
++			err = writer.WriteAnyValue(key, s.raw[key])
++		}
++		if err != nil {
++			return fmt.Errorf("setting serialization failed")
++		}
++	}
++	return nil
++}
++func ConstructSettingsCatalogSettingsStrict(ctx context.Context, settings types.String) ([]graphmodels.DeviceManagementConfigurationSettingable, error) {
++	if settings.IsNull() || settings.IsUnknown() {
++		return nil, fmt.Errorf("settings must be known before mutation")
++	}
++	rows, err := settingsjson.Settings([]byte(settings.ValueString()), false)
++	if err != nil {
++		return nil, err
++	}
++	result := make([]graphmodels.DeviceManagementConfigurationSettingable, 0, len(rows))
++	for _, row := range rows {
++		data, err := json.Marshal(row)
++		if err != nil {
++			return nil, fmt.Errorf("setting encoding failed")
++		}
++		node, err := jsonreader.NewJsonParseNode(data)
++		if err != nil {
++			return nil, fmt.Errorf("setting SDK parse failed")
++		}
++		value, err := node.GetObjectValue(graphmodels.CreateDeviceManagementConfigurationSettingFromDiscriminatorValue)
++		if err != nil {
++			return nil, fmt.Errorf("setting SDK conversion failed")
++		}
++		setting, ok := value.(*graphmodels.DeviceManagementConfigurationSetting)
++		if !ok {
++			return nil, fmt.Errorf("unexpected SDK setting model")
++		}
++		id := row["id"].(string)
++		setting.SetId(&id)
++		result = append(result, &exactSetting{DeviceManagementConfigurationSetting: setting, raw: row})
++	}
++	return result, nil
++}
+--- /dev/null
++++ b/internal/services/common/custom_requests/bounded_collection.go
+@@ -0,0 +1,161 @@
++// Local MPL-2.0 provider repair candidate. See completion/NOTICE.md.
++package customrequests
++
++import (
++	"context"
++	"encoding/json"
++	"fmt"
++	settingsjson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/settingsjson"
++	abs "github.com/microsoft/kiota-abstractions-go"
++	ser "github.com/microsoft/kiota-abstractions-go/serialization"
++	kiotahttp "github.com/microsoft/kiota-http-go"
++	"io"
++	"net/http"
++	"net/url"
++	"time"
++)
++
++type boundedRawResponse struct{ body []byte }
++
++func (*boundedRawResponse) GetFieldDeserializers() map[string]func(ser.ParseNode) error { return nil }
++func (*boundedRawResponse) Serialize(ser.SerializationWriter) error {
++	return fmt.Errorf("response cannot be serialized")
++}
++
++// Use the configured adapter for authentication, retry and transport. This path
++// never invokes the legacy makeRequest shared by DELETE. Public Graph beta is the
++// only admitted deployment profile; sovereign endpoints need separate evidence.
++func GetConfigurationPolicyCollection(ctx context.Context, adapter abs.RequestAdapter, cfg GetRequestConfig) (json.RawMessage, error) {
++	if cfg.Endpoint != "/deviceManagement/configurationPolicies" || (cfg.EndpointSuffix != "/settings" && cfg.EndpointSuffix != "/assignments") {
++		return nil, fmt.Errorf("unsupported collection profile")
++	}
++	if cfg.APIVersion != GraphAPIBeta {
++		return nil, fmt.Errorf("unsupported settings API version")
++	}
++	rootInfo := abs.NewRequestInformation()
++	rootInfo.UrlTemplate = ByIDRequestUrlTemplate(cfg)
++	rootInfo.PathParameters = map[string]string{"baseurl": "https://graph.microsoft.com/beta"}
++	root, e := rootInfo.GetUri()
++	if e != nil || root.Scheme != "https" || root.Host != "graph.microsoft.com" || root.User != nil || root.Fragment != "" {
++		return nil, fmt.Errorf("invalid collection URL")
++	}
++	if base := adapter.GetBaseUrl(); base != "" && base != "https://graph.microsoft.com/beta" {
++		return nil, fmt.Errorf("configured adapter Graph profile differs")
++	}
++	query := root.Query()
++	for k, v := range cfg.QueryParameters {
++		query.Set(k, v)
++	}
++	root.RawQuery = query.Encode()
++	current := root
++	seenLinks := map[string]bool{}
++	seenIDs := map[string]bool{}
++	items := make([]any, 0)
++	total := 0
++	expectedCount := -1
++	for page := 0; page < 128; page++ {
++		if seenLinks[current.String()] {
++			return nil, fmt.Errorf("collection continuation loop")
++		}
++		seenLinks[current.String()] = true
++		info := abs.NewRequestInformation()
++		info.Method = abs.GET
++		info.SetUri(*current)
++		info.Headers.Add("Accept", "application/json")
++		info.AddRequestOptions([]abs.RequestOption{&kiotahttp.RedirectHandlerOptions{ShouldRedirect: func(*http.Request, *http.Response) bool { return false }}})
++		option := abs.NewRequestHandlerOption()
++		option.SetResponseHandler(func(response interface{}, _ abs.ErrorMappings) (interface{}, error) {
++			r, ok := response.(*http.Response)
++			if !ok || r == nil || r.Body == nil {
++				return nil, fmt.Errorf("adapter returned no HTTP response")
++			}
++			defer r.Body.Close()
++			if r.StatusCode != http.StatusOK {
++				return nil, fmt.Errorf("collection HTTP status %d", r.StatusCode)
++			}
++			if r.Request != nil && r.Request.URL.String() != current.String() {
++				return nil, fmt.Errorf("unexpected collection response URL")
++			}
++			b, e := io.ReadAll(io.LimitReader(r.Body, 4*1024*1024+1))
++			if e != nil || len(b) > 4*1024*1024 {
++				return nil, fmt.Errorf("collection body unavailable or oversized")
++			}
++			return &boundedRawResponse{body: b}, nil
++		})
++		pageCtx, cancel := context.WithTimeout(context.WithValue(ctx, abs.ResponseHandlerOptionKey, option), 30*time.Second)
++		response, e := adapter.Send(pageCtx, info, nil, nil)
++		cancel()
++		if e != nil {
++			return nil, fmt.Errorf("collection request failed")
++		}
++		raw, ok := response.(*boundedRawResponse)
++		if !ok {
++			return nil, fmt.Errorf("adapter did not honor bounded response handler")
++		}
++		total += len(raw.body)
++		if total > 32*1024*1024 {
++			return nil, fmt.Errorf("collection total byte limit exceeded")
++		}
++		value, e := settingsjson.Decode(raw.body)
++		if e != nil {
++			return nil, e
++		}
++		object, ok := value.(map[string]any)
++		if !ok {
++			return nil, fmt.Errorf("collection response must be an object")
++		}
++		if _, bad := object["error"]; bad {
++			return nil, fmt.Errorf("collection error envelope")
++		}
++		rows, ok := object["value"].([]any)
++		if !ok {
++			return nil, fmt.Errorf("collection value must be an array")
++		}
++		if count, present := object["@odata.count"]; present {
++			n, ok := count.(json.Number)
++			if !ok {
++				return nil, fmt.Errorf("invalid collection count")
++			}
++			num, e := n.Int64()
++			if e != nil || num < 0 || num > 10000 {
++				return nil, fmt.Errorf("invalid collection count")
++			}
++			if expectedCount >= 0 && int(num) != expectedCount {
++				return nil, fmt.Errorf("collection count changed")
++			}
++			expectedCount = int(num)
++		}
++		for _, v := range rows {
++			row, ok := v.(map[string]any)
++			if !ok {
++				return nil, fmt.Errorf("collection item must be object")
++			}
++			id, ok := row["id"].(string)
++			if !ok || id == "" || seenIDs[id] {
++				return nil, fmt.Errorf("collection identity missing or duplicated")
++			}
++			seenIDs[id] = true
++			items = append(items, v)
++		}
++		if len(items) > 10000 {
++			return nil, fmt.Errorf("collection item limit exceeded")
++		}
++		next, more := object["@odata.nextLink"]
++		if !more {
++			if expectedCount >= 0 && len(items) != expectedCount {
++				return nil, fmt.Errorf("collection count mismatch")
++			}
++			return json.Marshal(map[string]any{"value": items})
++		}
++		link, ok := next.(string)
++		if !ok || link == "" {
++			return nil, fmt.Errorf("invalid continuation")
++		}
++		parsed, e := url.Parse(link)
++		if e != nil || parsed.Scheme != root.Scheme || parsed.Host != root.Host || parsed.User != nil || parsed.Fragment != "" || parsed.EscapedPath() != root.EscapedPath() {
++			return nil, fmt.Errorf("continuation outside admitted collection")
++		}
++		current = parsed
++	}
++	return nil, fmt.Errorf("collection page limit exceeded")
++}
+--- /dev/null
++++ b/internal/services/common/plan_modifiers/exact_settings_json.go
+@@ -0,0 +1,29 @@
++// Local MPL-2.0 provider repair candidate. See completion/NOTICE.md.
++package planmodifiers
++
++import (
++	"context"
++	settingsjson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/settingsjson"
++	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
++	"github.com/hashicorp/terraform-plugin-framework/types"
++)
++
++type ExactSettingsJSONPlanModifier struct{}
++
++func (ExactSettingsJSONPlanModifier) Description(context.Context) string {
++	return "Preserves JSON values, IDs, nulls and array order; canonicalizes object keys only."
++}
++func (m ExactSettingsJSONPlanModifier) MarkdownDescription(ctx context.Context) string {
++	return m.Description(ctx)
++}
++func (ExactSettingsJSONPlanModifier) PlanModifyString(ctx context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
++	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
++		return
++	}
++	value, err := settingsjson.Canonical([]byte(req.ConfigValue.ValueString()))
++	if err != nil {
++		resp.Diagnostics.AddError("Invalid settings JSON", err.Error())
++		return
++	}
++	resp.PlanValue = types.StringValue(value)
++}
+--- /dev/null
++++ b/internal/services/common/settingsjson/settings.go
+@@ -0,0 +1,249 @@
++// Local MPL-2.0 provider repair candidate. See completion/NOTICE.md.
++package settingsjson
++
++import (
++	"bytes"
++	"encoding/json"
++	"fmt"
++	"io"
++)
++
++// Decode preserves numbers, nulls and empty arrays and rejects ambiguous JSON.
++// Error messages deliberately contain no source values.
++func Decode(raw []byte) (any, error) {
++	if len(raw) > 4*1024*1024 {
++		return nil, fmt.Errorf("settings JSON exceeds byte limit")
++	}
++	d := json.NewDecoder(bytes.NewReader(raw))
++	d.UseNumber()
++	nodes := 0
++	v, e := decode(d, 0, &nodes)
++	if e != nil {
++		return nil, e
++	}
++	if _, e = d.Token(); e != io.EOF {
++		return nil, fmt.Errorf("trailing JSON content")
++	}
++	return v, nil
++}
++func decode(d *json.Decoder, depth int, nodes *int) (any, error) {
++	*nodes++
++	if depth > 128 || *nodes > 100000 {
++		return nil, fmt.Errorf("JSON structural limit exceeded")
++	}
++	t, e := d.Token()
++	if e != nil {
++		return nil, fmt.Errorf("invalid JSON")
++	}
++	switch t {
++	case json.Delim('{'):
++		obj := map[string]any{}
++		for d.More() {
++			k, e := d.Token()
++			if e != nil {
++				return nil, fmt.Errorf("invalid object")
++			}
++			key, ok := k.(string)
++			if !ok {
++				return nil, fmt.Errorf("invalid key")
++			}
++			if _, ok = obj[key]; ok {
++				return nil, fmt.Errorf("duplicate object key")
++			}
++			v, e := decode(d, depth+1, nodes)
++			if e != nil {
++				return nil, e
++			}
++			obj[key] = v
++		}
++		if end, e := d.Token(); e != nil || end != json.Delim('}') {
++			return nil, fmt.Errorf("invalid object end")
++		}
++		return obj, nil
++	case json.Delim('['):
++		values := make([]any, 0)
++		for d.More() {
++			v, e := decode(d, depth+1, nodes)
++			if e != nil {
++				return nil, e
++			}
++			values = append(values, v)
++		}
++		if end, e := d.Token(); e != nil || end != json.Delim(']') {
++			return nil, fmt.Errorf("invalid array end")
++		}
++		return values, nil
++	default:
++		if _, ok := t.(json.Delim); ok {
++			return nil, fmt.Errorf("unexpected delimiter")
++		}
++		return t, nil
++	}
++}
++
++// Settings extracts the explicit settings boundary. No observation fields, IDs,
++// array order, nulls or empty collections are normalized away.
++func Settings(raw []byte, response bool) ([]map[string]any, error) {
++	value, e := Decode(raw)
++	if e != nil {
++		return nil, e
++	}
++	obj, ok := value.(map[string]any)
++	if !ok {
++		return nil, fmt.Errorf("settings envelope must be an object")
++	}
++	key := "settings"
++	if response {
++		key = "value"
++	}
++	if _, bad := obj["error"]; bad {
++		return nil, fmt.Errorf("settings error envelope")
++	}
++	if _, pending := obj["@odata.nextLink"]; pending {
++		return nil, fmt.Errorf("incomplete settings response")
++	}
++	if !response && len(obj) != 1 {
++		return nil, fmt.Errorf("configuration requires only settings boundary")
++	}
++	rows, ok := obj[key].([]any)
++	if !ok {
++		return nil, fmt.Errorf("settings boundary must be an array")
++	}
++	if len(rows) > 10000 {
++		return nil, fmt.Errorf("setting count limit exceeded")
++	}
++	seen := map[string]bool{}
++	result := make([]map[string]any, 0, len(rows))
++	for _, row := range rows {
++		item, ok := row.(map[string]any)
++		if !ok {
++			return nil, fmt.Errorf("setting must be an object")
++		}
++		id, ok := item["id"].(string)
++		if !ok || id == "" || seen[id] {
++			return nil, fmt.Errorf("setting ID is missing or duplicated")
++		}
++		seen[id] = true
++		instance, ok := item["settingInstance"].(map[string]any)
++		if !ok {
++			return nil, fmt.Errorf("setting instance must be an object")
++		}
++		if e := instanceValid(instance); e != nil {
++			return nil, e
++		}
++		if e := typesValid(item); e != nil {
++			return nil, e
++		}
++		result = append(result, item)
++	}
++	return result, nil
++}
++func instanceValid(obj map[string]any) error {
++	typ, ok := obj["@odata.type"].(string)
++	if !ok {
++		return fmt.Errorf("setting instance discriminator required")
++	}
++	field := ""
++	collection := false
++	switch typ {
++	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance":
++		field = "simpleSettingValue"
++	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance":
++		field = "choiceSettingValue"
++	case "#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance":
++		field = "simpleSettingCollectionValue"
++		collection = true
++	case "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance":
++		field = "choiceSettingCollectionValue"
++		collection = true
++	case "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
++		field = "groupSettingCollectionValue"
++		collection = true
++	default:
++		return fmt.Errorf("unsupported setting instance type")
++	}
++	if id, ok := obj["settingDefinitionId"].(string); !ok || id == "" {
++		return fmt.Errorf("setting definition ID required")
++	}
++	v, present := obj[field]
++	if !present {
++		return fmt.Errorf("setting value boundary required")
++	}
++	if collection {
++		if v != nil {
++			if _, ok := v.([]any); !ok {
++				return fmt.Errorf("setting collection must be an array or null")
++			}
++		}
++	} else {
++		if _, ok := v.(map[string]any); !ok {
++			return fmt.Errorf("setting value must be an object")
++		}
++	}
++	return nil
++}
++func typesValid(value any) error {
++	switch v := value.(type) {
++	case map[string]any:
++		if raw, exists := v["@odata.type"]; exists {
++			typ, ok := raw.(string)
++			if !ok {
++				return fmt.Errorf("invalid discriminator")
++			}
++			switch typ {
++			case "#microsoft.graph.deviceManagementConfigurationSetting",
++				"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
++				"#microsoft.graph.deviceManagementConfigurationGroupSettingValue",
++				"#microsoft.graph.deviceManagementConfigurationStringSettingValue",
++				"#microsoft.graph.deviceManagementConfigurationIntegerSettingValue",
++				"#microsoft.graph.deviceManagementConfigurationSettingInstanceTemplateReference",
++				"#microsoft.graph.deviceManagementConfigurationSettingValueTemplateReference":
++			case "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance",
++				"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
++				"#microsoft.graph.deviceManagementConfigurationSimpleSettingCollectionInstance",
++				"#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
++				"#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance":
++				if e := instanceValid(v); e != nil {
++					return e
++				}
++			default:
++				return fmt.Errorf("unsupported polymorphic or secret setting type")
++			}
++		}
++		if children, exists := v["children"]; exists && children != nil {
++			rows, ok := children.([]any)
++			if !ok {
++				return fmt.Errorf("setting children must be an array or null")
++			}
++			for _, child := range rows {
++				instance, ok := child.(map[string]any)
++				if !ok {
++					return fmt.Errorf("setting child must be an instance object")
++				}
++				if err := instanceValid(instance); err != nil {
++					return err
++				}
++			}
++		}
++		for _, child := range v {
++			if e := typesValid(child); e != nil {
++				return e
++			}
++		}
++	case []any:
++		for _, child := range v {
++			if e := typesValid(child); e != nil {
++				return e
++			}
++		}
++	}
++	return nil
++}
++func Canonical(raw []byte) (string, error) {
++	v, e := Decode(raw)
++	if e != nil {
++		return "", e
++	}
++	b, e := json.Marshal(v)
++	return string(b), e
++}
+--- /dev/null
++++ b/internal/services/common/state/graph_beta/device_management/configuration_policy_assignments.go
+@@ -0,0 +1,137 @@
++// Local MPL-2.0 provider repair candidate. See completion/NOTICE.md.
++package devicemanagement
++
++import (
++	"context"
++	"fmt"
++	settingsjson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/settingsjson"
++	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
++	"github.com/hashicorp/terraform-plugin-framework/attr"
++	"github.com/hashicorp/terraform-plugin-framework/types"
++	"strings"
++)
++
++// StateConfigurationPolicyAssignmentsStrict consumes a COMPLETE raw collection.
++// Missing/denied/failed collections must never be supplied as empty desired sets.
++func StateConfigurationPolicyAssignmentsStrict(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, raw []byte) error {
++	value, e := settingsjson.Decode(raw)
++	if e != nil {
++		return e
++	}
++	envelope, ok := value.(map[string]any)
++	if !ok {
++		return fmt.Errorf("assignment envelope required")
++	}
++	if _, bad := envelope["error"]; bad {
++		return fmt.Errorf("assignment error envelope")
++	}
++	if _, more := envelope["@odata.nextLink"]; more {
++		return fmt.Errorf("assignment collection incomplete")
++	}
++	rows, ok := envelope["value"].([]any)
++	if !ok {
++		return fmt.Errorf("assignment collection must be an array")
++	}
++	typ := types.ObjectType{AttrTypes: map[string]attr.Type{"type": types.StringType, "group_id": types.StringType, "filter_id": types.StringType, "filter_type": types.StringType}}
++	result := make([]attr.Value, 0, len(rows))
++	seen := map[string]bool{}
++	tuples := map[string]bool{}
++	for _, rawRow := range rows {
++		row, ok := rawRow.(map[string]any)
++		if !ok {
++			return fmt.Errorf("invalid assignment")
++		}
++		id, ok := row["id"].(string)
++		if !ok || id == "" || seen[id] {
++			return fmt.Errorf("assignment identity missing or duplicated")
++		}
++		seen[id] = true
++		target, ok := row["target"].(map[string]any)
++		if !ok {
++			return fmt.Errorf("assignment target required")
++		}
++		for key := range target {
++			switch key {
++			case "@odata.type", "groupId", "deviceAndAppManagementAssignmentFilterId", "deviceAndAppManagementAssignmentFilterType":
++			default:
++				return fmt.Errorf("unsupported assignment target property")
++			}
++		}
++		discriminator, ok := target["@odata.type"].(string)
++		if !ok {
++			return fmt.Errorf("assignment type required")
++		}
++		kind := strings.TrimPrefix(discriminator, "#microsoft.graph.")
++		if discriminator != "#microsoft.graph."+kind {
++			return fmt.Errorf("unsupported assignment discriminator")
++		}
++		obj := map[string]attr.Value{"type": types.StringValue(kind), "group_id": types.StringNull(), "filter_id": types.StringNull(), "filter_type": types.StringNull()}
++		group, hasGroup := target["groupId"]
++		switch kind {
++		case "groupAssignmentTarget", "exclusionGroupAssignmentTarget":
++			s, ok := group.(string)
++			if !hasGroup || !ok || s == "" {
++				return fmt.Errorf("group assignment identity required")
++			}
++			obj["group_id"] = types.StringValue(s)
++		case "allDevicesAssignmentTarget", "allLicensedUsersAssignmentTarget":
++			if hasGroup && group != nil {
++				return fmt.Errorf("unexpected group identity")
++			}
++		default:
++			return fmt.Errorf("unsupported assignment target")
++		}
++		for key, name := range map[string]string{"deviceAndAppManagementAssignmentFilterId": "filter_id", "deviceAndAppManagementAssignmentFilterType": "filter_type"} {
++			if v, exists := target[key]; exists && v != nil {
++				s, ok := v.(string)
++				if !ok || s == "" {
++					return fmt.Errorf("invalid assignment filter")
++				}
++				obj[name] = types.StringValue(s)
++			}
++		}
++		mode := obj["filter_type"].(types.String)
++		filter := obj["filter_id"].(types.String)
++		if !mode.IsNull() {
++			switch mode.ValueString() {
++			case "none":
++			case "include", "exclude":
++				if filter.IsNull() || filter.ValueString() == "00000000-0000-0000-0000-000000000000" {
++					return fmt.Errorf("assignment filter identity required")
++				}
++			default:
++				return fmt.Errorf("unsupported assignment filter mode")
++			}
++		}
++		// The current Terraform tuple cannot represent absent versus null.
++		// Do not invent default zero/none values from absent observations.
++		if _, exists := target["deviceAndAppManagementAssignmentFilterId"]; !exists {
++			return fmt.Errorf("assignment filter ID observation omitted; unsupported profile")
++		}
++		if _, exists := target["deviceAndAppManagementAssignmentFilterType"]; !exists {
++			return fmt.Errorf("assignment filter mode observation omitted; unsupported profile")
++		}
++
++		object, diags := types.ObjectValue(typ.AttrTypes, obj)
++		if diags.HasError() {
++			return fmt.Errorf("assignment state conversion failed")
++		}
++		key := object.String()
++		if tuples[key] {
++			return fmt.Errorf("distinct assignment identities collapse to the same state tuple")
++		}
++		tuples[key] = true
++		result = append(result, object)
++	}
++	// Preserve omitted configuration as unmanaged when service confirms no rows.
++	// Explicit empty configuration remains an explicit empty set.
++	if len(rows) == 0 && data.Assignments.IsNull() {
++		return nil
++	}
++	set, diags := types.SetValue(typ, result)
++	if diags.HasError() {
++		return fmt.Errorf("assignment state set failed")
++	}
++	data.Assignments = set
++	return nil
++}
+--- a/internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go
++++ b/internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go
+@@ -1,8 +1,11 @@
++// Local MPL-2.0 provider repair candidate. Legacy callers unchanged.
+ package devicemanagement
+ 
+ import (
+ 	"context"
+ 	"encoding/json"
++	"fmt"
++	settingsjson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/settingsjson"
+ 
+ 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/normalize"
+ 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
+@@ -170,3 +173,19 @@
+ 	}
+ 	return settingsStr
+ }
++
++// StateConfigurationPolicySettingsStrict validates the complete observation before
++// changing in-memory state. Callers must propagate the error and not persist state.
++// Secret reconstruction is unsupported; no values are copied by array position.
++func StateConfigurationPolicySettingsStrict(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, resp []byte) error {
++	settings, err := settingsjson.Settings(resp, true)
++	if err != nil {
++		return err
++	}
++	raw, err := json.Marshal(map[string]any{"settings": settings})
++	if err != nil {
++		return fmt.Errorf("settings serialization failed")
++	}
++	data.Settings = types.StringValue(string(raw))
++	return nil
++}
+--- a/internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go
++++ b/internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go
+@@ -1,3 +1,4 @@
++// Local MPL-2.0 provider repair candidate. Legacy callers unchanged.
+ package sharedValidators
+ 
+ import (
+@@ -5,6 +6,7 @@
+ 	"context"
+ 	"encoding/json"
+ 	"fmt"
++	settingsjson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/settingsjson"
+ 	"strconv"
+ 	"strings"
+ 
+@@ -361,3 +363,26 @@
+ 		}
+ 	}
+ }
++
++// StrictSettingsCatalogJSONValidator is used only by the qualified candidate
++// Settings Catalog JSON resource. Legacy resource validators are unchanged.
++func StrictSettingsCatalogJSONValidator() validator.String {
++	return strictSettingsCatalogJSONValidator{}
++}
++
++type strictSettingsCatalogJSONValidator struct{}
++
++func (strictSettingsCatalogJSONValidator) Description(context.Context) string {
++	return "Validates exact settings IDs, shapes and supported polymorphs without discarding fields."
++}
++func (v strictSettingsCatalogJSONValidator) MarkdownDescription(ctx context.Context) string {
++	return v.Description(ctx)
++}
++func (strictSettingsCatalogJSONValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
++	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
++		return
++	}
++	if _, err := settingsjson.Settings([]byte(req.ConfigValue.ValueString()), false); err != nil {
++		resp.Diagnostics.AddAttributeError(req.Path, "Invalid Settings Catalog JSON", err.Error())
++	}
++}
+--- /dev/null
++++ b/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/assignment_schema.go
+@@ -0,0 +1,57 @@
++package graphBetaSettingsCatalogConfigurationPolicyJson
++
++import (
++	"context"
++	"regexp"
++
++	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
++	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
++	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
++	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
++	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
++	"github.com/hashicorp/terraform-plugin-framework/types"
++)
++
++// Override only this resource's filter validation. The shared schema and its
++// other callers retain their existing behavior and defaults.
++func selectedAssignmentsSchema() schema.SetNestedAttribute {
++	result := commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema()
++	filter := result.NestedObject.Attributes["filter_id"].(schema.StringAttribute)
++	filter.MarkdownDescription = "Filter identity. Include/exclude requires a non-zero GUID. An explicit zero GUID is supported only with none (also the default mode)."
++	filter.Validators = []validator.String{
++		stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "must be a valid GUID"),
++		selectedFilterIdentityValidator{},
++	}
++	result.NestedObject.Attributes["filter_id"] = filter
++	return result
++}
++
++type selectedFilterIdentityValidator struct{}
++
++func (selectedFilterIdentityValidator) Description(context.Context) string {
++	return "include/exclude requires an actual filter identity; zero is valid only with none"
++}
++func (v selectedFilterIdentityValidator) MarkdownDescription(ctx context.Context) string {
++	return v.Description(ctx)
++}
++func (selectedFilterIdentityValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
++	if req.ConfigValue.IsUnknown() {
++		return
++	}
++	var mode types.String
++	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, req.Path.ParentPath().AtName("filter_type"), &mode)...)
++	if resp.Diagnostics.HasError() || mode.IsUnknown() {
++		return
++	}
++	value := req.ConfigValue.ValueString()
++	if mode.ValueString() == "include" || mode.ValueString() == "exclude" {
++		if req.ConfigValue.IsNull() || value == "" || value == "00000000-0000-0000-0000-000000000000" {
++			resp.Diagnostics.AddAttributeError(req.Path, "Filter Identity Required", "Include/exclude requires an explicit non-zero filter GUID.")
++		}
++		return
++	}
++	// A null configuration mode receives the existing explicit none default.
++	if value == "00000000-0000-0000-0000-000000000000" && !mode.IsNull() && mode.ValueString() != "none" {
++		resp.Diagnostics.AddAttributeError(req.Path, "Invalid Zero Filter", "The zero filter GUID is only valid with filter_type none.")
++	}
++}
+--- a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct.go
++++ b/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct.go
+@@ -5,7 +5,6 @@
+ 	"fmt"
+ 	"strings"
+ 
+-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+ 	sharedConstructor "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
+ 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+ 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
+@@ -65,14 +64,11 @@
+ 		return nil, fmt.Errorf("failed to set role scope tags: %s", err)
+ 	}
+ 
+-	settings := sharedConstructor.ConstructSettingsCatalogSettings(ctx, data.Settings)
++	settings, err := sharedConstructor.ConstructSettingsCatalogSettingsStrict(ctx, data.Settings)
++	if err != nil {
++		return nil, err
++	}
+ 	requestBody.SetSettings(settings)
+-
+-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+-			"error": err.Error(),
+-		})
+-	}
+ 
+ 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+ 
+--- a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct_assignment.go
++++ b/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct_assignment.go
+@@ -4,7 +4,6 @@
+ 	"context"
+ 	"fmt"
+ 
+-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+ 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+ 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
+ 	"github.com/hashicorp/terraform-plugin-log/tflog"
+@@ -19,10 +18,11 @@
+ 	requestBody := devicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
+ 	scriptAssignments := make([]graphmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
+ 
+-	if data.Assignments.IsNull() || data.Assignments.IsUnknown() {
+-		tflog.Debug(ctx, "Assignments is null or unknown, creating empty assignments array")
+-		requestBody.SetAssignments(scriptAssignments)
+-		return requestBody, nil
++	if data.Assignments.IsUnknown() {
++		return nil, fmt.Errorf("assignments must be known before mutation")
++	}
++	if data.Assignments.IsNull() {
++		return nil, nil
+ 	}
+ 
+ 	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel
+@@ -42,18 +42,28 @@
+ 			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
+ 				"index": idx,
+ 			})
+-			continue
++			return nil, fmt.Errorf("invalid assignment target")
+ 		}
+ 
+ 		targetType := assignment.Type.ValueString()
+ 
++		if assignment.FilterId.IsUnknown() || assignment.FilterType.IsUnknown() {
++			return nil, fmt.Errorf("assignment filter must be known")
++		}
++		mode := assignment.FilterType.ValueString()
++		if mode != "" && mode != "none" && mode != "include" && mode != "exclude" {
++			return nil, fmt.Errorf("unsupported assignment filter mode")
++		}
++		if (mode == "include" || mode == "exclude") && (assignment.FilterId.IsNull() || assignment.FilterId.ValueString() == "" || assignment.FilterId.ValueString() == "00000000-0000-0000-0000-000000000000") {
++			return nil, fmt.Errorf("assignment filter identity required")
++		}
+ 		target := constructTarget(ctx, targetType, assignment)
+ 		if target == nil {
+ 			tflog.Error(ctx, "Failed to create target", map[string]any{
+ 				"index":      idx,
+ 				"targetType": targetType,
+ 			})
+-			continue
++			return nil, fmt.Errorf("invalid assignment target")
+ 		}
+ 
+ 		graphAssignment.SetTarget(target)
+@@ -66,12 +76,6 @@
+ 	})
+ 
+ 	requestBody.SetAssignments(scriptAssignments)
+-
+-	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+-		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]any{
+-			"error": err.Error(),
+-		})
+-	}
+ 
+ 	return requestBody, nil
+ }
+@@ -114,31 +118,17 @@
+ 		return nil
+ 	}
+ 
+-	// Set filter if provided and meaningful (not default values)
+-	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() &&
+-		assignment.FilterId.ValueString() != "" &&
+-		assignment.FilterId.ValueString() != "00000000-0000-0000-0000-000000000000" {
+-
++	// Preserve explicit configured filter values, including zero and none.
++	// The selected schema permits zero only with the none filter mode.
++	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() {
+ 		convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+-
+-		if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() &&
+-			assignment.FilterType.ValueString() != "" && assignment.FilterType.ValueString() != "none" {
+-
+-			filterType := assignment.FilterType.ValueString()
+-			var filterTypeEnum graphmodels.DeviceAndAppManagementAssignmentFilterType
+-			switch filterType {
+-			case "include":
+-				filterTypeEnum = graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+-			case "exclude":
+-				filterTypeEnum = graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+-			default:
+-				tflog.Warn(ctx, "Unknown filter type, not setting filter", map[string]any{
+-					"filterType": filterType,
+-				})
+-				return target
+-			}
+-			target.SetDeviceAndAppManagementAssignmentFilterType(&filterTypeEnum)
++	}
++	if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() {
++		parsed, err := graphmodels.ParseDeviceAndAppManagementAssignmentFilterType(assignment.FilterType.ValueString())
++		if err != nil || parsed == nil {
++			return nil
+ 		}
++		target.SetDeviceAndAppManagementAssignmentFilterType(parsed.(*graphmodels.DeviceAndAppManagementAssignmentFilterType))
+ 	}
+ 
+ 	return target
+--- a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/crud.go
++++ b/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/crud.go
+@@ -57,6 +57,15 @@
+ 		return
+ 	}
+ 
++	requestAssignment, err := constructAssignment(ctx, &object)
++	if err != nil {
++		resp.Diagnostics.AddError(
++			"Error constructing assignment for Create Method",
++			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
++		)
++		return
++	}
++
+ 	baseResource, err := r.client.
+ 		DeviceManagement().
+ 		ConfigurationPolicies().
+@@ -69,21 +78,15 @@
+ 
+ 	object.ID = types.StringValue(*baseResource.GetId())
+ 
+-	requestAssignment, err := constructAssignment(ctx, &object)
+-	if err != nil {
+-		resp.Diagnostics.AddError(
+-			"Error constructing assignment for Create Method",
+-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+-		)
+-		return
+-	}
+-
+-	_, err = r.client.
+-		DeviceManagement().
+-		ConfigurationPolicies().
+-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+-		Assign().
+-		Post(ctx, requestAssignment, nil)
++	if requestAssignment != nil {
++		_, err = r.client.
++			DeviceManagement().
++			ConfigurationPolicies().
++			ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
++			Assign().
++			Post(ctx, requestAssignment, nil)
++
++	}
+ 
+ 	if err != nil {
+ 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+@@ -173,6 +176,10 @@
+ 		return
+ 	}
+ 
++	if baseResource == nil || baseResource.GetId() == nil || *baseResource.GetId() != object.ID.ValueString() {
++		resp.Diagnostics.AddError("Incomplete Policy Observation", "The policy response must contain the requested immutable identity; no state was updated.")
++		return
++	}
+ 	MapRemoteResourceStateToTerraform(ctx, &object, baseResource)
+ 
+ 	settingsConfig := customrequest.GetRequestConfig{
+@@ -188,7 +195,7 @@
+ 
+ 	var settingsResponse []byte
+ 
+-	settingsResponse, err = customrequest.GetRequestByResourceId(
++	settingsResponse, err = customrequest.GetConfigurationPolicyCollection(
+ 		ctx,
+ 		r.client.GetAdapter(),
+ 		settingsConfig,
+@@ -199,22 +206,22 @@
+ 		return
+ 	}
+ 
+-	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
+-
+-	assignmentsResponse, err := r.client.
+-		DeviceManagement().
+-		ConfigurationPolicies().
+-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+-		Assignments().
+-		Get(ctx, nil)
+-
+-	if err != nil {
+-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+-		return
+-	}
+-
+-	if assignmentsResponse != nil {
+-		MapAssignmentsToTerraform(ctx, &object, assignmentsResponse.GetValue())
++	if err := sharedstater.StateConfigurationPolicySettingsStrict(ctx, &object, settingsResponse); err != nil {
++		resp.Diagnostics.AddError("Invalid settings observation", err.Error())
++		return
++	}
++
++	assignmentsConfig := settingsConfig
++	assignmentsConfig.EndpointSuffix = "/assignments"
++	assignmentsConfig.QueryParameters = nil
++	assignmentsResponse, err := customrequest.GetConfigurationPolicyCollection(ctx, r.client.GetAdapter(), assignmentsConfig)
++	if err != nil {
++		resp.Diagnostics.AddError("Incomplete assignments observation", err.Error())
++		return
++	}
++	if err := sharedstater.StateConfigurationPolicyAssignmentsStrict(ctx, &object, assignmentsResponse); err != nil {
++		resp.Diagnostics.AddError("Invalid assignments observation", err.Error())
++		return
+ 	}
+ 
+ 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+@@ -236,7 +243,7 @@
+ //   - Calls Read operation to fetch the latest state from the API with retry
+ //   - Updates the final state with the fresh data from the API
+ //
+-// The function ensures that both the settings and assignments are updated atomically,
++// The policy PUT and assignment POST are separate remote effects;
+ // and the final state reflects the actual state of the resource on the server.
+ func (r *SettingsCatalogJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+ 	var plan sharedmodels.SettingsCatalogJsonResourceModel
+@@ -261,6 +268,15 @@
+ 		resp.Diagnostics.AddError(
+ 			"Error constructing resource for Update Method",
+ 			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
++		)
++		return
++	}
++
++	requestAssignment, err := constructAssignment(ctx, &plan)
++	if err != nil {
++		resp.Diagnostics.AddError(
++			"Error constructing assignment for Create Method",
++			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+ 		)
+ 		return
+ 	}
+@@ -282,21 +298,15 @@
+ 		return
+ 	}
+ 
+-	requestAssignment, err := constructAssignment(ctx, &plan)
+-	if err != nil {
+-		resp.Diagnostics.AddError(
+-			"Error constructing assignment for Create Method",
+-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+-		)
+-		return
+-	}
+-
+-	_, err = r.client.
+-		DeviceManagement().
+-		ConfigurationPolicies().
+-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
+-		Assign().
+-		Post(ctx, requestAssignment, nil)
++	if requestAssignment != nil {
++		_, err = r.client.
++			DeviceManagement().
++			ConfigurationPolicies().
++			ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
++			Assign().
++			Post(ctx, requestAssignment, nil)
++
++	}
+ 
+ 	if err != nil {
+ 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+--- a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go
++++ b/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go
+@@ -6,7 +6,6 @@
+ 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+ 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+ 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+ 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
+ 	sharedValidators "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/graph_beta/device_management"
+ 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+@@ -170,10 +169,10 @@
+ 					"```\n\n",
+ 				Validators: []validator.String{
+ 					customValidator.JSONSchemaValidator(),
+-					sharedValidators.SettingsCatalogJSONValidator(),
+-				},
+-				PlanModifiers: []planmodifier.String{
+-					planmodifiers.NormalizeJSONPlanModifier{},
++					sharedValidators.StrictSettingsCatalogJSONValidator(),
++				},
++				PlanModifiers: []planmodifier.String{
++					planmodifiers.ExactSettingsJSONPlanModifier{},
+ 				},
+ 			},
+ 			"platforms": schema.StringAttribute{
+@@ -246,7 +245,7 @@
+ 				},
+ 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
+ 			},
+-			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
++			"assignments": selectedAssignmentsSchema(),
+ 			"timeouts":    commonschema.ResourceTimeouts(ctx),
+ 		},
+ 	}

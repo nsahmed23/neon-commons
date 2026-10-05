@@ -1,0 +1,52 @@
+test_cross_origin_backend_configuration_is_rejected_before_io (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_cross_origin_backend_configuration_is_rejected_before_io) ... ok
+test_expired_local_owner_cannot_release_new_remote_owner (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_expired_local_owner_cannot_release_new_remote_owner) ... ok
+test_release_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_release_token_exchange_budget_cannot_exceed_remaining_lease) ... FAIL
+test_renew_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_renew_token_exchange_budget_cannot_exceed_remaining_lease) ... FAIL
+test_same_role_concurrency_permits_one_acquisition_attempt (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_same_role_concurrency_permits_one_acquisition_attempt) ... ok
+test_same_secret_bytes_do_not_substitute_for_bound_credential_handle (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_same_secret_bytes_do_not_substitute_for_bound_credential_handle) ... ok
+test_storage_token_is_opaque_and_scope_route_are_fixed (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_storage_token_is_opaque_and_scope_route_are_fixed) ... ok
+test_successful_remote_acquire_with_lost_response_is_terminal_locally (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_successful_remote_acquire_with_lost_response_is_terminal_locally) ... ok
+test_successful_remote_release_with_lost_response_is_not_retried (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_successful_remote_release_with_lost_response_is_not_retried) ... ok
+test_successful_remote_renew_with_lost_response_never_restores_local_authority (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_successful_remote_renew_with_lost_response_never_restores_local_authority) ... ok
+test_connection_close_response_cannot_keep_worker_after_deadline (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_connection_close_response_cannot_keep_worker_after_deadline) ... 
+  test_connection_close_response_cannot_keep_worker_after_deadline (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_connection_close_response_cannot_keep_worker_after_deadline) (module='intune_iac.blob_lease') ... FAIL
+test_identity_caller_interrupt_cancels_delayed_connect (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_identity_caller_interrupt_cancels_delayed_connect) ... ok
+test_timeout_cannot_reconnect_and_send_after_caller_returns (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_timeout_cannot_reconnect_and_send_after_caller_returns) ... 
+  test_timeout_cannot_reconnect_and_send_after_caller_returns (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_timeout_cannot_reconnect_and_send_after_caller_returns) (module='intune_iac.blob_lease') ... FAIL
+
+======================================================================
+FAIL: test_release_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_release_token_exchange_budget_cannot_exceed_remaining_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_independent_v5.py", line 107, in test_release_token_exchange_budget_cannot_exceed_remaining_lease
+    self.assertLessEqual(self.tokens.calls[-1]['timeout'], 1)
+AssertionError: 5.0 not less than or equal to 1
+
+======================================================================
+FAIL: test_renew_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_renew_token_exchange_budget_cannot_exceed_remaining_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_independent_v5.py", line 98, in test_renew_token_exchange_budget_cannot_exceed_remaining_lease
+    self.assertLessEqual(self.tokens.calls[-1]['timeout'], 1.5)
+AssertionError: 5.0 not less than or equal to 1.5
+
+======================================================================
+FAIL: test_connection_close_response_cannot_keep_worker_after_deadline (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_connection_close_response_cannot_keep_worker_after_deadline) (module='intune_iac.blob_lease')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_independent_v5.py", line 320, in test_connection_close_response_cannot_keep_worker_after_deadline
+    self.assertFalse(alive_before_eof, 'Worker must not survive caller deadline until peer EOF')
+AssertionError: True is not false : Worker must not survive caller deadline until peer EOF
+
+======================================================================
+FAIL: test_timeout_cannot_reconnect_and_send_after_caller_returns (plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_timeout_cannot_reconnect_and_send_after_caller_returns) (module='intune_iac.blob_lease')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_independent_v5.py", line 271, in test_timeout_cannot_reconnect_and_send_after_caller_returns
+    self.assertNotIn('send', events, events)
+AssertionError: 'send' unexpectedly found in ['connect', 'shutdown', 'socket-close', 'caller-returned', 'connect', 'send', 'socket-close'] : ['connect', 'shutdown', 'socket-close', 'caller-returned', 'connect', 'send', 'socket-close']
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.176s
+
+FAILED (failures=4)

@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_full_verifier_failure_and_false_success_receipt_propagate (plugin_tests.test_ci_contract.CIContractTests.test_full_verifier_failure_and_false_success_receipt_propagate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 122, in test_full_verifier_failure_and_false_success_receipt_propagate
+    self.assertEqual(result.returncode == 0, mode == 'pass', (mode, result.stderr.decode()))
+AssertionError: True != False : ('boolean_counts', '')
+
+----------------------------------------------------------------------
+Ran 1 test in 0.232s
+
+FAILED (failures=1)

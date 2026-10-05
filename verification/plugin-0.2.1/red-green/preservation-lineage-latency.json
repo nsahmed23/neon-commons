@@ -1,0 +1,35 @@
+{
+  "scope": "Same local lineage function before/after record-index optimization; reconstructed pre-optimization function retained for review. Single samples, not service SLA.",
+  "current_function_sha256": "ee9326292ec46b0ca80a464493475db3fa846448d562c6157c0e59c1285a718f",
+  "prior_function_sha256": "009404008f544866d72dd70f5904516bc383e31034340935d1ff5cf10ba3d64f",
+  "measurements": [
+    {
+      "extra_unselected_records": 500,
+      "before_seconds": 0.053923006998957135,
+      "after_seconds": 0.00563904099908541,
+      "rows": 1128,
+      "equal": true
+    },
+    {
+      "extra_unselected_records": 1000,
+      "before_seconds": 0.12630011799774365,
+      "after_seconds": 0.011396177997085033,
+      "rows": 2128,
+      "equal": true
+    },
+    {
+      "extra_unselected_records": 2000,
+      "before_seconds": 0.45342112599973916,
+      "after_seconds": 0.02084752099835896,
+      "rows": 4128,
+      "equal": true
+    },
+    {
+      "extra_unselected_records": 5000,
+      "before_seconds": 2.6966025340007036,
+      "after_seconds": 0.057923662003304344,
+      "rows": 10128,
+      "equal": true
+    }
+  ]
+}

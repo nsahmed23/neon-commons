@@ -1,0 +1,268 @@
+test_independent_oracle_rejects_promoted_duplicate_uuid_capture (audit_regressions.PreservationAuditTests.test_independent_oracle_rejects_promoted_duplicate_uuid_capture) ... FAIL
+test_large_unselected_inventory_keeps_lineage_bounded (audit_regressions.PreservationAuditTests.test_large_unselected_inventory_keeps_lineage_bounded) ... ok
+test_node_budget_rejects_before_lineage_or_output_allocation (audit_regressions.PreservationAuditTests.test_node_budget_rejects_before_lineage_or_output_allocation) ... FAIL
+test_production_assignment_source_must_be_observed (audit_regressions.PreservationAuditTests.test_production_assignment_source_must_be_observed) ... FAIL
+test_production_lineage_accounts_for_destinations_and_retention (audit_regressions.PreservationAuditTests.test_production_lineage_accounts_for_destinations_and_retention) ... FAIL
+test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) ... 
+  test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='none') ... FAIL
+  test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='opaque_id') ... FAIL
+  test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='unsupported_policy') ... FAIL
+  test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='unsupported_body') ... FAIL
+  test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='denied') ... FAIL
+  test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='empty_assignments') ... FAIL
+test_synthetic_assignment_flag_disagreement_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_assignment_flag_disagreement_blocks_active_output) ... FAIL
+test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) ... 
+  test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) (kind=0) ... FAIL
+  test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) (kind=1) ... FAIL
+  test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) (kind=2) ... FAIL
+test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) ... 
+  test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count=True) ... FAIL
+  test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count='3') ... FAIL
+  test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count=-1) ... FAIL
+  test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count=None) ... FAIL
+test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets) ... FAIL
+test_synthetic_uuid_case_does_not_hide_duplicate_observations (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_observations) ... 
+  test_synthetic_uuid_case_does_not_hide_duplicate_observations (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_observations) (case='assignment_identity') ... FAIL
+  test_synthetic_uuid_case_does_not_hide_duplicate_observations (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_observations) (case='unselected_policy_identity') ... FAIL
+
+======================================================================
+FAIL: test_independent_oracle_rejects_promoted_duplicate_uuid_capture (audit_regressions.PreservationAuditTests.test_independent_oracle_rejects_promoted_duplicate_uuid_capture)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 86, in test_independent_oracle_rejects_promoted_duplicate_uuid_capture
+    self.assertIn('mapping_status_changed', compare_reference(json.dumps(source).encode(), promoted, context=context))
+AssertionError: 'mapping_status_changed' not found in []
+
+======================================================================
+FAIL: test_node_budget_rejects_before_lineage_or_output_allocation (audit_regressions.PreservationAuditTests.test_node_budget_rejects_before_lineage_or_output_allocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 104, in test_node_budget_rejects_before_lineage_or_output_allocation
+    normalize(source, context)
+  File "/workspace/scratch/26b6d364cfda/preservation-baseline-020/intune_iac/production.py", line 242, in normalize
+    'field_accounting':_accounting(source),'execution_authorized':False,'provider_qualified':False,'live_qualification':'not_run'}
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: must not expand ledger
+
+======================================================================
+FAIL: test_production_assignment_source_must_be_observed (audit_regressions.PreservationAuditTests.test_production_assignment_source_must_be_observed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 93, in test_production_assignment_source_must_be_observed
+    self.assertFalse(result['candidate_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_production_lineage_accounts_for_destinations_and_retention (audit_regressions.PreservationAuditTests.test_production_lineage_accounts_for_destinations_and_retention)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 173, in test_production_lineage_accounts_for_destinations_and_retention
+    self.assertEqual(row.get('disposition'), 'desired')
+AssertionError: None != 'desired'
+
+======================================================================
+FAIL: test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='none')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 160, in test_production_lineage_schema_and_destinations_hold_when_blocked
+    self.assertEqual(list(Draft202012Validator(schema).iter_errors(result['field_accounting'])), [])
+AssertionError: Lists differ: [<ValidationError: "'disposition' is a req[47057 chars]ty">] != []
+
+First list contains 768 additional elements.
+First extra element 0:
+<ValidationError: "'disposition' is a required property">
+
+Diff is 49413 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='opaque_id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 160, in test_production_lineage_schema_and_destinations_hold_when_blocked
+    self.assertEqual(list(Draft202012Validator(schema).iter_errors(result['field_accounting'])), [])
+AssertionError: Lists differ: [<ValidationError: "'disposition' is a req[47057 chars]ty">] != []
+
+First list contains 768 additional elements.
+First extra element 0:
+<ValidationError: "'disposition' is a required property">
+
+Diff is 49413 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='unsupported_policy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 160, in test_production_lineage_schema_and_destinations_hold_when_blocked
+    self.assertEqual(list(Draft202012Validator(schema).iter_errors(result['field_accounting'])), [])
+AssertionError: Lists differ: [<ValidationError: "'disposition' is a req[47425 chars]ty">] != []
+
+First list contains 774 additional elements.
+First extra element 0:
+<ValidationError: "'disposition' is a required property">
+
+Diff is 49799 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='unsupported_body')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 160, in test_production_lineage_schema_and_destinations_hold_when_blocked
+    self.assertEqual(list(Draft202012Validator(schema).iter_errors(result['field_accounting'])), [])
+AssertionError: Lists differ: [<ValidationError: "'disposition' is a req[47425 chars]ty">] != []
+
+First list contains 774 additional elements.
+First extra element 0:
+<ValidationError: "'disposition' is a required property">
+
+Diff is 49799 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='denied')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 160, in test_production_lineage_schema_and_destinations_hold_when_blocked
+    self.assertEqual(list(Draft202012Validator(schema).iter_errors(result['field_accounting'])), [])
+AssertionError: Lists differ: [<ValidationError: "'disposition' is a req[36385 chars]ty">] != []
+
+First list contains 594 additional elements.
+First extra element 0:
+<ValidationError: "'disposition' is a required property">
+
+Diff is 38219 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_production_lineage_schema_and_destinations_hold_when_blocked (audit_regressions.PreservationAuditTests.test_production_lineage_schema_and_destinations_hold_when_blocked) (mutation='empty_assignments')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 160, in test_production_lineage_schema_and_destinations_hold_when_blocked
+    self.assertEqual(list(Draft202012Validator(schema).iter_errors(result['field_accounting'])), [])
+AssertionError: Lists differ: [<ValidationError: "'disposition' is a req[36017 chars]ty">] != []
+
+First list contains 588 additional elements.
+First extra element 0:
+<ValidationError: "'disposition' is a required property">
+
+Diff is 37833 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_synthetic_assignment_flag_disagreement_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_assignment_flag_disagreement_blocks_active_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 43, in test_synthetic_assignment_flag_disagreement_blocks_active_output
+    self.synthetic(lambda s: s['collections'][0]['pages'][0]['body']['value'][0].update(isAssigned=False))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) (kind=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 35, in test_synthetic_contradictory_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][kind]['pages'][0]['body'].update({'@odata.count':99}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) (kind=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 35, in test_synthetic_contradictory_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][kind]['pages'][0]['body'].update({'@odata.count':99}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_contradictory_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_contradictory_count_blocks_active_output) (kind=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 35, in test_synthetic_contradictory_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][kind]['pages'][0]['body'].update({'@odata.count':99}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 40, in test_synthetic_malformed_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][2]['pages'][0]['body'].update({'@odata.count':count}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count='3')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 40, in test_synthetic_malformed_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][2]['pages'][0]['body'].update({'@odata.count':count}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count=-1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 40, in test_synthetic_malformed_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][2]['pages'][0]['body'].update({'@odata.count':count}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_malformed_count_blocks_active_output (audit_regressions.PreservationAuditTests.test_synthetic_malformed_count_blocks_active_output) (count=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 40, in test_synthetic_malformed_count_blocks_active_output
+    self.synthetic(lambda s: s['collections'][2]['pages'][0]['body'].update({'@odata.count':count}))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 73, in test_synthetic_uuid_case_does_not_hide_duplicate_assignment_targets
+    self.assertIn('duplicate_assignment_target', {b['code'] for b in result['blockers']})
+AssertionError: 'duplicate_assignment_target' not found in {'reference_missing_or_not_external'}
+
+======================================================================
+FAIL: test_synthetic_uuid_case_does_not_hide_duplicate_observations (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_observations) (case='assignment_identity')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 56, in test_synthetic_uuid_case_does_not_hide_duplicate_observations
+    result = self.synthetic(mutate)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_synthetic_uuid_case_does_not_hide_duplicate_observations (audit_regressions.PreservationAuditTests.test_synthetic_uuid_case_does_not_hide_duplicate_observations) (case='unselected_policy_identity')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 56, in test_synthetic_uuid_case_does_not_hide_duplicate_observations
+    result = self.synthetic(mutate)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_preservation_audit.py", line 27, in synthetic
+    self.assertFalse(result['normalized']['offline_mapping_complete'])
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 11 tests in 1.635s
+
+FAILED (failures=21)

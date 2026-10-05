@@ -1,0 +1,23 @@
+{
+  "blockers": [
+    {
+      "code": "capture_contract_violation",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "unfetched_next_page",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "incomplete_collection",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "required_assignments_incomplete",
+      "source_pointer": "/collections"
+    }
+  ],
+  "raw_values_location": "original restricted input; not copied here",
+  "schema_version": "1.0.0",
+  "source_canonical_sha256": "db7eaa048dea8f25ed767b14cf89dcd7ee22bcaff4e07811d975eb018e129363"
+}

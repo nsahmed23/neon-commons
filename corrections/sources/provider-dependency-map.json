@@ -1,0 +1,108 @@
+{
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "sdk_commit": "95df3921a4dd9a40c65dd24b26b96988bb1191d0",
+  "edges": [
+    {
+      "from": "resource.Schema(settings)",
+      "to": "SettingsCatalogJSONValidator",
+      "evidence": [
+        "P07",
+        "P01"
+      ],
+      "status": "reviewed"
+    },
+    {
+      "from": "resource.Schema(settings)",
+      "to": "NormalizeJSONPlanModifier",
+      "path": "internal/services/common/plan_modifiers/json.go",
+      "status": "path identified; exact pinned full function remains to acquire/review"
+    },
+    {
+      "from": "constructResource",
+      "to": "ConstructSettingsCatalogSettings/processSetting",
+      "evidence": [
+        "P02"
+      ],
+      "status": "core branch reviewed; remainder past line220 and shared typed structs remain"
+    },
+    {
+      "from": "processSetting",
+      "to": "SDK DeviceManagementConfigurationSetting.Serialize",
+      "evidence": [
+        "P11",
+        "P06"
+      ],
+      "status": "SDK version resolved and setting model reviewed"
+    },
+    {
+      "from": "SDK setting.Serialize",
+      "to": "Entity.Serialize/NewEntity + kiota JSON writer",
+      "status": "unreviewed transitive boundary",
+      "required": [
+        "models/entity.go at same SDK commit",
+        "serialization writer v1.1.4 exact commit and nil/default behavior",
+        "shared model JSON tags and omitempty behavior"
+      ]
+    },
+    {
+      "from": "Read(settings)",
+      "to": "custom GetRequestByResourceId",
+      "evidence": [
+        "P08"
+      ],
+      "status": "caller reviewed previously; pagination/headers helper not closed"
+    },
+    {
+      "from": "Read(settings)",
+      "to": "StateConfigurationPolicySettings/JSONAlphabetically",
+      "evidence": [
+        "P03",
+        "P04"
+      ],
+      "status": "reviewed; does not strip response wrapper fields"
+    },
+    {
+      "from": "normalizeSettingsCatalogJSONArray",
+      "to": "PreserveSecretSettings",
+      "evidence": [
+        "P03"
+      ],
+      "status": "not closed; secret setting types explicitly excluded from bounded reference"
+    },
+    {
+      "from": "Read(assignments)",
+      "to": "SDK Assignments.Get/GetValue",
+      "evidence": [
+        "P08"
+      ],
+      "status": "caller evidence only; pagination must be proven using full pinned helper/SDK path"
+    },
+    {
+      "from": "Update",
+      "to": "policy PUT then assign POST",
+      "evidence": [
+        "P08",
+        "P09"
+      ],
+      "status": "separate operations; service replace/merge and failure behavior unqualified"
+    },
+    {
+      "from": "resource.ModifyPlan",
+      "to": "placeholder only",
+      "evidence": [
+        "P05"
+      ],
+      "status": "reviewed"
+    }
+  ],
+  "build_versions": {
+    "go": "1.25.8",
+    "terraform_plugin_framework": "1.19.0",
+    "terraform_plugin_framework_validators": "0.19.0",
+    "msgraph_beta_sdk_go": "0.165.0",
+    "kiota_abstractions_go": "1.9.4",
+    "kiota_http_go": "1.5.6",
+    "kiota_serialization_json_go": "1.1.4"
+  },
+  "execution": "not run; no provider binary, dependency install, module download or live API"
+}

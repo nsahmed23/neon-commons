@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "describe",
+    "component",
+    "leaf",
+    "-s",
+    "qualification",
+    "--format",
+    "json",
+    "--process-functions=false",
+    "--process-templates=false"
+  ],
+  "cwd": "parity-null_shapes",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0,
+    1
+  ],
+  "name": "parity-null-shapes",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "6309b0bf302d941ef7bfe5103943c1064e21863e90e7518abee407255eb1ada7",
+  "tool": "atmos",
+  "transcript_complete": true
+}

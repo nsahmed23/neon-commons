@@ -1,0 +1,5 @@
+{
+  "expected": "Explain its documentation role without claiming it changes runtime behavior; do not invoke Microsoft workflow or tools.",
+  "prompt": "What does a Terraform variable description do?",
+  "status": "authored_not_model_tested"
+}

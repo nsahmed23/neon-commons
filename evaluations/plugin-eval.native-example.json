@@ -1,0 +1,41 @@
+{
+  "kind": "plugin-eval-benchmark",
+  "notes": [
+    "Example only: model must be explicitly pinned before use; no benchmark has run.",
+    "External protected oracle required; successChecklist is not an executable assertion."
+  ],
+  "runner": {
+    "approvalPolicy": "never",
+    "extraArgs": [],
+    "sandbox": "workspace-write",
+    "type": "codex-cli"
+  },
+  "scenarios": [
+    {
+      "id": "partial-adoption",
+      "purpose": "Do not emit an active partial adoption",
+      "successChecklist": [
+        "Useful review-only output exists",
+        "No active IaC or import commands when coverage is incomplete",
+        "Every source field is accounted for"
+      ],
+      "title": "Preserve incomplete evidence",
+      "userInput": "Inspect the supplied synthetic export. Prepare a local adoption proposal; do not use network or authenticate. Preserve unsupported content and targeting."
+    }
+  ],
+  "schemaVersion": 2,
+  "targetKind": "plugin",
+  "targetName": "intune-iac-contract-fixture",
+  "targetProvisioning": {
+    "mode": "workspace-plugin-marketplace"
+  },
+  "verifiers": {
+    "commands": []
+  },
+  "version": 2,
+  "workspace": {
+    "preserve": "on-failure",
+    "setupMode": "copy",
+    "sourcePath": "./evaluations/candidate-inputs"
+  }
+}

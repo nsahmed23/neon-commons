@@ -1,0 +1,16 @@
+F.
+======================================================================
+FAIL: test_planned_output_without_change_or_with_changed_value_blocks (plugin_tests.test_execution.OutputDenominatorTests.test_planned_output_without_change_or_with_changed_value_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 289, in test_planned_output_without_change_or_with_changed_value_blocks
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.005s
+
+FAILED (failures=1)

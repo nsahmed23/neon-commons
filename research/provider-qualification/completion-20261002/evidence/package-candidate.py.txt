@@ -1,0 +1,134 @@
+"""Session artifact packer: fixed inputs, bounded streaming verification, no install."""
+from pathlib import Path
+import hashlib
+import json
+import shutil
+import stat
+import zipfile
+
+ROOT=Path('/workspace/scratch/e2e4042ea5fd/work/intune-iac')
+EV=ROOT/'research/provider-qualification/completion-20261002/evidence'
+OUT=Path('/workspace/scratch/e2e4042ea5fd/deliverables')
+OUT.mkdir(exist_ok=True)
+ZIP=OUT/'Microsoft365_Provider_Candidate_Linux_AMD64.zip'
+PROVENANCE=json.loads((EV/'native-build-provenance.json').read_text())
+BINARY=Path(PROVENANCE['binary_path'])
+
+def digest(path):
+    h=hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda:stream.read(1024*1024),b''):h.update(chunk)
+    return h.hexdigest()
+
+assert digest(BINARY)==PROVENANCE['binary_sha256']
+native=json.loads((EV/'native-candidate-final/result.json').read_text())
+assert native['schema_rpc_qualified'] and native['hcl_validation_qualified']
+assert len(native['cases'])==13 and native['provider_sha256']==PROVENANCE['binary_sha256']
+stage=OUT/'provider-candidate-metadata'
+stage.mkdir(exist_ok=True)
+readme='''# Unpublished local provider candidate — Linux/AMD64
+
+This is an unpublished complete build of deploymenttheory/microsoft365 v1.0.0
+source commit 1718c946b3ae111bb44c7c1d925b3e35b708cb0a plus the included selected
+Settings Catalog JSON resource repair. Provider metadata version is dev.
+This is a review artifact, not a registry release or trusted installation.
+
+The exact included full binary passed native GetProviderSchema and all 13
+OpenTofu 1.10.0 HCL validation cases. A DIFFERENT, separate test-only provider
+containing the same repaired resource passed synthetic identity-preserving
+import, ordinary saved no-change, refresh-only saved no-change and empty-policy
+refusal checks. That fixture provider is not included here and no synthetic
+authentication switch was added to the production binary.
+
+Production provider Configure/authentication, authenticated tenant identity,
+live Graph behavior, Create/Update/Delete, assignment replacement/merge,
+response-loss recovery, secret settings, null-filter lifecycle, other clouds
+and other resource families remain UNQUALIFIED. Production generation remains
+inactive. No tenant mutation or publication was performed.
+
+Binary SHA256: '''+PROVENANCE['binary_sha256']+'''
+
+SHA256SUMS covers every payload member except itself. The external archive
+receipt additionally binds the ZIP, every member, compression/size limits and
+the streaming verification result. No installation or apply command is run
+by packaging or verification.
+
+Source: UPSTREAM_BUILD_INPUTS.tar.gz contains all 5,724 pinned original build
+inputs with MPL-2.0 LICENSE. SOURCE_PATCH.diff applies directly to those inputs.
+The source and candidate manifests bind each file; Go 1.25.8, unchanged go.mod/
+go.sum, all 113 acquired dependency pins, and the 66 actual embedded modules
+are recorded in the included inventory and build provenance. See the companion
+source repository labs/provider-contract and completion-20261002 report for
+bounded offline build and qualification runners plus RED/GREEN evidence.
+
+THIRD_PARTY_LICENSES.txt retains license/notice files found at the roots of
+embedded dependency modules; its final inventory names any missing roots.
+The Go inventory is project JSON, not an SPDX/CycloneDX or advisory-scan claim.
+'''
+(stage/'README.md').write_text(readme)
+
+stream=(EV/'go-list-pinned-modules.jsonstream').read_text();decoder=json.JSONDecoder();module_dirs={}
+while stream.strip():
+    stream=stream.lstrip();row,end=decoder.raw_decode(stream);stream=stream[end:]
+    module_dirs[row['Path']]=Path(row['Dir'])
+notices=[];missing=[]
+for module in PROVENANCE['embedded_modules']:
+    directory=module_dirs[module['Path']];found=[]
+    for path in sorted(directory.iterdir()):
+        if path.name.lower().startswith(('license','licence','copying','notice')) and path.is_file():
+            if not path.resolve().is_relative_to(directory.resolve()) or path.stat().st_size>1024*1024:raise ValueError('unsafe license member')
+            found.append(path.name)
+            notices.append('\n===== '+module['Path']+'@'+module['Version']+' / '+path.name+' =====\n'+path.read_text(errors='strict'))
+    if not found:missing.append(module['Path']+'@'+module['Version'])
+notices.append('\nMissing root license/notice files: '+json.dumps(missing)+'\n')
+(stage/'THIRD_PARTY_LICENSES.txt').write_text('\n'.join(notices))
+
+inputs={
+ 'terraform-provider-microsoft365':BINARY,
+ 'LICENSE':ROOT/'labs/provider-contract/completion/LICENSE',
+ 'README.md':stage/'README.md',
+ 'THIRD_PARTY_LICENSES.txt':stage/'THIRD_PARTY_LICENSES.txt',
+ 'provider-go-sbom.json':EV/'provider-go-sbom.json',
+ 'build-provenance.json':EV/'native-build-provenance.json',
+ 'native-validation.json':EV/'native-candidate-final/result.json',
+ 'go-buildinfo.txt':EV/'native-binary-go-buildinfo.txt',
+ 'UPSTREAM_BUILD_INPUTS.tar.gz':EV/'pinned-provider-build-inputs.tar.gz',
+ 'SOURCE_PATCH.diff':EV.parent/'0002-selected-resource-preservation.patch',
+ 'source-manifest.json':ROOT/'labs/provider-contract/full-source-manifest.json',
+ 'candidate-manifest.json':ROOT/'labs/provider-contract/completion-manifest.json',
+}
+hashes={name:digest(path) for name,path in inputs.items()}
+(stage/'SHA256SUMS').write_text(''.join(hashes[n]+'  '+n+'\n' for n in sorted(hashes)))
+inputs['SHA256SUMS']=stage/'SHA256SUMS';hashes['SHA256SUMS']=digest(inputs['SHA256SUMS'])
+temporary=ZIP.with_suffix('.zip.partial')
+with zipfile.ZipFile(temporary,'x',compression=zipfile.ZIP_DEFLATED,compresslevel=6,allowZip64=True) as archive:
+    for name in sorted(inputs):
+        info=zipfile.ZipInfo(name,(2026,10,2,0,0,0));info.create_system=3
+        info.external_attr=(stat.S_IFREG|(0o755 if name=='terraform-provider-microsoft365' else 0o644))<<16
+        info.compress_type=zipfile.ZIP_DEFLATED
+        with archive.open(info,'w',force_zip64=True) as target,inputs[name].open('rb') as source:
+            shutil.copyfileobj(source,target,1024*1024)
+if temporary.stat().st_size>256*1024*1024:raise ValueError('compressed archive exceeds bound')
+verified=[]
+with zipfile.ZipFile(temporary) as archive:
+    if len(archive.infolist())!=len(inputs) or set(archive.namelist())!=set(inputs):raise ValueError('unexpected archive members')
+    total=0
+    for member in archive.infolist():
+        limit=1024*1024*1024 if member.filename=='terraform-provider-microsoft365' else 8*1024*1024
+        if member.file_size>limit or stat.S_ISLNK(member.external_attr>>16) or member.flag_bits&1:raise ValueError('unsafe archive member')
+        h=hashlib.sha256();size=0
+        with archive.open(member) as stream:
+            for chunk in iter(lambda:stream.read(1024*1024),b''):
+                size+=len(chunk)
+                if size>limit:raise ValueError('expanded member exceeds bound')
+                h.update(chunk)
+        if h.hexdigest()!=hashes[member.filename] or size!=member.file_size:raise ValueError('member identity mismatch')
+        total+=size
+        if total>1100*1024*1024:raise ValueError('expanded archive exceeds total bound')
+        verified.append({'path':member.filename,'bytes':size,'sha256':h.hexdigest()})
+temporary.rename(ZIP)
+receipt={'status':'verified-bounded-candidate-archive','production_qualified':False,'production_provider_configure_qualified':False,'service_qualified':False,'artifact':str(ZIP),'bytes':ZIP.stat().st_size,'sha256':digest(ZIP),'source_commit':PROVENANCE['provider_commit'],'candidate_manifest_sha256':PROVENANCE['candidate_manifest_sha256'],'binary_sha256':PROVENANCE['binary_sha256'],'bounds':{'compressed_bytes':256*1024*1024,'binary_member_bytes':1024*1024*1024,'other_member_bytes':8*1024*1024,'expanded_total_bytes':1100*1024*1024,'fixed_member_count':len(inputs)},'verification':'Streamed every member, bounded expansion, exact name/size/SHA256, no extraction, no symlinks/encryption, no installation/execution','members':verified,'missing_root_dependency_licenses':missing,'packer_sha256':digest(Path(__file__))}
+data=json.dumps(receipt,indent=2)+'\n'
+(OUT/'Microsoft365_Provider_Candidate_Linux_AMD64.receipt.json').write_text(data)
+(EV/'candidate-archive-receipt.json').write_text(data)
+print(json.dumps({k:receipt[k] for k in ('status','bytes','sha256','binary_sha256')}))

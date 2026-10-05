@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "checks": [
+    "canonical_portable_schema",
+    "manifest_identity_version_parity",
+    "no_implicit_cloud_mcp_or_hooks",
+    "codex_skill_directory_exists",
+    "local_marketplace_resolves_package_root",
+    "skill_frontmatter_and_name",
+    "relocatable_skill_paths"
+  ],
+  "skill_words": 566,
+  "native_host_load": "not_run",
+  "schema_source": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "schema_sha256": "0a4aad95ce337878ad38802ebf0daa3fde76abe3f65400c86bcbb1ec0b3ab883",
+  "python": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+  "validation_modules": {
+    "jsonschema": "/workspace/scratch/26b6d364cfda/correction-validation-deps/jsonschema/__init__.py",
+    "yaml": "/workspace/scratch/26b6d364cfda/correction-validation-deps/yaml/__init__.py"
+  },
+  "launcher_exists": true,
+  "cli_help_checked": [
+    "root",
+    "verify",
+    "judge",
+    "wizard",
+    "generate",
+    "graph"
+  ],
+  "baseline": "Operational skill/manifests/marketplace/launcher were missing before authoring; fresh agent baseline unavailable because all slots occupied."
+}

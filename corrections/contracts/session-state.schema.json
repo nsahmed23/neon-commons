@@ -1,0 +1,443 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/corrections/2.0.0/session-state.schema.json",
+  "title": "session-state",
+  "description": "Original proposed bounded correction contract; not an official Microsoft/provider schema and not live-qualified.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "minLength": 36,
+      "maxLength": 36
+    },
+    "saved_state": {
+      "enum": [
+        "repository_inspection",
+        "source_selection",
+        "authorization_check",
+        "inventory",
+        "object_selection",
+        "ownership_detection",
+        "ownership_question",
+        "ownership_conflict",
+        "review_existing",
+        "provider_mapping",
+        "mapping_gap_decision",
+        "generation_dispatch",
+        "partial_generate",
+        "generate",
+        "file_conflict",
+        "local_validation",
+        "repair_generated",
+        "adoption_preview",
+        "commands_exported",
+        "user_review",
+        "qualification_handoff",
+        "receipt_validation",
+        "reconciliation_required",
+        "functional_change_proposal",
+        "adopted",
+        "complete_local",
+        "handoff_only",
+        "blocked_with_offline_alternative"
+      ]
+    },
+    "completed": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "repository",
+          "source",
+          "inventory",
+          "selection",
+          "ownership",
+          "mapping",
+          "generation",
+          "validation",
+          "review"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "fingerprints": {
+      "type": "object",
+      "properties": {
+        "repository_revision": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dirty_files_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_kind": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_locator_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "capture_contract_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exporter_contract_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "selected_ids_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ownership_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provider_source": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provider_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provider_lock_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "provider_schema_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "api_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "engine_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "atmos_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tenant_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cloud": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "component": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stack": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "backend_identity_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "identity_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generated_files_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cohort_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "configuration_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "plan_digest": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "repository_revision",
+        "dirty_files_digest",
+        "source_kind",
+        "source_locator_digest",
+        "source_digest",
+        "capture_contract_digest",
+        "exporter_contract_digest",
+        "selected_ids_digest",
+        "ownership_digest",
+        "provider_source",
+        "provider_version",
+        "provider_lock_digest",
+        "provider_schema_digest",
+        "api_version",
+        "engine_version",
+        "atmos_version",
+        "tenant_id",
+        "cloud",
+        "component",
+        "stack",
+        "backend_identity_digest",
+        "identity_digest",
+        "generated_files_digest",
+        "cohort_digest",
+        "configuration_digest",
+        "plan_digest"
+      ],
+      "additionalProperties": false
+    },
+    "mapping_status": {
+      "enum": [
+        "unknown",
+        "complete",
+        "partial",
+        "blocked"
+      ]
+    },
+    "in_flight_outcome": {
+      "enum": [
+        "none",
+        "unknown",
+        "succeeded",
+        "failed"
+      ]
+    },
+    "authorization_persisted": {
+      "const": false
+    },
+    "artifact_index": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "relative_path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*:)[A-Za-z0-9_.\\-/]+$"
+            },
+            "byte_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "relative_path",
+            "byte_sha256"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "session_id",
+    "saved_state",
+    "completed",
+    "fingerprints",
+    "mapping_status",
+    "in_flight_outcome",
+    "authorization_persisted",
+    "artifact_index"
+  ],
+  "additionalProperties": false
+}

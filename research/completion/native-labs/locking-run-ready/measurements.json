@@ -1,0 +1,165 @@
+{
+  "observations": {
+    "fichier_verrou": "etat/.projet.tfstate.lock.info",
+    "codes_pendant_verrou": {
+      "plan": 1,
+      "apply": 1,
+      "force_unlock": 1,
+      "state_list": 0,
+      "show_json": 0,
+      "plan_lock_false": 0
+    },
+    "verrou_residuel": {
+      "plan_rc": 0,
+      "fichier_subsiste": false
+    }
+  },
+  "lock": {
+    "ID": "3eb5f91d-0f2b-0cbe-93c2-6409f2ab8687",
+    "Operation": "OperationTypeApply",
+    "Info": "",
+    "Who": "root@0b1be51bf78f",
+    "Version": "1.10.0",
+    "Created": "2026-10-02T22:38:32.091335557Z",
+    "Path": "etat/projet.tfstate"
+  },
+  "residual_present_before_plan": true,
+  "lock_timeout": {
+    "arguments": [
+      "plan",
+      "-input=false",
+      "-no-color",
+      "-lock-timeout=1s"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 1.051,
+    "stdout": "Acquiring state lock. This may take a few moments...\n",
+    "stderr": "\nError: Error acquiring the state lock\n\nError message: resource temporarily unavailable\nLock Info:\n  ID:        3eb5f91d-0f2b-0cbe-93c2-6409f2ab8687\n  Path:      etat/projet.tfstate\n  Operation: OperationTypeApply\n  Who:       root@0b1be51bf78f\n  Version:   1.10.0\n  Created:   2026-10-02 22:38:32.091335557 +0000 UTC\n  Info:      \n\n\nOpenTofu acquires a state lock to protect the state from being written\nby multiple users at the same time. Please resolve the issue above and try\nagain. For most commands, you can disable locking with the \"-lock=false\"\nflag, but this is not recommended.\n"
+  },
+  "passed": true,
+  "commands": [
+    {
+      "arguments": [
+        "init",
+        "-input=false",
+        "-no-color"
+      ],
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 0.03,
+      "stdout": "\nInitializing the backend...\n\nSuccessfully configured the backend \"local\"! OpenTofu will automatically\nuse this backend unless the backend configuration changes.\n\nInitializing provider plugins...\n- terraform.io/builtin/terraform is built in to OpenTofu\n\nOpenTofu has been successfully initialized!\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "apply",
+        "-auto-approve",
+        "-input=false",
+        "-no-color"
+      ],
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 20.042,
+      "stdout": "\nOpenTofu used the selected providers to generate the following execution\nplan. Resource actions are indicated with the following symbols:\n  + create\n\nOpenTofu will perform the following actions:\n\n  # terraform_data.lent will be created\n  + resource \"terraform_data\" \"lent\" {\n      + id     = (known after apply)\n      + input  = \"verrouillage\"\n      + output = (known after apply)\n    }\n\nPlan: 1 to add, 0 to change, 0 to destroy.\nterraform_data.lent: Creating...\nterraform_data.lent: Provisioning with 'local-exec'...\nterraform_data.lent (local-exec): Executing: [\"/bin/sh\" \"-c\" \"sleep 20\"]\nterraform_data.lent: Still creating... [10s elapsed]\nterraform_data.lent: Still creating... [20s elapsed]\nterraform_data.lent: Creation complete after 20s [id=d7db095c-5007-fee8-3875-5cdeeabf2095]\n\nApply complete! Resources: 1 added, 0 changed, 0 destroyed.\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-lock-timeout=0s"
+      ],
+      "status": "completed",
+      "exit_code": 1,
+      "duration_seconds": 0.073,
+      "stdout": "",
+      "stderr": "\nError: Error acquiring the state lock\n\nError message: resource temporarily unavailable\nLock Info:\n  ID:        3eb5f91d-0f2b-0cbe-93c2-6409f2ab8687\n  Path:      etat/projet.tfstate\n  Operation: OperationTypeApply\n  Who:       root@0b1be51bf78f\n  Version:   1.10.0\n  Created:   2026-10-02 22:38:32.091335557 +0000 UTC\n  Info:      \n\n\nOpenTofu acquires a state lock to protect the state from being written\nby multiple users at the same time. Please resolve the issue above and try\nagain. For most commands, you can disable locking with the \"-lock=false\"\nflag, but this is not recommended.\n"
+    },
+    {
+      "arguments": [
+        "apply",
+        "-auto-approve",
+        "-input=false",
+        "-no-color"
+      ],
+      "status": "completed",
+      "exit_code": 1,
+      "duration_seconds": 0.038,
+      "stdout": "",
+      "stderr": "\nError: Error acquiring the state lock\n\nError message: resource temporarily unavailable\nLock Info:\n  ID:        3eb5f91d-0f2b-0cbe-93c2-6409f2ab8687\n  Path:      etat/projet.tfstate\n  Operation: OperationTypeApply\n  Who:       root@0b1be51bf78f\n  Version:   1.10.0\n  Created:   2026-10-02 22:38:32.091335557 +0000 UTC\n  Info:      \n\n\nOpenTofu acquires a state lock to protect the state from being written\nby multiple users at the same time. Please resolve the issue above and try\nagain. For most commands, you can disable locking with the \"-lock=false\"\nflag, but this is not recommended.\n"
+    },
+    {
+      "arguments": [
+        "force-unlock",
+        "-force",
+        "3eb5f91d-0f2b-0cbe-93c2-6409f2ab8687"
+      ],
+      "status": "completed",
+      "exit_code": 1,
+      "duration_seconds": 0.042,
+      "stdout": "",
+      "stderr": "\u001b[31mFailed to unlock state: LocalState not locked\u001b[0m\u001b[0m\n"
+    },
+    {
+      "arguments": [
+        "state",
+        "list"
+      ],
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 0.032,
+      "stdout": "terraform_data.lent\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "show",
+        "-json"
+      ],
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 0.039,
+      "stdout": "{\"format_version\":\"1.0\",\"terraform_version\":\"1.10.0\",\"values\":{\"root_module\":{\"resources\":[{\"address\":\"terraform_data.lent\",\"mode\":\"managed\",\"type\":\"terraform_data\",\"name\":\"lent\",\"provider_name\":\"terraform.io/builtin/terraform\",\"schema_version\":0,\"values\":{\"id\":\"d7db095c-5007-fee8-3875-5cdeeabf2095\",\"input\":\"verrouillage\",\"output\":\"verrouillage\",\"triggers_replace\":null},\"sensitive_values\":{}}]}}}\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-lock=false"
+      ],
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 0.047,
+      "stdout": "terraform_data.lent: Refreshing state... [id=d7db095c-5007-fee8-3875-5cdeeabf2095]\n\nNo changes. Your infrastructure matches the configuration.\n\nOpenTofu has compared your real infrastructure against your configuration and\nfound no differences, so no changes are needed.\n",
+      "stderr": ""
+    },
+    {
+      "arguments": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-lock-timeout=1s"
+      ],
+      "status": "completed",
+      "exit_code": 1,
+      "duration_seconds": 1.051,
+      "stdout": "Acquiring state lock. This may take a few moments...\n",
+      "stderr": "\nError: Error acquiring the state lock\n\nError message: resource temporarily unavailable\nLock Info:\n  ID:        3eb5f91d-0f2b-0cbe-93c2-6409f2ab8687\n  Path:      etat/projet.tfstate\n  Operation: OperationTypeApply\n  Who:       root@0b1be51bf78f\n  Version:   1.10.0\n  Created:   2026-10-02 22:38:32.091335557 +0000 UTC\n  Info:      \n\n\nOpenTofu acquires a state lock to protect the state from being written\nby multiple users at the same time. Please resolve the issue above and try\nagain. For most commands, you can disable locking with the \"-lock=false\"\nflag, but this is not recommended.\n"
+    },
+    {
+      "arguments": [
+        "plan",
+        "-input=false",
+        "-no-color"
+      ],
+      "status": "completed",
+      "exit_code": 0,
+      "duration_seconds": 0.047,
+      "stdout": "terraform_data.lent: Refreshing state... [id=a8b4f4e8-ddc3-846d-fd4b-97c8e6be9c53]\n\nNo changes. Your infrastructure matches the configuration.\n\nOpenTofu has compared your real infrastructure against your configuration and\nfound no differences, so no changes are needed.\n",
+      "stderr": ""
+    }
+  ]
+}

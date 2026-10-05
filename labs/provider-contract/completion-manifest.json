@@ -1,0 +1,81 @@
+{
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "provider_version": "1.0.0",
+  "production_qualified": false,
+  "scope": "unpublished selected settings-catalog JSON resource repair candidate with explicit dependency security updates; no provider RPC or live service acceptance",
+  "files": [
+    {
+      "path": "internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go",
+      "original_sha256": "d83762a75075227353358d10942aa9f1cb98e99176aafca00a04a417198f4926",
+      "candidate_sha256": "761e0d3668aec2dc51988e0fd86a34cb2f614294a2a02454effbc4d9493c2d25"
+    },
+    {
+      "path": "internal/services/common/custom_requests/bounded_collection.go",
+      "original_sha256": null,
+      "candidate_sha256": "b426b6775604bb9ceda9f356590fe54ee44651ee0d34639625b65f72cf86e2f7"
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/exact_settings_json.go",
+      "original_sha256": null,
+      "candidate_sha256": "15320f4a1a604071a60a6d4429c7e6d75bb11172d9e8ef33c1b0c7eae197ef16"
+    },
+    {
+      "path": "internal/services/common/settingsjson/settings.go",
+      "original_sha256": null,
+      "candidate_sha256": "437e222c4dc4fc67ed9175eaeddf271acafe7fda97613283e820a7cfd313bac2"
+    },
+    {
+      "path": "internal/services/common/state/graph_beta/device_management/configuration_policy_assignments.go",
+      "original_sha256": null,
+      "candidate_sha256": "5ee833c6b5455726b380beee1172bcd5e260d87e77f2e3c3d58736a82631ae7b"
+    },
+    {
+      "path": "internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go",
+      "original_sha256": "ada2233bd6661d1ee75cfbf1a1b4c1e67ee0c53e7364de982f482f45f92422f3",
+      "candidate_sha256": "df23fb607a7bf9162b267a1ac9bc002dae00fa8810e496d4d70c88ac7a1b8953"
+    },
+    {
+      "path": "internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go",
+      "original_sha256": "c24366ca472d871626393f76b855496e66df56d8aa18f9139f2aa533a27bda43",
+      "candidate_sha256": "4016c19ecd80b1bef8b8a07c3adc523b68f7b4d0399a2aeb5137946b74d25622"
+    },
+    {
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/assignment_schema.go",
+      "original_sha256": null,
+      "candidate_sha256": "6818dbd82ea026343f39ac038d9eb4e23ed84194b6f0a524439b31614a60423b"
+    },
+    {
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct.go",
+      "original_sha256": "cf004ff118f207ebbe3d87b22f3ea2d5f41ec0d8cdcec91f0f8c651e297a7da6",
+      "candidate_sha256": "f9abcc2d4c26f4f9106600c1409fc496233b8a094abe2fabb83498c78102e017"
+    },
+    {
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct_assignment.go",
+      "original_sha256": "ba7ca7a1bf3fe69658834f36c7bf7da1802258d3f741803c8c743e78199b16d6",
+      "candidate_sha256": "165f35955cdfefb0afbd0506892a1fb4599ed3edb85f5dbf21c17271344b714c"
+    },
+    {
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/crud.go",
+      "original_sha256": "69a166fae4b45da906bd6aae7df93c631ae00383940ff9e5edf21a327711b0d2",
+      "candidate_sha256": "636aebbd8b0909b9575a397139c328744d405b007151126d53547d024ad49950"
+    },
+    {
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go",
+      "original_sha256": "2c92913bd8f646cc8fc85c410efff901b8337ac9fc1017e29763fe47d167e1ae",
+      "candidate_sha256": "c24e3574a30a7e3ba407a7b2f03c02ddbe2c74e310506977ce07ecc758d8038a"
+    },
+    {
+      "path": "go.mod",
+      "original_sha256": "ab4dadbaf1a7b64e885dab04eb2f0ae2fec66ddd48f491745ad6b10f0f976231",
+      "candidate_sha256": "2e147bc8c78c6411cb6f7dc372634c73e32f0c2b61551312662e00dc80cb3bb7"
+    },
+    {
+      "path": "go.sum",
+      "original_sha256": "d1d7d337dad3e3aa39321051c60afb629ae1cd526a86f7d39df4619d94995211",
+      "candidate_sha256": "53bec5caed96271b80644d8def2b88922a2b3031be6ceaa753d326b24640072b"
+    }
+  ],
+  "epoch": "2026-10-04",
+  "go_version": "1.26.8",
+  "dependency_profile": "2026-10-04-reviewed-minimal-security-update"
+}

@@ -1,0 +1,34 @@
+E......................................FF
+======================================================================
+ERROR: test_absent_null_empty_distinct (evaluations.test_reference.ReferenceTests.test_absent_null_empty_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_reference.py", line 37, in test_absent_null_empty_distinct
+    n=normalize(b,P,T);self.assertEqual(n['observed']['policy']['description'],value)
+                                        ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'description'
+
+======================================================================
+FAIL: test_partial (evaluations.test_cli.Cli.test_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_cli.py", line 11, in test_partial
+    x=self.run_cli('partial',Path(d)/'out');self.assertEqual(x.returncode,2,x.stderr);self.assertTrue((Path(d)/'out/BLOCKED.json').is_file());self.assertEqual(list((Path(d)/'out').rglob('*.tf')),[])
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 2 : Input or local validation failed. Inspect locally; raw payload was not echoed.
+
+
+======================================================================
+FAIL: test_supported_and_rerun (evaluations.test_cli.Cli.test_supported_and_rerun)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_cli.py", line 8, in test_supported_and_rerun
+    x=self.run_cli('supported',Path(d)/'out');self.assertEqual(x.returncode,0,x.stderr);self.assertFalse(json.loads(x.stdout)['execution_authorized']);self.assertEqual(json.loads(self.run_cli('supported',Path(d)/'out').stdout)['result'],'unchanged')
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 0 : Input or local validation failed. Inspect locally; raw payload was not echoed.
+
+
+----------------------------------------------------------------------
+Ran 41 tests in 0.698s
+
+FAILED (failures=2, errors=1)

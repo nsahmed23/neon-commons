@@ -1,0 +1,27 @@
+.F....F...............
+======================================================================
+FAIL: test_collection_freezes_input_before_transport (plugin_tests.test_target.CollectionTests.test_collection_freezes_input_before_transport)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 268, in test_collection_freezes_input_before_transport
+    self.assertEqual(result['status'], 'observed')
+AssertionError: 'unavailable' != 'observed'
+- unavailable
++ observed
+
+
+======================================================================
+FAIL: test_post_connect_deadline_aborts_read_and_tls_is_verified (plugin_tests.test_target.CollectionTests.test_post_connect_deadline_aborts_read_and_tls_is_verified)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 254, in test_post_connect_deadline_aborts_read_and_tls_is_verified
+    self.assertEqual(result['status'], 'unavailable')
+AssertionError: 'observed' != 'unavailable'
+- observed
++ unavailable
+
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.124s
+
+FAILED (failures=2)

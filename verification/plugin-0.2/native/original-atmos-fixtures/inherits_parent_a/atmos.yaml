@@ -1,0 +1,26 @@
+base_path: .
+components:
+  terraform:
+    base_path: components/terraform
+    command: /nonexistent/qualification-disabled
+    auto_generate_backend_file: false
+    apply_auto_approve: false
+stacks:
+  base_path: stacks
+  included_paths:
+  - orgs/*
+  name_pattern: '{stage}'
+settings:
+  telemetry:
+    enabled: false
+  inject_github_token: false
+  inject_gitlab_token: false
+  inject_bitbucket_token: false
+version:
+  check:
+    enabled: false
+templates:
+  settings:
+    enabled: false
+logs:
+  level: 'Off'

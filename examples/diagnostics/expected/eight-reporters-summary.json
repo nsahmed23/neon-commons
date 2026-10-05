@@ -1,0 +1,12 @@
+{
+  "failed": 0,
+  "pending": 0,
+  "promotion_proven": false,
+  "reason": "Promotion needs organization thresholds, freshness and independent evidence; arithmetic alone is insufficient",
+  "reporting": 8,
+  "success_per_reporter": 1.0,
+  "success_per_target": 0.08,
+  "successful": 8,
+  "targeted": 100,
+  "unknown": 92
+}

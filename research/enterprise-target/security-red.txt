@@ -1,0 +1,225 @@
+............F.FFFFFFFFFFFFFFFFFFFFFFFFFF.........
+======================================================================
+FAIL: test_comparison_freezes_inputs_before_inspection (plugin_tests.test_target.TargetTests.test_comparison_freezes_inputs_before_inspection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 205, in test_comparison_freezes_inputs_before_inspection
+    self.assertEqual(result['status'], 'match')
+AssertionError: 'mismatch' != 'match'
+- mismatch
+? ---
++ match
+
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'tenant_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'identity', 'principal_object_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'identity', 'client_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'identity', 'federation', 'subject'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'git_revision'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'dirty_files_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'source_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'configuration_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'logical_stack'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'physical_stack'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'component'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'implementation_path'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'repository', 'runtime_layers_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'tenant_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'identity', 'principal_object_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'identity', 'client_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'identity', 'federation', 'subject'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'container'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'state_lineage'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'backend', 'state_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'ownership', 'writer_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'ownership', 'scope_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'ownership', 'lease_id'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'toolchain', 'atmos_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'toolchain', 'engine_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_control_suffix_in_every_string_leaf_is_rejected (plugin_tests.test_target.TargetTests.test_control_suffix_in_every_string_leaf_is_rejected) (path=('binding', 'toolchain', 'provider_lock_sha256'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 194, in test_control_suffix_in_every_string_leaf_is_rejected
+    self.assertFalse(target.inspect_target(document)['valid'])
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 24 tests in 0.214s
+
+FAILED (failures=27)

@@ -1,0 +1,26 @@
+test_existing_archive_and_receipt_are_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_existing_archive_and_receipt_are_preserved) ... 
+  test_existing_archive_and_receipt_are_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_existing_archive_and_receipt_are_preserved) (filename='Intune_IaC_Plugin_0.2.0.zip') ... FAIL
+  test_existing_archive_and_receipt_are_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_existing_archive_and_receipt_are_preserved) (filename='Intune_IaC_Plugin_Archive_Receipt.json') ... FAIL
+
+======================================================================
+FAIL: test_existing_archive_and_receipt_are_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_existing_archive_and_receipt_are_preserved) (filename='Intune_IaC_Plugin_0.2.0.zip')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 87, in test_existing_archive_and_receipt_are_preserved
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_existing_archive_and_receipt_are_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_existing_archive_and_receipt_are_preserved) (filename='Intune_IaC_Plugin_Archive_Receipt.json')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 87, in test_existing_archive_and_receipt_are_preserved
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.012s
+
+FAILED (failures=2)

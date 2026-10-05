@@ -1,0 +1,63 @@
+{
+  "schema_version": "identity-binding-verification/1.0",
+  "recorded_date": "2026-10-04",
+  "evidence_class": "synthetic_recorded_responses_and_mock_native_connection",
+  "live_service_calls": 0,
+  "execution_authorized": false,
+  "red": {
+    "command": "../../.venv/bin/python -m unittest plugin_tests.test_identity_binding_v5",
+    "exit_code": 1,
+    "reason": "Initial test suite preceded implementation; identity_binding module import failed."
+  },
+  "additional_red": {
+    "test": "test_duplicate_headers_and_header_total_bound",
+    "reason": "Missing aggregate header bound reached principal validation instead of failing response validation.",
+    "exit_code": 1
+  },
+  "green": {
+    "command": "../../.venv/bin/python -m unittest plugin_tests.test_identity_binding_v5 plugin_tests.test_target -q",
+    "identity_tests": 32,
+    "existing_target_tests": 24,
+    "total_tests": 56,
+    "exit_code": 0
+  },
+  "integrated_green": {
+    "command": "../../.venv/bin/python -m unittest plugin_tests.test_identity_binding_v5 plugin_tests.test_target plugin_tests.test_provider_journey_v5 plugin_tests.test_cli plugin_tests.test_cli_audit plugin_tests.test_completion_cli plugin_tests.test_approval_authority_v5 plugin_tests.test_approval_independent_v5 plugin_tests.test_provider_execution_v5 -q",
+    "total_tests": 158,
+    "skipped": 1,
+    "skip_reason": "Host denies AF_UNIX socket creation before the provider guard, so native provider RPC cannot be qualified.",
+    "exit_code": 0,
+    "journey_evidence": "24 tests of actual CLI prompts, real signatures and typed provider adapter; provider command responses modeled."
+  },
+  "covered": [
+    "explicit tenant client and object identities",
+    "independent provider and backend credential use",
+    "opaque non-JWT token acceptance",
+    "no ambient credential fallback or inherited provider environment",
+    "token expiry credential closure and reacquisition failure",
+    "Graph wrong client object and disabled principal",
+    "ARM wrong tenant subscription and disabled state",
+    "cross-origin storage endpoint and resource mismatch",
+    "redirect authentication permission and unavailable-service distinctions",
+    "state lineage serial hash ETag race and recheck drift",
+    "partial empty oversized malformed and duplicate-key responses",
+    "header duplicate and aggregate bounds",
+    "DNS-inclusive caller deadline with cancelled send suppression",
+    "environment trust-store override exclusion",
+    "redacted evidence repr and blocked serialization",
+    "JSON and laboratory values cannot become live authority",
+    "same-handle backend storage token acquisition and lifetime",
+    "caller interrupt cancels delayed credential dispatch",
+    "timeout cannot trigger automatic HTTP reconnect",
+    "detached Connection-close response socket is stopped and closed"
+  ],
+  "external_gates": [
+    "Real Entra client credentials exchange and service principal self reads",
+    "Live subscription and storage resource observations",
+    "Live state HEAD conditional GET conditional HEAD",
+    "Pinned provider execution with protected same-handle environment",
+    "Organizational issuer qualification native backend lock and writer ownership",
+    "Live Intune permission and readback qualification"
+  ],
+  "limitation": "Runner network socket creation is denied. Tests do not claim real tenant access, native external HTTP, or live authorization."
+}

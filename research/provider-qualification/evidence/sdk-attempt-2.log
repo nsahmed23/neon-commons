@@ -1,0 +1,5 @@
+{"ImportPath":"github.com/microsoftgraph/msgraph-beta-sdk-go/models","Action":"build-output","Output":"github.com/microsoftgraph/msgraph-beta-sdk-go/models: /workspace/scratch/26b6d364cfda/provider-contract-tools/go/pkg/tool/linux_amd64/compile: signal: killed\n"}
+{"ImportPath":"github.com/microsoftgraph/msgraph-beta-sdk-go/models","Action":"build-fail"}
+{"Time":"2026-10-01T08:48:12.087895994+09:00","Action":"start","Package":"github.com/deploymenttheory/terraform-provider-microsoft365"}
+{"Time":"2026-10-01T08:48:12.087971117+09:00","Action":"output","Package":"github.com/deploymenttheory/terraform-provider-microsoft365","Output":"FAIL\tgithub.com/deploymenttheory/terraform-provider-microsoft365 [build failed]\n"}
+{"Time":"2026-10-01T08:48:12.087985208+09:00","Action":"fail","Package":"github.com/deploymenttheory/terraform-provider-microsoft365","Elapsed":0,"FailedBuild":"github.com/microsoftgraph/msgraph-beta-sdk-go/models"}

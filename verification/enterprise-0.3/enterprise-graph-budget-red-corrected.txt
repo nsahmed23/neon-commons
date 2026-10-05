@@ -1,0 +1,35 @@
+test_large_unselected_payload_counts_toward_projection_work (plugin_tests.test_graph_budget.GraphBudgetTests.test_large_unselected_payload_counts_toward_projection_work) ... FAIL
+test_many_policy_projection_is_rejected_before_normalization (plugin_tests.test_graph_budget.GraphBudgetTests.test_many_policy_projection_is_rejected_before_normalization) ... FAIL
+test_small_node_count_cannot_hide_large_repeated_byte_work (plugin_tests.test_graph_budget.GraphBudgetTests.test_small_node_count_cannot_hide_large_repeated_byte_work) ... FAIL
+
+======================================================================
+FAIL: test_large_unselected_payload_counts_toward_projection_work (plugin_tests.test_graph_budget.GraphBudgetTests.test_large_unselected_payload_counts_toward_projection_work)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_graph_budget.py", line 39, in test_large_unselected_payload_counts_toward_projection_work
+    with self.assertRaisesRegex(AppError, 'complete capture intact'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_many_policy_projection_is_rejected_before_normalization (plugin_tests.test_graph_budget.GraphBudgetTests.test_many_policy_projection_is_rejected_before_normalization)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_graph_budget.py", line 27, in test_many_policy_projection_is_rejected_before_normalization
+    with self.assertRaisesRegex(AppError, 'complete capture intact'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_small_node_count_cannot_hide_large_repeated_byte_work (plugin_tests.test_graph_budget.GraphBudgetTests.test_small_node_count_cannot_hide_large_repeated_byte_work)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_graph_budget.py", line 50, in test_small_node_count_cannot_hide_large_repeated_byte_work
+    with self.assertRaisesRegex(AppError, 'complete capture intact'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.100s
+
+FAILED (failures=3)

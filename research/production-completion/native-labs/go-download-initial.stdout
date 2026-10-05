@@ -1,0 +1,80 @@
+{
+	"Path": "github.com/hashicorp/terraform-plugin-framework",
+	"Version": "v1.19.0",
+	"Info": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-framework/@v/v1.19.0.info",
+	"GoMod": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-framework/@v/v1.19.0.mod",
+	"Zip": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-framework/@v/v1.19.0.zip",
+	"Dir": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/github.com/hashicorp/terraform-plugin-framework@v1.19.0",
+	"Sum": "h1:q0bwyhxAOR3vfdgbk9iplv3MlTv/dhBHTXjQOtQDoBA=",
+	"GoModSum": "h1:YRXOBu0jvs7xp4AThBbX4mAzYaMJ1JgtFH//oGKxwLc=",
+	"Origin": {
+		"VCS": "git",
+		"URL": "https://github.com/hashicorp/terraform-plugin-framework",
+		"Hash": "c7ac25e86333d194946fb5e3fd1114e7d101fc23",
+		"Ref": "refs/tags/v1.19.0"
+	}
+}
+{
+	"Path": "github.com/hashicorp/terraform-plugin-framework-timeouts",
+	"Version": "v0.7.0",
+	"Info": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-framework-timeouts/@v/v0.7.0.info",
+	"GoMod": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-framework-timeouts/@v/v0.7.0.mod",
+	"Zip": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-framework-timeouts/@v/v0.7.0.zip",
+	"Dir": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/github.com/hashicorp/terraform-plugin-framework-timeouts@v0.7.0",
+	"Sum": "h1:jblRy1PkLfPm5hb5XeMa3tezusnMRziUGqtT5epSYoI=",
+	"GoModSum": "h1:5jm2XK8uqrdiSRfD5O47OoxyGMCnwTcl8eoiDgSa+tc=",
+	"Origin": {
+		"VCS": "git",
+		"URL": "https://github.com/hashicorp/terraform-plugin-framework-timeouts",
+		"Hash": "434ea26ba3129515ff095079979e0899d508ff48",
+		"Ref": "refs/tags/v0.7.0"
+	}
+}
+{
+	"Path": "github.com/hashicorp/terraform-plugin-log",
+	"Version": "v0.11.0",
+	"Info": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-log/@v/v0.11.0.info",
+	"GoMod": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-log/@v/v0.11.0.mod",
+	"Zip": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/hashicorp/terraform-plugin-log/@v/v0.11.0.zip",
+	"Dir": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/github.com/hashicorp/terraform-plugin-log@v0.11.0",
+	"Sum": "h1:WjhcpZIVqP8YRe83+dIZXncwSgtu4vh27i23G33PUQY=",
+	"GoModSum": "h1:XygBz8+m5kgwTb73MMyrnUjeNQeVWECEfg+h2opMsj0=",
+	"Origin": {
+		"VCS": "git",
+		"URL": "https://github.com/hashicorp/terraform-plugin-log",
+		"Hash": "dbd9e7ec261db03160c961915409d39d55d23d79",
+		"Ref": "refs/tags/v0.11.0"
+	}
+}
+{
+	"Path": "github.com/microsoft/kiota-abstractions-go",
+	"Version": "v1.9.4",
+	"Info": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/microsoft/kiota-abstractions-go/@v/v1.9.4.info",
+	"GoMod": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/microsoft/kiota-abstractions-go/@v/v1.9.4.mod",
+	"Zip": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/microsoft/kiota-abstractions-go/@v/v1.9.4.zip",
+	"Dir": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/github.com/microsoft/kiota-abstractions-go@v1.9.4",
+	"Sum": "h1:VI3UVzSCQHHhRswe3jyaAQHUQWIFhUMp0z5mtZbTbcs=",
+	"GoModSum": "h1:f06pl3qSyvUHEfVNkiRpXPkafx7khZqQEb71hN/pmuU=",
+	"Origin": {
+		"VCS": "git",
+		"URL": "https://github.com/microsoft/kiota-abstractions-go",
+		"Hash": "04b1989c307026ca54a132b41cbb487099c2823a",
+		"Ref": "refs/tags/v1.9.4"
+	}
+}
+{
+	"Path": "github.com/microsoft/kiota-serialization-json-go",
+	"Version": "v1.1.4",
+	"Info": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/microsoft/kiota-serialization-json-go/@v/v1.1.4.info",
+	"GoMod": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/microsoft/kiota-serialization-json-go/@v/v1.1.4.mod",
+	"Zip": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/cache/download/github.com/microsoft/kiota-serialization-json-go/@v/v1.1.4.zip",
+	"Dir": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-module-cache/github.com/microsoft/kiota-serialization-json-go@v1.1.4",
+	"Sum": "h1:XAhsBjxiunPgsPLLHEbuvAe81Q3wD1pNOE22Dq2CD3k=",
+	"GoModSum": "h1:HUTiYs9llTGLjh9+O+yOkBbNEaZ1kxh3sBPU5tPhmeI=",
+	"Origin": {
+		"VCS": "git",
+		"URL": "https://github.com/microsoft/kiota-serialization-json-go",
+		"Hash": "f3bc194a238ea40d19288b8a4966afff69bc0307",
+		"Ref": "refs/tags/v1.1.4"
+	}
+}

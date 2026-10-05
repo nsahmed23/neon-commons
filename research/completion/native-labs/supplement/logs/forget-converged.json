@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "plan",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "forget-converged",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "6042ecdfd3b8f896c054ea5a9280bc62187b344c33c9e42d508d988ea22daeec",
+  "tool": "tofu",
+  "transcript_complete": true
+}

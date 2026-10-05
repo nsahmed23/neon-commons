@@ -1,0 +1,35 @@
+{
+  "blockers": [
+    {
+      "code": "unsupported_source_field",
+      "source_pointer": "opaque:f_11755175296ca218926573c7"
+    },
+    {
+      "code": "unsupported_source_field",
+      "source_pointer": "opaque:f_20e33cfcd34dfda9ff71c34a"
+    },
+    {
+      "code": "capture_contract_violation",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "invalid_page_provenance",
+      "source_pointer": "/collections/2/pages/0"
+    },
+    {
+      "code": "missing_value_collection",
+      "source_pointer": "/collections/2/pages/0/body"
+    },
+    {
+      "code": "incomplete_collection",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "required_assignments_incomplete",
+      "source_pointer": "/collections"
+    }
+  ],
+  "raw_values_location": "original restricted input; not copied here",
+  "schema_version": "1.0.0",
+  "source_canonical_sha256": "849eeb2732b1fbb244082912ac0b10df0997049ad70a9cb0447e475d3c7d45a6"
+}

@@ -1,0 +1,49 @@
+[
+  {
+    "case": "valid",
+    "status": "accepted",
+    "production_approved": false
+  },
+  {
+    "case": "receipt_digest",
+    "status": "rejected",
+    "error_type": "ValueError",
+    "output_created": false
+  },
+  {
+    "case": "receipt_count",
+    "status": "rejected",
+    "error_type": "ValueError",
+    "output_created": false
+  },
+  {
+    "case": "source_mismatch",
+    "status": "rejected",
+    "error_type": "ValueError",
+    "output_created": false
+  },
+  {
+    "case": "existing_output",
+    "status": "rejected",
+    "error_type": "FileExistsError",
+    "output_created": true
+  },
+  {
+    "case": "symlink_output_parent",
+    "status": "rejected",
+    "error_type": "ValueError",
+    "output_created": false
+  },
+  {
+    "case": "duplicate_manifest",
+    "status": "rejected",
+    "error_type": "ValueError",
+    "output_created": false
+  },
+  {
+    "case": "prefix_collision",
+    "status": "rejected",
+    "error_type": "ValueError",
+    "output_created": false
+  }
+]

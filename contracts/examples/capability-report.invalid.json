@@ -1,0 +1,8 @@
+{
+  "blockers": [],
+  "execution_authorized": false,
+  "live_qualified": false,
+  "offline_mapping_complete": true,
+  "provider": "deploymenttheory/microsoft365",
+  "version": "1.0.0"
+}

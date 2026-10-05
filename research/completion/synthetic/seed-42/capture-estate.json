@@ -1,0 +1,489 @@
+{
+  "captured_at": "2026-09-30T12:00:00Z",
+  "cloud": "public",
+  "collections": [
+    {
+      "coverage": "complete",
+      "kind": "policies",
+      "owner_id": null,
+      "pages": [
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies?$skiptoken=synthetic-1",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+                "createdDateTime": "2026-09-30T12:00:00Z",
+                "description": "Seed 42; authored synthetic policy 0.",
+                "id": "45838776-e1bd-566b-a8c5-ad684107e7da",
+                "isAssigned": true,
+                "lastModifiedDateTime": "2026-09-30T12:00:00Z",
+                "name": "Privacy pilot 3",
+                "platforms": "windows10",
+                "roleScopeTagIds": [
+                  "0",
+                  "43"
+                ],
+                "settingCount": 1,
+                "technologies": "mdm",
+                "templateReference": {
+                  "templateDisplayName": null,
+                  "templateDisplayVersion": null,
+                  "templateFamily": "none",
+                  "templateId": ""
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+        },
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies?$skiptoken=synthetic-2",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+                "createdDateTime": "2026-09-30T12:00:00Z",
+                "description": "Seed 42; authored synthetic policy 1.",
+                "id": "8d187561-e16b-5339-81c7-43989cdd0355",
+                "isAssigned": true,
+                "lastModifiedDateTime": "2026-09-30T12:00:00Z",
+                "name": "Privacy pilot 3",
+                "platforms": "windows10",
+                "roleScopeTagIds": [
+                  "0",
+                  "43"
+                ],
+                "settingCount": 1,
+                "technologies": "mdm",
+                "templateReference": {
+                  "templateDisplayName": null,
+                  "templateDisplayVersion": null,
+                  "templateFamily": "none",
+                  "templateId": ""
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies?$skiptoken=synthetic-1"
+        },
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+                "createdDateTime": "2026-09-30T12:00:00Z",
+                "description": "Seed 42; authored synthetic policy 2.",
+                "id": "6bdb7289-60dd-52fb-85f7-5b03dbb74f76",
+                "isAssigned": true,
+                "lastModifiedDateTime": "2026-09-30T12:00:00Z",
+                "name": "Privacy pilot 3",
+                "platforms": "windows10",
+                "roleScopeTagIds": [
+                  "0",
+                  "43"
+                ],
+                "settingCount": 1,
+                "technologies": "mdm",
+                "templateReference": {
+                  "templateDisplayName": null,
+                  "templateDisplayVersion": null,
+                  "templateFamily": "none",
+                  "templateId": ""
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies?$skiptoken=synthetic-2"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "coverage": "complete",
+      "kind": "settings",
+      "owner_id": "45838776-e1bd-566b-a8c5-ad684107e7da",
+      "pages": [
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+                "id": "0",
+                "settingInstance": {
+                  "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "choiceSettingValue": {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                    "children": [],
+                    "settingValueTemplateReference": null,
+                    "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+                  },
+                  "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                  "settingInstanceTemplateReference": null
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/45838776-e1bd-566b-a8c5-ad684107e7da/settings"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "coverage": "complete",
+      "kind": "assignments",
+      "owner_id": "45838776-e1bd-566b-a8c5-ad684107e7da",
+      "pages": [
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/45838776-e1bd-566b-a8c5-ad684107e7da/assignments?$skiptoken=synthetic-1",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "320e6c1e-977d-547c-b900-7eb1dae522f4",
+                "target": {
+                  "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+                  "deviceAndAppManagementAssignmentFilterType": "include",
+                  "groupId": "19a6259c-7b94-5d3f-951b-99798d108c22"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/45838776-e1bd-566b-a8c5-ad684107e7da/assignments"
+        },
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/45838776-e1bd-566b-a8c5-ad684107e7da/assignments?$skiptoken=synthetic-2",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "db196e99-b5b1-56e5-8ec5-5dba4f5d9b21",
+                "target": {
+                  "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": null,
+                  "deviceAndAppManagementAssignmentFilterType": "none",
+                  "groupId": "36569b28-b6bc-5633-9940-3ea825cc9d19"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/45838776-e1bd-566b-a8c5-ad684107e7da/assignments?$skiptoken=synthetic-1"
+        },
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "a3b69dc5-f9e5-5f84-8878-0b121524e505",
+                "target": {
+                  "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": null,
+                  "deviceAndAppManagementAssignmentFilterType": "none",
+                  "groupId": "b8930cfe-aaa4-56a9-9676-13874e2fb14a"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/45838776-e1bd-566b-a8c5-ad684107e7da/assignments?$skiptoken=synthetic-2"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "coverage": "complete",
+      "kind": "settings",
+      "owner_id": "8d187561-e16b-5339-81c7-43989cdd0355",
+      "pages": [
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+                "id": "0",
+                "settingInstance": {
+                  "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "choiceSettingValue": {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                    "children": [],
+                    "settingValueTemplateReference": null,
+                    "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+                  },
+                  "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                  "settingInstanceTemplateReference": null
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/8d187561-e16b-5339-81c7-43989cdd0355/settings"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "coverage": "complete",
+      "kind": "assignments",
+      "owner_id": "8d187561-e16b-5339-81c7-43989cdd0355",
+      "pages": [
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/8d187561-e16b-5339-81c7-43989cdd0355/assignments?$skiptoken=synthetic-1",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "434ecd89-0e08-5d04-9249-22e170a2ba1c",
+                "target": {
+                  "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+                  "deviceAndAppManagementAssignmentFilterType": "include",
+                  "groupId": "19a6259c-7b94-5d3f-951b-99798d108c22"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/8d187561-e16b-5339-81c7-43989cdd0355/assignments"
+        },
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/8d187561-e16b-5339-81c7-43989cdd0355/assignments?$skiptoken=synthetic-2",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "5760d37b-0f47-5248-8f9e-6e739d9fddc3",
+                "target": {
+                  "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": null,
+                  "deviceAndAppManagementAssignmentFilterType": "none",
+                  "groupId": "36569b28-b6bc-5633-9940-3ea825cc9d19"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/8d187561-e16b-5339-81c7-43989cdd0355/assignments?$skiptoken=synthetic-1"
+        },
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "aa9bebba-90f8-50d5-a76d-2c68b1a1bcde",
+                "target": {
+                  "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": null,
+                  "deviceAndAppManagementAssignmentFilterType": "none",
+                  "groupId": "b8930cfe-aaa4-56a9-9676-13874e2fb14a"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/8d187561-e16b-5339-81c7-43989cdd0355/assignments?$skiptoken=synthetic-2"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "coverage": "complete",
+      "kind": "settings",
+      "owner_id": "6bdb7289-60dd-52fb-85f7-5b03dbb74f76",
+      "pages": [
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+                "id": "0",
+                "settingInstance": {
+                  "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "choiceSettingValue": {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                    "children": [],
+                    "settingValueTemplateReference": null,
+                    "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+                  },
+                  "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                  "settingInstanceTemplateReference": null
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/6bdb7289-60dd-52fb-85f7-5b03dbb74f76/settings"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "coverage": "complete",
+      "kind": "assignments",
+      "owner_id": "6bdb7289-60dd-52fb-85f7-5b03dbb74f76",
+      "pages": [
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/6bdb7289-60dd-52fb-85f7-5b03dbb74f76/assignments?$skiptoken=synthetic-1",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "48d162ae-bf58-5d6e-95af-f6f5e9621f95",
+                "target": {
+                  "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+                  "deviceAndAppManagementAssignmentFilterType": "include",
+                  "groupId": "19a6259c-7b94-5d3f-951b-99798d108c22"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/6bdb7289-60dd-52fb-85f7-5b03dbb74f76/assignments"
+        },
+        {
+          "body": {
+            "@odata.nextLink": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/6bdb7289-60dd-52fb-85f7-5b03dbb74f76/assignments?$skiptoken=synthetic-2",
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "f769899e-7b20-5361-92c3-b82b4e6d49b4",
+                "target": {
+                  "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": null,
+                  "deviceAndAppManagementAssignmentFilterType": "none",
+                  "groupId": "36569b28-b6bc-5633-9940-3ea825cc9d19"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/6bdb7289-60dd-52fb-85f7-5b03dbb74f76/assignments?$skiptoken=synthetic-1"
+        },
+        {
+          "body": {
+            "value": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
+                "id": "10b02b75-9ff5-5ec6-b99c-b5d79e18987d",
+                "target": {
+                  "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+                  "deviceAndAppManagementAssignmentFilterId": null,
+                  "deviceAndAppManagementAssignmentFilterType": "none",
+                  "groupId": "b8930cfe-aaa4-56a9-9676-13874e2fb14a"
+                }
+              }
+            ]
+          },
+          "captured_at": "2026-09-30T12:00:00Z",
+          "http_status": 200,
+          "method": "GET",
+          "request_url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/6bdb7289-60dd-52fb-85f7-5b03dbb74f76/assignments?$skiptoken=synthetic-2"
+        }
+      ],
+      "reason": null
+    }
+  ],
+  "exporter": {
+    "id": "appendix-b-graph-snapshot",
+    "version": "1.0.0"
+  },
+  "ownership": [
+    {
+      "adoption_intent": "propose_only",
+      "current_writer": null,
+      "object_id": "45838776-e1bd-566b-a8c5-ad684107e7da"
+    },
+    {
+      "adoption_intent": "propose_only",
+      "current_writer": null,
+      "object_id": "8d187561-e16b-5339-81c7-43989cdd0355"
+    },
+    {
+      "adoption_intent": "propose_only",
+      "current_writer": null,
+      "object_id": "6bdb7289-60dd-52fb-85f7-5b03dbb74f76"
+    }
+  ],
+  "references": [
+    {
+      "captured_at": "2026-09-30T12:00:00Z",
+      "coverage": "complete",
+      "id": "19a6259c-7b94-5d3f-951b-99798d108c22",
+      "kind": "group",
+      "ownership": "external"
+    },
+    {
+      "captured_at": "2026-09-30T12:00:00Z",
+      "coverage": "complete",
+      "id": "36569b28-b6bc-5633-9940-3ea825cc9d19",
+      "kind": "group",
+      "ownership": "external"
+    },
+    {
+      "captured_at": "2026-09-30T12:00:00Z",
+      "coverage": "complete",
+      "id": "b8930cfe-aaa4-56a9-9676-13874e2fb14a",
+      "kind": "group",
+      "ownership": "external"
+    },
+    {
+      "captured_at": "2026-09-30T12:00:00Z",
+      "coverage": "complete",
+      "id": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+      "kind": "filter",
+      "ownership": "external"
+    },
+    {
+      "captured_at": "2026-09-30T12:00:00Z",
+      "coverage": "complete",
+      "id": "0",
+      "kind": "scope_tag",
+      "ownership": "external"
+    },
+    {
+      "captured_at": "2026-09-30T12:00:00Z",
+      "coverage": "complete",
+      "id": "43",
+      "kind": "scope_tag",
+      "ownership": "external"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "synthetic": true,
+  "tenant_id": "ca8a8057-a15f-5caa-8979-0090cd1bc11b"
+}

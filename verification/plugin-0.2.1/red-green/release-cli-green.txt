@@ -1,0 +1,17 @@
+test_concurrent_output_creation_is_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_concurrent_output_creation_is_preserved) ... ok
+test_existing_archive_and_receipt_are_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_existing_archive_and_receipt_are_preserved) ... ok
+test_generated_hash_manifest_name_is_reserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_generated_hash_manifest_name_is_reserved) ... ok
+test_manifest_parent_traversal_is_rejected (plugin_tests.test_release_audit.ReleaseAuditTests.test_manifest_parent_traversal_is_rejected) ... ok
+test_missing_manifest_is_not_recursive_fallback (plugin_tests.test_release_audit.ReleaseAuditTests.test_missing_manifest_is_not_recursive_fallback) ... ok
+test_output_symlink_into_checkout_is_rejected_before_writes (plugin_tests.test_release_audit.ReleaseAuditTests.test_output_symlink_into_checkout_is_rejected_before_writes) ... ok
+test_runtime_and_source_use_same_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_runtime_and_source_use_same_snapshot) ... ok
+test_swapped_source_symlink_never_enters_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_swapped_source_symlink_never_enters_snapshot) ... ok
+test_symlinked_runtime_parent_is_rejected (plugin_tests.test_release_audit.ReleaseAuditTests.test_symlinked_runtime_parent_is_rejected) ... ok
+test_unlisted_local_data_does_not_enter_source_archive (plugin_tests.test_release_audit.ReleaseAuditTests.test_unlisted_local_data_does_not_enter_source_archive) ... ok
+test_missing_dependencies_uses_documented_exit_five (plugin_tests.test_cli_audit.CliAuditTests.test_missing_dependencies_uses_documented_exit_five) ... ok
+test_nested_missing_dependencies_uses_exit_five (plugin_tests.test_cli_audit.CliAuditTests.test_nested_missing_dependencies_uses_exit_five) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.020s
+
+OK

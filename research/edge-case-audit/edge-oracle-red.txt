@@ -1,0 +1,29 @@
+FF.F
+======================================================================
+FAIL: test_duplicate_json_member_rejected_even_if_last_value_correct (plugin_tests.test_oracle_edge_types.OracleArtifactEdgeTests.test_duplicate_json_member_rejected_even_if_last_value_correct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_oracle_edge_types.py", line 40, in test_duplicate_json_member_rejected_even_if_last_value_correct
+    self.assertIn('generated_json_invalid', self.check(files))
+AssertionError: 'generated_json_invalid' not found in []
+
+======================================================================
+FAIL: test_numeric_command_effect_is_not_boolean (plugin_tests.test_oracle_edge_types.OracleArtifactEdgeTests.test_numeric_command_effect_is_not_boolean)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_oracle_edge_types.py", line 34, in test_numeric_command_effect_is_not_boolean
+    self.assertIn('generated_command_contract_changed', self.check(files))
+AssertionError: 'generated_command_contract_changed' not found in []
+
+======================================================================
+FAIL: test_yaml_zero_is_not_boolean_false (plugin_tests.test_oracle_edge_types.OracleArtifactEdgeTests.test_yaml_zero_is_not_boolean_false)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_oracle_edge_types.py", line 46, in test_yaml_zero_is_not_boolean_false
+    self.assertIn('generated_stack_guard_changed', self.check(files))
+AssertionError: 'generated_stack_guard_changed' not found in []
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.263s
+
+FAILED (failures=3)

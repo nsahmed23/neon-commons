@@ -1,0 +1,12 @@
+{
+  "tool": "OpenTofu",
+  "version": "1.10.0",
+  "archive_sha256": "ff8aebfd069f15f3f9ba7814444c8cae05428314c2ded0faedb9d040f6936cdb",
+  "matches_release_checksums": true,
+  "matches_github_asset_digest": true,
+  "extracted_binary_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+  "signature_verified": true,
+  "signer_fingerprint": "E3E6E43D84CB852EADB0051D0C0AF313E5FD9F80",
+  "signer_key_source": "https://get.opentofu.org/opentofu.gpg",
+  "independent_key_identity_certification": false
+}

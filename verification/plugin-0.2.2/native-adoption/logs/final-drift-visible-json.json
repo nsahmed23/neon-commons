@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "final-drift-visible.tfplan"
+  ],
+  "cwd": "repository/components/terraform/policy",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "final-drift-visible-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "b459fe7b374826f67064d813c4158b18d000bee77e9af49d3d4ad953b59bb1a2",
+  "tool": "tofu",
+  "transcript_complete": true
+}

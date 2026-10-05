@@ -1,0 +1,332 @@
+{
+  "assumptions": [
+    "Transitions are atomic; durable consume/start/readback/receipt records survive crashes.",
+    "A crash loses in-process authority and retains the durable lock and remote outcome.",
+    "Lock acquisition is atomic; filesystem, storage and OS are trusted.",
+    "The external write settles before recovery observation; no delayed in-flight effects.",
+    "Readback is accurate; the modeled remote value is observable and has no unmodeled writers.",
+    "One immutable operation/grant identity per writer; new operations and expiry are outside scope.",
+    "Safety only; fairness, availability, starvation and eventual completion are not proved."
+  ],
+  "bounds": {
+    "crashes_per_writer": 1,
+    "immutable_grant_identities_per_writer": 1,
+    "maximum_transitions_per_trace": 18,
+    "writers": 2
+  },
+  "intended_model": {
+    "positive_witnesses": {
+      "both_writers_complete": [
+        "w0:grant",
+        "w0:lock",
+        "w0:consume",
+        "w0:start",
+        "w0:remote-write",
+        "w0:readback",
+        "w0:receipt",
+        "w0:complete",
+        "w1:grant",
+        "w1:lock",
+        "w1:consume",
+        "w1:start",
+        "w1:remote-write",
+        "w1:readback",
+        "w1:receipt",
+        "w1:complete"
+      ],
+      "completion_after_uncertain_write_and_fresh_readback": [
+        "w0:grant",
+        "w0:lock",
+        "w0:consume",
+        "w0:start",
+        "w0:remote-write",
+        "w0:crash",
+        "w0:restart",
+        "w0:recover-readback",
+        "w0:receipt",
+        "w0:complete"
+      ],
+      "uncertain_no_effect_closed_without_retry": [
+        "w0:grant",
+        "w0:lock",
+        "w0:consume",
+        "w0:start",
+        "w0:crash",
+        "w0:restart",
+        "w0:recover-no-effect"
+      ]
+    },
+    "states_at_depth_bound": 26,
+    "states_by_minimum_depth": {
+      "0": 1,
+      "1": 2,
+      "2": 5,
+      "3": 10,
+      "4": 15,
+      "5": 22,
+      "6": 29,
+      "7": 38,
+      "8": 45,
+      "9": 48,
+      "10": 53,
+      "11": 48,
+      "12": 46,
+      "13": 44,
+      "14": 37,
+      "15": 36,
+      "16": 32,
+      "17": 28,
+      "18": 26
+    },
+    "states_discovered": 565,
+    "status": "PASS_WITHIN_BOUND",
+    "transition_coverage": {
+      "complete": 50,
+      "consume": 40,
+      "crash": 188,
+      "grant": 136,
+      "lock": 40,
+      "readback": 36,
+      "receipt": 52,
+      "recover-no-effect": 20,
+      "recover-readback": 36,
+      "remote-write": 40,
+      "restart": 76,
+      "restart-close": 108,
+      "start": 40,
+      "verify-receipt": 16
+    },
+    "transitions_examined": 878,
+    "variant": "intended"
+  },
+  "method": "breadth-first exhaustive reachable-state exploration with state deduplication",
+  "not_established": [
+    "Correspondence with Python implementation",
+    "OS/filesystem isolation",
+    "real distributed-storage or Graph semantics",
+    "unbounded safety/liveness"
+  ],
+  "schema_version": "independent-protocol-model/1",
+  "source_sha256": "bbca0147de5696305b3828a492b062788cca42a183cd358284f3f541a90cef25",
+  "status": "PASS",
+  "weakened_controls": [
+    {
+      "counterexample": [
+        "w0:grant",
+        "w0:lock",
+        "w1:grant",
+        "w1:lock"
+      ],
+      "counterexample_length": 4,
+      "final_state": {
+        "locks": [
+          0,
+          1
+        ],
+        "remote_value": -1,
+        "writers": [
+          {
+            "automatic_retry": false,
+            "consumed": false,
+            "crashes": 0,
+            "dispatches": 0,
+            "effect": false,
+            "grant": true,
+            "phase": "locked",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": false,
+            "success": false
+          },
+          {
+            "automatic_retry": false,
+            "consumed": false,
+            "crashes": 0,
+            "dispatches": 0,
+            "effect": false,
+            "grant": true,
+            "phase": "locked",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": false,
+            "success": false
+          }
+        ]
+      },
+      "states_discovered": 43,
+      "status": "COUNTEREXAMPLE",
+      "transitions_examined": 62,
+      "variant": "nonexclusive_lock",
+      "violated_invariants": [
+        "lock_exclusivity"
+      ]
+    },
+    {
+      "counterexample": [
+        "w0:grant",
+        "w0:lock",
+        "w0:consume",
+        "w0:start",
+        "w0:crash",
+        "w0:restart",
+        "w0:explicit-regrant-consumed-ID",
+        "w0:lock",
+        "w0:consume",
+        "w0:start"
+      ],
+      "counterexample_length": 10,
+      "final_state": {
+        "locks": [
+          0
+        ],
+        "remote_value": -1,
+        "writers": [
+          {
+            "automatic_retry": false,
+            "consumed": true,
+            "crashes": 1,
+            "dispatches": 2,
+            "effect": false,
+            "grant": true,
+            "phase": "started",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": true,
+            "success": false
+          },
+          {
+            "automatic_retry": false,
+            "consumed": false,
+            "crashes": 0,
+            "dispatches": 0,
+            "effect": false,
+            "grant": false,
+            "phase": "idle",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": false,
+            "success": false
+          }
+        ]
+      },
+      "states_discovered": 333,
+      "status": "COUNTEREXAMPLE",
+      "transitions_examined": 564,
+      "variant": "replay_consumed_grant",
+      "violated_invariants": [
+        "at_most_once_dispatch_per_grant"
+      ]
+    },
+    {
+      "counterexample": [
+        "w0:grant",
+        "w0:lock",
+        "w0:consume",
+        "w0:start",
+        "w0:crash",
+        "w0:restart",
+        "w0:automatic-retry-dispatch"
+      ],
+      "counterexample_length": 7,
+      "final_state": {
+        "locks": [
+          0
+        ],
+        "remote_value": -1,
+        "writers": [
+          {
+            "automatic_retry": true,
+            "consumed": true,
+            "crashes": 1,
+            "dispatches": 2,
+            "effect": false,
+            "grant": true,
+            "phase": "started",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": true,
+            "success": false
+          },
+          {
+            "automatic_retry": false,
+            "consumed": false,
+            "crashes": 0,
+            "dispatches": 0,
+            "effect": false,
+            "grant": false,
+            "phase": "idle",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": false,
+            "success": false
+          }
+        ]
+      },
+      "states_discovered": 136,
+      "status": "COUNTEREXAMPLE",
+      "transitions_examined": 223,
+      "variant": "automatic_uncertain_retry",
+      "violated_invariants": [
+        "at_most_once_dispatch_per_grant",
+        "no_automatic_retry_after_uncertain_outcome"
+      ]
+    },
+    {
+      "counterexample": [
+        "w0:grant",
+        "w0:lock",
+        "w0:consume",
+        "w0:start",
+        "w0:unverified-success"
+      ],
+      "counterexample_length": 5,
+      "final_state": {
+        "locks": [],
+        "remote_value": -1,
+        "writers": [
+          {
+            "automatic_retry": false,
+            "consumed": true,
+            "crashes": 0,
+            "dispatches": 1,
+            "effect": false,
+            "grant": false,
+            "phase": "success",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": true,
+            "success": true
+          },
+          {
+            "automatic_retry": false,
+            "consumed": false,
+            "crashes": 0,
+            "dispatches": 0,
+            "effect": false,
+            "grant": false,
+            "phase": "idle",
+            "readback": false,
+            "receipt": false,
+            "recovered_readback": false,
+            "started": false,
+            "success": false
+          }
+        ]
+      },
+      "states_discovered": 62,
+      "status": "COUNTEREXAMPLE",
+      "transitions_examined": 93,
+      "variant": "early_success",
+      "violated_invariants": [
+        "no_success_before_readback_and_receipt"
+      ]
+    }
+  ]
+}

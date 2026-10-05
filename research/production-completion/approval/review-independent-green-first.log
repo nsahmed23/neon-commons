@@ -1,0 +1,17 @@
+test_expiry_during_active_guard_recheck_denies_active_permit (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_active_guard_recheck_denies_active_permit) ... ok
+test_expiry_during_guard_recheck_denies_context_entry (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_guard_recheck_denies_context_entry) ... ok
+test_fsync_failure_after_commit_blocks_dispatch_and_stays_spent (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_fsync_failure_after_commit_blocks_dispatch_and_stays_spent) ... ok
+test_full_request_fields_are_signed_not_only_selected_bindings (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_full_request_fields_are_signed_not_only_selected_bindings) ... ok
+test_independent_processes_cannot_both_consume_same_approval (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_independent_processes_cannot_both_consume_same_approval) ... ok
+test_low_order_identity_public_key_cannot_authorize_static_forgery (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_low_order_identity_public_key_cannot_authorize_static_forgery) ... ok
+test_native_launcher_checks_authority_before_spawning (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_native_launcher_checks_authority_before_spawning) ... ok
+test_real_signature_from_different_private_key_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_real_signature_from_different_private_key_rejected) ... ok
+test_real_signed_approval_reaches_modeled_provider_lifecycle_only (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_real_signed_approval_reaches_modeled_provider_lifecycle_only) ... ok
+test_replaced_database_symlink_and_hardlink_are_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_replaced_database_symlink_and_hardlink_are_rejected) ... ok
+test_signature_from_wrong_domain_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_signature_from_wrong_domain_rejected) ... ok
+test_signature_noncanonical_scalar_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_signature_noncanonical_scalar_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.683s
+
+OK

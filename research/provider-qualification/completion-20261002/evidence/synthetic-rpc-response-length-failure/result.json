@@ -1,0 +1,116 @@
+{
+  "status": "failed",
+  "scope": "actual repaired resource through native RPC with separate synthetic provider Configure and GET-only in-memory transport",
+  "production_qualified": false,
+  "production_provider_configure_qualified": false,
+  "service_qualified": false,
+  "provider_sha256": "9977bc9a5bcd7ab9ac4f38285f26cc11c1a27b2d46b219a620caceff18961814",
+  "tofu_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+  "fixture_sha256": "197509126934a1bd00daf72ad9986ba71bda2c5ac926e3c2e7e881227cfc03fb",
+  "harness_sha256": "652937980bdbda10a573711e82ea84932baa3ed274405a632567e3c231ff35e0",
+  "commands": {
+    "schema": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "providers",
+        "schema",
+        "-json"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 7911,
+      "stdout_sha256": "7ad62fca60f656b40c7b43221cf3ea89a42dae9045597b0ff99a314da2551ba2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "validate": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "validate",
+        "-json"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 595,
+      "stdout_sha256": "650d981ef2155de33251d5cdc394fb3487eef07b1d67aca6fcab4ef89ad3fbad",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "import": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "import",
+        "-input=false",
+        "-no-color",
+        "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+        "33333333-3333-4333-8333-333333333333"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 691,
+      "stdout_sha256": "f74e0863156a188e390012237c11097e8a72a8bdd2647076ef1598cd9acad04d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "state": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "show",
+        "-json"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 1707,
+      "stdout_sha256": "abe3531bf6c96c7fd06c77b80ad24382f683cf3d8ce9ebfe0f4a8c07b7e9e5ac",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ordinary": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=ordinary.plan"
+      ],
+      "returncode": 2,
+      "stdout_bytes": 1626,
+      "stdout_sha256": "aff8d11d7805095cfe9acfabde78105f062a13c19dcab89e7e9f9996413089c2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ordinary_show": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "show",
+        "-json",
+        "ordinary.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 8326,
+      "stdout_sha256": "da34b6dc58a66e1b15557ee214a12e83c5aafea3313f70bdcb7693af110912a6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "refresh": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "plan",
+        "-refresh-only",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=refresh.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 762,
+      "stdout_sha256": "758d6204761526b4f86262b8fb6621ad94e15964d9b2af06bdc582d7f0ac8af7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "refresh_show": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "show",
+        "-json",
+        "refresh.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 3543,
+      "stdout_sha256": "00096e2e1f0650dba03d56493584c6eafd2165651056e50d73f095164c8f4f72",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "checks": {},
+  "error": "ValueError: native command failed or reported changes"
+}

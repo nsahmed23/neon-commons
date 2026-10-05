@@ -1,0 +1,60 @@
+{
+  "schema_version": "security-followup/1",
+  "change": "Product subprocess resource controls and bounded protocol model",
+  "independent_security_agent_action": "Reviewed source deltas and raw supplied receipts; documentation update only; did not reexecute owner native suite or model checker",
+  "controls": {
+    "address_space_bytes": 4294967296,
+    "cpu_seconds": 20,
+    "file_bytes": 67108864,
+    "file_descriptors": 256,
+    "core_bytes": 0,
+    "process_creation": "fork/vfork and clone without CLONE_THREAD denied; clone3 returns ENOSYS for inspectable fallback",
+    "inheritance": "never raises inherited hard limits",
+    "remaining": "thread-count/cgroup task quota remains deployment qualification; no RLIMIT_NPROC protection for root claimed"
+  },
+  "source_files": [
+    {
+      "path": "intune_iac/protected.py",
+      "sha256": "027057986a7c19662507124e5e470d4051adcb07af95c9c544adf3a1829ba02f"
+    },
+    {
+      "path": "plugin_tests/test_protected_completion.py",
+      "sha256": "6ae5912fdb8d79f688249f8f8706ef065e600fa17f2da9be4e0884cbd377e93e"
+    },
+    {
+      "path": "research/completion/model-check/model_check.py",
+      "sha256": "bbca0147de5696305b3828a492b062788cca42a183cd358284f3f541a90cef25"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "research/completion/protected-resource-bounds-red.txt",
+      "sha256": "ccf4bcfdd25dbcb406fbae563a4772fd70b9f5930ddfacd955efdb2e3f245042"
+    },
+    {
+      "path": "research/completion/protected-resource-bounds-green.txt",
+      "sha256": "d7d2f9daede1c34c21f117cf55e34242af01121e55068dfb3b506bd11abacb3d"
+    },
+    {
+      "path": "research/completion/protected-green.txt",
+      "sha256": "c72a0a273cb1f6f8fe5c818e5cfb53eba04cacf05ab75260a780685d680ead74"
+    },
+    {
+      "path": "research/completion/protected-native-measured.json",
+      "sha256": "551094afe6ed1d9a58bbbdde6145f218e35a543c9ddee66b75c6546d360439d1"
+    },
+    {
+      "path": "research/completion/model-check/README.md",
+      "sha256": "7848a993911db2a7fb6e16dd073ef4eddfa22e3407be8eeda1bf5d0e18d82d1d"
+    },
+    {
+      "path": "research/completion/model-check/model_check.py",
+      "sha256": "bbca0147de5696305b3828a492b062788cca42a183cd358284f3f541a90cef25"
+    },
+    {
+      "path": "research/completion/model-check/results.json",
+      "sha256": "b1b93877827bbd8eebe2538c639fbbb4f44c0491fe23b9a622ad73f995c09273"
+    }
+  ],
+  "acceptance_boundary": "Earlier independent29-test replay preserved unchanged; root final clean-extraction verifier and package integrity manifest qualify current final repository"
+}

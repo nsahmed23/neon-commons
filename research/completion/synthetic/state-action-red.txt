@@ -1,0 +1,60 @@
+test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) ... 
+  test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='missing-state') ... FAIL
+  test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='lost-assignment') ... FAIL
+  test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='changed-setting') ... FAIL
+  test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='empty-actions') ... FAIL
+  test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='duplicate-action') ... FAIL
+  test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='unexpected-action') ... FAIL
+
+======================================================================
+FAIL: test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='missing-state')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_synthetic_completion.py", line 157, in test_state_and_action_coverage_are_required_for_noop
+    self.assertFalse(synthetic.inspect_estate(estate)['success'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='lost-assignment')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_synthetic_completion.py", line 157, in test_state_and_action_coverage_are_required_for_noop
+    self.assertFalse(synthetic.inspect_estate(estate)['success'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='changed-setting')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_synthetic_completion.py", line 157, in test_state_and_action_coverage_are_required_for_noop
+    self.assertFalse(synthetic.inspect_estate(estate)['success'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='empty-actions')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_synthetic_completion.py", line 157, in test_state_and_action_coverage_are_required_for_noop
+    self.assertFalse(synthetic.inspect_estate(estate)['success'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='duplicate-action')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_synthetic_completion.py", line 157, in test_state_and_action_coverage_are_required_for_noop
+    self.assertFalse(synthetic.inspect_estate(estate)['success'])
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) (corruption='unexpected-action')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_synthetic_completion.py", line 157, in test_state_and_action_coverage_are_required_for_noop
+    self.assertFalse(synthetic.inspect_estate(estate)['success'])
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+FAILED (failures=6)

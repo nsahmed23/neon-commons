@@ -1,0 +1,12 @@
+{
+  "status": "not_run",
+  "production_qualified": false,
+  "cases": [
+    {"id":"policy_put_fails_before_send", "requires":"fault-injected real provider request adapter", "assertion":"no assignment request; policy and assignments independently observed unchanged"},
+    {"id":"policy_put_success_assignment_denied", "requires":"authorized service or faithful contract server plus separate service qualification", "assertion":"policy outcome recorded separately; assignment outcome denied; no blind replay"},
+    {"id":"policy_put_response_lost", "requires":"controlled transport fault and independent readback", "assertion":"unknown outcome until readback; do not infer rollback"},
+    {"id":"assignment_post_response_lost", "requires":"controlled transport fault and independent readback", "assertion":"preserve policy success; assignment outcome unknown; reconcile complete tuples"},
+    {"id":"assignment_empty_omitted_nonempty", "requires":"authorized disposable Intune policy with complete before/after captures", "assertion":"observe replacement-versus-merge and empty/omitted semantics; never infer from constructor slice"},
+    {"id":"settings_response_roundtrip", "requires":"native provider plus authorized existing policy", "assertion":"immutable ID and all settings/targets preserved; ordinary and refresh-only no-change plans"}
+  ]
+}

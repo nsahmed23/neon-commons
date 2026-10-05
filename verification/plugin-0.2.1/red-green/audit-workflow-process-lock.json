@@ -1,0 +1,8 @@
+{
+  "concurrent_process": "blocked",
+  "abrupt_termination_lock": "retained",
+  "stale_lock_retry": "blocked",
+  "manual_recovery_after_process_exit": "suspended",
+  "normal_exit_lock": "removed",
+  "cloud_operations": 0
+}

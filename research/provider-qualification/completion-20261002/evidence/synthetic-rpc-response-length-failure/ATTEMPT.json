@@ -1,0 +1,4 @@
+{
+  "classification": "fixture HTTP metadata failure",
+  "note": "The authored response omitted ContentLength. The SDK treated base policy as empty and the preserved oracle rejected the changing ordinary plan. The production source was not changed to satisfy this fixture mistake."
+}

@@ -1,0 +1,12 @@
+{
+  "case": "exited_leader_owned_descendant_cleanup",
+  "status": "passed",
+  "group_leader_confirmed_exited": true,
+  "outcome": "TimeoutError",
+  "heartbeat_before": 6,
+  "heartbeat_after": 6,
+  "heartbeat_stopped": true,
+  "observation_seconds": 0.3,
+  "elapsed_seconds": 0.602,
+  "pid_or_proc_state_used_as_activity_oracle": false
+}

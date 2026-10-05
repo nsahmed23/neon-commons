@@ -1,0 +1,81 @@
+{
+  "status": "INCOMPLETE_ENVIRONMENT_PREREQUISITE",
+  "enterprise_acceptance": "BLOCKED",
+  "command": [
+    "/workspace/scratch/e2e4042ea5fd/.venv/bin/python",
+    "-B",
+    "/workspace/scratch/e2e4042ea5fd/work/intune-iac/scripts/verify-plugin.py",
+    "--include-core",
+    "--output",
+    "/workspace/scratch/e2e4042ea5fd/work/intune-iac/research/production-completion/final-verification/integrated"
+  ],
+  "working_directory": "/workspace/scratch/e2e4042ea5fd/work/intune-iac",
+  "started_at": "2026-10-04T01:56:12.258911+00:00",
+  "finished_at": "2026-10-04T01:58:54.869334+00:00",
+  "elapsed_seconds": 162.61042980800084,
+  "exit_code": 1,
+  "test_result": {
+    "schema_version": "1.0.0",
+    "verified_at": "2026-10-04T01:58:54.755665+00:00",
+    "tests": 884,
+    "passed": 883,
+    "planned": 884,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "core_regressions_included": true,
+    "success": false,
+    "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+    "not_established": [
+      "Live Graph authenticity or service semantics",
+      "Provider-backed import/no-change plan",
+      "Full native Atmos runtime configuration parity",
+      "Native Windows/PowerShell behavior",
+      "Native host installation",
+      "CLM learned-model quality, calibration or latency"
+    ]
+  },
+  "suite_counts": {
+    "plugin_tests": {
+      "planned_and_run": 677,
+      "complete_passes": 676,
+      "skipped": 1
+    },
+    "evaluations": {
+      "planned_and_run": 207,
+      "complete_passes": 207,
+      "skipped": 0
+    }
+  },
+  "skips": [
+    {
+      "test": "plugin_tests.test_provider_execution_v5.NativeSupervisorTests.test_network_denied_but_plugin_unix_socket_and_child_process_allowed",
+      "reason": "Host sandbox denies AF_UNIX before adapter guard; provider RPC cannot be qualified here.",
+      "classification": "environment_prerequisite_unqualified_native_provider_rpc"
+    }
+  ],
+  "native_inherited_tofu_tests": {
+    "planned_and_run": 2,
+    "complete_passes": 2,
+    "tool_version": "OpenTofu 1.10.0 linux_amd64",
+    "tool_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627"
+  },
+  "source_files_before_and_after": 453,
+  "source_changed_during_run": false,
+  "source_snapshot": "source-before.json",
+  "source_after": "source-after.json",
+  "python_version": "3.12.14",
+  "openssl_version": "3.0.13",
+  "model_calls": 0,
+  "live_service_calls": 0,
+  "notes": [
+    "This is one combined discovery run, not two overlapping totals.",
+    "No failures or errors were hidden; verifier fails its all-complete gate on the one explicit prerequisite skip.",
+    "No production or test sources were edited by this verifier.",
+    "Final source distribution inventory and documents were pending release-owner completion; no packaging test failed in this run.",
+    "Separate native lab and model-only evidence must retain their own scope."
+  ],
+  "suite_counts_derivation": "Verbose method rows identify 677 plugin_tests and 207 evaluations; the global ReleaseResult records 883 complete passes, zero failures/errors/expected failures/unexpected successes; the only skipped method is in plugin_tests. Output emitted by two tests splits their trailing ok onto another line, so trailing-line matching is not used as a pass counter."
+}

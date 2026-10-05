@@ -1,0 +1,23 @@
+terraform_data.adopted: Refreshing state... [id=c0cfd4a7-41e9-672c-6da5-b60abe2929dc]
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  . forget
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.adopted will be removed from the OpenTofu state but will not be destroyed
+  . resource "terraform_data" "adopted" {
+    id     = "c0cfd4a7-41e9-672c-6da5-b60abe2929dc"
+    input  = "preserved"
+    output = "preserved"
+}
+
+Plan: 0 to add, 0 to change, 0 to destroy, 1 to forget.
+
+Warning: Resource going to be removed from the state
+
+After this plan gets applied, the resource terraform_data.adopted will not be
+managed anymore by OpenTofu.
+
+In case you want to manage the resource again, you will have to import it.

@@ -1,0 +1,112 @@
+schema_version: 1.0.0
+questions:
+  source:
+    prompt: Where is the existing configuration?
+    choices:
+    - id: local_export
+      label: Use a local export
+    - id: existing_iac
+      label: Review existing IaC
+    - id: authorized_graph_read
+      label: Prepare a separately authorized discovery request
+    recommended: local_export
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  objects:
+    prompt: Which existing IDs should be included?
+    choices:
+    - id: selected
+      label: Select by ID after searching names
+    - id: back
+      label: Choose another source
+    recommended: selected
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  ownership:
+    prompt: Who currently writes this object?
+    choices:
+    - id: propose_only
+      label: No approved writer transition yet; prepare a proposal
+    - id: externally_owned
+      label: Another controller owns it
+    - id: stop
+      label: Stop this object
+    recommended: propose_only
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  conflict:
+    prompt: How should this ownership conflict be handled?
+    choices:
+    - id: owner_resolved
+      label: Recheck with new owner evidence
+    - id: review_only
+      label: Produce a non-executable handoff
+    - id: back
+      label: Choose another object
+    recommended: review_only
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  mapping_gap:
+    prompt: Some source behavior is not representable. What next?
+    choices:
+    - id: preserve_review
+      label: Produce review-only files, preserve pointers, block execution
+    - id: new_evidence
+      label: Read a completed export
+    - id: alternative_mapping
+      label: Qualify another mapping
+    - id: stop
+      label: Stop this object
+    recommended: preserve_review
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  file_conflict:
+    prompt: Existing files differ from the prior generated manifest.
+    choices:
+    - id: new_destination
+      label: Use a new staging directory
+    - id: inspect
+      label: Show the bounded diff
+    - id: cancel
+      label: Save without overwriting
+    recommended: cancel
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  review:
+    prompt: What should happen with the generated proposal?
+    choices:
+    - id: local_complete
+      label: Finish the local handoff
+    - id: request_qualification
+      label: Prepare external qualification steps
+    - id: edit
+      label: Change a decision
+    - id: back
+      label: Change selected objects
+    - id: save
+      label: Save session
+    recommended: local_complete
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  reconcile:
+    prompt: Post-import evidence shows a difference.
+    choices:
+    - id: preserve_source
+      label: Correct desired code to match supported source
+    - id: propose_change
+      label: Prepare a separate functional-change proposal
+    - id: stop
+      label: Stop with evidence
+    recommended: stop
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.
+  offline_alternative:
+    prompt: Required information or access is unavailable.
+    choices:
+    - id: local_export
+      label: Use a local or synthetic export instead
+    - id: stop
+      label: Finish with an exact missing-material request
+    recommended: local_export
+    rationale: Preserve source and use bounded local work; no implicit authority grant.
+    reuse_answer_when: All dependent provenance fingerprints remain valid.

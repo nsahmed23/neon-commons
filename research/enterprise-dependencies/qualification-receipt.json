@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "status": "passed",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "wheelhouse_packages": 10,
+  "pypi_digest_size_matches": 10,
+  "offline_hash_required_install_exit": 0,
+  "pip_check_exit": 0,
+  "doctor_exit": 0,
+  "production_ready": false,
+  "limitations": [
+    "No publisher signature authentication",
+    "No vulnerability database audit",
+    "Linux x86_64 CPython3.12 wheel set only"
+  ],
+  "lock_sha256": "b372a5e1dea1b6fd46c62541044a8c761e6f3af80f27a294ca6707eedf60ed88",
+  "manifest_sha256": "777ecfceaccd50b541324f85fbbcd8552a3c0bddd261617f1279008690ac32b3"
+}

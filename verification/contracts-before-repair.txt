@@ -1,0 +1,195 @@
+test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) ... 
+  test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-policy', path=('id',), suffix="'\\n'") ... FAIL
+  test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-policy', path=('id',), suffix="'\\n'") ... FAIL
+  test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'groupId'), suffix="'\\n'") ... FAIL
+  test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'groupId'), suffix="'\\n'") ... FAIL
+  test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'deviceAndAppManagementAssignmentFilterId'), suffix="'\\n'") ... FAIL
+  test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'deviceAndAppManagementAssignmentFilterId'), suffix="'\\n'") ... FAIL
+test_valid_coupled_auth_transitions (corrections.regressions.test_contract_models.ContractTests.test_valid_coupled_auth_transitions) ... ERROR
+test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) ... 
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='exit') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='printf') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='read') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='set') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='cd') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='echo') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='return') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='break') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='pwd') ... FAIL
+  test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='unregistered-tool') ... FAIL
+test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) ... ERROR
+
+======================================================================
+ERROR: test_valid_coupled_auth_transitions (corrections.regressions.test_contract_models.ContractTests.test_valid_coupled_auth_transitions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 120, in test_valid_coupled_auth_transitions
+    mismatches=approval_mismatches(expected,observed['binding'],'2026-09-30T12:30:00Z')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/models/contract_model.py", line 144, in approval_mismatches
+    errors.extend(walk(approval['binding'],observed_binding))
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/models/contract_model.py", line 142, in walk
+    for key in a:yield from walk(a[key],b[key],path+'/'+key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/models/contract_model.py", line 142, in walk
+    for key in a:yield from walk(a[key],b[key],path+'/'+key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/models/contract_model.py", line 142, in walk
+    for key in a:yield from walk(a[key],b[key],path+'/'+key)
+                                        ~^^^^^
+TypeError: 'NoneType' object is not subscriptable
+
+======================================================================
+ERROR: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 129, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    self.assertEqual(validate_executable(token),token)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/models/contract_model.py", line 156, in validate_executable
+    if not isinstance(token,str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_.+-]*',token) or token in _RESERVED:raise ContractViolation('invalid_executable_token')
+                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+contract_model.ContractViolation: invalid_executable_token
+
+======================================================================
+FAIL: test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-policy', path=('id',), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 108, in test_guid_exact_length_and_nonzero
+    self.assertTrue(schema_errors(name,value))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-policy', path=('id',), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 108, in test_guid_exact_length_and_nonzero
+    self.assertTrue(schema_errors(name,value))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'groupId'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 108, in test_guid_exact_length_and_nonzero
+    self.assertTrue(schema_errors(name,value))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'groupId'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 108, in test_guid_exact_length_and_nonzero
+    self.assertTrue(schema_errors(name,value))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'deviceAndAppManagementAssignmentFilterId'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 108, in test_guid_exact_length_and_nonzero
+    self.assertTrue(schema_errors(name,value))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_guid_exact_length_and_nonzero (corrections.regressions.test_contract_models.ContractTests.test_guid_exact_length_and_nonzero) (name='observed-assignment', path=('target', 'deviceAndAppManagementAssignmentFilterId'), suffix="'\\n'")
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 108, in test_guid_exact_length_and_nonzero
+    self.assertTrue(schema_errors(name,value))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='exit')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='printf')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='read')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='set')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='cd')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='echo')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='return')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='break')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='pwd')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+======================================================================
+FAIL: test_preview_registry_rejects_builtin_and_unknown_tokens (corrections.regressions.test_contract_models.ContractTests.test_preview_registry_rejects_builtin_and_unknown_tokens) (token='unregistered-tool')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/corrections/regressions/test_contract_models.py", line 127, in test_preview_registry_rejects_builtin_and_unknown_tokens
+    with self.assertRaises(ContractViolation):validate_executable(token)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ContractViolation not raised
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.010s
+
+FAILED (failures=16, errors=2)

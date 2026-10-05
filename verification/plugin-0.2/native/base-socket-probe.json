@@ -1,0 +1,15 @@
+[
+  {
+    "family": 1,
+    "allowed": false,
+    "error": "[Errno 1] Operation not permitted"
+  },
+  {
+    "family": 2,
+    "allowed": true
+  },
+  {
+    "family": 10,
+    "allowed": true
+  }
+]

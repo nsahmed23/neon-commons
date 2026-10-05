@@ -1,0 +1,34 @@
+Independent reviewer terminal observation before the concurrent owner fix.
+This is a recorded reproduction, not a unittest transcript.
+Date: 2026-10-02
+Interpreter: /workspace/scratch/e2e4042ea5fd/.venv/bin/python
+Working directory: /workspace/scratch/e2e4042ea5fd/work/intune-iac
+
+Reproduction:
+  executor = create_synthetic_executor(new_temporary_root,
+      initial_value={}, desired_value={'approved': 1})
+  request = prepare_native_operation(executor)
+  saved = load_json(executor.root/'work/saved.tfplan')
+  saved['value'] = {'unreviewed': 2}
+  write canonical saved JSON back to work/saved.tfplan
+  request['bindings']['saved_plan_sha256'] = SHA256(saved.tfplan bytes)
+  request['binding_sha256'] = digest(request['bindings'])
+  write canonical request to preparation.json
+  leave work/plan.json unchanged
+  validate_native_operation(request, executor=executor)
+  grant = approve_synthetic_operation(request, executor=executor)
+  execute_native_operation(request, separate_receipts_root, executor=executor, approval=grant)
+
+Observed terminal output:
+validate {'status': 'valid', 'binding_sha256': '693ea5793dca98599f3875a61486bfad55f53d54c5fa31fa0c25e30fc8a1bfee', 'execution_authorized': False}
+grant_created _LocalGrant
+execution_result {'status': 'outcome_unknown', 'execution_authorized': False, 'assurance': 'synthetic_local_process_only', 'operation_id': '1acfad2eeb1844698a9dc17db807f55e', 'error': {'code': 'readback_mismatch'}}
+actual_local_value {'unreviewed': 2}
+
+The package's fixed synthetic worker was the only applied program. The payload
+was a literal output dictionary, containing no commands or interpolations. No
+native provisioner, cloud operation, network request, or existing credential was
+used. The independent regression file was written after this observation, but
+the owner's concurrent fix landed before its first test execution; therefore
+there is no claimed reviewer RED unittest transcript. Owner native RED evidence
+is retained separately in protected-native-binary-provenance-red.txt.

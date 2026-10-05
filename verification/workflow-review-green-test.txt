@@ -1,0 +1,24 @@
+test_cancel_requires_local_intent (evaluations.test_repaired_workflow.Workflow.test_cancel_requires_local_intent) ... ok
+test_cannot_self_certify (evaluations.test_repaired_workflow.Workflow.test_cannot_self_certify) ... ok
+test_cli_create_inspect_resume (evaluations.test_repaired_workflow.Workflow.test_cli_create_inspect_resume) ... ok
+test_complete_generated_validated_reviewed_local_handoff (evaluations.test_repaired_workflow.Workflow.test_complete_generated_validated_reviewed_local_handoff) ... ok
+test_concurrent_create_cannot_overwrite (evaluations.test_repaired_workflow.Workflow.test_concurrent_create_cannot_overwrite) ... ok
+test_corrupt_unknown_and_ambiguous (evaluations.test_repaired_workflow.Workflow.test_corrupt_unknown_and_ambiguous) ... ok
+test_dag_missing_dependency_and_null_receipt_cannot_verify (evaluations.test_repaired_workflow.Workflow.test_dag_missing_dependency_and_null_receipt_cannot_verify) ... ok
+test_duplicate_kind_rejected_before_any_receipt_trust (evaluations.test_repaired_workflow.Workflow.test_duplicate_kind_rejected_before_any_receipt_trust) ... ok
+test_early_current_bytes_and_nonadvancement (evaluations.test_repaired_workflow.Workflow.test_early_current_bytes_and_nonadvancement) ... ok
+test_late_actual_byte_mutations_and_missing_validation_receipt (evaluations.test_repaired_workflow.Workflow.test_late_actual_byte_mutations_and_missing_validation_receipt) ... ok
+test_legacy_extra_target_fields_bind (evaluations.test_repaired_workflow.Workflow.test_legacy_extra_target_fields_bind) ... ok
+test_lifecycle_does_not_reclaim_edited_index (evaluations.test_repaired_workflow.Workflow.test_lifecycle_does_not_reclaim_edited_index) ... ok
+test_malformed_provider_lock_is_controlled_rejection (evaluations.test_repaired_workflow.Workflow.test_malformed_provider_lock_is_controlled_rejection) ... ok
+test_missing_receipt_invalidates_inventory (evaluations.test_repaired_workflow.Workflow.test_missing_receipt_invalidates_inventory) ... ok
+test_mutation_and_deleted_prerequisite (evaluations.test_repaired_workflow.Workflow.test_mutation_and_deleted_prerequisite) ... ok
+test_partial_generation_changed_stack_stays_partial (evaluations.test_repaired_workflow.Workflow.test_partial_generation_changed_stack_stays_partial) ... ok
+test_rehashed_stale_repository_binding_is_not_generation_proof (evaluations.test_repaired_workflow.Workflow.test_rehashed_stale_repository_binding_is_not_generation_proof) ... ok
+test_safe_paths_and_symlink (evaluations.test_repaired_workflow.Workflow.test_safe_paths_and_symlink) ... ok
+test_structured_approval_malformed_and_object_null_rejected (evaluations.test_repaired_workflow.Workflow.test_structured_approval_malformed_and_object_null_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 4.550s
+
+OK

@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "observed_at_utc": "2026-09-30T16:30:29.500166+00:00",
+  "scope": "new correction schemas and pure executable specifications only; not patched original, provider or host behavior",
+  "static_counts": {
+    "json": 29,
+    "jsonl": 1,
+    "python": 5,
+    "csv": 3
+  },
+  "static_failures": [],
+  "tests": {
+    "run": 22,
+    "passed": 22,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "resume_grid": {
+    "cases": 2184,
+    "assertion": "no advance past saved milestone frontier and no external execution; not all semantic transition properties",
+    "failures": 0
+  },
+  "not_run": [
+    "original repair integration",
+    "complete new oracle implementation",
+    "provider process or HCL/provider validation",
+    "native PowerShell/Windows",
+    "native Claude/Codex packaging/evaluation",
+    "paid model benchmark",
+    "Azure/Graph auth, import, plan, apply or collection"
+  ],
+  "status": "pass"
+}

@@ -1,0 +1,27 @@
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.assignment will be created
+  + resource "terraform_data" "assignment" {
+      + id     = (known after apply)
+      + input  = (known after apply)
+      + output = (known after apply)
+    }
+
+  # terraform_data.policy will be created
+  + resource "terraform_data" "policy" {
+      + id     = (known after apply)
+      + input  = "preserved-policy"
+      + output = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+terraform_data.policy: Creating...
+terraform_data.policy: Creation complete after 0s [id=4547421a-84c4-2f77-1aa4-1a7a30db8f39]
+terraform_data.assignment: Creating...
+terraform_data.assignment: Provisioning with 'local-exec'...
+terraform_data.assignment (local-exec): Executing: ["/bin/sh" "-c" "exit 1"]

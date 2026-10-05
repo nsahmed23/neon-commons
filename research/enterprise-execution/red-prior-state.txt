@@ -1,0 +1,49 @@
+FFFF
+======================================================================
+FAIL: test_missing_future_and_malformed_prior_state_block (plugin_tests.test_execution.PriorStateConsistencyTests.test_missing_future_and_malformed_prior_state_block)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 366, in test_missing_future_and_malformed_prior_state_block
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+======================================================================
+FAIL: test_prior_known_values_must_match_resource_and_output_before (plugin_tests.test_execution.PriorStateConsistencyTests.test_prior_known_values_must_match_resource_and_output_before)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 357, in test_prior_known_values_must_match_resource_and_output_before
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+======================================================================
+FAIL: test_prior_output_cannot_be_hidden_from_both_after_collections (plugin_tests.test_execution.PriorStateConsistencyTests.test_prior_output_cannot_be_hidden_from_both_after_collections)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 353, in test_prior_output_cannot_be_hidden_from_both_after_collections
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+======================================================================
+FAIL: test_resource_removed_from_both_after_collections_still_detected_in_prior_state (plugin_tests.test_execution.PriorStateConsistencyTests.test_resource_removed_from_both_after_collections_still_detected_in_prior_state)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 348, in test_resource_removed_from_both_after_collections_still_detected_in_prior_state
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.007s
+
+FAILED (failures=4)

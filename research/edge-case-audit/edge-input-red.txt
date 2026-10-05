@@ -1,0 +1,84 @@
+FFFF.FFFF.
+======================================================================
+FAIL: test_coverage_claim_identity_is_unique_even_if_status_agrees (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_coverage_claim_identity_is_unique_even_if_status_agrees) (status='complete')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 38, in test_coverage_claim_identity_is_unique_even_if_status_agrees
+    self.reject_graph(graph)
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 22, in reject_graph
+    with self.assertRaises(AppError) as error:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_coverage_claim_identity_is_unique_even_if_status_agrees (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_coverage_claim_identity_is_unique_even_if_status_agrees) (status='unknown')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 38, in test_coverage_claim_identity_is_unique_even_if_status_agrees
+    self.reject_graph(graph)
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 22, in reject_graph
+    with self.assertRaises(AppError) as error:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_coverage_subject_type_matches_aspect (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_coverage_subject_type_matches_aspect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 43, in test_coverage_subject_type_matches_aspect
+    self.reject_graph(graph)
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 22, in reject_graph
+    with self.assertRaises(AppError) as error:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_distinct_edges_cannot_share_identity (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_distinct_edges_cannot_share_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 29, in test_distinct_edges_cannot_share_identity
+    self.reject_graph(graph)
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 22, in reject_graph
+    with self.assertRaises(AppError) as error:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_required_capture_coverage_cannot_disappear (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_required_capture_coverage_cannot_disappear)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 48, in test_required_capture_coverage_cannot_disappear
+    self.reject_graph(graph)
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 22, in reject_graph
+    with self.assertRaises(AppError) as error:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_synthetic_oracle_distinguishes_boolean_and_integer (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_synthetic_oracle_distinguishes_boolean_and_integer) (case='observed_count')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 73, in test_synthetic_oracle_distinguishes_boolean_and_integer
+    self.assertTrue(compare(raw, changed, context=context))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_synthetic_oracle_distinguishes_boolean_and_integer (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_synthetic_oracle_distinguishes_boolean_and_integer) (case='mapping_flag')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 73, in test_synthetic_oracle_distinguishes_boolean_and_integer
+    self.assertTrue(compare(raw, changed, context=context))
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_synthetic_oracle_distinguishes_boolean_and_integer (plugin_tests.test_edge_input_audit.EdgeInputAuditTests.test_synthetic_oracle_distinguishes_boolean_and_integer) (case='coverage_flag')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_input_audit.py", line 73, in test_synthetic_oracle_distinguishes_boolean_and_integer
+    self.assertTrue(compare(raw, changed, context=context))
+AssertionError: [] is not true
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.225s
+
+FAILED (failures=8)

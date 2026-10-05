@@ -1,0 +1,6 @@
+test_consumed_request_cannot_gain_new_approval_in_another_journal (plugin_tests.test_protected_completion.CrossJournalReplayRegressionTests.test_consumed_request_cannot_gain_new_approval_in_another_journal) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.966s
+
+OK

@@ -1,0 +1,94 @@
+test_blocked_discovered_stack_prevents_overall_resolved_claim (plugin_tests.test_atmos_audit.AtmosAuditTests.test_blocked_discovered_stack_prevents_overall_resolved_claim) ... FAIL
+test_duplicate_case_normalized_policy_id_never_claims_complete_inventory (plugin_tests.test_atmos_audit.AtmosAuditTests.test_duplicate_case_normalized_policy_id_never_claims_complete_inventory) ... FAIL
+test_dynamic_configured_import_base_does_not_fall_back_to_default (plugin_tests.test_atmos_audit.AtmosAuditTests.test_dynamic_configured_import_base_does_not_fall_back_to_default) ... FAIL
+test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters (plugin_tests.test_atmos_audit.AtmosAuditTests.test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters) ... 
+  test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters (plugin_tests.test_atmos_audit.AtmosAuditTests.test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters) (production=False) ... FAIL
+  test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters (plugin_tests.test_atmos_audit.AtmosAuditTests.test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters) (production=True) ... FAIL
+test_static_import_uses_same_configured_base_path_as_effective_resolution (plugin_tests.test_atmos_audit.AtmosAuditTests.test_static_import_uses_same_configured_base_path_as_effective_resolution) ... FAIL
+test_unknown_import_options_do_not_receive_resolved_static_target (plugin_tests.test_atmos_audit.AtmosAuditTests.test_unknown_import_options_do_not_receive_resolved_static_target) ... FAIL
+test_unresolved_dependency_declaration_is_visible_in_fixed_query (plugin_tests.test_atmos_audit.AtmosAuditTests.test_unresolved_dependency_declaration_is_visible_in_fixed_query) ... FAIL
+
+======================================================================
+FAIL: test_blocked_discovered_stack_prevents_overall_resolved_claim (plugin_tests.test_atmos_audit.AtmosAuditTests.test_blocked_discovered_stack_prevents_overall_resolved_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 73, in test_blocked_discovered_stack_prevents_overall_resolved_claim
+    self.assertEqual(graph['atmos']['resolution_status'], 'partial')
+AssertionError: 'resolved' != 'partial'
+- resolved
++ partial
+
+
+======================================================================
+FAIL: test_duplicate_case_normalized_policy_id_never_claims_complete_inventory (plugin_tests.test_atmos_audit.AtmosAuditTests.test_duplicate_case_normalized_policy_id_never_claims_complete_inventory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 97, in test_duplicate_case_normalized_policy_id_never_claims_complete_inventory
+    self.assertEqual(next(c for c in graph['coverage'] if c['subject_id'] == tenant)['status'], 'unknown')
+AssertionError: 'complete' != 'unknown'
+- complete
++ unknown
+
+
+======================================================================
+FAIL: test_dynamic_configured_import_base_does_not_fall_back_to_default (plugin_tests.test_atmos_audit.AtmosAuditTests.test_dynamic_configured_import_base_does_not_fall_back_to_default)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 57, in test_dynamic_configured_import_base_does_not_fall_back_to_default
+    self.assertFalse(any(e['predicate'] == 'imports' for e in graph['edges']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters (plugin_tests.test_atmos_audit.AtmosAuditTests.test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters) (production=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 89, in test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters
+    self.assertEqual(coverage['status'], 'unknown')
+AssertionError: 'complete' != 'unknown'
+- complete
++ unknown
+
+
+======================================================================
+FAIL: test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters (plugin_tests.test_atmos_audit.AtmosAuditTests.test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters) (production=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 89, in test_policy_inventory_count_mismatch_is_unknown_for_both_source_adapters
+    self.assertEqual(coverage['status'], 'unknown')
+AssertionError: 'complete' != 'unknown'
+- complete
++ unknown
+
+
+======================================================================
+FAIL: test_static_import_uses_same_configured_base_path_as_effective_resolution (plugin_tests.test_atmos_audit.AtmosAuditTests.test_static_import_uses_same_configured_base_path_as_effective_resolution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 41, in test_static_import_uses_same_configured_base_path_as_effective_resolution
+    self.assertEqual(paths[nodes[edges[0]['target']]['source_artifact_id']], 'project/stacks/base.yaml')
+AssertionError: 'stacks/base.yaml' != 'project/stacks/base.yaml'
+- stacks/base.yaml
++ project/stacks/base.yaml
+? ++++++++
+
+
+======================================================================
+FAIL: test_unknown_import_options_do_not_receive_resolved_static_target (plugin_tests.test_atmos_audit.AtmosAuditTests.test_unknown_import_options_do_not_receive_resolved_static_target)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 49, in test_unknown_import_options_do_not_receive_resolved_static_target
+    self.assertFalse(any(e['predicate'] == 'imports' for e in graph['edges']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_unresolved_dependency_declaration_is_visible_in_fixed_query (plugin_tests.test_atmos_audit.AtmosAuditTests.test_unresolved_dependency_declaration_is_visible_in_fixed_query)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 63, in test_unresolved_dependency_declaration_is_visible_in_fixed_query
+    self.assertEqual(len(declarations), 1)
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.146s
+
+FAILED (failures=8)

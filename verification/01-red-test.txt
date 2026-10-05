@@ -1,0 +1,464 @@
+EEEEEEEEEEEEEEEEEEE.EEEEEEEEEEEEEEEEEE
+======================================================================
+ERROR: test_absent_null_empty_distinct (test_reference.ReferenceTests.test_absent_null_empty_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 37, in test_absent_null_empty_distinct
+    n=normalize(b,P,T);self.assertEqual(n['observed']['policy']['description'],value)
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_all_source_nodes_accounted (test_reference.ReferenceTests.test_all_source_nodes_accounted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 13, in test_all_source_nodes_accounted
+    b=load();n=normalize(b,P,T); rows=n['field_accounting'];self.assertEqual(set(all_pointers(b)),{r['source_pointer'] for r in rows});self.assertEqual(len(rows),len(set(r['source_pointer'] for r in rows)))
+               ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_bash_argv_roundtrip (test_reference.ReferenceTests.test_bash_argv_roundtrip)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 74, in test_bash_argv_roundtrip
+    s=render_bash(sys.executable,['-c',code,*values]);p=subprocess.run(['bash','-c',s],capture_output=True,text=True,check=True);self.assertEqual(json.loads(p.stdout),values)
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 4, in render_bash
+    def render_bash(*a, **kw): raise NotImplementedError
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_command_rejects_control_chars (test_reference.ReferenceTests.test_command_rejects_control_chars)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 69, in test_command_rejects_control_chars
+    self.assertRaises(ValueError,render_bash,'python',[v]);self.assertRaises(ValueError,render_powershell,'python',[v])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 795, in assertRaises
+    return context.handle('assertRaises', args, kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 238, in handle
+    callable_obj(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 4, in render_bash
+    def render_bash(*a, **kw): raise NotImplementedError
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_denied_collection_not_empty_desired (test_reference.ReferenceTests.test_denied_collection_not_empty_desired)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 27, in test_denied_collection_not_empty_desired
+    n=normalize(load('access-denied'),P,T);self.assertTrue(n['blockers']);self.assertIsNone(n['desired']['assignments'])
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_display_name_not_selected (test_reference.ReferenceTests.test_duplicate_display_name_not_selected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 18, in test_duplicate_display_name_not_selected
+    def test_duplicate_display_name_not_selected(self):self.assertEqual(normalize(load(),P,T)['object_id'],P)
+                                                                        ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_duplicate_evidence_ids_rejected (test_reference.ReferenceTests.test_duplicate_evidence_ids_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 82, in test_duplicate_evidence_ids_rejected
+    def test_duplicate_evidence_ids_rejected(self):self.assertRaises(ValueError,evidence_summary,2,[{'id':'x','status':'success','fresh':True}]*2)
+                                                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 795, in assertRaises
+    return context.handle('assertRaises', args, kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 238, in handle
+    callable_obj(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 10, in evidence_summary
+    def evidence_summary(*a, **kw): raise NotImplementedError
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_empty_resume_changes_preserves_stages (test_reference.ReferenceTests.test_empty_resume_changes_preserves_stages)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 79, in test_empty_resume_changes_preserves_stages
+    def test_empty_resume_changes_preserves_stages(self):self.assertEqual(invalidated(set()),[])
+                                                                          ~~~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 8, in invalidated
+    def invalidated(*a, **kw): raise NotImplementedError
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_external_writer_blocks (test_reference.ReferenceTests.test_external_writer_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 41, in test_external_writer_blocks
+    b=load();b['ownership'][0]['current_writer']='other-controller';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                    ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_files_contain_real_import (test_reference.ReferenceTests.test_files_contain_real_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 54, in test_files_contain_real_import
+    f=generate_files(normalize(load(),P,T),context());p=next(v for k,v in f.items() if k.endswith('imports.tf'));self.assertIn(P,p);self.assertNotIn('VERSION-QUALIFIED',p)
+                     ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_forged_complete_nextlink_still_blocks (test_reference.ReferenceTests.test_forged_complete_nextlink_still_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 29, in test_forged_complete_nextlink_still_blocks
+    b=load('missing-page');b['collections'][2]['coverage']='complete';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                      ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_generation_is_stable (test_reference.ReferenceTests.test_generation_is_stable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 52, in test_generation_is_stable
+    n=normalize(load(),P,T);self.assertEqual(generate_files(n,context()),generate_files(n,context()))
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_group_reference_not_owned (test_reference.ReferenceTests.test_group_reference_not_owned)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 43, in test_group_reference_not_owned
+    n=normalize(load(),P,T);self.assertTrue(all(x['ownership']=='external' for x in n['references']))
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_id_collision_rejected (test_reference.ReferenceTests.test_id_collision_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 20, in test_id_collision_rejected
+    b=load();b['collections'][0]['pages'][0]['body']['value'][1]['id']=P;self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                         ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_ids_and_assignments_preserved (test_reference.ReferenceTests.test_ids_and_assignments_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 15, in test_ids_and_assignments_preserved
+    n=normalize(load(),P,T);self.assertEqual(n['object_id'],P);self.assertEqual(len(n['desired']['assignments']),3);self.assertEqual(n['desired']['assignments'][0]['filter_type'],'include');self.assertEqual(n['desired']['assignments'][2]['type'],'exclusionGroupAssignmentTarget')
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_malicious_nextlink_blocks (test_reference.ReferenceTests.test_malicious_nextlink_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 31, in test_malicious_nextlink_blocks
+    b=load();b['collections'][2]['pages'][0]['body']['@odata.nextLink']='https://evil.example/x';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                 ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_missing_page_blocks_not_empty (test_reference.ReferenceTests.test_missing_page_blocks_not_empty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 25, in test_missing_page_blocks_not_empty
+    n=normalize(load('missing-page'),P,T);self.assertTrue(n['blockers']);self.assertEqual(len(n['desired']['assignments']),3)
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_mutation_guard_detects_lost_exclusion (test_reference.ReferenceTests.test_mutation_guard_detects_lost_exclusion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 87, in test_mutation_guard_detects_lost_exclusion
+    n=normalize(load(),P,T);actual=n['desired']['assignments'][:-1];self.assertNotEqual(actual,n['desired']['assignments'])
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_name_does_not_determine_key (test_reference.ReferenceTests.test_name_does_not_determine_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 17, in test_name_does_not_determine_key
+    b=load();a=normalize(b,P,T);b['collections'][0]['pages'][0]['body']['value'][0]['name']='Renamed';self.assertEqual(a['key'],normalize(b,P,T)['key'])
+               ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_partial_emits_no_active_iac (test_reference.ReferenceTests.test_partial_emits_no_active_iac)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 23, in test_partial_emits_no_active_iac
+    f=generate_files(normalize(load('partial'),P,T),context());self.assertFalse(any(p.endswith(('.tf','.tf.json')) for p in f));self.assertIn('BLOCKED.json',f)
+                     ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_path_traversal_is_rejected (test_reference.ReferenceTests.test_path_traversal_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 62, in test_path_traversal_is_rejected
+    with tempfile.TemporaryDirectory() as d:self.assertRaises(ValueError,write_project,{'../escape':'x'},Path(d)/'out')
+                                            ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 795, in assertRaises
+    return context.handle('assertRaises', args, kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 238, in handle
+    callable_obj(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 9, in write_project
+    def write_project(*a, **kw): raise NotImplementedError
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_pilot_denominators (test_reference.ReferenceTests.test_pilot_denominators)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 81, in test_pilot_denominators
+    rows=[{'id':str(i),'status':'success','fresh':True} for i in range(8)];r=evidence_summary(100,rows);self.assertEqual(r['reporting'],8);self.assertEqual(r['successful'],8);self.assertEqual(r['unknown'],92);self.assertFalse(r['promotion_proven'])
+                                                                             ~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 10, in evidence_summary
+    def evidence_summary(*a, **kw): raise NotImplementedError
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_plan_replacement_blocks_adoption (test_reference.ReferenceTests.test_plan_replacement_blocks_adoption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 84, in test_plan_replacement_blocks_adoption
+    def test_plan_replacement_blocks_adoption(self):self.assertEqual(classify_plan(['delete','create'],None),'remote_change')
+                                                                     ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 11, in classify_plan
+    def classify_plan(*a, **kw): raise NotImplementedError
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_plan_update_not_assumed_state_only (test_reference.ReferenceTests.test_plan_update_not_assumed_state_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 83, in test_plan_update_not_assumed_state_only
+    def test_plan_update_not_assumed_state_only(self):self.assertEqual(classify_plan(['update'],None),'requires_effect_evidence')
+                                                                       ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 11, in classify_plan
+    def classify_plan(*a, **kw): raise NotImplementedError
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_powershell_quoted_literal (test_reference.ReferenceTests.test_powershell_quoted_literal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 76, in test_powershell_quoted_literal
+    s=render_powershell('python',["O'Brien",'$HOME']);self.assertIn("'O''Brien'",s);self.assertIn("'$HOME'",s);self.assertIn('$PSNativeCommandArgumentPassing',s)
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 5, in render_powershell
+    def render_powershell(*a, **kw): raise NotImplementedError
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_resume_invalidation_selective (test_reference.ReferenceTests.test_resume_invalidation_selective)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 78, in test_resume_invalidation_selective
+    self.assertEqual(invalidated({'source_digest'}),['inventory','mapping','generation','review','qualification']);self.assertEqual(invalidated({'cohort_digest'}),['review','qualification'])
+                     ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 8, in invalidated
+    def invalidated(*a, **kw): raise NotImplementedError
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_secret_value_not_serialized (test_reference.ReferenceTests.test_secret_value_not_serialized)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 39, in test_secret_value_not_serialized
+    b=load();b['collections'][1]['pages'][0]['body']['value'][0]['settingInstance']['clientSecret']='CANARY_DO_NOT_EMIT';n=normalize(b,P,T);self.assertNotIn('CANARY_DO_NOT_EMIT',json.dumps(n));self.assertTrue(n['blockers'])
+                                                                                                                           ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_state_only_requires_exact_contract (test_reference.ReferenceTests.test_state_only_requires_exact_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 85, in test_state_only_requires_exact_contract
+    def test_state_only_requires_exact_contract(self):self.assertEqual(classify_plan(['update'],'msgraph-0.5.0-ref-update-state-only'),'state_only_by_pinned_source_not_live_proven')
+                                                                       ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 11, in classify_plan
+    def classify_plan(*a, **kw): raise NotImplementedError
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_supported_has_no_mapping_blockers (test_reference.ReferenceTests.test_supported_has_no_mapping_blockers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 11, in test_supported_has_no_mapping_blockers
+    def test_supported_has_no_mapping_blockers(self):self.assertEqual(normalize(load(),P,T)['blockers'],[])
+                                                                      ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_symlink_target_rejected (test_reference.ReferenceTests.test_symlink_target_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 66, in test_symlink_target_rejected
+    p=Path(d);(p/'real').mkdir();(p/'link').symlink_to(p/'real',target_is_directory=True);self.assertRaises(ValueError,write_project,{'a':'x'},p/'link'/'out')
+                                                                                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 795, in assertRaises
+    return context.handle('assertRaises', args, kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/unittest/case.py", line 238, in handle
+    callable_obj(*args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 9, in write_project
+    def write_project(*a, **kw): raise NotImplementedError
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_unknown_field_blocks_execution (test_reference.ReferenceTests.test_unknown_field_blocks_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 21, in test_unknown_field_blocks_execution
+    def test_unknown_field_blocks_execution(self):self.assertTrue(normalize(load('partial'),P,T)['blockers'])
+                                                                  ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_unknown_polymorph_blocks (test_reference.ReferenceTests.test_unknown_polymorph_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 33, in test_unknown_polymorph_blocks
+    b=load();b['collections'][1]['pages'][0]['body']['value'][0]['settingInstance']['@odata.type']='#microsoft.graph.future';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                             ~~~~~~~~~^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_write_rerun_and_edit_conflict (test_reference.ReferenceTests.test_write_rerun_and_edit_conflict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 58, in test_write_rerun_and_edit_conflict
+    f=generate_files(normalize(load(),P,T),context())
+                     ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_wrong_engine_is_rejected (test_reference.ReferenceTests.test_wrong_engine_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 48, in test_wrong_engine_is_rejected
+    c=context();c['engine']='terraform';self.assertRaises(ValueError,generate_files,normalize(load(),P,T),c)
+                                                                                    ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_wrong_provider_version_is_rejected (test_reference.ReferenceTests.test_wrong_provider_version_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 50, in test_wrong_provider_version_is_rejected
+    c=context();c['provider_version']='9.9.9';self.assertRaises(ValueError,generate_files,normalize(load(),P,T),c)
+                                                                                          ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_wrong_stack_is_rejected (test_reference.ReferenceTests.test_wrong_stack_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 46, in test_wrong_stack_is_rejected
+    c=context();c['stack']='production';self.assertRaises(ValueError,generate_files,normalize(load(),P,T),c)
+                                                                                    ~~~~~~~~~^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+======================================================================
+ERROR: test_wrong_tenant_rejected (test_reference.ReferenceTests.test_wrong_tenant_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_reference.py", line 44, in test_wrong_tenant_rejected
+    def test_wrong_tenant_rejected(self):self.assertTrue(normalize(load(),P,'99999999-9999-4999-8999-999999999999')['blockers'])
+                                                         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/core.py", line 2, in normalize
+    def normalize(*a, **kw): raise NotImplementedError
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.017s
+
+FAILED (errors=37)

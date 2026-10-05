@@ -1,0 +1,28 @@
+{
+  "scope": "Independent correctness and maintainability review of bounded local enterprise additions and final refactors",
+  "verdict": "pass_with_stated_scope",
+  "production_ready": false,
+  "open_findings": 0,
+  "repaired_findings": [
+    "IR01"
+  ],
+  "files": {
+    "intune_iac/target.py": "f1f159c9f17af1be427791fde360a0cbea342348495153c6ed27c1d425623748",
+    "intune_iac/execution.py": "bd2417048ae2214b16e4f2c7f4890eb610f6d29055e397bc185e021f71cb4213",
+    "intune_iac/reconciliation.py": "15dfaaff88046c5a603f35404f27b26670b5eed9bd47c28471671fec8dfe22a5",
+    "intune_iac/workflow.py": "0ea8f4116539849225dcdd3dfeaf367c223c86972d098bff095f94575623da51",
+    "intune_iac/wizard.py": "cae4017b32c4ea8883cd7d8ae00107aefb741844034031954838706e3c4b9450",
+    "intune_iac/graph.py": "4959f67c0dd24b23d8d707e0afa6eca5ee13192dbd5f96c60a89ada534c74cad",
+    "intune_iac/graph_contract.py": "faf42f12d61823bb848c3a1e4fe6622e470b1d63cea7ab727a504b4b10d89c7a",
+    "intune_iac/graph_validation.py": "c1c1da016aa1df5f4e46c58128732ec8504b718b5aec4c830f5c4c8190f0b7e4",
+    "intune_iac/cli.py": "28620e937e9379417ab237b1643d0abeb05a25a9efb22c7daf37fea4a2bbf6b8",
+    "intune_iac/mcp.py": "86919a5cd695eb47ed0b555fa2773fe067ccebb7187afb6253e206deef41e043",
+    "intune_iac/production.py": "f4b956719016ca1fb2ad1efa26c69f05f0c483c222a0ed42e8cc46d68d19610d",
+    "intune_iac/production_oracle.py": "aa5ccadc090493215f0954e86ed543d834883feda8cf6afb6ef7dd6eb965790c",
+    "reference/core.py": "c3629b281d13f08336c910876bb6480e7d644701cf0984d99236b75fc2a6ff0a",
+    "scripts/verify-dependencies.py": "8b7bce46310917b5e19a7e7f5ba976f751c7b3d4a6d04e101fb190babfd76589",
+    "contracts/production-field-accounting.schema.json": "5661c2498c95f4c7b4727bc999dcf4b0003531739cbfb8d89b85364409b9da36",
+    "dependency-lock.json": "777ecfceaccd50b541324f85fbbcd8552a3c0bddd261617f1279008690ac32b3",
+    "requirements-runtime-linux-x86_64-cp312.lock": "b372a5e1dea1b6fd46c62541044a8c761e6f3af80f27a294ca6707eedf60ed88"
+  }
+}

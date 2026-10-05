@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "describe",
+    "component",
+    "leaf",
+    "-s",
+    "qualification",
+    "--format",
+    "json",
+    "--process-functions=false",
+    "--process-templates=false"
+  ],
+  "cwd": "parity-scope_local",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0,
+    1
+  ],
+  "name": "parity-scope-local",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "25edb929c7eaa4be6097c056c93d3c72dfd9153433d8e5c9f84df62ebef387d8",
+  "tool": "atmos",
+  "transcript_complete": true
+}

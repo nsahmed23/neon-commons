@@ -1,0 +1,200 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "intune-iac",
+      "version": "completion-local"
+    },
+    "properties": [
+      {
+        "name": "scope",
+        "value": "10 exact Python runtime wheels; native provider/toolchain and OS transitive inventory separate; not full-system SBOM"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "attrs",
+      "version": "26.1.0",
+      "purl": "pkg:pypi/attrs@26.1.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jsonschema",
+      "version": "4.26.0",
+      "purl": "pkg:pypi/jsonschema@4.26.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jsonschema-specifications",
+      "version": "2025.9.1",
+      "purl": "pkg:pypi/jsonschema-specifications@2025.9.1",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "lark",
+      "version": "1.3.1",
+      "purl": "pkg:pypi/lark@1.3.1",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c629b661023a014c37da873b4ff58a817398d12635d3bbb2c5a03be7fe5d1e12"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "python-hcl2",
+      "version": "8.1.4",
+      "purl": "pkg:pypi/python-hcl2@8.1.4",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "75738bd95717d692a683495babf4d00063f1b211e2eca04b156c6d79b9a0feae"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "purl": "pkg:pypi/pyyaml@6.0.3",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "referencing",
+      "version": "0.37.0",
+      "purl": "pkg:pypi/referencing@0.37.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "381329a9f99628c9069361716891d34ad94af76e461dcb0335825aecc7692231"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "regex",
+      "version": "2026.9.29",
+      "purl": "pkg:pypi/regex@2026.9.29",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "39ab5894d971f9ac68baa6eca5c50387db579cfcacf36ae8df3feceb1815e6d0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "rpds-py",
+      "version": "2026.6.3",
+      "purl": "pkg:pypi/rpds-py@2026.6.3",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ecabd69db66de867690f9797f2f8fa27ba501bbc24540cbdbdc649cd15888ba6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "purl": "pkg:pypi/typing-extensions@4.16.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "scope",
+          "value": "locked runtime wheel; license in wheel metadata; evaluation packages excluded"
+        }
+      ]
+    }
+  ]
+}

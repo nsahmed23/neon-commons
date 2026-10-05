@@ -1,0 +1,36 @@
+schema_version: 1.0.0
+workflows:
+- id: policy-adoption
+  service: Microsoft Graph Intune beta
+  writer: selected typed provider, candidate only
+  source_id: typed-intune
+  artifacts:
+  - examples/supported/expected/project
+  - contracts/observed-inventory.schema.json
+  - recipes/assignment-preservation.md
+  operation: offline generation; separate import qualification
+  permissions_reference: permission-matrix.csv
+  recovery_owner: organization input
+  execution_authorized: false
+- id: azure-backend
+  service: Azure Blob data plane /Entra federation
+  writer: existing externally owned backend
+  source_id: official OpenTofu backend docs
+  artifacts:
+  - examples/azure-integration/expected/project
+  - recipes/azure-ci-identity.md
+  operation: integration reference/handoff
+  permissions_reference: permission-matrix.csv
+  recovery_owner: existing backend/CI owner
+  execution_authorized: false
+- id: diagnostics
+  service: offline minimized evidence
+  writer: none
+  source_id: original synthetic contract
+  artifacts:
+  - examples/diagnostics
+  - DIAGNOSTICS.md
+  operation: offline analysis
+  permissions_reference: permission-matrix.csv
+  recovery_owner: developer/incident owner
+  execution_authorized: false

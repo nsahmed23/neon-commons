@@ -1,0 +1,17 @@
+test_no_renew_after_release_preserves_terminal_receipt (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_no_renew_after_release_preserves_terminal_receipt) ... FAIL
+
+======================================================================
+FAIL: test_no_renew_after_release_preserves_terminal_receipt (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_no_renew_after_release_preserves_terminal_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 203, in test_no_renew_after_release_preserves_terminal_receipt
+    self.assertEqual(lease.evidence()['status'], 'released')
+AssertionError: 'lost' != 'released'
+- lost
++ released
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+FAILED (failures=1)

@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "import-populated-input-change.tfplan"
+  ],
+  "cwd": "repository/components/terraform/identity",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "import-populated-input-change-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "f1be52b813af1aa5a3156eb614a59f6decf4a80d8651181e00718012e1596941",
+  "tool": "tofu",
+  "transcript_complete": true
+}

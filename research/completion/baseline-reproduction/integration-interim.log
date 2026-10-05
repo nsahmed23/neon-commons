@@ -1,0 +1,22 @@
+======================================================================
+ERROR: test_real_transport_uses_explicit_env_token_and_get_without_redirect_following (test_capture.CaptureTests.test_real_transport_uses_explicit_env_token_and_get_without_redirect_following)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_capture.py", line 199, in test_real_transport_uses_explicit_env_token_and_get_without_redirect_following
+    self.assertIsNone(handler.redirect_request(requests[0],None,302,'Found',{},'https://evil.invalid'))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'ProxyHandler' object has no attribute 'redirect_request'
+
+======================================================================
+ERROR: test_new_read_tools_work_over_real_mcp_stdio_without_authority (test_enterprise_cli.EnterpriseCliTests.test_new_read_tools_work_over_real_mcp_stdio_without_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_enterprise_cli.py", line 93, in test_new_read_tools_work_over_real_mcp_stdio_without_authority
+    self.assertFalse(review['execution_authorized'])
+                     ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'execution_authorized'
+
+----------------------------------------------------------------------
+Ran 490 tests in 254.098s
+
+FAILED (errors=2, skipped=1)

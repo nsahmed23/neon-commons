@@ -1,0 +1,20 @@
+{
+  "repository": "https://github.com/powerstacks-corp/intune-advanced-troubleshooting",
+  "commit": "68e04d3374f93d5895d66fc28581f25e1e250fdf",
+  "license": "No repository license file found; no code reused",
+  "executed": false,
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "bff3e9212039882df3ea9ee517c0dc7e9c8049c61fab004c9b327cf7b1ee6e9d",
+      "bytes": 27183,
+      "lines": 469
+    },
+    {
+      "path": "scripts/Collect-IntuneForensics.ps1",
+      "sha256": "f26c84e4e20908c1a6d052a100a652ff03f3dc8a55cb343827ab1c7b119f4858",
+      "bytes": 14248,
+      "lines": 268
+    }
+  ]
+}

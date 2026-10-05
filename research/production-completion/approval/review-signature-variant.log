@@ -1,0 +1,6 @@
+test_signature_noncanonical_scalar_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_signature_noncanonical_scalar_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.022s
+
+OK

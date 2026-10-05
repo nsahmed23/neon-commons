@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "terraform",
+    "plan",
+    "identity",
+    "-s",
+    "import",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode",
+    "-out=import-populated-input-change.tfplan"
+  ],
+  "cwd": "repository",
+  "exit_code": 2,
+  "expected_exit_codes": [
+    2
+  ],
+  "name": "import-populated-input-change",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+  "stdout_sha256": "eeb4a644ed80904107ce5a6aa1adb730bde3892aacb2449018b4c24860f86298",
+  "tool": "atmos",
+  "transcript_complete": true
+}

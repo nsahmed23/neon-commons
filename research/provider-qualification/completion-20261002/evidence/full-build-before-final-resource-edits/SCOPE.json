@@ -1,0 +1,5 @@
+{
+  "status": "passed-native-build-pre-final-resource-edits",
+  "note": "Complete real provider built successfully, before selected explicit-zero schema and Read refusal additions. Final candidate is built separately from final manifest, same stable staging path to reuse cache. This earlier binary is not the final source artifact.",
+  "production_qualified": false
+}

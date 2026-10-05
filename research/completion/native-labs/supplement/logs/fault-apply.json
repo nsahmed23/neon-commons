@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "apply",
+    "-auto-approve",
+    "-input=false",
+    "-no-color"
+  ],
+  "cwd": "partial-failure",
+  "exit_code": 1,
+  "expected_exit_codes": [
+    1
+  ],
+  "name": "fault-apply",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "942db51d411f0ca3fb24cbd65e67f63db57958e8e7ace6574c934f8b575d5e5a",
+  "stdout_sha256": "03c51c3340045c18384771ae08f68b837445592be16edf39046cdc19a436a437",
+  "tool": "tofu",
+  "transcript_complete": true
+}

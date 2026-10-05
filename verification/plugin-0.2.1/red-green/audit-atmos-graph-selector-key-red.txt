@@ -1,0 +1,33 @@
+test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) ... 
+  test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) (extra_key='1') ... FAIL
+  test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) (extra_key='true') ... FAIL
+  test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) (extra_key='? [a, b]') ... FAIL
+
+======================================================================
+FAIL: test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) (extra_key='1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 83, in test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation
+    self.assertFalse(any(e['predicate'] in ('imports','resolvesToManifest','declaresDependencyOn','dependsOn') for e in graph['edges']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) (extra_key='true')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 83, in test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation
+    self.assertFalse(any(e['predicate'] in ('imports','resolvesToManifest','declaresDependencyOn','dependsOn') for e in graph['edges']))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation (plugin_tests.test_atmos_audit.AtmosAuditTests.test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation) (extra_key='? [a, b]')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 83, in test_nonstring_keys_cannot_disappear_before_import_or_dependency_validation
+    self.assertFalse(any(e['predicate'] in ('imports','resolvesToManifest','declaresDependencyOn','dependsOn') for e in graph['edges']))
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 1 test in 0.107s
+
+FAILED (failures=3)

@@ -1,0 +1,16 @@
+article_entry,disposition,evidence,fresh_individual_implementation_audit
+terraform-style-guide,selected official catalogue entry verified; individual skill/dependencies not vendored,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+terraform-refactor-module,corrected name refactor-module verified in pinned official catalogue,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+terraform-test,selected official catalogue entry verified; individual skill/dependencies not vendored,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+terrashark,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+antonbabenko/terraform-skill,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+terraform-stacks,optional HCP specialization; excluded first slice,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+owasp-security,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+varlock-claude-skill,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+security-auditor,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+devops-engineer,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+developer-kit-devops,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+create-pr/git workflow,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+monorepo-management,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+cc-devops-skills,reference-only; no runtime dependency,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog
+systematic-debugging,use existing Superpowers method; no duplicate runtime framework,source-lock/hashicorp catalogue or carried-forward input report; no broad rescore,not_performed_unless_in_code_catalog

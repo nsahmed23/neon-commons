@@ -1,0 +1,69 @@
+test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) ... 
+  test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error={}) ... FAIL
+  test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error=None) ... FAIL
+  test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error=False) ... FAIL
+  test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error='') ... FAIL
+  test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error=[]) ... FAIL
+  test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error={'code': 'SYNTHETIC-ERROR'}) ... FAIL
+test_pipeline_empty_error_page_is_review_only (evaluations.test_repaired_contracts.RepairedContractTests.test_pipeline_empty_error_page_is_review_only) ... FAIL
+
+======================================================================
+FAIL: test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 118, in test_capture_rejects_any_error_member_at_http_200
+    self.assertIn('error_page',capture_errors(captured,root))
+AssertionError: 'error_page' not found in []
+
+======================================================================
+FAIL: test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 118, in test_capture_rejects_any_error_member_at_http_200
+    self.assertIn('error_page',capture_errors(captured,root))
+AssertionError: 'error_page' not found in []
+
+======================================================================
+FAIL: test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 118, in test_capture_rejects_any_error_member_at_http_200
+    self.assertIn('error_page',capture_errors(captured,root))
+AssertionError: 'error_page' not found in []
+
+======================================================================
+FAIL: test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error='')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 118, in test_capture_rejects_any_error_member_at_http_200
+    self.assertIn('error_page',capture_errors(captured,root))
+AssertionError: 'error_page' not found in []
+
+======================================================================
+FAIL: test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 118, in test_capture_rejects_any_error_member_at_http_200
+    self.assertIn('error_page',capture_errors(captured,root))
+AssertionError: 'error_page' not found in []
+
+======================================================================
+FAIL: test_capture_rejects_any_error_member_at_http_200 (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_rejects_any_error_member_at_http_200) (error={'code': 'SYNTHETIC-ERROR'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 118, in test_capture_rejects_any_error_member_at_http_200
+    self.assertIn('error_page',capture_errors(captured,root))
+AssertionError: 'error_page' not found in []
+
+======================================================================
+FAIL: test_pipeline_empty_error_page_is_review_only (evaluations.test_repaired_contracts.RepairedContractTests.test_pipeline_empty_error_page_is_review_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_contracts.py", line 127, in test_pipeline_empty_error_page_is_review_only
+    self.assertFalse(normalized['offline_mapping_complete'])
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.018s
+
+FAILED (failures=7)

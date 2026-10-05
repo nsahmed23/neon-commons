@@ -1,0 +1,18 @@
+[
+  {
+    "source_array_items": 20000,
+    "source_bytes": 64182,
+    "ledger_rows": 20129,
+    "normalized_file_bytes": 9728532,
+    "generate_outcome": "succeeded_verified",
+    "output_exists": true
+  },
+  {
+    "source_array_items": 40000,
+    "source_bytes": 124182,
+    "ledger_rows": 40129,
+    "normalized_file_bytes": 19388532,
+    "generate_outcome": "preservation_failed",
+    "output_exists": false
+  }
+]

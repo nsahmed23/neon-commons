@@ -1,0 +1,737 @@
+{
+  "binary_sha256": {
+    "atmos": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b",
+    "tofu": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627"
+  },
+  "checks": [
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/catalog/a.yaml": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d",
+          "stacks/catalog/b.yaml": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe",
+          "stacks/orgs/qualification.yaml": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d"
+        }
+      },
+      "name": "literal-parity-imports-ab",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/catalog/a.yaml": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d",
+          "stacks/catalog/b.yaml": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe",
+          "stacks/orgs/qualification.yaml": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4"
+        }
+      },
+      "name": "literal-parity-imports-ba",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/orgs/qualification.yaml": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c"
+        }
+      },
+      "name": "literal-parity-inherits-parent-b",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/orgs/qualification.yaml": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1"
+        }
+      },
+      "name": "literal-parity-inherits-parent-a",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/orgs/qualification.yaml": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023"
+        }
+      },
+      "name": "literal-parity-scope-local",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/orgs/qualification.yaml": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429"
+        }
+      },
+      "name": "literal-parity-scope-override",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/catalog/a.yaml": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096",
+          "stacks/orgs/qualification.yaml": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e"
+        }
+      },
+      "name": "literal-parity-empty-values",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 1,
+        "python_status": "blocked",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/catalog/a.yaml": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b",
+          "stacks/orgs/qualification.yaml": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9"
+        }
+      },
+      "name": "literal-parity-type-change",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/orgs/qualification.yaml": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1"
+        }
+      },
+      "name": "literal-parity-parent-to-child",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/orgs/qualification.yaml": "42b4fe6fb3257f1023254b0de30a9c4c9a793a640944321a4dcef5f762d27d69"
+        }
+      },
+      "name": "literal-parity-child-to-override",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_exit": 0,
+        "python_status": "resolved",
+        "source_files": {
+          "atmos.yaml": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+          "stacks/catalog/a.yaml": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63",
+          "stacks/orgs/qualification.yaml": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6"
+        }
+      },
+      "name": "literal-parity-null-shapes",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "moved-no-replacement",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "moved-preserves-identity",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "forget-without-delete",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "forget-no-recreation",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "partial-native-effect-observed",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "repair-preserves-successful-policy",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "recovery-no-change",
+      "passed": true
+    }
+  ],
+  "checks_passed": 18,
+  "cloud_calls": 0,
+  "commands": [
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-imports_ab",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-imports-ab",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "9f19eebe142c7b6fed2a759c8a9d0d75462f43127d6e6e5bf7f5cb7c3876e1e5",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-imports_ba",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-imports-ba",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "766972da2f830d5d6412838904906c04527b9d52599c371d556cdcbe1559d331",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-inherits_parent_b",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-inherits-parent-b",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f2f2e3ffc7f8ad7f73959636587826aca72d7f88459199fb6460d1732efc5b7f",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-inherits_parent_a",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-inherits-parent-a",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "96111e28eff855d70ec1f966015827850c5d5c40286ec3ef3310590b8d06842a",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-scope_local",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-scope-local",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "25edb929c7eaa4be6097c056c93d3c72dfd9153433d8e5c9f84df62ebef387d8",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-scope_override",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-scope-override",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "8981ea20ee5e8db5d8340a9dd2c8ccbbb1cc45efe53b76dd22e72d0cfc0d681c",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-empty_values",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-empty-values",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "35f4a0a77e09bdc4bd76c74b22a9000d0b440e432c67f8c9e69e09db42597da0",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-type_change",
+      "exit_code": 1,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-type-change",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "c041297a1ad1581c98e27bbc5086ecbc86660afe1922407b13dc20055b1ce31b",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-parent_to_child",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-parent-to-child",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "2d0f3ee216992a4b25c1f3f79281cb73896e4faed764b10db762c044dd5d53df",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-child_to_override",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-child-to-override",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f9aea5395f7d4ff08f007ed930acb1ffd2d56f8128a3ba2e0dea0741004b2c76",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "leaf",
+        "-s",
+        "qualification",
+        "--format",
+        "json",
+        "--process-functions=false",
+        "--process-templates=false"
+      ],
+      "cwd": "parity-null_shapes",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0,
+        1
+      ],
+      "name": "parity-null-shapes",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "6309b0bf302d941ef7bfe5103943c1064e21863e90e7518abee407255eb1ada7",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "init",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "state-init",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b7f275c45861756a414151ff33a21843490ee07badd382e91ffab4b68713b089",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-auto-approve",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "state-seed",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "817407c75090f02d3693739716cf25b63ec3806d15968076c91eb4fa587e5041",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=moved.tfplan"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "moved-plan",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "9fdc303fe26bee46b1b166b9d55916f81a10372b9840018bc1b12adb0d8c2de0",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "moved.tfplan"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "moved-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "bf14f23e1100024d5d5a88451a9d2b256dfe4f5b907cbfd702e50becb2df5832",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-input=false",
+        "-no-color",
+        "moved.tfplan"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "moved-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "11f74fbc62e8d8b34de9029b6f891c3a6172d1e9af3b695a92bcb6fbf4704540",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=forget.tfplan"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "forget-plan",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e4e1d9ad339afafc59b5ff231f91a0f11cbc1ab43a6c32716cbb69c34ea3de02",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "forget.tfplan"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "forget-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "875227c8d73593c7fe39813ea7393379f2e37ac74cc9ad0bab6119e9c3dfc282",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-input=false",
+        "-no-color",
+        "forget.tfplan"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "forget-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "1f2ef2347e4ca7af82ff95e7f030214d0ffaaadd71b278f9b63aaec19bf8c656",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode"
+      ],
+      "cwd": "state-curriculum",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "forget-converged",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "6042ecdfd3b8f896c054ea5a9280bc62187b344c33c9e42d508d988ea22daeec",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "init",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "partial-failure",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "fault-init",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b7f275c45861756a414151ff33a21843490ee07badd382e91ffab4b68713b089",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-auto-approve",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "partial-failure",
+      "exit_code": 1,
+      "expected_exit_codes": [
+        1
+      ],
+      "name": "fault-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "942db51d411f0ca3fb24cbd65e67f63db57958e8e7ace6574c934f8b575d5e5a",
+      "stdout_sha256": "03c51c3340045c18384771ae08f68b837445592be16edf39046cdc19a436a437",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-auto-approve",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "partial-failure",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "fault-repair",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "76ad4c3a584c43f91a85402d9ee2116757220353a2622b09a5ef7b2f7cdd3fa4",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode"
+      ],
+      "cwd": "partial-failure",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "fault-converged",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "703b8fec78b143498bc51b1e4a7a40e799b38d9cf7a12ca8cb1f828cba6f4ef6",
+      "tool": "tofu",
+      "transcript_complete": true
+    }
+  ],
+  "external_providers": 0,
+  "filesystem_isolated": false,
+  "native_commands": 24,
+  "network_denied": true,
+  "runner_sha256": "f1f6b2e9e889c8da3645d37b4044fd009a62671928e7934b43a8b5ee05b2e9a7",
+  "scope": "Original supplement; no upstream lab replay claim.",
+  "status": "passed"
+}

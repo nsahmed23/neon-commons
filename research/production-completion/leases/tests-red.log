@@ -1,0 +1,122 @@
+test_closed_identity_invalidates_without_network_and_release_unknown (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_closed_identity_invalidates_without_network_and_release_unknown) ... ERROR
+test_context_exception_is_not_suppressed_and_releases_only_owner (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_context_exception_is_not_suppressed_and_releases_only_owner) ... ERROR
+test_etag_mutation_during_renew_and_bad_conditions_fail_closed (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_etag_mutation_during_renew_and_bad_conditions_fail_closed) ... ERROR
+test_expiry_before_and_during_renew_and_clock_rollback (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_expiry_before_and_during_renew_and_clock_rollback) ... ERROR
+test_fixed_api_acquire_renew_release_and_private_identity (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_fixed_api_acquire_renew_release_and_private_identity) ... ERROR
+test_long_acquire_response_never_creates_active_lease (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_long_acquire_response_never_creates_active_lease) ... ERROR
+test_mismatched_response_id_rejects_and_role_never_reacquires (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_mismatched_response_id_rejects_and_role_never_reacquires) ... ERROR
+test_receipts_and_laboratory_bindings_cannot_mint_live_role (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_receipts_and_laboratory_bindings_cannot_mint_live_role) ... ERROR
+test_redirect_denial_duplicate_headers_encoding_and_large_body (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_redirect_denial_duplicate_headers_encoding_and_large_body) ... ERROR
+test_release_lost_response_cancellation_and_repeated_release_no_retry (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_release_lost_response_cancellation_and_repeated_release_no_retry) ... ERROR
+test_response_loss_on_renew_permanently_loses_capability (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_response_loss_on_renew_permanently_loses_capability) ... ERROR
+test_two_owners_same_blob_conflict_and_first_remains_active (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_two_owners_same_blob_conflict_and_first_remains_active) ... ERROR
+test_wrong_credential_no_environment_fallback_and_nonserialization (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_wrong_credential_no_environment_fallback_and_nonserialization) ... ERROR
+
+======================================================================
+ERROR: test_closed_identity_invalidates_without_network_and_release_unknown (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_closed_identity_invalidates_without_network_and_release_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_context_exception_is_not_suppressed_and_releases_only_owner (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_context_exception_is_not_suppressed_and_releases_only_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_etag_mutation_during_renew_and_bad_conditions_fail_closed (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_etag_mutation_during_renew_and_bad_conditions_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_expiry_before_and_during_renew_and_clock_rollback (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_expiry_before_and_during_renew_and_clock_rollback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_fixed_api_acquire_renew_release_and_private_identity (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_fixed_api_acquire_renew_release_and_private_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_long_acquire_response_never_creates_active_lease (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_long_acquire_response_never_creates_active_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_mismatched_response_id_rejects_and_role_never_reacquires (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_mismatched_response_id_rejects_and_role_never_reacquires)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_receipts_and_laboratory_bindings_cannot_mint_live_role (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_receipts_and_laboratory_bindings_cannot_mint_live_role)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_redirect_denial_duplicate_headers_encoding_and_large_body (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_redirect_denial_duplicate_headers_encoding_and_large_body)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_release_lost_response_cancellation_and_repeated_release_no_retry (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_release_lost_response_cancellation_and_repeated_release_no_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_response_loss_on_renew_permanently_loses_capability (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_response_loss_on_renew_permanently_loses_capability)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_two_owners_same_blob_conflict_and_first_remains_active (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_two_owners_same_blob_conflict_and_first_remains_active)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_wrong_credential_no_environment_fallback_and_nonserialization (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_wrong_credential_no_environment_fallback_and_nonserialization)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_v5.py", line 52, in setUp
+    from intune_iac import blob_lease as bl
+ImportError: cannot import name 'blob_lease' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.003s
+
+FAILED (errors=13)

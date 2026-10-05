@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/corrections/2.0.0/provider-settings.schema.json",
+  "title": "provider-settings",
+  "description": "Original proposed bounded correction contract; not an official Microsoft/provider schema and not live-qualified.",
+  "type": "object",
+  "properties": {
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)$"
+          },
+          "settingInstance": {
+            "$ref": "#/$defs/instance"
+          }
+        },
+        "required": [
+          "id",
+          "settingInstance"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "settings"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "instance": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "@odata.type": {
+              "const": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+            },
+            "settingDefinitionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "settingInstanceTemplateReference": {
+              "type": "null"
+            },
+            "choiceSettingValue": {
+              "$ref": "#/$defs/choiceValue"
+            }
+          },
+          "required": [
+            "@odata.type",
+            "settingDefinitionId",
+            "choiceSettingValue"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "@odata.type": {
+              "const": "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
+            },
+            "settingDefinitionId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "settingInstanceTemplateReference": {
+              "type": "null"
+            },
+            "simpleSettingValue": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/stringValue"
+                },
+                {
+                  "$ref": "#/$defs/integerValue"
+                }
+              ]
+            }
+          },
+          "required": [
+            "@odata.type",
+            "settingDefinitionId",
+            "simpleSettingValue"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "choiceValue": {
+      "type": "object",
+      "properties": {
+        "@odata.type": {
+          "const": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/instance"
+          }
+        },
+        "settingValueTemplateReference": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "@odata.type",
+        "value",
+        "children"
+      ],
+      "additionalProperties": false
+    },
+    "stringValue": {
+      "type": "object",
+      "properties": {
+        "@odata.type": {
+          "const": "#microsoft.graph.deviceManagementConfigurationStringSettingValue"
+        },
+        "value": {
+          "type": "string"
+        },
+        "settingValueTemplateReference": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "@odata.type",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "integerValue": {
+      "type": "object",
+      "properties": {
+        "@odata.type": {
+          "const": "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
+        },
+        "value": {
+          "type": "integer",
+          "minimum": -2147483648,
+          "maximum": 2147483647
+        },
+        "settingValueTemplateReference": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "@odata.type",
+        "value"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

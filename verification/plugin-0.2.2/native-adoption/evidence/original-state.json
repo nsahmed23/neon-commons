@@ -1,0 +1,134 @@
+{
+  "check_results": null,
+  "lineage": "07adae85-fba2-c82c-1a30-98342daaee30",
+  "outputs": {
+    "observed_setting": {
+      "type": "string",
+      "value": "allow"
+    },
+    "policy_id": {
+      "type": "string",
+      "value": "536a05b0-b0e2-dc69-cee0-805ee5d4feeb"
+    },
+    "targeting_id": {
+      "type": "string",
+      "value": "1b70a268-7d44-1466-ed1c-95335fbefc29"
+    }
+  },
+  "resources": [
+    {
+      "instances": [
+        {
+          "attributes": {
+            "id": "536a05b0-b0e2-dc69-cee0-805ee5d4feeb",
+            "input": {
+              "type": [
+                "object",
+                {
+                  "name": "string",
+                  "setting": "string"
+                }
+              ],
+              "value": {
+                "name": "adoption-lab-dev",
+                "setting": "allow"
+              }
+            },
+            "output": {
+              "type": [
+                "object",
+                {
+                  "name": "string",
+                  "setting": "string"
+                }
+              ],
+              "value": {
+                "name": "adoption-lab-dev",
+                "setting": "allow"
+              }
+            },
+            "triggers_replace": null
+          },
+          "schema_version": 0,
+          "sensitive_attributes": []
+        }
+      ],
+      "mode": "managed",
+      "name": "policy",
+      "provider": "provider[\"terraform.io/builtin/terraform\"]",
+      "type": "terraform_data"
+    },
+    {
+      "instances": [
+        {
+          "attributes": {
+            "id": "1b70a268-7d44-1466-ed1c-95335fbefc29",
+            "input": {
+              "type": [
+                "object",
+                {
+                  "excluded_groups": [
+                    "list",
+                    "string"
+                  ],
+                  "included_groups": [
+                    "list",
+                    "string"
+                  ],
+                  "policy_id": "string"
+                }
+              ],
+              "value": {
+                "excluded_groups": [
+                  "22222222-2222-4222-8222-222222222222"
+                ],
+                "included_groups": [
+                  "11111111-1111-4111-8111-111111111111"
+                ],
+                "policy_id": "536a05b0-b0e2-dc69-cee0-805ee5d4feeb"
+              }
+            },
+            "output": {
+              "type": [
+                "object",
+                {
+                  "excluded_groups": [
+                    "list",
+                    "string"
+                  ],
+                  "included_groups": [
+                    "list",
+                    "string"
+                  ],
+                  "policy_id": "string"
+                }
+              ],
+              "value": {
+                "excluded_groups": [
+                  "22222222-2222-4222-8222-222222222222"
+                ],
+                "included_groups": [
+                  "11111111-1111-4111-8111-111111111111"
+                ],
+                "policy_id": "536a05b0-b0e2-dc69-cee0-805ee5d4feeb"
+              }
+            },
+            "triggers_replace": null
+          },
+          "dependencies": [
+            "terraform_data.policy"
+          ],
+          "schema_version": 0,
+          "sensitive_attributes": []
+        }
+      ],
+      "mode": "managed",
+      "name": "targeting",
+      "provider": "provider[\"terraform.io/builtin/terraform\"]",
+      "type": "terraform_data"
+    }
+  ],
+  "serial": 1,
+  "terraform_version": "1.10.0",
+  "version": 4
+}

@@ -1,0 +1,214 @@
+{
+  "checked_date": "2026-09-30",
+  "provider_pin": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "sdk_tag_resolution": {
+    "tag": "v0.165.0",
+    "commit": "95df3921a4dd9a40c65dd24b26b96988bb1191d0",
+    "source": "https://api.github.com/repos/microsoftgraph/msgraph-beta-sdk-go/git/ref/tags/v0.165.0"
+  },
+  "sources": [
+    {
+      "id": "P01",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go",
+      "blob_sha": "5af1cc84bba53346adae7ac2c83ca04ca36f708d",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go",
+      "read_range": "complete blob",
+      "status": "fresh connector text inspection",
+      "conclusion": "Validator requires numeric string IDs and adjacent +1 sequence for nonempty arrays, exactly id/settingInstance; first-ID-zero comment is not implemented. Exact path and blob identity independently resolved during follow-up review.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false,
+      "commit_membership": "resolved by pinned GitHub contents response; blob matches 5af1cc84bba53346adae7ac2c83ca04ca36f708d"
+    },
+    {
+      "id": "P02",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go",
+      "blob_sha": "43e6532c4a367e0d443121e2c95b40a1c1501418",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go",
+      "read_range": "1-220",
+      "status": "fresh connector text inspection",
+      "conclusion": "Parses typed shared model; constructs base setting and nested instance; does not copy setting ID; choice children only set when nonempty; unsupported instance returns nil.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P03",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go",
+      "blob_sha": "57850dd368788d11a0fa8daba23aa353a1944ad0",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go",
+      "read_range": "complete file",
+      "status": "fresh connector text inspection",
+      "conclusion": "Response collection wrapped without stripping fields; secret preservation and alphabetical normalization; parse failures can retain old settings string.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P04",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/common/normalize/json.go",
+      "blob_sha": "fa6d8277ccf4903215754a95ae623310e88f0b2d",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/common/normalize/json.go",
+      "read_range": "complete file",
+      "status": "fresh connector text inspection",
+      "conclusion": "Sorts object keys, preserves array order, removes no properties.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P05",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/modify_plan.go",
+      "blob_sha": "7db710a730bc65f95fec2305ee4d2e256965b511",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/modify_plan.go",
+      "read_range": "complete file",
+      "status": "fresh connector text inspection",
+      "conclusion": "Resource-level ModifyPlan is a placeholder, not a semantic roundtrip normalizer.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P06",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "go.mod",
+      "blob_sha": "e6946c18da156743278a40ba8b5c3b6cbf18c40c",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/go.mod",
+      "read_range": "1-95",
+      "status": "fresh connector text inspection",
+      "conclusion": "Go1.25.8; plugin-framework1.19.0; validators0.19.0; betaSDK0.165.0; Kiota abstractions1.9.4, HTTP1.5.6, JSONserialization1.1.4.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P07",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go",
+      "blob_sha": "4b0aa9bb2f7d69951e7eb6bd528f3d3d9617bb43",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go",
+      "read_range": "prior handoff source excerpt",
+      "status": "prior supplied source evidence; not freshly re-fetched in this pass",
+      "conclusion": "Registers validator, ID passthrough, description length1500, assignments schema.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P08",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/crud.go",
+      "blob_sha": "91da787a6fda8f49f0debc8c98d78ac2d1aeecde",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/crud.go",
+      "read_range": "prior handoff source excerpt",
+      "status": "prior supplied source evidence; not freshly re-fetched in this pass",
+      "conclusion": "Update policy then assignments; assignments Read uses one SDK Get response; inspect full helper/SDK before broader pagination claim.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P09",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct_assignment.go",
+      "blob_sha": "cd3eb2743d68522f8992fcb6d7393ea1daefa02c",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct_assignment.go",
+      "read_range": "prior handoff source excerpt",
+      "status": "prior supplied source evidence; not freshly re-fetched in this pass",
+      "conclusion": "Null/unknown maps to empty; invalid target may be skipped. Outgoing shape is not service replace/merge proof.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P10",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "path": "internal/services/common/schema/graph_beta/device_management/device_configuration_assignment.go",
+      "blob_sha": "c480d4fe1aa607eaa88fcbc76c3f3eec935552ba",
+      "url": "https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/1718c946b3ae111bb44c7c1d925b3e35b708cb0a/internal/services/common/schema/graph_beta/device_management/device_configuration_assignment.go",
+      "read_range": "prior handoff source excerpt",
+      "status": "prior supplied source evidence; not freshly re-fetched in this pass",
+      "conclusion": "Explicit zero filter GUID rejected; default zero is declared for computed value. Config/default sequencing needs provider test.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    },
+    {
+      "id": "P11",
+      "repository": "microsoftgraph/msgraph-beta-sdk-go",
+      "commit": "95df3921a4dd9a40c65dd24b26b96988bb1191d0",
+      "path": "models/device_management_configuration_setting.go",
+      "blob_sha": "ee59df117068d01d65e2c6c757d1d13bbfef7ae9",
+      "url": "https://github.com/microsoftgraph/msgraph-beta-sdk-go/blob/95df3921a4dd9a40c65dd24b26b96988bb1191d0/models/device_management_configuration_setting.go",
+      "read_range": "complete file",
+      "status": "fresh connector text inspection",
+      "conclusion": "New setting embeds NewEntity; Serialize delegates entity then settingInstance. Entity/default and JSON-writer closure remains.",
+      "acquired_raw_file": null,
+      "acquired_file_sha256": null,
+      "bytes_acquisition_status": "not materialized as an upstream raw file; source text reviewed through connector",
+      "provider_executed": false
+    }
+  ],
+  "web_sources": [
+    {
+      "id": "W01",
+      "url": "https://learn.microsoft.com/en-us/graph/paging",
+      "status": "read during this correction pass; moving official documentation, not immutable acquisition",
+      "finding": "Use entire returned nextLink; continue until absent. Does not attest a supplied capture starts at the root."
+    },
+    {
+      "id": "W02",
+      "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta",
+      "status": "read during this correction pass; moving official documentation, not immutable acquisition",
+      "finding": "Policy properties, settings/assignments relationships and assign action are distinct."
+    },
+    {
+      "id": "W03",
+      "url": "https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationsetting?view=graph-rest-beta",
+      "status": "read during this correction pass; moving official documentation, not immutable acquisition",
+      "finding": "Setting ID and settingInstance; definition relationship is read-only."
+    },
+    {
+      "id": "W04",
+      "url": "https://developers.openai.com/plugins/build/plugins",
+      "status": "read during this correction pass; moving official documentation, not immutable acquisition",
+      "finding": "Portable root manifest; legacy Codex compatibility layout; revalidate host actual supported version."
+    },
+    {
+      "id": "W05",
+      "url": "https://code.claude.com/docs/en/plugin-evals",
+      "status": "read during this correction pass; moving official documentation, not immutable acquisition",
+      "finding": "Separate native eval harness from static validate; paid runs and scaffold/platform boundaries apply."
+    }
+  ],
+  "limitations": [
+    "Connector text review is not raw-file vendoring or executed dependency closure.",
+    "A container HTTPS download failed DNS; raw GitHub web opens returned cache miss. No raw-source SHA256 is invented.",
+    "Exact validator blob retrieved; its repository path remains to be resolved against the pinned tree."
+  ]
+}

@@ -1,0 +1,6 @@
+vars: {region: west}
+components:
+  terraform:
+    base:
+      metadata: {type: abstract}
+      vars: {retained: 1}

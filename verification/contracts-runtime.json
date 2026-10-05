@@ -1,0 +1,6 @@
+{
+  "interpreter": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+  "python_version": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "jsonschema_version": "4.26.0",
+  "jsonschema_module": "/workspace/scratch/26b6d364cfda/correction-validation-deps/jsonschema/__init__.py"
+}

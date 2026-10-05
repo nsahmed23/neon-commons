@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "plan",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode"
+  ],
+  "cwd": "partial-failure",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "fault-converged",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "703b8fec78b143498bc51b1e4a7a40e799b38d9cf7a12ca8cb1f828cba6f4ef6",
+  "tool": "tofu",
+  "transcript_complete": true
+}

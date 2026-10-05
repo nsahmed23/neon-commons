@@ -1,0 +1,53 @@
+FFF.FFF
+======================================================================
+FAIL: test_empty_suite_cannot_pass (plugin_tests.test_verifier_contract.VerifierContractTests.test_empty_suite_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_verifier_contract.py", line 39, in test_empty_suite_cannot_pass
+    self.assertNotEqual(code, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_expected_failure_cannot_pass (plugin_tests.test_verifier_contract.VerifierContractTests.test_expected_failure_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_verifier_contract.py", line 49, in test_expected_failure_cannot_pass
+    self.assertNotEqual(code, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_multiple_failing_subtests_do_not_make_negative_pass_count (plugin_tests.test_verifier_contract.VerifierContractTests.test_multiple_failing_subtests_do_not_make_negative_pass_count)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_verifier_contract.py", line 56, in test_multiple_failing_subtests_do_not_make_negative_pass_count
+    self.assertEqual(result['passed'], 0)
+AssertionError: -1 != 0
+
+======================================================================
+FAIL: test_skipped_subtest_cannot_pass (plugin_tests.test_verifier_contract.VerifierContractTests.test_skipped_subtest_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_verifier_contract.py", line 66, in test_skipped_subtest_cannot_pass
+    self.assertNotEqual(code, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_skipped_suite_cannot_pass (plugin_tests.test_verifier_contract.VerifierContractTests.test_skipped_suite_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_verifier_contract.py", line 44, in test_skipped_suite_cannot_pass
+    self.assertNotEqual(code, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_unexpected_success_is_not_counted_as_pass (plugin_tests.test_verifier_contract.VerifierContractTests.test_unexpected_success_is_not_counted_as_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_verifier_contract.py", line 62, in test_unexpected_success_is_not_counted_as_pass
+    self.assertEqual(result['passed'], 0)
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.009s
+
+FAILED (failures=6)

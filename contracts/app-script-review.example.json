@@ -1,0 +1,47 @@
+{
+  "artifact": {
+    "missing_hash_blocks_delivery": true,
+    "origin": "organization-approved repository required",
+    "sha256": null,
+    "version": "2.0"
+  },
+  "delivery_authorized": false,
+  "dependencies": [],
+  "detection": {
+    "expected_version": "2.0",
+    "hive": "HKLM",
+    "kind": "registry",
+    "product_identity": "synthetic-example",
+    "test_under_install_identity": true,
+    "view": "x64"
+  },
+  "install": {
+    "architecture": "x64",
+    "command": "review-required",
+    "context": "SYSTEM",
+    "reboot_codes": [
+      3010
+    ],
+    "reboot_policy": "organization_input",
+    "success_exit_codes": [
+      0
+    ],
+    "uninstall": "review-required"
+  },
+  "kind": "win32-app",
+  "requirements": {
+    "licensing": "verify",
+    "minimum_os_build": null
+  },
+  "schema_version": "1.0.0",
+  "script": {
+    "compensation_owner": null,
+    "detection_and_remediation_separate": true,
+    "idempotence_test_required": true,
+    "max_retries": null,
+    "secret_outputs_forbidden": true
+  },
+  "state": "review_contract_only",
+  "supersedence": [],
+  "synthetic": true
+}

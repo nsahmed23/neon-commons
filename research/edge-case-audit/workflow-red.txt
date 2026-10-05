@@ -1,0 +1,46 @@
+test_all_journal_write_boundaries_keep_effects_observable_without_replay (plugin_tests.test_edge_workflow_audit.CrashBoundaryTests.test_all_journal_write_boundaries_keep_effects_observable_without_replay) ... ok
+test_completed_control_has_both_desired_facets_and_no_lock (plugin_tests.test_edge_workflow_audit.CrashBoundaryTests.test_completed_control_has_both_desired_facets_and_no_lock) ... ok
+test_normal_owned_lock_is_removed_on_save (plugin_tests.test_edge_workflow_audit.WorkflowBoundaryTests.test_normal_owned_lock_is_removed_on_save) ... ok
+test_replaced_lock_is_preserved_on_exit (plugin_tests.test_edge_workflow_audit.WorkflowBoundaryTests.test_replaced_lock_is_preserved_on_exit) ... FAIL
+test_unhashable_saved_state_is_a_blocked_input_not_a_crash (plugin_tests.test_edge_workflow_audit.WorkflowBoundaryTests.test_unhashable_saved_state_is_a_blocked_input_not_a_crash) ... FAIL
+
+======================================================================
+FAIL: test_replaced_lock_is_preserved_on_exit (plugin_tests.test_edge_workflow_audit.WorkflowBoundaryTests.test_replaced_lock_is_preserved_on_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_workflow_audit.py", line 43, in test_replaced_lock_is_preserved_on_exit
+    self.assertTrue(self.lock.exists(), 'An invocation must not remove a replacement lock owned by another operation')
+AssertionError: False is not true : An invocation must not remove a replacement lock owned by another operation
+
+======================================================================
+FAIL: test_unhashable_saved_state_is_a_blocked_input_not_a_crash (plugin_tests.test_edge_workflow_audit.WorkflowBoundaryTests.test_unhashable_saved_state_is_a_blocked_input_not_a_crash)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_workflow_audit.py", line 52, in test_unhashable_saved_state_is_a_blocked_input_not_a_crash
+    answer = self.run_flow(lambda _: 'save')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_workflow_audit.py", line 28, in run_flow
+    return workflow.run_guided_workflow(self.session, self.source, self.context,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/intune_iac/workflow.py", line 443, in run_guided_workflow
+    state, fresh = _requested_state(session_path, input_path, context_path, output_path, repo, stack, component)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/intune_iac/workflow.py", line 423, in _requested_state
+    state = _load(session_path)
+            ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/intune_iac/workflow.py", line 68, in _load
+    if not valid or value['saved_state'] not in FRONTIERS or value['lifecycle'] not in ('active', 'suspended', 'cancelled', 'complete_local') or value['in_flight_outcome'] not in ('none', 'unknown'):
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unhashable type: 'list'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_edge_workflow_audit.py", line 54, in test_unhashable_saved_state_is_a_blocked_input_not_a_crash
+    self.fail('Malformed persisted JSON escaped instead of being blocked: ' + type(error).__name__)
+AssertionError: Malformed persisted JSON escaped instead of being blocked: TypeError
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.122s
+
+FAILED (failures=2)

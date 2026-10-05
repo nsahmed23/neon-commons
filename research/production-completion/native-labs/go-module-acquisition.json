@@ -1,0 +1,212 @@
+{
+  "version": "pinned-provider-core-dependencies/1.0",
+  "source_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "go_mod_sha256": "ab4dadbaf1a7b64e885dab04eb2f0ae2fec66ddd48f491745ad6b10f0f976231",
+  "go_sum_sha256": "d1d7d337dad3e3aa39321051c60afb629ae1cd526a86f7d39df4619d94995211",
+  "acquisition": "ordinary pinned go mod download and go list -deps -test from https://proxy.golang.org with sum.golang.org, no escalation; go list initial VCS status error corrected with -buildvcs=false for dependency inspection only",
+  "test_execution": "unchanged reviewed qualify-provider-contract.py; GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local",
+  "bounded_acquisition_seconds": 240,
+  "module_count": 24,
+  "compressed_module_bytes": 9521283,
+  "modules": [
+    {
+      "module": "github.com/cespare/xxhash/v2",
+      "version": "v2.3.0",
+      "zip_sha256": "145a26cdc7c49db566017b807c4989ee7f7ddeb569423e9cb99f995fac3621d3",
+      "go_sum_h1": "h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=",
+      "zip_bytes": 17573,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/fatih/color",
+      "version": "v1.18.0",
+      "zip_sha256": "4dc6907b7f6807b37c21ad527d966437d398f03472115f471eaa8fe5875363d3",
+      "go_sum_h1": "h1:S8gINlzdQ840/4pfAwic/ZE0djQEH3wM94VfqLTZcOM=",
+      "zip_bytes": 15099,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/go-logr/logr",
+      "version": "v1.4.3",
+      "zip_sha256": "523d7a3587fe73f61ef41c8bc627f7d7f38de8104d46278154b307e60770ad70",
+      "go_sum_h1": "h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=",
+      "zip_bytes": 90797,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/go-logr/stdr",
+      "version": "v1.2.2",
+      "zip_sha256": "9dd6893bf700198485ae699640b49bc1efbc6c73b37cb5792a0476e1fd8f7fef",
+      "go_sum_h1": "h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=",
+      "zip_bytes": 12533,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/google/uuid",
+      "version": "v1.6.0",
+      "zip_sha256": "d0f02f377217f42702e259684e06441edbf5140dddcc34ba9bea56038b38a6ed",
+      "go_sum_h1": "h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=",
+      "zip_bytes": 31981,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/hashicorp/go-hclog",
+      "version": "v1.6.3",
+      "zip_sha256": "ebab3136e5327ad17606485f633c2d033c61eadb843b2f3629b6d65d6fbb1400",
+      "go_sum_h1": "h1:Qr2kF+eVWjTiYmU7Y31tYlP1h0q/X3Nl3tPGdaB11/k=",
+      "zip_bytes": 39280,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/hashicorp/terraform-plugin-framework",
+      "version": "v1.19.0",
+      "zip_sha256": "a9a9462fde5dd83c83e8e67d31acd508520152813c975c44f78dd0711eb405a3",
+      "go_sum_h1": "h1:q0bwyhxAOR3vfdgbk9iplv3MlTv/dhBHTXjQOtQDoBA=",
+      "zip_bytes": 2888769,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/hashicorp/terraform-plugin-framework-timeouts",
+      "version": "v0.7.0",
+      "zip_sha256": "847a296838c91633abb6e886cda2938cce17d592de95e2d1b3af35875f15ba78",
+      "go_sum_h1": "h1:jblRy1PkLfPm5hb5XeMa3tezusnMRziUGqtT5epSYoI=",
+      "zip_bytes": 69226,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/hashicorp/terraform-plugin-go",
+      "version": "v0.31.0",
+      "zip_sha256": "d736e0c23dd2b931913fc4732267b3eae3ae9ac5bdeab3f223fce044d4a9832a",
+      "go_sum_h1": "h1:0Fz2r9DQ+kNNl6bx8HRxFd1TfMKUvnrOtvJPmp3Z0q8=",
+      "zip_bytes": 520314,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/hashicorp/terraform-plugin-log",
+      "version": "v0.11.0",
+      "zip_sha256": "ac788baaf684a8c0e1c1daab86908385a3a239dc50818a09059879ff40e56968",
+      "go_sum_h1": "h1:WjhcpZIVqP8YRe83+dIZXncwSgtu4vh27i23G33PUQY=",
+      "zip_bytes": 108418,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/mattn/go-colorable",
+      "version": "v0.1.14",
+      "zip_sha256": "5e0e7925a070bb5bd11b4097e1a7b608167f0217ee83901b44c135f6e5e85c78",
+      "go_sum_h1": "h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=",
+      "zip_bytes": 13436,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/mattn/go-isatty",
+      "version": "v0.0.20",
+      "zip_sha256": "f2d5f89ca451577e17464b9bb596dc0d0ecececb5eaa63622c41b57cd0b7b8cc",
+      "go_sum_h1": "h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=",
+      "zip_bytes": 8936,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/microsoft/kiota-abstractions-go",
+      "version": "v1.9.4",
+      "zip_sha256": "fde7aacff9ce7790f5a64688c40f47fbd33d54f8e05333ee67f7f0f5d61f3365",
+      "go_sum_h1": "h1:VI3UVzSCQHHhRswe3jyaAQHUQWIFhUMp0z5mtZbTbcs=",
+      "zip_bytes": 92853,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/microsoft/kiota-serialization-json-go",
+      "version": "v1.1.4",
+      "zip_sha256": "0dc7362960fa8ea842a9bb76c9d7174bf77f6454b2d32842beaa9b223ec69ad9",
+      "go_sum_h1": "h1:XAhsBjxiunPgsPLLHEbuvAe81Q3wD1pNOE22Dq2CD3k=",
+      "zip_bytes": 65681,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/mitchellh/go-testing-interface",
+      "version": "v1.14.1",
+      "zip_sha256": "c178afbb9d041b7ecaebf40d3fee1b169f2f11f929accca7642f9b57f801ff4c",
+      "go_sum_h1": "h1:jrgshOhYAUVNMAJiKbEu7EqAwgJJ2JqpQmpLJOu07cU=",
+      "zip_bytes": 3866,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/std-uritemplate/std-uritemplate/go/v2",
+      "version": "v2.0.3",
+      "zip_sha256": "6dd929e29f0de0caef9f180c12268cd96c5872ad9c1e04fbde7ba3095cbcc149",
+      "go_sum_h1": "h1:7hth9376EoQEd1hH4lAp3vnaLP2UMyxuMMghLKzDHyU=",
+      "zip_bytes": 9459,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/vmihailenco/msgpack",
+      "version": "v4.0.4+incompatible",
+      "zip_sha256": "918f7dd7883105b9c55728c704a3bc54c80568b2b09583890b51508c03391356",
+      "go_sum_h1": "h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=",
+      "zip_bytes": 40050,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/vmihailenco/msgpack/v5",
+      "version": "v5.4.1",
+      "zip_sha256": "f966b8091c59efce1b44e265097f239be5d4174a827be0a5debebae09517d2b8",
+      "go_sum_h1": "h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IUPn0Bjt8=",
+      "zip_bytes": 53493,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "github.com/vmihailenco/tagparser/v2",
+      "version": "v2.0.0",
+      "zip_sha256": "70096ead331b4ac4efc0bf740674cbe55772beee6eace39507a610c5652aa8b5",
+      "go_sum_h1": "h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=",
+      "zip_bytes": 6151,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "go.opentelemetry.io/auto/sdk",
+      "version": "v1.2.1",
+      "zip_sha256": "a08a16fc0a7041cdb875f47a260a56000632212c85f65a302a043c76380c8335",
+      "go_sum_h1": "h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=",
+      "zip_bytes": 46873,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "go.opentelemetry.io/otel",
+      "version": "v1.43.0",
+      "zip_sha256": "177d24c79e756950c431aa87c1c613bb807cc7fe435260b72c5f675b01651921",
+      "go_sum_h1": "h1:mYIM03dnh5zfN7HautFE4ieIig9amkNANT+xcVxAj9I=",
+      "zip_bytes": 3251703,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "go.opentelemetry.io/otel/metric",
+      "version": "v1.43.0",
+      "zip_sha256": "3efb5ad706fab815f4b2e8fc89c1656ec8d2403f07edd406c17c2310dd8a08a6",
+      "go_sum_h1": "h1:d7638QeInOnuwOONPp4JAOGfbCEpYb+K6DVWvdxGzgM=",
+      "zip_bytes": 36325,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "go.opentelemetry.io/otel/trace",
+      "version": "v1.43.0",
+      "zip_sha256": "34fdc70a75e90d68e36caa59b9e800a5de5266118393eaee4489dd0abe3cb62d",
+      "go_sum_h1": "h1:BkNrHpup+4k4w+ZZ86CZoHHEkohws8AY+WTX09nk+3A=",
+      "zip_bytes": 76042,
+      "zip_and_expanded_h1_verified": true
+    },
+    {
+      "module": "golang.org/x/sys",
+      "version": "v0.47.0",
+      "zip_sha256": "cdac013ddced0262926ec29ffcda645da39670e61c7e5b761e572b6b1809bb1b",
+      "go_sum_h1": "h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=",
+      "zip_bytes": 2022425,
+      "zip_and_expanded_h1_verified": true
+    }
+  ],
+  "expanded_module_bytes": 48895776,
+  "verification": "Recomputed Go Hash1 for every sorted ZIP member and every extracted file, exact file denominator, compared each to original committed go.sum. Algorithm checked against pinned Go sumdb/dirhash/hash.go. No uncached provider dependencies claimed.",
+  "full_graph_go_mod_verify": {
+    "exit_code": 1,
+    "scope": "Root go.mod includes unused Azure/SDK dependencies not acquired for core/paging profiles",
+    "stderr_file": "go-module-verify.stderr"
+  }
+}

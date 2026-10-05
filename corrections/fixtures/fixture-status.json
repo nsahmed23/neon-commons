@@ -1,0 +1,6 @@
+{
+  "all_fixtures": "synthetic",
+  "approval_digests": "deliberately fake test values, not acquisition or authorization evidence",
+  "provider_settings": "proposed config projection, not provider-validated or live-qualified",
+  "original_export": "synthetic fixture copied from original Appendix B pack; source IDs are not real tenant objects"
+}

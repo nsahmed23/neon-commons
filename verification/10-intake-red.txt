@@ -1,0 +1,35 @@
+test_prefix_is_not_route (test_intake_edges.IntakeEdges.test_prefix_is_not_route) ... FAIL
+test_unknown_nested_template_metadata (test_intake_edges.IntakeEdges.test_unknown_nested_template_metadata) ... FAIL
+test_wrong_collection_owner_url (test_intake_edges.IntakeEdges.test_wrong_collection_owner_url) ... FAIL
+
+======================================================================
+FAIL: test_prefix_is_not_route (test_intake_edges.IntakeEdges.test_prefix_is_not_route)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_intake_edges.py", line 10, in test_prefix_is_not_route
+    b=self.base();b['collections'][0]['pages'][0]['request_url']='https://graph.microsoft.com/beta/deviceManagement/configurationPoliciesNotAnApi';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                                   ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_unknown_nested_template_metadata (test_intake_edges.IntakeEdges.test_unknown_nested_template_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_intake_edges.py", line 12, in test_unknown_nested_template_metadata
+    b=self.base();b['collections'][0]['pages'][0]['body']['value'][0]['templateReference']['futureRequiredSetting']=123;self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                        ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true
+
+======================================================================
+FAIL: test_wrong_collection_owner_url (test_intake_edges.IntakeEdges.test_wrong_collection_owner_url)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_intake_edges.py", line 8, in test_wrong_collection_owner_url
+    b=self.base();c=next(x for x in b['collections'] if x['kind']=='settings');c['pages'][0]['request_url']=c['pages'][0]['request_url'].replace(P,'99999999-9999-4999-8999-999999999999');self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                                                                           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [] is not true
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+FAILED (failures=3)

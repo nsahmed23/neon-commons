@@ -1,0 +1,1 @@
+{"status": "failed", "production_qualified": false, "error": "FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/e2e4042ea5fd/recovered-20261004/go-build-cache'"}

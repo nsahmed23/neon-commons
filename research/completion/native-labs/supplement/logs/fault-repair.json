@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "apply",
+    "-auto-approve",
+    "-input=false",
+    "-no-color"
+  ],
+  "cwd": "partial-failure",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "fault-repair",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "76ad4c3a584c43f91a85402d9ee2116757220353a2622b09a5ef7b2f7cdd3fa4",
+  "tool": "tofu",
+  "transcript_complete": true
+}

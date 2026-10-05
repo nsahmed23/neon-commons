@@ -1,0 +1,31 @@
+test_validator_rejects_weak_noncanonical_and_mixed_order_points (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_rejects_weak_noncanonical_and_mixed_order_points) ... ok
+test_validator_wrong_pin_and_missing_dependency_fail_closed (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_wrong_pin_and_missing_dependency_fail_closed) ... 
+  test_validator_wrong_pin_and_missing_dependency_fail_closed (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_wrong_pin_and_missing_dependency_fail_closed) (variant='missing-file') ... ERROR
+test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path) ... FAIL
+
+======================================================================
+ERROR: test_validator_wrong_pin_and_missing_dependency_fail_closed (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_wrong_pin_and_missing_dependency_fail_closed) (variant='missing-file')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_independent_v5.py", line 131, in test_validator_wrong_pin_and_missing_dependency_fail_closed
+    api.ApprovalAuthority(self.root / label, pin, [self.approver])
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/approval_authority.py", line 206, in __init__
+    _valid_public_key(self.verifier, bytes.fromhex(entry.public_key_hex))
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/approval_authority.py", line 100, in _valid_public_key
+    fd = os.open(path, os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpojyt8i2k/missing-validator.so'
+
+======================================================================
+FAIL: test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_independent_v5.py", line 141, in test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.050s
+
+FAILED (failures=1, errors=1)

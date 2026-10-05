@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "verified_at": "2026-10-04T01:58:54.755665+00:00",
+  "tests": 884,
+  "passed": 883,
+  "planned": 884,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 1,
+  "expected_failures": 0,
+  "unexpected_successes": 0,
+  "core_regressions_included": true,
+  "success": false,
+  "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+  "not_established": [
+    "Live Graph authenticity or service semantics",
+    "Provider-backed import/no-change plan",
+    "Full native Atmos runtime configuration parity",
+    "Native Windows/PowerShell behavior",
+    "Native host installation",
+    "CLM learned-model quality, calibration or latency"
+  ]
+}

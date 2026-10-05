@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/generated-files.schema.json",
+  "title": "generated-files",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "files"
+  ],
+  "additionalProperties": false
+}

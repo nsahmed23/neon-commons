@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Production field accounting 1.1.0",
+  "description": "Local per-node mapping and restricted-retention rules; not a provider or Graph schema.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "source_node_ref": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "source_value_sha256": {
+        "type": ["string", "null"],
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "classification": {
+        "enum": [
+          "mapped",
+          "restricted_source"
+        ]
+      },
+      "disposition": {
+        "enum": [
+          "desired",
+          "identity",
+          "relationship",
+          "service_owned",
+          "separately_managed",
+          "unsupported"
+        ]
+      },
+      "rule_id": {
+        "enum": [
+          "capture.provenance",
+          "capture.tenant",
+          "capture.unverified_reference",
+          "capture.unverified_ownership",
+          "capture.unselected_object",
+          "retention.unsupported_record",
+          "retention.unsupported_page",
+          "policy.observation",
+          "policy.identity",
+          "policy.configuration",
+          "policy.unmapped_behavior",
+          "setting.observation",
+          "setting.identity",
+          "setting.configuration",
+          "assignment.observation",
+          "assignment.target",
+          "assignment.inactive_filter"
+        ]
+      },
+      "rule_version": {
+        "const": "1.1.0"
+      },
+      "destination_pointers": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "pattern": "^/(observed|configuration|object_id|tenant_id|key)(/|$)"
+        }
+      },
+      "loss_blocking": {
+        "type": "boolean"
+      },
+      "retention_locator": {
+        "const": "restricted-original-source"
+      }
+    },
+    "required": [
+      "source_node_ref",
+      "source_value_sha256",
+      "classification",
+      "disposition",
+      "rule_id",
+      "rule_version",
+      "destination_pointers",
+      "loss_blocking",
+      "retention_locator"
+    ],
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "classification": {
+              "const": "mapped"
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "destination_pointers": {
+              "minItems": 1
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "source_value_sha256": {"type": "null"},
+            "destination_pointers": {
+              "maxItems": 0
+            }
+          }
+        }
+      }
+    ]
+  }
+}

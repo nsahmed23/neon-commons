@@ -1,0 +1,25 @@
+terraform_data.policy: Refreshing state... [id=4547421a-84c4-2f77-1aa4-1a7a30db8f39]
+terraform_data.assignment: Refreshing state... [id=85a77da9-966b-2143-0e65-f32ab9b58e11]
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+-/+ destroy and then create replacement
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.assignment is tainted, so it must be replaced
+-/+ resource "terraform_data" "assignment" {
+      ~ id     = "85a77da9-966b-2143-0e65-f32ab9b58e11" -> (known after apply)
+      ~ output = "4547421a-84c4-2f77-1aa4-1a7a30db8f39" -> (known after apply)
+        # (1 unchanged attribute hidden)
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.
+terraform_data.assignment: Destroying... [id=85a77da9-966b-2143-0e65-f32ab9b58e11]
+terraform_data.assignment: Destruction complete after 0s
+terraform_data.assignment: Creating...
+terraform_data.assignment: Provisioning with 'local-exec'...
+terraform_data.assignment (local-exec): Executing: ["/bin/sh" "-c" "exit 0"]
+terraform_data.assignment: Creation complete after 0s [id=6d70e36f-5221-0b21-3e6b-7bfb986db506]
+
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.

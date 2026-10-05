@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "checks": {
+    "completed_all_stages": true,
+    "live_gates_retained": true,
+    "no_cloud_authority": true,
+    "generated_current_source": true
+  },
+  "result": "/workspace/scratch/e2e4042ea5fd/work/intune-iac/research/completion/journey-qualification/qualification.json"
+}

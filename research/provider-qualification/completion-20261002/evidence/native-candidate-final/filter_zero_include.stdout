@@ -1,0 +1,40 @@
+{
+  "format_version": "1.0",
+  "valid": false,
+  "error_count": 1,
+  "warning_count": 1,
+  "diagnostics": [
+    {
+      "severity": "error",
+      "summary": "Filter Identity Required",
+      "detail": "Include/exclude requires an explicit non-zero filter GUID.",
+      "address": "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+      "range": {
+        "filename": "main.tf.json",
+        "start": {
+          "line": 24,
+          "column": 24,
+          "byte": 1092
+        },
+        "end": {
+          "line": 31,
+          "column": 10,
+          "byte": 1338
+        }
+      },
+      "snippet": {
+        "context": "resource.microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+        "code": "        \"assignments\": [\n          {\n            \"type\": \"groupAssignmentTarget\",\n            \"group_id\": \"11111111-1111-4111-8111-111111111111\",\n            \"filter_type\": \"include\",\n            \"filter_id\": \"00000000-0000-0000-0000-000000000000\"\n          }\n        ]",
+        "start_line": 24,
+        "highlight_start_offset": 23,
+        "highlight_end_offset": 269,
+        "values": []
+      }
+    },
+    {
+      "severity": "warning",
+      "summary": "Provider development overrides are in effect",
+      "detail": "The following provider development overrides are set in the CLI configuration:\n - registry.terraform.io/deploymenttheory/microsoft365 in /tmp/intune-provider-20261002/full-build-current\n\nThe behavior may therefore not match any released version of the provider and applying changes may cause the state to become incompatible with published releases."
+    }
+  ]
+}

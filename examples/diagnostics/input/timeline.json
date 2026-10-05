@@ -1,0 +1,42 @@
+[
+  {
+    "fact": "Win32 app assigned to pilot device context",
+    "source": "synthetic service assignment",
+    "time": "2026-09-30T10:00:00Z"
+  },
+  {
+    "fact": "Installer exit0 under SYSTEM; x64 uninstall entry version2.0 recorded",
+    "source": "synthetic installer evidence",
+    "time": "2026-09-30T10:05:00Z"
+  },
+  {
+    "fact": "x64 machine-wide registry view contains app2.0; x86 view has no entry",
+    "source": "synthetic local inventory",
+    "time": "2026-09-30T10:06:00Z"
+  },
+  {
+    "fact": "Configured detection queries x86 registry view; service app status failed",
+    "source": "synthetic detection configuration",
+    "time": "2026-09-30T10:07:00Z"
+  },
+  {
+    "fact": "Other device reported success before current evidence window",
+    "source": "synthetic old report",
+    "time": "2026-09-27T10:07:00Z"
+  },
+  {
+    "fact": "Receipt unresolved",
+    "source": "synthetic pending device",
+    "time": "2026-09-30T10:10:00Z"
+  },
+  {
+    "fact": "Another device failed execution; no successful install claim",
+    "source": "synthetic installer failure",
+    "time": "2026-09-30T10:08:00Z"
+  },
+  {
+    "fact": "Outcome collection denied",
+    "source": "synthetic access failure",
+    "time": "2026-09-30T10:08:00Z"
+  }
+]

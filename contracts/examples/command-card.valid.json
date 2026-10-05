@@ -1,0 +1,29 @@
+{
+  "arguments": [
+    "terraform",
+    "import",
+    "intune-reference",
+    "-s",
+    "reference-dev",
+    "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.policy[\"p_11111111111141118111111111111111_22222222222242228222222222222222\"]",
+    "22222222-2222-4222-8222-222222222222"
+  ],
+  "authorization": "protected_ci_required",
+  "effect_class": "state_mutation",
+  "effects": {
+    "cloud_write": "provider_path_requires_qualification",
+    "local_write": true,
+    "network": true,
+    "state_write": true
+  },
+  "executable": "atmos",
+  "execution_allowed": false,
+  "expected_exit_codes": [
+    0
+  ],
+  "id": "propose-import",
+  "provider_source": "deploymenttheory/microsoft365",
+  "provider_version": "1.0.0",
+  "purpose": "Attach existing policy ID through the pinned importer; not execute here",
+  "working_directory": "."
+}

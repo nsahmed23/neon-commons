@@ -1,0 +1,6 @@
+test_synthetic_manifest_cannot_install_an_arbitrary_tool (plugin_tests.test_protected_completion.ExecutableTrustRegressionTests.test_synthetic_manifest_cannot_install_an_arbitrary_tool) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.194s
+
+OK

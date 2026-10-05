@@ -1,0 +1,284 @@
+{
+  "status": "passed-characterization",
+  "production_qualified": false,
+  "runner_sha256": "41cda08fcf67a15e54b141a2a7e7237457ed4e88acca408dfcf045849a1999e8",
+  "scope": "unchanged selected provider source; synthetic in-memory HTTP responses",
+  "sources": [
+    {
+      "path": "LICENSE",
+      "sha256": "b0ad23e6581d382988cfe381e25382168e4d0550f0d1a2a800197493fda1a519",
+      "size_bytes": 16762
+    },
+    {
+      "path": "go.mod",
+      "sha256": "ab4dadbaf1a7b64e885dab04eb2f0ae2fec66ddd48f491745ad6b10f0f976231",
+      "size_bytes": 6000
+    },
+    {
+      "path": "go.sum",
+      "sha256": "d1d7d337dad3e3aa39321051c60afb629ae1cd526a86f7d39df4619d94995211",
+      "size_bytes": 38236
+    },
+    {
+      "path": "internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go",
+      "sha256": "d83762a75075227353358d10942aa9f1cb98e99176aafca00a04a417198f4926",
+      "size_bytes": 24611
+    },
+    {
+      "path": "internal/services/common/custom_requests/delete_request.go",
+      "sha256": "8083818553161713cf14106f70723f33d4ce4d3413d2a372168260182352c089",
+      "size_bytes": 3132
+    },
+    {
+      "path": "internal/services/common/custom_requests/get_request.go",
+      "sha256": "38d4f01c0a8530d71b0c3f84b2257083f636c1c6c63985f472b0f2b467b16207",
+      "size_bytes": 8155
+    },
+    {
+      "path": "internal/services/common/custom_requests/patch_request.go",
+      "sha256": "1ced186f0f81687669207fdef0ebdbfdd292ae4fb3f9f87513ca4c2084543ca0",
+      "size_bytes": 4003
+    },
+    {
+      "path": "internal/services/common/custom_requests/post_request.go",
+      "sha256": "ce8fff1de7364e5da6425bf9ede75caf4d78a91169f499ba5627825e100b3622",
+      "size_bytes": 3968
+    },
+    {
+      "path": "internal/services/common/custom_requests/put_request.go",
+      "sha256": "b127b29077a595939bf1aa8aa207c0e932ab209cce1213c8e1cb34215ee6b28c",
+      "size_bytes": 3353
+    },
+    {
+      "path": "internal/services/common/custom_requests/url_templates.go",
+      "sha256": "9794d6288a16483b110057e5c20f4d7db190d19f12d0ac34ce87e8cedcd2e8b7",
+      "size_bytes": 2601
+    },
+    {
+      "path": "internal/services/common/normalize/json.go",
+      "sha256": "3ad662d58f75a8e2a71572dfb055bf975607f8a285874a8055d39f7a51e97bfe",
+      "size_bytes": 1601
+    },
+    {
+      "path": "internal/services/common/normalize/settings_catalog.go",
+      "sha256": "8d03743120db311e2dd49c5ee1714a430ebd17dbcab460c4263386066f89109f",
+      "size_bytes": 1357
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/json.go",
+      "sha256": "62a92884a6090e886f789b2197c16a7aa3842bc6dbbee37027e958514ec7b763",
+      "size_bytes": 1833
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/assignments.go",
+      "sha256": "71bed5d78ad7c67b03bb4f8389a2e5ae9c2354f3e7c9d610f18a505e2d6be466",
+      "size_bytes": 4126
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/reuseable_policy_settings.go",
+      "sha256": "ce412861f45ab709aba90b17cc0be43c2168d72cd33ad138b1e19fe61123f935",
+      "size_bytes": 1108
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/role_definition_assignments.go",
+      "sha256": "c41ebc705fc23a403a3bb1a1edb47d35e39eeaf6239511ddbcf13ab55efe1763",
+      "size_bytes": 557
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/settings_catalog_base.go",
+      "sha256": "27ee7a51dad25927f860fb0e4894a565cfd14e123b5d32b7cbffffdf2b3cd322",
+      "size_bytes": 1405
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/settings_catalog_reference.go",
+      "sha256": "97237058b6849edbef33b803656ca0d77e0885350dfbc0fef18e07bd2354b939",
+      "size_bytes": 17579
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/settings_catalog_settings.go",
+      "sha256": "48b5faa1879555b8470ba7b3d98818192c3ac93e29a3527f7bbe767c8898b9a1",
+      "size_bytes": 6560
+    },
+    {
+      "path": "internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go",
+      "sha256": "ada2233bd6661d1ee75cfbf1a1b4c1e67ee0c53e7364de982f482f45f92422f3",
+      "size_bytes": 7267
+    },
+    {
+      "path": "internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go",
+      "sha256": "c24366ca472d871626393f76b855496e66df56d8aa18f9139f2aa533a27bda43",
+      "size_bytes": 10936
+    }
+  ],
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "test_sha256": "5658e9785444c7445b13d0c2f8d5a52b513a707aba7f2351a002ab6124931f86",
+  "profile": "core",
+  "go_sha256": "46a07f77bf5b080799416d80759feadd8edecc21c26aad81bbcdbc3b4d865f7c",
+  "go_version": "go version go1.25.8 linux/amd64",
+  "staged_sources": [
+    {
+      "path": "LICENSE",
+      "sha256": "b0ad23e6581d382988cfe381e25382168e4d0550f0d1a2a800197493fda1a519"
+    },
+    {
+      "path": "go.mod",
+      "sha256": "ab4dadbaf1a7b64e885dab04eb2f0ae2fec66ddd48f491745ad6b10f0f976231"
+    },
+    {
+      "path": "go.sum",
+      "sha256": "d1d7d337dad3e3aa39321051c60afb629ae1cd526a86f7d39df4619d94995211"
+    },
+    {
+      "path": "internal/services/common/constructors/graph_beta/device_management/configuration_policy_settings.go",
+      "sha256": "d83762a75075227353358d10942aa9f1cb98e99176aafca00a04a417198f4926"
+    },
+    {
+      "path": "internal/services/common/custom_requests/delete_request.go",
+      "sha256": "8083818553161713cf14106f70723f33d4ce4d3413d2a372168260182352c089"
+    },
+    {
+      "path": "internal/services/common/custom_requests/get_request.go",
+      "sha256": "38d4f01c0a8530d71b0c3f84b2257083f636c1c6c63985f472b0f2b467b16207"
+    },
+    {
+      "path": "internal/services/common/custom_requests/patch_request.go",
+      "sha256": "1ced186f0f81687669207fdef0ebdbfdd292ae4fb3f9f87513ca4c2084543ca0"
+    },
+    {
+      "path": "internal/services/common/custom_requests/post_request.go",
+      "sha256": "ce8fff1de7364e5da6425bf9ede75caf4d78a91169f499ba5627825e100b3622"
+    },
+    {
+      "path": "internal/services/common/custom_requests/put_request.go",
+      "sha256": "b127b29077a595939bf1aa8aa207c0e932ab209cce1213c8e1cb34215ee6b28c"
+    },
+    {
+      "path": "internal/services/common/custom_requests/url_templates.go",
+      "sha256": "9794d6288a16483b110057e5c20f4d7db190d19f12d0ac34ce87e8cedcd2e8b7"
+    },
+    {
+      "path": "internal/services/common/normalize/json.go",
+      "sha256": "3ad662d58f75a8e2a71572dfb055bf975607f8a285874a8055d39f7a51e97bfe"
+    },
+    {
+      "path": "internal/services/common/normalize/settings_catalog.go",
+      "sha256": "8d03743120db311e2dd49c5ee1714a430ebd17dbcab460c4263386066f89109f"
+    },
+    {
+      "path": "internal/services/common/plan_modifiers/json.go",
+      "sha256": "62a92884a6090e886f789b2197c16a7aa3842bc6dbbee37027e958514ec7b763"
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/assignments.go",
+      "sha256": "71bed5d78ad7c67b03bb4f8389a2e5ae9c2354f3e7c9d610f18a505e2d6be466"
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/reuseable_policy_settings.go",
+      "sha256": "ce412861f45ab709aba90b17cc0be43c2168d72cd33ad138b1e19fe61123f935"
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/role_definition_assignments.go",
+      "sha256": "c41ebc705fc23a403a3bb1a1edb47d35e39eeaf6239511ddbcf13ab55efe1763"
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/settings_catalog_base.go",
+      "sha256": "27ee7a51dad25927f860fb0e4894a565cfd14e123b5d32b7cbffffdf2b3cd322"
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/settings_catalog_reference.go",
+      "sha256": "97237058b6849edbef33b803656ca0d77e0885350dfbc0fef18e07bd2354b939"
+    },
+    {
+      "path": "internal/services/common/shared_models/graph_beta/device_management/settings_catalog_settings.go",
+      "sha256": "48b5faa1879555b8470ba7b3d98818192c3ac93e29a3527f7bbe767c8898b9a1"
+    },
+    {
+      "path": "internal/services/common/state/graph_beta/device_management/configuration_policy_settings.go",
+      "sha256": "ada2233bd6661d1ee75cfbf1a1b4c1e67ee0c53e7364de982f482f45f92422f3"
+    },
+    {
+      "path": "internal/services/common/validate/graph_beta/device_management/settings_catalog_json_settings.go",
+      "sha256": "c24366ca472d871626393f76b855496e66df56d8aa18f9139f2aa533a27bda43"
+    }
+  ],
+  "command": [
+    "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go/bin/go",
+    "test",
+    "-json",
+    "-count=1",
+    "-p=1",
+    "-timeout=90s",
+    "-mod=readonly",
+    "."
+  ],
+  "returncode": 0,
+  "tests_passed": [
+    "TestJSONWriterEmptyCollectionPreserved",
+    "TestJSONWriterNilStringOmitted",
+    "TestKnownHazardErrorBodyMappedAsSettings",
+    "TestKnownHazardFirstHTTP403ReturnsNoError",
+    "TestKnownHazardForeignNextLinkIsRequested",
+    "TestKnownHazardInitialExpandQueryIsLost",
+    "TestKnownHazardLaterHTTP403SilentlyTruncates",
+    "TestKnownHazardMalformedResponseRetainsOldState",
+    "TestKnownHazardMissingValueIgnoresContinuation",
+    "TestKnownHazardRepeatedNextLinkIsRetried",
+    "TestKnownHazardValidatorAcceptsNonzeroFirstID",
+    "TestKnownHazardValidatorAcceptsNullInstance",
+    "TestNormalizerDistinguishesNullOmittedEmpty",
+    "TestNormalizerPreservesOrder",
+    "TestPaginationTransportFailurePropagates",
+    "TestPlanModifierDoesNotReconcileResponseShape",
+    "TestSettingsPaginationUsesFullNextLink",
+    "TestStateRetainsResponseWrapper",
+    "TestValidatorAcceptsCorrectedConfiguration",
+    "TestValidatorRejectsMissingID",
+    "TestValidatorRejectsNonSequentialIDs",
+    "TestValidatorRejectsResponseWrapper"
+  ],
+  "tests_failed": [],
+  "tests_skipped": [],
+  "tests_top_level_passed": [
+    "TestJSONWriterEmptyCollectionPreserved",
+    "TestJSONWriterNilStringOmitted",
+    "TestKnownHazardErrorBodyMappedAsSettings",
+    "TestKnownHazardFirstHTTP403ReturnsNoError",
+    "TestKnownHazardForeignNextLinkIsRequested",
+    "TestKnownHazardInitialExpandQueryIsLost",
+    "TestKnownHazardLaterHTTP403SilentlyTruncates",
+    "TestKnownHazardMalformedResponseRetainsOldState",
+    "TestKnownHazardMissingValueIgnoresContinuation",
+    "TestKnownHazardRepeatedNextLinkIsRetried",
+    "TestKnownHazardValidatorAcceptsNonzeroFirstID",
+    "TestKnownHazardValidatorAcceptsNullInstance",
+    "TestNormalizerDistinguishesNullOmittedEmpty",
+    "TestNormalizerPreservesOrder",
+    "TestPaginationTransportFailurePropagates",
+    "TestPlanModifierDoesNotReconcileResponseShape",
+    "TestSettingsPaginationUsesFullNextLink",
+    "TestStateRetainsResponseWrapper",
+    "TestValidatorAcceptsCorrectedConfiguration",
+    "TestValidatorRejectsMissingID",
+    "TestValidatorRejectsNonSequentialIDs",
+    "TestValidatorRejectsResponseWrapper"
+  ],
+  "tests_top_level_failed": [],
+  "incomplete_tests": [],
+  "malformed_event_output": false,
+  "boundaries": [
+    "Not the full provider binary or schema RPC",
+    "No cloud or authenticated identity",
+    "No assignment service replacement/merge evidence",
+    "Passing baseline tests reproduce known hazards; original provider unchanged"
+  ],
+  "artifacts": [
+    {
+      "path": "go-test.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "go-test.stdout",
+      "sha256": "eb1bb36d9517ec38462c045689a2adea91dd626cf34a98f766dc789994e505b3"
+    }
+  ]
+}

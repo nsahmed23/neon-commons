@@ -1,0 +1,8 @@
+{
+  "test_methods": 5,
+  "assertion_failures_including_subtests": 10,
+  "application_errors_including_subtests": 0,
+  "skipped": 0,
+  "passed": false,
+  "baseline_commit": "77682f84022232569418e6ff4e678f2cf06246de"
+}

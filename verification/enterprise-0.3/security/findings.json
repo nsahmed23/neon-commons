@@ -1,0 +1,1135 @@
+{
+  "documentType": "codex-security.findings",
+  "findings": [
+    {
+      "attackPath": {
+        "dataflow": {
+          "summary": "Operator-selected capture -> engine._expected_files review content -> write_project -> mode0644 files in0755 generated project."
+        },
+        "reachability": {
+          "summary": "Requires destination ancestors searchable by another local UID. Private home/workspace ancestors mitigate; file modes permit disclosure once shared parent is chosen."
+        }
+      },
+      "codeEvidence": [
+        {
+          "code": "with tempfile.TemporaryDirectory(prefix='.intune-iac-stage-',dir=dest.parent) as tmp:\n    stage=Path(tmp)/'project';stage.mkdir()\n    for name,text in files.items():\n        p=stage/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8',newline='\\n')\n    (stage/'generated-files.json').write_text(_json({'schema_version':'1.0.0','files':hashes}),encoding='utf-8')\n    if dest.exists():raise FileExistsError('Destination appeared during staging')\n    os.replace(stage,dest)",
+          "endLine": 524,
+          "explanation": "The private temporary parent does not remain around the moved inner project. Default mkdir/write_text modes become 0755/0644 under umask0022.",
+          "id": "mode-defaults",
+          "label": "Default modes survive publication",
+          "path": "reference/core.py",
+          "startLine": 518
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "rationale": "Direct source trace and bounded synthetic reproduction observed exact file/directory modes."
+      },
+      "extensions": {
+        "repairReview": "Independent source review confirms explicit0700 project/nested directories and0600 exclusive files incl manifest. Parent reported2 covering tests pass. Existing output mode unchanged. NativeWindows ACL guarantees remain unqualified.",
+        "repairStatus": "fixed_in_working_tree",
+        "reviewBoundary": "Repair was independently source-reviewed in the changing working tree. Covering red/green test outcomes were reported by implementation owners; final release validation is separate."
+      },
+      "findingId": "csf_e0571cadcf36494483bac38d",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:e00d433a63fde2447bcd0fb079416f99b8c0101ccde653c1a36914d23cb374fd"
+      },
+      "identity": {
+        "anchor": "generated-projects-publish-accepted-capture-values-with-world-readable-defaults"
+      },
+      "locations": [
+        {
+          "endLine": 524,
+          "path": "reference/core.py",
+          "role": "root_control",
+          "startLine": 518
+        },
+        {
+          "endLine": 145,
+          "path": "intune_iac/engine.py",
+          "role": "source",
+          "startLine": 128
+        }
+      ],
+      "occurrenceId": "occ_17c34dca7a0c3fc89540bdfb",
+      "provenance": {
+        "candidateId": "enterprise-sec-001",
+        "previousFindings": [
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Operator-selected capture -> engine._expected_files review content -> write_project -> mode0644 files in0755 generated project."
+              },
+              "reachability": {
+                "summary": "Requires destination ancestors searchable by another local UID. Private home/workspace ancestors mitigate; file modes permit disclosure once shared parent is chosen."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "with tempfile.TemporaryDirectory(prefix='.intune-iac-stage-',dir=dest.parent) as tmp:\n    stage=Path(tmp)/'project';stage.mkdir()\n    for name,text in files.items():\n        p=stage/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8',newline='\\n')\n    (stage/'generated-files.json').write_text(_json({'schema_version':'1.0.0','files':hashes}),encoding='utf-8')\n    if dest.exists():raise FileExistsError('Destination appeared during staging')\n    os.replace(stage,dest)",
+                "endLine": 524,
+                "explanation": "The private temporary parent does not remain around the moved inner project. Default mkdir/write_text modes become 0755/0644 under umask0022.",
+                "id": "mode-defaults",
+                "label": "Default modes survive publication",
+                "path": "reference/core.py",
+                "startLine": 518
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Direct source trace and bounded synthetic reproduction observed exact file/directory modes."
+            },
+            "extensions": {
+              "repairReview": "Independent source review confirms explicit0700 project/nested directories and0600 exclusive files incl manifest. Parent reported2 covering tests pass. Existing output mode unchanged. NativeWindows ACL guarantees remain unqualified.",
+              "repairStatus": "fixed_in_working_tree"
+            },
+            "identity": {
+              "anchor": "generated-projects-publish-accepted-capture-values-with-world-readable-defaults"
+            },
+            "locations": [
+              {
+                "endLine": 524,
+                "path": "reference/core.py",
+                "role": "root_control",
+                "startLine": 518
+              },
+              {
+                "endLine": 145,
+                "path": "intune_iac/engine.py",
+                "role": "source",
+                "startLine": 128
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-001",
+              "source": "local_plugin"
+            },
+            "remediation": "Create new generated project directories explicitly0700 and files0600, including ownership manifest. Preserve existing user-owned output and surface overly permissive existing output for review instead of silently modifying it.",
+            "remediationTests": [
+              "With umask0000 and0022, newly generated production/synthetic output directories0700 and files0600.",
+              "Existing output remains unchanged on conflict and is not silently chmodded."
+            ],
+            "rootCause": {
+              "summary": "Private staging parent protects construction, but the inner project is created with permissive defaults and then relocated outside that private parent."
+            },
+            "ruleId": "file-permissions.generated-review",
+            "severity": {
+              "level": "low",
+              "rationale": "Local confidentiality exposure requires another host user plus a searchable shared parent. No write escalation, remote exposure, or cloud mutation is established."
+            },
+            "summary": "On POSIX with umask 0022 and a searchable shared output parent, write_project publishes generated directories as 0755 and files as 0644. A separate local UID can read accepted capture values and identifiers that were restricted in the original capture.",
+            "taxonomy": {
+              "category": "insecure-file-permissions",
+              "cwe": [
+                "CWE-732",
+                "CWE-276"
+              ]
+            },
+            "title": "Generated projects publish accepted capture values with world-readable defaults",
+            "validation": {
+              "summary": "Synthetic probe artifacts/permissions_probe.py executed with umask0022: generated and generated/review0755, normalized.json and generated-files.json0644. No real capture or tenant used."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Operator-selected capture -> engine._expected_files review content -> write_project -> mode0644 files in0755 generated project."
+              },
+              "reachability": {
+                "summary": "Requires destination ancestors searchable by another local UID. Private home/workspace ancestors mitigate; file modes permit disclosure once shared parent is chosen."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "with tempfile.TemporaryDirectory(prefix='.intune-iac-stage-',dir=dest.parent) as tmp:\n    stage=Path(tmp)/'project';stage.mkdir()\n    for name,text in files.items():\n        p=stage/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8',newline='\\n')\n    (stage/'generated-files.json').write_text(_json({'schema_version':'1.0.0','files':hashes}),encoding='utf-8')\n    if dest.exists():raise FileExistsError('Destination appeared during staging')\n    os.replace(stage,dest)",
+                "endLine": 524,
+                "explanation": "The private temporary parent does not remain around the moved inner project. Default mkdir/write_text modes become 0755/0644 under umask0022.",
+                "id": "mode-defaults",
+                "label": "Default modes survive publication",
+                "path": "reference/core.py",
+                "startLine": 518
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Direct source trace and bounded synthetic reproduction observed exact file/directory modes."
+            },
+            "extensions": {
+              "repairReview": "Independent source review confirms explicit0700 project/nested directories and0600 exclusive files incl manifest. Parent reported2 covering tests pass. Existing output mode unchanged. NativeWindows ACL guarantees remain unqualified.",
+              "repairStatus": "fixed_in_working_tree"
+            },
+            "locations": [
+              {
+                "endLine": 524,
+                "path": "reference/core.py",
+                "role": "root_control",
+                "startLine": 518
+              },
+              {
+                "endLine": 145,
+                "path": "intune_iac/engine.py",
+                "role": "source",
+                "startLine": 128
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-001",
+              "source": "local_plugin"
+            },
+            "remediation": "Create new generated project directories explicitly0700 and files0600, including ownership manifest. Preserve existing user-owned output and surface overly permissive existing output for review instead of silently modifying it.",
+            "remediationTests": [
+              "With umask0000 and0022, newly generated production/synthetic output directories0700 and files0600.",
+              "Existing output remains unchanged on conflict and is not silently chmodded."
+            ],
+            "rootCause": {
+              "summary": "Private staging parent protects construction, but the inner project is created with permissive defaults and then relocated outside that private parent."
+            },
+            "ruleId": "file-permissions.generated-review",
+            "severity": {
+              "level": "low",
+              "rationale": "Local confidentiality exposure requires another host user plus a searchable shared parent. No write escalation, remote exposure, or cloud mutation is established."
+            },
+            "summary": "On POSIX with umask 0022 and a searchable shared output parent, write_project publishes generated directories as 0755 and files as 0644. A separate local UID can read accepted capture values and identifiers that were restricted in the original capture.",
+            "taxonomy": {
+              "category": "insecure-file-permissions",
+              "cwe": [
+                "CWE-732",
+                "CWE-276"
+              ]
+            },
+            "title": "Generated projects publish accepted capture values with world-readable defaults",
+            "validation": {
+              "summary": "Synthetic probe artifacts/permissions_probe.py executed with umask0022: generated and generated/review0755, normalized.json and generated-files.json0644. No real capture or tenant used."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Operator-selected capture -> engine._expected_files review content -> write_project -> mode0644 files in0755 generated project."
+              },
+              "reachability": {
+                "summary": "Requires destination ancestors searchable by another local UID. Private home/workspace ancestors mitigate; file modes permit disclosure once shared parent is chosen."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "with tempfile.TemporaryDirectory(prefix='.intune-iac-stage-',dir=dest.parent) as tmp:\n    stage=Path(tmp)/'project';stage.mkdir()\n    for name,text in files.items():\n        p=stage/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(text,encoding='utf-8',newline='\\n')\n    (stage/'generated-files.json').write_text(_json({'schema_version':'1.0.0','files':hashes}),encoding='utf-8')\n    if dest.exists():raise FileExistsError('Destination appeared during staging')\n    os.replace(stage,dest)",
+                "endLine": 524,
+                "explanation": "The private temporary parent does not remain around the moved inner project. Default mkdir/write_text modes become 0755/0644 under umask0022.",
+                "id": "mode-defaults",
+                "label": "Default modes survive publication",
+                "path": "reference/core.py",
+                "startLine": 518
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Direct source trace and bounded synthetic reproduction observed exact file/directory modes."
+            },
+            "locations": [
+              {
+                "endLine": 524,
+                "path": "reference/core.py",
+                "role": "root_control",
+                "startLine": 518
+              },
+              {
+                "endLine": 145,
+                "path": "intune_iac/engine.py",
+                "role": "source",
+                "startLine": 128
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-001",
+              "source": "local_plugin"
+            },
+            "remediation": "Create new generated project directories explicitly0700 and files0600, including ownership manifest. Preserve existing user-owned output and surface overly permissive existing output for review instead of silently modifying it.",
+            "remediationTests": [
+              "With umask0000 and0022, newly generated production/synthetic output directories0700 and files0600.",
+              "Existing output remains unchanged on conflict and is not silently chmodded."
+            ],
+            "rootCause": {
+              "summary": "Private staging parent protects construction, but the inner project is created with permissive defaults and then relocated outside that private parent."
+            },
+            "ruleId": "file-permissions.generated-review",
+            "severity": {
+              "level": "low",
+              "rationale": "Local confidentiality exposure requires another host user plus a searchable shared parent. No write escalation, remote exposure, or cloud mutation is established."
+            },
+            "summary": "On POSIX with umask 0022 and a searchable shared output parent, write_project publishes generated directories as 0755 and files as 0644. A separate local UID can read accepted capture values and identifiers that were restricted in the original capture.",
+            "taxonomy": {
+              "category": "insecure-file-permissions",
+              "cwe": [
+                "CWE-732",
+                "CWE-276"
+              ]
+            },
+            "title": "Generated projects publish accepted capture values with world-readable defaults",
+            "validation": {
+              "summary": "Synthetic probe artifacts/permissions_probe.py executed with umask0022: generated and generated/review0755, normalized.json and generated-files.json0644. No real capture or tenant used."
+            }
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Create new generated project directories explicitly0700 and files0600, including ownership manifest. Preserve existing user-owned output and surface overly permissive existing output for review instead of silently modifying it.",
+      "remediationTests": [
+        "With umask0000 and0022, newly generated production/synthetic output directories0700 and files0600.",
+        "Existing output remains unchanged on conflict and is not silently chmodded."
+      ],
+      "rootCause": {
+        "summary": "Private staging parent protects construction, but the inner project is created with permissive defaults and then relocated outside that private parent."
+      },
+      "ruleId": "file-permissions.generated-review",
+      "severity": {
+        "level": "low",
+        "rationale": "Local confidentiality exposure requires another host user plus a searchable shared parent. No write escalation, remote exposure, or cloud mutation is established."
+      },
+      "summary": "On POSIX with umask 0022 and a searchable shared output parent, write_project publishes generated directories as 0755 and files as 0644. A separate local UID can read accepted capture values and identifiers that were restricted in the original capture. Fixed during this audit; the code evidence records the vulnerable version observed before repair.",
+      "taxonomy": {
+        "category": "insecure-file-permissions",
+        "cwe": [
+          "CWE-732",
+          "CWE-276"
+        ]
+      },
+      "title": "Generated projects publish accepted capture values with world-readable defaults",
+      "validation": {
+        "summary": "Synthetic probe artifacts/permissions_probe.py executed with umask0022: generated and generated/review0755, normalized.json and generated-files.json0644. No real capture or tenant used."
+      }
+    },
+    {
+      "attackPath": {
+        "dataflow": {
+          "summary": "Caller-supplied capture -> build_graph candidates -> full-source normalize/oracle per policy -> repeated CPU/allocations."
+        },
+        "reachability": {
+          "summary": "Local graph build is exposed through CLI and fixed MCP local action. MCP serves requests sequentially. A user must choose the input; no remote autonomous ingestion assumed."
+        }
+      },
+      "codeEvidence": [
+        {
+          "code": "n = production_normalize(bundle, review_context)\nif production_compare(raw_bytes, n, context=review_context):\n    raise ValueError('independent capture preservation check failed')\nelse:\n    n = normalize(bundle, oid, tenant_uuid)",
+          "endLine": 179,
+          "explanation": "Both routes are nested in the per-candidate policy loop; normalizers reread/serialize/walk or deepcopy the whole capture. No aggregate work budget is established before the loop.",
+          "id": "whole-bundle-repeat",
+          "label": "Whole bundle passed for every policy",
+          "path": "intune_iac/graph.py",
+          "startLine": 175
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "rationale": "Source loop and bounded measured20/40/80policy reproduction demonstrate superlinear amplification."
+      },
+      "extensions": {
+        "repairReview": "Independent source review confirms early total source-node, policy-count, source-node-times-policy and byte-times-policy budgets before projection, with full-input rejection and set deduplication. Stored-graph validation now bounds nodes*(edges+coverage+sources) at 2,000,000 before digest or relational validation and uses a shared outgoing adjacency index. This closes the demonstrated bounded-input amplification family; scalable enterprise workloads remain a separate performance qualification.",
+        "repairStatus": "fixed_in_working_tree",
+        "reviewBoundary": "Repair was independently source-reviewed in the changing working tree. Covering red/green test outcomes were reported by implementation owners; final release validation is separate."
+      },
+      "findingId": "csf_de77e6308f3c717878e33c38",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:7cd4b4ca4ac5c0b90a8a045c691c281084420e06d51552ab5df9c5277ee2edbb"
+      },
+      "identity": {
+        "anchor": "small-imported-captures-trigger-repeated-whole-bundle-graph-work"
+      },
+      "locations": [
+        {
+          "endLine": 183,
+          "path": "intune_iac/graph.py",
+          "role": "root_control",
+          "startLine": 162
+        },
+        {
+          "endLine": 141,
+          "path": "reference/core.py",
+          "role": "sink",
+          "startLine": 138
+        }
+      ],
+      "occurrenceId": "occ_8a510668661fb80c8bf4bd77",
+      "provenance": {
+        "candidateId": "enterprise-sec-002",
+        "previousFindings": [
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Caller-supplied capture -> build_graph candidates -> full-source normalize/oracle per policy -> repeated CPU/allocations."
+              },
+              "reachability": {
+                "summary": "Local graph build is exposed through CLI and fixed MCP local action. MCP serves requests sequentially. A user must choose the input; no remote autonomous ingestion assumed."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "n = production_normalize(bundle, review_context)\nif production_compare(raw_bytes, n, context=review_context):\n    raise ValueError('independent capture preservation check failed')\nelse:\n    n = normalize(bundle, oid, tenant_uuid)",
+                "endLine": 179,
+                "explanation": "Both routes are nested in the per-candidate policy loop; normalizers reread/serialize/walk or deepcopy the whole capture. No aggregate work budget is established before the loop.",
+                "id": "whole-bundle-repeat",
+                "label": "Whole bundle passed for every policy",
+                "path": "intune_iac/graph.py",
+                "startLine": 175
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Source loop and bounded measured20/40/80policy reproduction demonstrate superlinear amplification."
+            },
+            "extensions": {
+              "repairReview": "Root implemented early source nodes10000/policies64/node-times-policy100000/byte-times-policy8MiB bounds and set dedup. Independently inspected preflight ordering: before schema/projection, rejects whole capture. Query validation still rescans edges until separately fixed.",
+              "repairStatus": "build_fixed_query_followup"
+            },
+            "identity": {
+              "anchor": "small-imported-captures-trigger-repeated-whole-bundle-graph-work"
+            },
+            "locations": [
+              {
+                "endLine": 183,
+                "path": "intune_iac/graph.py",
+                "role": "root_control",
+                "startLine": 162
+              },
+              {
+                "endLine": 141,
+                "path": "reference/core.py",
+                "role": "sink",
+                "startLine": 138
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-002",
+              "source": "local_plugin"
+            },
+            "remediation": "Enforce total parsed-node/candidate/work budgets before expensive projection, reject complete input with a safe reason rather than truncating it, and index shared source facts once. Bound query validation costs too.",
+            "remediationTests": [
+              "Oversized policy-times-source input rejected before first normalization.",
+              "Preserve all policy coverage denominator; no truncated success.",
+              "Small supported fixtures still reproduce."
+            ],
+            "rootCause": {
+              "summary": "Per-file16MiB bound does not limit multiplicative whole-source normalization across policy count."
+            },
+            "ruleId": "resource-exhaustion.graph-projection",
+            "severity": {
+              "level": "low",
+              "rationale": "Requires operator import of attacker-controlled local capture; availability impact only and no demonstrated remote exposure."
+            },
+            "summary": "build_graph invokes whole-capture normalization for every distinct policy without a total policy-by-source work budget. This amplifies a caller-supplied capture and blocks the sequential local MCP worker or CLI.",
+            "taxonomy": {
+              "category": "resource-exhaustion",
+              "cwe": [
+                "CWE-400"
+              ]
+            },
+            "title": "Small imported captures trigger repeated whole-bundle graph work",
+            "validation": {
+              "summary": "Bounded synthetic graph_budget_probe.py:20policies12,343bytes0.425seconds;40policies23,283bytes1.325seconds;80policies45,163bytes4.636seconds. All generated graphs completed; no load test or real tenant used."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Caller-supplied capture -> build_graph candidates -> full-source normalize/oracle per policy -> repeated CPU/allocations."
+              },
+              "reachability": {
+                "summary": "Local graph build is exposed through CLI and fixed MCP local action. MCP serves requests sequentially. A user must choose the input; no remote autonomous ingestion assumed."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "n = production_normalize(bundle, review_context)\nif production_compare(raw_bytes, n, context=review_context):\n    raise ValueError('independent capture preservation check failed')\nelse:\n    n = normalize(bundle, oid, tenant_uuid)",
+                "endLine": 179,
+                "explanation": "Both routes are nested in the per-candidate policy loop; normalizers reread/serialize/walk or deepcopy the whole capture. No aggregate work budget is established before the loop.",
+                "id": "whole-bundle-repeat",
+                "label": "Whole bundle passed for every policy",
+                "path": "intune_iac/graph.py",
+                "startLine": 175
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Source loop and bounded measured20/40/80policy reproduction demonstrate superlinear amplification."
+            },
+            "extensions": {
+              "repairReview": "Root implemented early source nodes10000/policies64/node-times-policy100000/byte-times-policy8MiB bounds and set dedup. Independently inspected preflight ordering: before schema/projection, rejects whole capture. Query validation still rescans edges until separately fixed.",
+              "repairStatus": "build_fixed_query_followup"
+            },
+            "locations": [
+              {
+                "endLine": 183,
+                "path": "intune_iac/graph.py",
+                "role": "root_control",
+                "startLine": 162
+              },
+              {
+                "endLine": 141,
+                "path": "reference/core.py",
+                "role": "sink",
+                "startLine": 138
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-002",
+              "source": "local_plugin"
+            },
+            "remediation": "Enforce total parsed-node/candidate/work budgets before expensive projection, reject complete input with a safe reason rather than truncating it, and index shared source facts once. Bound query validation costs too.",
+            "remediationTests": [
+              "Oversized policy-times-source input rejected before first normalization.",
+              "Preserve all policy coverage denominator; no truncated success.",
+              "Small supported fixtures still reproduce."
+            ],
+            "rootCause": {
+              "summary": "Per-file16MiB bound does not limit multiplicative whole-source normalization across policy count."
+            },
+            "ruleId": "resource-exhaustion.graph-projection",
+            "severity": {
+              "level": "low",
+              "rationale": "Requires operator import of attacker-controlled local capture; availability impact only and no demonstrated remote exposure."
+            },
+            "summary": "build_graph invokes whole-capture normalization for every distinct policy without a total policy-by-source work budget. This amplifies a caller-supplied capture and blocks the sequential local MCP worker or CLI.",
+            "taxonomy": {
+              "category": "resource-exhaustion",
+              "cwe": [
+                "CWE-400"
+              ]
+            },
+            "title": "Small imported captures trigger repeated whole-bundle graph work",
+            "validation": {
+              "summary": "Bounded synthetic graph_budget_probe.py:20policies12,343bytes0.425seconds;40policies23,283bytes1.325seconds;80policies45,163bytes4.636seconds. All generated graphs completed; no load test or real tenant used."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Caller-supplied capture -> build_graph candidates -> full-source normalize/oracle per policy -> repeated CPU/allocations."
+              },
+              "reachability": {
+                "summary": "Local graph build is exposed through CLI and fixed MCP local action. MCP serves requests sequentially. A user must choose the input; no remote autonomous ingestion assumed."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "n = production_normalize(bundle, review_context)\nif production_compare(raw_bytes, n, context=review_context):\n    raise ValueError('independent capture preservation check failed')\nelse:\n    n = normalize(bundle, oid, tenant_uuid)",
+                "endLine": 179,
+                "explanation": "Both routes are nested in the per-candidate policy loop; normalizers reread/serialize/walk or deepcopy the whole capture. No aggregate work budget is established before the loop.",
+                "id": "whole-bundle-repeat",
+                "label": "Whole bundle passed for every policy",
+                "path": "intune_iac/graph.py",
+                "startLine": 175
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Source loop and bounded measured20/40/80policy reproduction demonstrate superlinear amplification."
+            },
+            "locations": [
+              {
+                "endLine": 183,
+                "path": "intune_iac/graph.py",
+                "role": "root_control",
+                "startLine": 162
+              },
+              {
+                "endLine": 141,
+                "path": "reference/core.py",
+                "role": "sink",
+                "startLine": 138
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-002",
+              "source": "local_plugin"
+            },
+            "remediation": "Enforce total parsed-node/candidate/work budgets before expensive projection, reject complete input with a safe reason rather than truncating it, and index shared source facts once. Bound query validation costs too.",
+            "remediationTests": [
+              "Oversized policy-times-source input rejected before first normalization.",
+              "Preserve all policy coverage denominator; no truncated success.",
+              "Small supported fixtures still reproduce."
+            ],
+            "rootCause": {
+              "summary": "Per-file16MiB bound does not limit multiplicative whole-source normalization across policy count."
+            },
+            "ruleId": "resource-exhaustion.graph-projection",
+            "severity": {
+              "level": "low",
+              "rationale": "Requires operator import of attacker-controlled local capture; availability impact only and no demonstrated remote exposure."
+            },
+            "summary": "build_graph invokes whole-capture normalization for every distinct policy without a total policy-by-source work budget. This amplifies a caller-supplied capture and blocks the sequential local MCP worker or CLI.",
+            "taxonomy": {
+              "category": "resource-exhaustion",
+              "cwe": [
+                "CWE-400"
+              ]
+            },
+            "title": "Small imported captures trigger repeated whole-bundle graph work",
+            "validation": {
+              "summary": "Bounded synthetic graph_budget_probe.py:20policies12,343bytes0.425seconds;40policies23,283bytes1.325seconds;80policies45,163bytes4.636seconds. All generated graphs completed; no load test or real tenant used."
+            }
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Enforce total parsed-node/candidate/work budgets before expensive projection, reject complete input with a safe reason rather than truncating it, and index shared source facts once. Bound query validation costs too.",
+      "remediationTests": [
+        "Oversized policy-times-source input rejected before first normalization.",
+        "Preserve all policy coverage denominator; no truncated success.",
+        "Small supported fixtures still reproduce."
+      ],
+      "rootCause": {
+        "summary": "Per-file16MiB bound does not limit multiplicative whole-source normalization across policy count."
+      },
+      "ruleId": "resource-exhaustion.graph-projection",
+      "severity": {
+        "level": "low",
+        "rationale": "Requires operator import of attacker-controlled local capture; availability impact only and no demonstrated remote exposure."
+      },
+      "summary": "build_graph invokes whole-capture normalization for every distinct policy without a total policy-by-source work budget. This amplifies a caller-supplied capture and blocks the sequential local MCP worker or CLI. Fixed during this audit; the code evidence records the vulnerable version observed before repair.",
+      "taxonomy": {
+        "category": "resource-exhaustion",
+        "cwe": [
+          "CWE-400"
+        ]
+      },
+      "title": "Small imported captures trigger repeated whole-bundle graph work",
+      "validation": {
+        "summary": "Bounded synthetic graph_budget_probe.py:20policies12,343bytes0.425seconds;40policies23,283bytes1.325seconds;80policies45,163bytes4.636seconds. All generated graphs completed; no load test or real tenant used."
+      }
+    },
+    {
+      "attackPath": {
+        "dataflow": {
+          "summary": "Unsupported raw field -> _accounting canonical SHA256(value) -> normalized review/MCP inspect output -> dictionary enumeration by review-only recipient."
+        },
+        "reachability": {
+          "summary": "A recipient needs the ordinary normalized review but not original capture or host privileges. Low entropy is required. Public whole-source digests can also be equality oracles if all other source material is reconstructable."
+        }
+      },
+      "codeEvidence": [
+        {
+          "code": "result.append({'source_node_ref':_ref(path), 'source_value_sha256':digest(value),\n               'classification':'mapped' if destinations else 'restricted_source',\n               'disposition':disposition, 'rule_id':rule, 'rule_version':'1.0.0',\n               'destination_pointers':destinations, 'loss_blocking':loss,\n               'retention_locator':'restricted-original-source'})",
+          "endLine": 213,
+          "explanation": "Hash value is public for every node, including values intentionally omitted from normalized observations.",
+          "id": "digest-restricted-node",
+          "label": "Digest published regardless of retention",
+          "path": "intune_iac/production.py",
+          "startLine": 209
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "rationale": "Counterexample unsupported private_pin0042 remained absent in plaintext, passed independent preservation oracle, and was recovered from normalized hashes in0.057seconds."
+      },
+      "extensions": {
+        "repairReview": "Independent source review confirms digest emitted only for already-visible mapped scalar, no restricted/lossblocking/container values; producer and independent oracle use same versioned1.1 contract, projection1.2. Root reported covering red/green tests. Whole-source digests remain equality evidence, not cryptographic confidentiality.",
+        "repairStatus": "fixed_in_working_tree",
+        "reviewBoundary": "Repair was independently source-reviewed in the changing working tree. Covering red/green test outcomes were reported by implementation owners; final release validation is separate."
+      },
+      "findingId": "csf_6afeeb5a6c2aa95eda752e9a",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:196f25933c93c762539377b579cf23411fa54352a2cceffdf261444403d9f6b5"
+      },
+      "identity": {
+        "anchor": "public-per-field-digests-disclose-low-entropy-restricted-values-by-enumeration"
+      },
+      "locations": [
+        {
+          "endLine": 213,
+          "path": "intune_iac/production.py",
+          "role": "root_control",
+          "startLine": 209
+        },
+        {
+          "endLine": 416,
+          "path": "intune_iac/production_oracle.py",
+          "role": "related",
+          "startLine": 412
+        }
+      ],
+      "occurrenceId": "occ_1e19ff47880573a00854c0c2",
+      "provenance": {
+        "candidateId": "enterprise-sec-003",
+        "previousFindings": [
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Unsupported raw field -> _accounting canonical SHA256(value) -> normalized review/MCP inspect output -> dictionary enumeration by review-only recipient."
+              },
+              "reachability": {
+                "summary": "A recipient needs the ordinary normalized review but not original capture or host privileges. Low entropy is required. Public whole-source digests can also be equality oracles if all other source material is reconstructable."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "result.append({'source_node_ref':_ref(path), 'source_value_sha256':digest(value),\n               'classification':'mapped' if destinations else 'restricted_source',\n               'disposition':disposition, 'rule_id':rule, 'rule_version':'1.0.0',\n               'destination_pointers':destinations, 'loss_blocking':loss,\n               'retention_locator':'restricted-original-source'})",
+                "endLine": 213,
+                "explanation": "Hash value is public for every node, including values intentionally omitted from normalized observations.",
+                "id": "digest-restricted-node",
+                "label": "Digest published regardless of retention",
+                "path": "intune_iac/production.py",
+                "startLine": 209
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Counterexample unsupported private_pin0042 remained absent in plaintext, passed independent preservation oracle, and was recovered from normalized hashes in0.057seconds."
+            },
+            "extensions": {
+              "repairReview": "Independent source review confirms digest emitted only for already-visible mapped scalar, no restricted/lossblocking/container values; producer and independent oracle use same versioned1.1 contract, projection1.2. Root reported covering red/green tests. Whole-source digests remain equality evidence, not cryptographic confidentiality.",
+              "repairStatus": "fixed_in_working_tree"
+            },
+            "identity": {
+              "anchor": "public-per-field-digests-disclose-low-entropy-restricted-values-by-enumeration"
+            },
+            "locations": [
+              {
+                "endLine": 213,
+                "path": "intune_iac/production.py",
+                "role": "root_control",
+                "startLine": 209
+              },
+              {
+                "endLine": 416,
+                "path": "intune_iac/production_oracle.py",
+                "role": "related",
+                "startLine": 412
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-003",
+              "source": "local_plugin"
+            },
+            "remediation": "Avoid public per-value/container digests for restricted and unselected source content; rederive preservation from restricted original bytes. If cryptographic confidentiality is required when all other input is known, keep keyed integrity evidence outside review; public salts are insufficient.",
+            "remediationTests": [
+              "Unsupported low-entropy scalar and container digests are absent from public review.",
+              "Independent preservation oracle continues detecting dropped/changed mapped fields.",
+              "Version and document field-accounting contract change."
+            ],
+            "rootCause": {
+              "summary": "Deterministic unkeyed hashes serve as equality oracles for low-entropy confidential values; labeling them restricted does not remove the leak."
+            },
+            "ruleId": "sensitive-data.restricted-value-digest",
+            "severity": {
+              "level": "low",
+              "rationale": "Requires a sensitive low-entropy value in an unsupported field and a recipient with access to the review output but not raw input; no credential reuse or deployment exposure demonstrated."
+            },
+            "summary": "Production field accounting includes an unsalted digest of each unsupported/restricted source value. A review recipient can enumerate small value spaces without receiving the raw field, defeating restricted retention for low-entropy values.",
+            "taxonomy": {
+              "category": "sensitive-data-exposure",
+              "cwe": [
+                "CWE-200"
+              ]
+            },
+            "title": "Public per-field digests disclose low-entropy restricted values by enumeration",
+            "validation": {
+              "summary": "restricted_digest_probe.py adds a synthetic unsupported private_pin0042. Mapping remains blocked, plaintext absent, independent oracle returns no errors. Enumerating0000\u20139999 against public restricted source hashes recovered0042."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Unsupported raw field -> _accounting canonical SHA256(value) -> normalized review/MCP inspect output -> dictionary enumeration by review-only recipient."
+              },
+              "reachability": {
+                "summary": "A recipient needs the ordinary normalized review but not original capture or host privileges. Low entropy is required. Public whole-source digests can also be equality oracles if all other source material is reconstructable."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "result.append({'source_node_ref':_ref(path), 'source_value_sha256':digest(value),\n               'classification':'mapped' if destinations else 'restricted_source',\n               'disposition':disposition, 'rule_id':rule, 'rule_version':'1.0.0',\n               'destination_pointers':destinations, 'loss_blocking':loss,\n               'retention_locator':'restricted-original-source'})",
+                "endLine": 213,
+                "explanation": "Hash value is public for every node, including values intentionally omitted from normalized observations.",
+                "id": "digest-restricted-node",
+                "label": "Digest published regardless of retention",
+                "path": "intune_iac/production.py",
+                "startLine": 209
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Counterexample unsupported private_pin0042 remained absent in plaintext, passed independent preservation oracle, and was recovered from normalized hashes in0.057seconds."
+            },
+            "extensions": {
+              "repairReview": "Independent source review confirms digest emitted only for already-visible mapped scalar, no restricted/lossblocking/container values; producer and independent oracle use same versioned1.1 contract, projection1.2. Root reported covering red/green tests. Whole-source digests remain equality evidence, not cryptographic confidentiality.",
+              "repairStatus": "fixed_in_working_tree"
+            },
+            "locations": [
+              {
+                "endLine": 213,
+                "path": "intune_iac/production.py",
+                "role": "root_control",
+                "startLine": 209
+              },
+              {
+                "endLine": 416,
+                "path": "intune_iac/production_oracle.py",
+                "role": "related",
+                "startLine": 412
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-003",
+              "source": "local_plugin"
+            },
+            "remediation": "Avoid public per-value/container digests for restricted and unselected source content; rederive preservation from restricted original bytes. If cryptographic confidentiality is required when all other input is known, keep keyed integrity evidence outside review; public salts are insufficient.",
+            "remediationTests": [
+              "Unsupported low-entropy scalar and container digests are absent from public review.",
+              "Independent preservation oracle continues detecting dropped/changed mapped fields.",
+              "Version and document field-accounting contract change."
+            ],
+            "rootCause": {
+              "summary": "Deterministic unkeyed hashes serve as equality oracles for low-entropy confidential values; labeling them restricted does not remove the leak."
+            },
+            "ruleId": "sensitive-data.restricted-value-digest",
+            "severity": {
+              "level": "low",
+              "rationale": "Requires a sensitive low-entropy value in an unsupported field and a recipient with access to the review output but not raw input; no credential reuse or deployment exposure demonstrated."
+            },
+            "summary": "Production field accounting includes an unsalted digest of each unsupported/restricted source value. A review recipient can enumerate small value spaces without receiving the raw field, defeating restricted retention for low-entropy values.",
+            "taxonomy": {
+              "category": "sensitive-data-exposure",
+              "cwe": [
+                "CWE-200"
+              ]
+            },
+            "title": "Public per-field digests disclose low-entropy restricted values by enumeration",
+            "validation": {
+              "summary": "restricted_digest_probe.py adds a synthetic unsupported private_pin0042. Mapping remains blocked, plaintext absent, independent oracle returns no errors. Enumerating0000\u20139999 against public restricted source hashes recovered0042."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Unsupported raw field -> _accounting canonical SHA256(value) -> normalized review/MCP inspect output -> dictionary enumeration by review-only recipient."
+              },
+              "reachability": {
+                "summary": "A recipient needs the ordinary normalized review but not original capture or host privileges. Low entropy is required. Public whole-source digests can also be equality oracles if all other source material is reconstructable."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "result.append({'source_node_ref':_ref(path), 'source_value_sha256':digest(value),\n               'classification':'mapped' if destinations else 'restricted_source',\n               'disposition':disposition, 'rule_id':rule, 'rule_version':'1.0.0',\n               'destination_pointers':destinations, 'loss_blocking':loss,\n               'retention_locator':'restricted-original-source'})",
+                "endLine": 213,
+                "explanation": "Hash value is public for every node, including values intentionally omitted from normalized observations.",
+                "id": "digest-restricted-node",
+                "label": "Digest published regardless of retention",
+                "path": "intune_iac/production.py",
+                "startLine": 209
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Counterexample unsupported private_pin0042 remained absent in plaintext, passed independent preservation oracle, and was recovered from normalized hashes in0.057seconds."
+            },
+            "locations": [
+              {
+                "endLine": 213,
+                "path": "intune_iac/production.py",
+                "role": "root_control",
+                "startLine": 209
+              },
+              {
+                "endLine": 416,
+                "path": "intune_iac/production_oracle.py",
+                "role": "related",
+                "startLine": 412
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-003",
+              "source": "local_plugin"
+            },
+            "remediation": "Avoid public per-value/container digests for restricted and unselected source content; rederive preservation from restricted original bytes. If cryptographic confidentiality is required when all other input is known, keep keyed integrity evidence outside review; public salts are insufficient.",
+            "remediationTests": [
+              "Unsupported low-entropy scalar and container digests are absent from public review.",
+              "Independent preservation oracle continues detecting dropped/changed mapped fields.",
+              "Version and document field-accounting contract change."
+            ],
+            "rootCause": {
+              "summary": "Deterministic unkeyed hashes serve as equality oracles for low-entropy confidential values; labeling them restricted does not remove the leak."
+            },
+            "ruleId": "sensitive-data.restricted-value-digest",
+            "severity": {
+              "level": "low",
+              "rationale": "Requires a sensitive low-entropy value in an unsupported field and a recipient with access to the review output but not raw input; no credential reuse or deployment exposure demonstrated."
+            },
+            "summary": "Production field accounting includes an unsalted digest of each unsupported/restricted source value. A review recipient can enumerate small value spaces without receiving the raw field, defeating restricted retention for low-entropy values.",
+            "taxonomy": {
+              "category": "sensitive-data-exposure",
+              "cwe": [
+                "CWE-200"
+              ]
+            },
+            "title": "Public per-field digests disclose low-entropy restricted values by enumeration",
+            "validation": {
+              "summary": "restricted_digest_probe.py adds a synthetic unsupported private_pin0042. Mapping remains blocked, plaintext absent, independent oracle returns no errors. Enumerating0000\u20139999 against public restricted source hashes recovered0042."
+            }
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Avoid public per-value/container digests for restricted and unselected source content; rederive preservation from restricted original bytes. If cryptographic confidentiality is required when all other input is known, keep keyed integrity evidence outside review; public salts are insufficient.",
+      "remediationTests": [
+        "Unsupported low-entropy scalar and container digests are absent from public review.",
+        "Independent preservation oracle continues detecting dropped/changed mapped fields.",
+        "Version and document field-accounting contract change."
+      ],
+      "rootCause": {
+        "summary": "Deterministic unkeyed hashes serve as equality oracles for low-entropy confidential values; labeling them restricted does not remove the leak."
+      },
+      "ruleId": "sensitive-data.restricted-value-digest",
+      "severity": {
+        "level": "low",
+        "rationale": "Requires a sensitive low-entropy value in an unsupported field and a recipient with access to the review output but not raw input; no credential reuse or deployment exposure demonstrated."
+      },
+      "summary": "Production field accounting includes an unsalted digest of each unsupported/restricted source value. A review recipient can enumerate small value spaces without receiving the raw field, defeating restricted retention for low-entropy values. Fixed during this audit; the code evidence records the vulnerable version observed before repair.",
+      "taxonomy": {
+        "category": "sensitive-data-exposure",
+        "cwe": [
+          "CWE-200"
+        ]
+      },
+      "title": "Public per-field digests disclose low-entropy restricted values by enumeration",
+      "validation": {
+        "summary": "restricted_digest_probe.py adds a synthetic unsupported private_pin0042. Mapping remains blocked, plaintext absent, independent oracle returns no errors. Enumerating0000\u20139999 against public restricted source hashes recovered0042."
+      }
+    },
+    {
+      "attackPath": {
+        "dataflow": {
+          "summary": "Supplied source path with x/.. -> absolute-only _safe -> lexical _scopes misses overlap -> _checkpoint writes evidence/inventory.json over source."
+        },
+        "reachability": {
+          "summary": "Caller can supply initial guided input locator or resume state. Input must be valid capture and alias actual evidence filename; normal local checkpoint is sufficient."
+        }
+      },
+      "codeEvidence": [
+        {
+          "code": "def _safe(path):\n    result = Path(path).absolute()\n    if any(item.is_symlink() for item in (result, *result.parents)):\n        raise AppError('workflow_unsafe_path', 'Guided evidence paths must not contain symbolic links.')\n    return result",
+          "endLine": 32,
+          "explanation": "Initial code observed during this audit retained parent-directory aliases. Current working-tree repair returns result.resolve(). Lexical ancestry checks otherwise miss actual source containment.",
+          "id": "noncanonical-scope",
+          "label": "Initial absolute-only path helper",
+          "path": "intune_iac/workflow.py",
+          "startLine": 28
+        }
+      ],
+      "confidence": {
+        "level": "high",
+        "rationale": "Direct source trace; implementation owner reproduced raw capture overwrite in regression before fix and independently reviewed canonicalization after fix."
+      },
+      "extensions": {
+        "repairReview": "Source now returns result.resolve(); _scopes consumes canonical locators; session reload also added under cooperative lock. Owner reported red-to-green covering regression.",
+        "repairStatus": "fixed_in_working_tree",
+        "reviewBoundary": "Repair was independently source-reviewed in the changing working tree. Covering red/green test outcomes were reported by implementation owners; final release validation is separate."
+      },
+      "findingId": "csf_ea0395ccb376eff92dcf03d6",
+      "fingerprints": {
+        "algorithm": "codex-security/v1",
+        "primary": "codex-security/v1:sha256:0484b74bb6d087d8afc960c4348629677434ff4bf32cd2182e504ecbb37734f9"
+      },
+      "identity": {
+        "anchor": "parent-directory-aliases-let-guided-checkpoints-overwrite-protected-capture-inputs"
+      },
+      "locations": [
+        {
+          "endLine": 32,
+          "path": "intune_iac/workflow.py",
+          "role": "root_control",
+          "startLine": 28
+        },
+        {
+          "endLine": 101,
+          "path": "intune_iac/workflow.py",
+          "role": "guard",
+          "startLine": 88
+        }
+      ],
+      "occurrenceId": "occ_1036bcc50e64d41da6b4e504",
+      "provenance": {
+        "candidateId": "enterprise-sec-004",
+        "previousFindings": [
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Supplied source path with x/.. -> absolute-only _safe -> lexical _scopes misses overlap -> _checkpoint writes evidence/inventory.json over source."
+              },
+              "reachability": {
+                "summary": "Caller can supply initial guided input locator or resume state. Input must be valid capture and alias actual evidence filename; normal local checkpoint is sufficient."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "def _safe(path):\n    result = Path(path).absolute()\n    if any(item.is_symlink() for item in (result, *result.parents)):\n        raise AppError('workflow_unsafe_path', 'Guided evidence paths must not contain symbolic links.')\n    return result",
+                "endLine": 32,
+                "explanation": "Initial code observed during this audit retained parent-directory aliases. Current working-tree repair returns result.resolve(). Lexical ancestry checks otherwise miss actual source containment.",
+                "id": "noncanonical-scope",
+                "label": "Initial absolute-only path helper",
+                "path": "intune_iac/workflow.py",
+                "startLine": 28
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Direct source trace; implementation owner reproduced raw capture overwrite in regression before fix and independently reviewed canonicalization after fix."
+            },
+            "extensions": {
+              "repairReview": "Source now returns result.resolve(); _scopes consumes canonical locators; session reload also added under cooperative lock. Owner reported red-to-green covering regression.",
+              "repairStatus": "fixed_in_working_tree"
+            },
+            "identity": {
+              "anchor": "parent-directory-aliases-let-guided-checkpoints-overwrite-protected-capture-inputs"
+            },
+            "locations": [
+              {
+                "endLine": 32,
+                "path": "intune_iac/workflow.py",
+                "role": "root_control",
+                "startLine": 28
+              },
+              {
+                "endLine": 101,
+                "path": "intune_iac/workflow.py",
+                "role": "guard",
+                "startLine": 88
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-004",
+              "source": "local_plugin"
+            },
+            "remediation": "Canonicalize filesystem locators after rejecting symlink components and before comparing scopes; preserve source bytes and reject overlapping receipt/output paths before writes.",
+            "remediationTests": [
+              "Capture supplied through parent alias into evidence is rejected with unchanged original bytes.",
+              "Saved state reread after acquiring wizard lock avoids stale cancelled intent."
+            ],
+            "rootCause": {
+              "summary": "Path normalization occurred after neither path selection nor lexical persistence/input overlap comparisons."
+            },
+            "ruleId": "path-canonicalization.guided-persistence",
+            "severity": {
+              "level": "low",
+              "rationale": "Local source-integrity loss requires a crafted path/session selected by the operator; no arbitrary remote execution or privileged filesystem write established."
+            },
+            "summary": "Initial workflow._safe returned absolute but noncanonical paths. A source inside the receipt store spelled through x/.. evaded lexical _scopes checks, and an ordinary checkpoint overwrote the source capture as inventory.json. The working-tree fix canonicalizes paths after rejecting symlinks.",
+            "taxonomy": {
+              "category": "path-traversal",
+              "cwe": [
+                "CWE-23",
+                "CWE-180"
+              ]
+            },
+            "title": "Parent-directory aliases let guided checkpoints overwrite protected capture inputs",
+            "validation": {
+              "summary": "Owner test_parent_alias_cannot_hide_source_inside_evidence returned suspended instead of blocked and overwrote capture before fix. Example /base/x/../session.json.evidence/inventory.json aliases source under /base/session.json.evidence; x is existing directory. Fix source independently inspected."
+            }
+          },
+          {
+            "attackPath": {
+              "dataflow": {
+                "summary": "Supplied source path with x/.. -> absolute-only _safe -> lexical _scopes misses overlap -> _checkpoint writes evidence/inventory.json over source."
+              },
+              "reachability": {
+                "summary": "Caller can supply initial guided input locator or resume state. Input must be valid capture and alias actual evidence filename; normal local checkpoint is sufficient."
+              }
+            },
+            "codeEvidence": [
+              {
+                "code": "def _safe(path):\n    result = Path(path).absolute()\n    if any(item.is_symlink() for item in (result, *result.parents)):\n        raise AppError('workflow_unsafe_path', 'Guided evidence paths must not contain symbolic links.')\n    return result",
+                "endLine": 32,
+                "explanation": "Initial code observed during this audit retained parent-directory aliases. Current working-tree repair returns result.resolve(). Lexical ancestry checks otherwise miss actual source containment.",
+                "id": "noncanonical-scope",
+                "label": "Initial absolute-only path helper",
+                "path": "intune_iac/workflow.py",
+                "startLine": 28
+              }
+            ],
+            "confidence": {
+              "level": "high",
+              "rationale": "Direct source trace; implementation owner reproduced raw capture overwrite in regression before fix and independently reviewed canonicalization after fix."
+            },
+            "extensions": {
+              "repairReview": "Source now returns result.resolve(); _scopes consumes canonical locators; session reload also added under cooperative lock. Owner reported red-to-green covering regression.",
+              "repairStatus": "fixed_in_working_tree"
+            },
+            "locations": [
+              {
+                "endLine": 32,
+                "path": "intune_iac/workflow.py",
+                "role": "root_control",
+                "startLine": 28
+              },
+              {
+                "endLine": 101,
+                "path": "intune_iac/workflow.py",
+                "role": "guard",
+                "startLine": 88
+              }
+            ],
+            "provenance": {
+              "candidateId": "enterprise-sec-004",
+              "source": "local_plugin"
+            },
+            "remediation": "Canonicalize filesystem locators after rejecting symlink components and before comparing scopes; preserve source bytes and reject overlapping receipt/output paths before writes.",
+            "remediationTests": [
+              "Capture supplied through parent alias into evidence is rejected with unchanged original bytes.",
+              "Saved state reread after acquiring wizard lock avoids stale cancelled intent."
+            ],
+            "rootCause": {
+              "summary": "Path normalization occurred after neither path selection nor lexical persistence/input overlap comparisons."
+            },
+            "ruleId": "path-canonicalization.guided-persistence",
+            "severity": {
+              "level": "low",
+              "rationale": "Local source-integrity loss requires a crafted path/session selected by the operator; no arbitrary remote execution or privileged filesystem write established."
+            },
+            "summary": "Initial workflow._safe returned absolute but noncanonical paths. A source inside the receipt store spelled through x/.. evaded lexical _scopes checks, and an ordinary checkpoint overwrote the source capture as inventory.json. The working-tree fix canonicalizes paths after rejecting symlinks.",
+            "taxonomy": {
+              "category": "path-traversal",
+              "cwe": [
+                "CWE-23",
+                "CWE-180"
+              ]
+            },
+            "title": "Parent-directory aliases let guided checkpoints overwrite protected capture inputs",
+            "validation": {
+              "summary": "Owner test_parent_alias_cannot_hide_source_inside_evidence returned suspended instead of blocked and overwrote capture before fix. Example /base/x/../session.json.evidence/inventory.json aliases source under /base/session.json.evidence; x is existing directory. Fix source independently inspected."
+            }
+          }
+        ],
+        "source": "local_plugin"
+      },
+      "remediation": "Canonicalize filesystem locators after rejecting symlink components and before comparing scopes; preserve source bytes and reject overlapping receipt/output paths before writes.",
+      "remediationTests": [
+        "Capture supplied through parent alias into evidence is rejected with unchanged original bytes.",
+        "Saved state reread after acquiring wizard lock avoids stale cancelled intent."
+      ],
+      "rootCause": {
+        "summary": "Path normalization occurred after neither path selection nor lexical persistence/input overlap comparisons."
+      },
+      "ruleId": "path-canonicalization.guided-persistence",
+      "severity": {
+        "level": "low",
+        "rationale": "Local source-integrity loss requires a crafted path/session selected by the operator; no arbitrary remote execution or privileged filesystem write established."
+      },
+      "summary": "Initial workflow._safe returned absolute but noncanonical paths. A source inside the receipt store spelled through x/.. evaded lexical _scopes checks, and an ordinary checkpoint overwrote the source capture as inventory.json. The working-tree fix canonicalizes paths after rejecting symlinks. Fixed during this audit; the code evidence records the vulnerable version observed before repair.",
+      "taxonomy": {
+        "category": "path-traversal",
+        "cwe": [
+          "CWE-23",
+          "CWE-180"
+        ]
+      },
+      "title": "Parent-directory aliases let guided checkpoints overwrite protected capture inputs",
+      "validation": {
+        "summary": "Owner test_parent_alias_cannot_hide_source_inside_evidence returned suspended instead of blocked and overwrote capture before fix. Example /base/x/../session.json.evidence/inventory.json aliases source under /base/session.json.evidence; x is existing directory. Fix source independently inspected."
+      }
+    }
+  ],
+  "scanId": "290bdae5-852f-4e05-a5d8-0ce24b9fdcce",
+  "schemaVersion": "1.0"
+}

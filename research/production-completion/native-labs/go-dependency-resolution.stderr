@@ -1,0 +1,21 @@
+go: downloading github.com/google/uuid v1.6.0
+go: downloading github.com/std-uritemplate/std-uritemplate/go/v2 v2.0.3
+go: downloading go.opentelemetry.io/otel v1.43.0
+go: downloading go.opentelemetry.io/otel/trace v1.43.0
+go: downloading github.com/hashicorp/go-hclog v1.6.3
+go: downloading github.com/hashicorp/terraform-plugin-go v0.31.0
+go: downloading github.com/go-logr/logr v1.4.3
+go: downloading go.opentelemetry.io/otel/metric v1.43.0
+go: downloading github.com/fatih/color v1.18.0
+go: downloading github.com/mattn/go-isatty v0.0.20
+go: downloading github.com/vmihailenco/msgpack/v5 v5.4.1
+go: downloading github.com/vmihailenco/msgpack v4.0.4+incompatible
+go: downloading github.com/go-logr/stdr v1.2.2
+go: downloading go.opentelemetry.io/auto/sdk v1.2.1
+go: downloading github.com/cespare/xxhash/v2 v2.3.0
+go: downloading github.com/mattn/go-colorable v0.1.14
+go: downloading github.com/mitchellh/go-testing-interface v1.14.1
+go: downloading golang.org/x/sys v0.47.0
+go: downloading github.com/vmihailenco/tagparser/v2 v2.0.0
+go: can't load test package: error obtaining VCS status: exit status 128
+	Use -buildvcs=false to disable VCS stamping.

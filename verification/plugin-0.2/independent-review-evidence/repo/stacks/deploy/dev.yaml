@@ -1,0 +1,7 @@
+import: [base]
+components:
+  terraform:
+    policy:
+      metadata: {inherits: [base]}
+      vars: {region: east}
+      env: {TOKEN: repository-secret-canary}

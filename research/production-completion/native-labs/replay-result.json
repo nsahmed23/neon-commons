@@ -1,0 +1,90 @@
+{
+  "version": "native-labs-replay/1.0",
+  "production_qualified": false,
+  "live_service_calls": 0,
+  "native_tools": {
+    "tofu": {
+      "path": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/tofu",
+      "sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627"
+    },
+    "atmos": {
+      "path": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/atmos",
+      "sha256": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b"
+    }
+  },
+  "adoption": {
+    "runner": "scripts/qualify-adoption-lab.py",
+    "runner_sha256": "ca8a79f60e30ac95e5ad97d78e8f38273d88255792d7fc2f9d40c338e37ef744",
+    "exit_code": 0,
+    "status": "passed",
+    "checks_passed": 18,
+    "native_command_count": 25,
+    "scope": "self-authored reviewed Atmos+OpenTofu builtin terraform_data local-state adoption; no external provider",
+    "receipt": "adoption/result.json"
+  },
+  "locking": {
+    "runner": "scripts/qualify-locking-lab.py",
+    "runner_sha256": "80f966a2720cb1ed0d2881d1adfe2fc4f6e040e69b12b8fc95f385f1fea64097",
+    "exit_code": 0,
+    "status": "passed",
+    "upstream_commit": "86b69d2292485d179698f5b9bf648a29f935e216",
+    "upstream_result": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "deselected": 1
+    },
+    "scope": "eight unchanged dsoxlab plaintext local-backend tests adapted to OpenTofu 1.10.0; one S3 documentation test deselected; no dsoxlab CLI, Azure/Intune or external provider",
+    "receipt": "locking/receipt.json"
+  },
+  "provider_rpc": {
+    "status": "prerequisite_blocked",
+    "receipt": "../provider-execution/native-smoke.json",
+    "reason": "Current host AF_UNIX denied before adapter guard; exact full provider RPC unavailable. Offline pinned OpenTofu init passed."
+  },
+  "qualification_bounds": [
+    "All performed writes were to disposable synthetic local state.",
+    "Upstream source download/inspection and tool acquisition are prerequisites, not lab execution.",
+    "No live tenant authorization, remote state ownership, production provider Configure, mutation RPC or service semantics qualified."
+  ],
+  "provider_contract_initial_attempt": {
+    "runner": "scripts/qualify-provider-contract.py",
+    "runner_sha256": "41cda08fcf67a15e54b141a2a7e7237457ed4e88acca408dfcf045849a1999e8",
+    "exit_code": 1,
+    "status": "prerequisite_blocked",
+    "native_go_tests_executed": false,
+    "reason": "Pinned Go 1.25.8 executable and cached dependencies absent in current workspace. Runner failed before Go execution; previous evidence is not counted as this run.",
+    "stdout": "provider-contract.stdout",
+    "stderr": "provider-contract.stderr"
+  },
+  "provider_contract": {
+    "status": "passed-bounded-native-characterization",
+    "production_qualified": false,
+    "native_go_tests_executed": true,
+    "profiles": {
+      "provider-core-native": {
+        "status": "passed-characterization",
+        "exit_code": 0,
+        "top_level_tests_passed": 22,
+        "tests_failed": [],
+        "scope": "unchanged selected provider source; synthetic in-memory HTTP responses",
+        "receipt": "provider-core-native/result.json"
+      },
+      "provider-paging-native": {
+        "status": "passed-characterization",
+        "exit_code": 0,
+        "top_level_tests_passed": 14,
+        "tests_failed": [],
+        "scope": "Locally modified custom GET helper with unchanged dependencies; synthetic in-memory HTTP responses",
+        "receipt": "provider-paging-native/result.json"
+      }
+    },
+    "qualification_bounds": [
+      "Original core profile deliberately reproduces known hazards; passing it is characterization, not a repair pass.",
+      "Patched paging profile tests the local GET helper only.",
+      "No full SDK/resource/provider Configure or native mutation RPC qualification from these profiles.",
+      "Test runner uses offline dependencies verified against committed go.sum; no sandbox escalation."
+    ]
+  }
+}

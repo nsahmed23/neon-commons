@@ -1,0 +1,15 @@
+test_rehashed_stale_repository_binding_is_not_generation_proof (evaluations.test_repaired_workflow.Workflow.test_rehashed_stale_repository_binding_is_not_generation_proof) ... FAIL
+
+======================================================================
+FAIL: test_rehashed_stale_repository_binding_is_not_generation_proof (evaluations.test_repaired_workflow.Workflow.test_rehashed_stale_repository_binding_is_not_generation_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_workflow.py", line 158, in test_rehashed_stale_repository_binding_is_not_generation_proof
+    self.assertNotIn('generation',session['completed']);self.assertEqual(workflow.resume(self.root,local_resume=True)['next_state'],'generate')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'generation' unexpectedly found in ['repository', 'source', 'inventory', 'selection', 'ownership', 'mapping', 'generation', 'validation', 'review']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.556s
+
+FAILED (failures=1)

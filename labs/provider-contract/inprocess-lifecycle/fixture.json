@@ -1,0 +1,56 @@
+{
+  "id": "33333333-3333-4333-8333-333333333333",
+  "policy": {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "name": "Synthetic existing Intune policy",
+    "description": "Fixture only",
+    "platforms": "windows10",
+    "technologies": "mdm",
+    "roleScopeTagIds": [
+      "0"
+    ],
+    "settingCount": 1,
+    "isAssigned": true,
+    "createdDateTime": "2026-09-30T12:00:00Z",
+    "lastModifiedDateTime": "2026-09-30T12:00:00Z"
+  },
+  "settings": {
+    "value": [
+      {
+        "id": "37",
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationSetting",
+        "settingInstance": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+          "settingInstanceTemplateReference": null,
+          "choiceSettingValue": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+            "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2",
+            "settingValueTemplateReference": null,
+            "children": []
+          }
+        }
+      }
+    ]
+  },
+  "assignments": [
+    {
+      "id": "assignment-a",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "11111111-1111-4111-8111-111111111111",
+        "deviceAndAppManagementAssignmentFilterId": "44444444-4444-4444-8444-444444444444",
+        "deviceAndAppManagementAssignmentFilterType": "include"
+      }
+    },
+    {
+      "id": "assignment-b",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "22222222-2222-4222-8222-222222222222",
+        "deviceAndAppManagementAssignmentFilterId": "00000000-0000-0000-0000-000000000000",
+        "deviceAndAppManagementAssignmentFilterType": "none"
+      }
+    }
+  ]
+}

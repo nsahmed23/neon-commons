@@ -1,0 +1,74 @@
+[
+  {
+    "schema": "export-intake.schema.json",
+    "valid": "examples/export-intake.valid.json",
+    "invalid": "examples/export-intake.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "observed-inventory.schema.json",
+    "valid": "examples/observed-inventory.valid.json",
+    "invalid": "examples/observed-inventory.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "field-accounting.schema.json",
+    "valid": "examples/field-accounting.valid.json",
+    "invalid": "examples/field-accounting.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "adoption-map.schema.json",
+    "valid": "examples/adoption-map.valid.json",
+    "invalid": "examples/adoption-map.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "capability-report.schema.json",
+    "valid": "examples/capability-report.valid.json",
+    "invalid": "examples/capability-report.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "command-card.schema.json",
+    "valid": "examples/command-card.valid.json",
+    "invalid": "examples/command-card.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "generated-files.schema.json",
+    "valid": "examples/generated-files.valid.json",
+    "invalid": "examples/generated-files.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "operation.schema.json",
+    "valid": "examples/operation.valid.json",
+    "invalid": "examples/operation.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "session-state.schema.json",
+    "valid": "examples/session-state.valid.json",
+    "invalid": "examples/session-state.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "evidence.schema.json",
+    "valid": "examples/evidence.valid.json",
+    "invalid": "examples/evidence.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "evaluation-result.schema.json",
+    "valid": "examples/evaluation-result.valid.json",
+    "invalid": "examples/evaluation-result.invalid.json",
+    "invalid_reason": "Missing first required field"
+  },
+  {
+    "schema": "source-lock.schema.json",
+    "valid": "examples/source-lock.valid.json",
+    "invalid": "examples/source-lock.invalid.json",
+    "invalid_reason": "Missing first required field"
+  }
+]

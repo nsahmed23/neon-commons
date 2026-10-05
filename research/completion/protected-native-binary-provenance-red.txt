@@ -1,0 +1,15 @@
+test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json (plugin_tests.test_protected_completion.NativeBinaryProvenanceRegressionTests.test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json) ... FAIL
+
+======================================================================
+FAIL: test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json (plugin_tests.test_protected_completion.NativeBinaryProvenanceRegressionTests.test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 336, in test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json
+    with self.assertRaises(ValueError):p.approve_native_local_operation(request,executor=e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 1.996s
+
+FAILED (failures=1)

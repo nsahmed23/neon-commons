@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "version"
+  ],
+  "cwd": "repository",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "tofu-version",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "cbd37557812a8d572e1961728b028ddfe01aa0c819c3ba5d07de3f78e6d3f754",
+  "tool": "tofu",
+  "transcript_complete": true
+}

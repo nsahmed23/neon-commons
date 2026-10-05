@@ -1,0 +1,16 @@
+{
+  "name": "intune-iac",
+  "version": "0.5.1",
+  "description": "Inspect Intune exports, guide local adoption decisions, and generate independently checked IaC reference artifacts.",
+  "author": {
+    "name": "Intune IaC project contributors"
+  },
+  "keywords": [
+    "intune",
+    "iac",
+    "settings-catalog",
+    "atmos",
+    "opentofu",
+    "local-review"
+  ]
+}

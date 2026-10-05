@@ -1,0 +1,7 @@
+test_stored_graph_query_budget_precedes_digest_and_relational_scans (oracle_replay.GraphBudgetTests.test_stored_graph_query_budget_precedes_digest_and_relational_scans) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+OK
+{"counterfactual_early_digest_enabled": true, "test_passed": true}

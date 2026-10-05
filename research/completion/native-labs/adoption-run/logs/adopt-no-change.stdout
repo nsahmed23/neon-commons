@@ -1,0 +1,15 @@
+
+[0m[1mInitializing the backend...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- terraform.io/builtin/terraform is built in to OpenTofu
+
+[0m[1m[32mOpenTofu has been successfully initialized![0m[32m[0m
+[0m[32mSwitched to workspace "dev".[0m
+terraform_data.policy: Refreshing state... [id=9b927d9b-0757-ab06-3a48-dbc081f36406]
+terraform_data.targeting: Refreshing state... [id=82bd44cf-a656-732e-572f-4fbd15b25af7]
+
+No changes. Your infrastructure matches the configuration.
+
+OpenTofu has compared your real infrastructure against your configuration and
+found no differences, so no changes are needed.

@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "target-evidence/1.0"
+    },
+    "observed_at": {
+      "type": "string",
+      "maxLength": 32,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?Z$"
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "cloud": {
+          "const": "public"
+        },
+        "tenant_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "endpoints": {
+          "type": "object",
+          "properties": {
+            "graph": {
+              "const": "https://graph.microsoft.com"
+            },
+            "authority": {
+              "const": "https://login.microsoftonline.com"
+            },
+            "management": {
+              "const": "https://management.azure.com"
+            },
+            "storage_audience": {
+              "const": "https://storage.azure.com/"
+            }
+          },
+          "required": [
+            "graph",
+            "authority",
+            "management",
+            "storage_audience"
+          ],
+          "additionalProperties": false
+        },
+        "identity": {
+          "type": "object",
+          "properties": {
+            "principal_object_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "client_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "auth_kind": {
+              "enum": [
+                "workload_federation",
+                "managed_identity",
+                "application_certificate"
+              ]
+            },
+            "federation": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "issuer": {
+                      "type": "string",
+                      "minLength": 9,
+                      "maxLength": 512
+                    },
+                    "subject": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 512,
+                      "pattern": "^[\\x21-\\x7e]+$"
+                    },
+                    "audience": {
+                      "const": "api://AzureADTokenExchange"
+                    }
+                  },
+                  "required": [
+                    "issuer",
+                    "subject",
+                    "audience"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "principal_object_id",
+            "client_id",
+            "auth_kind",
+            "federation"
+          ],
+          "additionalProperties": false
+        },
+        "repository": {
+          "type": "object",
+          "properties": {
+            "git_revision": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "dirty_files_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "source_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "configuration_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "logical_stack": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+            },
+            "physical_stack": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]*(/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*$"
+            },
+            "component": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]*(/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*$"
+            },
+            "implementation_path": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]*(/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*$"
+            },
+            "runtime_layers_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "git_revision",
+            "dirty_files_sha256",
+            "source_sha256",
+            "configuration_sha256",
+            "logical_stack",
+            "physical_stack",
+            "component",
+            "implementation_path",
+            "runtime_layers_sha256"
+          ],
+          "additionalProperties": false
+        },
+        "backend": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "azurerm"
+            },
+            "cloud": {
+              "const": "public"
+            },
+            "tenant_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "subscription_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "identity": {
+              "type": "object",
+              "properties": {
+                "principal_object_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                "client_id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+                },
+                "auth_kind": {
+                  "enum": [
+                    "workload_federation",
+                    "managed_identity",
+                    "application_certificate"
+                  ]
+                },
+                "federation": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "issuer": {
+                          "type": "string",
+                          "minLength": 9,
+                          "maxLength": 512
+                        },
+                        "subject": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 512,
+                          "pattern": "^[\\x21-\\x7e]+$"
+                        },
+                        "audience": {
+                          "const": "api://AzureADTokenExchange"
+                        }
+                      },
+                      "required": [
+                        "issuer",
+                        "subject",
+                        "audience"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "principal_object_id",
+                "client_id",
+                "auth_kind",
+                "federation"
+              ],
+              "additionalProperties": false
+            },
+            "storage_account_resource_id": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "blob_endpoint": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "container": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 63,
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            },
+            "key": {
+              "type": "string",
+              "maxLength": 512,
+              "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]*(/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*$"
+            },
+            "workspace": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+            },
+            "resolved_blob_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            },
+            "state_lineage": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "state_serial": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "state_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "type",
+            "cloud",
+            "tenant_id",
+            "subscription_id",
+            "identity",
+            "storage_account_resource_id",
+            "blob_endpoint",
+            "container",
+            "key",
+            "workspace",
+            "resolved_blob_name",
+            "state_lineage",
+            "state_serial",
+            "state_sha256"
+          ],
+          "additionalProperties": false
+        },
+        "ownership": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "const": "single_writer"
+            },
+            "writer_id": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+            },
+            "scope_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "lease_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+            },
+            "lease_expires_at": {
+              "type": "string",
+              "maxLength": 32,
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?Z$"
+            }
+          },
+          "required": [
+            "mode",
+            "writer_id",
+            "scope_sha256",
+            "lease_id",
+            "lease_expires_at"
+          ],
+          "additionalProperties": false
+        },
+        "toolchain": {
+          "type": "object",
+          "properties": {
+            "atmos_version": {
+              "const": "1.199.0"
+            },
+            "atmos_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "engine": {
+              "const": "tofu"
+            },
+            "engine_version": {
+              "const": "1.10.0"
+            },
+            "engine_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "provider_source": {
+              "const": "deploymenttheory/microsoft365"
+            },
+            "provider_version": {
+              "const": "1.0.0"
+            },
+            "provider_lock_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "atmos_version",
+            "atmos_sha256",
+            "engine",
+            "engine_version",
+            "engine_sha256",
+            "provider_source",
+            "provider_version",
+            "provider_lock_sha256"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "cloud",
+        "tenant_id",
+        "subscription_id",
+        "endpoints",
+        "identity",
+        "repository",
+        "backend",
+        "ownership",
+        "toolchain"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "observed_at",
+    "binding"
+  ],
+  "additionalProperties": false
+}

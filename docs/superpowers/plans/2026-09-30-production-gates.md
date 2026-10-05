@@ -1,0 +1,16 @@
+# Production completion gates after native lab qualification
+
+This is the remaining product plan, not a claim that the local lab completes production adoption. The lab implementation plan and executed ledger are separate. Work can continue on gates 1–4 without tenant mutation; gate 5 requires a controlled target and authorization for the concrete operations.
+
+| Order | Deliverable | Required acceptance evidence |
+|---|---|---|
+| 1 | A selected-provider request/state harness for the supported Intune resource | Native provider schema/config validation, exact settings projection, ID-preserving import/refresh, dependency/serializer/pagination coverage and failure injection. Resolve the existing provider-startup failure on a suitable host. No-change requires source/config/state comparison, not ignored fields or rewritten goldens. |
+| 2 | Effective target and ownership resolver | Bind logical stack, component implementation, workspace, backend endpoint/container/key/resolved blob, state lineage/serial, cloud/service endpoints, authenticated tenant/principal and existing writer. Return explicit unknowns when evidence is absent. Differential tests against native Atmos must cover each admitted feature. |
+| 3 | Protected import/plan executor | Fixed typed actions, reviewed executable/config/migration/plan hashes, restricted credentials, authenticated approval delivery, final context recheck, native state lock and separate action lock, started/outcome receipts. Reject force, skipped plans, disabled locks and target substitution. The lab executor cannot be promoted directly to this role. |
+| 4 | Partial-failure reconciliation and complete guided flow | Model policy/settings and assignment requests separately; injected fail-before/fail-after outcomes; independent readback and no blind retry; receipt-backed cohort/partial-generation milestones and edit/resume invalidation. Handle history-write failure after a successful state write and destination-only completion of a multi-state move. |
+| 5 | One authorized existing-policy pilot | Capture original immutable IDs, values and targeting; independently establish coverage and references; import into the approved backend; ordinary and refresh-only no-change plans; verify assignments and failure recovery. Record actual provider/service versions and supported definition/value types. |
+| 6 | Supported production release | Named estate/family/exporter/backend/host/platform denominator, required broader mappings, native Codex/Claude install/use/uninstall and Windows/PowerShell qualification where supported, CI approval/concurrency/rollback, dependency integrity, ownership/support policy and release acceptance. |
+
+LLM judgment is advisory. CLM requires its own held-out accuracy/abstention and latency study before quality claims; it cannot authenticate an approval or override deterministic preservation/targeting failures.
+
+The next narrow milestone is **one provider-valid, authenticated existing-policy adoption with observed no-change and recovery**, followed by the declared support matrix. Neither a percentage nor an ETA is defensible from the current fixture count alone. New provider observations may expose additional implementation changes.

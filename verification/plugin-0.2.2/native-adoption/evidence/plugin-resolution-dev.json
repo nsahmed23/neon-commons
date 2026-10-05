@@ -1,0 +1,257 @@
+{
+  "abstract": false,
+  "adapter": "atmos-literal/1.0",
+  "blockers": [],
+  "component": "policy",
+  "effective": {
+    "command": "tofu",
+    "env": {},
+    "metadata": {
+      "inherits": [
+        "policy-defaults"
+      ]
+    },
+    "providers": {},
+    "settings": {},
+    "vars": {
+      "excluded_groups": [
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "included_groups": [
+        "11111111-1111-4111-8111-111111111111"
+      ],
+      "setting": "allow",
+      "stage": "dev"
+    }
+  },
+  "evaluation_scope": "repository_local_literal_configuration",
+  "execution_authorized": false,
+  "implementation": "policy",
+  "implementation_exists": true,
+  "implementation_path": "components/terraform/policy",
+  "kind": "terraform",
+  "logical_stack_identity": "unknown",
+  "provenance": {
+    "/command": {
+      "history": [
+        {
+          "column": 14,
+          "line": 5,
+          "path": "atmos.yaml",
+          "pointer": "/components/terraform/command"
+        }
+      ],
+      "winner": {
+        "column": 14,
+        "line": 5,
+        "path": "atmos.yaml",
+        "pointer": "/components/terraform/command"
+      }
+    },
+    "/metadata": {
+      "history": [
+        {
+          "column": 9,
+          "line": 8,
+          "path": "stacks/deploy/dev.yaml",
+          "pointer": "/components/terraform/policy/metadata"
+        }
+      ],
+      "winner": {
+        "column": 9,
+        "line": 8,
+        "path": "stacks/deploy/dev.yaml",
+        "pointer": "/components/terraform/policy/metadata"
+      }
+    },
+    "/metadata/inherits": {
+      "history": [
+        {
+          "column": 19,
+          "line": 8,
+          "path": "stacks/deploy/dev.yaml",
+          "pointer": "/components/terraform/policy/metadata/inherits"
+        }
+      ],
+      "winner": {
+        "column": 19,
+        "line": 8,
+        "path": "stacks/deploy/dev.yaml",
+        "pointer": "/components/terraform/policy/metadata/inherits"
+      }
+    },
+    "/metadata/inherits/0": {
+      "history": [
+        {
+          "column": 20,
+          "line": 8,
+          "path": "stacks/deploy/dev.yaml",
+          "pointer": "/components/terraform/policy/metadata/inherits/0"
+        }
+      ],
+      "winner": {
+        "column": 20,
+        "line": 8,
+        "path": "stacks/deploy/dev.yaml",
+        "pointer": "/components/terraform/policy/metadata/inherits/0"
+      }
+    },
+    "/vars": {
+      "history": [
+        {
+          "column": 3,
+          "line": 3,
+          "path": "stacks/deploy/dev.yaml",
+          "pointer": "/vars"
+        },
+        {
+          "column": 9,
+          "line": 7,
+          "path": "stacks/catalog/policy.yaml",
+          "pointer": "/components/terraform/policy-defaults/vars"
+        }
+      ],
+      "winner": {
+        "column": 9,
+        "line": 7,
+        "path": "stacks/catalog/policy.yaml",
+        "pointer": "/components/terraform/policy-defaults/vars"
+      }
+    },
+    "/vars/excluded_groups": {
+      "history": [
+        {
+          "column": 26,
+          "line": 9,
+          "path": "stacks/catalog/policy.yaml",
+          "pointer": "/components/terraform/policy-defaults/vars/excluded_groups"
+        }
+      ],
+      "winner": {
+        "column": 26,
+        "line": 9,
+        "path": "stacks/catalog/policy.yaml",
+        "pointer": "/components/terraform/policy-defaults/vars/excluded_groups"
+      }
+    },
+    "/vars/excluded_groups/0": {
+      "history": [
+        {
+          "column": 27,
+          "line": 9,
+          "path": "stacks/catalog/policy.yaml",
+          "pointer": "/components/terraform/policy-defaults/vars/excluded_groups/0"
+        }
+      ],
+      "winner": {
+        "column": 27,
+        "line": 9,
+        "path": "stacks/catalog/policy.yaml",
+        "pointer": "/components/terraform/policy-defaults/vars/excluded_groups/0"
+      }
+    },
+    "/vars/included_groups": {
+      "history": [
+        {
+          "column": 26,
+          "line": 8,
+          "path": "stacks/catalog/policy.yaml",
+          "pointer": "/components/terraform/policy-defaults/vars/included_groups"
+        }
+      ],
+      "winner": {
+        "column": 26,
+        "line": 8,
+        "path": "stacks/catalog/policy.yaml",
+        "pointer": "/components/terraform/policy-defaults/vars/included_groups"
+      }
+    },
+    "/vars/included_groups/0": {
+      "history": [
+        {
+          "column": 27,
+          "line": 8,
+          "path": "stacks/catalog/policy.yaml",
+          "pointer": "/components/terraform/policy-defaults/vars/included_groups/0"
+        }
+      ],
+      "winner": {
+        "column": 27,
+        "line": 8,
+        "path": "stacks/catalog/policy.yaml",
+        "pointer": "/components/terraform/policy-defaults/vars/included_groups/0"
+      }
+    },
+    "/vars/setting": {
+      "history": [
+        {
+          "column": 18,
+          "line": 7,
+          "path": "stacks/catalog/policy.yaml",
+          "pointer": "/components/terraform/policy-defaults/vars/setting"
+        }
+      ],
+      "winner": {
+        "column": 18,
+        "line": 7,
+        "path": "stacks/catalog/policy.yaml",
+        "pointer": "/components/terraform/policy-defaults/vars/setting"
+      }
+    },
+    "/vars/stage": {
+      "history": [
+        {
+          "column": 10,
+          "line": 3,
+          "path": "stacks/deploy/dev.yaml",
+          "pointer": "/vars/stage"
+        }
+      ],
+      "winner": {
+        "column": 10,
+        "line": 3,
+        "path": "stacks/deploy/dev.yaml",
+        "pointer": "/vars/stage"
+      }
+    }
+  },
+  "root": "/workspace/scratch/26b6d364cfda/adoption-lab-final-captured/repository",
+  "runtime_config_layers": "not_evaluated",
+  "schema_version": "1.0",
+  "selection_fingerprint": "a59d0e08b28834c6dd009a95d30f48b77f5c01335720805a20414b2fd7936775",
+  "source_fingerprint": "067ed445c60664ec292daf15f2250e9ab2c4336ecf0fb2004aa4a266c60a96db",
+  "sources": [
+    {
+      "path": "atmos.yaml",
+      "sha256": "3b1d069b97f13d31d2ff811ed72ebea98dfc7438e8663ad98d6748e11f56b420"
+    },
+    {
+      "path": "components/terraform/identity/main.tf",
+      "sha256": "2e25698cdaa922415f2ef8202f604ddc5f5e37ea00c653dfa3e88909c0416e67"
+    },
+    {
+      "path": "components/terraform/policy/main.tf",
+      "sha256": "56882ebef8ce789ab8f5dc4f11388001108433bdd5c8bd291c990c7dd88c412a"
+    },
+    {
+      "path": "stacks/catalog/policy.yaml",
+      "sha256": "668326ad62b05c2065bc0a697c4da34a18bf16310a2311720185c7541676049c"
+    },
+    {
+      "path": "stacks/deploy/dev.yaml",
+      "sha256": "ab3a375ae5689ba38c5b399532a98b74e921b86c2f5d447a5b1fde6e1d58262e"
+    },
+    {
+      "path": "stacks/deploy/import.yaml",
+      "sha256": "a5858a2d7a35911536bc4e61051f16587b95f4e2c70023a3eacda2f5813b287f"
+    },
+    {
+      "path": "stacks/deploy/prod.yaml",
+      "sha256": "aaa13cdbb1d10c116c9949978c2c66716696fbe7e83c5e606007bf03db14d1b3"
+    }
+  ],
+  "stack": "deploy/dev",
+  "stack_identity": "physical_manifest_selector",
+  "status": "resolved",
+  "tenant_verification": "not_established"
+}

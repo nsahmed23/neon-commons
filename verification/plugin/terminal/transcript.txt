@@ -1,0 +1,10 @@
+Intune IaC local wizard: synthetic bounded generation; production exports are review-only. No cloud, native, import or apply execution.
+Selected policy ID: 22222222-2222-4222-8222-222222222222
+Mapping: ready (synthetic, emit-only); coverage records: 3; blockers: 0
+Bounded mapping: settings catalog policy -> microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json. Referenced groups and filters remain externally owned.
+Preview [generate/review/select UUID/back/edit source|context|output/save/cancel]: generate
+Generating a local proposal from the inspected bytes.
+Local generated proposal verified. Review README.md and generated-files.json; synthetic proposals include adoption/coverage.json, adoption/field-accounting.json and adoption/capability.json. Production capture reviews include BLOCKED.json and review/normalized.json. No tenant/provider qualification or execution approval is implied.
+Review [finish/back/edit source|context|output/save/cancel]: finish
+Local handoff complete. Cloud and native execution remain unavailable.
+{"execution_authorized": false, "generated": true, "output": "/tmp/intune-pty-a6cg93w2/project", "session": "/tmp/intune-pty-a6cg93w2/session.json", "status": "complete", "step": "review"}

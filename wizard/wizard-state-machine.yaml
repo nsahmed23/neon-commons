@@ -1,0 +1,347 @@
+schema_version: 2.0.0
+initial: repository_inspection
+global_actions:
+  cancel: cancelled
+  save: suspended
+states:
+  repository_inspection:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - repository-facts.json
+    terminal: false
+    'on':
+      inspected: source_selection
+      error: blocked_with_offline_alternative
+  source_selection:
+    effect_class: local_read
+    question_id: source
+    outputs: []
+    terminal: false
+    'on':
+      local_export: inventory
+      existing_iac: review_existing
+      authorized_graph_read: authorization_check
+  authorization_check:
+    effect_class: emit_only
+    question_id: null
+    outputs:
+    - discovery-request.json
+    terminal: false
+    'on':
+      no_authorization: blocked_with_offline_alternative
+      external_export_received: inventory
+  inventory:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - normalized.json
+    - coverage.json
+    terminal: false
+    'on':
+      complete: object_selection
+      partial: mapping_gap_decision
+      invalid_format: blocked_with_offline_alternative
+  object_selection:
+    effect_class: local_read
+    question_id: objects
+    outputs: []
+    terminal: false
+    'on':
+      selected: ownership_detection
+      back: source_selection
+  ownership_detection:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: false
+    'on':
+      this_repository: review_existing
+      unowned: ownership_question
+      other_writer: ownership_conflict
+      unknown: ownership_question
+  ownership_question:
+    effect_class: local_read
+    question_id: ownership
+    outputs: []
+    terminal: false
+    'on':
+      propose_only: provider_mapping
+      externally_owned: ownership_conflict
+      stop: handoff_only
+  ownership_conflict:
+    effect_class: local_read
+    question_id: conflict
+    outputs: []
+    terminal: false
+    'on':
+      owner_resolved: ownership_detection
+      review_only: handoff_only
+      back: object_selection
+  review_existing:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - existing-ownership-review.json
+    terminal: false
+    'on':
+      review_complete: adoption_preview
+      change_requested: functional_change_proposal
+      back: source_selection
+  provider_mapping:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - capability.json
+    - field-accounting.json
+    terminal: false
+    'on':
+      complete: generate
+      partial: mapping_gap_decision
+      unsupported: handoff_only
+  mapping_gap_decision:
+    effect_class: local_read
+    question_id: mapping_gap
+    outputs: []
+    terminal: false
+    'on':
+      preserve_review: partial_generate
+      new_evidence: inventory
+      alternative_mapping: provider_mapping
+      stop: handoff_only
+  partial_generate:
+    effect_class: local_write
+    question_id: null
+    outputs:
+    - BLOCKED.json
+    - review/*.tf.txt
+    - unresolved-paths.json
+    terminal: false
+    'on':
+      written: handoff_only
+      conflict: file_conflict
+      error: repair_generated
+  generate:
+    effect_class: local_write
+    question_id: null
+    outputs:
+    - staged-project/
+    - generated-files.json
+    terminal: false
+    'on':
+      staged: local_validation
+      conflict: file_conflict
+      error: repair_generated
+    requires:
+    - offline_mapping_complete == true
+    - no conflicting writer
+    - new staging destination or identical owned output
+  file_conflict:
+    effect_class: local_read
+    question_id: file_conflict
+    outputs: []
+    terminal: false
+    'on':
+      new_destination: generation_dispatch
+      inspect: file_conflict
+      cancel: suspended
+  local_validation:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - local-validation.json
+    terminal: false
+    'on':
+      pass: adoption_preview
+      fail: repair_generated
+      review_only: handoff_only
+    requires:
+    - No blocker may be converted into a ready/adopted status
+  repair_generated:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: false
+    'on':
+      fixed: local_validation
+      mapping_error: provider_mapping
+      cancel: suspended
+  adoption_preview:
+    effect_class: emit_only
+    question_id: null
+    outputs:
+    - command-cards.json
+    - diff-summary.json
+    terminal: false
+    'on':
+      review: user_review
+      export_commands: commands_exported
+      edit: provider_mapping
+  commands_exported:
+    effect_class: local_write
+    question_id: null
+    outputs:
+    - commands/*.ps1.txt
+    - commands/*.sh.txt
+    terminal: false
+    'on':
+      back: adoption_preview
+      save: suspended
+      done: complete_local
+  user_review:
+    effect_class: local_read
+    question_id: review
+    outputs: []
+    terminal: false
+    'on':
+      local_complete: complete_local
+      request_qualification: qualification_handoff
+      edit: provider_mapping
+      back: object_selection
+      save: suspended
+  qualification_handoff:
+    effect_class: emit_only
+    question_id: null
+    outputs:
+    - qualification-plan.md
+    terminal: false
+    'on':
+      saved: complete_local
+      receipt_supplied: receipt_validation
+  receipt_validation:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: false
+    'on':
+      identity_and_no_remote_delta: adopted
+      real_delta: reconciliation_required
+      insufficient_evidence: qualification_handoff
+    requires:
+    - independently authenticated external receipt
+    - matching target and tool/source/revision fingerprints
+    - all relevant identity/relationship invariants demonstrated
+  reconciliation_required:
+    effect_class: local_read
+    question_id: reconcile
+    outputs: []
+    terminal: false
+    'on':
+      preserve_source: provider_mapping
+      propose_change: functional_change_proposal
+      stop: handoff_only
+  functional_change_proposal:
+    effect_class: local_write
+    question_id: null
+    outputs:
+    - separate-functional-change.md
+    terminal: false
+    'on':
+      proposal_saved: complete_local
+      back: adoption_preview
+  adopted:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - adoption-evidence.json
+    terminal: true
+    'on': {}
+  complete_local:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: true
+    'on': {}
+  handoff_only:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - bounded-gap-handoff.md
+    terminal: true
+    'on': {}
+  blocked_with_offline_alternative:
+    effect_class: local_read
+    question_id: offline_alternative
+    outputs: []
+    terminal: false
+    'on':
+      local_export: source_selection
+      stop: handoff_only
+  suspended:
+    effect_class: local_write
+    question_id: null
+    outputs:
+    - session.json
+    terminal: false
+    'on':
+      resume: resume_validation
+      cancel: cancelled
+  cancelled:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: false
+    requires:
+    - explicit local --resume intent; all receipts revalidated; no approval reused
+    'on':
+      explicit_local_resume: resume_validation
+  resume_validation:
+    effect_class: local_read
+    question_id: null
+    outputs:
+    - resume-invalidation.json
+    terminal: false
+    'on':
+      repository_invalid: resume_dispatch
+      source_invalid: resume_dispatch
+      selection_invalid: resume_dispatch
+      ownership_invalid: resume_dispatch
+      inventory_invalid: resume_dispatch
+      mapping_invalid: resume_dispatch
+      generation_invalid: resume_dispatch
+      review_invalid: resume_dispatch
+      qualification_invalid: resume_dispatch
+      unchanged: resume_dispatch
+      corrupt: blocked_with_offline_alternative
+  resume_dispatch:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: false
+    'on':
+      repository_inspection: repository_inspection
+      source_selection: source_selection
+      inventory: inventory
+      object_selection: object_selection
+      ownership_question: ownership_question
+      provider_mapping: provider_mapping
+      mapping_gap_decision: mapping_gap_decision
+      generate: generate
+      partial_generate: partial_generate
+      local_validation: local_validation
+      adoption_preview: adoption_preview
+      user_review: user_review
+      commands_exported: commands_exported
+      qualification_handoff: qualification_handoff
+      receipt_validation: receipt_validation
+      reconciliation_required: reconciliation_required
+      review_existing: review_existing
+      file_conflict: file_conflict
+      repair_generated: repair_generated
+  generation_dispatch:
+    effect_class: local_read
+    question_id: null
+    outputs: []
+    terminal: false
+    'on':
+      complete_mapping: generate
+      blocked_mapping: partial_generate
+qualification_boundary: No state executes auth, Graph, import, plan or apply. External
+  receipts are separately verified.
+resume_rule: reference/workflow.py rereads receipts and actual bytes, reconstructs fingerprints,
+  caps completion before saved_state frontier and calls the v2 prerequisite dispatcher.
+  No caller or session can supply verified_completed. Save last stable state separately
+  from suspended/cancelled lifecycle; never serialize resume_validation or resume_dispatch.
+  Unknown versions recover without automatic v1 migration. No dynamic command replay.
+resume_entrypoint: tools/session-reference.py resume --offline --root PATH --resume
+resume_receipt_contract: corrections/contracts/receipt-index.schema.json

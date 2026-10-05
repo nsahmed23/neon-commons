@@ -1,0 +1,8 @@
+{
+  "scope": "Linux PTY only; no native Windows or host UI qualification",
+  "exit_code": 0,
+  "generate_sent": true,
+  "finish_sent": true,
+  "verify_exit_code": 0,
+  "success": true
+}

@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "apply",
+    "-input=false",
+    "-no-color",
+    "moved.tfplan"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "moved-apply",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "11f74fbc62e8d8b34de9029b6f891c3a6172d1e9af3b695a92bcb6fbf4704540",
+  "tool": "tofu",
+  "transcript_complete": true
+}

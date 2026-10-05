@@ -1,0 +1,71 @@
+{
+  "scope": "public source acquisition only; page hash not publisher signature or behavioral evidence",
+  "references": [
+    {
+      "name": "glasswing-update",
+      "url": "https://www.anthropic.com/research/glasswing-initial-update",
+      "version": "2026-05-22",
+      "retrieved_date": "2026-10-02",
+      "executed": false,
+      "status": "PASS",
+      "path": "glasswing-update.html",
+      "sha256": "cf58c85aaf7bca8f773ed8ec8fa68d5060db8ca105d551ef63dea57f2ea6ea59",
+      "bytes": 155858
+    },
+    {
+      "name": "glasswing-dashboard",
+      "url": "https://red.anthropic.com/2026/cvd/",
+      "version": "2026-10-02 snapshot",
+      "retrieved_date": "2026-10-02",
+      "executed": false,
+      "status": "PASS",
+      "path": "glasswing-dashboard.html",
+      "sha256": "07570f8dffddefd8a8ee27a5870aa90331eff2cdad13a64a1f35a71d57f93b64",
+      "bytes": 124082
+    },
+    {
+      "name": "nist-ssdf",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "version": "SSDF 1.1 / SP800-218 February2022",
+      "retrieved_date": "2026-10-02",
+      "executed": false,
+      "status": "PASS",
+      "path": "nist-ssdf.html",
+      "sha256": "964973abe71628ed98df3cfe3ef7711c259b7288ec518c77e8fca4dc6c985872",
+      "bytes": 48321
+    },
+    {
+      "name": "microsoft-stride",
+      "url": "https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats",
+      "version": "2022-08-25 page",
+      "retrieved_date": "2026-10-02",
+      "executed": false,
+      "status": "PASS",
+      "path": "microsoft-stride.html",
+      "sha256": "420586605ad252486adf7f40cc1e7fb2ad9bdfa194943b82c296b423ceac8384",
+      "bytes": 50181
+    },
+    {
+      "name": "owasp-prompt-injection",
+      "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/",
+      "version": "LLM01:2025",
+      "retrieved_date": "2026-10-02",
+      "executed": false,
+      "status": "PASS",
+      "path": "owasp-prompt-injection.html",
+      "sha256": "041784b8b69cfa908fd04feab79215bdbc8fd4718b766873b2c275fd50d99eba",
+      "bytes": 345901
+    },
+    {
+      "name": "cwe-ssrf",
+      "url": "https://cwe.mitre.org/data/definitions/918.html",
+      "version": "CWE4.20",
+      "retrieved_date": "2026-10-02",
+      "executed": false,
+      "status": "PASS",
+      "path": "cwe-ssrf.html",
+      "sha256": "cb967cca72b6e060d1a1c84868f2ff03f39fa7735e4e07a62791a3458a8e5e93",
+      "bytes": 144726
+    }
+  ]
+}

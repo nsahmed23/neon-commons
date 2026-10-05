@@ -1,0 +1,31 @@
+{
+  "method": "ordinary curl HTTPS with fail/location/max-time, no sandbox escalation",
+  "artifacts": [
+    {
+      "file": "go1.25.8.linux-amd64.tar.gz",
+      "bytes": 59786528,
+      "sha256": "ceb5e041bbc3893846bd1614d76cb4681c91dadee579426cf21a63f2d7e03be6",
+      "verification": "existing immutable acquisition receipt pin",
+      "source_url": "https://go.dev/dl/go1.25.8.linux-amd64.tar.gz"
+    },
+    {
+      "file": "node-v22.16.0-linux-x64.tar.xz",
+      "bytes": 30425588,
+      "sha256": "f4cb75bb036f0d0eddf6b79d9596df1aaab9ddccd6a20bf489be5abe9467e84e",
+      "verification": "official nodejs.org/v22.16.0 SHASUMS256.txt fetched over HTTPS",
+      "source_url": "https://nodejs.org/dist/v22.16.0/node-v22.16.0-linux-x64.tar.xz",
+      "checksum_url": "https://nodejs.org/dist/v22.16.0/SHASUMS256.txt",
+      "checksum_document_sha256": "e1f5ad5e2a5654721e7b89d84d27f406e582c46ca0b5cde304c5dcdd7bab8b31"
+    }
+  ],
+  "executables": {
+    "go": {
+      "path": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/go/bin/go",
+      "sha256": "46a07f77bf5b080799416d80759feadd8edecc21c26aad81bbcdbc3b4d865f7c"
+    },
+    "node": {
+      "path": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/node-22.16.0",
+      "sha256": "8142d37c6f2f372ef040419e7a111a6baf17df89f8078d02447d6c639ae20c1d"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "event": "captured",
+    "policy_ids": [
+      "45838776-e1bd-566b-a8c5-ad684107e7da",
+      "8d187561-e16b-5339-81c7-43989cdd0355",
+      "6bdb7289-60dd-52fb-85f7-5b03dbb74f76"
+    ],
+    "synthetic": true
+  }
+]

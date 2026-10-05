@@ -1,0 +1,16 @@
+{
+  "checks": {
+    "declared_and_actual_labs": 88,
+    "all_declared_fixtures_exist": true,
+    "python_ast_parsed_checker_files": 88,
+    "deterministic_rebuild": {
+      "inventory.json": true,
+      "source-files.json": true,
+      "lab-matrix.csv": true
+    },
+    "isolated_checker_counterexamples_reproduced": 2,
+    "native_lab_executions_by_inventory": 0
+  },
+  "source_commit": "86b69d2292485d179698f5b9bf648a29f935e216",
+  "scope": "source inventory and isolated checker assertions only"
+}

@@ -1,0 +1,16 @@
+F
+======================================================================
+FAIL: test_changed_lock_owner_is_not_removed_by_previous_operation (plugin_tests.test_execution.LockOwnershipTests.test_changed_lock_owner_is_not_removed_by_previous_operation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 383, in test_changed_lock_owner_is_not_removed_by_previous_operation
+    self.assertEqual(result['status'], 'reconciliation_required')
+AssertionError: 'succeeded_verified' != 'reconciliation_required'
+- succeeded_verified
++ reconciliation_required
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.025s
+
+FAILED (failures=1)

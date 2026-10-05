@@ -1,0 +1,50 @@
+{
+  "source": "https://github.com/stephrobert/terraform-dsoxlab-training",
+  "commit": "86b69d2292485d179698f5b9bf648a29f935e216",
+  "reviewed_hashes": {
+    "conftest.py": "428119f02bc6f83f7bcfef4b8a0ac6b3c1d235718de3bf2c29cbb5138c411f6e",
+    "labs/state/state-locking/challenge/tests/test_functional.py": "54288419ae96edf8c455ac5706077701bace6cc15f8f72ae94e844be5627adea",
+    "labs/state/state-locking/fixtures/main.tf": "09bfc7e66dce6f3082d5fcd1b84dc954b66ddb1355d1c2d3a428dce531979451",
+    "labs/state/state-locking/fixtures/observations.tf": "b09a65d37b1745d6fa176c04c536d53e5faf5c422c15b3df8ffeef65eb418078"
+  },
+  "engine": "OpenTofu 1.10.0",
+  "engine_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+  "upstream_engine_requirement": "Terraform >=1.15.0",
+  "adaptations": [
+    "Local learner solution authored: backend path and sleep 20",
+    "Version constraint changed to =1.10.0 for this OpenTofu replay",
+    "observations.tf generated from a separate native measurement pass"
+  ],
+  "unchanged_upstream_tests": true,
+  "encrypted_solutions_used": false,
+  "selected_scope": "8 upstream local-backend behavior tests; one S3 documentation test deselected",
+  "boundaries": [
+    "Not a dsoxlab CLI execution or Terraform 1.15 replay",
+    "No S3, Azure, Intune, provider, host, or Atmos qualification",
+    "Clean credential-free child environment; not an OS/network security sandbox",
+    "Canceled upstream pytest may leave its separate child sessions running until their 60-second timeout; immediate universal descendant cleanup is not qualified"
+  ],
+  "success": false,
+  "version": {
+    "arguments": [
+      "version",
+      "-json"
+    ],
+    "exit_code": 0,
+    "duration_seconds": 0.027,
+    "stdout": "{\n  \"terraform_version\": \"1.10.0\",\n  \"platform\": \"linux_amd64\",\n  \"provider_selections\": {}\n}\n",
+    "stderr": ""
+  },
+  "pytest_version": {
+    "arguments": [
+      "-m",
+      "pytest",
+      "--version"
+    ],
+    "exit_code": 1,
+    "duration_seconds": 0.014,
+    "stdout": "",
+    "stderr": "/workspace/scratch/e2e4042ea5fd/.venv/bin/python: No module named pytest\n"
+  },
+  "error": "ValueError: Qualification requires pytest 8.4.2"
+}

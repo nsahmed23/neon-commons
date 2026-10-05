@@ -1,0 +1,7 @@
+terraform_data.policy: Refreshing state... [id=4547421a-84c4-2f77-1aa4-1a7a30db8f39]
+terraform_data.assignment: Refreshing state... [id=6d70e36f-5221-0b21-3e6b-7bfb986db506]
+
+No changes. Your infrastructure matches the configuration.
+
+OpenTofu has compared your real infrastructure against your configuration and
+found no differences, so no changes are needed.

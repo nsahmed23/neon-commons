@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "terraform",
+    "plan",
+    "policy",
+    "-s",
+    "dev",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode",
+    "-out=desired-change.tfplan",
+    "-var=setting=deny"
+  ],
+  "cwd": "repository",
+  "exit_code": 2,
+  "expected_exit_codes": [
+    2
+  ],
+  "name": "desired-change",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+  "stdout_sha256": "e33533e110770da1a0ed4ac99f2e91401bfa1611f2ac801c7cb9d1feae1be983",
+  "tool": "atmos",
+  "transcript_complete": true
+}

@@ -1,0 +1,145 @@
+{
+  "status": "passed-synthetic-resource-rpc",
+  "scope": "actual repaired resource through native RPC with separate synthetic provider Configure and GET-only in-memory transport",
+  "production_qualified": false,
+  "production_provider_configure_qualified": false,
+  "service_qualified": false,
+  "provider_sha256": "7b4c58cc2e086643586c399b264869fde47d8336e9dc6a01adc734350d98b142",
+  "tofu_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+  "fixture_sha256": "197509126934a1bd00daf72ad9986ba71bda2c5ac926e3c2e7e881227cfc03fb",
+  "harness_sha256": "43a2d54e0d814c19deebaf7d944bbee588c5e36295a808983c38c3044e78bf55",
+  "commands": {
+    "schema": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "providers",
+        "schema",
+        "-json"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 7901,
+      "stdout_sha256": "765252816bb9f14e344c3fddac342c3defda2d55b023f53f0a59f61b0d87b6f2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "validate": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "validate",
+        "-json"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 595,
+      "stdout_sha256": "650d981ef2155de33251d5cdc394fb3487eef07b1d67aca6fcab4ef89ad3fbad",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "import": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "import",
+        "-input=false",
+        "-no-color",
+        "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+        "33333333-3333-4333-8333-333333333333"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 691,
+      "stdout_sha256": "f74e0863156a188e390012237c11097e8a72a8bdd2647076ef1598cd9acad04d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "state": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "show",
+        "-json"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 1841,
+      "stdout_sha256": "85b5429488019bff52fe17602b0232d18efb5f191aede3efc2b8bc985874f4ed",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ordinary": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "plan",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=ordinary.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 754,
+      "stdout_sha256": "e059651ba2ce75d539599ba7f9c094e6cc36d2edc8b08bc88732152d304b6e30",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ordinary_show": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "show",
+        "-json",
+        "ordinary.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 8705,
+      "stdout_sha256": "49639b3510273605791f7714b3af87e8e08207b6ec5b68980811ba71c7fedb11",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "refresh": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "plan",
+        "-refresh-only",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=refresh.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 762,
+      "stdout_sha256": "758d6204761526b4f86262b8fb6621ad94e15964d9b2af06bdc582d7f0ac8af7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "refresh_show": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "show",
+        "-json",
+        "refresh.plan"
+      ],
+      "returncode": 0,
+      "stdout_bytes": 3728,
+      "stdout_sha256": "d8a61c66906af4ca5f866128e6ec051240acaf1165f3301e6af9e25946d37246",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "checks": {
+    "state": "exact fixture policy/settings/assignment match",
+    "ordinary_show": "exact fixture policy/settings/assignment match",
+    "refresh_show": "exact fixture policy/settings/assignment match",
+    "empty_policy_rejected_before_collections": true,
+    "identity_preserving_import": true,
+    "ordinary_saved_plan_no_change": true,
+    "refresh_only_saved_plan_no_change": true
+  },
+  "trace": {
+    "requests": 12,
+    "assignment_pages": 6,
+    "methods": [
+      "GET"
+    ],
+    "sha256": "000a723664b6f548416e589059de87e93a3b0d2285da5a1ab8915ab3af3d5b69"
+  },
+  "empty_policy": {
+    "command": [
+      "/tmp/intune-native-completion/tofu",
+      "import",
+      "-input=false",
+      "-no-color",
+      "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+      "33333333-3333-4333-8333-333333333333"
+    ],
+    "returncode": 1,
+    "stdout_bytes": 528,
+    "stdout_sha256": "71e73820e09ea946e11846d88a8de60606cc2ef656d2698c2b9508b816e472b7",
+    "stderr_sha256": "ceaf0dfdeda28b8d27230fac2b495f14dfc830a12206529fd0d90c97491aa596"
+  }
+}

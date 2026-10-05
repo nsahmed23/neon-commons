@@ -1,0 +1,102 @@
+{
+  "native_executable": {
+    "checksum_source": "https://github.com/opentofu/opentofu/releases/download/v1.10.0/tofu_1.10.0_SHA256SUMS",
+    "provenance": "official archive checksum checked by native acquisition; binary measured; signature not verified",
+    "sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+    "source": "https://github.com/opentofu/opentofu/releases/download/v1.10.0/tofu_1.10.0_linux_amd64.zip",
+    "version": "1.10.0"
+  },
+  "qualification_limits": [
+    "Azure HTTP responses simulated; no tenant or token available",
+    "Linux only; cooperative private POSIX filesystem",
+    "No Intune native mutation adapter",
+    "No cryptographic approver or credential-provider trust root fabricated"
+  ],
+  "service_sources": [
+    {
+      "applied": "HEAD existing blob, ETag, conditional read, lease metadata",
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-properties"
+    },
+    {
+      "applied": "GET state bytes with If-Match; no ranged reads",
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob"
+    },
+    {
+      "applied": "opaque bearer token and fixed service API version; no access-token decoding",
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory"
+    }
+  ],
+  "skill_repository": {
+    "acquisition_receipt_sha256": "24a9a46de301591e63b56f0706050a04bb75fed52db4f0b013c17a702414c9ef",
+    "commit": "ce7edea90860e0c69fa36db164584c87908e09f5",
+    "repository": "microsoft/skills"
+  },
+  "sources": [
+    {
+      "applied": "credential scope, lifecycle, fixed service metadata observations",
+      "license": "MIT per source skill metadata; no source-code copying from SDK",
+      "permissions": "read-only bearer credential explicitly supplied; no ambient acquisition",
+      "read": "full",
+      "restriction": "No unpinned SDK, ambient credential chain, auth exception logging, writes, or sovereign cloud support adopted",
+      "sha256": "b10709c8cadc23134bfee415010f9f0292e39f06c216df3f3dd6fc826897414c",
+      "source": "azure-identity-py/SKILL.md",
+      "source_url": "https://raw.githubusercontent.com/microsoft/skills/ce7edea90860e0c69fa36db164584c87908e09f5/.github/plugins/azure-sdk-python/skills/azure-identity-py/SKILL.md",
+      "supported_versions": "skill metadata 1.0.0; SDK runtime not installed or claimed; REST version 2023-11-03"
+    },
+    {
+      "applied": "credential scope, lifecycle, fixed service metadata observations",
+      "license": "MIT per source skill metadata; no source-code copying from SDK",
+      "permissions": "read-only bearer credential explicitly supplied; no ambient acquisition",
+      "read": "full",
+      "restriction": "No unpinned SDK, ambient credential chain, auth exception logging, writes, or sovereign cloud support adopted",
+      "sha256": "294c3cb8b688c5a435acfd5633ecea51cd07845363fc893fa29efcc418f597b0",
+      "source": "azure-identity-py/references/capabilities.md",
+      "source_url": "https://raw.githubusercontent.com/microsoft/skills/ce7edea90860e0c69fa36db164584c87908e09f5/.github/plugins/azure-sdk-python/skills/azure-identity-py/references/capabilities.md",
+      "supported_versions": "skill metadata 1.0.0; SDK runtime not installed or claimed; REST version 2023-11-03"
+    },
+    {
+      "applied": "credential scope, lifecycle, fixed service metadata observations",
+      "license": "MIT per source skill metadata; no source-code copying from SDK",
+      "permissions": "read-only bearer credential explicitly supplied; no ambient acquisition",
+      "read": "full",
+      "restriction": "No unpinned SDK, ambient credential chain, auth exception logging, writes, or sovereign cloud support adopted",
+      "sha256": "3c3fdd62c8a3bc43e71b7bd4010a51d8d2809b5458eb898426523e28466bbdd1",
+      "source": "azure-identity-py/references/non-hero-scenarios.md",
+      "source_url": "https://raw.githubusercontent.com/microsoft/skills/ce7edea90860e0c69fa36db164584c87908e09f5/.github/plugins/azure-sdk-python/skills/azure-identity-py/references/non-hero-scenarios.md",
+      "supported_versions": "skill metadata 1.0.0; SDK runtime not installed or claimed; REST version 2023-11-03"
+    },
+    {
+      "applied": "credential scope, lifecycle, fixed service metadata observations",
+      "license": "MIT per source skill metadata; no source-code copying from SDK",
+      "permissions": "read-only bearer credential explicitly supplied; no ambient acquisition",
+      "read": "full",
+      "restriction": "No unpinned SDK, ambient credential chain, auth exception logging, writes, or sovereign cloud support adopted",
+      "sha256": "036cde228f87b9e6aacbd3ec317bd504cb5639e04aec81f1b3ef631a9b240622",
+      "source": "azure-storage-blob-py/SKILL.md",
+      "source_url": "https://raw.githubusercontent.com/microsoft/skills/ce7edea90860e0c69fa36db164584c87908e09f5/.github/plugins/azure-sdk-python/skills/azure-storage-blob-py/SKILL.md",
+      "supported_versions": "skill metadata 1.0.0; SDK runtime not installed or claimed; REST version 2023-11-03"
+    },
+    {
+      "applied": "credential scope, lifecycle, fixed service metadata observations",
+      "license": "MIT per source skill metadata; no source-code copying from SDK",
+      "permissions": "read-only bearer credential explicitly supplied; no ambient acquisition",
+      "read": "full",
+      "restriction": "No unpinned SDK, ambient credential chain, auth exception logging, writes, or sovereign cloud support adopted",
+      "sha256": "5f07b3f4925a40b16c7f5aaa4ad7e61524142a72a7d88de4031773297d67b942",
+      "source": "azure-storage-blob-py/references/capabilities.md",
+      "source_url": "https://raw.githubusercontent.com/microsoft/skills/ce7edea90860e0c69fa36db164584c87908e09f5/.github/plugins/azure-sdk-python/skills/azure-storage-blob-py/references/capabilities.md",
+      "supported_versions": "skill metadata 1.0.0; SDK runtime not installed or claimed; REST version 2023-11-03"
+    },
+    {
+      "applied": "credential scope, lifecycle, fixed service metadata observations",
+      "license": "MIT per source skill metadata; no source-code copying from SDK",
+      "permissions": "read-only bearer credential explicitly supplied; no ambient acquisition",
+      "read": "full",
+      "restriction": "No unpinned SDK, ambient credential chain, auth exception logging, writes, or sovereign cloud support adopted",
+      "sha256": "b0ad5f98350ef38460ebda48b5ae2299b24a7b93dec149610ee5b10911533db6",
+      "source": "azure-storage-blob-py/references/non-hero-scenarios.md",
+      "source_url": "https://raw.githubusercontent.com/microsoft/skills/ce7edea90860e0c69fa36db164584c87908e09f5/.github/plugins/azure-sdk-python/skills/azure-storage-blob-py/references/non-hero-scenarios.md",
+      "supported_versions": "skill metadata 1.0.0; SDK runtime not installed or claimed; REST version 2023-11-03"
+    }
+  ]
+}

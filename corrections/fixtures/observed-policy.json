@@ -1,0 +1,21 @@
+{
+  "@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicy",
+  "id": "22222222-2222-4222-8222-222222222222",
+  "name": "Windows Privacy Pilot",
+  "description": "Synthetic reference; not production advice.",
+  "platforms": "windows10",
+  "technologies": "mdm",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "createdDateTime": "2026-09-30T12:00:00Z",
+  "lastModifiedDateTime": "2026-09-30T12:00:00Z",
+  "settingCount": 1,
+  "isAssigned": true,
+  "templateReference": {
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null,
+    "templateDisplayVersion": null
+  }
+}

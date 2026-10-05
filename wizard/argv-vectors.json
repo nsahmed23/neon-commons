@@ -1,0 +1,34 @@
+{
+  "accepted": [
+    [
+      "C:\\Work Area\\A[1]\\policy.json"
+    ],
+    [
+      "O'Brien",
+      "$HOME",
+      "--literal",
+      "a; echo BAD",
+      "café",
+      ""
+    ],
+    [
+      "\"quoted\"",
+      "$(touch BAD)",
+      "a&b",
+      "back\\slash"
+    ]
+  ],
+  "not_run_shells": [
+    "powershell-7.3-native-windows"
+  ],
+  "reject": [
+    "line\nbreak",
+    "\u001b[31m",
+    "\u0000",
+    "‮txt"
+  ],
+  "schema_version": "1.0.0",
+  "tested_shells": [
+    "bash"
+  ]
+}

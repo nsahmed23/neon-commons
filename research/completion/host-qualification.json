@@ -1,0 +1,378 @@
+{
+  "schema_version": "host-qualification/1.0",
+  "measured_at_date": "2026-10-02",
+  "os": {
+    "system": "Linux",
+    "release": "6.18.44",
+    "machine": "x86_64",
+    "python_version": "3.12.14"
+  },
+  "native_codex": {
+    "path": "/opt/codex/bin/codex",
+    "version": "0.159.2",
+    "binary_sha256": "1748767b230ebfc3d4ab7e4e254920d0c0ad9691fd8c11f190e7d44511a4a92e",
+    "measurements": [
+      {
+        "name": "codex-version-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "--version"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-version-unix-allowed.stdout",
+        "stderr": "host/codex-version-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-help-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "--help"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-help-unix-allowed.stdout",
+        "stderr": "host/codex-help-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-plugin-help-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "--help"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-plugin-help-unix-allowed.stdout",
+        "stderr": "host/codex-plugin-help-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-marketplace-help-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "marketplace",
+          "--help"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-marketplace-help-unix-allowed.stdout",
+        "stderr": "host/codex-marketplace-help-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-marketplace-add-help-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "marketplace",
+          "add",
+          "--help"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-marketplace-add-help-unix-allowed.stdout",
+        "stderr": "host/codex-marketplace-add-help-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-plugin-list-help-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "list",
+          "--help"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-plugin-list-help-unix-allowed.stdout",
+        "stderr": "host/codex-plugin-list-help-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-plugin-add-help-unix-allowed",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "add",
+          "--help"
+        ],
+        "exit_code": 0,
+        "stdout": "host/codex-plugin-add-help-unix-allowed.stdout",
+        "stderr": "host/codex-plugin-add-help-unix-allowed.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp allows AF_UNIX, denies other socket families; inherited file descriptors closed",
+        "credential_environment_inherited": false
+      }
+    ],
+    "discovery": "not_run",
+    "installation": "not_run",
+    "skill_loading": "not_run",
+    "model_triggering": "not_run",
+    "native_validation_command": "not_advertised_by_plugin_help",
+    "session_plugin_dir_flag": "not_advertised_by_main_help",
+    "full_socket_denial_attempts": [
+      {
+        "name": "codex-version",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "--version"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-version.stdout",
+        "stderr": "host/codex-version.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-help",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "--help"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-help.stdout",
+        "stderr": "host/codex-help.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-plugin-help",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "--help"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-plugin-help.stdout",
+        "stderr": "host/codex-plugin-help.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-marketplace-help",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "marketplace",
+          "--help"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-marketplace-help.stdout",
+        "stderr": "host/codex-marketplace-help.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-marketplace-add-help",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "marketplace",
+          "add",
+          "--help"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-marketplace-add-help.stdout",
+        "stderr": "host/codex-marketplace-add-help.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-plugin-list-help",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "list",
+          "--help"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-plugin-list-help.stdout",
+        "stderr": "host/codex-plugin-list-help.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      },
+      {
+        "name": "codex-plugin-add-help",
+        "argv": [
+          "/opt/codex/bin/codex",
+          "plugin",
+          "add",
+          "--help"
+        ],
+        "exit_code": 101,
+        "stdout": "host/codex-plugin-add-help.stdout",
+        "stderr": "host/codex-plugin-add-help.stderr",
+        "scope": "version/help only, no plugin enumeration or model session",
+        "network": "child seccomp denies socket, socketpair, connect",
+        "credential_environment_inherited": false
+      }
+    ],
+    "full_socket_denial_result": "All seven attempts exited101 because native startup requires UnixStream for Tokio signals; exact panic retained."
+  },
+  "isolation_prerequisite": {
+    "argv": [
+      "/opt/codex/codex-resources/bwrap",
+      "--unshare-all",
+      "--ro-bind",
+      "/",
+      "/",
+      "--",
+      "/usr/bin/true"
+    ],
+    "exit_code": null,
+    "stderr": "TimeoutExpired after 20 seconds; subprocess.run terminated the owned probe. Earlier direct probe returned: bwrap: open /proc/9/ns/ns failed: No such file or directory",
+    "result": "unavailable",
+    "consequence": "No native plugin enumeration/installation attempted against real user configuration. No home/config environment variables were redirected."
+  },
+  "surfaces": [
+    {
+      "name": "linux_cli_repository_wizard_action_mcp",
+      "status": "passed",
+      "checks": 7,
+      "receipt": "host/host-repository/result.json",
+      "scope": "Actual Python subprocess CLI plus stdio initialize/tools-call against offline fixture; no native host plugin loading."
+    },
+    {
+      "name": "linux_pty_wizard",
+      "status": "passed",
+      "receipt": "host/host-pty/result.json",
+      "scope": "Actual PTY generation and finish; generated output verified."
+    },
+    {
+      "name": "native_codex_plugin_discovery_loading_triggering",
+      "status": "not_run",
+      "reason": "Version/help only; isolated-host prerequisite failed."
+    },
+    {
+      "name": "claude_code",
+      "status": "not_run",
+      "executable_on_path": null,
+      "reason": "Claude executable absent."
+    },
+    {
+      "name": "native_windows",
+      "status": "not_run",
+      "reason": "Environment is Linux; no Windows host."
+    },
+    {
+      "name": "native_powershell",
+      "status": "not_run",
+      "pwsh_on_path": null,
+      "powershell_on_path": null,
+      "reason": "Neither PowerShell executable is installed."
+    },
+    {
+      "name": "macos",
+      "status": "not_run",
+      "reason": "Environment is Linux; no macOS host."
+    }
+  ],
+  "model_calls": 0,
+  "cloud_calls": 0,
+  "personal_plugin_registration_attempted": false,
+  "personal_plugin_installation_attempted": false,
+  "limitations": [
+    "Help output is capability evidence only. It is not discovery, loading, validation or triggering.",
+    "No filesystem syscall trace was used to claim absence of all reads during native CLI startup.",
+    "No native Codex or Claude model-assisted agent behavior was measured.",
+    "PTY success is Linux-only; PowerShell strings and portable manifests do not establish Windows support."
+  ],
+  "continuation_commands": {
+    "linux_pty": "python scripts/qualify-terminal.py --plugin /absolute/path/intune-iac --output /tmp/new-host-pty",
+    "linux_repository_mcp": "python scripts/qualify-repository.py --plugin /absolute/path/intune-iac --output /tmp/new-host-repository",
+    "codex_disposable_account_only": [
+      "codex --version",
+      "codex plugin marketplace add /absolute/path/intune-iac --json",
+      "codex plugin list --marketplace intune-iac-local --available --json",
+      "codex plugin add intune-iac@intune-iac-local --json",
+      "codex plugin list --marketplace intune-iac-local --json"
+    ],
+    "claude_disposable_account_only": [
+      "claude --version",
+      "claude plugin validate /absolute/path/intune-iac --strict",
+      "claude --plugin-dir /absolute/path/intune-iac"
+    ],
+    "windows_native_powershell": [
+      "py -3 scripts/intune-iac.py doctor",
+      "py -3 -m unittest plugin_tests.test_cli plugin_tests.test_wizard",
+      "pwsh -NoProfile -NonInteractive -Command \"& py -3 ./scripts/intune-iac.py doctor; exit $LASTEXITCODE\""
+    ]
+  },
+  "sources": [
+    {
+      "url": "https://developers.openai.com/plugins/build/plugins",
+      "checked": "2026-10-02",
+      "use": "Packaging and marketplace continuation guidance; local binary help is the measured CLI contract."
+    },
+    {
+      "url": "https://code.claude.com/docs/en/plugins-reference",
+      "checked": "2026-10-02",
+      "use": "Native validate --strict and --plugin-dir continuation; not executed here."
+    }
+  ],
+  "retained_evidence_sha256": {
+    "host/codex-help-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-help-unix-allowed.stdout": "75c90681ba095160666d9884d1eccce391be95c80da27641a3c8e1481bb02fac",
+    "host/codex-help.stderr": "ed972eac3c7424c6ff7198b03011349dfe15e94ac25f7dc1df8dca95477eb682",
+    "host/codex-help.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/codex-marketplace-add-help-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-marketplace-add-help-unix-allowed.stdout": "9f8cea727d96250c8d80f3cef0b3e067e0b6f7fccebb1aee0720f543a1bbb64f",
+    "host/codex-marketplace-add-help.stderr": "0ca880018bb4ae75c18eb86c5ed390347720847de83094a7b7a0cc060d1f6ca1",
+    "host/codex-marketplace-add-help.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/codex-marketplace-help-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-marketplace-help-unix-allowed.stdout": "d0da9efccab098da6b32bdd8e84f649bcf60fd4fb261eb80491ba1b02cda7487",
+    "host/codex-marketplace-help.stderr": "c482741e81a228fc1b4dc8ba38e19647681849c322ae728dc4c73e8b96787791",
+    "host/codex-marketplace-help.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/codex-plugin-add-help-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-plugin-add-help-unix-allowed.stdout": "7a8058c501cb88472e9a76c936b36cbc878bc1fe8d91fb889a627de35a13a9f6",
+    "host/codex-plugin-add-help.stderr": "9266e68dc263cd745ace7884ec44d5f94a041ec1ab8be48b72e54b0e7cb0db2f",
+    "host/codex-plugin-add-help.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/codex-plugin-help-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-plugin-help-unix-allowed.stdout": "a517a3a2d1801d812751d98c8bc4d27de6bb5367aafc67495e0cde3a99680124",
+    "host/codex-plugin-help.stderr": "dc33367394c809090041a4cc0c8a982a2e292bec14af75428dde20fa3b4737b8",
+    "host/codex-plugin-help.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/codex-plugin-list-help-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-plugin-list-help-unix-allowed.stdout": "8713d975a75091c7be8852215e5ac39b4c61764080d0540d7e81e850ca623afa",
+    "host/codex-plugin-list-help.stderr": "86fee7e818c7e27eebf07da7ef36a56bd1598c3add86fb26f44b27059c1400d4",
+    "host/codex-plugin-list-help.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/codex-version-unix-allowed.stderr": "d47a06d59aba2814c3fb7460049fc2ccbfc834196c956d6c6558e8be8b079e24",
+    "host/codex-version-unix-allowed.stdout": "48784a39efd6841c30aff4c70ab315bea1dccee48519515cb308652cdef3ea57",
+    "host/codex-version.stderr": "8a07616371392c3c69c6738dccf587ac6ab8d73a63b8aec3d80bf3a0b0d956a7",
+    "host/codex-version.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-pty/result.json": "70f860ad423859249b16467421997ff43b43ea4209844618ed9f6f10050ba2b6",
+    "host/host-pty/transcript.txt": "62c34829f47a00a2921dfcaa681472637ecb194cbaebee91d4bbe5a8dc7c4fb3",
+    "host/host-repository/logs/discover.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/discover.stdout": "57d42790dc94b79a737d37585ab04264dad8439c8e5809395a4006e7a806e871",
+    "host/host-repository/logs/local-action.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/local-action.stdout": "18a1cca1abfcd358d2de22daf16363fd58f974f4e515e46ab57ea4d72c4e4ac1",
+    "host/host-repository/logs/mcp.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/mcp.stdout": "8a072cdaa726d0125d11250ff2d35d884954e99b77ea4bb2b26a851f48ba686a",
+    "host/host-repository/logs/preview.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/preview.stdout": "01a5d3f776e05d72bceef26d59056f185275a3f8e3f9b693b53f1b1661584b51",
+    "host/host-repository/logs/resolve.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/resolve.stdout": "20971ae9762872609c453c1becb6d613aaf57a28f3cbab1c7c4698c4f0c0ffb6",
+    "host/host-repository/logs/verify.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/verify.stdout": "95a8381d90f15b7cf135aa2370ba655786aa416cf1b3d4f7995414a43c58927d",
+    "host/host-repository/logs/wizard.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "host/host-repository/logs/wizard.stdout": "9965c0b01885bfb3bfca6b3f2c09f1fef1d28c0d79d94c39ea58d1279bbcf011",
+    "host/host-repository/result.json": "47fcd46b7d64b2903e33f9e23079ad6d86c500dd46c0dc011020afacc3fb8a47",
+    "host/isolation-probe.stderr": "1a4f458165a2c15217d63066312b4357002495948f1f92df680d87f867103b69",
+    "host/isolation-probe.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

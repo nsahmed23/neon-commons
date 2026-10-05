@@ -1,0 +1,68 @@
+{
+  "status": "FIXED_LOCAL_NATIVE_QUALIFIED_SLICE",
+  "production_qualified": false,
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "candidate_manifest_sha256": "25959d78c7c1c790572079e9b46d343ed6d28311c12c4b187235fe5087763932",
+  "patch_sha256": "29e8a48b5ff1fcbea4e582abf74bdd5a24148152fc6da0fa29917556c5d4d49b",
+  "source_tests": {
+    "red_top_level_fail": 11,
+    "red_failed_nodes": 24,
+    "green_top_level_pass": 14,
+    "green_passed_nodes": 27,
+    "green_failed_nodes": 0,
+    "green_skips": 0
+  },
+  "published_baseline_native": {
+    "schema_rpc": true,
+    "hcl_observations": {
+      "ordinary": true,
+      "observed_wrapper": false,
+      "null_instance": true,
+      "unknown_type": true,
+      "filter_omitted": true,
+      "filter_zero_explicit": false,
+      "filter_include_missing": false
+    }
+  },
+  "candidate_native_status_file": "NATIVE-STATUS.json",
+  "limitations": [
+    "No live tenant authentication or service behavior",
+    "No production mapper activation",
+    "Source helper tests do not establish full resource lifecycle",
+    "Secrets and absent assignment filter observations fail closed",
+    "Legacy helpers and other provider resource families are not qualified",
+    "Null-filter lifecycle is outside the qualified synthetic fixture"
+  ],
+  "green_receipt": "evidence/completion-final-green/result.json",
+  "red_receipt": "evidence/completion-isolated-red/result.json",
+  "legacy_and_candidate_helper_tests": {
+    "top_level": 41,
+    "nodes": 54,
+    "status": "passed-characterization"
+  },
+  "native_synthetic_resource": {
+    "status": "passed-synthetic-resource-rpc",
+    "explicit_zero_none": true,
+    "hcl_case_count": 13,
+    "hcl_pass_count": 13,
+    "rpc_receipt": "evidence/synthetic-rpc-final-green/result.json",
+    "hcl_receipt": "evidence/synthetic-resource-hcl-final/result.json",
+    "production_provider_configure_qualified": false,
+    "service_qualified": false,
+    "empty_policy_rejected_before_collections": true,
+    "rpc_binary_sha256": "7b4c58cc2e086643586c399b264869fde47d8336e9dc6a01adc734350d98b142",
+    "hcl_binary_sha256": "7da990a21d679b1157d34788ed18cd3e7707c344d2f2052f3605691e7aecf308"
+  },
+  "provider_go_sbom": "evidence/provider-go-sbom.json",
+  "python_runner_tests": 16,
+  "full_provider_native": {
+    "status": "passed-native-build-schema-and-hcl",
+    "binary_sha256": "28d3af959966dc73ef8c001e8f70b8ac7efc5c394162b51351ea8c8dfc97eb06",
+    "schema_rpc": true,
+    "hcl_cases": 13,
+    "hcl_cases_passed": 13,
+    "receipt": "evidence/native-candidate-final/result.json",
+    "provenance": "evidence/native-build-provenance.json"
+  },
+  "candidate_archive_receipt": "evidence/candidate-archive-receipt.json"
+}

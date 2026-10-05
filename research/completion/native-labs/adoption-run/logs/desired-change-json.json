@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "desired-change.tfplan"
+  ],
+  "cwd": "repository/components/terraform/policy",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "desired-change-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "6394fbce1adc5162e8b956d62fe2967c8ccec96d03d568a80b7cfef3efaa8267",
+  "tool": "tofu",
+  "transcript_complete": true
+}

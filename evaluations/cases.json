@@ -1,0 +1,149 @@
+{
+  "cases": [
+    {
+      "acceptance": "preserve IDs/settings/assignments; output files",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C01",
+      "input": "examples/supported/input/export.json",
+      "oracle": "test_invariants.IndependentInvariants.test_reference_preserves",
+      "title": "supported adoption"
+    },
+    {
+      "acceptance": "no active .tf and no import card",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C02",
+      "input": "examples/partial/input/export.json",
+      "oracle": "test_cli.Cli.test_partial",
+      "title": "partial unknown field"
+    },
+    {
+      "acceptance": "partial coverage not deletion",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C03",
+      "input": "examples/missing-page/input/export.json",
+      "oracle": "test_reference",
+      "title": "missing relationship page"
+    },
+    {
+      "acceptance": "desired assignment unknown not empty",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C04",
+      "input": "examples/access-denied/input/export.json",
+      "oracle": "test_reference",
+      "title": "denied assignment read"
+    },
+    {
+      "acceptance": "different IDs never collide",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C05",
+      "input": "examples/supported/input/export.json",
+      "oracle": "test_reference",
+      "title": "duplicate display names"
+    },
+    {
+      "acceptance": "reject mutated multiset",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C06",
+      "input": "examples/supported/expected/normalized.json",
+      "oracle": "test_invariants.IndependentInvariants.test_deleted_exclusion_is_detected",
+      "title": "lost exclusion mutant"
+    },
+    {
+      "acceptance": "reject changed mode",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C07",
+      "input": "examples/supported/expected/normalized.json",
+      "oracle": "test_invariants.IndependentInvariants.test_filter_mode_mutation_is_detected",
+      "title": "changed filter mutant"
+    },
+    {
+      "acceptance": "reject before remote effect",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C08",
+      "input": "examples/context.json",
+      "oracle": "test_approval.Approval.test_wrong_tenant",
+      "title": "wrong target"
+    },
+    {
+      "acceptance": "reject reused approval",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C09",
+      "input": "examples/context.json",
+      "oracle": "test_approval.Approval.test_stale_plan",
+      "title": "stale artifact"
+    },
+    {
+      "acceptance": "unchanged rerun; modified owned file conflict",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C10",
+      "input": "examples/supported/input/export.json",
+      "oracle": "test_cli.Cli.test_supported_and_rerun",
+      "title": "rerun/edits"
+    },
+    {
+      "acceptance": "exit not block indefinitely",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C11",
+      "input": "examples/context.json",
+      "oracle": "test_cli.Cli.test_noninteractive_missing_arguments",
+      "title": "missing inputs EOF"
+    },
+    {
+      "acceptance": "literal values; no interpolation; reject controls",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C12",
+      "input": "wizard/argv-vectors.json",
+      "oracle": "test_reference",
+      "title": "shell argv"
+    },
+    {
+      "acceptance": "resume validation dispatch not blind preview",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C13",
+      "input": "wizard/wizard-state-machine.yaml",
+      "oracle": "test_wizard",
+      "title": "early resume"
+    },
+    {
+      "acceptance": "8/100 target and8/8 reporters; no promotion",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C14",
+      "input": "examples/diagnostics/input/eight-reporters.json",
+      "oracle": "test_reference",
+      "title": "false success"
+    },
+    {
+      "acceptance": "hypothesis not reinstall; missing logs inconclusive",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C15",
+      "input": "examples/diagnostics/input/evidence.json",
+      "oracle": "external qualitative rubric in expected/analysis.md",
+      "title": "detection mismatch"
+    },
+    {
+      "acceptance": "concise answer, no whole-domain load",
+      "agent_status": "not_run",
+      "grading_mode": "external_protected",
+      "id": "C16",
+      "input": "evaluations/simple-question.json",
+      "oracle": "qualitative plus loaded-skill trace",
+      "title": "simple question"
+    }
+  ],
+  "schema_version": "1.0.0"
+}

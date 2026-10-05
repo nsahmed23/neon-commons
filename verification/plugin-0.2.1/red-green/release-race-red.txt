@@ -1,0 +1,36 @@
+test_concurrent_output_creation_is_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_concurrent_output_creation_is_preserved) ... 
+  test_concurrent_output_creation_is_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_concurrent_output_creation_is_preserved) (receipt_race=False) ... FAIL
+  test_concurrent_output_creation_is_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_concurrent_output_creation_is_preserved) (receipt_race=True) ... FAIL
+test_generated_hash_manifest_name_is_reserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_generated_hash_manifest_name_is_reserved) ... FAIL
+
+======================================================================
+FAIL: test_concurrent_output_creation_is_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_concurrent_output_creation_is_preserved) (receipt_race=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 107, in test_concurrent_output_creation_is_preserved
+    with self.assertRaises((ValueError, FileExistsError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'ValueError'>, <class 'FileExistsError'>) not raised
+
+======================================================================
+FAIL: test_concurrent_output_creation_is_preserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_concurrent_output_creation_is_preserved) (receipt_race=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 107, in test_concurrent_output_creation_is_preserved
+    with self.assertRaises((ValueError, FileExistsError)):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'ValueError'>, <class 'FileExistsError'>) not raised
+
+======================================================================
+FAIL: test_generated_hash_manifest_name_is_reserved (plugin_tests.test_release_audit.ReleaseAuditTests.test_generated_hash_manifest_name_is_reserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 116, in test_generated_hash_manifest_name_is_reserved
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.008s
+
+FAILED (failures=3)

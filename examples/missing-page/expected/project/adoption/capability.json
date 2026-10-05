@@ -1,0 +1,26 @@
+{
+  "blockers": [
+    {
+      "code": "capture_contract_violation",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "unfetched_next_page",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "incomplete_collection",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "code": "required_assignments_incomplete",
+      "source_pointer": "/collections"
+    }
+  ],
+  "execution_authorized": false,
+  "live_qualified": false,
+  "offline_mapping_complete": false,
+  "provider": "deploymenttheory/microsoft365",
+  "schema_version": "1.0.0",
+  "version": "1.0.0"
+}

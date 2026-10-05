@@ -1,0 +1,38 @@
+{
+  "observed_at_utc": "2026-09-30T16:33:37.234089+00:00",
+  "scope": "local validation runtime only; no provider, cloud or model execution",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "interpreter": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+  "versions": {
+    "PyYAML": {
+      "expected": "6.0.3",
+      "observed": "6.0.3"
+    },
+    "attrs": {
+      "expected": "26.1.0",
+      "observed": "26.1.0"
+    },
+    "typing-extensions": {
+      "expected": "4.16.0",
+      "observed": "4.16.0"
+    }
+  },
+  "modules": {
+    "yaml": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/yaml/__init__.py"
+  },
+  "smoke_checks": {
+    "yaml_safe_load": true
+  },
+  "errors": [
+    "dependency_missing:jsonschema",
+    "dependency_missing:python-hcl2",
+    "dependency_missing:jsonschema-specifications",
+    "dependency_missing:referencing",
+    "dependency_missing:rpds-py",
+    "dependency_missing:lark",
+    "dependency_missing:regex",
+    "module_missing:jsonschema",
+    "module_missing:hcl2"
+  ],
+  "status": "blocked"
+}

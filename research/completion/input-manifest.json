@@ -1,0 +1,8 @@
+{
+  "intune": {
+    "path": "upload/Intune_IaC_Corrected_Handoff(1).zip",
+    "sha256": "4bdd27bf7d423246c5403c72111c67ca51c1f721a4f9d459d5b70030dae5d506"
+  },
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39"
+}

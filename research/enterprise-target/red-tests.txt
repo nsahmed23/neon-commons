@@ -1,0 +1,277 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_assurance_claim_and_nested_unknown_fields_are_rejected_without_echo (plugin_tests.test_target.CollectionTests.test_assurance_claim_and_nested_unknown_fields_are_rejected_without_echo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_backend_identity_and_resolved_workspace_are_independently_bound (plugin_tests.test_target.CollectionTests.test_backend_identity_and_resolved_workspace_are_independently_bound)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_backend_tenant_or_storage_endpoint_mismatch_cannot_pass (plugin_tests.test_target.CollectionTests.test_backend_tenant_or_storage_endpoint_mismatch_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_bad_ids_booleans_paths_and_federation_are_invalid (plugin_tests.test_target.CollectionTests.test_bad_ids_booleans_paths_and_federation_are_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_certificate_identity_requires_null_federation (plugin_tests.test_target.CollectionTests.test_certificate_identity_requires_null_federation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_complete_document_is_consistent_but_never_authenticated (plugin_tests.test_target.CollectionTests.test_complete_document_is_consistent_but_never_authenticated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_denied_redirect_and_malformed_response_remain_unavailable (plugin_tests.test_target.CollectionTests.test_denied_redirect_and_malformed_response_remain_unavailable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_every_binding_leaf_mutation_prevents_match (plugin_tests.test_target.CollectionTests.test_every_binding_leaf_mutation_prevents_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_every_required_leaf_omission_and_null_is_invalid (plugin_tests.test_target.CollectionTests.test_every_required_leaf_omission_and_null_is_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_fixed_reads_observe_service_facts_but_not_principal_or_execution (plugin_tests.test_target.CollectionTests.test_fixed_reads_observe_service_facts_but_not_principal_or_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_inputs_are_not_mutated (plugin_tests.test_target.CollectionTests.test_inputs_are_not_mutated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_invalid_shapes_are_bounded_and_secret_free (plugin_tests.test_target.CollectionTests.test_invalid_shapes_are_bounded_and_secret_free)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_invalid_target_and_header_token_stop_before_any_request (plugin_tests.test_target.CollectionTests.test_invalid_target_and_header_token_stop_before_any_request)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_oversized_and_encoded_response_rejected (plugin_tests.test_target.CollectionTests.test_oversized_and_encoded_response_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_same_binding_matches_without_granting_authority (plugin_tests.test_target.CollectionTests.test_same_binding_matches_without_granting_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_stale_future_or_expired_ownership_is_invalid (plugin_tests.test_target.CollectionTests.test_stale_future_or_expired_ownership_is_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_storage_origin_must_match_resource_account (plugin_tests.test_target.CollectionTests.test_storage_origin_must_match_resource_account)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_transport_exception_never_echoes_exception_or_token (plugin_tests.test_target.CollectionTests.test_transport_exception_never_echoes_exception_or_token)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_valid_changed_serial_reports_only_path (plugin_tests.test_target.CollectionTests.test_valid_changed_serial_reports_only_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_wrong_origins_and_credentials_are_rejected (plugin_tests.test_target.CollectionTests.test_wrong_origins_and_credentials_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_assurance_claim_and_nested_unknown_fields_are_rejected_without_echo (plugin_tests.test_target.TargetTests.test_assurance_claim_and_nested_unknown_fields_are_rejected_without_echo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_backend_identity_and_resolved_workspace_are_independently_bound (plugin_tests.test_target.TargetTests.test_backend_identity_and_resolved_workspace_are_independently_bound)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_bad_ids_booleans_paths_and_federation_are_invalid (plugin_tests.test_target.TargetTests.test_bad_ids_booleans_paths_and_federation_are_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_certificate_identity_requires_null_federation (plugin_tests.test_target.TargetTests.test_certificate_identity_requires_null_federation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_complete_document_is_consistent_but_never_authenticated (plugin_tests.test_target.TargetTests.test_complete_document_is_consistent_but_never_authenticated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_every_binding_leaf_mutation_prevents_match (plugin_tests.test_target.TargetTests.test_every_binding_leaf_mutation_prevents_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_every_required_leaf_omission_and_null_is_invalid (plugin_tests.test_target.TargetTests.test_every_required_leaf_omission_and_null_is_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_inputs_are_not_mutated (plugin_tests.test_target.TargetTests.test_inputs_are_not_mutated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_invalid_shapes_are_bounded_and_secret_free (plugin_tests.test_target.TargetTests.test_invalid_shapes_are_bounded_and_secret_free)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_same_binding_matches_without_granting_authority (plugin_tests.test_target.TargetTests.test_same_binding_matches_without_granting_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_stale_future_or_expired_ownership_is_invalid (plugin_tests.test_target.TargetTests.test_stale_future_or_expired_ownership_is_invalid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_storage_origin_must_match_resource_account (plugin_tests.test_target.TargetTests.test_storage_origin_must_match_resource_account)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_valid_changed_serial_reports_only_path (plugin_tests.test_target.TargetTests.test_valid_changed_serial_reports_only_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+======================================================================
+FAIL: test_wrong_origins_and_credentials_are_rejected (plugin_tests.test_target.TargetTests.test_wrong_origins_and_credentials_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_target.py", line 73, in setUp
+    self.assertIsNotNone(SPEC, 'target evidence implementation is missing')
+AssertionError: unexpectedly None : target evidence implementation is missing
+
+----------------------------------------------------------------------
+Ran 34 tests in 0.002s
+
+FAILED (failures=34)

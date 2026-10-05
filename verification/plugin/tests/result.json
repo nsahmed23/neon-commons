@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "verified_at": "2026-09-30T19:11:36.979077+00:00",
+  "tests": 301,
+  "passed": 301,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "core_regressions_included": true,
+  "success": true,
+  "scope": "Local runtime behavior, negative contracts, synthetic pipeline and HTTP protocol fixtures.",
+  "not_established": [
+    "Live Graph authenticity or service semantics",
+    "Provider-backed import/no-change plan",
+    "Effective Atmos execution",
+    "Native Windows/PowerShell behavior",
+    "Native host installation",
+    "CLM learned-model quality, calibration or latency"
+  ]
+}

@@ -1,0 +1,56 @@
+EEEEE
+======================================================================
+ERROR: test_candidate_manifest_and_gate_are_explicit (plugin_tests.test_provider_completion.ProviderCompletionTests.test_candidate_manifest_and_gate_are_explicit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_provider_completion.py", line 54, in test_candidate_manifest_and_gate_are_explicit
+    manifest=json.loads((ROOT/'labs/provider-contract/completion-manifest.json').read_text())
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/scratch/e2e4042ea5fd/work/intune-iac/labs/provider-contract/completion-manifest.json'
+
+======================================================================
+ERROR: test_completion_stages_exact_bytes_and_addition (plugin_tests.test_provider_completion.ProviderCompletionTests.test_completion_stages_exact_bytes_and_addition)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_provider_completion.py", line 50, in test_completion_stages_exact_bytes_and_addition
+    runner.apply_completion_candidate(work,candidate,rows)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'provider_completion_runner' has no attribute 'apply_completion_candidate'. Did you mean: 'apply_patch_candidate'?
+
+======================================================================
+ERROR: test_completion_staging_is_atomic_on_bad_candidate (plugin_tests.test_provider_completion.ProviderCompletionTests.test_completion_staging_is_atomic_on_bad_candidate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_provider_completion.py", line 27, in test_completion_staging_is_atomic_on_bad_candidate
+    runner.apply_completion_candidate(work,candidate,rows)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'provider_completion_runner' has no attribute 'apply_completion_candidate'. Did you mean: 'apply_patch_candidate'?
+
+======================================================================
+ERROR: test_completion_staging_rejects_escape_and_existing_addition (plugin_tests.test_provider_completion.ProviderCompletionTests.test_completion_staging_rejects_escape_and_existing_addition)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_provider_completion.py", line 34, in test_completion_staging_rejects_escape_and_existing_addition
+    with self.assertRaises(ValueError):runner.apply_completion_candidate(work,candidate,[{'path':name}])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'provider_completion_runner' has no attribute 'apply_completion_candidate'. Did you mean: 'apply_patch_candidate'?
+
+======================================================================
+ERROR: test_completion_staging_rejects_symlink (plugin_tests.test_provider_completion.ProviderCompletionTests.test_completion_staging_rejects_symlink)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_provider_completion.py", line 42, in test_completion_staging_rejects_symlink
+    with self.assertRaisesRegex(ValueError,'symlink'):runner.apply_completion_candidate(work,candidate,[{'path':'nested/file.go'}])
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'provider_completion_runner' has no attribute 'apply_completion_candidate'. Did you mean: 'apply_patch_candidate'?
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+FAILED (errors=5)

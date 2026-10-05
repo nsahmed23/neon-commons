@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/corrections/2.0.0/approval-context.schema.json",
+  "title": "approval-context",
+  "description": "Original proposed bounded correction contract; not an official Microsoft/provider schema and not live-qualified.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "binding": {
+      "type": "object",
+      "properties": {
+        "cloud": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tenant_id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "minLength": 36,
+          "maxLength": 36
+        },
+        "subscription_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "minLength": 36,
+              "maxLength": 36
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "service_endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "identity": {
+          "type": "object",
+          "properties": {
+            "principal_object_id": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "minLength": 36,
+              "maxLength": 36
+            },
+            "client_id": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "minLength": 36,
+              "maxLength": 36
+            },
+            "auth_kind": {
+              "enum": [
+                "workload_federation",
+                "managed_identity",
+                "application_certificate"
+              ]
+            },
+            "authority_host": {
+              "type": "string",
+              "format": "uri"
+            },
+            "token_audience": {
+              "type": "string",
+              "minLength": 1
+            },
+            "federation": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "issuer": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "subject": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "audience": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "issuer",
+                    "subject",
+                    "audience"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "principal_object_id",
+            "client_id",
+            "auth_kind",
+            "authority_host",
+            "token_audience",
+            "federation"
+          ],
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "auth_kind": {
+                    "const": "workload_federation"
+                  }
+                },
+                "required": [
+                  "auth_kind"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "federation": {
+                    "type": "object"
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "federation": {
+                    "type": "null"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "backend": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "azurerm"
+            },
+            "cloud": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tenant_id": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "minLength": 36,
+              "maxLength": 36
+            },
+            "subscription_id": {
+              "type": "string",
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+              "minLength": 36,
+              "maxLength": 36
+            },
+            "storage_account_resource_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "blob_endpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "container": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "workspace": {
+              "type": "string",
+              "minLength": 1
+            },
+            "resolved_blob_name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "state_lineage": {
+              "type": "string",
+              "minLength": 1
+            },
+            "state_serial": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "type",
+            "cloud",
+            "tenant_id",
+            "subscription_id",
+            "storage_account_resource_id",
+            "blob_endpoint",
+            "container",
+            "key",
+            "workspace",
+            "resolved_blob_name",
+            "state_lineage",
+            "state_serial"
+          ],
+          "additionalProperties": false
+        },
+        "component": {
+          "type": "string",
+          "minLength": 1
+        },
+        "stack": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine": {
+          "const": "tofu"
+        },
+        "engine_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "engine_binary_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "atmos_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "atmos_binary_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "provider_source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_lock_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "source_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "selected_ids_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "ownership_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "configuration_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "cohort_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "plan_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "git_revision": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "relevant_dirty_files_digest": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "cloud",
+        "tenant_id",
+        "subscription_id",
+        "service_endpoint",
+        "identity",
+        "backend",
+        "component",
+        "stack",
+        "engine",
+        "engine_version",
+        "engine_binary_sha256",
+        "atmos_version",
+        "atmos_binary_sha256",
+        "provider_source",
+        "provider_version",
+        "provider_lock_digest",
+        "source_digest",
+        "selected_ids_digest",
+        "ownership_digest",
+        "configuration_digest",
+        "cohort_digest",
+        "plan_digest",
+        "git_revision",
+        "relevant_dirty_files_digest"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "approved_at",
+    "expires_at",
+    "binding"
+  ],
+  "additionalProperties": false
+}

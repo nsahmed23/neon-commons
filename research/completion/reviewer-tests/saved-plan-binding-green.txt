@@ -1,0 +1,9 @@
+test_literal_native_binary_substitution_and_matching_sidecar_are_rejected (test_saved_plan_binding.NativeSavedPlanBindingAcceptance.test_literal_native_binary_substitution_and_matching_sidecar_are_rejected)
+Native plan contains only a harmless output, no resources/provisioners. ... ok
+test_rehashed_saved_plan_cannot_obtain_effectful_approval (test_saved_plan_binding.SavedPlanBindingAcceptance.test_rehashed_saved_plan_cannot_obtain_effectful_approval) ... ok
+test_validation_rejects_rehashed_saved_plan_with_unreviewed_value (test_saved_plan_binding.SavedPlanBindingAcceptance.test_validation_rejects_rehashed_saved_plan_with_unreviewed_value) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 4.384s
+
+OK

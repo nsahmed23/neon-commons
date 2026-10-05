@@ -1,0 +1,15 @@
+test_existing_user_permissions_are_not_silently_changed (plugin_tests.test_generated_permissions.GeneratedPermissionsTests.test_existing_user_permissions_are_not_silently_changed) ... ok
+test_permissive_umask_cannot_expose_new_project (plugin_tests.test_generated_permissions.GeneratedPermissionsTests.test_permissive_umask_cannot_expose_new_project) ... FAIL
+
+======================================================================
+FAIL: test_permissive_umask_cannot_expose_new_project (plugin_tests.test_generated_permissions.GeneratedPermissionsTests.test_permissive_umask_cannot_expose_new_project)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_generated_permissions.py", line 22, in test_permissive_umask_cannot_expose_new_project
+    self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700 if path.is_dir() else 0o600, path.name)
+AssertionError: 511 != 448 : project
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.002s
+
+FAILED (failures=1)

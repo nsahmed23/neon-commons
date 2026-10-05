@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "passed": 7,
+  "checks": [
+    {
+      "name": "discover",
+      "exit_code": 0
+    },
+    {
+      "name": "resolve",
+      "exit_code": 0
+    },
+    {
+      "name": "wizard",
+      "exit_code": 0
+    },
+    {
+      "name": "verify",
+      "exit_code": 0
+    },
+    {
+      "name": "preview",
+      "exit_code": 0
+    },
+    {
+      "name": "local-action",
+      "exit_code": 0
+    },
+    {
+      "name": "mcp",
+      "exit_code": 0
+    }
+  ],
+  "fixture_origin": "constructed_offline",
+  "candidate_manifest_sha256": "0a0cee4276e03ab5641fa30c54f228f4b4757201191b5567319936a4177a656b",
+  "source_fingerprint": "a468e87003c76c4c88d67c8c222a973a9cee28464592a436a9b75756c6076f3b",
+  "cloud_calls": 0,
+  "provider_calls": 0,
+  "scope": "Actual local CLI, repository-first wizard, candidate verification, action runner and stdio MCP."
+}

@@ -1,0 +1,13 @@
+import:
+- catalog/b
+- catalog/a
+vars:
+  stage: qualification
+  nested:
+    local: local
+components:
+  terraform:
+    leaf:
+      metadata:
+        component: demo
+      vars: {}

@@ -1,0 +1,62 @@
+{
+  "checks": 8,
+  "results": [
+    {
+      "case": "adopt-no-change.json",
+      "status": "no_change",
+      "blockers": []
+    },
+    {
+      "case": "import-identity-no-change.json",
+      "status": "no_change",
+      "blockers": []
+    },
+    {
+      "case": "desired-change.json",
+      "status": "blocked",
+      "blockers": [
+        "unknown_planned_values",
+        "unknown_planned_values"
+      ]
+    },
+    {
+      "case": "prod-isolated-plan.json",
+      "status": "blocked",
+      "blockers": [
+        "unknown_planned_values",
+        "unknown_planned_values",
+        "unknown_planned_values",
+        "unknown_planned_values",
+        "unknown_planned_values"
+      ]
+    },
+    {
+      "case": "hidden_prior_resource",
+      "status": "blocked",
+      "blockers": [
+        "prior_resource_denominator_mismatch"
+      ]
+    },
+    {
+      "case": "hidden_prior_output",
+      "status": "blocked",
+      "blockers": [
+        "prior_output_denominator_mismatch"
+      ]
+    },
+    {
+      "case": "prior_value_contradiction",
+      "status": "blocked",
+      "blockers": [
+        "prior_value_mismatch"
+      ]
+    },
+    {
+      "case": "missing_prior",
+      "status": "blocked",
+      "blockers": [
+        "missing_prior_state"
+      ]
+    }
+  ]
+}

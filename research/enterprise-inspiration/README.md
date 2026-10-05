@@ -1,0 +1,19 @@
+# Additional source selection
+
+All nine user-supplied repositories were cloned as complete working trees at pinned commits (shallow history). `repositories.json` and `file-inventory.json` record actual acquired files and hashes. Inventory is not a claim of reviewing every file. No upstream installer, hook, endpoint collector, benchmark or cloud action was run from these repositories.
+
+| Source | Selection and implementation consequence | Boundary |
+|---|---|---|
+| powerstacks-corp/intune-advanced-troubleshooting | Evidence correlation, falsifiable mechanism questions and explicit diagnostic tiers inform the provider/diagnostic qualification review | Endpoint collectors, elevation, live capture and decompilation need separate environment/authorization; no blanket installation |
+| TheLobbi/Claude-m | Workflow source reviewed by guided-workflow implementer | The selected Intune compliance recipe contains placeholder endpoints; Planner ETag patterns do not establish Intune retry behavior; README license claim lacked a LICENSE file |
+| hashicorp/agent-skills | Provider acceptance-test patterns selected for pre/post refresh and identity checks | A no-op-after-update example reverts config before expecting an empty plan; it is not copied as an oracle |
+| antonbabenko/terraform-skill | Saved plan and protected environment concepts support the execution design | Examples containing disabled locks or generic auto-approval are excluded; tests must prove the actual configured path |
+| saurabhkumar8112/cyclomatic-complexity-skill | Measure actual function complexity, extract named responsibilities and retain behavioral tests | A metric is a prioritization signal, not correctness or production acceptance; no code-golf target |
+| mukul975/Anthropic-Cybersecurity-Skills | Selected IaC scanning workflow and Terraform audit wrapper inspected | Generic AWS-focused rules do not preserve Intune targeting. The examined wrapper can treat parse failure as no findings and does not qualify tool exit status; cannot serve as a release gate unchanged |
+| DietrichGebert/ponytail | Prefer existing implementation and standard-library capabilities; avoid needless frameworks | Published benchmark outcomes are upstream-specific. Short code and its reported safety percentage do not establish our workflow's safety; hooks not installed |
+| dmmulroy/anti-slop | Repeated-work and evidence-at-boundary principles reinforce graph work limits/indexing and strict parsers | This is an opinionated TypeScript/JavaScript Oxlint ruleset. It is not installed in a Python project; blanket prohibition of runtime checks would break our untrusted-input boundary |
+| microsoft/Ontology-Playground | Explicit entity and relation contracts, draft-versus-observation distinction; detailed review in enterprise-target | Its RDF parser can default cardinality/drop unresolved relationships; our graph must retain unknown relationships and never infer membership or authority |
+
+Original code in this project implements the selected ideas. No source code from these nine repositories was copied into runtime. Detailed relevant source identities and qualifications appear in the provider, execution, target and workflow reports.
+
+Two further public repositories were acquired and inspected: `opentofu/setup-opentofu@1ecf18781ea7c9aa8a23e34d0b035791381119a1` and `cloudposse/github-action-atmos-terraform-apply@00d19beefe66f31e5b7920fa1dcf64f795e6a68a`. The former falls back to a warning if published checksums cannot be retrieved; our reviewed dependency install instead requires local hashes. The latter has `skip-plandiff` and can choose a renewed plan; our operation binding must explicitly identify the executed artifact, rather than assume a saved-plan recipe guarantees it. These source inspections are not execution of either GitHub Action.

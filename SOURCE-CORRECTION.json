@@ -1,0 +1,35 @@
+{
+  "original_combined_archive_sha256": "5066e483fd96555968e2076aa2f0e6894aa8313554cde55416336026ff9ef705",
+  "selection": "Original Intune release-source-files.txt; no native/wally or research/wally trees included",
+  "modified": [
+    {
+      "path": "README.md",
+      "original_sha256": "25988ddb4284818aad257d8364cc1471d90f13c0e72f30614e7a47767d4297f4",
+      "corrected_sha256": "a09c65952ebb1e3ebd97dd9d07930ecc90e3bcbbc3daa946a55c98317936b421"
+    },
+    {
+      "path": "docs/ENTERPRISE-GOAL.md",
+      "original_sha256": "8d2d3463bb709c7a2f7595d2f33b495388ce2305e12448022969cf74ba7c8cdf",
+      "corrected_sha256": "28356791189f62f3323c053ffb3d46ac7c65eb2bab4423c5d942646bba6cb7ff"
+    },
+    {
+      "path": "release-source-files.txt",
+      "original_sha256": "3a5f95e4cf43e62d42d04ff41dabb80e7333a2cc1d6e9da5647da5ce45a90e57",
+      "corrected_sha256": "e030bffab42bf16da92a246666289d5dabcb16828b61bf9848a719d1c01ca23e"
+    }
+  ],
+  "added": [
+    "START-HERE.md",
+    "Intune_IaC_Completion_Prompt.md",
+    "HANDOFF-VERIFICATION.json",
+    "SOURCE-CORRECTION.json",
+    "research/verification-repair/tests/test_material_formats.py",
+    "research/verification-repair/material-verifier-repair.md",
+    "verification/scope-correction/plugin-tests.txt",
+    "verification/scope-correction/evaluation-tests.txt",
+    "verification/scope-correction/material-formats.txt"
+  ],
+  "runtime_and_test_python_files_unchanged": 90,
+  "engineering_changes": "Front-door scope correction and evidence repackaging only",
+  "production_accepted": false
+}

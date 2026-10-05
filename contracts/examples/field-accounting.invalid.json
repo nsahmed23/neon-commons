@@ -1,0 +1,1103 @@
+{
+  "records": [
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": ""
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/schema_version"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "boolean",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/synthetic"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/tenant_id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/cloud"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/captured_at"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/exporter"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/exporter/id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/exporter/version"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/kind"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/owner_id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/coverage"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/reason"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/request_url"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/method"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/http_status"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/captured_at"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/@odata.type"
+    },
+    {
+      "disposition": "identity",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Existing policy identity/import map",
+      "source_pointer": "/collections/0/pages/0/body/value/0/id"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped policy attribute",
+      "source_pointer": "/collections/0/pages/0/body/value/0/name"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped policy attribute",
+      "source_pointer": "/collections/0/pages/0/body/value/0/description"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped policy attribute",
+      "source_pointer": "/collections/0/pages/0/body/value/0/platforms"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped policy attribute",
+      "source_pointer": "/collections/0/pages/0/body/value/0/technologies"
+    },
+    {
+      "disposition": "desired",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Mapped policy attribute",
+      "source_pointer": "/collections/0/pages/0/body/value/0/roleScopeTagIds"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped policy attribute",
+      "source_pointer": "/collections/0/pages/0/body/value/0/roleScopeTagIds/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/createdDateTime"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/lastModifiedDateTime"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/settingCount"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "boolean",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/isAssigned"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateId"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateFamily"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateDisplayName"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateDisplayVersion"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/@odata.type"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/name"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/description"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/platforms"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/technologies"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/roleScopeTagIds"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/roleScopeTagIds/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/createdDateTime"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/lastModifiedDateTime"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/settingCount"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "boolean",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/isAssigned"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateId"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateFamily"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateDisplayName"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateDisplayVersion"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/kind"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/owner_id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/coverage"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/reason"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/request_url"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/method"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/http_status"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/captured_at"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/body"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/body/value"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/body/value/0"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/@odata.type"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/1/pages/0/body/value/0/id"
+    },
+    {
+      "disposition": "desired",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/@odata.type"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/settingDefinitionId"
+    },
+    {
+      "disposition": "desired",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/settingInstanceTemplateReference"
+    },
+    {
+      "disposition": "desired",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/@odata.type"
+    },
+    {
+      "disposition": "desired",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/settingValueTemplateReference"
+    },
+    {
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/value"
+    },
+    {
+      "disposition": "desired",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Preserved setting subtree in JSON input",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/children"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/kind"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/owner_id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/coverage"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/reason"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/request_url"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/method"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/http_status"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/captured_at"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value/0/@odata.type"
+    },
+    {
+      "disposition": "identity",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Source assignment record; not a group or independent writer",
+      "source_pointer": "/collections/2/pages/0/body/value/0/id"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/0/target"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/0/target/@odata.type"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/0/target/groupId"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/0/target/deviceAndAppManagementAssignmentFilterType"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/0/target/deviceAndAppManagementAssignmentFilterId"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value/1"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value/1/@odata.type"
+    },
+    {
+      "disposition": "identity",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Source assignment record; not a group or independent writer",
+      "source_pointer": "/collections/2/pages/0/body/value/1/id"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/1/target"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/1/target/@odata.type"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/1/target/groupId"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/1/target/deviceAndAppManagementAssignmentFilterType"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/1/target/deviceAndAppManagementAssignmentFilterId"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value/2"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/collections/2/pages/0/body/value/2/@odata.type"
+    },
+    {
+      "disposition": "identity",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Source assignment record; not a group or independent writer",
+      "source_pointer": "/collections/2/pages/0/body/value/2/id"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/2/target"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/2/target/@odata.type"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/2/target/groupId"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/2/target/deviceAndAppManagementAssignmentFilterType"
+    },
+    {
+      "disposition": "relationship",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Mapped assignment target without ownership of referenced object",
+      "source_pointer": "/collections/2/pages/0/body/value/2/target/deviceAndAppManagementAssignmentFilterId"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/0"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/0/kind"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/0/id"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/0/ownership"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/0/coverage"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/0/captured_at"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/1"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/1/kind"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/1/id"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/1/ownership"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/1/coverage"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/1/captured_at"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/2"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/2/kind"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/2/id"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/2/ownership"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/2/coverage"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/2/captured_at"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/3"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/3/kind"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/3/id"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/3/ownership"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/3/coverage"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/3/captured_at"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/4"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/4/kind"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/4/id"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/4/ownership"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/4/coverage"
+    },
+    {
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "External object reference only",
+      "source_pointer": "/references/4/captured_at"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/ownership"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/ownership/0"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/ownership/0/object_id"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/ownership/0/current_writer"
+    },
+    {
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "Snapshot/provenance or service metadata; not an API write value",
+      "source_pointer": "/ownership/0/adoption_intent"
+    }
+  ]
+}

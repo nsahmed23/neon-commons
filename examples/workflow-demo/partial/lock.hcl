@@ -1,0 +1,1 @@
+provider "registry.terraform.io/deploymenttheory/microsoft365" { version = "1.0.0" }

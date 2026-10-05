@@ -1,0 +1,37 @@
+
+Warning: Provider development overrides are in effect
+
+The following provider development overrides are set in the CLI
+configuration:
+ - registry.terraform.io/deploymenttheory/microsoft365 in /tmp/intune-provider-20261002/synthetic-rpc-build/bin
+
+The behavior may therefore not match any released version of the provider and
+applying changes may cause the state to become incompatible with published
+releases.
+microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture: Refreshing state... [id=33333333-3333-4333-8333-333333333333]
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+
+OpenTofu will perform the following actions:
+
+  # microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture will be updated in-place
+  ~ resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "fixture" {
+      + description             = "Fixture only"
+        id                      = "33333333-3333-4333-8333-333333333333"
+      + is_assigned             = (known after apply)
+      + last_modified_date_time = (known after apply)
+      + name                    = "Synthetic existing Intune policy"
+      + platforms               = "windows10"
+      + role_scope_tag_ids      = [
+          + "0",
+        ]
+      + settings_count          = (known after apply)
+      + technologies            = [
+          + "mdm",
+        ]
+        # (2 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 1 to change, 0 to destroy.

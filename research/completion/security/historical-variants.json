@@ -1,0 +1,41 @@
+{
+  "historical_source": "verification/enterprise-0.3/security/report.md",
+  "status": "PASS",
+  "rows": [
+    {
+      "historical_finding": "Parent alias overwrites protected capture",
+      "historical_revision": "3fbfae8f986feda036c6fdb14257be6ad1c5b826",
+      "current_trace": "workflow._safe; journey._safe/_validate_paths; mcp._capability_path",
+      "regression": "plugin_tests.test_workflow.WorkflowTests.test_parent_alias_cannot_hide_source_inside_evidence",
+      "variant": "MCP output-parent sibling lock SEC-003 fixed",
+      "scope": "current bounded replay; same-privilege ancestor races still excluded"
+    },
+    {
+      "historical_finding": "World-readable generated defaults",
+      "historical_revision": "3fbfae8f986feda036c6fdb14257be6ad1c5b826",
+      "current_trace": "reference.core.write_project; protected._exclusive/_create",
+      "regression": "plugin_tests.test_generated_permissions",
+      "variant": "New protected root/tool/state mode check in source; native Windows ACL unqualified",
+      "scope": "POSIX umask bounded replay only"
+    },
+    {
+      "historical_finding": "Restricted low-entropy digest disclosure",
+      "historical_revision": "3fbfae8f986feda036c6fdb14257be6ad1c5b826",
+      "current_trace": "production field_accounting; production_oracle; native_context hashed factual reports",
+      "regression": "plugin_tests.test_restricted_hashes",
+      "variant": "No new per-secret hash output found in reviewed flows; full known-content hashes may still form equality oracles",
+      "scope": "exposed regression corpus; not exhaustive secret scanning"
+    },
+    {
+      "historical_finding": "Repeated whole-bundle graph work",
+      "historical_revision": "3fbfae8f986feda036c6fdb14257be6ad1c5b826",
+      "current_trace": "graph.build_graph; protected directory loops; journey inspection cache",
+      "regression": "plugin_tests.test_graph_budget",
+      "variant": "Protected directory enumeration candidate SEC-007 capped; sequential journey source normalization remains scale-limited",
+      "scope": "early budget rejection, no live availability testing"
+    }
+  ],
+  "note": "Historical claims are not newly reproduced until current receipt explicitly lists the associated test. No old benchmark measurements relabeled as current.",
+  "current_receipt": "sandbox-regressions-frozen.json",
+  "scope": "Four exposed historical defect families replayed; no universal variant coverage claim"
+}

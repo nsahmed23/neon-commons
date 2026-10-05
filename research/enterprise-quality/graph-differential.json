@@ -1,0 +1,8 @@
+{
+  "schema_version": "graph-refactor-differential/1.0",
+  "cases": 5013,
+  "matches": 5013,
+  "mismatches": [],
+  "scope": "Rehashed status/domain/range/removal/duplicate-edge mutations of six preserved graph fixtures; compare accepted output or rejection code/message to pre-refactor implementation.",
+  "before_source_sha256": "2e2d08637917803f3c040313c46f9a8e4a83fe83fae5eee9577218eefba8f96b"
+}

@@ -1,0 +1,39 @@
+{
+  "schema_version": "blob-lease-implementation-summary/1.0",
+  "date_utc": "2026-10-04",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "api_version": "2023-11-03",
+  "new_packages": [],
+  "live_azure_calls": 0,
+  "external_mutations": 0,
+  "credentials": "synthetic fixture strings only",
+  "execution": "recorded API-contract responses, independent owner model, mocked HTTPS, local socketpair HTTP parser",
+  "live_lease_qualification": "BLOCKED",
+  "graph_fencing": false,
+  "state_or_infrastructure_restore": false,
+  "tests": {
+    "implementation": 20,
+    "independent": 13,
+    "identity": 32,
+    "combined": 65,
+    "result": "PASS",
+    "command": "python -m unittest plugin_tests.test_blob_lease_v5 plugin_tests.test_blob_lease_independent_v5 plugin_tests.test_identity_binding_v5 -v"
+  },
+  "defect_origin": "new local implementation; no claim these were inherited source defects",
+  "confirmed_repairs": [
+    "preserve terminal release status",
+    "bound token stage by remaining local lease lifetime",
+    "disable HTTP automatic reconnect after cancellation",
+    "interrupt detached response socket on cancellation"
+  ],
+  "files": {
+    "intune_iac/blob_lease.py": "473827427b199f8af515787d5db1b5f75cc2dbcdaef4c35dedb99138503c7a57",
+    "plugin_tests/test_blob_lease_v5.py": "462cd670dfa7e74efc4516a1b2b3a4d6162fef1d1e1f361e5ad1e0a39dbdadee",
+    "plugin_tests/test_blob_lease_independent_v5.py": "9592254ea6597666d633174edadd8f1bb9b246249816feeb19406570468de427",
+    "intune_iac/identity_binding.py": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+    "docs/BLOB-LEASE.md": "a743d7905f8468a5179d802b8ebd9b207983735fe4b493a35517fc2223a0455f",
+    "research/production-completion/leases/tests-green-combined.log": "e5b98f0fd7cd9d31a0c51a34245124822e79f7b88ffc6f405f56fc8371345b41"
+  },
+  "independent_confirmation": "13/13 PASS; review-independent-green.txt"
+}

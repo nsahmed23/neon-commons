@@ -1,0 +1,291 @@
+{
+  "schema_version": "catalog-dispositions/1",
+  "status": "PASS",
+  "repositories": [
+    {
+      "repository": "Contrastive-LM/CLM",
+      "commit": "bb42c6c5bf914fd449bed2f6ca65be80602cb1f7",
+      "status": "PASS",
+      "discovered_skills": 0,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "DietrichGebert/ponytail",
+      "commit": "6c97ffa48710714672214915ad092e3fc6e85516",
+      "status": "PASS",
+      "discovered_skills": 12,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "GoogleCloudPlatform/knowledge-catalog",
+      "commit": "58e16bdb7a34430f055ea57e84655cff37000c03",
+      "status": "PASS",
+      "discovered_skills": 2,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE.md"
+      ]
+    },
+    {
+      "repository": "MicrosoftDocs/Agent-Skills",
+      "commit": "326540fbb5cc3c629ba90ad2afd24bff06ed759a",
+      "status": "PASS",
+      "discovered_skills": 202,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE",
+        "LICENSE-CODE"
+      ]
+    },
+    {
+      "repository": "TheLobbi/Claude-m",
+      "commit": "703f383198963a3596f7a86ff63c9f98574a21b6",
+      "status": "PASS",
+      "discovered_skills": 117,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": []
+    },
+    {
+      "repository": "antonbabenko/terraform-skill",
+      "commit": "0a3a4a66e99001347d36a41e10260a825be3ab62",
+      "status": "PASS",
+      "discovered_skills": 1,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "cloudflare/security-audit-skill",
+      "commit": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+      "status": "PASS",
+      "discovered_skills": 1,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "cloudflare/skills",
+      "commit": "41e0d19858946d18af9ee2c2feebbe2e11d829ff",
+      "status": "PASS",
+      "discovered_skills": 16,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "d5afe56c4a8817756a461d340dea44dd1b20c128",
+      "status": "PASS",
+      "discovered_skills": 86,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "dmmulroy/anti-slop",
+      "commit": "c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b",
+      "status": "PASS",
+      "discovered_skills": 1,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "hashicorp/agent-skills",
+      "commit": "f706481af9b8fedb66de909f6243ad29601afa0c",
+      "status": "PASS",
+      "discovered_skills": 20,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "microsoft/Ontology-Playground",
+      "commit": "42a5e5ec170c1e76343886b9d5ba7a55959cb112",
+      "status": "PASS",
+      "discovered_skills": 5,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "microsoft/azure-skills",
+      "commit": "74f27068b21b85807e35ae69ab3976756b060c03",
+      "status": "PASS",
+      "discovered_skills": 86,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "microsoft/mggraph-intune-samples",
+      "commit": "2e668455288ebc43b7356b2d9b0c537e24c409f4",
+      "status": "PASS",
+      "discovered_skills": 0,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "microsoft/skills",
+      "commit": "ce7edea90860e0c69fa36db164584c87908e09f5",
+      "status": "PASS",
+      "discovered_skills": 205,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "mukul975/Anthropic-Cybersecurity-Skills",
+      "commit": "54a798831d2266a3ca61ce68a7acb80b81160d57",
+      "status": "PASS",
+      "discovered_skills": 818,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "powerstacks-corp/intune-advanced-troubleshooting",
+      "commit": "68e04d3374f93d5895d66fc28581f25e1e250fdf",
+      "status": "PASS",
+      "discovered_skills": 1,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": []
+    },
+    {
+      "repository": "saurabhkumar8112/cyclomatic-complexity-skill",
+      "commit": "567886f485063c5f5f94503d5712ef75cbcbbd94",
+      "status": "PASS",
+      "discovered_skills": 1,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "vercel-labs/agent-skills",
+      "commit": "063bee94c3f4df8453406c830b0a7df0f2860278",
+      "status": "PASS",
+      "discovered_skills": 9,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": []
+    },
+    {
+      "repository": "vercel-labs/skills",
+      "commit": "18f96ea131dab3b0fcc9b27cf7c6f6cbb6174680",
+      "status": "PASS",
+      "discovered_skills": 2,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    },
+    {
+      "repository": "vercel/vercel-plugin",
+      "commit": "f0a392d164e4ee1a834008fe455220aec6c8895c",
+      "status": "PASS",
+      "discovered_skills": 47,
+      "truncated": false,
+      "limitations": [
+        "Discovery covers SKILL.md named entries in this pinned tree; other instruction conventions not enumerated. Acquisition does not establish semantic review or license compatibility."
+      ],
+      "license_paths": [
+        "LICENSE"
+      ]
+    }
+  ],
+  "discovered_skill_entries": 1632,
+  "unique_skill_byte_hashes": 1542,
+  "dispositions": {
+    "exclude": 1469,
+    "defer": 143,
+    "reference": 15,
+    "adapt": 5
+  },
+  "boundary": "Every discovered SKILL.md in 21 declared pinned repository trees; installed environment inventory separate.",
+  "not_established": [
+    "Full ecosystem enumeration",
+    "Full instruction/reference closure for deferred entries",
+    "Security of catalog code",
+    "All nested licenses",
+    "Compatibility with unqualified runtime versions"
+  ],
+  "ledger_sha256": "43b16eacbf9d1fdb2cb4415854724653011cb0116051f21d929b3848c994be3e"
+}

@@ -1,0 +1,17 @@
+{
+  "status": "INCONCLUSIVE",
+  "candidates": [
+    {
+      "path": "protected.py",
+      "line": 262,
+      "rule": "subprocess_boundary_review",
+      "source_sha256": "a4af485e19e437dda24657afa3948b82977e2ab82a540eefd78026712b12b8a8",
+      "disposition": "reviewed_with_limits",
+      "assessment": "Fixed command registry, pinned tool, no shell, exact saved-plan review; seccomp network/process-creation denial, per-child hard AS4GiB/CPU20s/FSIZE64MiB/NOFILE256/CORE0, process-group cleanup and deadline. Threads remain allowed; cgroup task quotas remain a deployment gate.",
+      "severity": null,
+      "evidence": "sandbox-regressions-frozen.json; protected owner/independent native tests",
+      "followup": "supplemental-verification.json; original source_sha256 and line refer to pre-resource snapshot"
+    }
+  ],
+  "scope": "Candidate disposition is not proof of general safety"
+}

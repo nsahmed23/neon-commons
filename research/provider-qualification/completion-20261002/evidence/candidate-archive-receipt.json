@@ -1,0 +1,89 @@
+{
+  "status": "verified-bounded-candidate-archive",
+  "production_qualified": false,
+  "production_provider_configure_qualified": false,
+  "service_qualified": false,
+  "artifact": "/workspace/scratch/e2e4042ea5fd/deliverables/Microsoft365_Provider_Candidate_Linux_AMD64.zip",
+  "bytes": 255363704,
+  "sha256": "85781e6a2e3b92612a61313e31f7bda039ebf009692b497c1316972b6f5465db",
+  "source_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "candidate_manifest_sha256": "25959d78c7c1c790572079e9b46d343ed6d28311c12c4b187235fe5087763932",
+  "binary_sha256": "28d3af959966dc73ef8c001e8f70b8ac7efc5c394162b51351ea8c8dfc97eb06",
+  "bounds": {
+    "compressed_bytes": 268435456,
+    "binary_member_bytes": 1073741824,
+    "other_member_bytes": 8388608,
+    "expanded_total_bytes": 1153433600,
+    "fixed_member_count": 13
+  },
+  "verification": "Streamed every member, bounded expansion, exact name/size/SHA256, no extraction, no symlinks/encryption, no installation/execution",
+  "members": [
+    {
+      "path": "LICENSE",
+      "bytes": 16762,
+      "sha256": "b0ad23e6581d382988cfe381e25382168e4d0550f0d1a2a800197493fda1a519"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2288,
+      "sha256": "7471dcfbed389c91d8632370b6e1326590f3d2578c34b815b9ae1cf89405262c"
+    },
+    {
+      "path": "SHA256SUMS",
+      "bytes": 1043,
+      "sha256": "1e5c8844b1de8868f8ef8ba916d3429b69c564793154a26a2599ef8d203fb848"
+    },
+    {
+      "path": "SOURCE_PATCH.diff",
+      "bytes": 42959,
+      "sha256": "29e8a48b5ff1fcbea4e582abf74bdd5a24148152fc6da0fa29917556c5d4d49b"
+    },
+    {
+      "path": "THIRD_PARTY_LICENSES.txt",
+      "bytes": 419262,
+      "sha256": "52244fd448d8f78590c5c0c44aaa8e3862a8c6a6ec5cf64aae6f2a969c14beb3"
+    },
+    {
+      "path": "UPSTREAM_BUILD_INPUTS.tar.gz",
+      "bytes": 3659400,
+      "sha256": "ef85f97faa4203768cdaf67387960b6531c58593f8a7021747486740022d27e5"
+    },
+    {
+      "path": "build-provenance.json",
+      "bytes": 11787,
+      "sha256": "371722110e54d9ef12dfea54d0b72eede8a1cfdb9f828b1b7272ca102f25fc87"
+    },
+    {
+      "path": "candidate-manifest.json",
+      "bytes": 3654,
+      "sha256": "25959d78c7c1c790572079e9b46d343ed6d28311c12c4b187235fe5087763932"
+    },
+    {
+      "path": "go-buildinfo.txt",
+      "bytes": 6747,
+      "sha256": "0fff0cb360d00fd711cdffc7f6e85bd191ef0c1761d5e437e17875e9f4193d55"
+    },
+    {
+      "path": "native-validation.json",
+      "bytes": 8374,
+      "sha256": "e49dd38780079318659d7ba243724176e1dfdf0c17fced2c0041955f47141f9e"
+    },
+    {
+      "path": "provider-go-sbom.json",
+      "bytes": 32126,
+      "sha256": "c9a7389a97b8bb0c773f3a9d44c6ecc3898733f262d7fa3cb1cc59a793d7f617"
+    },
+    {
+      "path": "source-manifest.json",
+      "bytes": 1330325,
+      "sha256": "4253c2a346bc1ba5a3313912abe2efe98c466991f20de3e97d22e1f9d6ef6d1e"
+    },
+    {
+      "path": "terraform-provider-microsoft365",
+      "bytes": 648888462,
+      "sha256": "28d3af959966dc73ef8c001e8f70b8ac7efc5c394162b51351ea8c8dfc97eb06"
+    }
+  ],
+  "missing_root_dependency_licenses": [],
+  "packer_sha256": "df6f05e19ae88ec53086607eac1d7a562d8056f579f9337aa4e427e276499365"
+}

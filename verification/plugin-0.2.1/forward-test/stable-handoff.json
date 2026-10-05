@@ -1,0 +1,40 @@
+{
+  "checks": [
+    {
+      "name": "direct-generate",
+      "returncode": 2
+    },
+    {
+      "name": "direct-verify",
+      "returncode": 0
+    },
+    {
+      "name": "wizard-finish",
+      "returncode": 0
+    },
+    {
+      "name": "wizard-standalone-verify",
+      "returncode": 0
+    }
+  ],
+  "passed": 4,
+  "implementation_files_sha256": {
+    "intune_iac/cli.py": "bcd287141d543f42589be97835d90262ca8855992bbe5c6360968aa8fad89d51",
+    "intune_iac/io.py": "4b0271fee3565f6f4f765ff1cb48476faf34662d78f2bc0fc14e2e0fb3ccbb41",
+    "intune_iac/engine.py": "56eb66517550e4cbf2851d0dad5875acae0d8b9796c9cda04e17d125a3f0f397",
+    "intune_iac/runner.py": "c39f828bbc5328c653f0a0c5bdecd6a20b7cea5b1dceb87524ae994651d3e331",
+    "intune_iac/wizard.py": "c5859d5bd58579b7f2e8b11aca0ac8578f682ce74818e11da156df36a4478a5e",
+    "intune_iac/repository.py": "c655817c058703973d5df96d1e776b618cfcde80c8a1aacb882c5818847efb95",
+    "intune_iac/production.py": "65798ba863b77c658972d3aa0c17ad08de0abf98b01a4b26110b8613ffe35a17",
+    "intune_iac/production_oracle.py": "9921c8e6cd053eb3bf6047cbb3a30c10056dfbdad5dd7803478b8b32c365b657",
+    "reference/core.py": "cfbd363614cb5e5264fcca3e926c3cadc9854feb6daf80875db45217dce3dbeb",
+    "reference/invariants.py": "79c8ba9d291811ba26a66b1a41eb501b231354bd719dee43e45f07b7cfd01a42",
+    "reference/validation.py": "9110a1e26c43e2d7857ac6b26ab7a9872df583bdbeebcf9dad00efdee7578ff9",
+    "reference/workflow.py": "f2bc64bd8714e7d1b7548c247608eaac25d5b10d00d558e991950076db062448"
+  },
+  "implementation_unchanged": true,
+  "source_sha256": "4518c420e1bf29255d09b847c57aa1bc8d8a983b613307d2a890b5eee4d43c0f",
+  "context_sha256": "fe978803c74abd14f7102bfd3d875747d5ffc9b88c6b1c6e7741021404d3619a",
+  "mapping_contract": "production-1.1.0",
+  "scope": "Blocked known-production capture; direct generation and wizard finish both independently verify; no cloud/provider/model calls."
+}

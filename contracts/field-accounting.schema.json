@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/field-accounting.schema.json",
+  "title": "field-accounting",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_pointer": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "null",
+              "boolean",
+              "object",
+              "array",
+              "number",
+              "string"
+            ]
+          },
+          "disposition": {
+            "enum": [
+              "desired",
+              "relationship",
+              "service_owned",
+              "identity",
+              "separately_managed",
+              "sensitive_local_only",
+              "unsupported"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "loss_blocking": {
+            "type": "boolean"
+          },
+          "rule_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule_version": {
+            "const": "2.0.0"
+          },
+          "destination_pointers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "finding_id": {
+            "type": "string",
+            "pattern": "^f_[0-9a-f]{24}$"
+          },
+          "retention_locator": {
+            "type": "string"
+          },
+          "source_digest_ref": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "source_pointer",
+          "kind",
+          "disposition",
+          "reason",
+          "loss_blocking",
+          "rule_id",
+          "rule_version",
+          "destination_pointers"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "records"
+  ],
+  "additionalProperties": false
+}

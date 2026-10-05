@@ -1,0 +1,289 @@
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+======================================================================
+FAIL: test_changed_artifact_between_steps_retains_partial_and_lock (plugin_tests.test_execution.OperationTests.test_changed_artifact_between_steps_retains_partial_and_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_completed_operation_id_cannot_replay (plugin_tests.test_execution.OperationTests.test_completed_operation_id_cannot_replay)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_each_binding_hash_mutation_rejected_before_write (plugin_tests.test_execution.OperationTests.test_each_binding_hash_mutation_rejected_before_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_external_and_json_approval_cannot_authorize (plugin_tests.test_execution.OperationTests.test_external_and_json_approval_cannot_authorize)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_fail_before_and_after_never_dispatch_next_step (plugin_tests.test_execution.OperationTests.test_fail_before_and_after_never_dispatch_next_step)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_initial_receipt_failure_causes_no_effect (plugin_tests.test_execution.OperationTests.test_initial_receipt_failure_causes_no_effect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_keyboard_interrupt_preserves_started_and_lock (plugin_tests.test_execution.OperationTests.test_keyboard_interrupt_preserves_started_and_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_local_write_steps_have_durable_started_and_readback (plugin_tests.test_execution.OperationTests.test_local_write_steps_have_durable_started_and_readback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_lost_response_after_policy_write_requires_readback (plugin_tests.test_execution.OperationTests.test_lost_response_after_policy_write_requires_readback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_observed_readback_mismatch_retains_lock (plugin_tests.test_execution.OperationTests.test_observed_readback_mismatch_retains_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_receipt_failure_after_write_retains_started_record_and_lock (plugin_tests.test_execution.OperationTests.test_receipt_failure_after_write_retains_started_record_and_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_reentry_new_state_directory_and_new_operation_cannot_bypass_lock (plugin_tests.test_execution.OperationTests.test_reentry_new_state_directory_and_new_operation_cannot_bypass_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_symlinks_and_overlapping_journal_rejected (plugin_tests.test_execution.OperationTests.test_symlinks_and_overlapping_journal_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 114, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'operation implementation absent')
+AssertionError: unexpectedly None : operation implementation absent
+
+======================================================================
+FAIL: test_bounds_cycles_nonfinite_and_boolean_masks (plugin_tests.test_execution.PlanReviewTests.test_bounds_cycles_nonfinite_and_boolean_masks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 107, in test_bounds_cycles_nonfinite_and_boolean_masks
+    self.assertEqual(self.review(value)['status'], 'blocked')
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_check_unknown_and_provisioner_blocked (plugin_tests.test_execution.PlanReviewTests.test_check_unknown_and_provisioner_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 100, in test_check_unknown_and_provisioner_blocked
+    self.assertEqual(self.review(value)['status'], 'blocked')
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_deferred_incomplete_errored_and_unknown_effects_blocked (plugin_tests.test_execution.PlanReviewTests.test_deferred_incomplete_errored_and_unknown_effects_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 63, in test_deferred_incomplete_errored_and_unknown_effects_blocked
+    self.assertEqual(self.review(value)['status'], 'blocked')
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_destructive_and_replacement_and_forget_blocked (plugin_tests.test_execution.PlanReviewTests.test_destructive_and_replacement_and_forget_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 44, in test_destructive_and_replacement_and_forget_blocked
+    self.assertEqual(self.review(value)['status'], 'blocked', actions)
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_drift_is_not_no_change (plugin_tests.test_execution.PlanReviewTests.test_drift_is_not_no_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 90, in test_drift_is_not_no_change
+    answer = self.review(value)
+             ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_import_not_no_change_and_identity_mismatch_blocked (plugin_tests.test_execution.PlanReviewTests.test_import_not_no_change_and_identity_mismatch_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 82, in test_import_not_no_change_and_identity_mismatch_blocked
+    answer = self.review(value)
+             ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_missing_unknown_future_format_and_engine_fields_blocked (plugin_tests.test_execution.PlanReviewTests.test_missing_unknown_future_format_and_engine_fields_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 53, in test_missing_unknown_future_format_and_engine_fields_blocked
+    self.assertEqual(self.review(value)['status'], 'blocked')
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_no_change_is_never_execution_authority (plugin_tests.test_execution.PlanReviewTests.test_no_change_is_never_execution_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 30, in test_no_change_is_never_execution_authority
+    answer = self.review(plan())
+             ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_noop_lie_and_duplicate_resource_identity_blocked (plugin_tests.test_execution.PlanReviewTests.test_noop_lie_and_duplicate_resource_identity_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 76, in test_noop_lie_and_duplicate_resource_identity_blocked
+    self.assertEqual(self.review(value)['status'], 'blocked')
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_output_only_update_is_change (plugin_tests.test_execution.PlanReviewTests.test_output_only_update_is_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 96, in test_output_only_update_is_change
+    self.assertEqual(self.review(value)['status'], 'changes_require_review')
+                     ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_sensitive_and_untrusted_names_and_values_never_escape (plugin_tests.test_execution.PlanReviewTests.test_sensitive_and_untrusted_names_and_values_never_escape)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 70, in test_sensitive_and_untrusted_names_and_values_never_escape
+    answer = self.review(value)
+             ^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_update_is_reported_not_implicitly_approved (plugin_tests.test_execution.PlanReviewTests.test_update_is_reported_not_implicitly_approved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 36, in test_update_is_reported_not_implicitly_approved
+    answer = self.review(plan('update'))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 26, in review
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'plan review implementation absent')
+AssertionError: unexpectedly None : plan review implementation absent
+
+======================================================================
+FAIL: test_absent_adapter_cannot_use_saved_success_as_authority (plugin_tests.test_reconciliation.ReconciliationTests.test_absent_adapter_cannot_use_saved_success_as_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 11, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'execution implementation absent')
+AssertionError: unexpectedly None : execution implementation absent
+
+======================================================================
+FAIL: test_changed_target_or_failed_readback_stays_unknown (plugin_tests.test_reconciliation.ReconciliationTests.test_changed_target_or_failed_readback_stays_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 11, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'execution implementation absent')
+AssertionError: unexpectedly None : execution implementation absent
+
+======================================================================
+FAIL: test_completed_response_lost_can_observe_desired_but_does_not_release_lock (plugin_tests.test_reconciliation.ReconciliationTests.test_completed_response_lost_can_observe_desired_but_does_not_release_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 11, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'execution implementation absent')
+AssertionError: unexpectedly None : execution implementation absent
+
+======================================================================
+FAIL: test_forged_or_missing_event_chain_rejected (plugin_tests.test_reconciliation.ReconciliationTests.test_forged_or_missing_event_chain_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 11, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'execution implementation absent')
+AssertionError: unexpectedly None : execution implementation absent
+
+======================================================================
+FAIL: test_policy_success_assignment_pending_is_partial_not_atomic (plugin_tests.test_reconciliation.ReconciliationTests.test_policy_success_assignment_pending_is_partial_not_atomic)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 11, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'execution implementation absent')
+AssertionError: unexpectedly None : execution implementation absent
+
+======================================================================
+FAIL: test_readback_of_unmodified_state_does_not_infer_no_historical_effect (plugin_tests.test_reconciliation.ReconciliationTests.test_readback_of_unmodified_state_does_not_infer_no_historical_effect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 11, in setUp
+    self.assertIsNotNone(importlib.util.find_spec('intune_iac.execution'), 'execution implementation absent')
+AssertionError: unexpectedly None : execution implementation absent
+
+----------------------------------------------------------------------
+Ran 31 tests in 0.003s
+
+FAILED (failures=31)

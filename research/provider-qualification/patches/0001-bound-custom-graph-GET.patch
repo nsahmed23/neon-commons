@@ -1,0 +1,258 @@
+--- a/internal/services/common/custom_requests/get_request.go
++++ b/internal/services/common/custom_requests/get_request.go
+@@ -1,13 +1,16 @@
+ package customrequests
+ 
+ import (
++	"bytes"
+ 	"context"
+ 	"encoding/json"
+ 	"fmt"
+ 	"io"
+ 	"net/http"
+-
+-	"github.com/hashicorp/terraform-plugin-log/tflog"
++	"net/url"
++	"strings"
++	"time"
++
+ 	abstractions "github.com/microsoft/kiota-abstractions-go"
+ 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+ )
+@@ -120,75 +123,130 @@
+ //	}
+ //
+ //	fmt.Printf("Response: %+v\n", response)
++//
++// These limits are conservative local support limits, not Graph service limits.
++const maxCustomRequestBodyBytes int64 = 4 * 1024 * 1024
++const maxCustomCollectionBytes = 32 * 1024 * 1024
++const maxCustomCollectionPages = 128
++
+ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig GetRequestConfig) (json.RawMessage, error) {
+-
+ 	requestInfo := abstractions.NewRequestInformation()
+ 	requestInfo.Method = abstractions.GET
+ 	requestInfo.UrlTemplate = ByIDRequestUrlTemplate(reqConfig)
+ 	requestInfo.PathParameters = map[string]string{
+ 		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", reqConfig.APIVersion),
+ 	}
++	root, err := requestInfo.GetUri()
++	if err != nil || root.Scheme != "https" || root.Host != "graph.microsoft.com" || root.User != nil || root.Fragment != "" {
++		return nil, fmt.Errorf("invalid initial custom Graph request URL")
++	}
++	// The old URL template had no query expansion. Set the initial URI explicitly.
++	query := root.Query()
++	for key, value := range reqConfig.QueryParameters {
++		query.Set(key, value)
++	}
++	root.RawQuery = query.Encode()
++	requestInfo.SetUri(*root)
+ 	requestInfo.Headers.Add("Accept", "application/json")
+ 
+-	if reqConfig.QueryParameters != nil {
+-		for key, value := range reqConfig.QueryParameters {
+-			requestInfo.QueryParameters[key] = value
+-		}
+-	}
+-
+-	body, err := makeRequest(ctx, adapter, requestInfo)
+-	if err != nil {
+-		return nil, err
+-	}
+-
+-	var firstResponse ODataResponse
+-	if err := json.Unmarshal(body, &firstResponse); err != nil {
+-		return body, nil
+-	}
+-
+-	// If no NextLink or no Value array, this isn't a paginated response
+-	if firstResponse.NextLink == "" || firstResponse.Value == nil {
+-		return body, nil
+-	}
+-
+-	var allResults []json.RawMessage
+-	allResults = append(allResults, firstResponse.Value...)
+-	nextLink := firstResponse.NextLink
+-
+-	tflog.Debug(ctx, "Pagination detected, retrieving additional pages", map[string]any{
+-		"itemsRetrieved": len(allResults),
+-	})
+-
+-	for nextLink != "" {
++	expectedCollection := reqConfig.EndpointSuffix == "/settings" || reqConfig.EndpointSuffix == "/assignments"
++	visited := map[string]bool{root.String(): true}
++	allResults := make([]json.RawMessage, 0)
++	totalBytes := 0
++	for pageNumber := 1; pageNumber <= maxCustomCollectionPages; pageNumber++ {
++		body, err := makeRequest(ctx, adapter, requestInfo)
++		if err != nil {
++			return nil, err
++		}
++		totalBytes += len(body)
++		if totalBytes > maxCustomCollectionBytes {
++			return nil, fmt.Errorf("custom Graph collection exceeds byte limit")
++		}
++		object, err := decodeUniqueObject(body)
++		if err != nil {
++			return nil, fmt.Errorf("custom Graph response must be a JSON object")
++		}
++		if _, exists := object["error"]; exists {
++			return nil, fmt.Errorf("custom Graph response contains an error object")
++		}
++		value, hasValue := object["value"]
++		next, hasNext := object["@odata.nextLink"]
++		if !hasValue {
++			if expectedCollection || hasNext || pageNumber > 1 {
++				return nil, fmt.Errorf("custom Graph collection page is missing value")
++			}
++			return body, nil // Preserve the helper's non-collection object support.
++		}
++		expectedCollection = true
++		var items []json.RawMessage
++		if err := json.Unmarshal(value, &items); err != nil || items == nil {
++			return nil, fmt.Errorf("custom Graph collection value must be an array")
++		}
++		allResults = append(allResults, items...)
++		nextLink := ""
++		if hasNext {
++			if strings.TrimSpace(string(next)) == "null" {
++				return nil, fmt.Errorf("custom Graph continuation must be a string")
++			}
++			if err := json.Unmarshal(next, &nextLink); err != nil {
++				return nil, fmt.Errorf("custom Graph continuation must be a string")
++			}
++		}
++		if nextLink == "" {
++			return json.Marshal(map[string]any{"value": allResults})
++		}
++		if pageNumber == maxCustomCollectionPages {
++			return nil, fmt.Errorf("custom Graph collection exceeds page limit")
++		}
++		continuation, err := url.Parse(nextLink)
++		if err != nil || continuation.Scheme != root.Scheme || continuation.Host != root.Host || continuation.User != nil || continuation.Fragment != "" || continuation.EscapedPath() != root.EscapedPath() {
++			return nil, fmt.Errorf("custom Graph continuation is outside admitted collection")
++		}
++		if visited[nextLink] {
++			return nil, fmt.Errorf("custom Graph continuation loop")
++		}
++		visited[nextLink] = true
+ 		requestInfo = abstractions.NewRequestInformation()
+ 		requestInfo.Method = abstractions.GET
+-		requestInfo.UrlTemplate = nextLink
++		requestInfo.SetUri(*continuation) // Keep the complete returned query, byte for byte.
+ 		requestInfo.Headers.Add("Accept", "application/json")
+-
+-		body, err = makeRequest(ctx, adapter, requestInfo)
++	}
++	return nil, fmt.Errorf("custom Graph page limit reached")
++}
++
++// decodeUniqueObject rejects ambiguous duplicate envelope keys and trailing JSON.
++func decodeUniqueObject(body []byte) (map[string]json.RawMessage, error) {
++	decoder := json.NewDecoder(bytes.NewReader(body))
++	token, err := decoder.Token()
++	if err != nil || token != json.Delim('{') {
++		return nil, fmt.Errorf("expected JSON object")
++	}
++	object := make(map[string]json.RawMessage)
++	for decoder.More() {
++		keyToken, err := decoder.Token()
+ 		if err != nil {
+ 			return nil, err
+ 		}
+-
+-		var pageResponse ODataResponse
+-		if err := json.Unmarshal(body, &pageResponse); err != nil {
+-			return nil, fmt.Errorf("error parsing paginated response: %w", err)
+-		}
+-
+-		allResults = append(allResults, pageResponse.Value...)
+-		nextLink = pageResponse.NextLink
+-
+-		tflog.Debug(ctx, "Retrieved additional page", map[string]any{
+-			"itemsRetrieved": len(allResults),
+-			"hasNextPage":    nextLink != "",
+-		})
+-	}
+-
+-	combinedResponse := map[string]any{
+-		"value": allResults,
+-	}
+-
+-	return json.Marshal(combinedResponse)
++		key, ok := keyToken.(string)
++		if !ok {
++			return nil, fmt.Errorf("invalid JSON object key")
++		}
++		if _, duplicate := object[key]; duplicate {
++			return nil, fmt.Errorf("duplicate JSON object key")
++		}
++		var value json.RawMessage
++		if err := decoder.Decode(&value); err != nil {
++			return nil, err
++		}
++		object[key] = value
++	}
++	if _, err := decoder.Token(); err != nil {
++		return nil, err
++	}
++	if _, err := decoder.Token(); err != io.EOF {
++		return nil, fmt.Errorf("trailing JSON content")
++	}
++	return object, nil
+ }
+ 
+ // makeRequest executes an HTTP request using the provided Kiota request adapter and request information.
+@@ -211,26 +269,35 @@
+ func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, requestInfo *abstractions.RequestInformation) ([]byte, error) {
+ 	nativeReq, err := adapter.ConvertToNativeRequest(ctx, requestInfo)
+ 	if err != nil {
+-		return nil, fmt.Errorf("error converting to native HTTP request: %w", err)
+-	}
+-
+-	httpReq := nativeReq.(*http.Request)
+-	client := &http.Client{}
+-
+-	tflog.Debug(ctx, "Making request", map[string]any{
+-		"url": httpReq.URL.String(),
+-	})
+-
++		return nil, fmt.Errorf("custom Graph request conversion failed")
++	}
++	httpReq, ok := nativeReq.(*http.Request)
++	if !ok || httpReq == nil {
++		return nil, fmt.Errorf("custom Graph adapter returned invalid request")
++	}
++	client := &http.Client{
++		Timeout: 30 * time.Second,
++		CheckRedirect: func(*http.Request, []*http.Request) error {
++			return fmt.Errorf("custom Graph redirects are not admitted")
++		},
++	}
+ 	resp, err := client.Do(httpReq)
+ 	if err != nil {
+-		return nil, err
++		if ctx.Err() != nil {
++			return nil, ctx.Err()
++		}
++		return nil, fmt.Errorf("custom Graph transport failed; remote outcome unknown")
+ 	}
+ 	defer resp.Body.Close()
+-
+-	body, err := io.ReadAll(resp.Body)
++	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
++		return nil, fmt.Errorf("custom Graph HTTP status %d", resp.StatusCode)
++	}
++	body, err := io.ReadAll(io.LimitReader(resp.Body, maxCustomRequestBodyBytes+1))
+ 	if err != nil {
+-		return nil, err
+-	}
+-
++		return nil, fmt.Errorf("custom Graph response body read failed")
++	}
++	if int64(len(body)) > maxCustomRequestBodyBytes {
++		return nil, fmt.Errorf("custom Graph response exceeds byte limit")
++	}
+ 	return body, nil
+ }

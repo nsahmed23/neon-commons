@@ -1,0 +1,302 @@
+{
+  "repository": "vercel/vercel-plugin",
+  "commit": "f0a392d164e4ee1a834008fe455220aec6c8895c",
+  "files": [
+    {
+      "path": ".claude/skills/benchmark-agents/SKILL.md",
+      "sha256": "e3ebc2384a8fcd1945813e3063ef880a1db319aa1fa4b08fe0879e788e825845",
+      "bytes": 14563
+    },
+    {
+      "path": ".claude/skills/benchmark-e2e/SKILL.md",
+      "sha256": "1f18ec33990b765e7235bfec8e28b41f088aad5c5ea977b041c4657465ce624b",
+      "bytes": 5380
+    },
+    {
+      "path": ".claude/skills/benchmark-sandbox/SKILL.md",
+      "sha256": "f1cc31a991a0804860bb5f7d4f67e60d4e77e71180f53f46509b4fce724d65ba",
+      "bytes": 21950
+    },
+    {
+      "path": ".claude/skills/benchmark-testing/SKILL.md",
+      "sha256": "9d5ead7eed4f56a57cbfbf475614c970589131ff8c279d85738eaa94979152b0",
+      "bytes": 3788
+    },
+    {
+      "path": ".claude/skills/plugin-audit/SKILL.md",
+      "sha256": "3179280ffb97921cb5e91fdce5bb45003db9b15e76f9f9887a519ccb603ea32a",
+      "bytes": 2956
+    },
+    {
+      "path": ".claude/skills/release/SKILL.md",
+      "sha256": "8124ee02d88eca6e455092e35637e37f96d2f37ce05b9694282bfe40fa1f4945",
+      "bytes": 2209
+    },
+    {
+      "path": ".claude/skills/vercel-plugin-eval/SKILL.md",
+      "sha256": "5c701868cc662025d01e38700c1e1d13d1cdd4f60c4f7405615f651d759571ab",
+      "bytes": 4977
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "5c67ad692a469fa14d325db4c1e392f9343a77b9ac82ae87f70cfb47b2387c22",
+      "bytes": 552
+    },
+    {
+      "path": "README.md",
+      "sha256": "3c7ec47fafde80cf4eef49786bd8c955b8e3b451029c98c197852193eadb2abf",
+      "bytes": 23403
+    },
+    {
+      "path": "skills/access-protected-vercel-deployment/SKILL.md",
+      "sha256": "24d295fa893a22b318f19d87fc52865fc0e26fe43abea62ce787769d00a79fc6",
+      "bytes": 7637
+    },
+    {
+      "path": "skills/ai-gateway/SKILL.md",
+      "sha256": "5e50e060b21af72f53175196ba8d653ff459bceeba68206b325293a9fdeb722d",
+      "bytes": 14852
+    },
+    {
+      "path": "skills/ai-sdk/SKILL.md",
+      "sha256": "9d6dd182e5e61afc94f7d3867012cfdc19ebbb634e4370e4ed7782919fc1038a",
+      "bytes": 21018
+    },
+    {
+      "path": "skills/ai-sdk/upstream/SKILL.md",
+      "sha256": "6bc642319c4ecbf9fbd59cef783b02174d4bd663c010703a6a6b80bda855b32d",
+      "bytes": 5839
+    },
+    {
+      "path": "skills/auth/.vercel.approvers",
+      "sha256": "ee79991896f72a8d8512ad7599cb2f7183c15b22a2cfa8f8c52489ad47f798ac",
+      "bytes": 25
+    },
+    {
+      "path": "skills/auth/SKILL.md",
+      "sha256": "292ad3b32b594b28da47281900bd0914d8dfa674f0c2e9e37c5c1c8bfdea79db",
+      "bytes": 14814
+    },
+    {
+      "path": "skills/bootstrap/SKILL.md",
+      "sha256": "49be804ff3b433869afc6034a8f028f06f631fe39fc9c04309abe042a7f94d09",
+      "bytes": 8111
+    },
+    {
+      "path": "skills/build-agents/SKILL.md",
+      "sha256": "334a5f42b57d7536fae1971191dce34ad47487a17f21cab1cc6709d4119203fb",
+      "bytes": 5754
+    },
+    {
+      "path": "skills/cdn-caching/SKILL.md",
+      "sha256": "10f91d3abe3378046cffeb214871a9bceab3c3a1128015244f99e76fae283a3e",
+      "bytes": 21129
+    },
+    {
+      "path": "skills/chat-sdk/SKILL.md",
+      "sha256": "65b932858227ff89784636bbdf42e3573397175405397644c37310700ee169b1",
+      "bytes": 11613
+    },
+    {
+      "path": "skills/chat-sdk/upstream/SKILL.md",
+      "sha256": "6e896ea626060baf607f2f87191c3967a20deae16155b9571a345f7fed91e50f",
+      "bytes": 7302
+    },
+    {
+      "path": "skills/create-a-backend/SKILL.md",
+      "sha256": "0ac49fd640ce4928588b1f9be65c17540dcec0b51f3a6d5b5fad3e6e1074ba86",
+      "bytes": 5853
+    },
+    {
+      "path": "skills/custom-metrics/SKILL.md",
+      "sha256": "dda9871df28f58001367e6ee923912c3b41d3ed77a4ef665ce0552227760d4f1",
+      "bytes": 6528
+    },
+    {
+      "path": "skills/deployments-cicd/.vercel.approvers",
+      "sha256": "32c12a2a9e81761bba9c7eaf72f2f7a2f54facf76b300b0952e7bed093355fc6",
+      "bytes": 19
+    },
+    {
+      "path": "skills/deployments-cicd/SKILL.md",
+      "sha256": "35a39f8944a878c43fab9bd36ff6f87fee39f8e14a9cdd1aa34addc5430ba9c8",
+      "bytes": 11913
+    },
+    {
+      "path": "skills/deployments-cicd/references/cli-pipelines.md",
+      "sha256": "c790b0cfcddfb6d062757a5f1ee33a2fcb82bb5ddeca8e9d15c42c57f46c2fb9",
+      "bytes": 1805
+    },
+    {
+      "path": "skills/deployments-cicd/references/deployment-checks.md",
+      "sha256": "54c71d81ee38c01dd5515f918c428b46231a74182dd2680dc1ebb0127616f105",
+      "bytes": 3886
+    },
+    {
+      "path": "skills/deployments-cicd/references/live-status.md",
+      "sha256": "9cc8a5f38ba68173b896b9b7ef5d875175ff7b5033284cf01374084cea54caaf",
+      "bytes": 1449
+    },
+    {
+      "path": "skills/deployments-cicd/references/oidc-federation.md",
+      "sha256": "8be13e948df3af0e2e53c31a39924affe52e3e7765dba18d48c4b9fc6bb87e18",
+      "bytes": 938
+    },
+    {
+      "path": "skills/domains/SKILL.md",
+      "sha256": "48d2b24366dae02b0e8bfe989b30127263f99105308687ab541518e96b613e49",
+      "bytes": 8921
+    },
+    {
+      "path": "skills/env-vars/.vercel.approvers",
+      "sha256": "32c12a2a9e81761bba9c7eaf72f2f7a2f54facf76b300b0952e7bed093355fc6",
+      "bytes": 19
+    },
+    {
+      "path": "skills/env-vars/SKILL.md",
+      "sha256": "081d79b5b046276631c10b3db6ff07dbff4a59c057fc9bbc64aa364f82bb3045",
+      "bytes": 12153
+    },
+    {
+      "path": "skills/eve/SKILL.md",
+      "sha256": "16951b8308c7025bdb77cd2b63407e4d2e06d5804e0147eccdb174121386d092",
+      "bytes": 4942
+    },
+    {
+      "path": "skills/eve/upstream/SKILL.md",
+      "sha256": "35a7c82f96e20871ff91e9a3a0054ac110f341d35050ed72cd79f441fb9be8a6",
+      "bytes": 1032
+    },
+    {
+      "path": "skills/flags-sdk/SKILL.md",
+      "sha256": "2149f8b2ff5ac44022103cd3f36895504bfc436698bd90fa7fe1bcd9b4e99cb4",
+      "bytes": 27496
+    },
+    {
+      "path": "skills/flags-sdk/upstream/SKILL.md",
+      "sha256": "92daa4857acf166c45548d7fd1489b7ab773ee89939d3be6c7aa4494b9c69a78",
+      "bytes": 24450
+    },
+    {
+      "path": "skills/knowledge-update/SKILL.md",
+      "sha256": "1d30d92b31a89dd5fd2d1c08d3c6f6bcf6f9aa08ee4fb1c9f3b91df24f8f8333",
+      "bytes": 9959
+    },
+    {
+      "path": "skills/marketplace/SKILL.md",
+      "sha256": "580f3cd836488f0c09ff092c498cbdfa04cd15f8404e465ae48845b53294300c",
+      "bytes": 9273
+    },
+    {
+      "path": "skills/microfrontends/SKILL.md",
+      "sha256": "9dbe1a3db8bfa3441b1412b019f518e3b6af341564a3e84a7b1d0073af8eba05",
+      "bytes": 5236
+    },
+    {
+      "path": "skills/queues/SKILL.md",
+      "sha256": "e2f52b8a64540aed0d768b052d5f97b37223d5dac09d75015d1451c3357d9c37",
+      "bytes": 9597
+    },
+    {
+      "path": "skills/react-best-practices/SKILL.md",
+      "sha256": "5c1b1512e76413a9706309569c4c88827ed86b00dff9338849bf64caae7d3921",
+      "bytes": 8149
+    },
+    {
+      "path": "skills/react-best-practices/upstream/SKILL.md",
+      "sha256": "71ed7794962fa6e803ee83030517b5b93a9f70fbfeb431ec4535c5480a8d8355",
+      "bytes": 7251
+    },
+    {
+      "path": "skills/routing-middleware/SKILL.md",
+      "sha256": "521821d60f7af332239ffcf896151e9eb625334c14202430ff60a91af3248165",
+      "bytes": 11265
+    },
+    {
+      "path": "skills/runtime-cache/SKILL.md",
+      "sha256": "b05ffa80629040a4a736946346befdc777bc0b67bd65838800f0656aca9fcae7",
+      "bytes": 9305
+    },
+    {
+      "path": "skills/vercel-agent/SKILL.md",
+      "sha256": "8e21f56eff1dea900988fddbd13971d21fb61dc692b9b76a102f02297a245144",
+      "bytes": 4103
+    },
+    {
+      "path": "skills/vercel-cli/SKILL.md",
+      "sha256": "6399a7d4f2fc8b7202c46ae4a63380c32ff8a994bd952985ee3f9b0fbf25b756",
+      "bytes": 9968
+    },
+    {
+      "path": "skills/vercel-cli/upstream/SKILL.md",
+      "sha256": "002ab07820a2e0109cb3d28e30a6d7d9dfe4fd132eef66efd652343d939dcdea",
+      "bytes": 8211
+    },
+    {
+      "path": "skills/vercel-connect/SKILL.md",
+      "sha256": "07ad7f7cfe4ebd68cebf66c120086de49900381ba0f42a3a822adb13d922c49c",
+      "bytes": 21076
+    },
+    {
+      "path": "skills/vercel-firewall/.vercel.approvers",
+      "sha256": "f9f372f9a767e2b66c978590fb4b8a63be7d26f2bb789f83cb636626f21a5b70",
+      "bytes": 27
+    },
+    {
+      "path": "skills/vercel-firewall/SKILL.md",
+      "sha256": "cc490dddcced6d2db0bdaa59aeebd3f38e9108b97ca8e9baae17afee685b3f7d",
+      "bytes": 21704
+    },
+    {
+      "path": "skills/vercel-functions/SKILL.md",
+      "sha256": "ac162ecba80415929a1c40f65beea13cb25f09baf3bfa87ce6d6e404962040c6",
+      "bytes": 48961
+    },
+    {
+      "path": "skills/vercel-sandbox/.vercel.approvers",
+      "sha256": "d6d06da1fab3616fbdaba3da5dee3077610c4bcb7d61e1d435100655d830f0c1",
+      "bytes": 25
+    },
+    {
+      "path": "skills/vercel-sandbox/SKILL.md",
+      "sha256": "db68a13177ba78c3eeabbe61256829c9b801d4332a05c8692e0c728124041d20",
+      "bytes": 24923
+    },
+    {
+      "path": "skills/vercel-sandbox/overlay.yaml",
+      "sha256": "1c53bb552197fabb8ccdaace5340de08e86d8aba2e39dedd5433e5558a6454fb",
+      "bytes": 3636
+    },
+    {
+      "path": "skills/vercel-sandbox/upstream/SKILL.md",
+      "sha256": "3c52b94dba36803c085c081a8da7ef1aa04112fdf78770a93b69427d6b9b0684",
+      "bytes": 21565
+    },
+    {
+      "path": "skills/vercel-services/SKILL.md",
+      "sha256": "eb82b6a1aef40230c6a24ba58d7a4377e34c274aa83f910ba326992c93b7c384",
+      "bytes": 11941
+    },
+    {
+      "path": "skills/vercel-storage/SKILL.md",
+      "sha256": "b294915c90706b86edfc4f1dca4c33b519ecf5eee8acdbda2d7466f1b0f35bf4",
+      "bytes": 22131
+    },
+    {
+      "path": "skills/verification/SKILL.md",
+      "sha256": "1dd50aa65a4f8a287f8d8e2fbbaf4e52a3998451a9011659ab0ab38d19539932",
+      "bytes": 7922
+    },
+    {
+      "path": "skills/workflow/SKILL.md",
+      "sha256": "d05a2906339783106bc5477df02b31955361b3ea72d57fb30af385e46e853931",
+      "bytes": 44100
+    },
+    {
+      "path": "skills/workflow/upstream/SKILL.md",
+      "sha256": "91e683169c726e6034088ae7d72bea67c5bebd1d432f874434f55c030d932694",
+      "bytes": 31706
+    }
+  ],
+  "tree_truncated": false
+}

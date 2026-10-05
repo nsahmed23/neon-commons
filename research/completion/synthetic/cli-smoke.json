@@ -1,0 +1,25 @@
+{
+  "scope": "Actual intune_iac.cli.main routing in process, disposable local output",
+  "commands": [
+    [
+      "synthetic",
+      "generate",
+      "--seed",
+      "77",
+      "--output",
+      "<fresh-temp>/estate"
+    ],
+    [
+      "synthetic",
+      "inspect",
+      "--input",
+      "<fresh-temp>/estate/estate.json"
+    ]
+  ],
+  "exit_codes": [
+    0,
+    0
+  ],
+  "success": true,
+  "cloud_calls": 0
+}

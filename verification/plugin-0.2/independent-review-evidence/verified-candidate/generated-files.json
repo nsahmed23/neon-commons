@@ -1,0 +1,16 @@
+{
+  "files": {
+    "BLOCKED.json": "fa3e465739d617117490de96cf002c10847242f80f7bffc6902fe4cbffe96d63",
+    "README.md": "70bffcdd9ca50cf19e18d923f1ec8f8a807dc20f3c49b8c5c9cd2fe00447f7e4",
+    "adoption/setting-id-map.json": "9109b5c40296e078479e35c7bca1e9983a4ae460487ff520d4509a4b323752cd",
+    "adoption/source-receipt.json": "d95d4ce2ffc4165cba33314a2843ecb5179ec5ec580be7556d144ae4306a3157",
+    "adoption/target-receipt.json": "d7b4685f7e7d1acb9e7f1ce37583ceca49bbbd857f92282e60d727ef5ef682c4",
+    "candidates/components/terraform/policy/configuration.json": "437b219ff8472d04f8dbc03faa00acb3d884486b0cd47c3254b8408c8e9c701c",
+    "candidates/components/terraform/policy/main.tf.txt": "1f35c4f596cadedc3d76e3bad438a1f3b9913fe4b6b3adf606bc85a581a21932",
+    "candidates/components/terraform/policy/settings.json": "d23244b34247581f77a6a33e9195974d48b550754bd98ef54a58f1605dec2cfe",
+    "candidates/target.json": "b66cbb98dff920a3d8b3c9ffc65b33648658f52b2a2383b1fd2316c16d4f7231",
+    "commands/command-cards.json": "1b7849d76f76ec3e7165c2965d1bd28944737627d9a252a13709ec727f6d2242",
+    "review/normalized.json": "70bb2e53f7ac871120cd19d9c45698bbe7a19ac1f2a9d14a5649e333c4cd76f5"
+  },
+  "schema_version": "1.0.0"
+}

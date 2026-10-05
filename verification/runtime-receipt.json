@@ -1,0 +1,61 @@
+{
+  "observed_at_utc": "2026-09-30T16:59:10.067422+00:00",
+  "scope": "local validation runtime only; no provider, cloud or model execution",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "interpreter": "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+  "versions": {
+    "PyYAML": {
+      "expected": "6.0.3",
+      "observed": "6.0.3"
+    },
+    "jsonschema": {
+      "expected": "4.26.0",
+      "observed": "4.26.0"
+    },
+    "python-hcl2": {
+      "expected": "8.1.4",
+      "observed": "8.1.4"
+    },
+    "attrs": {
+      "expected": "26.1.0",
+      "observed": "26.1.0"
+    },
+    "jsonschema-specifications": {
+      "expected": "2025.9.1",
+      "observed": "2025.9.1"
+    },
+    "referencing": {
+      "expected": "0.37.0",
+      "observed": "0.37.0"
+    },
+    "rpds-py": {
+      "expected": "2026.6.3",
+      "observed": "2026.6.3"
+    },
+    "typing-extensions": {
+      "expected": "4.16.0",
+      "observed": "4.16.0"
+    },
+    "lark": {
+      "expected": "1.3.1",
+      "observed": "1.3.1"
+    },
+    "regex": {
+      "expected": "2026.9.29",
+      "observed": "2026.9.29"
+    }
+  },
+  "modules": {
+    "jsonschema": "/workspace/scratch/26b6d364cfda/correction-validation-deps/jsonschema/__init__.py",
+    "yaml": "/workspace/scratch/26b6d364cfda/correction-validation-deps/yaml/__init__.py",
+    "hcl2": "/workspace/scratch/26b6d364cfda/correction-validation-deps/hcl2/__init__.py"
+  },
+  "smoke_checks": {
+    "draft202012_uuid_length_unknown_key": true,
+    "yaml_safe_load": true,
+    "hcl_import_structure": true,
+    "hcl_malformed_rejected": true
+  },
+  "errors": [],
+  "status": "pass"
+}

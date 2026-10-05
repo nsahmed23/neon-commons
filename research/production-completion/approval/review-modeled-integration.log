@@ -1,0 +1,6 @@
+test_real_signed_approval_reaches_modeled_provider_lifecycle_only (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_real_signed_approval_reaches_modeled_provider_lifecycle_only) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.052s
+
+OK

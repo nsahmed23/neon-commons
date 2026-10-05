@@ -1,0 +1,9 @@
+# Atmos integration and effects
+
+The synthetic fixture emits a complete conventional components/terraform + stacks project using command=tofu. It does not merge arbitrary existing Atmos YAML. The builder must inspect an existing project's sanctioned config and use its exact Atmos version for effective resolution. The included .tool-versions pins are **reference choices**, not claims that your repository uses them or that they were executed here.
+
+Before live introspection, inspect configuration/hook/YAML-function paths. Record source origin for component, stack, variables, backend/workspace/state key, engine path/version, provider lock and generated files. Compare intended target with effective target. An upstream skill rechecked at commit d5790b2b11cce4b1c1ed96da9a73716510d6d03a confirms binary choice and version pinning are different. It also mentions automatic tool installation; do not inherit it into offline inspection.
+
+Effects table: direct local file/schema/hash reads -> no network; raw Atmos config resolution -> conditional evaluation/auth/functions/local output; describe/list -> requested-field/version/config dependent, never globally assumed offline; plan -> provider code, credential/network and plan artifacts; import -> state mutation and refresh; apply/deploy -> remote mutation, deploy auto-approval must be separately verified. A plan name is not an effect boundary.
+
+Existing repository adaptation: emit proposed component and stack in NEW staging directory, produce a diff and origin map, retain backend owner/key, and never modify generated backend/tfvars as durable source. Do not introduce a second controller or ad-hoc YAML merge algorithm. Wrong stack, inherited command=terraform, duplicate state key, changed provider lock or dangerous hook must block consequential steps. The pack supplies these case contracts, not a general executable Atmos inspector.

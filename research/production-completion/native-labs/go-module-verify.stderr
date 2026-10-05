@@ -1,0 +1,1 @@
+go: github.com/Azure/azure-sdk-for-go/sdk/azcore@v1.23.0: module lookup disabled by GOPROXY=off

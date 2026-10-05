@@ -1,0 +1,106 @@
+test_abandoned_session_lock_is_preserved_for_manual_recovery (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_abandoned_session_lock_is_preserved_for_manual_recovery) ... FAIL
+test_concurrent_session_cannot_overwrite_progress (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_concurrent_session_cannot_overwrite_progress) ... FAIL
+test_conflict_without_reason_is_rejected_without_traceback (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_conflict_without_reason_is_rejected_without_traceback) ... ERROR
+test_editing_output_to_session_parent_preserves_saved_session (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_editing_output_to_session_parent_preserves_saved_session) ... FAIL
+test_interrupt_saves_and_releases_session_lock (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_interrupt_saves_and_releases_session_lock) ... ok
+test_review_without_generation_cannot_claim_completion (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_review_without_generation_cannot_claim_completion) ... FAIL
+test_saved_output_scope_cannot_contain_session (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_saved_output_scope_cannot_contain_session) ... FAIL
+test_session_alias_to_source_preserves_source (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_session_alias_to_source_preserves_source) ... FAIL
+test_session_inside_output_is_rejected_before_creating_output (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_session_inside_output_is_rejected_before_creating_output) ... FAIL
+
+======================================================================
+ERROR: test_conflict_without_reason_is_rejected_without_traceback (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_conflict_without_reason_is_rejected_without_traceback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 54, in test_conflict_without_reason_is_rejected_without_traceback
+    result = self.run_answers(['review'], supplied=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 40, in run_answers
+    return run_wizard(self.session, input_fn=read, output_fn=self.messages.append, **supplied_paths)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/intune_iac/wizard.py", line 524, in run_wizard
+    output_fn("Conflict review: " + state["conflict_reason"] + ". Use a new staging directory or preserve these files and suspend.")
+              ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate str (not "NoneType") to str
+
+======================================================================
+FAIL: test_abandoned_session_lock_is_preserved_for_manual_recovery (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_abandoned_session_lock_is_preserved_for_manual_recovery)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 114, in test_abandoned_session_lock_is_preserved_for_manual_recovery
+    self.assertEqual(result['status'], 'blocked')
+AssertionError: 'suspended' != 'blocked'
+- suspended
++ blocked
+
+
+======================================================================
+FAIL: test_concurrent_session_cannot_overwrite_progress (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_concurrent_session_cannot_overwrite_progress)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 93, in test_concurrent_session_cannot_overwrite_progress
+    self.assertEqual(nested_results[0]['status'], 'blocked')
+AssertionError: 'suspended' != 'blocked'
+- suspended
++ blocked
+
+
+======================================================================
+FAIL: test_editing_output_to_session_parent_preserves_saved_session (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_editing_output_to_session_parent_preserves_saved_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 123, in test_editing_output_to_session_parent_preserves_saved_session
+    self.assertEqual(result['status'], 'blocked')
+AssertionError: 'suspended' != 'blocked'
+- suspended
++ blocked
+
+
+======================================================================
+FAIL: test_review_without_generation_cannot_claim_completion (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_review_without_generation_cannot_claim_completion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 46, in test_review_without_generation_cannot_claim_completion
+    self.assertEqual(result['status'], 'blocked')
+AssertionError: 'complete' != 'blocked'
+- complete
++ blocked
+
+
+======================================================================
+FAIL: test_saved_output_scope_cannot_contain_session (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_saved_output_scope_cannot_contain_session)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 71, in test_saved_output_scope_cannot_contain_session
+    self.assertEqual(result['status'], 'blocked')
+AssertionError: 'suspended' != 'blocked'
+- suspended
++ blocked
+
+
+======================================================================
+FAIL: test_session_alias_to_source_preserves_source (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_session_alias_to_source_preserves_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 81, in test_session_alias_to_source_preserves_source
+    self.assertEqual(result['error'], 'wizard_path_conflict')
+AssertionError: 'invalid_wizard_session' != 'wizard_path_conflict'
+- invalid_wizard_session
++ wizard_path_conflict
+
+
+======================================================================
+FAIL: test_session_inside_output_is_rejected_before_creating_output (plugin_tests.test_workflow_audit.WorkflowAuditTests.test_session_inside_output_is_rejected_before_creating_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_workflow_audit.py", line 61, in test_session_inside_output_is_rejected_before_creating_output
+    self.assertEqual(result['status'], 'blocked')
+AssertionError: 'suspended' != 'blocked'
+- suspended
++ blocked
+
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.276s
+
+FAILED (failures=7, errors=1)

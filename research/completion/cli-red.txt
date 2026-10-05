@@ -1,0 +1,45 @@
+test_journey_and_guided_cannot_be_combined (plugin_tests.test_completion_cli.CompletionCLITests.test_journey_and_guided_cannot_be_combined) ... FAIL
+test_new_commands_visible_in_help (plugin_tests.test_completion_cli.CompletionCLITests.test_new_commands_visible_in_help) ... FAIL
+test_nonpassing_qualification_status_has_nonzero_exit (plugin_tests.test_completion_cli.CompletionCLITests.test_nonpassing_qualification_status_has_nonzero_exit) ... FAIL
+test_synthetic_generation_and_inspection_are_real_commands (plugin_tests.test_completion_cli.CompletionCLITests.test_synthetic_generation_and_inspection_are_real_commands) ... FAIL
+
+======================================================================
+FAIL: test_journey_and_guided_cannot_be_combined (plugin_tests.test_completion_cli.CompletionCLITests.test_journey_and_guided_cannot_be_combined)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_completion_cli.py", line 27, in test_journey_and_guided_cannot_be_combined
+    self.assertEqual(answer.returncode,3)
+AssertionError: 2 != 3
+
+======================================================================
+FAIL: test_new_commands_visible_in_help (plugin_tests.test_completion_cli.CompletionCLITests.test_new_commands_visible_in_help)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_completion_cli.py", line 39, in test_new_commands_visible_in_help
+    self.assertIn('--journey',self.cli('wizard','--help').stdout)
+AssertionError: '--journey' not found in 'usage: intune-iac wizard [-h] --session SESSION [--guided] [--input INPUT]\n                         [--context CONTEXT] [--output OUTPUT] [--repo REPO]\n                         [--stack STACK] [--component COMPONENT]\n\noptions:\n  -h, --help            show this help message and exit\n  --session SESSION\n  --guided              Use the receipt-backed cohort authoring flow with a\n                        separate session\n  --input INPUT\n  --context CONTEXT\n  --output OUTPUT\n  --repo REPO\n  --stack STACK\n  --component COMPONENT\n'
+
+======================================================================
+FAIL: test_nonpassing_qualification_status_has_nonzero_exit (plugin_tests.test_completion_cli.CompletionCLITests.test_nonpassing_qualification_status_has_nonzero_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_completion_cli.py", line 34, in test_nonpassing_qualification_status_has_nonzero_exit
+    self.assertNotEqual(exit_code({'status':status}),0,status)
+AssertionError: 0 == 0 : FAIL
+
+======================================================================
+FAIL: test_synthetic_generation_and_inspection_are_real_commands (plugin_tests.test_completion_cli.CompletionCLITests.test_synthetic_generation_and_inspection_are_real_commands)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_completion_cli.py", line 18, in test_synthetic_generation_and_inspection_are_real_commands
+    self.assertEqual(answer.returncode,0,answer.stderr)
+AssertionError: 2 != 0 : usage: intune-iac [-h] [--version]
+                  {doctor,inspect,verify,generate,wizard,repository,action,graph,judge,capture,target,plan,simulation,mcp}
+                  ...
+intune-iac: error: argument command: invalid choice: 'synthetic' (choose from doctor, inspect, verify, generate, wizard, repository, action, graph, judge, capture, target, plan, simulation, mcp)
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.273s
+
+FAILED (failures=4)

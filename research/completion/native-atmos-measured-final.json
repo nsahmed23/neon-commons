@@ -1,0 +1,41 @@
+{
+  "schema_version": "native-atmos/1",
+  "status": "verified",
+  "native_executed": true,
+  "execution_authorized": false,
+  "tenant_authenticated": false,
+  "assurance": "native_configuration_only",
+  "blockers": [],
+  "comparisons": {
+    "vars": true,
+    "env": true,
+    "settings": true,
+    "providers": true,
+    "logical_stack": true,
+    "physical_manifest": true,
+    "implementation": true
+  },
+  "source_fingerprint": "59dd1406251ce7297ea83cfa1c9754c298468529706c0637e6c97a1b3f0d3735",
+  "native_configuration_sha256": "5d8802df30a3b555a6417db2ea73514ff4f50ba73f0739e51f360943fafb3b7b",
+  "tool": {
+    "version": "1.199.0",
+    "sha256": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b"
+  },
+  "logical_stack": "pilot",
+  "physical_manifest": "physical",
+  "workspace_sha256": "9307ee3840564f0c4d4201d56838cf0ac62fcb04b76005294db82625d4b6e8a7",
+  "backend_sha256": "2a9efebda461d776741d8791c3c738c681b53b4968f5e58898cc7385e39b9951",
+  "restrictions": [
+    "inert literal repository subset",
+    "no ambient runtime configuration",
+    "no tenant or backend authentication",
+    "Linux AMD64 and libseccomp",
+    "no filesystem isolation from trusted process owner"
+  ],
+  "network_denied_syscalls": [
+    "socket",
+    "socketpair",
+    "connect"
+  ],
+  "implementation_sha256": "52d0e88ec621cce1db38fead7b7cef91430166f1ba499dfd04f48f7f90be4e07"
+}

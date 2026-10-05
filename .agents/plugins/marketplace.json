@@ -1,0 +1,17 @@
+{
+  "name": "intune-iac-local",
+  "plugins": [
+    {
+      "name": "intune-iac",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

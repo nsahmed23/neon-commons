@@ -1,0 +1,12 @@
+import:
+- catalog/a
+vars:
+  stage: qualification
+  selected:
+  - list
+components:
+  terraform:
+    leaf:
+      metadata:
+        component: demo
+      vars: {}

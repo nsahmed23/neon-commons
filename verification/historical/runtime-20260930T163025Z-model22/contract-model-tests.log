@@ -1,0 +1,27 @@
+test_all_positive_schema_examples (test_contract_models.ContractTests.test_all_positive_schema_examples) ... ok
+test_approval_all_leaf_changes_detected (test_contract_models.ContractTests.test_approval_all_leaf_changes_detected) ... ok
+test_approval_expiry_and_unknown (test_contract_models.ContractTests.test_approval_expiry_and_unknown) ... ok
+test_assignment_constraints (test_contract_models.ContractTests.test_assignment_constraints) ... ok
+test_capture_boundary (test_contract_models.ContractTests.test_capture_boundary) ... ok
+test_capture_chain (test_contract_models.ContractTests.test_capture_chain) ... ok
+test_capture_missing_tail_loop_projection (test_contract_models.ContractTests.test_capture_missing_tail_loop_projection) ... ok
+test_early_resume_does_not_advance (test_contract_models.ContractTests.test_early_resume_does_not_advance) ... ok
+test_executable_tokens (test_contract_models.ContractTests.test_executable_tokens) ... ok
+test_partial_resume_uses_dispatch (test_contract_models.ContractTests.test_partial_resume_uses_dispatch) ... ok
+test_policy_constraints (test_contract_models.ContractTests.test_policy_constraints) ... ok
+test_provider_empty_rejected (test_contract_models.ContractTests.test_provider_empty_rejected) ... ok
+test_provider_ids_not_invented (test_contract_models.ContractTests.test_provider_ids_not_invented) ... ok
+test_provider_projection (test_contract_models.ContractTests.test_provider_projection) ... ok
+test_provider_wrapper_and_values (test_contract_models.ContractTests.test_provider_wrapper_and_values) ... ok
+test_reference_duplicates_order_independent (test_contract_models.ContractTests.test_reference_duplicates_order_independent) ... ok
+test_resume_cartesian_nonadvancement (test_contract_models.ContractTests.test_resume_cartesian_nonadvancement) ... ok
+test_resume_corruption_unknown_inflight (test_contract_models.ContractTests.test_resume_corruption_unknown_inflight) ... ok
+test_resume_missing_verified_prerequisite (test_contract_models.ContractTests.test_resume_missing_verified_prerequisite) ... ok
+test_schema_definitions (test_contract_models.ContractTests.test_schema_definitions) ... ok
+test_receipt_index_positive (test_contract_models.ReceiptIndexTests.test_receipt_index_positive) ... ok
+test_receipt_index_rejects_paths (test_contract_models.ReceiptIndexTests.test_receipt_index_rejects_paths) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 1.425s
+
+OK

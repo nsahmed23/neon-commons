@@ -1,0 +1,121 @@
+{
+  "reviewed_at_utc": "2026-10-01T00:18:01.959337+00:00",
+  "repository": "/workspace/scratch/26b6d364cfda/intune-iac-plugin",
+  "baseline_commit": "3fbfae8f986feda036c6fdb14257be6ad1c5b826",
+  "scope": "Read-only independent review of validation CI additions and directly relevant local verification/dependency interfaces; not the complete product.",
+  "files": [
+    {
+      "path": ".github/workflows/validate.yml",
+      "sha256": "f32014c0ec1c940191701ffb84232c3e4f3ffcb311538a5aaf288791061170ee",
+      "bytes": 6450
+    },
+    {
+      "path": "research/enterprise-ci/check-archives.py",
+      "sha256": "dd364560ccee6a7a1aa6579d11a418ab82617396e81d1911326dabc7ab05a780",
+      "bytes": 5688
+    },
+    {
+      "path": "plugin_tests/test_ci_contract.py",
+      "sha256": "a26ac53c1650eba548dd6bb6d671e6474f22fc607f15d95a2ec3cda8d6d67720",
+      "bytes": 10568
+    },
+    {
+      "path": "docs/CI.md",
+      "sha256": "b23238bdab38f3a36ca014e6e5e57e9c55b8f82e9a645510eaf1dbc8d009c75e",
+      "bytes": 7670
+    },
+    {
+      "path": "research/enterprise-ci/README.md",
+      "sha256": "f7295b4d57d9ddbb265af208d921671fde0fc80f08fda3b66300903536ca2ba7",
+      "bytes": 3408
+    },
+    {
+      "path": "research/enterprise-ci/source-ledger.json",
+      "sha256": "72a4ffcd8c8026ffefdb6dff1631417ac74523ffb273c6e919e901e065e17d89",
+      "bytes": 4864
+    },
+    {
+      "path": "research/enterprise-ci/python-release-selection.json",
+      "sha256": "0cc0903718041e58b11f9cee7ffec4b31f86a8a98990aefa55344d0f6ca51ec5",
+      "bytes": 3105
+    },
+    {
+      "path": "research/enterprise-ci/prior-release-archive-check.json",
+      "sha256": "df4469247539568d7d1b8982fdafe39c1b81d3bad300ab9da044c6e80e87e12b",
+      "bytes": 339
+    },
+    {
+      "path": "research/enterprise-ci/green-tests.txt",
+      "sha256": "f6c811e7e3f4cfbf7cf453bc6633b19cfa5ced79fbf1b63cd61d3172c9b727ab",
+      "bytes": 105
+    },
+    {
+      "path": "requirements-runtime-linux-x86_64-cp312.lock",
+      "sha256": "b372a5e1dea1b6fd46c62541044a8c761e6f3af80f27a294ca6707eedf60ed88",
+      "bytes": 1052
+    },
+    {
+      "path": "requirements-validation.txt",
+      "sha256": "6d01664e22efbb1be00d46fcde2773de1ba80ee47b4cfbadd2bda46f56d837c2",
+      "bytes": 195
+    },
+    {
+      "path": "dependency-lock.json",
+      "sha256": "777ecfceaccd50b541324f85fbbcd8552a3c0bddd261617f1279008690ac32b3",
+      "bytes": 7254
+    },
+    {
+      "path": "scripts/verify-dependencies.py",
+      "sha256": "8b7bce46310917b5e19a7e7f5ba976f751c7b3d4a6d04e101fb190babfd76589",
+      "bytes": 5478
+    },
+    {
+      "path": "scripts/verify-plugin.py",
+      "sha256": "4c2107744330b4e8b98e18f0c7eaaa555747de2a8eb7db521b627ff6227130f2",
+      "bytes": 2122
+    },
+    {
+      "path": "scripts/build-release.py",
+      "sha256": "f715a04f29c6f0f38fe568681c018f3c98f45d3cd1684a6136235a21a0f409cc",
+      "bytes": 9222
+    },
+    {
+      "path": "scripts/qualify-workflow.py",
+      "sha256": "2f9f27ee35b2bcfb04ee8f8e12acec17aac65b2bb37804e6137a9a8199365a9c",
+      "bytes": 3143
+    },
+    {
+      "path": "scripts/qualify-repository.py",
+      "sha256": "fe46dbf9b691190facf5e0140c092c79899ec9058b74981eb471f9aaa2859417",
+      "bytes": 5856
+    },
+    {
+      "path": "scripts/qualify-terminal.py",
+      "sha256": "04f44be887f444c86c28c65d7e9abf14b672384bf9ac2f7494de7a15d46ce67c",
+      "bytes": 2862
+    },
+    {
+      "path": "docs/DEPENDENCIES.md",
+      "sha256": "e00ae7421a31178b5de13c8830bd4f65664d6b95dd132b9bea1cb6fa529c0bf2",
+      "bytes": 1960
+    },
+    {
+      "path": "intune_iac/io.py",
+      "sha256": "4b0271fee3565f6f4f765ff1cb48476faf34662d78f2bc0fc14e2e0fb3ccbb41",
+      "bytes": 3585
+    },
+    {
+      "path": "intune_iac/__init__.py",
+      "sha256": "7d6d34a27e2204a79e1510ca78761e9fd2a06d6b29ecf694160885e533f7ccaf",
+      "bytes": 58
+    }
+  ],
+  "local_probe_receipt": {
+    "path": "/workspace/scratch/26b6d364cfda/enterprise-independent-ci-probes.json",
+    "sha256": "717d7026fbd4af807dff94495a26188e9ec97162ac0dafa5f533197e4148721e"
+  },
+  "github_workflow_executed": false,
+  "native_host_or_cloud_execution_performed": false,
+  "blocking_findings": [],
+  "production_acceptance": false
+}

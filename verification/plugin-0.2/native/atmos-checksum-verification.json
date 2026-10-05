@@ -1,0 +1,9 @@
+{
+  "tool": "Atmos",
+  "version": "1.199.0",
+  "binary_sha256": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b",
+  "matches_release_checksums": true,
+  "matches_github_asset_digest": true,
+  "signature_verified": false,
+  "signature_note": "Official release metadata lists no signature sidecar."
+}

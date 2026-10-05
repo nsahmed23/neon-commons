@@ -1,0 +1,46 @@
+{
+  "artifact_index": {
+    "byte_sha256": "8116d6d4fa88c2e48064bcfba9b9b14d58ee9ef09e642a79d534f274ae529ce0",
+    "relative_path": "receipt-index.json"
+  },
+  "authorization_persisted": false,
+  "completed": [
+    "repository",
+    "source",
+    "inventory",
+    "selection"
+  ],
+  "fingerprints": {
+    "api_version": null,
+    "atmos_version": null,
+    "backend_identity_digest": null,
+    "capture_contract_digest": "d3e01fcaebd54a4df13008c06932817cde78fc51d685919f8461494aa8ef26ac",
+    "cloud": "public",
+    "cohort_digest": null,
+    "component": null,
+    "configuration_digest": null,
+    "dirty_files_digest": "bb2987cc5043e561b2a6a42a8e0dadd86754d39aefbbc0dec427673c1f1badf4",
+    "engine_version": null,
+    "exporter_contract_digest": "b13bb6db071d24774283bd7ba065fa2a16c7e11d5de10212ffd7cc36b577474d",
+    "generated_files_digest": null,
+    "identity_digest": null,
+    "ownership_digest": null,
+    "plan_digest": null,
+    "provider_lock_digest": null,
+    "provider_schema_digest": null,
+    "provider_source": null,
+    "provider_version": null,
+    "repository_revision": "1111111111111111111111111111111111111111",
+    "selected_ids_digest": "04d37db9c96506374a44f852f42c9af6b0592f6e0be3e77320964f818e63e9be",
+    "source_digest": "02517d77228229e95f37584d0d9a4cfafe18e4f0f6a6413fd2608998af4d4d3c",
+    "source_kind": "local_export",
+    "source_locator_digest": "48c0edcddb9601544eba99a7123b4871b9214ca20b299f2a8edb3a29ca24c80a",
+    "stack": null,
+    "tenant_id": "11111111-1111-4111-8111-111111111111"
+  },
+  "in_flight_outcome": "none",
+  "mapping_status": "unknown",
+  "saved_state": "object_selection",
+  "schema_version": "2.0.0",
+  "session_id": "4b2c21da-ffae-4c86-935e-a1ddb9a01206"
+}

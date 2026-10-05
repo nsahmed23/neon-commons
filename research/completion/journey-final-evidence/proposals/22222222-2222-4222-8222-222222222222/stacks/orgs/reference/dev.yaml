@@ -1,0 +1,9 @@
+vars:
+  tenant: reference
+  stage: dev
+components:
+  terraform:
+    intune-reference:
+      command: tofu
+      vars:
+        live_qualification_ack: false

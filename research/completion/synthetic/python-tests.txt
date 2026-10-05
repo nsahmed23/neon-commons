@@ -1,0 +1,22 @@
+test_capture_substitution_and_boolean_serial_are_blocked (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_capture_substitution_and_boolean_serial_are_blocked) ... ok
+test_each_capture_failure_is_blocked_without_active_iac (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_each_capture_failure_is_blocked_without_active_iac) ... ok
+test_empty_omitted_and_denied_are_different (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_empty_omitted_and_denied_are_different) ... ok
+test_estate_inspection_rejects_corrupted_source (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_estate_inspection_rejects_corrupted_source) ... ok
+test_generated_policy_oracle_and_meaningful_mutants (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_generated_policy_oracle_and_meaningful_mutants) ... ok
+test_legitimate_state_and_action_order_is_accepted (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_legitimate_state_and_action_order_is_accepted) ... ok
+test_limits (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_limits) ... ok
+test_oracle_code_is_independent (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_oracle_code_is_independent) ... ok
+test_partial_failure_stays_inconclusive (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_partial_failure_stays_inconclusive) ... ok
+test_positive_noop_and_replay_and_unknown_fault (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_positive_noop_and_replay_and_unknown_fault) ... ok
+test_protocol_denials_leave_state_intact (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_protocol_denials_leave_state_intact) ... ok
+test_real_graph_size_gate (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_real_graph_size_gate) ... ok
+test_seed_and_stable_identity (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_seed_and_stable_identity) ... ok
+test_selected_adapter_keeps_full_estate_and_identity (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_selected_adapter_keeps_full_estate_and_identity) ... ok
+test_state_and_action_coverage_are_required_for_noop (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_state_and_action_coverage_are_required_for_noop) ... ok
+test_tampered_plan_and_repository_fail (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_tampered_plan_and_repository_fail) ... ok
+test_target_context_expiry_lease_and_faults (plugin_tests.test_synthetic_completion.SyntheticCompletion.test_target_context_expiry_lease_and_faults) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.123s
+
+OK

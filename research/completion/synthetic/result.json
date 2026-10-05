@@ -1,0 +1,2938 @@
+{
+  "schema_version": "synthetic-qualification/1.0",
+  "success": true,
+  "implementation_sha256": {
+    "intune_iac/synthetic.py": "2b9a248fb17c0fa034874fc0566b7b7daba45b17e9a27b9a7ca83c015fcdf6fa",
+    "scripts/qualify-synthetic.py": "74439b19beaa6701b0b3dc68ff4078344d58aedbf37d49e033256347322ef321",
+    "intune_iac/engine.py": "8c110457e892b64cad71fcbf2c16e191c2c5f8f9a1a2d34cd9cc983385ac75e4",
+    "reference/core.py": "c3629b281d13f08336c910876bb6480e7d644701cf0984d99236b75fc2a6ff0a"
+  },
+  "seeds": [
+    0,
+    42,
+    2147483647
+  ],
+  "estate_cases": 78,
+  "policy_mapping_runs": 234,
+  "mutation_checks": 69,
+  "legitimate_alternatives": 13,
+  "transition_checks": 22,
+  "cases": [
+    {
+      "case_id": "S0000000000-baseline",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-baseline",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-baseline",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-reordered",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-reordered",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-reordered",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-malicious-label",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-malicious-label",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-malicious-label",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-denied",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-denied",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-denied",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-pagination-loop",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-pagination-loop",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-pagination-loop",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-missing-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-missing-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-missing-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-unknown-setting",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-unknown-setting",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-unknown-setting",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-stale-state",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-stale-state",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-stale-state",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-approval-replay",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-approval-replay",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-approval-replay",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-target",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-target",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-target",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-partial-failure",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-partial-failure",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-partial-failure",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-recovery",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-recovery",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-recovery",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-empty-assignments",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-empty-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-empty-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-omitted-assignments",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-omitted-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-omitted-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-null-assignments",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-null-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-null-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-cross-origin-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-cross-origin-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-cross-origin-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-duplicate-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-duplicate-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-duplicate-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-missing-initial-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-missing-initial-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-missing-initial-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-nested-unknown",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-nested-unknown",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-nested-unknown",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-cloud",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-cloud",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-cloud",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-principal",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-principal",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-principal",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-backend",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-backend",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-backend",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-lineage",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-lineage",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-wrong-lineage",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-expired-approval",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-expired-approval",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-expired-approval",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-plan-substitution",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-plan-substitution",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-plan-substitution",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-lease-loss",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-lease-loss",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000000-lease-loss",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-baseline",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-baseline",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-baseline",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-reordered",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-reordered",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-reordered",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-malicious-label",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-malicious-label",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-malicious-label",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-denied",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-denied",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-denied",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-pagination-loop",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-pagination-loop",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-pagination-loop",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-missing-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-missing-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-missing-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-unknown-setting",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-unknown-setting",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-unknown-setting",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-stale-state",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-stale-state",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-stale-state",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-approval-replay",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-approval-replay",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-approval-replay",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-target",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-target",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-target",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-partial-failure",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-partial-failure",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-partial-failure",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-recovery",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-recovery",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-recovery",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-empty-assignments",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-empty-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-empty-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-omitted-assignments",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-omitted-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-omitted-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-null-assignments",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-null-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-null-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-cross-origin-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-cross-origin-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-cross-origin-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-duplicate-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-duplicate-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-duplicate-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-missing-initial-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-missing-initial-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-missing-initial-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-nested-unknown",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-nested-unknown",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-nested-unknown",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-cloud",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-cloud",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-cloud",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-principal",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-principal",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-principal",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-backend",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-backend",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-backend",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-lineage",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-lineage",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-wrong-lineage",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-expired-approval",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-expired-approval",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-expired-approval",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-plan-substitution",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-plan-substitution",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-plan-substitution",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-lease-loss",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-lease-loss",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S0000000042-lease-loss",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-baseline",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-baseline",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-baseline",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-reordered",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-reordered",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-reordered",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-malicious-label",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-malicious-label",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-malicious-label",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-denied",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-denied",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-denied",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-pagination-loop",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-pagination-loop",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-pagination-loop",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-missing-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-missing-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-missing-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-unknown-setting",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-unknown-setting",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-unknown-setting",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-stale-state",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-stale-state",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-stale-state",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-approval-replay",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-approval-replay",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-approval-replay",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-target",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-target",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-target",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-partial-failure",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-partial-failure",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-partial-failure",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-recovery",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-recovery",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-recovery",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-empty-assignments",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-empty-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-empty-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-omitted-assignments",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-omitted-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-omitted-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-null-assignments",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-null-assignments",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-null-assignments",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-cross-origin-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-cross-origin-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-cross-origin-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-duplicate-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-duplicate-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-duplicate-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-missing-initial-page",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-missing-initial-page",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-missing-initial-page",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-nested-unknown",
+      "policy_index": 0,
+      "ready": false,
+      "active_iac": false,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-nested-unknown",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-nested-unknown",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-cloud",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-cloud",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-cloud",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-principal",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-principal",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-principal",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-backend",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-backend",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-backend",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-lineage",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-lineage",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-wrong-lineage",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-expired-approval",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-expired-approval",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-expired-approval",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-plan-substitution",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-plan-substitution",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-plan-substitution",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-lease-loss",
+      "policy_index": 0,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-lease-loss",
+      "policy_index": 1,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    },
+    {
+      "case_id": "S2147483647-lease-loss",
+      "policy_index": 2,
+      "ready": true,
+      "active_iac": true,
+      "oracle_issues": [],
+      "verified": true,
+      "passed": true
+    }
+  ],
+  "mutants": [
+    {
+      "seed": 0,
+      "name": "policy-id",
+      "rejected": true,
+      "issues": [
+        "identity_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "tenant-id",
+      "rejected": true,
+      "issues": [
+        "tenant_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "grant-authority",
+      "rejected": true,
+      "issues": [
+        "authority_invented"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "claim-live",
+      "rejected": true,
+      "issues": [
+        "live_qualification_invented"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "readiness",
+      "rejected": true,
+      "issues": [
+        "mapping_readiness_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "policy-name",
+      "rejected": true,
+      "issues": [
+        "name_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "description",
+      "rejected": true,
+      "issues": [
+        "description_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "platform",
+      "rejected": true,
+      "issues": [
+        "platforms_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "technology",
+      "rejected": true,
+      "issues": [
+        "technologies_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "scope-tags",
+      "rejected": true,
+      "issues": [
+        "role_scope_tag_ids_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "setting-value",
+      "rejected": true,
+      "issues": [
+        "settings_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "drop-exclusion",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "duplicate-assignment",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "filter-mode",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "filter-id",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "group-id",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "assignment-type",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "policy-id",
+      "rejected": true,
+      "issues": [
+        "identity_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "tenant-id",
+      "rejected": true,
+      "issues": [
+        "tenant_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "grant-authority",
+      "rejected": true,
+      "issues": [
+        "authority_invented"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "claim-live",
+      "rejected": true,
+      "issues": [
+        "live_qualification_invented"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "readiness",
+      "rejected": true,
+      "issues": [
+        "mapping_readiness_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "policy-name",
+      "rejected": true,
+      "issues": [
+        "name_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "description",
+      "rejected": true,
+      "issues": [
+        "description_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "platform",
+      "rejected": true,
+      "issues": [
+        "platforms_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "technology",
+      "rejected": true,
+      "issues": [
+        "technologies_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "scope-tags",
+      "rejected": true,
+      "issues": [
+        "role_scope_tag_ids_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "setting-value",
+      "rejected": true,
+      "issues": [
+        "settings_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "drop-exclusion",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "duplicate-assignment",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "filter-mode",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "filter-id",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "group-id",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "assignment-type",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "policy-id",
+      "rejected": true,
+      "issues": [
+        "identity_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "tenant-id",
+      "rejected": true,
+      "issues": [
+        "tenant_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "grant-authority",
+      "rejected": true,
+      "issues": [
+        "authority_invented"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "claim-live",
+      "rejected": true,
+      "issues": [
+        "live_qualification_invented"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "readiness",
+      "rejected": true,
+      "issues": [
+        "mapping_readiness_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "policy-name",
+      "rejected": true,
+      "issues": [
+        "name_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "description",
+      "rejected": true,
+      "issues": [
+        "description_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "platform",
+      "rejected": true,
+      "issues": [
+        "platforms_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "technology",
+      "rejected": true,
+      "issues": [
+        "technologies_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "scope-tags",
+      "rejected": true,
+      "issues": [
+        "role_scope_tag_ids_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "setting-value",
+      "rejected": true,
+      "issues": [
+        "settings_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "drop-exclusion",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "duplicate-assignment",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "filter-mode",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "filter-id",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "group-id",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "assignment-type",
+      "rejected": true,
+      "issues": [
+        "assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "missing-state",
+      "rejected": true,
+      "issues": [
+        "state_object_coverage_changed",
+        "state_object_shape_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "lost-assignment",
+      "rejected": true,
+      "issues": [
+        "state_assignments_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "changed-setting",
+      "rejected": true,
+      "issues": [
+        "state_settings_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "empty-actions",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "duplicate-action",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 0,
+      "name": "unexpected-action",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "missing-state",
+      "rejected": true,
+      "issues": [
+        "state_object_coverage_changed",
+        "state_object_shape_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "lost-assignment",
+      "rejected": true,
+      "issues": [
+        "state_assignments_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "changed-setting",
+      "rejected": true,
+      "issues": [
+        "state_settings_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "empty-actions",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "duplicate-action",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 42,
+      "name": "unexpected-action",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "missing-state",
+      "rejected": true,
+      "issues": [
+        "state_object_coverage_changed",
+        "state_object_shape_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "lost-assignment",
+      "rejected": true,
+      "issues": [
+        "state_assignments_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "changed-setting",
+      "rejected": true,
+      "issues": [
+        "state_settings_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "empty-actions",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "duplicate-action",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    },
+    {
+      "seed": 2147483647,
+      "name": "unexpected-action",
+      "rejected": true,
+      "issues": [
+        "plan_action_coverage_changed"
+      ]
+    }
+  ],
+  "alternatives": [
+    {
+      "seed": 0,
+      "name": "assignment-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 0,
+      "name": "tag-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 0,
+      "name": "dict-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 42,
+      "name": "assignment-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 42,
+      "name": "tag-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 42,
+      "name": "dict-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 2147483647,
+      "name": "assignment-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 2147483647,
+      "name": "tag-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "seed": 2147483647,
+      "name": "dict-order",
+      "accepted": true,
+      "issues": []
+    },
+    {
+      "name": "fresh-plan-for-current-state",
+      "accepted": true
+    },
+    {
+      "seed": 0,
+      "name": "state-and-action-order",
+      "accepted": true
+    },
+    {
+      "seed": 42,
+      "name": "state-and-action-order",
+      "accepted": true
+    },
+    {
+      "seed": 2147483647,
+      "name": "state-and-action-order",
+      "accepted": true
+    }
+  ],
+  "transitions": [
+    {
+      "case": "baseline",
+      "status": "converged",
+      "issues": [],
+      "passed": true
+    },
+    {
+      "case": "stale-state",
+      "status": "blocked",
+      "issues": [
+        "stale_state"
+      ],
+      "passed": true
+    },
+    {
+      "case": "approval-replay",
+      "status": "blocked",
+      "issues": [
+        "approval_replay"
+      ],
+      "passed": true
+    },
+    {
+      "case": "wrong-target",
+      "status": "blocked",
+      "issues": [
+        "wrong_target"
+      ],
+      "passed": true
+    },
+    {
+      "case": "denied",
+      "status": "blocked",
+      "issues": [
+        "capture_incomplete"
+      ],
+      "passed": true
+    },
+    {
+      "case": "partial-failure",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "wrong-cloud",
+      "status": "blocked",
+      "issues": [
+        "target_context_changed"
+      ],
+      "passed": true
+    },
+    {
+      "case": "wrong-principal",
+      "status": "blocked",
+      "issues": [
+        "target_context_changed"
+      ],
+      "passed": true
+    },
+    {
+      "case": "wrong-backend",
+      "status": "blocked",
+      "issues": [
+        "target_context_changed"
+      ],
+      "passed": true
+    },
+    {
+      "case": "wrong-lineage",
+      "status": "blocked",
+      "issues": [
+        "stale_state"
+      ],
+      "passed": true
+    },
+    {
+      "case": "expired-approval",
+      "status": "blocked",
+      "issues": [
+        "approval_expired"
+      ],
+      "passed": true
+    },
+    {
+      "case": "plan-substitution",
+      "status": "blocked",
+      "issues": [
+        "plan_action_coverage_changed"
+      ],
+      "passed": true
+    },
+    {
+      "case": "lease-loss",
+      "status": "blocked",
+      "issues": [
+        "lease_lost"
+      ],
+      "passed": true
+    },
+    {
+      "case": "before-policy",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "after-policy",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "before-assignment",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "after-assignment",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "before-state",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "after-state",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "before-receipt",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "after-receipt",
+      "status": "reconciliation_required",
+      "issues": [
+        "simulated_partial_failure"
+      ],
+      "passed": true
+    },
+    {
+      "case": "actual-modeled-replay",
+      "status": "blocked",
+      "issues": [
+        "approval_replay"
+      ],
+      "passed": true
+    }
+  ],
+  "oracle": "Authored domain truth before capture serialization; no production or reference normalizer imports in comparison code.",
+  "boundary": "Actual Python generation and verification; state/approval transitions are pure synthetic simulation, never native or cloud execution."
+}

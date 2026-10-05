@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "describe",
+    "component",
+    "policy",
+    "-s",
+    "dev",
+    "--format",
+    "json"
+  ],
+  "cwd": "repository",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "describe-dev",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "36c00724fce27404769e585d0c4007e32d5f4a0ccb93c142508e81302d8350dd",
+  "tool": "atmos",
+  "transcript_complete": true
+}

@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/export-intake.schema.json",
+  "title": "export-intake",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "tenant_id": {
+      "type": "string",
+      "format": "uuid",
+      "minLength": 36,
+      "maxLength": 36,
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "cloud": {
+      "enum": [
+        "public",
+        "usgovernment",
+        "dod",
+        "china"
+      ]
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "exporter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "collections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "policies",
+              "settings",
+              "assignments"
+            ]
+          },
+          "owner_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "minLength": 36,
+                "maxLength": 36,
+                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "coverage": {
+            "enum": [
+              "complete",
+              "partial",
+              "access_denied",
+              "unsupported",
+              "stale",
+              "unknown"
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "request_url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "method": {
+                  "const": "GET"
+                },
+                "http_status": {
+                  "type": "integer",
+                  "minimum": 100,
+                  "maximum": 599
+                },
+                "captured_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "body": {
+                  "type": "object"
+                }
+              },
+              "required": [
+                "request_url",
+                "method",
+                "http_status",
+                "captured_at",
+                "body"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "owner_id",
+          "coverage",
+          "reason",
+          "pages"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "enum": [
+              "group",
+              "filter",
+              "scope_tag"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "ownership": {
+            "const": "external"
+          },
+          "coverage": {
+            "enum": [
+              "complete",
+              "partial",
+              "access_denied",
+              "unknown",
+              "stale"
+            ]
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "ownership",
+          "coverage",
+          "captured_at"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ownership": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "object_id": {
+            "type": "string",
+            "format": "uuid",
+            "minLength": 36,
+            "maxLength": 36,
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+          },
+          "current_writer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "adoption_intent": {
+            "enum": [
+              "propose_only",
+              "adopt_then_change",
+              "review_existing"
+            ]
+          }
+        },
+        "required": [
+          "object_id",
+          "current_writer",
+          "adoption_intent"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "synthetic",
+    "tenant_id",
+    "cloud",
+    "captured_at",
+    "exporter",
+    "collections",
+    "references",
+    "ownership"
+  ],
+  "additionalProperties": false
+}

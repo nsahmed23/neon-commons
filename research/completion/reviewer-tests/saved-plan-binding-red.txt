@@ -1,0 +1,7 @@
+test_rehashed_saved_plan_cannot_obtain_effectful_approval (test_saved_plan_binding.SavedPlanBindingAcceptance.test_rehashed_saved_plan_cannot_obtain_effectful_approval) ... ok
+test_validation_rejects_rehashed_saved_plan_with_unreviewed_value (test_saved_plan_binding.SavedPlanBindingAcceptance.test_validation_rejects_rehashed_saved_plan_with_unreviewed_value) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.207s
+
+OK

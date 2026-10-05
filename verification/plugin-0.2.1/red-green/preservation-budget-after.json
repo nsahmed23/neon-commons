@@ -1,0 +1,14 @@
+[
+  {
+    "source_array_items": 20000,
+    "source_bytes": 64182,
+    "outcome": "capture_node_limit",
+    "output_exists": false
+  },
+  {
+    "source_array_items": 40000,
+    "source_bytes": 124182,
+    "outcome": "capture_node_limit",
+    "output_exists": false
+  }
+]

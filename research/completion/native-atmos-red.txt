@@ -1,0 +1,41 @@
+test_dynamic_repository_rejected_before_native_launch (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_dynamic_repository_rejected_before_native_launch) ... ERROR
+test_logical_mapping_is_component_context_not_entra_identity (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_logical_mapping_is_component_context_not_entra_identity) ... ERROR
+test_missing_naming_context_and_selector_injection_rejected (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_missing_naming_context_and_selector_injection_rejected) ... ERROR
+test_substituted_binary_rejected (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_substituted_binary_rejected) ... ERROR
+
+======================================================================
+ERROR: test_dynamic_repository_rejected_before_native_launch (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_dynamic_repository_rejected_before_native_launch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_native_atmos_completion.py", line 25, in test_dynamic_repository_rejected_before_native_launch
+    from intune_iac.native_atmos import resolve_native_atmos
+ModuleNotFoundError: No module named 'intune_iac.native_atmos'
+
+======================================================================
+ERROR: test_logical_mapping_is_component_context_not_entra_identity (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_logical_mapping_is_component_context_not_entra_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_native_atmos_completion.py", line 16, in test_logical_mapping_is_component_context_not_entra_identity
+    from intune_iac.native_atmos import expected_logical_stack
+ModuleNotFoundError: No module named 'intune_iac.native_atmos'
+
+======================================================================
+ERROR: test_missing_naming_context_and_selector_injection_rejected (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_missing_naming_context_and_selector_injection_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_native_atmos_completion.py", line 43, in test_missing_naming_context_and_selector_injection_rejected
+    from intune_iac.native_atmos import expected_logical_stack, resolve_native_atmos
+ModuleNotFoundError: No module named 'intune_iac.native_atmos'
+
+======================================================================
+ERROR: test_substituted_binary_rejected (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_substituted_binary_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_native_atmos_completion.py", line 34, in test_substituted_binary_rejected
+    from intune_iac.native_atmos import resolve_native_atmos
+ModuleNotFoundError: No module named 'intune_iac.native_atmos'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+FAILED (errors=4)

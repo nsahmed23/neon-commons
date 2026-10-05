@@ -1,0 +1,5 @@
+{
+  "status": "discarded-build-attempt",
+  "production_qualified": false,
+  "note": "Superseded pre-isolation source. An attempted process stop could not address the sandbox process; moving staging while it was still running caused chdir failures. This is a harness operational failure, not provider evidence. Final isolated source was staged afresh at the cache-bound path and has a separate verified manifest and receipt. No resulting binary was used."
+}

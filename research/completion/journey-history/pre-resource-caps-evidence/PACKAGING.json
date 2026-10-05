@@ -1,0 +1,7 @@
+{
+  "scope": "record-only synthetic evidence",
+  "original_path": "session.json.journey/synthetic-executor/work/state/terraform.tfstate",
+  "packaged_path": "session.json.journey/synthetic-executor/work/state/synthetic-state-evidence.json",
+  "sha256": "8437bd55202162002458176cef69a38442858de86dc754108d4be95675d0bf50",
+  "reason": "Distribution excludes .tfstate filenames; no production state. Snapshot is not executable/resumable."
+}

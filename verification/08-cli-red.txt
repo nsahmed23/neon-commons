@@ -1,0 +1,28 @@
+test_noninteractive_missing_arguments (test_cli.Cli.test_noninteractive_missing_arguments) ... ok
+test_partial (test_cli.Cli.test_partial) ... FAIL
+test_supported_and_rerun (test_cli.Cli.test_supported_and_rerun) ... FAIL
+
+======================================================================
+FAIL: test_partial (test_cli.Cli.test_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_cli.py", line 11, in test_partial
+    x=self.run_cli('partial',Path(d)/'out');self.assertEqual(x.returncode,2,x.stderr);self.assertTrue((Path(d)/'out/BLOCKED.json').is_file());self.assertEqual(list((Path(d)/'out').rglob('*.tf')),[])
+                                            ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 2 : Input or local validation failed. Inspect locally; raw payload was not echoed.
+
+
+======================================================================
+FAIL: test_supported_and_rerun (test_cli.Cli.test_supported_and_rerun)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_cli.py", line 8, in test_supported_and_rerun
+    x=self.run_cli('supported',Path(d)/'out');self.assertEqual(x.returncode,0,x.stderr);self.assertFalse(json.loads(x.stdout)['execution_authorized']);self.assertEqual(json.loads(self.run_cli('supported',Path(d)/'out').stdout)['result'],'unchanged')
+                                              ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 3 != 0 : Input or local validation failed. Inspect locally; raw payload was not echoed.
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 4.765s
+
+FAILED (failures=2)

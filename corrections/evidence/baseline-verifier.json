@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "verified_at_utc": "2026-09-30T15:45:29.363742+00:00",
+  "scope": "original offline reference materials; not provider, HCL, native host, PowerShell, or live validation",
+  "result": "pass",
+  "static_counts": {
+    "json": 144,
+    "jsonl_records": 20,
+    "yaml": 11,
+    "csv": 8,
+    "python_syntax": 17,
+    "schemas": 12,
+    "generated_projects": 5,
+    "generated_files_verified": 68
+  },
+  "static_failures": [],
+  "tests": {
+    "run": 74,
+    "passed": 74,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "expected_failures": 0
+  },
+  "not_run": [
+    "HCL/provider schema validation",
+    "OpenTofu/Atmos execution",
+    "native Windows/PowerShell execution",
+    "Claude/Codex host install or eval",
+    "agent A/B benchmarks",
+    "live Azure/Graph/Intune calls",
+    "provider-backed import/plan",
+    "dsoxlab execution"
+  ],
+  "limitations": [
+    "Schema validity is not service correctness.",
+    "Synthetic plans and fixtures are not provider traces.",
+    "Source pins and source text review are not acquired dependency closure.",
+    "Bash argv roundtrip invokes only the local Python interpreter, not a cloud or provider tool.",
+    "No comprehensive secret-scanning guarantee is made."
+  ]
+}

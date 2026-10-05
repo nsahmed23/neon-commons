@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "describe",
+    "component",
+    "leaf",
+    "-s",
+    "qualification",
+    "--format",
+    "json",
+    "--process-functions=false",
+    "--process-templates=false"
+  ],
+  "cwd": "parity-scope_override",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0,
+    1
+  ],
+  "name": "parity-scope-override",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "8981ea20ee5e8db5d8340a9dd2c8ccbbb1cc45efe53b76dd22e72d0cfc0d681c",
+  "tool": "atmos",
+  "transcript_complete": true
+}

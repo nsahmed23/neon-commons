@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "apply",
+    "-input=false",
+    "-no-color",
+    "-auto-approve",
+    "-var-file=inputs.tfvars.json"
+  ],
+  "cwd": "original",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "original-apply",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "af0da03de4c3453ac6e7ad9cc50feaea68e235ff2725dd28770f1573b73a58d3",
+  "tool": "tofu",
+  "transcript_complete": true
+}

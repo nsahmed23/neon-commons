@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "qualification": "bounded_offline_mapping_only",
+  "default_status": "review_only",
+  "entries": [
+    {
+      "setting_definition_id": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+      "instance_type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+      "value_type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+      "permitted_values": ["device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"],
+      "platforms": "windows10",
+      "technologies": "mdm",
+      "children": "empty_only",
+      "support_status": "supported_offline",
+      "provenance": {
+        "setting_fixture": "corrections/fixtures/observed-setting.json",
+        "policy_fixture": "corrections/fixtures/observed-policy.json",
+        "provider_configuration_fixture": "corrections/fixtures/provider-settings.corrected.json",
+        "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+        "provider_validator_evidence": "P01",
+        "provider_constructor_evidence": "P02",
+        "source_ledger": "corrections/sources/source-evidence.json",
+        "basis": "Supplied worked definition/value and Windows/MDM fixture; pinned source supports the choice-instance configuration shape. This is an explicit local capability boundary, not service definition/value discovery or provider roundtrip qualification."
+      },
+      "deferred_qualification": ["service_definition_applicability", "provider_serialization_and_refresh_roundtrip", "live_tenant_behavior"]
+    }
+  ]
+}

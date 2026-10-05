@@ -1,0 +1,717 @@
+{
+  "binary_sha256": {
+    "atmos": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b",
+    "tofu": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627"
+  },
+  "checks": [
+    {
+      "details": null,
+      "name": "logical-and-physical-selection",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_logical_stack": "dev",
+        "physical_selector": "deploy/dev"
+      },
+      "name": "plugin-native-vars-dev",
+      "passed": true
+    },
+    {
+      "details": {
+        "native_logical_stack": "prod",
+        "physical_selector": "deploy/prod"
+      },
+      "name": "plugin-native-vars-prod",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "state-relocated-byte-for-byte",
+      "passed": true
+    },
+    {
+      "details": {
+        "evidence": "Exact native argv and stdout are retained in logs.",
+        "path": "repository/components/terraform/policy/adopt-no-change.tfplan",
+        "sha256": "e4ae053424c254f9b7baf3fff50d41d20f15a990ba89d61c263c1f9990de3023"
+      },
+      "name": "adopt-no-change-apply-uses-named-saved-plan",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "saved-no-change-plan-applied-without-state-change",
+      "passed": true
+    },
+    {
+      "details": {
+        "ids": {
+          "terraform_data.policy": "203bfa26-d7c3-e231-94e5-907d4b5ab22e",
+          "terraform_data.targeting": "295829d7-0b68-a4a3-d48a-b28f6e363102"
+        },
+        "lineage": "a9708969-4440-f419-59d1-0ece66ed7fb0",
+        "serial": 1
+      },
+      "name": "existing-identities-lineage-serial-preserved",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "targeting-relationship-preserved",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "stack-state-isolation",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "desired-change-observed-without-replacement",
+      "passed": true
+    },
+    {
+      "details": {
+        "evidence": "Exact native argv and stdout are retained in logs.",
+        "path": "repository/components/terraform/policy/intervening-plan.tfplan",
+        "sha256": "b81778a50cdadb1c007c22ed0c8b6467a526e6705ca68ec0fbd8ab7acb4bf92f"
+      },
+      "name": "intervening-apply-uses-named-saved-plan",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "intervening-change-preserves-identity",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "stale-saved-plan-rejected",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "rejected-plan-has-no-state-effects",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "native-import-preserves-bare-id",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "identity-only-import-no-change",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "import-does-not-recover-configuration-values",
+      "passed": true
+    },
+    {
+      "details": null,
+      "name": "final-desired-difference-remains-visible",
+      "passed": true
+    }
+  ],
+  "checks_passed": 18,
+  "cloud_calls": 0,
+  "commands": [
+    {
+      "argv": [
+        "version"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "tofu-version",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "cbd37557812a8d572e1961728b028ddfe01aa0c819c3ba5d07de3f78e6d3f754",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "version"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "atmos-version",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f42d5418d554a926a3b0deb5305f41d029c7dae69ed73e4ac8dcd14ea5bae946",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "policy",
+        "-s",
+        "dev",
+        "--format",
+        "json"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "describe-dev",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "36c00724fce27404769e585d0c4007e32d5f4a0ccb93c142508e81302d8350dd",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "describe",
+        "component",
+        "policy",
+        "-s",
+        "prod",
+        "--format",
+        "json"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "describe-prod",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f080687a022fcd9d13617dbd25d8f55d3e4da9ad9d115959dcab409f80f350fd",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "init",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "original",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "original-init",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b7f275c45861756a414151ff33a21843490ee07badd382e91ffab4b68713b089",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-input=false",
+        "-no-color",
+        "-auto-approve",
+        "-var-file=inputs.tfvars.json"
+      ],
+      "cwd": "original",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "original-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "df022669bd4615fea649328e84e75ef136ff661a7ed2c4630bf0edffc9cbf327",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "policy",
+        "-s",
+        "dev",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=adopt-no-change.tfplan"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "adopt-no-change",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b7d1481ada03aac671a1effd552586327bde3e4ffa508202cb6850aba3696f74",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "adopt-no-change.tfplan"
+      ],
+      "cwd": "repository/components/terraform/policy",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "adopt-no-change-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "a987ec4b512652f95b2d6a0a577979e5a649ca9d7fdb1932fe8342576dec2f35",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "apply",
+        "policy",
+        "-s",
+        "dev",
+        "--from-plan",
+        "--planfile",
+        "adopt-no-change.tfplan",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "adopt-no-change-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "93222ef52481aed65def784f4e6c6968a558791927c4ea0bbd9694de7c39234d",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "policy",
+        "-s",
+        "prod",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=prod-isolated-plan.tfplan"
+      ],
+      "cwd": "repository",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "prod-isolated-plan",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+      "stdout_sha256": "13363e09150b76d6810a038327ba037c896fc26fed76dd391b22e2626ea09b78",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "prod-isolated-plan.tfplan"
+      ],
+      "cwd": "repository/components/terraform/policy",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "prod-isolated-plan-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "a3fb6020bfe2c7ce8c769dcae210aeb3cf7537da8e11c6acb263a83eaf170957",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "apply",
+        "policy",
+        "-s",
+        "prod",
+        "-input=false",
+        "-no-color",
+        "-auto-approve"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "prod-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "887e2ed6296cfe8b39e6bcd42650f8b4b7d6a4ead6185dc8bf5a3e58c250a57a",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "policy",
+        "-s",
+        "dev",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=desired-change.tfplan",
+        "-var=setting=deny"
+      ],
+      "cwd": "repository",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "desired-change",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+      "stdout_sha256": "e4c952e83bcbb3f70eb3c87f0b4ca4fca1b58f13fa9d43243bd51bb68b258e5a",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "desired-change.tfplan"
+      ],
+      "cwd": "repository/components/terraform/policy",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "desired-change-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f37f27f29204fbb51289481342aa424ddfe08a97fbdb423fa4be35b9fe6081bb",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "policy",
+        "-s",
+        "dev",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=intervening-plan.tfplan",
+        "-var=setting=ask"
+      ],
+      "cwd": "repository",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "intervening-plan",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+      "stdout_sha256": "489771eed47138743650ca924dee777aca65f4e25d4558053dc27b636a85c800",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "intervening-plan.tfplan"
+      ],
+      "cwd": "repository/components/terraform/policy",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "intervening-plan-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "9f470a47605ee4bd2726c6dddf6f02c9bb88a5448099f06b0cf8b6a1f4d1bced",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "apply",
+        "policy",
+        "-s",
+        "dev",
+        "--from-plan",
+        "--planfile",
+        "intervening-plan.tfplan",
+        "-input=false",
+        "-no-color"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "intervening-apply",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e336829ebe2954223f0a0ca5e83a5ed645794d15a1d11e56af97307c3f0a29a9",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "apply",
+        "-input=false",
+        "-no-color",
+        "desired-change.tfplan"
+      ],
+      "cwd": "repository/components/terraform/policy",
+      "exit_code": 1,
+      "expected_exit_codes": [
+        1
+      ],
+      "name": "stale-plan-rejected",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "b770e8978edcebbee2056d5550fd7ef73eef7def7cf3333b83ce704f2d4b404c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "import",
+        "identity",
+        "-s",
+        "import",
+        "-input=false",
+        "-no-color",
+        "terraform_data.identity",
+        "203bfa26-d7c3-e231-94e5-907d4b5ab22e"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "identity-import",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c095f348b67db0c72c1b8a15933c35887f05bc8d9b8a1b93693930af1a92ebab",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "identity",
+        "-s",
+        "import",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=import-identity-no-change.tfplan"
+      ],
+      "cwd": "repository",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "import-identity-no-change",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "66e8975e6fde7632b4c7e6bb4c1ddfa7c2a94c477a3b0c7a2281a905a014aa47",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "import-identity-no-change.tfplan"
+      ],
+      "cwd": "repository/components/terraform/identity",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "import-identity-no-change-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "de70e41f31c53377d952ece09e7f1a97b47f8539510fd5c0638b19436f4dc187",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "identity",
+        "-s",
+        "import",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=import-populated-input-change.tfplan"
+      ],
+      "cwd": "repository",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "import-populated-input-change",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+      "stdout_sha256": "eeb4a644ed80904107ce5a6aa1adb730bde3892aacb2449018b4c24860f86298",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "import-populated-input-change.tfplan"
+      ],
+      "cwd": "repository/components/terraform/identity",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "import-populated-input-change-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "8ee7dfe3305784e27209423688e59a46350cc2ef5d0b48111c48d19cbc02a9d3",
+      "tool": "tofu",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "terraform",
+        "plan",
+        "policy",
+        "-s",
+        "dev",
+        "-input=false",
+        "-no-color",
+        "-detailed-exitcode",
+        "-out=final-drift-visible.tfplan"
+      ],
+      "cwd": "repository",
+      "exit_code": 2,
+      "expected_exit_codes": [
+        2
+      ],
+      "name": "final-drift-visible",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+      "stdout_sha256": "ec3ca3e993c1bb2475512bd466255a66855be6a712936a0042887a2b10eafccf",
+      "tool": "atmos",
+      "transcript_complete": true
+    },
+    {
+      "argv": [
+        "show",
+        "-json",
+        "final-drift-visible.tfplan"
+      ],
+      "cwd": "repository/components/terraform/policy",
+      "exit_code": 0,
+      "expected_exit_codes": [
+        0
+      ],
+      "name": "final-drift-visible-json",
+      "outcome": "completed",
+      "output_capture_limit_bytes": 2097152,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "11521a9b225f00d668d944c10ee4e58a877bdab819649175663bfa086a96e022",
+      "tool": "tofu",
+      "transcript_complete": true
+    }
+  ],
+  "environment": {
+    "ATMOS_TELEMETRY_ENABLED": "false",
+    "ATMOS_VERSION_CHECK_ENABLED": "false",
+    "CHECKPOINT_DISABLE": "1",
+    "LANG": "C.UTF-8",
+    "PATH": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/runtime-bin",
+    "TF_CLI_CONFIG_FILE": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/empty.tofurc",
+    "TF_IN_AUTOMATION": "1",
+    "TMPDIR": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/fixture-home/tmp",
+    "TZ": "UTC",
+    "XDG_CACHE_HOME": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/fixture-home/cache",
+    "XDG_CONFIG_HOME": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/fixture-home/config",
+    "XDG_DATA_HOME": "/workspace/scratch/e2e4042ea5fd/recovered-20261004/adoption-replay/fixture-home/data"
+  },
+  "external_provider_calls": 0,
+  "filesystem_isolated": false,
+  "fixture_sha256": {
+    "atmos.yaml": "3b1d069b97f13d31d2ff811ed72ebea98dfc7438e8663ad98d6748e11f56b420",
+    "components/terraform/identity/main.tf": "2e25698cdaa922415f2ef8202f604ddc5f5e37ea00c653dfa3e88909c0416e67",
+    "components/terraform/policy/main.tf": "56882ebef8ce789ab8f5dc4f11388001108433bdd5c8bd291c990c7dd88c412a",
+    "stacks/catalog/policy.yaml": "668326ad62b05c2065bc0a697c4da34a18bf16310a2311720185c7541676049c",
+    "stacks/deploy/dev.yaml": "ab3a375ae5689ba38c5b399532a98b74e921b86c2f5d447a5b1fde6e1d58262e",
+    "stacks/deploy/import.yaml": "a5858a2d7a35911536bc4e61051f16587b95f4e2c70023a3eacda2f5813b287f",
+    "stacks/deploy/prod.yaml": "aaa13cdbb1d10c116c9949978c2c66716696fbe7e83c5e606007bf03db14d1b3"
+  },
+  "limitations": [
+    "No Intune provider or service lifecycle evidence.",
+    "No authenticated approvals, remote locking, or protected executor qualification.",
+    "No filesystem sandbox; only the reviewed fixed fixture and pinned tools are accepted.",
+    "Output contains synthetic local state and intentionally unapplied desired changes."
+  ],
+  "network": {
+    "denied_syscalls": [
+      "socket",
+      "socketpair",
+      "connect"
+    ],
+    "filter_required": true
+  },
+  "runner_sha256": "ca8a79f60e30ac95e5ad97d78e8f38273d88255792d7fc2f9d40c338e37ef744",
+  "scope": "Native Atmos and OpenTofu built-in terraform_data, local disposable state only.",
+  "status": "passed",
+  "version": 1
+}

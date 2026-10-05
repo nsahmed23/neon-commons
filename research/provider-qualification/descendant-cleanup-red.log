@@ -1,0 +1,16 @@
+test_exited_parent_does_not_leave_pipe_holding_descendant (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_exited_parent_does_not_leave_pipe_holding_descendant) ... FAIL
+
+======================================================================
+FAIL: test_exited_parent_does_not_leave_pipe_holding_descendant (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_exited_parent_does_not_leave_pipe_holding_descendant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 153, in test_exited_parent_does_not_leave_pipe_holding_descendant
+    self.assertEqual(heartbeat.stat().st_size, before,
+AssertionError: 12 != 6 : owned descendant survived timeout cleanup
+
+----------------------------------------------------------------------
+Ran 1 test in 0.623s
+
+FAILED (failures=1)
+Exact pre-fix runner SHA256: 5a7527f8ef9aa45e4ed767551be974811a1711b7ac4eb550376e04bba7e49142
+Oracle: exited group leader and real child heartbeat continuing after timeout

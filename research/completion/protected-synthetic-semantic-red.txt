@@ -1,0 +1,15 @@
+test_consistent_noop_json_cannot_hide_real_saved_value_change (plugin_tests.test_protected_completion.SyntheticSemanticBindingRegressionTests.test_consistent_noop_json_cannot_hide_real_saved_value_change) ... FAIL
+
+======================================================================
+FAIL: test_consistent_noop_json_cannot_hide_real_saved_value_change (plugin_tests.test_protected_completion.SyntheticSemanticBindingRegressionTests.test_consistent_noop_json_cannot_hide_real_saved_value_change)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 353, in test_consistent_noop_json_cannot_hide_real_saved_value_change
+    with self.assertRaises(ValueError):p.approve_synthetic_operation(request,executor=e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 1.066s
+
+FAILED (failures=1)

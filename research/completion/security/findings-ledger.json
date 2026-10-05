@@ -1,0 +1,290 @@
+{
+  "schema_version": "independent-security-ledger/1",
+  "statuses": {
+    "candidate": "source hypothesis; severity not assigned",
+    "confirmed": "reproduced with source trace and independent challenge",
+    "mitigated": "root cause repaired with stated evidence scope",
+    "rejected": "disproved within stated prerequisites",
+    "duplicate": "same root cause tracked elsewhere",
+    "blocked": "required evidence unavailable"
+  },
+  "finding_count": 10,
+  "findings": [
+    {
+      "id": "SEC-001",
+      "title": "Capture inherited ambient proxy routing",
+      "state": "mitigated",
+      "severity": "medium",
+      "attacker": "Inherited process environment controlled by launcher or upstream job",
+      "prerequisites": "Graph capture supplied a token and no explicit operator proxy policy",
+      "input": "HTTP_PROXY/HTTPS_PROXY",
+      "invariant": "Credential destination must use explicit approved routing",
+      "trace": "capture._http_transport -> urllib.request.build_opener -> ambient ProxyHandler",
+      "impact": "Reproduction observed inherited proxy selection. Credential interception was not executed and additionally depends on proxy/TLS trust.",
+      "evidence": [
+        "research/completion/security-boundaries-red.txt",
+        "research/completion/security-boundaries-green.txt",
+        "research/completion/security/sandbox-regressions.json",
+        "research/completion/security/sandbox-regressions-final.json",
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "Explicit ProxyHandler({}) plus no-redirect handler; independent regression verifies routing policy",
+      "blocker": null,
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "id": "SEC-002",
+      "title": "MCP paths lacked operator filesystem capability",
+      "state": "mitigated",
+      "severity": "high",
+      "attacker": "Compromised or manipulated model controlling tool arguments",
+      "prerequisites": "MCP server running with host-readable files; no filesystem authority configured",
+      "input": "graph/input/context/output/state_dir path arguments",
+      "invariant": "Model may select actions only within operator-created read/write scope",
+      "trace": "mcp.call_tool -> graph query/runner -> filesystem read/write",
+      "impact": "Pre-fix call reached a path without an authority object. Post-fix hostile read/write requests rejected before dispatch. No real credential was read.",
+      "evidence": [
+        "research/completion/security-boundaries-red.txt",
+        "research/completion/security-boundaries-green.txt",
+        "research/completion/security/sandbox-regressions.json",
+        "research/completion/security/sandbox-regressions-final.json",
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "Mandatory FilesystemAuthority passed only by operator; default deny; request metadata/environment cannot promote authority",
+      "blocker": null,
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "id": "SEC-003",
+      "title": "Sibling operation lock escaped granted output root",
+      "state": "mitigated",
+      "severity": "medium",
+      "attacker": "Model selecting a permitted output directory",
+      "prerequisites": "Output itself equals write root; local generation creates a lock in its parent",
+      "input": "output=<write-root>",
+      "invariant": "All effects including lock files must stay in write capability",
+      "trace": "mcp._check_authority -> runner._lock_path -> output.parent",
+      "impact": "Pre-fix authority accepted request whose sibling lock was outside capability; regression now rejects before output mutation.",
+      "evidence": [
+        "research/completion/security-sibling-lock-red.txt",
+        "research/completion/security-sibling-lock-green.txt",
+        "research/completion/security/sandbox-regressions.json",
+        "research/completion/security/sandbox-regressions-final.json",
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "Require output.parent in write scope as well as output",
+      "blocker": null,
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "id": "SEC-004",
+      "title": "Synthetic recovery accepted self-pinned replacement executable",
+      "state": "mitigated",
+      "severity": "high",
+      "attacker": "Contributor controlling imported or resumed executor directory",
+      "prerequisites": "SyntheticExecutor constructed from attacker-controlled persisted artifact; manifest and tool both replaceable",
+      "input": "executor.json executable_sha256 and root/tool",
+      "invariant": "Executable identity must be anchored outside mutable evidence",
+      "trace": "protected.SyntheticExecutor._validate -> _run -> _supervise",
+      "impact": "Pre-fix constructor accepted substitute tool when its manifest hash matched. Arbitrary malicious tool execution was not performed.",
+      "evidence": [
+        "research/completion/protected-executable-substitution-red.txt",
+        "research/completion/protected-executable-substitution-green.txt",
+        "research/completion/security/sandbox-regressions-final.json",
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "Compare against independently running interpreter digest; actual process uses verified open descriptor",
+      "blocker": null,
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "id": "SEC-005",
+      "title": "Persisted output-only configuration could carry template expressions",
+      "state": "mitigated",
+      "severity": null,
+      "attacker": "Writer controlling native fixture configuration and manifest",
+      "prerequisites": "Configuration value admitted as Terraform JSON string",
+      "input": "${...} and %{...} string delimiters",
+      "invariant": "Output-only constants must not activate Terraform evaluation",
+      "trace": "protected._json_snapshot -> _configuration -> native plan",
+      "impact": "Source trace reaches Terraform expression parsing. Initial construction already guarded during review; persisted configuration variant hardened before dynamic exfiltration test.",
+      "evidence": [
+        "research/completion/security/sandbox-regressions-final.json",
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "_validate invokes bounded recursive _json_snapshot on persisted configuration; full pre-fix native impact not claimed",
+      "blocker": "No pre-fix native file-disclosure proof; post-fix constructor regression confirms persisted-expression rejection.",
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "id": "SEC-006",
+      "title": "Readback ignored changed lineage with equal desired output",
+      "state": "mitigated",
+      "severity": "medium",
+      "attacker": "Concurrent local state writer or faulty executor",
+      "prerequisites": "State can change after dispatch without changing desired output value",
+      "input": "Different state lineage/serial with same output digest",
+      "invariant": "Success and reconciliation must preserve state identity",
+      "trace": "protected.execute_native_operation and reconcile_native_operation",
+      "impact": "Fault-injected replacement state had desired output but changed lineage; pre-fix execution reported succeeded_verified. Owner red/green and independent local recovery classifier now detect lineage/serial divergence.",
+      "evidence": [
+        "research/completion/protected-state-lineage-red.txt",
+        "research/completion/protected-state-lineage-green.txt",
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "Bind before lineage and serial; require unchanged lineage and permitted serial transition in execution, receipt parsing and reconciliation.",
+      "blocker": null,
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "id": "SEC-007",
+      "title": "Directory enumeration lacks early bounds",
+      "state": "mitigated",
+      "severity": null,
+      "attacker": "Writer populating resumed local evidence directory",
+      "prerequisites": "Ability to create many nested entries within selected evidence root",
+      "input": "Large work tree or journal directory",
+      "invariant": "Resource bounds apply before sorting or recursive materialization",
+      "trace": "protected._validate rglob and read_native_operation sorted(iterdir)",
+      "impact": "Source availability-hardening candidate; no resource exhaustion performed. Independent counting iterator verifies journal parser consumes at most six entries before refusal.",
+      "evidence": [
+        "research/completion/security/sandbox-regressions-qualified.json",
+        "research/completion/security/sandbox-regressions-frozen.json"
+      ],
+      "repair": "Work and nested state metadata enumeration have fixed early entry/name/type limits; journal consumes at most six entries before sorting.",
+      "blocker": "No denial-of-service exploit or high-severity impact claimed",
+      "reviewer": "independent security subagent; implementation by separate owner; shared filesystem/context is not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only"
+    },
+    {
+      "attacker": "Contributor or model with write access to selected untrusted local evidence",
+      "prerequisites": "Host later inspects/approves resumed local artifact",
+      "reviewer": "independent security and acceptance review agents; shared filesystem/context, not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only",
+      "blocker": null,
+      "id": "SEC-008",
+      "title": "Native Atmos staging included unadmitted unrelated YAML",
+      "state": "mitigated",
+      "severity": null,
+      "input": "Unselected included stack with dynamic tag or escaping import",
+      "invariant": "Every source copied for native processing must pass inert admission",
+      "trace": "native_atmos._snapshot -> selected-stack resolve -> stages all stack sources",
+      "impact": "Mocked supervisor demonstrated unadmitted dynamic YAML reached staging; no hook or command execution proved.",
+      "repair": "Admit all discovered config/stack YAML source before staging or native dispatch; selected resolution still uses independent comparator.",
+      "evidence": [
+        "research/completion/reviewer-tests/acceptance-red.txt",
+        "research/completion/reviewer-tests/acceptance-green.txt"
+      ]
+    },
+    {
+      "attacker": "Contributor or model with write access to selected untrusted local evidence",
+      "prerequisites": "Host later inspects/approves resumed local artifact",
+      "reviewer": "independent security and acceptance review agents; shared filesystem/context, not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only",
+      "blocker": null,
+      "id": "SEC-009",
+      "title": "Self-rehashed saved plan could differ from approved JSON review",
+      "state": "mitigated",
+      "severity": "high",
+      "input": "Substituted saved plan with attacker-updated bindings/preparation and benign sidecar",
+      "invariant": "Bound plan contents must match displayed review and independently authorized desired configuration before dispatch",
+      "trace": "protected._validate_request -> approve_* -> execute_native_operation -> _run(apply)",
+      "impact": "Independent pre-fix synthetic replay changed local state to unreviewed value before readback rejected it. Native dangerous-resource variant was inferred/source-tested; independent native check used harmless output-only substitution.",
+      "repair": "Validate synthetic plan value/before-state against bindings. Native pin executes show on exact saved binary; compare raw sidecar hash then strict independent output-only desired/config semantics. Recompute review summary before minting grant and dispatch.",
+      "evidence": [
+        "research/completion/reviewer-tests/saved-plan-binding-red-observation.txt",
+        "research/completion/reviewer-tests/saved-plan-binding-green.txt",
+        "research/completion/protected-native-binary-provenance-red.txt",
+        "research/completion/protected-native-binary-provenance-green.txt"
+      ]
+    },
+    {
+      "attacker": "Contributor or model with write access to selected untrusted local evidence",
+      "prerequisites": "Host later inspects/approves resumed local artifact",
+      "reviewer": "independent security and acceptance review agents; shared filesystem/context, not organizational AppSec",
+      "source_base": "ecb477300ef349f02dafca397f878278cd256a61",
+      "release_scope": "local profile only",
+      "blocker": null,
+      "id": "SEC-010",
+      "title": "Byte-identical no-op could obtain a fresh grant in another receipt directory",
+      "state": "mitigated",
+      "severity": "medium",
+      "input": "Consumed local request replayed with second journal root",
+      "invariant": "Approval consumption must persist at target independently of chosen journal location",
+      "trace": "protected.approve_* -> execute_native_operation state_dir",
+      "impact": "Owner reproduced a no-op state permitting another approval after success; explicit durable target-local consumption now rejects it.",
+      "repair": "Create durable consumed.json before dispatch and reject approval/execution when it exists.",
+      "evidence": [
+        "research/completion/protected-cross-journal-replay-red.txt",
+        "research/completion/protected-cross-journal-replay-green.txt"
+      ]
+    }
+  ],
+  "release_status": "BLOCKED",
+  "unresolved_gates": [
+    "authenticated live Graph/provider/backend identity",
+    "protected cloud approval and executor",
+    "native Windows and agent hosts",
+    "actual AppSec organizational review",
+    "authorized enterprise pilot"
+  ],
+  "note": "Severity is scoped assessment, not CVSS or enterprise risk acceptance. Source-only hardening items retain null severity. All mitigations carry specific evidence and do not imply exhaustive absence.",
+  "supplemental_controls": [
+    {
+      "id": "RESOURCE-BOUNDS",
+      "status": "PASS",
+      "assurance": "owner-executed local syscall tests and33-test protected suite; separate from earlier independent bwrap29",
+      "controls": {
+        "address_space_bytes": 4294967296,
+        "cpu_seconds": 20,
+        "file_bytes": 67108864,
+        "file_descriptors": 256,
+        "core_bytes": 0,
+        "process_creation": "fork/vfork and clone without CLONE_THREAD denied; clone3 returns ENOSYS for inspectable fallback",
+        "inheritance": "never raises inherited hard limits",
+        "remaining": "thread-count/cgroup task quota remains deployment qualification; no RLIMIT_NPROC protection for root claimed"
+      },
+      "evidence": [
+        "research/completion/protected-resource-bounds-red.txt",
+        "research/completion/protected-resource-bounds-green.txt",
+        "research/completion/protected-green.txt",
+        "research/completion/protected-native-measured.json"
+      ]
+    },
+    {
+      "id": "BOUNDED-PROTOCOL-MODEL",
+      "status": "PASS",
+      "assurance": "independently authored bounded abstraction; no implementation correspondence proof",
+      "evidence": [
+        "research/completion/model-check/README.md",
+        "research/completion/model-check/model_check.py",
+        "research/completion/model-check/results.json"
+      ],
+      "states": 565,
+      "transitions": 878,
+      "max_trace_steps": 18,
+      "weakening_counterexamples": 4
+    }
+  ]
+}

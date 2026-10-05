@@ -1,0 +1,25 @@
+{
+  "removed_obsolete_go_workdirs": [
+    "/tmp/go-build4053255922",
+    "/tmp/go-build1392136720"
+  ],
+  "guard": "No active pinned Go compiler/linker references; importcfg identifies owned toolchain/cache. Build receipts and verified cache retained.",
+  "removed_completed_shim_staging": [
+    "synthetic-rpc-build-before-explicit-zero/bin+module",
+    "synthetic-rpc-build-explicit-zero/bin+module",
+    "synthetic-rpc-build-response-length-failure/bin+module"
+  ],
+  "removed_obsolete_binaries": [
+    {
+      "path": "/tmp/intune-provider-20261002/synthetic-rpc-build-empty-policy-red/bin/terraform-provider-microsoft365",
+      "sha256": "015bb22bf2057d887c357facf785df3710d3f107c5eec42ff7624317c4606328",
+      "bytes": 499019350
+    },
+    {
+      "path": "/tmp/intune-provider-20261002/baseline-bin/terraform-provider-microsoft365_v1.0.0",
+      "sha256": "903774df6d165f10a0df2a013c2f69e921cfd2b9b4a2d8b1bddc03758a4cca61",
+      "bytes": 408129720
+    }
+  ],
+  "baseline_recovery": "Pinned published archive provider-baseline.zip retained; all native baseline receipts retained"
+}

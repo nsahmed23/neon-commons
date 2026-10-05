@@ -1,0 +1,33 @@
+test_duplicate_key_and_float_input_never_write (evaluations.test_repaired_cli.RepairedCli.test_duplicate_key_and_float_input_never_write) ... ok
+test_partial_pipeline_is_checked_and_remains_inactive (evaluations.test_repaired_cli.RepairedCli.test_partial_pipeline_is_checked_and_remains_inactive) ... FAIL
+test_success_requires_independent_preservation_receipt (evaluations.test_repaired_cli.RepairedCli.test_success_requires_independent_preservation_receipt) ... FAIL
+test_unsupported_canary_never_enters_cli_or_written_artifacts (evaluations.test_repaired_cli.RepairedCli.test_unsupported_canary_never_enters_cli_or_written_artifacts) ... FAIL
+
+======================================================================
+FAIL: test_partial_pipeline_is_checked_and_remains_inactive (evaluations.test_repaired_cli.RepairedCli.test_partial_pipeline_is_checked_and_remains_inactive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_cli.py", line 36, in test_partial_pipeline_is_checked_and_remains_inactive
+    self.assertTrue(json.loads(result.stdout).get('preservation_verified'))
+AssertionError: None is not true
+
+======================================================================
+FAIL: test_success_requires_independent_preservation_receipt (evaluations.test_repaired_cli.RepairedCli.test_success_requires_independent_preservation_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_cli.py", line 27, in test_success_requires_independent_preservation_receipt
+    self.assertTrue(receipt.get('preservation_verified'), 'CLI must gate writes through independent preservation')
+AssertionError: None is not true : CLI must gate writes through independent preservation
+
+======================================================================
+FAIL: test_unsupported_canary_never_enters_cli_or_written_artifacts (evaluations.test_repaired_cli.RepairedCli.test_unsupported_canary_never_enters_cli_or_written_artifacts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_cli.py", line 58, in test_unsupported_canary_never_enters_cli_or_written_artifacts
+    self.assertNotIn(b'CLI_UNKNOWN_CANARY', artifact.read_bytes(), str(artifact))
+AssertionError: b'CLI_UNKNOWN_CANARY' unexpectedly found in b'{\n  "blockers": [\n    {\n      "code": "unsupported_setting_field",\n      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/CLI_UNKNOWN_CANARY"\n    }\n  ],\n  "execution_allowed": false,\n  "schema_version": "1.0.0"\n}\n' : /tmp/tmpzvvbmqj4/out/BLOCKED.json
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.393s
+
+FAILED (failures=3)

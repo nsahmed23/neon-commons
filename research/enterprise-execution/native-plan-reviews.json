@@ -1,0 +1,263 @@
+{
+  "scope": "Replay of real OpenTofu 1.10.0 show JSON from earlier qualified local lab. No new native commands or cloud operations.",
+  "results": [
+    {
+      "source": "/workspace/scratch/26b6d364cfda/adoption-lab-extracted-final/evidence/adopt-no-change.json",
+      "copied_path": "research/enterprise-execution/native-plans/adopt-no-change.json",
+      "sha256": "af065fe531c8ab447014a392de1cff4082a575011d7e460b27e023f3d2cfa22b",
+      "review": {
+        "version": "1.0.0",
+        "status": "no_change",
+        "execution_authorized": false,
+        "assurance": "offline_plan_review_only",
+        "blockers": [],
+        "changes": [
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "907d61d6310dac3fb1add9db4161f5e64b80a6e5b323e1caf8d01674e1698a85",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "daf900105fc1f39578ec9ddaaaa163885a6291e6bdcc097a9f254d6ae26959d0",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "59231616382c4707e08fda6bf0c6c072c634922770a3717a9e0129a3b4747031",
+            "section": "output_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "189735cf9142dd17a90ed827464c9e9ba817d8370c3c268d0c07dbdf364922e6",
+            "section": "output_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "aa1b347636d41c1d20d818c34a552a694a7fe746ab556612fe417df26e58535e",
+            "section": "output_changes"
+          }
+        ],
+        "counts": {
+          "no-op": 2,
+          "create": 0,
+          "read": 0,
+          "update": 0,
+          "delete": 0,
+          "replacement": 0,
+          "forget": 0,
+          "import": 0,
+          "drift": 0,
+          "output_changes": 0
+        },
+        "plan_json_sha256": "ebd01c9c8dd99d3a06dd1b654f8cefd5c5c07a5e7802afb6de820ecf83b4b8e1"
+      }
+    },
+    {
+      "source": "/workspace/scratch/26b6d364cfda/adoption-lab-extracted-final/evidence/desired-change.json",
+      "copied_path": "research/enterprise-execution/native-plans/desired-change.json",
+      "sha256": "b059c11a50595ccc0a2ae2a6b2a22714e9e04ede97f5b18e8494fff8105e929b",
+      "review": {
+        "version": "1.0.0",
+        "status": "blocked",
+        "execution_authorized": false,
+        "assurance": "offline_plan_review_only",
+        "blockers": [
+          {
+            "code": "unknown_planned_values",
+            "location": "resource_changes/0"
+          },
+          {
+            "code": "unknown_planned_values",
+            "location": "output_changes/0"
+          }
+        ],
+        "changes": [
+          {
+            "actions": [
+              "update"
+            ],
+            "reference_sha256": "907d61d6310dac3fb1add9db4161f5e64b80a6e5b323e1caf8d01674e1698a85",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "daf900105fc1f39578ec9ddaaaa163885a6291e6bdcc097a9f254d6ae26959d0",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "update"
+            ],
+            "reference_sha256": "59231616382c4707e08fda6bf0c6c072c634922770a3717a9e0129a3b4747031",
+            "section": "output_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "189735cf9142dd17a90ed827464c9e9ba817d8370c3c268d0c07dbdf364922e6",
+            "section": "output_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "aa1b347636d41c1d20d818c34a552a694a7fe746ab556612fe417df26e58535e",
+            "section": "output_changes"
+          }
+        ],
+        "counts": {
+          "no-op": 1,
+          "create": 0,
+          "read": 0,
+          "update": 1,
+          "delete": 0,
+          "replacement": 0,
+          "forget": 0,
+          "import": 0,
+          "drift": 0,
+          "output_changes": 1
+        },
+        "plan_json_sha256": "13c03a67a3e47eee5a0bc822f4b969ed1eaaa6d871ff544c3f8c0e9488d5052e"
+      }
+    },
+    {
+      "source": "/workspace/scratch/26b6d364cfda/adoption-lab-extracted-final/evidence/prod-isolated-plan.json",
+      "copied_path": "research/enterprise-execution/native-plans/prod-isolated-plan.json",
+      "sha256": "12e04968656368144319d67517f86fa2db8a7eaa2bd1f2eea62e50d1f0ce3107",
+      "review": {
+        "version": "1.0.0",
+        "status": "blocked",
+        "execution_authorized": false,
+        "assurance": "offline_plan_review_only",
+        "blockers": [
+          {
+            "code": "unknown_planned_values",
+            "location": "resource_changes/0"
+          },
+          {
+            "code": "unknown_planned_values",
+            "location": "resource_changes/1"
+          },
+          {
+            "code": "unknown_planned_values",
+            "location": "output_changes/0"
+          },
+          {
+            "code": "unknown_planned_values",
+            "location": "output_changes/1"
+          },
+          {
+            "code": "unknown_planned_values",
+            "location": "output_changes/2"
+          }
+        ],
+        "changes": [
+          {
+            "actions": [
+              "create"
+            ],
+            "reference_sha256": "907d61d6310dac3fb1add9db4161f5e64b80a6e5b323e1caf8d01674e1698a85",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "create"
+            ],
+            "reference_sha256": "daf900105fc1f39578ec9ddaaaa163885a6291e6bdcc097a9f254d6ae26959d0",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "create"
+            ],
+            "reference_sha256": "59231616382c4707e08fda6bf0c6c072c634922770a3717a9e0129a3b4747031",
+            "section": "output_changes"
+          },
+          {
+            "actions": [
+              "create"
+            ],
+            "reference_sha256": "189735cf9142dd17a90ed827464c9e9ba817d8370c3c268d0c07dbdf364922e6",
+            "section": "output_changes"
+          },
+          {
+            "actions": [
+              "create"
+            ],
+            "reference_sha256": "aa1b347636d41c1d20d818c34a552a694a7fe746ab556612fe417df26e58535e",
+            "section": "output_changes"
+          }
+        ],
+        "counts": {
+          "no-op": 0,
+          "create": 2,
+          "read": 0,
+          "update": 0,
+          "delete": 0,
+          "replacement": 0,
+          "forget": 0,
+          "import": 0,
+          "drift": 0,
+          "output_changes": 3
+        },
+        "plan_json_sha256": "31f6136dea6f13ddb6f16533b3831b49846b256f1c49dc807683c192e9981cd7"
+      }
+    },
+    {
+      "source": "/workspace/scratch/26b6d364cfda/adoption-lab-extracted-final/evidence/import-identity-no-change.json",
+      "copied_path": "research/enterprise-execution/native-plans/import-identity-no-change.json",
+      "sha256": "d377e3628a4c1216fcc3e13e62a53710151f7e494784fa71f20cbdd41205a4fb",
+      "review": {
+        "version": "1.0.0",
+        "status": "no_change",
+        "execution_authorized": false,
+        "assurance": "offline_plan_review_only",
+        "blockers": [],
+        "changes": [
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "f49544cd57f34b598df8700233b0f916660949f3c7d02dbad0d611f37ae453b8",
+            "section": "resource_changes"
+          },
+          {
+            "actions": [
+              "no-op"
+            ],
+            "reference_sha256": "edc16df845e33adb7350d4f445198696bd235f430ce3956d999e04d6e23a6a29",
+            "section": "output_changes"
+          }
+        ],
+        "counts": {
+          "no-op": 1,
+          "create": 0,
+          "read": 0,
+          "update": 0,
+          "delete": 0,
+          "replacement": 0,
+          "forget": 0,
+          "import": 0,
+          "drift": 0,
+          "output_changes": 0
+        },
+        "plan_json_sha256": "13bb20a52a3fabafb18050201444d7b0d38f3b8d8765df246509b0ace20ddff7"
+      }
+    }
+  ],
+  "reviewer_sha256": "bd2417048ae2214b16e4f2c7f4890eb610f6d29055e397bc185e021f71cb4213"
+}

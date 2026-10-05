@@ -1,0 +1,19 @@
+{
+  "approval_policy_reference": null,
+  "approved_ci_reference": null,
+  "approved_opentofu_version": null,
+  "atmos_version": null,
+  "backend_owner_reference": null,
+  "cohort_reference": null,
+  "component_stack": null,
+  "evidence_sources": [],
+  "existing_writer": null,
+  "export_format": null,
+  "provider_lock_reference": null,
+  "repository_path": null,
+  "schema_version": "1.0.0",
+  "secrets_permitted": false,
+  "subscription_id": null,
+  "tenant_cloud": null,
+  "tenant_id": null
+}

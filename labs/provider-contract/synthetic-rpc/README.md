@@ -1,0 +1,7 @@
+# Test-only actual resource RPC fixture
+
+This binary is a separate provider implementation used only for testing. It imports the actual patched Settings Catalog JSON resource, uses that resource's real Schema, Configure, ImportState, Read and plan modifiers, and supplies a synthetic Graph client through the normal resource Configure boundary. Its own provider Configure does not authenticate. The transport returns authored immutable fixtures for exact GET URLs and refuses every non-GET method; it cannot contact Microsoft Graph.
+
+This is not the complete production provider and is never part of the completion patch, native production binary or plugin production path. Success establishes only the named synthetic resource RPC slice. Production provider authentication, service behavior, import against a tenant, policy/assignment writes and partial-effect recovery remain unqualified.
+
+`run.py` fixes the command list to schema, validation, import into isolated local state, show, ordinary saved plan and refresh-only saved plan. It never runs apply. An independent fixture comparison checks policy fields, immutable setting ID `37`, wrapper, values, null references, empty children, inclusion/exclusion/filter tuples and assignment denominator in imported state and both saved plans. Assignment ordering is compared as a set because the provider schema declares a Set; settings arrays keep their exact order.

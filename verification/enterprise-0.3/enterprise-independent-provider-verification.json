@@ -1,0 +1,30 @@
+{
+  "verified_original_source_files": 32,
+  "patch_applied_to_fresh_copy_matches_candidate": true,
+  "exact_schema_method_bytes_verified": true,
+  "method_sha256": "75306e588e66045ad501265832e7af317c421c7e7eed6ab0dcefb264b219d5dd",
+  "recorded_log_hashes_verified": true,
+  "top_level_event_counts": {
+    "baseline-27": {
+      "pass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "original-regressions": {
+      "pass": 2,
+      "fail": 12,
+      "skip": 0
+    },
+    "patched-regressions": {
+      "pass": 14,
+      "fail": 0,
+      "skip": 0
+    },
+    "schema": {
+      "pass": 6,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "review_scope": "Read-only integrity and fresh temporary patch application; no native provider/service call or repeated full Go suite"
+}

@@ -1,0 +1,4 @@
+microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture: Importing from ID "33333333-3333-4333-8333-333333333333"...
+microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture: Import prepared!
+  Prepared microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json for import
+microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture: Refreshing state... [id=33333333-3333-4333-8333-333333333333]

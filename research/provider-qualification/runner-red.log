@@ -1,0 +1,71 @@
+FFFFFF
+======================================================================
+FAIL: test_empty_or_truncated_go_output_cannot_pass (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_empty_or_truncated_go_output_cannot_pass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 32, in test_empty_or_truncated_go_output_cannot_pass
+    mod = self.module()
+          ^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 14, in module
+    self.assertTrue(SCRIPT.is_file(), 'provider qualification runner must exist')
+AssertionError: False is not true : provider qualification runner must exist
+
+======================================================================
+FAIL: test_go_failure_cannot_be_passed_qualification (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_go_failure_cannot_be_passed_qualification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 21, in test_go_failure_cannot_be_passed_qualification
+    mod = self.module()
+          ^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 14, in module
+    self.assertTrue(SCRIPT.is_file(), 'provider qualification runner must exist')
+AssertionError: False is not true : provider qualification runner must exist
+
+======================================================================
+FAIL: test_skips_not_qualification (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_skips_not_qualification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 38, in test_skips_not_qualification
+    mod = self.module()
+          ^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 14, in module
+    self.assertTrue(SCRIPT.is_file(), 'provider qualification runner must exist')
+AssertionError: False is not true : provider qualification runner must exist
+
+======================================================================
+FAIL: test_source_hashes_derive_from_actual_bytes (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_source_hashes_derive_from_actual_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 62, in test_source_hashes_derive_from_actual_bytes
+    mod = self.module()
+          ^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 14, in module
+    self.assertTrue(SCRIPT.is_file(), 'provider qualification runner must exist')
+AssertionError: False is not true : provider qualification runner must exist
+
+======================================================================
+FAIL: test_source_mutation_fails_before_execution (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_source_mutation_fails_before_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 44, in test_source_mutation_fails_before_execution
+    mod = self.module()
+          ^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 14, in module
+    self.assertTrue(SCRIPT.is_file(), 'provider qualification runner must exist')
+AssertionError: False is not true : provider qualification runner must exist
+
+======================================================================
+FAIL: test_source_symlink_and_escape_rejected (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_source_symlink_and_escape_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 52, in test_source_symlink_and_escape_rejected
+    mod = self.module()
+          ^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 14, in module
+    self.assertTrue(SCRIPT.is_file(), 'provider qualification runner must exist')
+AssertionError: False is not true : provider qualification runner must exist
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+FAILED (failures=6)

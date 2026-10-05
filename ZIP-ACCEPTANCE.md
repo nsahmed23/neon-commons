@@ -1,0 +1,9 @@
+# Dossier and future plugin ZIP acceptance
+
+This release is a research/reference materials ZIP, not a production plugin. Actual check receipts are in verification/. Exclude __pycache__, .pyc, caches, live state/plans, personal credentials, temporary locks and acquired proprietary data from archives. Include the original input documents, source records, synthetic expected artifacts and tests only in the dossier/development pack, not the future runtime.
+
+Dossier check: all required paths present; JSON/YAML parse; schemas checked and fixtures validated; state/question targets closed; source records and trace paths resolve locally; generated manifest hashes match actual files; independent tests pass; archive members have no absolute/traversal/symlink entries; fresh extraction and SHA256SUMS verification pass. Archive uses stable ordering and timestamps. A heuristic secret-pattern scan is supplementary, not proof all data is safe. No real tenant data was supplied to the synthetic pipeline.
+
+Future runtime check: validate official host manifests and skill discovery on exact native hosts; execute native Windows/PowerShell and Linux terminal cases; PTY cancellation/resume and interrupted subprocess; no spontaneous tool download/authentication; protected assessment/effect boundaries; source/license dependency closure; separately approved provider/live qualification. Do not infer any of these passed from dossier tests. The fixture plugin is an example, not an installed or behaviorally validated engineering package.
+
+Reproduce this source distribution with `python tools/package-materials.py --output ../Intune_IaC_Offline_Repair_v0.2.0.zip` after verification. It refreshes the correction-subtree and root SHA256SUMS.txt, excludes caches and the development repository metadata, retains synthetic workflow seed HEAD files, and produces deterministically ordered members. Verify after extraction with external receipt output so archive hashes stay unchanged.

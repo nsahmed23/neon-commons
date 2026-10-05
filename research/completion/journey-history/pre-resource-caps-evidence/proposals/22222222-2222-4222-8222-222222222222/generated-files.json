@@ -1,0 +1,23 @@
+{
+  "files": {
+    ".gitignore": "bb6f64fd38925742386362477baee8c0e69c7f66342602891c79da0ec36b48aa",
+    ".tool-versions": "119638b200ae7f66308ea4db8a5dfc01731c47ece9c7e4bac83e594511a63055",
+    "README.md": "b42d730cfbe1843828b678ab303c6ec41a4f28eac0606f2585f223df3d77cb71",
+    "adoption/capability.json": "de436d1876de4bbeae74ac38567c4ad6c72f4e342316f7933f0fc7bc27fb1e67",
+    "adoption/coverage.json": "1d71f8a47d58434f8cfdd43f0dea9ed80db2c4cfb06743582080b613cccd5cfb",
+    "adoption/field-accounting.json": "9f2a9cc0fc3abc11e7b5eb6355fa3da4b7c4830517ca70fb29c77e85febe6d23",
+    "adoption/object-map.json": "2ff3d96a93cdced46bbb9be7ab0937c70311e56a91d0638cfee94ce35d33ea93",
+    "adoption/source-receipt.json": "c7419d9b409e65ff467150fc83b95c033b1dc5f08c468cbb4985d66a257d8532",
+    "adoption/unresolved-paths.json": "3c8a5179b789e6735847bf365ccab5cd92a2867ff5b3f18fd58b842da0500d3d",
+    "atmos.yaml": "781432fc778931de959c0460d6c5a1f347f71ef08c73c7955b560c3e6a3c9992",
+    "commands/PROPOSED-import.ps1.txt": "289ef8896117fb76b1b8a55f1acce7b6e795144e31b342663c001528676fcbe7",
+    "commands/PROPOSED-import.sh.txt": "06bf2e17443d1d8055e764f493f4b24f9cd54036c2277ffed131b3e9b896c917",
+    "commands/README.md": "c2e2d419cb392071458d64868c87bf57992dbf85905017d461ab442aa331d101",
+    "commands/command-cards.json": "4a3201afc3a518e1c9e4b4789bbb41bf00d26d42bfaff64a236e1a89dcce8c3c",
+    "components/terraform/intune-reference/adoption-input.json": "d0ce89d160dacea0aa36da61b55314a188c6dd56087b223903b82154ae2d5be1",
+    "components/terraform/intune-reference/imports.tf": "1016d63c76ae0cf2d4aff9f49fcc549ce29ffc08cd334940bf8c62808b6952d2",
+    "components/terraform/intune-reference/main.tf": "c061b7e20f6905ed7c50ee72c692133ff879e458cf3b9587e00f56784b13e6f4",
+    "stacks/orgs/reference/dev.yaml": "8de5d54c995591f41520a8d48bd241bfd096fe269d41606b628a0c2b16630738"
+  },
+  "schema_version": "1.0.0"
+}

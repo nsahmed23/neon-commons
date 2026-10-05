@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "apply",
+    "-input=false",
+    "-no-color",
+    "desired-change.tfplan"
+  ],
+  "cwd": "repository/components/terraform/policy",
+  "exit_code": 1,
+  "expected_exit_codes": [
+    1
+  ],
+  "name": "stale-plan-rejected",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "b770e8978edcebbee2056d5550fd7ef73eef7def7cf3333b83ce704f2d4b404c",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "tool": "tofu",
+  "transcript_complete": true
+}

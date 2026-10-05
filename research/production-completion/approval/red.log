@@ -1,0 +1,125 @@
+EEEEEEEEEEEEEEE
+======================================================================
+ERROR: test_authorization_context_cannot_be_entered_twice (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_authorization_context_cannot_be_entered_twice)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_durable_write_failure_blocks_dispatch (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_durable_write_failure_blocks_dispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_expiry_after_verification_before_dispatch (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_expiry_after_verification_before_dispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_guard_failure_prevents_consumption_and_revocation_stops_active (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_guard_failure_prevents_consumption_and_revocation_stops_active)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_mutex_blocks_different_operations_for_same_object (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_mutex_blocks_different_operations_for_same_object)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_plan_substitution_and_forged_boolean_rejected (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_plan_substitution_and_forged_boolean_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_real_signature_scope_binding_and_one_time_consumption (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_real_signature_scope_binding_and_one_time_consumption)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_replay_denied_after_restart_and_interrupted_execution (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_replay_denied_after_restart_and_interrupted_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_scope_cannot_be_changed_and_same_request_cannot_use_new_receipt (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_scope_cannot_be_changed_and_same_request_cannot_use_new_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_signature_tampering_and_wrong_key_rejected (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_signature_tampering_and_wrong_key_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_signed_request_is_detached_from_mutable_caller_data (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_signed_request_is_detached_from_mutable_caller_data)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_unsafe_permissions_and_unknown_receipt_fields_rejected (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_unsafe_permissions_and_unknown_receipt_fields_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_untrusted_json_cannot_mint_permit_or_live_guard (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_untrusted_json_cannot_mint_permit_or_live_guard)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_wrong_approver_issuer_key_and_expiry_rejected (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_wrong_approver_issuer_key_and_expiry_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+======================================================================
+ERROR: test_wrong_verifier_pin_and_symlink_store_rejected (plugin_tests.test_approval_authority_v5.ApprovalAuthorityTests.test_wrong_verifier_pin_and_symlink_store_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_authority_v5.py", line 19, in setUp
+    from intune_iac import approval_authority as api
+ImportError: cannot import name 'approval_authority' from 'intune_iac' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/__init__.py)
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.001s
+
+FAILED (errors=15)

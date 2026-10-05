@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_parser_integer_boundary_matches_oracle (evaluations.test_repaired_cli.RepairedCli.test_parser_integer_boundary_matches_oracle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_cli.py", line 58, in test_parser_integer_boundary_matches_oracle
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.043s
+
+FAILED (failures=1)

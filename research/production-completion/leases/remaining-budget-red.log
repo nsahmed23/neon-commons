@@ -1,0 +1,23 @@
+test_renew_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_renew_token_exchange_budget_cannot_exceed_remaining_lease) ... FAIL
+test_release_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_release_token_exchange_budget_cannot_exceed_remaining_lease) ... FAIL
+
+======================================================================
+FAIL: test_renew_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_renew_token_exchange_budget_cannot_exceed_remaining_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_independent_v5.py", line 95, in test_renew_token_exchange_budget_cannot_exceed_remaining_lease
+    self.assertLessEqual(self.tokens.calls[-1]['timeout'], 1.5)
+AssertionError: 5.0 not less than or equal to 1.5
+
+======================================================================
+FAIL: test_release_token_exchange_budget_cannot_exceed_remaining_lease (plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_release_token_exchange_budget_cannot_exceed_remaining_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_blob_lease_independent_v5.py", line 104, in test_release_token_exchange_budget_cannot_exceed_remaining_lease
+    self.assertLessEqual(self.tokens.calls[-1]['timeout'], 1)
+AssertionError: 5.0 not less than or equal to 1
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.003s
+
+FAILED (failures=2)

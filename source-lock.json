@@ -1,0 +1,213 @@
+{
+  "date": "2026-09-30",
+  "schema_version": "1.0.0",
+  "sources": [
+    {
+      "commit_sha": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "id": "typed-intune",
+      "license": "MPL-2.0",
+      "license_evidence": "LICENSE",
+      "pin_evidence": "lightweight release tag resolved through GitHub; selected source files read",
+      "raw_bytes_acquired": false,
+      "release": "v1.0.0",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go",
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/crud.go",
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct.go",
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/construct_assignment.go",
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/state.go",
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource_acceptance_test.go",
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource_test.go",
+        "internal/services/common/schema/graph_beta/device_management/device_configuration_assignment.go",
+        "LICENSE"
+      ]
+    },
+    {
+      "commit_sha": "058dd7651d92d741d48e868d815826edec669229",
+      "id": "msgraph",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "annotated tag 48453603c4bf694f428705a74fb5911b92641af1 dereferenced to this commit",
+      "raw_bytes_acquired": false,
+      "release": "v0.5.0",
+      "repository": "microsoft/terraform-provider-msgraph",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        "docs/resources/resource.md",
+        "internal/services/msgraph_resource.go"
+      ]
+    },
+    {
+      "commit_sha": "5fd93af4cd0c623e020d0cc7e9ce178b4ac1f70f",
+      "id": "plugin-eval",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "GitHub code search result pinned; selected files fetched at that revision",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "openai/plugins",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        "plugins/plugin-eval/src/core/target.js",
+        "plugins/plugin-eval/src/core/benchmark.js",
+        "plugins/plugin-eval/references/benchmark-harness.md",
+        "plugins/plugin-eval/src/core/benchmark-workspace.js"
+      ]
+    },
+    {
+      "commit_sha": "d5790b2b11cce4b1c1ed96da9a73716510d6d03a",
+      "id": "atmos",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous report pin; selected skill re-fetched at this commit",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "cloudposse/atmos",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        "agent-skills/skills/atmos-terraform/SKILL.md"
+      ]
+    },
+    {
+      "commit_sha": "f706481af9b8fedb66de909f6243ad29601afa0c",
+      "id": "hashicorp-skills",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous report pin; catalogue re-fetched at this commit",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "hashicorp/agent-skills",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        "SKILLS.md"
+      ]
+    },
+    {
+      "commit_sha": "f07c05364353925f7c8b0e474aa95afa291bce54",
+      "id": "azure-skills",
+      "license": "MIT",
+      "license_evidence": "selected azure-prepare frontmatter",
+      "pin_evidence": "previous report pin; azure-prepare re-fetched at this commit",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "microsoft/azure-skills",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        ".github/plugins/azure-skills/skills/azure-prepare/SKILL.md"
+      ]
+    },
+    {
+      "commit_sha": "86b69d2292485d179698f5b9bf648a29f935e216",
+      "id": "terraform-corpus",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "meta.yml and conftest.py re-fetched at this commit",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "stephrobert/terraform-dsoxlab-training",
+      "review_status": "reviewed_selected_files",
+      "selected_paths": [
+        "meta.yml",
+        "conftest.py"
+      ]
+    },
+    {
+      "commit_sha": "67afe5d7c7f859f8cdeebaa89679258593db6da7",
+      "id": "dsoxlab",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous report only; runner source not re-fetched",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "stephrobert/dsoxlab",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": "68e04d3374f93d5895d66fc28581f25e1e250fdf",
+      "id": "powerstacks",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous report only; collector not executed or re-fetched in this closure pass",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "powerstacks-corp/intune-advanced-troubleshooting",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": "703f383198963a3596f7a86ff63c9f98574a21b6",
+      "id": "claude-m",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous report only",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "TheLobbi/Claude-m",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": "8ca22dba9a94f28898bbce59f2537ff4d87c747d",
+      "id": "superpowers",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous report only; installed method instructions read separately",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "obra/superpowers",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": null,
+      "id": "mggraph-samples",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "discovery lead retained; raw source not re-fetched",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "microsoft/mggraph-intune-samples",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": null,
+      "id": "graph-powershell-sdk",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "discovery lead retained; no SDK needed for offline reference",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "microsoftgraph/msgraph-sdk-powershell",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": null,
+      "id": "anton",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous-report reference-only; not a runtime dependency",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "antonbabenko/terraform-skill",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    },
+    {
+      "commit_sha": null,
+      "id": "terrashark",
+      "license": null,
+      "license_evidence": null,
+      "pin_evidence": "previous-report reference-only; not a runtime dependency",
+      "raw_bytes_acquired": false,
+      "release": null,
+      "repository": "LukasNiessen/terrashark",
+      "review_status": "prior_report_only",
+      "selected_paths": []
+    }
+  ]
+}

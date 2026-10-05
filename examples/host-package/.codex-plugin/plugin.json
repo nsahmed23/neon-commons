@@ -1,0 +1,6 @@
+{
+  "description": "Packaging fixture only; no live integrations or finished wizard.",
+  "name": "intune-iac-contract-fixture",
+  "skills": "./skills/",
+  "version": "0.0.1"
+}

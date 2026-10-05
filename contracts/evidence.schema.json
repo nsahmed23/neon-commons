@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/evidence.schema.json",
+  "title": "evidence",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "freshness_seconds": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cohort": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "eligible_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "targeted_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "excluded_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "version",
+        "eligible_ids",
+        "targeted_ids",
+        "excluded_ids"
+      ],
+      "additionalProperties": false
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "device_id": {
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "object",
+              "assignment",
+              "cohort",
+              "receipt",
+              "execution",
+              "effective_state",
+              "outcome",
+              "arm",
+              "data_plane",
+              "network"
+            ]
+          },
+          "status": {
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              "unknown",
+              "conflicting"
+            ]
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source_file": {
+            "type": "string"
+          },
+          "source_pointer": {
+            "type": "string"
+          },
+          "coverage": {
+            "enum": [
+              "complete",
+              "partial",
+              "access_denied",
+              "unknown"
+            ]
+          },
+          "synthetic": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "device_id",
+          "stage",
+          "status",
+          "observed_at",
+          "source_file",
+          "source_pointer",
+          "coverage",
+          "synthetic"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "capture": {
+      "type": "object",
+      "properties": {
+        "timezone": {
+          "type": "string"
+        },
+        "clock_skew_seconds": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "logging_enabled": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "access_errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "timezone",
+        "clock_skew_seconds",
+        "logging_enabled",
+        "truncated",
+        "access_errors"
+      ],
+      "additionalProperties": false
+    },
+    "promotion_thresholds": {
+      "type": "object",
+      "properties": {
+        "min_reporting_ratio": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "min_success_ratio": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "min_reporting_ratio",
+        "min_success_ratio"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "synthetic",
+    "as_of",
+    "freshness_seconds",
+    "cohort",
+    "rows",
+    "capture",
+    "promotion_thresholds"
+  ],
+  "additionalProperties": false
+}

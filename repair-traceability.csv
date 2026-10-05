@@ -1,0 +1,13 @@
+defect,implemented_requirement,implementation_files,assertion_file
+F01,Settings projection preserves ID and removes validated wrapper only,reference/core.py;reference/validation.py,evaluations/test_repaired_regressions.py
+F02,Independent initial capture boundary and continuation completeness,reference/validation.py;reference/invariants.py,evaluations/test_repaired_contracts.py
+F03,Typed shape and explicit capability qualification,reference/validation.py;corrections/contracts/capability-map.json,evaluations/test_repaired_pipeline.py
+F04,Duplicate reference identities rejected,reference/core.py,evaluations/test_repaired_regressions.py
+F05,Independent source/model/artifact preservation gate,reference/invariants.py;tools/build-reference.py,evaluations/test_repaired_oracle.py
+F06,Unknown keys/values kept out of model-visible output,reference/core.py;reference/field_accounting.py,evaluations/test_repaired_cli.py
+F07,Saved frontier and byte-backed prerequisite resume,reference/workflow.py;tools/session-reference.py,evaluations/test_repaired_workflow.py
+F08,Structured full-context approval consistency,reference/approval.py,evaluations/test_repaired_workflow.py
+F09,Malformed ownership conflict and registered preview tokens,reference/core.py;reference/validation.py,evaluations/test_repaired_regressions.py
+C01,Exact-length GUID validation,corrections/contracts/observed-policy.schema.json,evaluations/test_repaired_contracts.py
+C02,Object/null approval branch comparison,corrections/models/contract_model.py,evaluations/test_correction_models.py
+C03,Reserved and builtin executable rejection,reference/validation.py,evaluations/test_repaired_contracts.py

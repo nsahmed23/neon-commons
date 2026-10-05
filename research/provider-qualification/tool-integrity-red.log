@@ -1,0 +1,13 @@
+......F
+======================================================================
+FAIL: test_unreviewed_go_executable_rejected (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_unreviewed_go_executable_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 73, in test_unreviewed_go_executable_rejected
+    self.assertTrue(hasattr(mod, 'verify_go'), 'compiler integrity check must exist')
+AssertionError: False is not true : compiler integrity check must exist
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.006s
+
+FAILED (failures=1)

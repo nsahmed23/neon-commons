@@ -1,0 +1,6 @@
+test_state_replacement_with_desired_value_cannot_claim_success (plugin_tests.test_protected_completion.StateLineageRegressionTests.test_state_replacement_with_desired_value_cannot_claim_success) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 1.278s
+
+OK

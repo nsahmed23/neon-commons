@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/operation.schema.json",
+  "title": "operation",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "operation_id": {
+      "type": "string"
+    },
+    "card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "executable": {
+          "type": "string"
+        },
+        "arguments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "working_directory": {
+          "type": "string"
+        },
+        "effect_class": {
+          "enum": [
+            "local_read",
+            "local_write",
+            "provider_read",
+            "state_mutation",
+            "cloud_mutation",
+            "device_action"
+          ]
+        },
+        "effects": {
+          "type": "object",
+          "properties": {
+            "local_write": {
+              "type": "boolean"
+            },
+            "network": {
+              "type": "boolean"
+            },
+            "state_write": {
+              "type": "boolean"
+            },
+            "cloud_write": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "required": [
+            "local_write",
+            "network",
+            "state_write",
+            "cloud_write"
+          ],
+          "additionalProperties": false
+        },
+        "authorization": {
+          "enum": [
+            "emit_only",
+            "protected_ci_required",
+            "explicit_collection_required"
+          ]
+        },
+        "execution_allowed": {
+          "const": false
+        },
+        "expected_exit_codes": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "provider_source": {
+          "type": "string"
+        },
+        "provider_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "purpose",
+        "executable",
+        "arguments",
+        "working_directory",
+        "effect_class",
+        "effects",
+        "authorization",
+        "execution_allowed",
+        "expected_exit_codes",
+        "provider_source",
+        "provider_version"
+      ],
+      "additionalProperties": false
+    },
+    "target": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "format": "uuid",
+          "minLength": 36,
+          "maxLength": 36,
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "cloud": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "stack": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tenant_id",
+        "cloud",
+        "component",
+        "stack"
+      ],
+      "additionalProperties": false
+    },
+    "input_digests": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "preconditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "assurance": {
+      "enum": [
+        "authored",
+        "syntax_checked",
+        "fixture_tested",
+        "not_run"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "operation_id",
+    "card",
+    "target",
+    "input_digests",
+    "preconditions",
+    "verification",
+    "assurance"
+  ],
+  "additionalProperties": false
+}

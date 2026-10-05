@@ -1,0 +1,118 @@
+{
+  "documentType": "codex-security.scan-manifest",
+  "scan": {
+    "artifacts": [
+      {
+        "mediaType": "application/json",
+        "path": "findings.json",
+        "sha256": "daeb0b5b720428d80ce308378c3a92984338b29e48308f6a2ec30d9b1cd4acf8"
+      },
+      {
+        "mediaType": "application/json",
+        "path": "coverage.json",
+        "sha256": "155f5d2bc45e7c84c7aa832a3e255d41354bb5f9a443dbc080220f4e3f54dfc7"
+      }
+    ],
+    "completedAt": "2026-09-30T23:58:24.930099Z",
+    "coverageRef": "coverage.json",
+    "findingsRef": "findings.json",
+    "id": "290bdae5-852f-4e05-a5d8-0ce24b9fdcce",
+    "preservedSources": {
+      "checkpoints/1b22df569266725922fd79eaa3704f895ef8c08b09d8642aa56cea702e1deaa8.json": "4d9a0e74b32adc03b6fb35cdd1356301e57116fc392c38c43ae61de6a37173ad",
+      "checkpoints/59df5d5c3ef975eb976b029472f4e77639d7d34c5fa071fd6f6481b71dd8ea33.json": "59df5d5c3ef975eb976b029472f4e77639d7d34c5fa071fd6f6481b71dd8ea33",
+      "checkpoints/7218f302eab81165fa75f5e3bc31be020aff9f8bd78654af5ad4684807b5ca3f.json": "613b286f92e0b64b15a55d58a2de6283f6c17dfc54c8cc08be8efec2c70bf9f5",
+      "checkpoints/7df198eaf99d2cacf3fc4ad7498f0be70c64ad845fe2408c1783eceb5d11672d.json": "b521f1b6f63cfa33b2f1dc64ac16d705364a4bdbe78958aa19c860aff37c3fdb",
+      "checkpoints/f1314216df06f2589a5cfde10ed121770a0908c51ddfa9f50cd5904a1c75b194.json": "4e91656c46ddd547ad7c39dc8e9f43425294f8f43c96a7cbbb807d4d5ed72a93"
+    },
+    "producer": {
+      "name": "codex-security-plugin",
+      "version": "0.1.31"
+    },
+    "scope": {
+      "artifactsReviewed": [
+        "intune_iac/__init__.py",
+        "intune_iac/io.py",
+        "intune_iac/capture.py",
+        "intune_iac/mcp.py",
+        "intune_iac/cli.py",
+        "intune_iac/engine.py",
+        "intune_iac/runner.py",
+        "intune_iac/judge.py",
+        "intune_iac/repository.py",
+        "intune_iac/production.py",
+        "intune_iac/production_oracle.py",
+        "intune_iac/atmos.py",
+        "intune_iac/graph.py",
+        "intune_iac/wizard.py",
+        "intune_iac/target.py",
+        "intune_iac/workflow.py",
+        "intune_iac/execution.py",
+        "intune_iac/reconciliation.py",
+        "scripts/verify-dependencies.py"
+      ],
+      "context": "Can you create a goal for yourself to not stop working until it\u2019s acceptable for production use in an enterprise environment? Use whatever plugins or skills you have access to to critically plan it and then fan out subagents to execute a plan of action to finish this \u201cgoal\u201d. Comb through as many repos and do as much as deep research as needed. Delegated security scope: critical audit all execution/identity/preservation/host boundaries; no cloud operations. Source audit offline.",
+      "excludePaths": [],
+      "includePaths": [
+        "."
+      ],
+      "limitations": [
+        "Whole-repository coverage partial; historical and fixture corpus not exhaustively reviewed.",
+        "Concurrent working-tree implementation; baseline findings and repair snapshots distinguished in artifacts/fix-review.md.",
+        "No nested independent baseline worker available; degraded-worker preflight path used.",
+        "This source audit does not establish enterprise production readiness or organizational approval."
+      ],
+      "runtimeStatus": "Offline local synthetic reproductions only. No cloud, native host or real credential execution.",
+      "summary": "Partial critical-runtime source audit with bounded synthetic reproductions and independent review of all four repairs.",
+      "validationMode": "Source-backed bounded reproductions plus independent source review of owner repairs."
+    },
+    "sealedAt": "2026-09-30T23:58:24.930099Z",
+    "startedAt": "2026-09-30T23:39:19.722774Z",
+    "status": "completed",
+    "target": {
+      "displayName": "intune-iac-plugin",
+      "kind": "git_worktree",
+      "revision": "3fbfae8f986feda036c6fdb14257be6ad1c5b826",
+      "snapshotDigest": "codex-security-snapshot/v1:sha256:6b9fd43bda790f85ffe744f244d7dfc53f59dbdb48757af913260173749a0dea",
+      "targetId": "target_sha256_824526ce876babeff230cd23cea344b27067ac1396ccea2c3d87348f2cae47b5"
+    },
+    "threatModel": {
+      "assets": [
+        "Captured tenant/policy identities, accepted settings and targeting tuples; generated project confidentiality and integrity.",
+        "Source provenance, output ownership, wizard progression and operation receipt integrity.",
+        "Explicit Graph bearer token and optional CLM credential; raw input confidentiality."
+      ],
+      "assumptions": [
+        "No cloud call or actual credentials used in audit; bounded synthetic local reproduction explicitly authorized by parent.",
+        "Parent assigned all concurrency slots elsewhere and prohibited nested workers; sequential baseline and architecture review are not independent.",
+        "Cooperative local filesystem for ordinary runtime; no adversarial writable-ancestor race isolation guarantee.",
+        "Whole repository requested; this audit fully read 19 critical runtime/auditor source files and selected supporting code/tests, but historical research, all fixtures and the full repository were not exhaustively audited. Changes were reviewed incrementally while implementation owners worked."
+      ],
+      "attackerCapabilities": [
+        "Can supply a malicious capture, graph, or repository for operator review; cannot assume control of process code, host credentials or trusted operator configuration.",
+        "Separate unprivileged local user may traverse a shared output parent; cannot initially read restricted capture files.",
+        "Remote judge service can return malformed/delayed responses after operator explicitly selects that endpoint."
+      ],
+      "securityObjectives": [
+        "Unsupported/missing/denied data must not silently become empty desired state or execution authority.",
+        "Prevent source-derived code execution and out-of-scope filesystem overwrite.",
+        "Preserve accepted sensitive observations in owner-restricted generated files.",
+        "Local digests and receipts establish consistency, never authentication or organizational approval."
+      ],
+      "summary": "Local Python CLI/MCP plugin consumes caller-selected Intune captures and Atmos repositories, preserves bounded observations, emits inactive production candidates, and records local attempts. New guided receipt reconstruction, strict target consistency checks, fixed authenticated GET observations, conservative plan review and local fixture simulation were reviewed. No production cloud mutation adapter is enabled.",
+      "trustBoundaries": [
+        "Untrusted local JSON -> parse_json regular-file/size/duplicate-key/depth checks (intune_iac/io.py:29-73); CLI/MCP only fixed routes (intune_iac/mcp.py:21-57).",
+        "Untrusted repository -> inert YAML AST and bounded literal merge; raw effective values stay internal and public projection omits them (intune_iac/repository.py:116-263,431-565).",
+        "Capture -> GET-only Graph allowlisted origin/path with no redirects and restricted dirfd persistence (intune_iac/capture.py:41-99,128-252).",
+        "CLM claim/evidence -> explicit configured endpoint, no redirects/proxy inheritance, advisory result cannot authorize execution (intune_iac/judge.py:110-136,251-282,315-384).",
+        "Projection -> owned local output transaction; new generated POSIX directories are now 0700 and files 0600. Existing output is preserved rather than chmodded (reference/core.py).",
+        "Local action proposals -> fixed registry dispatch, evidence reread and exclusive cooperative target locks; unknown writes retain locks (intune_iac/runner.py:17-29,174-211,300-378).",
+        "Guided session -> canonical input/output scopes and cooperative lock -> reread session and artifacts -> verified local milestones. Completion never grants external execution authority (intune_iac/workflow.py).",
+        "Caller-supplied target claims -> strict snapshot/schema/endpoint comparison; optional collector only fixed Graph and Azure management GETs. Neither self-reported fields nor collected subset authenticate principal, federation, state ownership or approver (intune_iac/target.py).",
+        "Plan JSON -> conservative typed effect review with denominator and known-value consistency; provenance remains caller-supplied and result cannot authorize execution (intune_iac/execution.py).",
+        "Local fixture operation -> exact concrete adapter, fixed facet files, durable strict event-prefix receipt chain and retained lock on unknown outcome; reconciliation reads independent local state and cannot unlock/retry automatically (intune_iac/execution.py, reconciliation.py).",
+        "Vendored wheelhouse -> exact lock, bounded ZIP metadata/name/version/hash inspection; no extraction/install/execute and no publisher authentication or vulnerability assessment (scripts/verify-dependencies.py)."
+      ]
+    }
+  },
+  "schemaVersion": "1.0"
+}

@@ -1,0 +1,14 @@
+test_assignment_query_preserves_duplicate_identity_blocker_and_unknown_coverage (plugin_tests.test_atmos_audit.AtmosAuditTests.test_assignment_query_preserves_duplicate_identity_blocker_and_unknown_coverage) ... FAIL
+
+======================================================================
+FAIL: test_assignment_query_preserves_duplicate_identity_blocker_and_unknown_coverage (plugin_tests.test_atmos_audit.AtmosAuditTests.test_assignment_query_preserves_duplicate_identity_blocker_and_unknown_coverage)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 131, in test_assignment_query_preserves_duplicate_identity_blocker_and_unknown_coverage
+    self.assertIn('duplicate_assignment_identity', {i['code'] for i in result.get('issues', [])})
+AssertionError: 'duplicate_assignment_identity' not found in set()
+
+----------------------------------------------------------------------
+Ran 1 test in 0.061s
+
+FAILED (failures=1)

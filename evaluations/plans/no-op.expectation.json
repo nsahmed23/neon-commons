@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "observed_provider_run": false,
+  "expected_advisory_class": "no_remote_change_by_plan_only",
+  "required_source_contract": null,
+  "execution_authorized": false,
+  "limitation": "Representative plan fragment, not provider execution evidence; context must validate pinned contract independently."
+}

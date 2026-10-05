@@ -1,0 +1,30 @@
+vars:
+  stage: qualification
+components:
+  terraform:
+    parent:
+      metadata:
+        type: abstract
+      vars: &id001
+        empty_string: old
+        zero: 7
+        'false': true
+        null_value: old
+        empty_list:
+        - old
+        empty_map:
+          old: old
+    leaf:
+      metadata:
+        component: demo
+        inherits:
+        - parent
+      vars: *id001
+      overrides:
+        vars:
+          empty_string: ''
+          zero: 0
+          'false': false
+          null_value: null
+          empty_list: []
+          empty_map: {}

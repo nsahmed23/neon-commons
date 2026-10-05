@@ -1,0 +1,4 @@
+{"method":"GET","url":"https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/33333333-3333-4333-8333-333333333333"}
+{"method":"GET","url":"https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('33333333-3333-4333-8333-333333333333')/settings?%24expand=children"}
+{"method":"GET","url":"https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('33333333-3333-4333-8333-333333333333')/assignments"}
+{"method":"GET","url":"https://graph.microsoft.com/beta/deviceManagement/configurationPolicies('33333333-3333-4333-8333-333333333333')/assignments?$skiptoken=fixture%2B2"}

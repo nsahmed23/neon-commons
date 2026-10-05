@@ -1,0 +1,216 @@
+{
+  "schema_version": "1.0.0",
+  "baseline_commit": "77682f84022232569418e6ff4e678f2cf06246de",
+  "release": "0.2.1",
+  "qualification_scope": "Local code/contracts only; no provider/cloud/native host/model qualification",
+  "findings": [
+    {
+      "id": "P01",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "P02",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "P03",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "P04",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "P05",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "P06",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "P07",
+      "status": "fixed_offline",
+      "report": "audits/audit-preservation.md",
+      "tests": "plugin_tests/test_preservation_audit.py"
+    },
+    {
+      "id": "AG01",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG02",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG03",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG04",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG05",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG06",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG07",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "AG08",
+      "status": "fixed_offline",
+      "report": "audits/audit-atmos-graph.md",
+      "tests": "plugin_tests/test_atmos_audit.py"
+    },
+    {
+      "id": "WF01",
+      "status": "fixed_offline",
+      "report": "audits/audit-workflow.md",
+      "tests": "plugin_tests/test_workflow_audit.py"
+    },
+    {
+      "id": "WF02",
+      "status": "fixed_offline",
+      "report": "audits/audit-workflow.md",
+      "tests": "plugin_tests/test_workflow_audit.py"
+    },
+    {
+      "id": "WF03",
+      "status": "fixed_offline",
+      "report": "audits/audit-workflow.md",
+      "tests": "plugin_tests/test_workflow_audit.py"
+    },
+    {
+      "id": "WF04",
+      "status": "fixed_offline",
+      "report": "audits/audit-workflow.md",
+      "tests": "plugin_tests/test_workflow_audit.py"
+    },
+    {
+      "id": "H01",
+      "status": "fixed_offline",
+      "report": "audits/audit-host-judge.md",
+      "tests": "plugin_tests/test_mcp_audit.py; plugin_tests/test_capture_audit.py"
+    },
+    {
+      "id": "H02",
+      "status": "fixed_offline",
+      "report": "audits/audit-host-judge.md",
+      "tests": "plugin_tests/test_mcp_audit.py; plugin_tests/test_capture_audit.py"
+    },
+    {
+      "id": "H03",
+      "status": "fixed_offline",
+      "report": "audits/audit-host-judge.md",
+      "tests": "plugin_tests/test_mcp_audit.py; plugin_tests/test_capture_audit.py"
+    },
+    {
+      "id": "H04",
+      "status": "fixed_offline",
+      "report": "audits/audit-host-judge.md",
+      "tests": "plugin_tests/test_mcp_audit.py; plugin_tests/test_capture_audit.py"
+    },
+    {
+      "id": "PC02",
+      "status": "fixed_documentation",
+      "report": "audits/audit-product-completion.md",
+      "evidence": "forward-test/stable-handoff.json; repository/result.json; RELEASE-VERIFICATION.md"
+    },
+    {
+      "id": "PC03",
+      "status": "fixed_documentation",
+      "report": "audits/audit-product-completion.md",
+      "evidence": "forward-test/stable-handoff.json; repository/result.json; RELEASE-VERIFICATION.md"
+    },
+    {
+      "id": "PC04",
+      "status": "fixed_documentation",
+      "report": "audits/audit-product-completion.md",
+      "evidence": "forward-test/stable-handoff.json; repository/result.json; RELEASE-VERIFICATION.md"
+    },
+    {
+      "id": "PC05",
+      "status": "fixed_documentation",
+      "report": "audits/audit-product-completion.md",
+      "evidence": "forward-test/stable-handoff.json; repository/result.json; RELEASE-VERIFICATION.md"
+    },
+    {
+      "id": "PK01",
+      "aliases": [
+        "PC01",
+        "H05"
+      ],
+      "status": "fixed_offline",
+      "finding": "Incidental source data and symlink parent/output aliases could enter release builds. Explicit inventory and checked paths now required.",
+      "tests": "plugin_tests/test_release_audit.py"
+    },
+    {
+      "id": "RF01",
+      "status": "fixed_offline",
+      "finding": "Existing or late-arriving release outputs could be overwritten. Exclusive opens preserve them.",
+      "report": "reviews/audit-release-fix-review.md"
+    },
+    {
+      "id": "RF02",
+      "status": "fixed_offline",
+      "finding": "Root SHA256SUMS inventory member could create a false self-hash. The name is reserved.",
+      "report": "reviews/audit-release-fix-review.md"
+    },
+    {
+      "id": "PK02",
+      "aliases": [
+        "final/R2"
+      ],
+      "status": "fixed_offline",
+      "finding": "Source symlink swaps and rereads could leak outside bytes or differ between archives. Anchored no-follow reads and a shared snapshot replace those reads.",
+      "report": "reviews/final-code-review.md",
+      "tests": "plugin_tests/test_release_audit.py"
+    },
+    {
+      "id": "CLI01",
+      "status": "fixed_offline",
+      "finding": "Missing prerequisites returned exit 2 despite documented exit 5.",
+      "tests": "plugin_tests/test_cli_audit.py"
+    },
+    {
+      "id": "PC06",
+      "status": "open_release_gate",
+      "finding": "Real publisher URLs, large-function maintainability, observed host costs and behavioral evaluation remain incomplete. Runtime/source test separation is intentional.",
+      "report": "audits/audit-product-completion.md"
+    }
+  ],
+  "product_requirements": "docs/PRODUCT-STATUS.md",
+  "fresh_review": "reviews/final-code-review.md"
+}

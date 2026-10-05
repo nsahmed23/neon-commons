@@ -1,0 +1,10 @@
+family,candidate,material,release_stage,qualification_needed,live
+Windows plain Settings Catalog,typed microsoft3651.0.0 beta,schemas +4 fixtures +generator +independent oracle,offline reference,assign service semantics/pagination/common serializer/OpenTofu qualification,not_run
+Template configuration /endpoint security,family-specific beta route required,unsupported detection +field preservation,staged,template-specific serializers and no-loss tests,not_run
+Compliance policies,family-specific API required,workflow boundary and family disposition only,staged,typed resource/import route and complete fixture,not_run
+"Groups, filters, scope tags",external references,reference/target preservation tests,reference-only ownership,positive/negative auth; never silently own membership,not_run
+Win32 apps,Intune app family API,review contract +diagnostic fixture,review only,upload/commit/content delivery and return/detection qualification,not_run
+PowerShell scripts/remediations,workload-specific API/permissions,review contract and effects boundary,staged,test detection exit semantics per service; packaging/deploy separate,not_run
+Autopilot/enrollment,not selected,explicit exclusion from first slice,later,family-specific identity and enrollment lab,not_run
+Azure support,existing azurerm backend/OIDC,complete synthetic backend+CI handoff project,reference,live pipeline adapter/backend and principal qualification,not_run
+Endpoint diagnostics,offline sanitized input,evidence/timeline/expected analysis/reducer,offline reference,collector adaptation and observed target evidence,not_run

@@ -1,0 +1,8 @@
+
+Error: local-exec provisioner error
+
+  with terraform_data.assignment,
+  on main.tf line 9, in resource "terraform_data" "assignment":
+   9:   provisioner "local-exec" {
+
+Error running command 'exit 1': exit status 1. Output: 

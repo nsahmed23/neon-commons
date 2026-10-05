@@ -1,0 +1,9 @@
+{
+  "filename": "go1.25.8.linux-amd64.tar.gz",
+  "os": "linux",
+  "arch": "amd64",
+  "version": "go1.25.8",
+  "sha256": "ceb5e041bbc3893846bd1614d76cb4681c91dadee579426cf21a63f2d7e03be6",
+  "size": 59786528,
+  "kind": "archive"
+}

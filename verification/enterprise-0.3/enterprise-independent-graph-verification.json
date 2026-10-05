@@ -1,0 +1,26 @@
+{
+  "checks": [
+    {
+      "case": "before_after_corpus",
+      "count": 918,
+      "digest": "3aebc98f7682122cd9626d922db303aece70717038d0b817b8a8fe4a62d16df2",
+      "status": "matched"
+    },
+    {
+      "case": "observed_relation_cannot_claim_derived",
+      "status": "invalid_graph"
+    },
+    {
+      "case": "typed_endpoint",
+      "status": "invalid_graph"
+    },
+    {
+      "case": "required_setting_definition",
+      "status": "invalid_graph"
+    },
+    {
+      "case": "missing_effective_provenance",
+      "status": "invalid_graph"
+    }
+  ]
+}

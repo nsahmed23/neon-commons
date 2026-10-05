@@ -1,0 +1,110 @@
+{
+  "version": "1.0.0",
+  "acquired_at_utc": "2026-10-01",
+  "action_sources": [
+    {
+      "repository": "https://github.com/actions/checkout",
+      "tag": "v6.1.0",
+      "commit": "d23441a48e516b6c34aea4fa41551a30e30af803",
+      "remote_tag_and_clone_agree": true,
+      "license": "MIT",
+      "inspected_files": [
+        {
+          "path": "action.yml",
+          "sha256": "d59219cb79590abdb877deaa14e3b65a00c05318bf5a6f3b989b9162b5d08c35",
+          "url": "https://github.com/actions/checkout/blob/d23441a48e516b6c34aea4fa41551a30e30af803/action.yml"
+        },
+        {
+          "path": "README.md",
+          "sha256": "cefdca2c4a468cf7032e60cd6d95ffda3b27e578c93abe392a8a262f2a9d67cf",
+          "url": "https://github.com/actions/checkout/blob/d23441a48e516b6c34aea4fa41551a30e30af803/README.md"
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "3e855ffa704114a51628ef8f0bf3aeb41728adf9d9070e263bf58aa5640b0eb5",
+          "url": "https://github.com/actions/checkout/blob/d23441a48e516b6c34aea4fa41551a30e30af803/LICENSE"
+        },
+        {
+          "path": "src/git-source-provider.ts",
+          "sha256": "8757b8a992768cd90e22893cb274708cfa36ee43f557c94b9a9066e29b4231fd",
+          "url": "https://github.com/actions/checkout/blob/d23441a48e516b6c34aea4fa41551a30e30af803/src/git-source-provider.ts"
+        }
+      ],
+      "action_execution_performed": false,
+      "publisher_signature_verified": false,
+      "bundled_dependency_audit_complete": false
+    },
+    {
+      "repository": "https://github.com/actions/setup-python",
+      "tag": "v7.0.0",
+      "commit": "5fda3b95a4ea91299a34e894583c3862153e4b97",
+      "remote_tag_and_clone_agree": true,
+      "license": "MIT",
+      "inspected_files": [
+        {
+          "path": "action.yml",
+          "sha256": "e6dc8046c02bd3c9f7bf2fea6ba2e59b4e83c7de2b26ec2149a1627f5d66f96c",
+          "url": "https://github.com/actions/setup-python/blob/5fda3b95a4ea91299a34e894583c3862153e4b97/action.yml"
+        },
+        {
+          "path": "README.md",
+          "sha256": "d0a51dcaf89df5b8211d4bdbf74631c2cacf25879f95834c70bebef51e9ad1f9",
+          "url": "https://github.com/actions/setup-python/blob/5fda3b95a4ea91299a34e894583c3862153e4b97/README.md"
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "7d070f6b64d9bcc530fe99cc21eaaa4b3c364e0b2d367d7735671fa202a03b32",
+          "url": "https://github.com/actions/setup-python/blob/5fda3b95a4ea91299a34e894583c3862153e4b97/LICENSE"
+        },
+        {
+          "path": "src/find-python.ts",
+          "sha256": "16cb81cd112afa233f65c46a628d5869ce66c2f8994a99f4fde494b56434c8a3",
+          "url": "https://github.com/actions/setup-python/blob/5fda3b95a4ea91299a34e894583c3862153e4b97/src/find-python.ts"
+        }
+      ],
+      "action_execution_performed": false,
+      "publisher_signature_verified": false,
+      "bundled_dependency_audit_complete": false
+    },
+    {
+      "repository": "https://github.com/actions/upload-artifact",
+      "tag": "v6.0.0",
+      "commit": "b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+      "remote_tag_and_clone_agree": true,
+      "license": "MIT",
+      "inspected_files": [
+        {
+          "path": "action.yml",
+          "sha256": "3760874f860e631be3d785d0589ade7cecb541eeac6f581989a814a2c99fc94f",
+          "url": "https://github.com/actions/upload-artifact/blob/b7c566a772e6b6bfb58ed0dc250532a479d7789f/action.yml"
+        },
+        {
+          "path": "README.md",
+          "sha256": "e4e2a8bd3ede3addd3703424614c764c59c5c4b6f555c097054f78f68de061c4",
+          "url": "https://github.com/actions/upload-artifact/blob/b7c566a772e6b6bfb58ed0dc250532a479d7789f/README.md"
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "3e855ffa704114a51628ef8f0bf3aeb41728adf9d9070e263bf58aa5640b0eb5",
+          "url": "https://github.com/actions/upload-artifact/blob/b7c566a772e6b6bfb58ed0dc250532a479d7789f/LICENSE"
+        },
+        {
+          "path": "src/upload/upload-artifact.ts",
+          "sha256": "3a8ccc15a820b4db83458cce1aa54de50702eb36c0e1f134d2a4718a089132ae",
+          "url": "https://github.com/actions/upload-artifact/blob/b7c566a772e6b6bfb58ed0dc250532a479d7789f/src/upload/upload-artifact.ts"
+        }
+      ],
+      "action_execution_performed": false,
+      "publisher_signature_verified": false,
+      "bundled_dependency_audit_complete": false
+    }
+  ],
+  "python_selection": "python-release-selection.json",
+  "official_guidance": [
+    {
+      "url": "https://docs.github.com/en/actions/reference/security/secure-use",
+      "inspected": "Read-only token permissions, immutable primary-origin action pins, untrusted checkout and script input boundaries."
+    }
+  ],
+  "copying": "No upstream action code copied into this repository; workflows invoke pinned actions only when later run on GitHub."
+}

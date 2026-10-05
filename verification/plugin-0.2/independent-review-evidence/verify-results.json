@@ -1,0 +1,9 @@
+[
+  "changed context rejected by target receipt",
+  "assignment-removal rejected despite updated manifest",
+  "false-authority rejected despite updated manifest",
+  "missing-accounting rejected despite updated manifest",
+  "literal precedence/provenance and public/MCP value omission",
+  "HCL file addition changes repository source closure",
+  "source symlink blocks discovery"
+]

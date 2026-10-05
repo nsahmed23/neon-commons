@@ -1,0 +1,77 @@
+{
+  "scope": "historical correction-pack assessment before integration; current product status is docs/PRODUCT-STATUS.md; original gap decisions retained",
+  "gaps": [
+    {
+      "id": "G01",
+      "status": "closed",
+      "scope": "dossier/traceability only",
+      "reason": "Dossier/traceability structure retained; current correction evidence is separate."
+    },
+    {
+      "id": "G02",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Provider config/request/state/assignment lifecycle not executed or fully dependency-closed."
+    },
+    {
+      "id": "G03",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Reopened: original first-page and duplicate-reference counterexamples; new capture models not integrated."
+    },
+    {
+      "id": "G04",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Reopened: original malformed settings, mapping, oracle and retention counterexamples; bounded schemas are not full repaired normalizer."
+    },
+    {
+      "id": "G05",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Old goldens reproduce the defect; corrected worked config is not a provider-valid regenerated project."
+    },
+    {
+      "id": "G06",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Reopened: original resume graph bypass; tested decision model still needs complete receipt store and native integration."
+    },
+    {
+      "id": "G07",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Original recovery/executable defects; native shell/terminal qualification remains."
+    },
+    {
+      "id": "G08",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Explicit binding model supplied; effective target/backend inspector and controlled CI adapter not integrated."
+    },
+    {
+      "id": "G09",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Small dependency review advanced, but source-byte acquisition, transitive closure and old unresolved citations remain."
+    },
+    {
+      "id": "G10",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "No native package/harness run or paid behavior benchmark."
+    },
+    {
+      "id": "G11",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "Broader families/collectors and observed diagnosis remain staged."
+    },
+    {
+      "id": "G12",
+      "status": "partial",
+      "scope": "offline integration or qualification remains",
+      "reason": "88 declared paths are not 88 individually audited or executed labs."
+    }
+  ]
+}

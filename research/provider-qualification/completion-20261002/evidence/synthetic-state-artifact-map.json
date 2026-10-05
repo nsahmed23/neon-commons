@@ -1,0 +1,48 @@
+{
+  "production_qualified": false,
+  "reason": "Retain exact fixture state under JSON names without weakening source-package .tfstate exclusion",
+  "artifacts": [
+    {
+      "original": "synthetic-rpc-explicit-zero-green/terraform.tfstate",
+      "retained": "synthetic-rpc-explicit-zero-green/imported-state-evidence.json",
+      "sha256": "9b58808bd62a37f7b2c69abce5e21fc1f177a2836d53dc755f2e2486970aa842",
+      "scope": "synthetic fixture state only; exact bytes"
+    },
+    {
+      "original": "synthetic-rpc-oracle-format-failure/terraform.tfstate",
+      "retained": "synthetic-rpc-oracle-format-failure/imported-state-evidence.json",
+      "sha256": "b9a6f54f7b4bdfdefccd8a08f081bf46dfa2aefbde3f80f7f232cde808f55d15",
+      "scope": "synthetic fixture state only; exact bytes"
+    },
+    {
+      "original": "synthetic-rpc-final-green/terraform.tfstate",
+      "retained": "synthetic-rpc-final-green/imported-state-evidence.json",
+      "sha256": "6c6f94dd3e9dde4210568f512d7146055f2efdf389d1940fc80e258b61e642a2",
+      "scope": "synthetic fixture state only; exact bytes"
+    },
+    {
+      "original": "synthetic-rpc-omitted-filter-green/terraform.tfstate",
+      "retained": "synthetic-rpc-omitted-filter-green/imported-state-evidence.json",
+      "sha256": "17ef4ea35405461f59d3c589919b67110be2dfa2faf2665ad70b2f1f19c149ae",
+      "scope": "synthetic fixture state only; exact bytes"
+    },
+    {
+      "original": "synthetic-rpc-empty-policy-red/terraform.tfstate",
+      "retained": "synthetic-rpc-empty-policy-red/imported-state-evidence.json",
+      "sha256": "e0c16818f05b4e8514ddc98a0658bf3ccb06f002483bee77bb40d6568066ee38",
+      "scope": "synthetic fixture state only; exact bytes"
+    },
+    {
+      "original": "synthetic-rpc-response-length-failure/terraform.tfstate",
+      "retained": "synthetic-rpc-response-length-failure/imported-state-evidence.json",
+      "sha256": "6a5aad6020bc4b112613264839c8b2df621820656e4cf38209b2dd3041a4d13c",
+      "scope": "synthetic fixture state only; exact bytes"
+    },
+    {
+      "original": "synthetic-rpc-empty-policy-red/empty-policy/terraform.tfstate",
+      "retained": "synthetic-rpc-empty-policy-red/empty-policy/imported-state-evidence.json",
+      "sha256": "e63aca92dc0c7d4cf64c10fa09166008b3a85bfcacd6f10709e0828cf29d56fc",
+      "scope": "synthetic fixture state only; exact bytes"
+    }
+  ]
+}

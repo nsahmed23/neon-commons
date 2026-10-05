@@ -1,0 +1,32 @@
+# Native GitHub workflow syntax; disabled reference, not a deployment engine.
+name: Prepare protected adoption handoff
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: intune-reference-main
+  cancel-in-progress: false
+jobs:
+  handoff:
+    if: github.ref == 'refs/heads/main'
+    environment: intune-reference-review
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify checked-out revision
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Verify local reference before any external qualification
+        shell: bash
+        run: python3 -m unittest discover -s evaluations -v
+      - name: State boundary
+        shell: bash
+        run: |
+          printf '%s\n' 'No tenant login, provider plan, import, or apply in this reference workflow.'
+# A protected environment must actually be configured by the organization.
+# Future plan/import/change jobs require separate qualified adapters and OIDC
+# grants; this handoff workflow does not claim those missing jobs exist.

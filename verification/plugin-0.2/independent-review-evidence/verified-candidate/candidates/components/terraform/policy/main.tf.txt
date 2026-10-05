@@ -1,0 +1,26 @@
+# INACTIVE CANDIDATE: local projection only; provider validity is unqualified.
+terraform {
+  required_version = "= 1.10.0"
+  required_providers {
+    microsoft365 = { source = "deploymenttheory/microsoft365", version = "= 1.0.0" }
+  }
+}
+locals {
+  configuration = jsondecode(file("${path.module}/configuration.json"))
+}
+resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "policy" {
+  name = local.configuration.name
+  description = local.configuration.description
+  platforms = local.configuration.platforms
+  technologies = local.configuration.technologies
+  role_scope_tag_ids = local.configuration.role_scope_tag_ids
+  settings = jsonencode(local.configuration.settings)
+  assignments = local.configuration.assignments
+  lifecycle {
+    prevent_destroy = true
+    precondition {
+      condition = local.configuration.name == "" && local.configuration.name != ""
+      error_message = "Inactive candidate requires independent provider and tenant qualification."
+    }
+  }
+}

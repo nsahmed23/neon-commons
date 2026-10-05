@@ -1,0 +1,29 @@
+test_graph_action_binds_empty_implementation_directory (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_graph_action_binds_empty_implementation_directory) ... FAIL
+test_hcl_bytes_already_invalidate_repository_proposal_control (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_hcl_bytes_already_invalidate_repository_proposal_control) ... ok
+test_implementation_presence_is_bound_to_selection_evidence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_implementation_presence_is_bound_to_selection_evidence) ... ok
+test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) ... ok
+test_repository_postcondition_checks_placement_not_only_source_bytes (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_repository_postcondition_checks_placement_not_only_source_bytes) ... FAIL
+test_runner_rejects_changed_implementation_presence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_runner_rejects_changed_implementation_presence) ... ok
+
+======================================================================
+FAIL: test_graph_action_binds_empty_implementation_directory (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_graph_action_binds_empty_implementation_directory)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 93, in test_graph_action_binds_empty_implementation_directory
+    with self.assertRaises(AppError) as failure:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_repository_postcondition_checks_placement_not_only_source_bytes (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_repository_postcondition_checks_placement_not_only_source_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 101, in test_repository_postcondition_checks_placement_not_only_source_bytes
+    with self.assertRaises(AppError) as failure:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.190s
+
+FAILED (failures=2)

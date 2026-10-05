@@ -1,0 +1,2 @@
+# Native-format starting case, not an adoption-quality score
+The supplied case is read-only and checks a narrow boundary signal. Its regex does not establish semantic correctness. Add the separately protected outcome oracle and broader cases after building a real plugin. Attach the case directory to that plugin's eval directory or set its documented eval-dir; keep no real MCP or scaffold enabled. Do not run paid calls during dossier review. `--no-publish` is required for a later authorized run. Current native schema was inspected, not validated by Claude here.

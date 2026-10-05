@@ -1,0 +1,15 @@
+test_coherent_filtered_exclusion_is_outside_the_bounded_assignment_contract (plugin_tests.test_atmos_audit.AtmosAuditTests.test_coherent_filtered_exclusion_is_outside_the_bounded_assignment_contract) ... FAIL
+
+======================================================================
+FAIL: test_coherent_filtered_exclusion_is_outside_the_bounded_assignment_contract (plugin_tests.test_atmos_audit.AtmosAuditTests.test_coherent_filtered_exclusion_is_outside_the_bounded_assignment_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 180, in test_coherent_filtered_exclusion_is_outside_the_bounded_assignment_contract
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.055s
+
+FAILED (failures=1)

@@ -1,0 +1,16 @@
+{
+  "arguments": [
+    "-m",
+    "pytest",
+    "/tmp/intune-native-completion/locking-run-ready/upstream/labs/state/state-locking/challenge/tests/test_functional.py",
+    "-q",
+    "-k",
+    "not test_backend_s3",
+    "--junitxml",
+    "/tmp/intune-native-completion/locking-run-ready/upstream-junit.xml"
+  ],
+  "exit_code": 0,
+  "duration_seconds": 22.349,
+  "stdout": "........                                                                 [100%]\n- generated xml file: /tmp/intune-native-completion/locking-run-ready/upstream-junit.xml -\n8 passed, 1 deselected in 21.97s\n",
+  "stderr": ""
+}

@@ -1,0 +1,73 @@
+FFFFFFF
+======================================================================
+FAIL: test_manifest_does_not_hide_changed_bytes (plugin_tests.test_ci_contract.CIArchiveTests.test_manifest_does_not_hide_changed_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 132, in setUp
+    self.assertTrue(path.is_file(), 'CI archive checker is absent')
+AssertionError: False is not true : CI archive checker is absent
+
+======================================================================
+FAIL: test_unsafe_symlink_unlisted_and_duplicate_members_rejected (plugin_tests.test_ci_contract.CIArchiveTests.test_unsafe_symlink_unlisted_and_duplicate_members_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 132, in setUp
+    self.assertTrue(path.is_file(), 'CI archive checker is absent')
+AssertionError: False is not true : CI archive checker is absent
+
+======================================================================
+FAIL: test_valid_archive_hashes_checked_before_extraction (plugin_tests.test_ci_contract.CIArchiveTests.test_valid_archive_hashes_checked_before_extraction)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 132, in setUp
+    self.assertTrue(path.is_file(), 'CI archive checker is absent')
+AssertionError: False is not true : CI archive checker is absent
+
+======================================================================
+FAIL: test_actual_yaml_contract (plugin_tests.test_ci_contract.CIContractTests.test_actual_yaml_contract)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 81, in test_actual_yaml_contract
+    self.assertEqual(contract_issues(self.workflow()), [])
+                                     ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 77, in workflow
+    self.assertTrue(WORKFLOW.is_file(), 'release-validation workflow is absent')
+AssertionError: False is not true : release-validation workflow is absent
+
+======================================================================
+FAIL: test_dangerous_workflow_mutations_are_rejected (plugin_tests.test_ci_contract.CIContractTests.test_dangerous_workflow_mutations_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 84, in test_dangerous_workflow_mutations_are_rejected
+    original = self.workflow()
+               ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 77, in workflow
+    self.assertTrue(WORKFLOW.is_file(), 'release-validation workflow is absent')
+AssertionError: False is not true : release-validation workflow is absent
+
+======================================================================
+FAIL: test_full_verifier_failure_and_false_success_receipt_propagate (plugin_tests.test_ci_contract.CIContractTests.test_full_verifier_failure_and_false_success_receipt_propagate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 102, in test_full_verifier_failure_and_false_success_receipt_propagate
+    document = self.workflow(); script = next(s['run'] for s in document['jobs']['validate']['steps'] if s['id'] == 'verify')
+               ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 77, in workflow
+    self.assertTrue(WORKFLOW.is_file(), 'release-validation workflow is absent')
+AssertionError: False is not true : release-validation workflow is absent
+
+======================================================================
+FAIL: test_shell_scripts_are_syntactically_valid (plugin_tests.test_ci_contract.CIContractTests.test_shell_scripts_are_syntactically_valid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 123, in test_shell_scripts_are_syntactically_valid
+    for step in self.workflow()['jobs']['validate']['steps']:
+                ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_ci_contract.py", line 77, in workflow
+    self.assertTrue(WORKFLOW.is_file(), 'release-validation workflow is absent')
+AssertionError: False is not true : release-validation workflow is absent
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+FAILED (failures=7)

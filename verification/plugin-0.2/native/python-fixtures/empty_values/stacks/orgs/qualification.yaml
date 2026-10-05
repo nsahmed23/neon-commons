@@ -1,0 +1,16 @@
+import:
+- catalog/a
+vars:
+  stage: qualification
+  empty_string: ''
+  zero: 0
+  'false': false
+  null_value: null
+  empty_list: []
+  empty_map: {}
+components:
+  terraform:
+    leaf:
+      metadata:
+        component: demo
+      vars: {}

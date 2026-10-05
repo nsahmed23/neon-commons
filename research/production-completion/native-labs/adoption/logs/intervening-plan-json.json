@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "intervening-plan.tfplan"
+  ],
+  "cwd": "repository/components/terraform/policy",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "intervening-plan-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "9f470a47605ee4bd2726c6dddf6f02c9bb88a5448099f06b0cf8b6a1f4d1bced",
+  "tool": "tofu",
+  "transcript_complete": true
+}

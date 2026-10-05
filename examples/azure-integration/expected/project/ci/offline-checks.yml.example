@@ -1,0 +1,22 @@
+# Deliberately not installed in .github/workflows. Activate only after review.
+name: Offline dossier checks
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2, tag independently resolved
+        with:
+          persist-credentials: false
+      - name: Check approved preinstalled dependencies
+        shell: bash
+        run: python3 -c 'import jsonschema, yaml'
+      - name: Run offline fixtures only
+        shell: bash
+        run: python3 -m unittest discover -s evaluations -v
+# No cloud identity, no id-token permission, no provider/lab execution.
+# Repo must contain the dossier reference/evaluations paths and an approved image
+# with the exact dependencies. This example does not auto-install dependencies.

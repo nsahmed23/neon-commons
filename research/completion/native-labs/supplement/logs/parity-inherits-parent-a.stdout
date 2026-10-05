@@ -1,0 +1,212 @@
+{
+  "atmos_cli_config": {
+    "base_path": ".",
+    "components": {
+      "terraform": {
+        "base_path": "components/terraform",
+        "apply_auto_approve": false,
+        "append_user_agent": "Atmos/1.199.0 (Cloud Posse; +https://atmos.tools)",
+        "deploy_run_init": false,
+        "init_run_reconfigure": false,
+        "auto_generate_backend_file": false,
+        "command": "/nonexistent/qualification-disabled",
+        "shell": {
+          "prompt": ""
+        },
+        "init": {
+          "pass_vars": false
+        },
+        "plan": {
+          "skip_planfile": false
+        }
+      },
+      "helmfile": {
+        "base_path": "",
+        "use_eks": true,
+        "kubeconfig_path": "",
+        "helm_aws_profile_pattern": "",
+        "cluster_name_pattern": "",
+        "command": ""
+      },
+      "packer": {
+        "base_path": "",
+        "command": ""
+      },
+      "Plugins": null
+    },
+    "stacks": {
+      "base_path": "stacks",
+      "included_paths": [
+        "orgs/*"
+      ],
+      "excluded_paths": null,
+      "name_pattern": "{stage}",
+      "name_template": ""
+    },
+    "workflows": {
+      "base_path": "",
+      "list": {
+        "format": "",
+        "columns": null
+      }
+    }
+  },
+  "atmos_component": "leaf",
+  "atmos_manifest": "orgs/qualification",
+  "atmos_stack": "qualification",
+  "atmos_stack_file": "orgs/qualification",
+  "auth": {},
+  "backend": {},
+  "backend_type": "",
+  "cli_args": [
+    "describe",
+    "component"
+  ],
+  "command": "/nonexistent/qualification-disabled",
+  "component": "demo",
+  "component_info": {
+    "component_path": "/tmp/intune-native-completion/supplement-final/parity-inherits_parent_a/components/terraform/demo",
+    "component_type": "terraform",
+    "terraform_config": null
+  },
+  "component_type": "terraform",
+  "deps": [
+    "orgs/qualification"
+  ],
+  "deps_all": [
+    "orgs/qualification"
+  ],
+  "env": {},
+  "hooks": {},
+  "imports": [],
+  "inheritance": [
+    "parent_a",
+    "parent_b"
+  ],
+  "metadata": {
+    "component": "demo",
+    "inherits": [
+      "parent_b",
+      "parent_a"
+    ]
+  },
+  "overrides": {},
+  "providers": {},
+  "remote_state_backend": {},
+  "remote_state_backend_type": "",
+  "settings": {},
+  "sources": {
+    "backend": {},
+    "env": {},
+    "settings": {},
+    "vars": {
+      "items": {
+        "final_value": [
+          "parent_a"
+        ],
+        "name": "items",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": [
+              "parent_a"
+            ]
+          },
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": [
+              "parent_b"
+            ]
+          }
+        ]
+      },
+      "nested": {
+        "final_value": {
+          "local": "local",
+          "parent_a": "parent_a",
+          "parent_b": "parent_b",
+          "same": "parent_a"
+        },
+        "name": "nested",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": {
+              "local": "local"
+            }
+          },
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": {
+              "parent_a": "parent_a",
+              "same": "parent_a"
+            }
+          },
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": {
+              "parent_b": "parent_b",
+              "same": "parent_b"
+            }
+          }
+        ]
+      },
+      "selected": {
+        "final_value": "parent_a",
+        "name": "selected",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": "parent_a"
+          },
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "components.terraform.vars",
+            "dependency_type": "inline",
+            "variable_value": "parent_b"
+          }
+        ]
+      },
+      "stage": {
+        "final_value": "qualification",
+        "name": "stage",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": "qualification"
+          }
+        ]
+      }
+    }
+  },
+  "stack": "qualification",
+  "tf_cli_vars": {},
+  "vars": {
+    "items": [
+      "parent_a"
+    ],
+    "nested": {
+      "local": "local",
+      "parent_a": "parent_a",
+      "parent_b": "parent_b",
+      "same": "parent_a"
+    },
+    "selected": "parent_a",
+    "stage": "qualification"
+  },
+  "workspace": "qualification-leaf"
+}

@@ -1,0 +1,135 @@
+package graphBetaSettingsCatalogConfigurationPolicyJson
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+// constructAssignment constructs and returns a DeviceHealthScriptsItemAssignPostRequestBody
+func constructAssignment(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel) (devicemanagement.ConfigurationPoliciesItemAssignPostRequestBodyable, error) {
+	tflog.Debug(ctx, "Starting Device Health Script assignment construction")
+
+	requestBody := devicemanagement.NewConfigurationPoliciesItemAssignPostRequestBody()
+	scriptAssignments := make([]graphmodels.DeviceManagementConfigurationPolicyAssignmentable, 0)
+
+	if data.Assignments.IsUnknown() {
+		return nil, fmt.Errorf("assignments must be known before mutation")
+	}
+	if data.Assignments.IsNull() {
+		return nil, nil
+	}
+
+	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel
+	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
+	if diags.HasError() {
+		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
+	}
+
+	for idx, assignment := range terraformAssignments {
+		tflog.Debug(ctx, "Processing assignment", map[string]any{
+			"index": idx,
+		})
+
+		graphAssignment := graphmodels.NewDeviceManagementConfigurationPolicyAssignment()
+
+		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
+			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
+				"index": idx,
+			})
+			return nil, fmt.Errorf("invalid assignment target")
+		}
+
+		targetType := assignment.Type.ValueString()
+
+		if assignment.FilterId.IsUnknown() || assignment.FilterType.IsUnknown() {
+			return nil, fmt.Errorf("assignment filter must be known")
+		}
+		mode := assignment.FilterType.ValueString()
+		if mode != "" && mode != "none" && mode != "include" && mode != "exclude" {
+			return nil, fmt.Errorf("unsupported assignment filter mode")
+		}
+		if (mode == "include" || mode == "exclude") && (assignment.FilterId.IsNull() || assignment.FilterId.ValueString() == "" || assignment.FilterId.ValueString() == "00000000-0000-0000-0000-000000000000") {
+			return nil, fmt.Errorf("assignment filter identity required")
+		}
+		target := constructTarget(ctx, targetType, assignment)
+		if target == nil {
+			tflog.Error(ctx, "Failed to create target", map[string]any{
+				"index":      idx,
+				"targetType": targetType,
+			})
+			return nil, fmt.Errorf("invalid assignment target")
+		}
+
+		graphAssignment.SetTarget(target)
+
+		scriptAssignments = append(scriptAssignments, graphAssignment)
+	}
+
+	tflog.Debug(ctx, "Completed assignment construction", map[string]any{
+		"totalAssignments": len(scriptAssignments),
+	})
+
+	requestBody.SetAssignments(scriptAssignments)
+
+	return requestBody, nil
+}
+
+// constructTarget creates the appropriate target based on the target type
+func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
+	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
+
+	switch targetType {
+	case "allDevicesAssignmentTarget":
+		target = graphmodels.NewAllDevicesAssignmentTarget()
+	case "allLicensedUsersAssignmentTarget":
+		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
+	case "groupAssignmentTarget":
+		groupTarget := graphmodels.NewGroupAssignmentTarget()
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
+				"targetType": targetType,
+			})
+			return nil
+		}
+		target = groupTarget
+	case "exclusionGroupAssignmentTarget":
+		exclusionTarget := graphmodels.NewExclusionGroupAssignmentTarget()
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+			convert.FrameworkToGraphString(assignment.GroupId, exclusionTarget.SetGroupId)
+		} else {
+			tflog.Error(ctx, "Exclusion group assignment target missing required group_id", map[string]any{
+				"targetType": targetType,
+			})
+			return nil
+		}
+		target = exclusionTarget
+	default:
+		tflog.Error(ctx, "Unsupported target type", map[string]any{
+			"targetType": targetType,
+		})
+		return nil
+	}
+
+	// Preserve explicit configured filter values, including zero and none.
+	// The selected schema permits zero only with the none filter mode.
+	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() {
+		convert.FrameworkToGraphString(assignment.FilterId, target.SetDeviceAndAppManagementAssignmentFilterId)
+	}
+	if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() {
+		parsed, err := graphmodels.ParseDeviceAndAppManagementAssignmentFilterType(assignment.FilterType.ValueString())
+		if err != nil || parsed == nil {
+			return nil
+		}
+		target.SetDeviceAndAppManagementAssignmentFilterType(parsed.(*graphmodels.DeviceAndAppManagementAssignmentFilterType))
+	}
+
+	return target
+}

@@ -1,0 +1,6 @@
+{"ImportPath":"github.com/hashicorp/go-hclog","Action":"build-output","Output":"# github.com/deploymenttheory/terraform-provider-microsoft365\n"}
+{"ImportPath":"github.com/hashicorp/go-hclog","Action":"build-output","Output":"../../provider-contract-tools/modcache/github.com/hashicorp/terraform-plugin-log@v0.11.0/tflog/options.go:10:2: module lookup disabled by GOPROXY=off\n"}
+{"ImportPath":"github.com/hashicorp/go-hclog","Action":"build-fail"}
+{"Time":"2026-09-30T19:44:33.567625663-04:00","Action":"start","Package":"github.com/deploymenttheory/terraform-provider-microsoft365"}
+{"Time":"2026-09-30T19:44:33.567645313-04:00","Action":"output","Package":"github.com/deploymenttheory/terraform-provider-microsoft365","Output":"FAIL\tgithub.com/deploymenttheory/terraform-provider-microsoft365 [setup failed]\n"}
+{"Time":"2026-09-30T19:44:33.567652664-04:00","Action":"fail","Package":"github.com/deploymenttheory/terraform-provider-microsoft365","Elapsed":0,"FailedBuild":"github.com/hashicorp/go-hclog"}

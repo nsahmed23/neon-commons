@@ -1,0 +1,20 @@
+test_acquisition_is_byte_preserved_stream_and_remains_invalid_jsonl (test_material_formats.MaterialJsonFormatTests.test_acquisition_is_byte_preserved_stream_and_remains_invalid_jsonl) ... ok
+test_all_json_formats_reject_nonfinite_literals_and_overflow (test_material_formats.MaterialJsonFormatTests.test_all_json_formats_reject_nonfinite_literals_and_overflow) ... ok
+test_jsonl_preserves_complete_record_per_line_rule (test_material_formats.MaterialJsonFormatTests.test_jsonl_preserves_complete_record_per_line_rule) ... ok
+test_stream_accepts_pretty_printed_whitespace_separated_objects (test_material_formats.MaterialJsonFormatTests.test_stream_accepts_pretty_printed_whitespace_separated_objects) ... ok
+test_stream_allows_blank_input_like_jsonl (test_material_formats.MaterialJsonFormatTests.test_stream_allows_blank_input_like_jsonl) ... ok
+test_stream_rejects_duplicate_keys_in_any_record_or_nested_object (test_material_formats.MaterialJsonFormatTests.test_stream_rejects_duplicate_keys_in_any_record_or_nested_object) ... ok
+test_stream_rejects_malformed_records_and_trailing_junk (test_material_formats.MaterialJsonFormatTests.test_stream_rejects_malformed_records_and_trailing_junk) ... ok
+test_stream_requires_separator_between_records (test_material_formats.MaterialJsonFormatTests.test_stream_requires_separator_between_records) ... ok
+test_acquired_bom_is_unmodified_and_valid_in_its_dialect (test_material_formats.SchemaDialectTests.test_acquired_bom_is_unmodified_and_valid_in_its_dialect) ... ok
+test_boolean_schemas_remain_valid (test_material_formats.SchemaDialectTests.test_boolean_schemas_remain_valid) ... ok
+test_declared_draft07_accepts_tuple_items (test_material_formats.SchemaDialectTests.test_declared_draft07_accepts_tuple_items) ... ok
+test_declared_draft202012_rejects_tuple_items (test_material_formats.SchemaDialectTests.test_declared_draft202012_rejects_tuple_items) ... ok
+test_malformed_declared_dialect_fails_closed (test_material_formats.SchemaDialectTests.test_malformed_declared_dialect_fails_closed) ... ok
+test_missing_dialect_retains_draft202012_policy (test_material_formats.SchemaDialectTests.test_missing_dialect_retains_draft202012_policy) ... ok
+test_unknown_declared_dialect_fails_closed (test_material_formats.SchemaDialectTests.test_unknown_declared_dialect_fails_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.056s
+
+OK

@@ -1,0 +1,27 @@
+
+[0m[1mInitializing the backend...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- terraform.io/builtin/terraform is built in to OpenTofu
+
+[0m[1m[32mOpenTofu has been successfully initialized![0m[32m[0m
+[31m
+Workspace "import" doesn't exist.
+
+You can create this workspace with the "new" subcommand 
+or include the "-or-create" flag with the "select" subcommand.[0m[0m
+[0m[32m[1mCreated and switched to workspace "import"![0m[32m
+
+You're now on a new, empty workspace. Workspaces isolate their state,
+so if you run "tofu plan" OpenTofu will not see any existing state
+for this configuration.[0m
+terraform_data.identity: Importing from ID "9b927d9b-0757-ab06-3a48-dbc081f36406"...
+terraform_data.identity: Import prepared!
+  Prepared terraform_data for import
+terraform_data.identity: Refreshing state... [id=9b927d9b-0757-ab06-3a48-dbc081f36406]
+
+Import successful!
+
+The resources that were imported are shown above. These resources are now in
+your OpenTofu state and will henceforth be managed by OpenTofu.
+

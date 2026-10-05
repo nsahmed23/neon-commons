@@ -1,0 +1,115 @@
+{
+  "schema_version": "component-inventory/1.0",
+  "scope": "additive inventory, not SPDX certification or complete transitive OS SBOM",
+  "components": [
+    {
+      "name": "attrs",
+      "version": "26.1.0",
+      "sha256": "c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/attrs/26.1.0/json"
+    },
+    {
+      "name": "jsonschema",
+      "version": "4.26.0",
+      "sha256": "d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/jsonschema/4.26.0/json"
+    },
+    {
+      "name": "jsonschema-specifications",
+      "version": "2025.9.1",
+      "sha256": "98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/jsonschema-specifications/2025.9.1/json"
+    },
+    {
+      "name": "lark",
+      "version": "1.3.1",
+      "sha256": "c629b661023a014c37da873b4ff58a817398d12635d3bbb2c5a03be7fe5d1e12",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/lark/1.3.1/json"
+    },
+    {
+      "name": "python-hcl2",
+      "version": "8.1.4",
+      "sha256": "75738bd95717d692a683495babf4d00063f1b211e2eca04b156c6d79b9a0feae",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/python-hcl2/8.1.4/json"
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "sha256": "ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/PyYAML/6.0.3/json"
+    },
+    {
+      "name": "referencing",
+      "version": "0.37.0",
+      "sha256": "381329a9f99628c9069361716891d34ad94af76e461dcb0335825aecc7692231",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/referencing/0.37.0/json"
+    },
+    {
+      "name": "regex",
+      "version": "2026.9.29",
+      "sha256": "39ab5894d971f9ac68baa6eca5c50387db579cfcacf36ae8df3feceb1815e6d0",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/regex/2026.9.29/json"
+    },
+    {
+      "name": "rpds-py",
+      "version": "2026.6.3",
+      "sha256": "ecabd69db66de867690f9797f2f8fa27ba501bbc24540cbdbdc649cd15888ba6",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/rpds-py/2026.6.3/json"
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "scope": "python_runtime",
+      "source": "https://pypi.org/pypi/typing_extensions/4.16.0/json"
+    },
+    {
+      "name": "OpenSSL",
+      "version": "3.0.13",
+      "path": "/usr/bin/openssl",
+      "sha256": "204951390b4f82d39f98b0dd0fa54502f27256c8d2fd08b55a5e3781408ae83b",
+      "scope": "trusted_host_native_dependency",
+      "signature_authenticated": false
+    },
+    {
+      "name": "libsodium",
+      "version": "1.0.18 with documented subgroup workaround",
+      "path": "/usr/lib/x86_64-linux-gnu/libsodium.so.23.3.0",
+      "sha256": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+      "scope": "trusted_host_native_dependency",
+      "signature_authenticated": false
+    },
+    {
+      "name": "libseccomp",
+      "version": null,
+      "path": "/usr/lib/x86_64-linux-gnu/libseccomp.so.2.5.5",
+      "sha256": "b4d9140a7797ccf3ac14f5d9d579b64f157111662940cb8330c632b11a8cea8e",
+      "scope": "trusted_host_native_dependency",
+      "signature_authenticated": false
+    },
+    {
+      "name": "Python",
+      "version": "3.12.14",
+      "scope": "inventory_runtime_host"
+    },
+    {
+      "name": "SQLite",
+      "version": "3.53.1",
+      "scope": "approval_replay_store_runtime"
+    }
+  ],
+  "limitations": [
+    "OS shared libraries and loader remain trusted; complete OS advisory audit not claimed",
+    "provider/toolchain pins and source licenses are recorded in native-labs/tool-acquisition.json and prior provider artifact",
+    "eval and Go/pytest dependencies excluded from Python runtime requirements"
+  ]
+}

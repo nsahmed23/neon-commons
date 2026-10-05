@@ -1,0 +1,47 @@
+{
+  "gates": [
+    {
+      "id": "OFFLINE-ORIGINAL",
+      "status": "executed",
+      "evidence": "../evidence/baseline-verifier.json",
+      "interpretation": "74 tests passed; not correctness proof beyond their assertions"
+    },
+    {
+      "id": "ADVERSARIAL-ORIGINAL",
+      "status": "executed",
+      "evidence": "../evidence/regression-against-original.json",
+      "interpretation": "33 desired-behavior checks, 28 failed, 5 control passes; original unchanged"
+    },
+    {
+      "id": "CORRECTION-MODELS",
+      "status": "local reference models tested, see receipt",
+      "evidence": "../evidence/contract-model-receipt.json",
+      "interpretation": "isolated specification tests only; not integrated fixes"
+    },
+    {
+      "id": "OFFLINE-INTEGRATED-REPAIR",
+      "status": "not-run",
+      "acceptance": "Original-path regressions pass after reviewed patch; complete suite and new independent oracle; goldens regenerated and reviewed against provider contract, not blindly updated"
+    },
+    {
+      "id": "PINNED-PROVIDER-OFFLINE",
+      "status": "not-run",
+      "acceptance": "Actual pinned validators/constructor/SDK/state/mock transport and HCL schema pass without auth/network fallback"
+    },
+    {
+      "id": "NATIVE-HOST",
+      "status": "not-run",
+      "acceptance": "Approved native package, terminal, Windows/PowerShell/Linux verification; no implicit install or live credentials"
+    },
+    {
+      "id": "BEHAVIORAL",
+      "status": "not-run",
+      "acceptance": "Authorized separately observed four-arm comparisons; protected graders and useful-action/critical-effect gates"
+    },
+    {
+      "id": "PROVIDER-TENANT",
+      "status": "not-run",
+      "acceptance": "Separately authorized disposable experiments in PROVIDER-SERVICE.md"
+    }
+  ]
+}

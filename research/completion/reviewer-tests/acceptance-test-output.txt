@@ -1,0 +1,23 @@
+test_nested_action_read_is_confined_before_dispatch (test_acceptance.AuthorityAcceptance.test_nested_action_read_is_confined_before_dispatch) ... ok
+test_unrelated_included_stack_is_admitted_before_dispatch (test_acceptance.NativeAdmissionAcceptance.test_unrelated_included_stack_is_admitted_before_dispatch) ... FAIL
+test_baseline_positive_control (test_acceptance.SyntheticAcceptance.test_baseline_positive_control) ... ok
+test_empty_action_coverage_is_not_converged (test_acceptance.SyntheticAcceptance.test_empty_action_coverage_is_not_converged) ... ok
+test_inspection_detects_missing_state_objects (test_acceptance.SyntheticAcceptance.test_inspection_detects_missing_state_objects) ... ok
+test_lost_assignment_is_not_converged (test_acceptance.SyntheticAcceptance.test_lost_assignment_is_not_converged) ... ok
+test_missing_all_state_objects_is_not_converged (test_acceptance.SyntheticAcceptance.test_missing_all_state_objects_is_not_converged) ... ok
+
+======================================================================
+FAIL: test_unrelated_included_stack_is_admitted_before_dispatch (test_acceptance.NativeAdmissionAcceptance.test_unrelated_included_stack_is_admitted_before_dispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/research/completion/reviewer-tests/test_acceptance.py", line 95, in test_unrelated_included_stack_is_admitted_before_dispatch
+    dispatch.assert_not_called()
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 910, in assert_not_called
+    raise AssertionError(msg)
+AssertionError: Expected '_supervise' to not have been called. Called 1 times.
+Calls: [call(['/workspace/scratch/e2e4042ea5fd/.venv/bin/python', '-I', '-S', '-c', "import ctypes,os,resource,sys\nresource.setrlimit(resource.RLIMIT_CPU,(40,40))\nresource.setrlimit(resource.RLIMIT_AS,(4*1024**3,4*1024**3))\nresource.setrlimit(resource.RLIMIT_CORE,(0,0))\nresource.setrlimit(resource.RLIMIT_FSIZE,(32*1024**2,32*1024**2))\nlib=ctypes.CDLL('libseccomp.so.2',use_errno=True)\nlib.seccomp_init.argtypes=[ctypes.c_uint32];lib.seccomp_init.restype=ctypes.c_void_p\nlib.seccomp_syscall_resolve_name.argtypes=[ctypes.c_char_p];lib.seccomp_syscall_resolve_name.restype=ctypes.c_int\nlib.seccomp_rule_add.argtypes=[ctypes.c_void_p,ctypes.c_uint32,ctypes.c_int,ctypes.c_uint]\nlib.seccomp_load.argtypes=[ctypes.c_void_p];lib.seccomp_release.argtypes=[ctypes.c_void_p]\nctx=lib.seccomp_init(0x7fff0000)\nif not ctx:sys.exit(91)\nfor name in (b'socket',b'socketpair',b'connect'):\n n=lib.seccomp_syscall_resolve_name(name)\n if n<0 or lib.seccomp_rule_add(ctx,0x00050001,n,0)!=0:sys.exit(92)\nif lib.seccomp_load(ctx)!=0:sys.exit(93)\nlib.seccomp_release(ctx);os.umask(0o077)\nos.execve(sys.argv[1],sys.argv[1:],dict(os.environ))\n", '/proc/self/fd/3', 'describe', 'component', 'policy', '--stack', 'pilot', '--format', 'json', '--process-functions=false', '--process-templates=false', '--mask=false', '--logs-level', 'Off'], cwd=PosixPath('/tmp/intune-atmos-o3uh1bdi/repo'), env={'HOME': '/tmp/intune-atmos-o3uh1bdi/home', 'XDG_CONFIG_HOME': '/tmp/intune-atmos-o3uh1bdi/home', 'XDG_CACHE_HOME': '/tmp/intune-atmos-o3uh1bdi/home', 'PATH': '/tmp/intune-atmos-o3uh1bdi/home', 'TMPDIR': '/tmp/intune-atmos-o3uh1bdi/home', 'LANG': 'C', 'LC_ALL': 'C', 'GOMAXPROCS': '2', 'ATMOS_CLI_CONFIG_PATH': '/tmp/intune-atmos-o3uh1bdi/repo', 'ATMOS_VERSION_CHECK_ENABLED': 'false', 'ATMOS_TELEMETRY_ENABLED': 'false', 'CHECKPOINT_DISABLE': '1'}, pass_fds=(3,), timeout=45)].
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.356s
+
+FAILED (failures=1)

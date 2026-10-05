@@ -1,0 +1,11 @@
+terraform_data.adopted: Refreshing state... [id=c0cfd4a7-41e9-672c-6da5-b60abe2929dc]
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.old has moved to terraform_data.adopted
+    resource "terraform_data" "adopted" {
+        id     = "c0cfd4a7-41e9-672c-6da5-b60abe2929dc"
+        # (2 unchanged attributes hidden)
+    }
+
+Plan: 0 to add, 0 to change, 0 to destroy.

@@ -1,0 +1,29 @@
+FFF
+======================================================================
+FAIL: test_real_cli_unowned_output_conflict_preserves_bytes (evaluations.test_repaired_pipeline.PipelineRepairs.test_real_cli_unowned_output_conflict_preserves_bytes) (extra='components/terraform/intune-reference/user.tf')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_pipeline.py", line 87, in test_real_cli_unowned_output_conflict_preserves_bytes
+    self.assertEqual(rerun.returncode,4,rerun.stderr)
+AssertionError: 0 != 4 : 
+
+======================================================================
+FAIL: test_real_cli_unowned_output_conflict_preserves_bytes (evaluations.test_repaired_pipeline.PipelineRepairs.test_real_cli_unowned_output_conflict_preserves_bytes) (extra='stacks/extra.yaml')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_pipeline.py", line 87, in test_real_cli_unowned_output_conflict_preserves_bytes
+    self.assertEqual(rerun.returncode,4,rerun.stderr)
+AssertionError: 0 != 4 : 
+
+======================================================================
+FAIL: test_real_cli_unowned_output_conflict_preserves_bytes (evaluations.test_repaired_pipeline.PipelineRepairs.test_real_cli_unowned_output_conflict_preserves_bytes) (extra='unlisted-directory-link')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_pipeline.py", line 87, in test_real_cli_unowned_output_conflict_preserves_bytes
+    self.assertEqual(rerun.returncode,4,rerun.stderr)
+AssertionError: 0 != 4 : 
+
+----------------------------------------------------------------------
+Ran 1 test in 1.360s
+
+FAILED (failures=3)

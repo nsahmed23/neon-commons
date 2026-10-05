@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "commit": "86b69d2292485d179698f5b9bf648a29f935e216",
+  "counterexamples": [
+    {
+      "id": "CAT-IDENTITY",
+      "result": "counterexample_reproduced",
+      "method": "actual_upstream_assertion_functions_with_explicit_inventory_and_state_stubs",
+      "source": {
+        "path": "labs/aws/import-moved-drift/challenge/tests/test_functional.py",
+        "sha256": "34a0a54968c39a0fc3c16baf197ffb51dd345cf576eaaf9141fb73e800fbac38",
+        "checkers": [
+          "test_l_instance_du_state_est_celle_qui_preexistait",
+          "test_aucune_instance_supplementaire_n_a_ete_creee"
+        ]
+      },
+      "pre_operation_id": "i-original-before-adoption",
+      "post_operation_id": "i-new-after-recreation",
+      "selected_assertions_passed": 2,
+      "meaning": "The selected identity/count checks accept a replacement once both current inventory and state point to it.",
+      "limit": "The complete AWS lab and real emulator were not executed."
+    },
+    {
+      "id": "CAT-PLAN-HISTORY",
+      "result": "counterexample_reproduced",
+      "method": "actual_upstream_assertion_function_with_explicit_stale_CLI_response_stub",
+      "source": {
+        "path": "labs/getting-started/terraform-workflow/challenge/tests/test_functional.py",
+        "sha256": "4a7e01fbf584de8f545f366254430be9a4fde75fa0b55607367360128e224559",
+        "checkers": [
+          "test_le_plan_enregistre_a_ete_applique_et_est_desormais_perime"
+        ]
+      },
+      "saved_plan_A_executed": false,
+      "ordinary_apply_B_executed": true,
+      "checker_accepted_stale_response": true,
+      "cli_calls_stubbed": [
+        [
+          "apply",
+          "-input=false",
+          "-no-color",
+          "tfplan"
+        ]
+      ],
+      "meaning": "The checker has no evidence that distinguishes the saved plan from a different apply advancing state.",
+      "limit": "This isolates the assertion; a separate native CLI experiment is needed to observe the alternate history."
+    }
+  ],
+  "native_cli_or_lab_execution": false
+}

@@ -1,0 +1,4 @@
+{
+  "classification": "oracle format-handling failure",
+  "note": "All eight native commands returned0 and exact imported+ordinary state passed. OpenTofu refresh-only no-change JSON omits planned resources. The corrected harness checks both its native prior_state and saved tfstate refreshed snapshot against the exact same fixture; it also rejects resource drift and errored plans."
+}

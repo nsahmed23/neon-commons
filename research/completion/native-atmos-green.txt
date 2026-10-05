@@ -1,0 +1,9 @@
+test_dynamic_repository_rejected_before_native_launch (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_dynamic_repository_rejected_before_native_launch) ... ok
+test_logical_mapping_is_component_context_not_entra_identity (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_logical_mapping_is_component_context_not_entra_identity) ... ok
+test_missing_naming_context_and_selector_injection_rejected (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_missing_naming_context_and_selector_injection_rejected) ... ok
+test_substituted_binary_rejected (plugin_tests.test_native_atmos_completion.NativeAtmosTests.test_substituted_binary_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.041s
+
+OK

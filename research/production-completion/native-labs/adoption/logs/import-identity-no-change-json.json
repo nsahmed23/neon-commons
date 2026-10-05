@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "import-identity-no-change.tfplan"
+  ],
+  "cwd": "repository/components/terraform/identity",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "import-identity-no-change-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "de70e41f31c53377d952ece09e7f1a97b47f8539510fd5c0638b19436f4dc187",
+  "tool": "tofu",
+  "transcript_complete": true
+}

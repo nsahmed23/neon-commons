@@ -1,0 +1,15 @@
+# Session persistence integration requirements
+
+`session-state.schema.json` is the proposed v2 *decision-model* contract. It is not a complete on-disk implementation or automatic v1 migration. All unknown fingerprint values are explicit null; an unknown value cannot verify a completed milestone. The integration must implement the supplied `receipt-index.schema.json` sidecar manifest indexing source locator, saved decision values, context/identity report, effective input closure, provider evidence, normalized records, generated manifest and review records. Every path must be safe and every present artifact must have a rechecked content hash and upstream dependency hashes. Do not persist credentials or approval grants.
+
+`fingerprint-origins.csv` defines each comparison input. In particular selected IDs and ownership decisions must be stored as non-secret validated decision records; their digests cannot reconstruct their values. A later builder must implement and test this receipt/decision store before G06 can close. Missing or inaccessible records invalidate the earliest dependent milestone, even when the stored digest matches a previous string.
+
+Only a local trusted validation layer may supply `verified_completed` to the model. It must check milestone-specific required artifacts, schema/algorithm versions, freshness, source/target pins and current bytes. Schema acceptance alone does not verify milestone completion. Reject completed milestones whose required facts are null. Neither the LLM nor the persisted session may nominate its own completed list as verified evidence.
+
+Transient UI states are not progress: suspension/cancellation records must retain a separate last stable state and local user-intent record. This model expects that stable state as `saved_state`; cancelled sessions do not autonomously resume writes. The required native UI persistence layer and original state graph integration are NOT implemented in this correction pack.
+
+The Cartesian matrix in `evidence/resume-matrix.jsonl` tests safe nonadvancement of the decision function only. It cannot establish atomic filesystem recovery, correct identity resolution or real host behavior.
+
+## Receipt-index checks beyond schema
+
+Require unique artifact IDs, acyclic dependency edges, referenced artifacts present with matching bytes and schema versions, source selection matching decisions, and receipt milestone prerequisites satisfied. Resolve paths only inside an approved evidence root; reject symlinks, traversal, or missing files. Recompute fingerprints from `fingerprint-origins.csv` and verify every dependency before accepting a receipt. Ignore all synthetic receipts for real execution. The supplied early fixture intentionally has no completion receipts; tests that supply a verified list are isolated model assumptions, not evidence that those steps ran. Suspended/cancelled lifecycle preserves the last stable state. Explicit local restart/resume intent and output-write authorization are required before resuming a cancelled session.

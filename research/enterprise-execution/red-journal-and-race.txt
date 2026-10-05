@@ -1,0 +1,36 @@
+.F.........F.........F
+======================================================================
+FAIL: test_changed_desired_identity_cannot_be_prepared (plugin_tests.test_execution.OperationRaceTests.test_changed_desired_identity_cannot_be_prepared)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 280, in test_changed_desired_identity_cannot_be_prepared
+    with self.assertRaises(ValueError): self.api.prepare_operation(self.adapter)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_plan_changed_after_started_never_writes_unbound_value (plugin_tests.test_execution.OperationRaceTests.test_plan_changed_after_started_never_writes_unbound_value)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 275, in test_plan_changed_after_started_never_writes_unbound_value
+    self.assertEqual(self.adapter.readback(), self.request['before'])
+AssertionError: {'policy': 'cb333d08b0e2f0f584f2529d765ebd3[113 chars]8a9'} != {'assignments': '17f7130374d1efc9012213cb90[113 chars]acb'}
+  {'assignments': '17f7130374d1efc9012213cb902bcf4390861b5bf48f0cdc00be090b6d4a98a9',
+-  'policy': 'cb333d08b0e2f0f584f2529d765ebd35330896f8ec6cdf3f7643403ba112cb82'}
++  'policy': '0428211aa08fc4d9b6bedcadffde98c67ec2c06cd251a8d421e0416ce0bf5acb'}
+
+======================================================================
+FAIL: test_well_hashed_but_impossible_or_extra_field_journal_is_rejected (plugin_tests.test_reconciliation.ReconciliationTests.test_well_hashed_but_impossible_or_extra_field_journal_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_reconciliation.py", line 86, in test_well_hashed_but_impossible_or_extra_field_journal_is_rejected
+    self.assertEqual(answer['classification'], 'unknown', patch_values)
+AssertionError: 'matches_precondition' != 'unknown'
+- matches_precondition
++ unknown
+ : {'event': 'completed'}
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.113s
+
+FAILED (failures=3)

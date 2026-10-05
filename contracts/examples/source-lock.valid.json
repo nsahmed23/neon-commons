@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-09-30",
+  "sources": [
+    {
+      "id": "typed-provider",
+      "repository": "deploymenttheory/terraform-provider-microsoft365",
+      "commit_sha": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+      "release": "v1.0.0",
+      "pin_evidence": "GitHub git/ref/tags/v1.0.0 retrieved in this session",
+      "review_status": "reviewed_selected_files",
+      "license": null,
+      "license_evidence": null,
+      "selected_paths": [
+        "internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json/resource.go"
+      ],
+      "raw_bytes_acquired": false
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "provider_sha256": "903774df6d165f10a0df2a013c2f69e921cfd2b9b4a2d8b1bddc03758a4cca61",
+  "tofu_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+  "production_qualified": false,
+  "service_qualified": false,
+  "scope": "native GetProviderSchema and ValidateResourceConfig only; no Configure/import/plan/apply/read",
+  "cases": {
+    "ordinary": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "validate",
+        "-json"
+      ],
+      "returncode": 1,
+      "stdout_bytes": 1103,
+      "stdout_sha256": "bed075c51d0f55671dde5d533970fe0a2741278eb49a29535b1e862dff5d42c6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_sha256": "3890f758b9e8136f2ad18ebb439b1d7d82370262b281f993222392870fb956da",
+      "desired_valid": true,
+      "observed_valid": false,
+      "matches_desired_contract": false
+    },
+    "observed_wrapper": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "validate",
+        "-json"
+      ],
+      "returncode": 1,
+      "stdout_bytes": 1103,
+      "stdout_sha256": "bed075c51d0f55671dde5d533970fe0a2741278eb49a29535b1e862dff5d42c6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_sha256": "748d8b5aa6a843a51613365e702af70764aa8c4405bffd47032db0a4ac2af13a",
+      "desired_valid": true,
+      "observed_valid": false,
+      "matches_desired_contract": false
+    },
+    "null_instance": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "validate",
+        "-json"
+      ],
+      "returncode": 1,
+      "stdout_bytes": 1103,
+      "stdout_sha256": "bed075c51d0f55671dde5d533970fe0a2741278eb49a29535b1e862dff5d42c6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_sha256": "bf3bc82e2f62eccc3f4b9678709f75824c7c26e82175939b9b70163723ac55a3",
+      "desired_valid": false,
+      "observed_valid": false,
+      "matches_desired_contract": true
+    },
+    "unknown_type": {
+      "command": [
+        "/tmp/intune-native-completion/tofu",
+        "validate",
+        "-json"
+      ],
+      "returncode": 1,
+      "stdout_bytes": 1103,
+      "stdout_sha256": "bed075c51d0f55671dde5d533970fe0a2741278eb49a29535b1e862dff5d42c6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "configuration_sha256": "47ec753659674dbde7ca240c73fdf5bbd9eeb0f772bf5ef04911e53b7d11bd05",
+      "desired_valid": false,
+      "observed_valid": false,
+      "matches_desired_contract": true
+    }
+  },
+  "schema": {
+    "command": [
+      "/tmp/intune-native-completion/tofu",
+      "providers",
+      "schema",
+      "-json"
+    ],
+    "returncode": 1,
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "1692474da17571dda86f98222ad3914a1225f335810fc2c64520893c0cec317a"
+  },
+  "schema_rpc_qualified": false,
+  "hcl_validation_qualified": false
+}

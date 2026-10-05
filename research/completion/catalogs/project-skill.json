@@ -1,0 +1,10 @@
+{
+  "source": "locally authored project-bundled operator skill",
+  "path": "skills/intune-iac/SKILL.md",
+  "sha256": "1c3cd4c6ca333d6ad00db382d9305e384c65c3bdc726e63deb92ee84aca22ba1",
+  "disposition": "adapt",
+  "reason": "Route complete lifecycle and recovery to implemented CLI; enforce evidence distinctions and deterministic authority",
+  "installation": "not installed into personal skills",
+  "host_trigger_qualification": "NOT_RUN",
+  "validation": "Project plugin tests and actual CLI journey; no natural host-selection claim"
+}

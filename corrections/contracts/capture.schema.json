@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/corrections/2.0.0/capture.schema.json",
+  "title": "capture",
+  "description": "Original proposed bounded correction contract; not an official Microsoft/provider schema and not live-qualified.",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "policies",
+        "settings",
+        "assignments"
+      ]
+    },
+    "owner_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "minLength": 36,
+          "maxLength": 36
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage": {
+      "enum": [
+        "complete",
+        "partial",
+        "access_denied",
+        "unsupported",
+        "unknown",
+        "stale"
+      ]
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "request_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "method": {
+            "const": "GET"
+          },
+          "http_status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "body": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "request_url",
+          "method",
+          "http_status",
+          "captured_at",
+          "body"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "owner_id",
+    "coverage",
+    "reason",
+    "pages"
+  ],
+  "additionalProperties": false
+}

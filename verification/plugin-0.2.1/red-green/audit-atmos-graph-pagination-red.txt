@@ -1,0 +1,18 @@
+test_production_policy_pagination_honors_full_returned_links_and_boundaries (plugin_tests.test_atmos_audit.AtmosAuditTests.test_production_policy_pagination_honors_full_returned_links_and_boundaries) ... 
+  test_production_policy_pagination_honors_full_returned_links_and_boundaries (plugin_tests.test_atmos_audit.AtmosAuditTests.test_production_policy_pagination_honors_full_returned_links_and_boundaries) (mutation='none') ... FAIL
+
+======================================================================
+FAIL: test_production_policy_pagination_honors_full_returned_links_and_boundaries (plugin_tests.test_atmos_audit.AtmosAuditTests.test_production_policy_pagination_honors_full_returned_links_and_boundaries) (mutation='none')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 139, in test_production_policy_pagination_honors_full_returned_links_and_boundaries
+    self.assertEqual(coverage['status'], 'complete' if mutation == 'none' else 'unknown')
+AssertionError: 'unknown' != 'complete'
+- unknown
++ complete
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.127s
+
+FAILED (failures=1)

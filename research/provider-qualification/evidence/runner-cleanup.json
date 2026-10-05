@@ -1,0 +1,41 @@
+{
+  "scope": "qualification runner owned-process cleanup; no provider or cloud execution",
+  "production_qualified": false,
+  "red": {
+    "runner_sha256": "5a7527f8ef9aa45e4ed767551be974811a1711b7ac4eb550376e04bba7e49142",
+    "tests_run": 1,
+    "assertion_failures": 1,
+    "errors": 0,
+    "oracle": "leader exited; child heartbeat continued after deadline"
+  },
+  "green": {
+    "tests_run": 9,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "resource_warnings": "promoted to errors",
+    "oracle": "same child heartbeat stops after deadline; independent reviewer confirmed"
+  },
+  "artifacts": [
+    {
+      "path": "scripts/qualify-provider-contract.py",
+      "sha256": "7dd208ed53dde18181f793d8e381b85e10c2267e7fcb1ef1f74cd6968610f91b"
+    },
+    {
+      "path": "plugin_tests/test_provider_contract_lab.py",
+      "sha256": "bd92c7af132e6b374b81ec555ec05a1f8873bb27a61f35534e892e067391825c"
+    },
+    {
+      "path": "research/provider-qualification/descendant-cleanup-red.log",
+      "sha256": "172bb1090f73cf2bfa3bc06db243f97e3a7e1c96472bc4edfc7b097d7dbb95d8"
+    },
+    {
+      "path": "research/provider-qualification/runner-green.log",
+      "sha256": "f84e3b04dab67ef91f251fce179b460b9937ecc4bb88e22779699f7fa2588905"
+    },
+    {
+      "path": "research/provider-qualification/evidence/runner-cleanup-independent.json",
+      "sha256": "f3a5bacaf1055ff900b0e6073223cebb10006f1eeea706e56732914815d62cfe"
+    }
+  ]
+}

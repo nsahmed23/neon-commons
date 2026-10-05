@@ -1,0 +1,16 @@
+
+[0m[1mInitializing the backend...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- terraform.io/builtin/terraform is built in to OpenTofu
+
+[0m[1m[32mOpenTofu has been successfully initialized![0m[32m[0m
+[0m[32mSwitched to workspace "dev".[0m
+
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+observed_setting = "allow"
+policy_id = "536a05b0-b0e2-dc69-cee0-805ee5d4feeb"
+targeting_id = "1b70a268-7d44-1466-ed1c-95335fbefc29"

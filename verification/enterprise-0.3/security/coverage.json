@@ -1,0 +1,125 @@
+{
+  "completeness": "partial",
+  "deferred": [
+    {
+      "id": "deferred-c381a91755993bf6",
+      "reason": "Requested whole-repository coverage remains partial: critical runtime and new trust boundaries reviewed, but historical research, every fixture and all repository source files not exhaustively audited."
+    },
+    {
+      "id": "deferred-fe2cea6780b8fe87",
+      "reason": "No native host installation, Windows ACL/native PowerShell behavior, cloud provider execution, authenticated approval integration or live Azure/Intune acceptance was qualified by this source audit."
+    },
+    {
+      "id": "deferred-64ff740319fc6d84",
+      "reason": "No independent nested baseline/architecture worker was available because all team slots were allocated and parent prohibited nested delegation. Sequential review followed preflight's degraded-worker path."
+    },
+    {
+      "id": "deferred-520a3eede1b3635c",
+      "reason": "New execution, target and workflow modules still being authored; review after ready."
+    },
+    {
+      "id": "deferred-431d0248af8384af",
+      "reason": "Full repository fixtures/research/historical documents not reviewed exhaustively; requested whole-repo coverage is partial."
+    }
+  ],
+  "documentType": "codex-security.coverage",
+  "excludePaths": [],
+  "explicitExclusions": [],
+  "includePaths": [
+    "."
+  ],
+  "inventoryStrategy": "repository",
+  "mode": "repository",
+  "openQuestions": [
+    {
+      "question": "Ordinary runtime uses cooperative filesystem checks; adversarial concurrent ancestor replacement is not isolated."
+    },
+    {
+      "question": "Capture and optional judge slow-drip wall-clock behavior was not fully qualified. Target collector adds a post-connect absolute deadline but retains OS-resolver-bounded DNS."
+    },
+    {
+      "question": "Whole-source hashes establish equality and can disclose guesses when all other source bytes are reconstructable; strong secret confidentiality requires a separately protected integrity mechanism."
+    }
+  ],
+  "scanId": "290bdae5-852f-4e05-a5d8-0ce24b9fdcce",
+  "schemaVersion": "1.0",
+  "surfaces": [
+    {
+      "disposition": "no_issue_found",
+      "id": "runtime-entrypoints",
+      "label": "Fixed CLI/MCP and local runner",
+      "notes": "No arbitrary shell or cloud action entrypoint in baseline; inactive adapters explicit. Local receipts/digests not treated as authenticated approval.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "capture-transport",
+      "label": "Capture and judge transport",
+      "notes": "Graph route/origin and redirects checked; CLM advisory only. Slow-drip wall-clock bound remains an open robustness question.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "reported",
+      "id": "generated-permissions",
+      "label": "Generated artifact confidentiality",
+      "notes": "Validated local permission exposure; sent to root for repair. The repair was independently source-reviewed and is recorded as fixed in the working tree.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "literal-atmos",
+      "label": "Literal Atmos parsing and projection",
+      "notes": "Safe YAML composition, import/path/value restrictions and known limits present; no native execution.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "reported",
+      "id": "graph-budget",
+      "label": "Imported graph resource budgets",
+      "notes": "Bounded local benchmark validated amplification; sent to root. The repair was independently source-reviewed and is recorded as fixed in the working tree.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "reported",
+      "id": "restricted-digests",
+      "label": "Restricted source value disclosure",
+      "notes": "Synthetic dictionary recovery validated; sent to root. The repair was independently source-reviewed and is recorded as fixed in the working tree.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "reported",
+      "id": "guided-protected-input",
+      "label": "Guided persistence and input scope",
+      "notes": "Parent alias overwrite found, reproduced by owner, canonicalization fix independently reviewed. The repair was independently source-reviewed and is recorded as fixed in the working tree.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "target-observation",
+      "label": "Strict target evidence and optional fixed GET collection",
+      "notes": "Reviewed endpoint/token transport, snapshot and control-character fixes; explicit unqualified identity/backend boundaries retained. No network calls or credentials used by auditor.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "execution-protocol",
+      "label": "Plan review, local fixture execution and reconciliation",
+      "notes": "Correctness defects in typed equality, event schema/sequence and output denominator were sent to owner; repairs independently reviewed. Only local concrete adapter exists, uncertain outcomes retain locks.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "dependency-lock",
+      "label": "Vendored dependency read-only integrity verifier",
+      "notes": "Bounded exact lock/ZIP metadata verification reviewed. It does not assess publisher authenticity or known vulnerabilities.",
+      "receiptRefs": []
+    },
+    {
+      "disposition": "no_issue_found",
+      "id": "cli-result-status",
+      "label": "CLI typed outcome exit status",
+      "notes": "Initially missing locked/reconciliation_required failure mapping was sent to root; final source returns exits 4 and 3 respectively, preventing false CLI success.",
+      "receiptRefs": []
+    }
+  ]
+}

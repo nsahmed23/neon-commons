@@ -1,0 +1,90 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "independent completion security lane",
+  "gaps": [
+    {
+      "id": "G01",
+      "status": "NOT_RUN",
+      "description": "Full Cloudflare multi-wave workflow and upstream validators; own bounded review used"
+    },
+    {
+      "id": "G02",
+      "status": "NOT_RUN",
+      "description": "Security-reviewer precision/recall, hidden family holdout and model-cost experiment"
+    },
+    {
+      "id": "G03",
+      "status": "BLOCKED",
+      "description": "Authorized live Intune/Graph/Blob and AppSec organizational evidence absent"
+    },
+    {
+      "id": "G04",
+      "status": "BLOCKED",
+      "description": "Native Windows/macOS host/reparse/PowerShell execution unavailable"
+    },
+    {
+      "id": "G05",
+      "status": "INCONCLUSIVE",
+      "description": "Provider/Go/native binary dependency advisory inventory incomplete; Python runtime OSV queried"
+    },
+    {
+      "id": "G06",
+      "status": "INCONCLUSIVE",
+      "description": "Static scanner deliberately limited AST rules; no parser coverage or secret absence guarantee"
+    },
+    {
+      "id": "G07",
+      "status": "PASS",
+      "description": "Independent authored approval/recovery abstraction explored565states878transitions with18step bound and4 weakened-control counterexamples; not proof of Python implementation or live service.",
+      "evidence": [
+        "research/completion/model-check/README.md",
+        "research/completion/model-check/model_check.py",
+        "research/completion/model-check/results.json"
+      ],
+      "bounds": {
+        "writers": 2,
+        "crashes_per_writer": 1,
+        "grants_per_writer": 1,
+        "max_trace_steps": 18
+      },
+      "remaining_limitations": [
+        "atomic transitions and durable records assumed",
+        "accurate readback and settled effects assumed",
+        "no unmodeled external writer",
+        "expiry/network partitions/storage failure/fairness/liveness outside model"
+      ]
+    },
+    {
+      "id": "G08",
+      "status": "INCONCLUSIVE",
+      "description": "General same-privilege/concurrent filesystem protection excluded; hostile workstation invalidates guarantees"
+    },
+    {
+      "id": "G09",
+      "status": "NOT_RUN",
+      "description": "No Visa exploit replay/model execution; selected source inspection only"
+    },
+    {
+      "id": "G10",
+      "status": "INCONCLUSIVE",
+      "description": "Product child memory/CPU/file/FD/core and process-creation controls implemented and tested. Explicit thread-count/cgroup task quota remains deployment qualification.",
+      "completed_controls_status": "PASS",
+      "controls": {
+        "address_space_bytes": 4294967296,
+        "cpu_seconds": 20,
+        "file_bytes": 67108864,
+        "file_descriptors": 256,
+        "core_bytes": 0,
+        "process_creation": "fork/vfork and clone without CLONE_THREAD denied; clone3 returns ENOSYS for inspectable fallback",
+        "inheritance": "never raises inherited hard limits",
+        "remaining": "thread-count/cgroup task quota remains deployment qualification; no RLIMIT_NPROC protection for root claimed"
+      },
+      "evidence": [
+        "research/completion/protected-resource-bounds-red.txt",
+        "research/completion/protected-resource-bounds-green.txt",
+        "research/completion/protected-green.txt",
+        "research/completion/protected-native-measured.json"
+      ]
+    }
+  ]
+}

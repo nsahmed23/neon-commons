@@ -1,0 +1,60 @@
+test_ambient_proxy_cannot_change_capture_route (plugin_tests.test_security_boundaries_completion.CaptureProxyTests.test_ambient_proxy_cannot_change_capture_route) ... FAIL
+test_hostile_read_write_and_capability_injection (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_hostile_read_write_and_capability_injection) ... ERROR
+test_initialize_roots_and_environment_cannot_grant_authority (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_initialize_roots_and_environment_cannot_grant_authority) ... FAIL
+test_legitimate_read_and_read_only_no_state_write (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_legitimate_read_and_read_only_no_state_write) ... ERROR
+test_symlink_and_relative_path_denied (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_symlink_and_relative_path_denied) ... ERROR
+test_without_host_capability_no_local_read (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_without_host_capability_no_local_read) ... FAIL
+
+======================================================================
+ERROR: test_hostile_read_write_and_capability_injection (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_hostile_read_write_and_capability_injection)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 37, in test_hostile_read_write_and_capability_injection
+    from intune_iac.mcp import call_tool, FilesystemAuthority
+ImportError: cannot import name 'FilesystemAuthority' from 'intune_iac.mcp' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/mcp.py)
+
+======================================================================
+ERROR: test_legitimate_read_and_read_only_no_state_write (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_legitimate_read_and_read_only_no_state_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 55, in test_legitimate_read_and_read_only_no_state_write
+    from intune_iac.mcp import call_tool, FilesystemAuthority
+ImportError: cannot import name 'FilesystemAuthority' from 'intune_iac.mcp' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/mcp.py)
+
+======================================================================
+ERROR: test_symlink_and_relative_path_denied (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_symlink_and_relative_path_denied)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 65, in test_symlink_and_relative_path_denied
+    from intune_iac.mcp import call_tool, FilesystemAuthority
+ImportError: cannot import name 'FilesystemAuthority' from 'intune_iac.mcp' (/workspace/scratch/e2e4042ea5fd/work/intune-iac/intune_iac/mcp.py)
+
+======================================================================
+FAIL: test_ambient_proxy_cannot_change_capture_route (plugin_tests.test_security_boundaries_completion.CaptureProxyTests.test_ambient_proxy_cannot_change_capture_route)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 24, in test_ambient_proxy_cannot_change_capture_route
+    self.assertFalse(any(isinstance(h, urllib.request.ProxyHandler) and h.proxies for h in built[0].handlers))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_initialize_roots_and_environment_cannot_grant_authority (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_initialize_roots_and_environment_cannot_grant_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 85, in test_initialize_roots_and_environment_cannot_grant_authority
+    self.assertTrue(answer['isError'])
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_without_host_capability_no_local_read (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_without_host_capability_no_local_read)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 32, in test_without_host_capability_no_local_read
+    with self.assertRaises(AppError) as raised:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.050s
+
+FAILED (failures=3, errors=3)

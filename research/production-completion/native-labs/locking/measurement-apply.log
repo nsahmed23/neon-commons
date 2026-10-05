@@ -1,0 +1,26 @@
+terraform_data.lent: Refreshing state... [id=43cccdf1-64e3-6fb3-7477-163e7faf90de]
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+-/+ destroy and then create replacement
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.lent will be replaced, as requested
+-/+ resource "terraform_data" "lent" {
+      ~ id     = "43cccdf1-64e3-6fb3-7477-163e7faf90de" -> (known after apply)
+      ~ output = "verrouillage" -> (known after apply)
+        # (1 unchanged attribute hidden)
+    }
+
+Plan: 1 to add, 0 to change, 1 to destroy.
+terraform_data.lent: Destroying... [id=43cccdf1-64e3-6fb3-7477-163e7faf90de]
+terraform_data.lent: Destruction complete after 0s
+terraform_data.lent: Creating...
+terraform_data.lent: Provisioning with 'local-exec'...
+terraform_data.lent (local-exec): Executing: ["/bin/sh" "-c" "sleep 20"]
+terraform_data.lent: Still creating... [10s elapsed]
+terraform_data.lent: Still creating... [20s elapsed]
+terraform_data.lent: Creation complete after 20s [id=63c745a0-6657-42a4-8c1c-c9945e56c193]
+
+Apply complete! Resources: 1 added, 0 changed, 1 destroyed.

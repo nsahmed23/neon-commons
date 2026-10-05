@@ -1,0 +1,8 @@
+import: [catalog/policy]
+vars:
+  stage: dev
+components:
+  terraform:
+    policy:
+      metadata:
+        inherits: [policy-defaults]

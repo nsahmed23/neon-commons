@@ -1,0 +1,40 @@
+test_expiry_during_active_guard_recheck_denies_active_permit (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_active_guard_recheck_denies_active_permit) ... FAIL
+test_expiry_during_guard_recheck_denies_context_entry (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_guard_recheck_denies_context_entry) ... FAIL
+test_fsync_failure_after_commit_blocks_dispatch_and_stays_spent (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_fsync_failure_after_commit_blocks_dispatch_and_stays_spent) ... ok
+test_full_request_fields_are_signed_not_only_selected_bindings (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_full_request_fields_are_signed_not_only_selected_bindings) ... ok
+test_independent_processes_cannot_both_consume_same_approval (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_independent_processes_cannot_both_consume_same_approval) ... ok
+test_native_launcher_checks_authority_before_spawning (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_native_launcher_checks_authority_before_spawning) ... FAIL
+test_real_signature_from_different_private_key_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_real_signature_from_different_private_key_rejected) ... ok
+test_replaced_database_symlink_and_hardlink_are_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_replaced_database_symlink_and_hardlink_are_rejected) ... ok
+test_signature_from_wrong_domain_rejected (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_signature_from_wrong_domain_rejected) ... ok
+
+======================================================================
+FAIL: test_expiry_during_active_guard_recheck_denies_active_permit (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_active_guard_recheck_denies_active_permit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_independent_v5.py", line 148, in test_expiry_during_active_guard_recheck_denies_active_permit
+    with self.assertRaises(AppError): permit.check_active()
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_expiry_during_guard_recheck_denies_context_entry (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_guard_recheck_denies_context_entry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_independent_v5.py", line 137, in test_expiry_during_guard_recheck_denies_context_entry
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_native_launcher_checks_authority_before_spawning (plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_native_launcher_checks_authority_before_spawning)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_approval_independent_v5.py", line 164, in test_native_launcher_checks_authority_before_spawning
+    self.assertFalse(marker.exists(), 'child performed a local side effect before first authority check')
+AssertionError: True is not false : child performed a local side effect before first authority check
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.373s
+
+FAILED (failures=3)

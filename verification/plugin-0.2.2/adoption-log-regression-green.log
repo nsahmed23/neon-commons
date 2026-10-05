@@ -1,0 +1,22 @@
+test_ctrl_c_terminates_owned_process_and_records_attempt (plugin_tests.test_adoption_lab.AdoptionLabTests.test_ctrl_c_terminates_owned_process_and_records_attempt) ... ok
+test_environment_does_not_inherit_credentials_or_config (plugin_tests.test_adoption_lab.AdoptionLabTests.test_environment_does_not_inherit_credentials_or_config) ... ok
+test_exact_fixture_accepts_only_reviewed_source (plugin_tests.test_adoption_lab.AdoptionLabTests.test_exact_fixture_accepts_only_reviewed_source) ... ok
+test_extra_fixture_file_is_rejected (plugin_tests.test_adoption_lab.AdoptionLabTests.test_extra_fixture_file_is_rejected) ... ok
+test_final_report_cannot_pass_changed_transcript (plugin_tests.test_adoption_lab.AdoptionLabTests.test_final_report_cannot_pass_changed_transcript) ... ok
+test_guard_is_linux_only_and_denies_socket_operations (plugin_tests.test_adoption_lab.AdoptionLabTests.test_guard_is_linux_only_and_denies_socket_operations) ... ok
+test_native_tool_must_have_expected_digest (plugin_tests.test_adoption_lab.AdoptionLabTests.test_native_tool_must_have_expected_digest) ... ok
+test_no_change_assertion_rejects_duplicate_addresses (plugin_tests.test_adoption_lab.AdoptionLabTests.test_no_change_assertion_rejects_duplicate_addresses) ... ok
+test_no_change_assertion_rejects_replacement_and_hidden_deletion (plugin_tests.test_adoption_lab.AdoptionLabTests.test_no_change_assertion_rejects_replacement_and_hidden_deletion) ... ok
+test_output_limit_kills_group_and_marks_incomplete_receipt (plugin_tests.test_adoption_lab.AdoptionLabTests.test_output_limit_kills_group_and_marks_incomplete_receipt) ... ok
+test_output_must_be_new_and_not_contain_source (plugin_tests.test_adoption_lab.AdoptionLabTests.test_output_must_be_new_and_not_contain_source) ... ok
+test_oversized_fixture_is_rejected_before_streaming_hash (plugin_tests.test_adoption_lab.AdoptionLabTests.test_oversized_fixture_is_rejected_before_streaming_hash) ... ok
+test_state_preservation_requires_ids_lineage_and_serial (plugin_tests.test_adoption_lab.AdoptionLabTests.test_state_preservation_requires_ids_lineage_and_serial) ... ok
+test_symlinked_fixture_file_is_rejected (plugin_tests.test_adoption_lab.AdoptionLabTests.test_symlinked_fixture_file_is_rejected) ... ok
+test_timeout_records_terminated_attempt (plugin_tests.test_adoption_lab.AdoptionLabTests.test_timeout_records_terminated_attempt) ... ok
+test_unexpected_member_is_rejected_before_any_hashing (plugin_tests.test_adoption_lab.AdoptionLabTests.test_unexpected_member_is_rejected_before_any_hashing) ... ok
+test_waits_for_descendant_output_before_hashing (plugin_tests.test_adoption_lab.AdoptionLabTests.test_waits_for_descendant_output_before_hashing) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.898s
+
+OK

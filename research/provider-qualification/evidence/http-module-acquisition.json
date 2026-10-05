@@ -1,0 +1,10 @@
+{
+	"Path": "github.com/microsoft/kiota-http-go",
+	"Version": "v1.5.6",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-http-go/@v/v1.5.6.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-http-go/@v/v1.5.6.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-http-go/@v/v1.5.6.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/microsoft/kiota-http-go@v1.5.6",
+	"Sum": "h1:KBdk7sxWYXZnRRExLjIcNt4I7LoOfh/XQJWWid4zBKE=",
+	"GoModSum": "h1:bpJkXfBAcnmiXRg03GXdnb/vF3Sqk3+EgLvXXjmzzQM="
+}

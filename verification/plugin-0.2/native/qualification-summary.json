@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "qualification_scope": "Pinned native offline literal Atmos semantics and HCL parsing; no tenant access.",
+  "atmos": {
+    "version": "1.199.0",
+    "binary_sha256": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b",
+    "same_input_cases": 11,
+    "passed": 11,
+    "success_value_comparisons": 10,
+    "expected_type_rejections": 1,
+    "python_implementation_sha256": "c655817c058703973d5df96d1e776b618cfcde80c8a1aacb882c5818847efb95",
+    "semantic_scope": "literal vars only; default replace lists; imports/inherits/local/overrides; empty and null values"
+  },
+  "opentofu": {
+    "version": "1.10.0",
+    "provider_free_init_and_validate": "passed",
+    "example_fmt_check": "exit3: parse succeeded, canonical formatting required",
+    "candidate_fmt_check": "exit3: parse succeeded, canonical formatting required"
+  },
+  "provider": {
+    "source": "deploymenttheory/microsoft365",
+    "version": "1.0.0",
+    "archive_verified": true,
+    "gpg_checksum_signature_verified": true,
+    "local_mirror_init": "passed",
+    "schema": "blocked_plugin_startup",
+    "candidate_validate": "blocked_plugin_startup",
+    "primary_diagnostic": "Unrecognized remote plugin message",
+    "independent_environment_blocker": "Base runtime denies AF_UNIX socket creation; additional child filter denies all non-AF_UNIX socket families. The exact cause of generic plugin startup diagnostic is not proven."
+  },
+  "boundaries": {
+    "tenant_access": false,
+    "graph_requests": false,
+    "plan_apply_import": false,
+    "provider_schema_qualified": false,
+    "provider_crud_qualified": false,
+    "provider_candidate_validity_qualified": false,
+    "authorization_changed": false,
+    "repository_modified_by_qualification_agent": false,
+    "filesystem_isolation": false,
+    "network_isolation": "Inherited seccomp; AF_UNIX independently denied by base runtime. No sockets inherited by native child."
+  },
+  "evidence": {
+    "atmos_comparison_sha256": "0edfa195123d169258f7f636fc030e3a0c7ff96d9bde96405e328eaef211c423",
+    "shared_source_manifest_sha256": "f2ffdc09ff53f99e85be4d95f1a105744dbaae2a332483e228d7f9bf87d0e014",
+    "candidate_source_manifest_sha256": "48f67679ad2ec725b5e12fac18118bc11715518c74220a9b15e216dcea8b2a7b"
+  }
+}

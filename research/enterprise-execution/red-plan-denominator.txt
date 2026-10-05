@@ -1,0 +1,49 @@
+FFFF
+======================================================================
+FAIL: test_bool_number_noop_type_changes_are_not_equal (plugin_tests.test_execution.AdditionalPlanReviewTests.test_bool_number_noop_type_changes_are_not_equal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 262, in test_bool_number_noop_type_changes_are_not_equal
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+======================================================================
+FAIL: test_duplicate_change_removed_from_denominator_is_visible (plugin_tests.test_execution.AdditionalPlanReviewTests.test_duplicate_change_removed_from_denominator_is_visible)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 247, in test_duplicate_change_removed_from_denominator_is_visible
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+======================================================================
+FAIL: test_null_import_and_malformed_known_fields_are_not_ignored (plugin_tests.test_execution.AdditionalPlanReviewTests.test_null_import_and_malformed_known_fields_are_not_ignored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 236, in test_null_import_and_malformed_known_fields_are_not_ignored
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+======================================================================
+FAIL: test_planned_values_contradicting_change_after_blocked (plugin_tests.test_execution.AdditionalPlanReviewTests.test_planned_values_contradicting_change_after_blocked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_execution.py", line 255, in test_planned_values_contradicting_change_after_blocked
+    self.assertEqual(self.review(value)['status'], 'blocked')
+AssertionError: 'no_change' != 'blocked'
+- no_change
++ blocked
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.006s
+
+FAILED (failures=4)

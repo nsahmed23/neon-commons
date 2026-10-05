@@ -1,0 +1,23 @@
+FF
+======================================================================
+FAIL: test_real_cli_owned_symlink_conflict_preserves_bytes (evaluations.test_repaired_pipeline.PipelineRepairs.test_real_cli_owned_symlink_conflict_preserves_bytes) (entry='README.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_pipeline.py", line 67, in test_real_cli_owned_symlink_conflict_preserves_bytes
+    self.assertEqual(rerun.returncode,4,rerun.stderr)
+AssertionError: 3 != 4 : Input or local validation failed. Inspect locally; raw payload was not echoed.
+
+
+======================================================================
+FAIL: test_real_cli_owned_symlink_conflict_preserves_bytes (evaluations.test_repaired_pipeline.PipelineRepairs.test_real_cli_owned_symlink_conflict_preserves_bytes) (entry='adoption')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_pipeline.py", line 67, in test_real_cli_owned_symlink_conflict_preserves_bytes
+    self.assertEqual(rerun.returncode,4,rerun.stderr)
+AssertionError: 3 != 4 : Input or local validation failed. Inspect locally; raw payload was not echoed.
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.816s
+
+FAILED (failures=2)

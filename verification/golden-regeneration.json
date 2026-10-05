@@ -1,0 +1,76 @@
+{
+  "scope": "real local CLI plus independent source/normalized/generated comparison; no provider execution",
+  "fixtures": [
+    {
+      "fixture": "supported",
+      "exit_code": 0,
+      "stdout": {
+        "schema_version": "1.0.0",
+        "result": "created",
+        "file_count": 18,
+        "offline_mapping_complete": true,
+        "blocker_codes": [],
+        "preservation_verified": true,
+        "execution_authorized": false
+      },
+      "independent_check": true
+    },
+    {
+      "fixture": "partial",
+      "exit_code": 2,
+      "stdout": {
+        "schema_version": "1.0.0",
+        "result": "created",
+        "file_count": 11,
+        "offline_mapping_complete": false,
+        "blocker_codes": [
+          "invalid_observed_setting",
+          "unsupported_source_field"
+        ],
+        "preservation_verified": true,
+        "execution_authorized": false
+      },
+      "independent_check": true
+    },
+    {
+      "fixture": "missing-page",
+      "exit_code": 2,
+      "stdout": {
+        "schema_version": "1.0.0",
+        "result": "created",
+        "file_count": 11,
+        "offline_mapping_complete": false,
+        "blocker_codes": [
+          "capture_contract_violation",
+          "incomplete_collection",
+          "required_assignments_incomplete",
+          "unfetched_next_page"
+        ],
+        "preservation_verified": true,
+        "execution_authorized": false
+      },
+      "independent_check": true
+    },
+    {
+      "fixture": "access-denied",
+      "exit_code": 2,
+      "stdout": {
+        "schema_version": "1.0.0",
+        "result": "created",
+        "file_count": 11,
+        "offline_mapping_complete": false,
+        "blocker_codes": [
+          "capture_contract_violation",
+          "incomplete_collection",
+          "invalid_page_provenance",
+          "missing_value_collection",
+          "required_assignments_incomplete",
+          "unsupported_source_field"
+        ],
+        "preservation_verified": true,
+        "execution_authorized": false
+      },
+      "independent_check": true
+    }
+  ]
+}

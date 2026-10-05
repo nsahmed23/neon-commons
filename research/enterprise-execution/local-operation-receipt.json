@@ -1,0 +1,108 @@
+{
+  "version": "1.0.0",
+  "observed_at_utc": "2026-10-01T00:04:06.925773+00:00",
+  "scope": "actual fixed local JSON writes with injected response failures; no cloud/provider/native dispatch",
+  "assertions": 9,
+  "source_sha256": {
+    "intune_iac/execution.py": "bd2417048ae2214b16e4f2c7f4890eb610f6d29055e397bc185e021f71cb4213",
+    "intune_iac/reconciliation.py": "15dfaaff88046c5a603f35404f27b26670b5eed9bd47c28471671fec8dfe22a5",
+    "plugin_tests/test_execution.py": "979306e406bb56a8abaf1e1ce06a4d1be5565840dd7aade47bbfca2ea081da03",
+    "plugin_tests/test_reconciliation.py": "359e60ab7ecc312e8840b1ff64f0953fc5de5877bbcef810334eab2f35512b41"
+  },
+  "scenarios": [
+    {
+      "scenario": "complete",
+      "outcome": {
+        "status": "succeeded_verified",
+        "assurance": "local_simulation_only",
+        "external_execution_available": false,
+        "retry_authorized": false,
+        "operation_id": "5c38933c-df37-40e6-8d64-9a782044e975"
+      },
+      "observation": {
+        "version": "1.0.0",
+        "classification": "desired_state_observed",
+        "assurance": "local_simulation_only",
+        "retry_authorized": false,
+        "lock_released": false,
+        "facets": {
+          "policy": "desired",
+          "assignments": "desired"
+        },
+        "journal_sha256": "6ef2e0f592e1e80fa565710a83157f6b4db5a4881a1a2ffdaf4774c62fc3e4c9",
+        "observation_sha256": "6ab5c30209b5d2af0bf59d8e2ff7fe8f91bb5218a9258c2798e468c5a981bb4e",
+        "reason": "current_observation_does_not_authorize_replay"
+      },
+      "events": [
+        "prepared",
+        "step_started",
+        "step_verified",
+        "step_started",
+        "step_verified",
+        "completed"
+      ],
+      "target_lock_retained": false
+    },
+    {
+      "scenario": "fail_before",
+      "outcome": {
+        "status": "reconciliation_required",
+        "assurance": "local_simulation_only",
+        "external_execution_available": false,
+        "retry_authorized": false,
+        "operation_id": "b30b1eff-e2ac-4cdb-b7b6-fa1eed387b3b",
+        "reason": "outcome_requires_independent_readback"
+      },
+      "observation": {
+        "version": "1.0.0",
+        "classification": "matches_precondition",
+        "assurance": "local_simulation_only",
+        "retry_authorized": false,
+        "lock_released": false,
+        "facets": {
+          "policy": "precondition",
+          "assignments": "precondition"
+        },
+        "journal_sha256": "606bb30de7ad4124d3b1a290b1a7966dc2677f6e876e127ea08fcb5049876376",
+        "observation_sha256": "25a3e15756e9b0aa46752412bd1e6ecfc74f8be108c329ee1a18a6a2e893906a",
+        "reason": "current_observation_does_not_authorize_replay"
+      },
+      "events": [
+        "prepared",
+        "step_started"
+      ],
+      "target_lock_retained": true
+    },
+    {
+      "scenario": "lost_response",
+      "outcome": {
+        "status": "reconciliation_required",
+        "assurance": "local_simulation_only",
+        "external_execution_available": false,
+        "retry_authorized": false,
+        "operation_id": "d3a841d8-5f8c-4445-a7e1-c94ac0e7c29a",
+        "reason": "outcome_requires_independent_readback"
+      },
+      "observation": {
+        "version": "1.0.0",
+        "classification": "partial_effects_observed",
+        "assurance": "local_simulation_only",
+        "retry_authorized": false,
+        "lock_released": false,
+        "facets": {
+          "policy": "desired",
+          "assignments": "precondition"
+        },
+        "journal_sha256": "82e5735c4127314047d7828c6d03383ee0fe1e846102b427278e1736511a7c06",
+        "observation_sha256": "29de5f227084fa1afc70eb06d666391e3e7a79d063c1bb48e7237c40ecd6b313",
+        "reason": "current_observation_does_not_authorize_replay"
+      },
+      "events": [
+        "prepared",
+        "step_started"
+      ],
+      "target_lock_retained": true
+    }
+  ],
+  "external_execution_available": false
+}

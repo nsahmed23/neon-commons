@@ -1,0 +1,3 @@
+Actual pinned native saved-plan result: succeeded_verified
+Independent reconciliation: desired_state_observed
+Preserved generic reviewer status: blocked

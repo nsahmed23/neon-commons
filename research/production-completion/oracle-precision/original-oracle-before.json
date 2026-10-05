@@ -1,0 +1,6 @@
+{
+  "sha256": "addc11e6f0325b315658a9cbe823ea748a7a401efba5b4559fe3aff545c79451",
+  "path": "plugin_tests/test_graph_budget.py",
+  "finding": "Wrong patch namespace does not instrument envelope hashing",
+  "initial_dependency_probes": "PATH Python, recovered lab Python and primary Python lacked jsonschema. Used existing Intune virtual environment; no installation."
+}

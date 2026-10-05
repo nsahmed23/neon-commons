@@ -1,0 +1,41 @@
+...F.F...F...
+======================================================================
+FAIL: test_complete_journey_generates_and_reconciles_real_local_artifacts (plugin_tests.test_journey_completion.JourneyCompletionTests.test_complete_journey_generates_and_reconciles_real_local_artifacts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 43, in test_complete_journey_generates_and_reconciles_real_local_artifacts
+    result = self.complete(); self.assertEqual(result['status'], 'complete_simulation', result)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'suspended' != 'complete_simulation'
+- suspended
++ complete_simulation
+ : {'schema_version': 'journey/1.0', 'next_state': 'plan', 'verified_completed': ['discovery', 'target', 'inventory', 'selection', 'preservation', 'mapping', 'ownership', 'atmos', 'generation', 'validation', 'adoption'], 'external_verified_completed': [], 'receipt_dependencies': {'discovery': 'de7096a143de7e1dc9ef8e61c848ff80c2f52a67929863bc61685edb998b8ba5', 'target': 'ec8d1ae1dd4cc2caf157ad9aa0ae83cb190c9eddfa9fc8bfd283032d1c138396', 'inventory': '09e2265fe0c56c49b2873aee7fcad5c5b7ec64428c00f5b59752a2c09ca8279e', 'selection': '9197bf3d8c5ab89e5ed7e0c5380edf348fcec2a3d8174e54ce9bb292b48ccd29', 'preservation': 'dab85c36ad9197dd41e49ad37ae45720e721ada4b9920dd35908ff620a503eef', 'mapping': '2285357e7caad24027007625bd2ee2d640187cc327cac17a5884418b8530f5ed', 'ownership': 'dff5d48ea1e9ef00e03a6e45469c5686984bfac6ee72f36263356fc72be42761', 'atmos': '0b1a2d97203d0549c7395880bd34e9a890b62dae22105b9bf6ae547847cacf6c', 'generation': 'e15d992b6e268481ffd16339eda24aaa33476fe5ef19af20c91c154d45ab8c6a', 'validation': 'ee3d85bca6441e8129da0ae5c7f9fdd48eb658d68c6943c4a6440aeb87930a18', 'adoption': 'e8f997ae19f3a480f0b642d49237c71b1bc8717f23d98f75e0a2f3d0f939730e'}, 'invalid_at': None, 'mode': 'simulation', 'execution_authorized': False, 'live_ready': False, 'live_blockers': ['provider_not_qualified', 'authenticated_target_missing', 'state_backend_not_observed', 'single_writer_not_verified', 'protected_cloud_approval_unavailable', 'cloud_executor_unavailable'], 'status': 'suspended', 'step': 'plan', 'session': '/tmp/tmprj1acykc/journey.json'}
+
+======================================================================
+FAIL: test_interrupt_before_execution_does_not_resume_approval_authority (plugin_tests.test_journey_completion.JourneyCompletionTests.test_interrupt_before_execution_does_not_resume_approval_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 81, in test_interrupt_before_execution_does_not_resume_approval_authority
+    self.assertNotIn('execute', result['verified_completed']); self.assertEqual(result['step'], 'approval')
+                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'plan' != 'approval'
+- plan
++ approval
+
+
+======================================================================
+FAIL: test_production_generation_keeps_inactive_provider_gate (plugin_tests.test_journey_completion.JourneyCompletionTests.test_production_generation_keeps_inactive_provider_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_journey_completion.py", line 97, in test_production_generation_keeps_inactive_provider_gate
+    result = self.complete(); self.assertEqual(result['status'], 'complete_simulation', result)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'suspended' != 'complete_simulation'
+- suspended
++ complete_simulation
+ : {'schema_version': 'journey/1.0', 'next_state': 'plan', 'verified_completed': ['discovery', 'target', 'inventory', 'selection', 'preservation', 'mapping', 'ownership', 'atmos', 'generation', 'validation', 'adoption'], 'external_verified_completed': [], 'receipt_dependencies': {'discovery': 'de7096a143de7e1dc9ef8e61c848ff80c2f52a67929863bc61685edb998b8ba5', 'target': '43c8bf80c7dad84fcb4fb04227c31ee0bb9c851371574b93820acef146670714', 'inventory': '72d22408608cca94fea73a440d04622bab04f3b0b45e6df7c5d71eeffb44a9ee', 'selection': 'afdda596e4c207aac73829562095f49404c0749fe436eb8a43c8f10cd00e76dd', 'preservation': 'bb15e1da61ee6353bf55c740e4d6584a42835dab3977081c2407e141ba10890f', 'mapping': '215c80aaa87f4fa8650c48ada1763e572e5e3b17880142e0b0614c2cec1a2ebd', 'ownership': 'f473abb91636d07f78c12a53aeb1f56d700b89912126baf4fd1d8bbd26953655', 'atmos': '558ecf5ccd5422ed1e9a96b8c023add438de5be490ab753b2a147998d8177509', 'generation': 'c70f6d18512af7b5d90efb426c3afe8241934e9ff791fc04aa470c0ab31d7955', 'validation': 'bb585d0735ac97ea142fab8d87eae6dd6f6ceb9c9310a5e12cd871a905cff1f6', 'adoption': 'd0f10a1dc460a9a4f48e325e6c55794031fd9f51f7a0465791b080bcf1470786'}, 'invalid_at': None, 'mode': 'simulation', 'execution_authorized': False, 'live_ready': False, 'live_blockers': ['provider_not_qualified', 'authenticated_target_missing', 'state_backend_not_observed', 'single_writer_not_verified', 'protected_cloud_approval_unavailable', 'cloud_executor_unavailable'], 'status': 'suspended', 'step': 'plan', 'session': '/tmp/tmp3izx5sul/journey.json'}
+
+----------------------------------------------------------------------
+Ran 13 tests in 38.862s
+
+FAILED (failures=3)

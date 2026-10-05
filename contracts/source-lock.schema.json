@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/source-lock.schema.json",
+  "title": "source-lock",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "date": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "repository": {
+            "type": "string"
+          },
+          "commit_sha": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "release": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pin_evidence": {
+            "type": "string"
+          },
+          "review_status": {
+            "enum": [
+              "reviewed_selected_files",
+              "prior_report_only",
+              "unavailable"
+            ]
+          },
+          "license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "license_evidence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selected_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "raw_bytes_acquired": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "repository",
+          "commit_sha",
+          "release",
+          "pin_evidence",
+          "review_status",
+          "license",
+          "license_evidence",
+          "selected_paths",
+          "raw_bytes_acquired"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "date",
+    "sources"
+  ],
+  "additionalProperties": false
+}

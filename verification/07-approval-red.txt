@@ -1,0 +1,77 @@
+test_expired (test_approval.Approval.test_expired) ... ERROR
+test_missing (test_approval.Approval.test_missing) ... ERROR
+test_naive_clock_rejected (test_approval.Approval.test_naive_clock_rejected) ... ERROR
+test_same (test_approval.Approval.test_same) ... ERROR
+test_stale_plan (test_approval.Approval.test_stale_plan) ... ERROR
+test_wrong_tenant (test_approval.Approval.test_wrong_tenant) ... ERROR
+
+======================================================================
+ERROR: test_expired (test_approval.Approval.test_expired)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_approval.py", line 14, in test_expired
+    def test_expired(self):self.assertIn('expired',approval.mismatches(self.r,self.r,'2026-09-30T15:00:00Z'))
+                                                   ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/approval.py", line 2, in mismatches
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_missing (test_approval.Approval.test_missing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_approval.py", line 17, in test_missing
+    self.assertIn('provider_lock_digest',approval.mismatches(self.r,x,'2026-09-30T13:00:00Z'))
+                                         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/approval.py", line 2, in mismatches
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_naive_clock_rejected (test_approval.Approval.test_naive_clock_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_approval.py", line 19, in test_naive_clock_rejected
+    with self.assertRaises(ValueError):approval.mismatches(self.r,self.r,'2026-09-30T13:00:00')
+                                       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/approval.py", line 2, in mismatches
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_same (test_approval.Approval.test_same)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_approval.py", line 7, in test_same
+    def test_same(self):self.assertEqual(approval.mismatches(self.r,copy.deepcopy(self.r),'2026-09-30T13:00:00Z'),[])
+                                         ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/approval.py", line 2, in mismatches
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_stale_plan (test_approval.Approval.test_stale_plan)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_approval.py", line 10, in test_stale_plan
+    self.assertIn('plan_digest',approval.mismatches(self.r,x,'2026-09-30T13:00:00Z'))
+                                ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/approval.py", line 2, in mismatches
+    raise NotImplementedError
+NotImplementedError
+
+======================================================================
+ERROR: test_wrong_tenant (test_approval.Approval.test_wrong_tenant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/data/build-materials-gap-closure/evaluations/test_approval.py", line 13, in test_wrong_tenant
+    self.assertIn('tenant_id',approval.mismatches(self.r,x,'2026-09-30T13:00:00Z'))
+                              ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/data/build-materials-gap-closure/reference/approval.py", line 2, in mismatches
+    raise NotImplementedError
+NotImplementedError
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.002s
+
+FAILED (errors=6)

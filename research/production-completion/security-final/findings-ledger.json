@@ -1,0 +1,716 @@
+{
+  "acceptance": "BLOCKED_FOR_ENTERPRISE_PRODUCTION",
+  "evidence": [
+    {
+      "path": "research/production-completion/final-review/review-snapshot.json",
+      "sha256": "cf7d494cd37e2070196ae99b3a9e5d8742effebf26280259515a5f984e2acf60"
+    },
+    {
+      "path": "research/production-completion/final-review/final-review.md",
+      "sha256": "24b10c8d9c5032026649afcf8776b093c7146ef2163657927370b8589297eb98"
+    }
+  ],
+  "evidence_provenance": [
+    "Historical RED/GREEN logs retain their own source snapshot and are not presented as new reruns.",
+    "Final-review snapshot replayed six existing methods, zero skips; this is not six newly authored tests.",
+    "Approval receipt-provenance.log records 34 passing methods but no command/method list; no finer attribution is invented.",
+    "Owner final integrated test run, clean extraction and archive hashes are separate release gates. No success is inferred from an in-progress run."
+  ],
+  "finding_count": 13,
+  "findings": [
+    {
+      "control": [
+        "approval_authority.ApprovedExecution._check rechecks time and revocation after callback"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/approval/review-independent-red.log",
+          "sha256": "52fddb97bac5601552d99a250e69ea6f52b8667d01fcf4f751a348e7c5762730"
+        },
+        {
+          "path": "research/production-completion/approval/review-independent-final.log",
+          "sha256": "d664c0f9ccbd4c9c74a4f1d6a973953f8796127b58bf7f420c727088f3ef36c4"
+        },
+        {
+          "path": "research/production-completion/approval/review-summary.json",
+          "sha256": "991ba55b24dcb4864a1836ab24f30808fa5ac19c713638925c3f532a3b2ef5e5"
+        }
+      ],
+      "evidence_classes": [
+        "real_crypto_and_private_store",
+        "deterministic_clock"
+      ],
+      "id": "SEC05-A1",
+      "invariant": "Authority must remain active after each bounded host recheck.",
+      "limits": [
+        "No cloud issuer or live operation was involved."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_guard_recheck_denies_context_entry"
+        },
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_expiry_during_active_guard_recheck_denies_active_permit"
+        }
+      ],
+      "title": "Approval expired or was revoked during a host callback"
+    },
+    {
+      "control": [
+        "provider_execution._supervise checks authority before Popen"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/approval/review-independent-red.log",
+          "sha256": "52fddb97bac5601552d99a250e69ea6f52b8667d01fcf4f751a348e7c5762730"
+        },
+        {
+          "path": "research/production-completion/approval/review-independent-final.log",
+          "sha256": "d664c0f9ccbd4c9c74a4f1d6a973953f8796127b58bf7f420c727088f3ef36c4"
+        },
+        {
+          "path": "research/production-completion/final-review/targeted-replay.txt",
+          "sha256": "088ae1916dd9de5813e8eff13e60117c5385cfcd4c77c3b7906a4843faa8d9dd"
+        }
+      ],
+      "evidence_classes": [
+        "native_local_process"
+      ],
+      "id": "SEC05-A2",
+      "invariant": "Expired or rejected authority must prevent child startup.",
+      "limits": [
+        "Harmless local marker process; no provider or cloud mutation."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_native_launcher_checks_authority_before_spawning"
+        }
+      ],
+      "title": "Child process launched before the first active-authority check"
+    },
+    {
+      "control": [
+        "approval_authority._valid_public_key uses pinned native validator and documented subgroup workaround"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/approval/review-weak-key-red.log",
+          "sha256": "47820f0f09457bcf47909aee1e9251a16f8074032e0070439a461191c0b1d146"
+        },
+        {
+          "path": "research/production-completion/approval/review-independent-final.log",
+          "sha256": "d664c0f9ccbd4c9c74a4f1d6a973953f8796127b58bf7f420c727088f3ef36c4"
+        },
+        {
+          "path": "research/production-completion/approval/review-summary.json",
+          "sha256": "991ba55b24dcb4864a1836ab24f30808fa5ac19c713638925c3f532a3b2ef5e5"
+        }
+      ],
+      "evidence_classes": [
+        "real_crypto_and_private_store"
+      ],
+      "id": "SEC05-A3",
+      "invariant": "Installed issuer keys must be canonical, non-small-order, main-subgroup points.",
+      "limits": [
+        "Requires installing an invalid weak trusted key; valid generated issuer keys were not demonstrated forgeable."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high_conditional",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_low_order_identity_public_key_cannot_authorize_static_forgery"
+        },
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_rejects_weak_noncanonical_and_mixed_order_points"
+        }
+      ],
+      "title": "Installed weak Ed25519 identity key accepted a static signature forgery"
+    },
+    {
+      "control": [
+        "approval_authority._valid_public_key loads verified bytes through a unique private pathname and bounded content cache"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/approval/review-validator-red.log",
+          "sha256": "d5f9f01383520fb41e784ad49d460dae932f9709495878968dbc3149e063071b"
+        },
+        {
+          "path": "research/production-completion/approval/review-independent-final.log",
+          "sha256": "d664c0f9ccbd4c9c74a4f1d6a973953f8796127b58bf7f420c727088f3ef36c4"
+        }
+      ],
+      "evidence_classes": [
+        "native_local_dynamic_loader"
+      ],
+      "id": "SEC05-A4",
+      "invariant": "Executed validator bytes must match the selected pin.",
+      "limits": [
+        "Protected loader, native dependencies and interpreter remain trusted."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high_conditional",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path"
+        }
+      ],
+      "title": "Recycled loader descriptor pathname selected a previously loaded validator image"
+    },
+    {
+      "control": [
+        "approval_authority._valid_public_key translates unavailable dependency failures"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/approval/review-validator-red.log",
+          "sha256": "d5f9f01383520fb41e784ad49d460dae932f9709495878968dbc3149e063071b"
+        },
+        {
+          "path": "research/production-completion/approval/review-independent-final.log",
+          "sha256": "d664c0f9ccbd4c9c74a4f1d6a973953f8796127b58bf7f420c727088f3ef36c4"
+        }
+      ],
+      "evidence_classes": [
+        "native_local_dependency_failure"
+      ],
+      "id": "SEC05-A5",
+      "invariant": "Unavailable verifier dependencies must fail closed with a fixed diagnostic.",
+      "limits": [
+        "Pre-fix behavior already denied authorization; this was diagnostic/API consistency."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "low",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_approval_independent_v5.py",
+          "test": "plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_validator_wrong_pin_and_missing_dependency_fail_closed"
+        }
+      ],
+      "title": "Missing validator escaped the fixed application-error contract"
+    },
+    {
+      "control": [
+        "identity_binding._NativeTransport cancels on BaseException and checks cancellation after connect"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/leases/review-independent.json",
+          "sha256": "f45c4718167984079e11beee63bb63aaad7c313a4d8a776314fd83cd54e9d333"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent-green.txt",
+          "sha256": "457429cae4f5e179d83aeb51da7ab7eace5ebf01533f8d431168bea54aa238f6"
+        },
+        {
+          "path": "research/production-completion/identity/verification.json",
+          "sha256": "694ba628c6d564cdc3b466e9b4865725402da1f500294456e134733c13ee1b36"
+        }
+      ],
+      "evidence_classes": [
+        "mock_native_connection",
+        "real_stdlib_orchestration"
+      ],
+      "id": "SEC05-T1",
+      "invariant": "Caller cancellation must prevent a not-yet-dispatched credential request.",
+      "limits": [
+        "Identity counterpart was fixed before combined independent RED log; no persisted identity RED log is claimed. Already-sent bytes cannot be undone."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high_conditional",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_identity_binding_v5.py",
+          "test": "plugin_tests.test_identity_binding_v5.NativeTransportContractTests.test_caller_interrupt_cancels_delayed_connect_before_credentials_send"
+        },
+        {
+          "file": "plugin_tests/test_blob_lease_independent_v5.py",
+          "test": "plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_identity_caller_interrupt_cancels_delayed_connect"
+        }
+      ],
+      "title": "Caller interruption could leave a delayed identity credential dispatch running"
+    },
+    {
+      "control": [
+        "identity_binding._NativeTransport and blob_lease._LeaseTransport disable auto_open after explicit connect"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/leases/review-independent-red.txt",
+          "sha256": "8786cb4ed42db6177ce8ae8e3d9486d03b825032d2efe0a1fdd542d083fdc8c2"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent-green.txt",
+          "sha256": "457429cae4f5e179d83aeb51da7ab7eace5ebf01533f8d431168bea54aa238f6"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent.json",
+          "sha256": "f45c4718167984079e11beee63bb63aaad7c313a4d8a776314fd83cd54e9d333"
+        }
+      ],
+      "evidence_classes": [
+        "real_stdlib_with_mock_socket"
+      ],
+      "id": "SEC05-T2",
+      "invariant": "A cancelled request must not reconnect and send credentials or lease operations.",
+      "limits": [
+        "Combined RED demonstrates lease counterpart; identity repair preceded that run. No live endpoint or credential exfiltration demonstrated."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high_conditional",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_identity_binding_v5.py",
+          "test": "plugin_tests.test_identity_binding_v5.NativeTransportContractTests.test_timeout_closure_never_auto_reconnects_before_request_send"
+        },
+        {
+          "file": "plugin_tests/test_blob_lease_independent_v5.py",
+          "test": "plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_timeout_cannot_reconnect_and_send_after_caller_returns"
+        }
+      ],
+      "title": "Automatic HTTP reconnect could dispatch after a timeout closed the first connection"
+    },
+    {
+      "control": [
+        "Both transports retain the connected socket for shutdown and close HTTPResponse in worker cleanup"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/leases/review-independent-red.txt",
+          "sha256": "8786cb4ed42db6177ce8ae8e3d9486d03b825032d2efe0a1fdd542d083fdc8c2"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent-green.txt",
+          "sha256": "457429cae4f5e179d83aeb51da7ab7eace5ebf01533f8d431168bea54aa238f6"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent.json",
+          "sha256": "f45c4718167984079e11beee63bb63aaad7c313a4d8a776314fd83cd54e9d333"
+        },
+        {
+          "path": "research/production-completion/final-review/targeted-replay.txt",
+          "sha256": "088ae1916dd9de5813e8eff13e60117c5385cfcd4c77c3b7906a4843faa8d9dd"
+        }
+      ],
+      "evidence_classes": [
+        "mock_native_connection",
+        "native_local_socketpair_real_http_parser"
+      ],
+      "id": "SEC05-T3",
+      "invariant": "Body cancellation must terminate the response stream and release bounded worker capacity.",
+      "limits": [
+        "Positive path asserts socketpair creation, stdlib detach, body read, and joined workers. This does not qualify TLS or remote Azure."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "medium",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_identity_binding_v5.py",
+          "test": "plugin_tests.test_identity_binding_v5.NativeTransportContractTests.test_detached_connection_close_body_socket_is_shutdown_on_deadline"
+        },
+        {
+          "file": "plugin_tests/test_blob_lease_independent_v5.py",
+          "test": "plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_connection_close_response_cannot_keep_worker_after_deadline"
+        }
+      ],
+      "title": "Detached HTTP response socket kept a worker alive past its deadline"
+    },
+    {
+      "control": [
+        "blob_lease caps token acquisition by request deadline and prior lease expiry"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/leases/review-independent-red.txt",
+          "sha256": "8786cb4ed42db6177ce8ae8e3d9486d03b825032d2efe0a1fdd542d083fdc8c2"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent-green.txt",
+          "sha256": "457429cae4f5e179d83aeb51da7ab7eace5ebf01533f8d431168bea54aa238f6"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent.json",
+          "sha256": "f45c4718167984079e11beee63bb63aaad7c313a4d8a776314fd83cd54e9d333"
+        }
+      ],
+      "evidence_classes": [
+        "recorded_service_responses_and_clock"
+      ],
+      "id": "SEC05-L1",
+      "invariant": "OAuth and lease work must share the remaining conservative lease deadline.",
+      "limits": [
+        "Pre-fix code rejected lease writes after noticing expiry; excess blocking was reproduced, not an expired-owner Graph write."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "medium",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_blob_lease_independent_v5.py",
+          "test": "plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_renew_token_exchange_budget_cannot_exceed_remaining_lease"
+        },
+        {
+          "file": "plugin_tests/test_blob_lease_independent_v5.py",
+          "test": "plugin_tests.test_blob_lease_independent_v5.IndependentLeaseStateTests.test_release_token_exchange_budget_cannot_exceed_remaining_lease"
+        }
+      ],
+      "title": "Lease renewal/release token stage exceeded remaining ownership lifetime"
+    },
+    {
+      "control": [
+        "blob_lease preserves terminal release state on rejected renewal"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/leases/terminal-state-red.log",
+          "sha256": "8f4f2b4a716aa9516dd351460addfbf4bbd97e7ca5abed4a6702ff3055ea903a"
+        },
+        {
+          "path": "research/production-completion/leases/tests-green-combined.log",
+          "sha256": "e5b98f0fd7cd9d31a0c51a34245124822e79f7b88ffc6f405f56fc8371345b41"
+        },
+        {
+          "path": "research/production-completion/leases/implementation-summary.json",
+          "sha256": "6a0ea7120cdd721eda174e61deeb7e67b06d4dbdb4a31ca77dd5ce8323a33e29"
+        }
+      ],
+      "evidence_classes": [
+        "recorded_service_responses_and_clock"
+      ],
+      "id": "SEC05-L2",
+      "invariant": "Terminal lease states must remain terminal and cannot recover authority.",
+      "limits": [
+        "No live Blob service operation was performed."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "low",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_blob_lease_v5.py",
+          "test": "plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_no_renew_after_release_preserves_terminal_receipt"
+        }
+      ],
+      "title": "Renewal after release overwrote terminal receipt state"
+    },
+    {
+      "control": [
+        "ProviderJourney requires exact durable authority consumption",
+        "Verified restart requires private dispatch/outcome hash and exact_plan_returned plus saved-plan/state validation",
+        "Read-only convergence without prior execution remains unconfirmed"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/identity/verification.json",
+          "sha256": "694ba628c6d564cdc3b466e9b4865725402da1f500294456e134733c13ee1b36"
+        },
+        {
+          "path": "research/production-completion/approval/receipt-provenance.log",
+          "sha256": "3215994f312faef6a15b0df8cc73044b94ed99aa1ae1808bff9e3add814eed96"
+        },
+        {
+          "path": "research/production-completion/final-review/targeted-replay.txt",
+          "sha256": "088ae1916dd9de5813e8eff13e60117c5385cfcd4c77c3b7906a4843faa8d9dd"
+        },
+        {
+          "path": "research/production-completion/final-review/final-review.md",
+          "sha256": "24b10c8d9c5032026649afcf8776b093c7146ef2163657927370b8589297eb98"
+        }
+      ],
+      "evidence_classes": [
+        "real_crypto_and_private_store",
+        "modeled_provider_commands"
+      ],
+      "id": "SEC05-J1",
+      "invariant": "A journal, spent approval or converged state alone cannot prove exact saved-plan execution.",
+      "limits": [
+        "Current-source regressions and final replay retained; no standalone persisted initial journey RED log is claimed. Same-account private-store modification is outside this boundary."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "high",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_provider_journey_v5.py",
+          "test": "plugin_tests.test_provider_journey_v5.ProviderJourneyTests.test_unsigned_journal_cannot_authorize_reconciliation"
+        },
+        {
+          "file": "plugin_tests/test_provider_journey_v5.py",
+          "test": "plugin_tests.test_provider_journey_v5.ProviderJourneyTests.test_consumed_approval_and_convergence_do_not_prove_saved_plan_executed"
+        },
+        {
+          "file": "plugin_tests/test_provider_journey_v5.py",
+          "test": "plugin_tests.test_provider_journey_v5.ProviderJourneyTests.test_forged_verified_journal_is_not_evidence_of_completion"
+        }
+      ],
+      "title": "Writable journal and converged state could manufacture a verified journey outcome"
+    },
+    {
+      "control": [
+        "provider_journey.read_credential_fd rejects O_PATH and uses nested-finally closure"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/identity/verification.json",
+          "sha256": "694ba628c6d564cdc3b466e9b4865725402da1f500294456e134733c13ee1b36"
+        }
+      ],
+      "evidence_classes": [
+        "native_local_file_descriptors"
+      ],
+      "id": "SEC05-J2",
+      "invariant": "Every duplicate credential descriptor must close even if flag operations fail.",
+      "limits": [
+        "No retained initial RED log; the existing regression and integrated scoped test receipt are the retained evidence. No actual credential store was read."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "low",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_provider_journey_v5.py",
+          "test": "plugin_tests.test_provider_journey_v5.IdentityAuthenticationCliTests.test_path_only_descriptor_is_rejected_without_leak"
+        },
+        {
+          "file": "plugin_tests/test_provider_journey_v5.py",
+          "test": "plugin_tests.test_provider_journey_v5.IdentityAuthenticationCliTests.test_pipe_requires_eof_within_deadline_and_restores_flags"
+        }
+      ],
+      "title": "Path-only credential descriptor leaked its duplicate during cleanup"
+    },
+    {
+      "control": [
+        "identity_binding._Observer.read enforces aggregate header length in addition to native transport checks"
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/identity/verification.json",
+          "sha256": "694ba628c6d564cdc3b466e9b4865725402da1f500294456e134733c13ee1b36"
+        }
+      ],
+      "evidence_classes": [
+        "recorded_service_responses"
+      ],
+      "id": "SEC05-I1",
+      "invariant": "All admitted response paths must enforce the documented header budget.",
+      "limits": [
+        "Native transport already had a 64 KiB aggregate check; this finding concerns the shared/injected response-validation path."
+      ],
+      "origin": "new_0_5_implementation_review_not_claimed_inherited_defect",
+      "severity": "low",
+      "severity_basis": "Supplemental qualitative impact assessment; no CVSS score or live exploit claim.",
+      "status": "repaired_with_scoped_evidence",
+      "tests": [
+        {
+          "file": "plugin_tests/test_identity_binding_v5.py",
+          "test": "plugin_tests.test_identity_binding_v5.IdentityBindingTests.test_duplicate_headers_and_header_total_bound"
+        }
+      ],
+      "title": "Injected response validation omitted the aggregate header bound"
+    }
+  ],
+  "open_gaps": [
+    {
+      "closure_requirement": [
+        "Qualify provider RPC, Configure, schema, import, update and readback on a host meeting the required boundary."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/provider-execution/native-smoke.json",
+          "sha256": "3a4e400caab93634f483593559339af8602ec4dcad3eaa3149c34beaa9abebd3"
+        },
+        {
+          "path": "research/production-completion/provider-execution/evidence-manifest.json",
+          "sha256": "14e3c4afad6d25cf48bf52efb32eec1739138e028e599bbf63dda3ab83d9fef5"
+        }
+      ],
+      "id": "G01",
+      "not_a_confirmed_exploit": true,
+      "observation": "Native init passed; schema and validate were blocked and AF_UNIX socket creation returned errno 1.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "Native provider RPC and lifecycle qualification remains blocked"
+    },
+    {
+      "closure_requirement": [
+        "Provision explicit protected credentials and independently observe real service targets, permissions, failures and readback."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/identity/verification.json",
+          "sha256": "694ba628c6d564cdc3b466e9b4865725402da1f500294456e134733c13ee1b36"
+        },
+        {
+          "path": "research/production-completion/leases/review-independent.json",
+          "sha256": "f45c4718167984079e11beee63bb63aaad7c313a4d8a776314fd83cd54e9d333"
+        }
+      ],
+      "id": "G02",
+      "not_a_confirmed_exploit": true,
+      "observation": "Recorded identities/leases prove contract logic only; no real tenant or live service calls occurred.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "No live identity, RBAC, TLS, Graph, ARM or Blob qualification"
+    },
+    {
+      "closure_requirement": [
+        "Design and qualify native Azure backend locking and same-credential target linkage without double lease ownership."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/final-review/final-review.md",
+          "sha256": "24b10c8d9c5032026649afcf8776b093c7146ef2163657927370b8589297eb98"
+        },
+        {
+          "path": "research/production-completion/provider-execution/native-smoke.json",
+          "sha256": "3a4e400caab93634f483593559339af8602ec4dcad3eaa3149c34beaa9abebd3"
+        },
+        {
+          "path": "research/production-completion/leases/implementation-notes.md",
+          "sha256": "81bc5aa5eb46bf1542e03e61f206c74e45cac58fe1bbfbc874139217aaf91b6a"
+        }
+      ],
+      "id": "G03",
+      "not_a_confirmed_exploit": true,
+      "observation": "Provider uses local state with IP denial; a separately acquired state-blob lease conflicts with OpenTofu acquiring its own backend lease.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "Live identity, Azure backend and provider execution are not joined"
+    },
+    {
+      "closure_requirement": [
+        "Enforce and positively test filesystem and Unix endpoint isolation on the deployment host; do not remove IP denial to obtain a pass."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/final-review/final-review.md",
+          "sha256": "24b10c8d9c5032026649afcf8776b093c7146ef2163657927370b8589297eb98"
+        },
+        {
+          "path": "research/production-completion/final-review/review-snapshot.json",
+          "sha256": "cf7d494cd37e2070196ae99b3a9e5d8742effebf26280259515a5f984e2acf60"
+        }
+      ],
+      "id": "G04",
+      "not_a_confirmed_exploit": true,
+      "observation": "Allowed Unix endpoints and filesystem access need a qualified host boundary.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "IP denial is not a complete execution sandbox"
+    },
+    {
+      "closure_requirement": [
+        "Qualify deployment-wide ownership and service-specific concurrency controls before any live mutation."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/leases/review-independent.json",
+          "sha256": "f45c4718167984079e11beee63bb63aaad7c313a4d8a776314fd83cd54e9d333"
+        },
+        {
+          "path": "research/production-completion/approval/review-findings.md",
+          "sha256": "d84766cc40183fd3ae3dd3050aca958fa88a39a70a98b360ec33b071ce2f030f"
+        },
+        {
+          "path": "research/production-completion/final-review/final-review.md",
+          "sha256": "24b10c8d9c5032026649afcf8776b093c7146ef2163657927370b8589297eb98"
+        }
+      ],
+      "id": "G05",
+      "not_a_confirmed_exploit": true,
+      "observation": "Azure Blob lease scope and same-store mutexes cannot exclude unrelated Intune/Graph writers.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "Blob leases and cooperative locks do not fence Graph writers"
+    },
+    {
+      "closure_requirement": [
+        "Provision independent issuer trust, policy custody, revocation, backup/recovery, and protected durable store controls."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/approval/review-findings.md",
+          "sha256": "d84766cc40183fd3ae3dd3050aca958fa88a39a70a98b360ec33b071ce2f030f"
+        },
+        {
+          "path": "research/production-completion/approval/review-summary.json",
+          "sha256": "991ba55b24dcb4864a1836ab24f30808fa5ac19c713638925c3f532a3b2ef5e5"
+        }
+      ],
+      "id": "G06",
+      "not_a_confirmed_exploit": true,
+      "observation": "Fixture private keys exercise mechanics; they do not establish organizational approver identity or durable trust operations.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "Organizational issuer and protected-store operations remain deployment gates"
+    },
+    {
+      "closure_requirement": [
+        "Retain independent end-to-end admission and preservation evidence for the supported capture/configuration slice."
+      ],
+      "evidence": [
+        {
+          "path": "research/production-completion/final-review/final-review.md",
+          "sha256": "24b10c8d9c5032026649afcf8776b093c7146ef2163657927370b8589297eb98"
+        },
+        {
+          "path": "research/production-completion/provider-execution/evidence-manifest.json",
+          "sha256": "14e3c4afad6d25cf48bf52efb32eec1739138e028e599bbf63dda3ab83d9fef5"
+        }
+      ],
+      "id": "G07",
+      "not_a_confirmed_exploit": true,
+      "observation": "The journey accepts a separately admitted generated executor; source/admission hashes are bindings, not proof of complete semantic admission.",
+      "severity": "high",
+      "status": "open_qualification_gap",
+      "title": "Capture-to-generated-configuration admission is not fully qualified"
+    }
+  ],
+  "open_qualification_gap_count": 7,
+  "prepared_at": "2026-10-04T02:09:42.201143+00:00",
+  "release_candidate": "0.5.0",
+  "schema_version": "security-findings-ledger/1.0",
+  "supplemental_process": {
+    "credential_store_reads": 0,
+    "environment_value_reads": 0,
+    "live_service_calls": 0,
+    "new_test_methods": 0,
+    "test_commands_executed": 0
+  },
+  "threat_boundary": [
+    "Protected Python interpreter, same-account credential-holding process, operator policy/store and native trust dependencies remain trusted.",
+    "A malicious same-account writer or compromised interpreter can alter private capabilities/store; no security-domain isolation claim is made.",
+    "Separate review agents share filesystem/context; review is neither blinded nor organizational AppSec certification.",
+    "No live-service call, real credential retrieval, production mutation, test rerun or environment inspection is performed by this supplemental builder."
+  ]
+}

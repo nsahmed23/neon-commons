@@ -1,0 +1,33 @@
+test_swapped_source_symlink_never_enters_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_swapped_source_symlink_never_enters_snapshot) ... 
+  test_swapped_source_symlink_never_enters_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_swapped_source_symlink_never_enters_snapshot) (parent_swap=False) ... FAIL
+  test_swapped_source_symlink_never_enters_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_swapped_source_symlink_never_enters_snapshot) (parent_swap=True) ... FAIL
+test_runtime_and_source_use_same_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_runtime_and_source_use_same_snapshot) ... FAIL
+
+======================================================================
+FAIL: test_swapped_source_symlink_never_enters_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_swapped_source_symlink_never_enters_snapshot) (parent_swap=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 147, in test_swapped_source_symlink_never_enters_snapshot
+    self.assertNotIn(b'unlisted-private-canary', archive.read('source/docs/review.md'))
+AssertionError: b'unlisted-private-canary' unexpectedly found in b'unlisted-private-canary'
+
+======================================================================
+FAIL: test_swapped_source_symlink_never_enters_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_swapped_source_symlink_never_enters_snapshot) (parent_swap=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 147, in test_swapped_source_symlink_never_enters_snapshot
+    self.assertNotIn(b'unlisted-private-canary', archive.read('source/docs/review.md'))
+AssertionError: b'unlisted-private-canary' unexpectedly found in b'unlisted-private-canary'
+
+======================================================================
+FAIL: test_runtime_and_source_use_same_snapshot (plugin_tests.test_release_audit.ReleaseAuditTests.test_runtime_and_source_use_same_snapshot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 163, in test_runtime_and_source_use_same_snapshot
+    self.assertEqual(runtime.read('intune-iac/README.md'), source.read('intune-iac-source/README.md'))
+AssertionError: b'Reviewed project documentation\n' != b'changed-after-runtime-build'
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.006s
+
+FAILED (failures=3)

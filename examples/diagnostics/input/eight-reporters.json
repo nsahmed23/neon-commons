@@ -1,0 +1,46 @@
+{
+  "rows": [
+    {
+      "fresh": true,
+      "id": "device-001",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-002",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-003",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-004",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-005",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-006",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-007",
+      "status": "success"
+    },
+    {
+      "fresh": true,
+      "id": "device-008",
+      "status": "success"
+    }
+  ],
+  "synthetic": true,
+  "targeted": 100
+}

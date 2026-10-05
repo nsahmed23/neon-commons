@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "moved.tfplan"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "moved-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "bf14f23e1100024d5d5a88451a9d2b256dfe4f5b907cbfd702e50becb2df5832",
+  "tool": "tofu",
+  "transcript_complete": true
+}

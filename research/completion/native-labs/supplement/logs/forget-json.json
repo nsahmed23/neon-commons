@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "show",
+    "-json",
+    "forget.tfplan"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "forget-json",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "875227c8d73593c7fe39813ea7393379f2e37ac74cc9ad0bab6119e9c3dfc282",
+  "tool": "tofu",
+  "transcript_complete": true
+}

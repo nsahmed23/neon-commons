@@ -1,0 +1,64 @@
+test_hcl_bytes_already_invalidate_repository_proposal_control (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_hcl_bytes_already_invalidate_repository_proposal_control) ... ok
+test_implementation_presence_is_bound_to_selection_evidence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_implementation_presence_is_bound_to_selection_evidence) ... FAIL
+test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) ... 
+  test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) (scope='root') ... FAIL
+  test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) (scope='type') ... FAIL
+  test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) (scope='component') ... FAIL
+test_runner_rejects_changed_implementation_presence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_runner_rejects_changed_implementation_presence) ... 
+  test_runner_rejects_changed_implementation_presence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_runner_rejects_changed_implementation_presence) (transition='missing_to_directory') ... FAIL
+  test_runner_rejects_changed_implementation_presence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_runner_rejects_changed_implementation_presence) (transition='directory_to_regular_file') ... FAIL
+
+======================================================================
+FAIL: test_implementation_presence_is_bound_to_selection_evidence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_implementation_presence_is_bound_to_selection_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 63, in test_implementation_presence_is_bound_to_selection_evidence
+    self.assertNotEqual(before['selection_fingerprint'], after['selection_fingerprint'],
+AssertionError: 'c4997306d203ac33ee3b63ff064ed742482db44dbc5bfdb6e2d1b697c0ea1894' == 'c4997306d203ac33ee3b63ff064ed742482db44dbc5bfdb6e2d1b697c0ea1894' : A claim used by graph placement changed without invalidating selection evidence.
+
+======================================================================
+FAIL: test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) (scope='root')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 127, in test_malformed_dependency_collection_remains_visible_for_selected_component
+    self.assertTrue(issues, 'Malformed effective dependency shape disappeared from the selected query.')
+AssertionError: [] is not true : Malformed effective dependency shape disappeared from the selected query.
+
+======================================================================
+FAIL: test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) (scope='type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 127, in test_malformed_dependency_collection_remains_visible_for_selected_component
+    self.assertTrue(issues, 'Malformed effective dependency shape disappeared from the selected query.')
+AssertionError: [] is not true : Malformed effective dependency shape disappeared from the selected query.
+
+======================================================================
+FAIL: test_malformed_dependency_collection_remains_visible_for_selected_component (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_malformed_dependency_collection_remains_visible_for_selected_component) (scope='component')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 127, in test_malformed_dependency_collection_remains_visible_for_selected_component
+    self.assertTrue(issues, 'Malformed effective dependency shape disappeared from the selected query.')
+AssertionError: [] is not true : Malformed effective dependency shape disappeared from the selected query.
+
+======================================================================
+FAIL: test_runner_rejects_changed_implementation_presence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_runner_rejects_changed_implementation_presence) (transition='missing_to_directory')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 76, in test_runner_rejects_changed_implementation_presence
+    with self.assertRaises(AppError) as failure:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_runner_rejects_changed_implementation_presence (plugin_tests.test_lab_audit_regressions.LocalLabAuditRegressions.test_runner_rejects_changed_implementation_presence) (transition='directory_to_regular_file')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_lab_audit_regressions.py", line 76, in test_runner_rejects_changed_implementation_presence
+    with self.assertRaises(AppError) as failure:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.183s
+
+FAILED (failures=6)

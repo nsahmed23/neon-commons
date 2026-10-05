@@ -1,0 +1,45 @@
+{
+  "production_qualified": false,
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "baseline": {
+    "top_level_passed": 27,
+    "failed": 0,
+    "skipped": 0,
+    "profile": "core-and-sdk"
+  },
+  "desired_tests_against_original": {
+    "top_level_passed": 2,
+    "top_level_failed": 12,
+    "go_nodes_passed": 2,
+    "go_nodes_failed": 28,
+    "skipped": 0
+  },
+  "desired_tests_against_candidate": {
+    "top_level_passed": 14,
+    "top_level_failed": 0,
+    "go_nodes_passed": 30,
+    "skipped": 0
+  },
+  "AST_extracted_schema": {
+    "top_level_passed": 6,
+    "failed": 0,
+    "skipped": 0
+  },
+  "patch": {
+    "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+    "path": "internal/services/common/custom_requests/get_request.go",
+    "original_sha256": "38d4f01c0a8530d71b0c3f84b2257083f636c1c6c63985f472b0f2b467b16207",
+    "candidate_sha256": "7c0f31739132ab4613f7e939f68df755275f657d02a42d74a0638b6e408a6f7d",
+    "patch_sha256": "814b9a4c1014ca63557a72cd4f3c739249ca5212c9ce88b619746df425cca91f",
+    "status": "local-source-candidate",
+    "license": "MPL-2.0",
+    "production_qualified": false
+  },
+  "patch_application_check": "git apply --check against unchanged pinned provider checkout exited 0",
+  "runtime_provider_changed": false,
+  "runner_cleanup": {
+    "receipt": "runner-cleanup.json",
+    "tests_passed": 9,
+    "production_qualified": false
+  }
+}

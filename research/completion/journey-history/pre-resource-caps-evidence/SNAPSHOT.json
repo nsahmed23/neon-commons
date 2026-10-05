@@ -1,0 +1,1 @@
+{"omitted":["synthetic-executor/tool","__pycache__"],"omitted_executable_sha256":"fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7","operational_source":"/tmp/intune-journey-cli-frozen-20261002","reproduce":"Run qualify-journey.py with a fresh --output using the installed pinned dependencies.","scope":"record_only_evidence_snapshot","self_contained_runtime":false}

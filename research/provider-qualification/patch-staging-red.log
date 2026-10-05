@@ -1,0 +1,13 @@
+..F.....
+======================================================================
+FAIL: test_patch_candidate_requires_both_exact_source_hashes (plugin_tests.test_provider_contract_lab.ProviderContractLabTests.test_patch_candidate_requires_both_exact_source_hashes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_provider_contract_lab.py", line 82, in test_patch_candidate_requires_both_exact_source_hashes
+    self.assertTrue(hasattr(mod, 'apply_patch_candidate'), 'patch staging guard must exist')
+AssertionError: False is not true : patch staging guard must exist
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.007s
+
+FAILED (failures=1)

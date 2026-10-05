@@ -1,0 +1,14 @@
+{
+  "blockers": [
+    {
+      "code": "unsupported_source_field",
+      "source_pointer": "opaque:f_18e43d0a32ce35691f315485"
+    },
+    {
+      "code": "invalid_observed_setting",
+      "source_pointer": "/collections/1/pages/0/body/value/0"
+    }
+  ],
+  "execution_allowed": false,
+  "schema_version": "1.0.0"
+}

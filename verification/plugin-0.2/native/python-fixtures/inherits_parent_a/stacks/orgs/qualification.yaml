@@ -1,0 +1,33 @@
+vars:
+  stage: qualification
+components:
+  terraform:
+    parent_b:
+      metadata:
+        type: abstract
+      vars:
+        selected: parent_b
+        nested:
+          parent_b: parent_b
+          same: parent_b
+        items:
+        - parent_b
+    parent_a:
+      metadata:
+        type: abstract
+      vars:
+        selected: parent_a
+        nested:
+          parent_a: parent_a
+          same: parent_a
+        items:
+        - parent_a
+    leaf:
+      metadata:
+        component: demo
+        inherits:
+        - parent_b
+        - parent_a
+      vars:
+        nested:
+          local: local

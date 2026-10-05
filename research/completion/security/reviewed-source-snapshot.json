@@ -1,0 +1,117 @@
+{
+  "schema_version": "security-snapshot/1",
+  "source_base_revision": "ecb477300ef349f02dafca397f878278cd256a61",
+  "date": "2026-10-02",
+  "scope": "Exact bytes at independent29-test replay before final child-resource increment; not the final package snapshot",
+  "python_runtime_for_asserted_replay": "/workspace/scratch/e2e4042ea5fd/.venv/bin/python",
+  "files": [
+    {
+      "path": ".github/workflows/validate.yml",
+      "sha256": "f32014c0ec1c940191701ffb84232c3e4f3ffcb311538a5aaf288791061170ee"
+    },
+    {
+      "path": "dependency-lock.json",
+      "sha256": "777ecfceaccd50b541324f85fbbcd8552a3c0bddd261617f1279008690ac32b3"
+    },
+    {
+      "path": "intune_iac/__init__.py",
+      "sha256": "6d603e964a082b54f2ee35078670bd1a9cc3b178d40147cd1e76e490af753abc"
+    },
+    {
+      "path": "intune_iac/capture.py",
+      "sha256": "857baddccae4e252a7ca14f93aa89730464cd513c1a56f3a72704e31af9920c0"
+    },
+    {
+      "path": "intune_iac/execution.py",
+      "sha256": "bd2417048ae2214b16e4f2c7f4890eb610f6d29055e397bc185e021f71cb4213"
+    },
+    {
+      "path": "intune_iac/graph.py",
+      "sha256": "4959f67c0dd24b23d8d707e0afa6eca5ee13192dbd5f96c60a89ada534c74cad"
+    },
+    {
+      "path": "intune_iac/io.py",
+      "sha256": "4b0271fee3565f6f4f765ff1cb48476faf34662d78f2bc0fc14e2e0fb3ccbb41"
+    },
+    {
+      "path": "intune_iac/journey.py",
+      "sha256": "c032b2acd675ec6c663c3e5f6d954acd79d8b40ebae09d36fa41aad8652e7955"
+    },
+    {
+      "path": "intune_iac/mcp.py",
+      "sha256": "863e15f17193a50d8ce3d0f80dd7e3bb285c9d75b2132cf9df41bf0e7ca0ae23"
+    },
+    {
+      "path": "intune_iac/native_atmos.py",
+      "sha256": "6fbb01d44d384cc2d22cdbdf1dcae2e988ab0410d0e922fd944ca7c387b702ff"
+    },
+    {
+      "path": "intune_iac/native_context.py",
+      "sha256": "03d73655f0897e47710c69af14476add4952f67feed23fb1a7c21ab17a5bde55"
+    },
+    {
+      "path": "intune_iac/production.py",
+      "sha256": "f4b956719016ca1fb2ad1efa26c69f05f0c483c222a0ed42e8cc46d68d19610d"
+    },
+    {
+      "path": "intune_iac/production_oracle.py",
+      "sha256": "aa5ccadc090493215f0954e86ed543d834883feda8cf6afb6ef7dd6eb965790c"
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "sha256": "a4af485e19e437dda24657afa3948b82977e2ab82a540eefd78026712b12b8a8"
+    },
+    {
+      "path": "intune_iac/repository.py",
+      "sha256": "92eda58e73d578bb0890963553fb1f09e6b49e201e52ce2871f3bf299f7f9dea"
+    },
+    {
+      "path": "intune_iac/runner.py",
+      "sha256": "7e24e6a403e5fb36b0f6e194f85981bcbf9b529e80d70cecc1ed53dd9dea6596"
+    },
+    {
+      "path": "intune_iac/synthetic.py",
+      "sha256": "2b9a248fb17c0fa034874fc0566b7b7daba45b17e9a27b9a7ca83c015fcdf6fa"
+    },
+    {
+      "path": "intune_iac/target.py",
+      "sha256": "f1f159c9f17af1be427791fde360a0cbea342348495153c6ed27c1d425623748"
+    },
+    {
+      "path": "plugin_tests/test_generated_permissions.py",
+      "sha256": "b0842b6dc54ab0da96c5859568a20302119b6cd6f6c3499da07af8edfd68f790"
+    },
+    {
+      "path": "plugin_tests/test_graph_budget.py",
+      "sha256": "addc11e6f0325b315658a9cbe823ea748a7a401efba5b4559fe3aff545c79451"
+    },
+    {
+      "path": "plugin_tests/test_protected_completion.py",
+      "sha256": "a2529fdbd293f744c52deeea05df5325c4c173c044a362cfc1ecb796814f4667"
+    },
+    {
+      "path": "plugin_tests/test_restricted_hashes.py",
+      "sha256": "50dd04f4834472063ef1d32055aa081669762fc1944372338bfd460efd3d8336"
+    },
+    {
+      "path": "plugin_tests/test_security_audit_completion.py",
+      "sha256": "bd19ce1489be5bb55d548bd774da98785969b92625d78aeec084f3cd91693bba"
+    },
+    {
+      "path": "plugin_tests/test_security_boundaries_completion.py",
+      "sha256": "bff25d6c51db12e990cb84993598d5f7ed998658da321ed4087c5df0f0a8a663"
+    },
+    {
+      "path": "plugin_tests/test_workflow.py",
+      "sha256": "7f4eb670339998adbfe6979b915a19d6a82df5aeb0df890ffe37a358b450a687"
+    },
+    {
+      "path": "scripts/security-audit-local.py",
+      "sha256": "010c7c4d09ac070d4494686d75979c3032df316659501e1b363dcfcf24208858"
+    }
+  ],
+  "release_version": "0.4.0",
+  "final_sandbox_receipt": "sandbox-regressions-frozen.json",
+  "superseded_by_resource_increment": true,
+  "current_followup": "supplemental-verification.json"
+}

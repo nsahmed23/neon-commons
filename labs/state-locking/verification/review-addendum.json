@@ -1,0 +1,23 @@
+{
+  "scope": "Review addendum after the recorded native run; does not alter test outcomes",
+  "runner_sha256": "80f966a2720cb1ed0d2881d1adfe2fc4f6e040e69b12b8fc95f385f1fea64097",
+  "subsequent_changes": [
+    "Bound source reads to 1MiB and binary reads to 128MiB, verified by seven unit tests",
+    "Add explicit cancellation scope to future receipts and README"
+  ],
+  "cancellation_boundary": "Canceled upstream pytest may leave its separate child sessions running until their 60-second timeout; immediate universal descendant cleanup is not qualified",
+  "native_result": "8 upstream local tests passed; 0 failures/errors/skips; 1 S3 documentation assertion deselected",
+  "unit_tests": {
+    "executed": 7,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0
+  },
+  "receipt_hashes": {
+    "upstream-junit.xml": "7a6c6097e453d3783e724c2b1c23df4f3b593923bde0440154eb82e4aaee06cc",
+    "upstream-pytest.json": "a772867bf099da04f81692289727830d44858220ce1c718175508b9b434f1877",
+    "measurement-commands.json": "5fb3ee2d26556e9fd6eda779eb8c2efccfe98e3322e474f157d484ee6308b6e5",
+    "receipt.json": "c1086cdeeed2596c741ebb73e3d583023d85d45b83eafc8fd1730ed7d6e04270",
+    "measurements.json": "cebc387919c62c5dc0a30464c38a1f98612545ff1a7c8fa56fc73324428d9b38"
+  }
+}

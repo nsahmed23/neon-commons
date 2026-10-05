@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "terraform",
+    "plan",
+    "policy",
+    "-s",
+    "dev",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode",
+    "-out=intervening-plan.tfplan",
+    "-var=setting=ask"
+  ],
+  "cwd": "repository",
+  "exit_code": 2,
+  "expected_exit_codes": [
+    2
+  ],
+  "name": "intervening-plan",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "bfd2f3d05d1f30d6426a83f5d017909de7d5a6bea99a97a49b7760ef9b4e23c6",
+  "stdout_sha256": "489771eed47138743650ca924dee777aca65f4e25d4558053dc27b636a85c800",
+  "tool": "atmos",
+  "transcript_complete": true
+}

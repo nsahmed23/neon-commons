@@ -1,0 +1,15 @@
+test_output_cannot_place_sibling_lock_outside_write_authority (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_output_cannot_place_sibling_lock_outside_write_authority) ... FAIL
+
+======================================================================
+FAIL: test_output_cannot_place_sibling_lock_outside_write_authority (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_output_cannot_place_sibling_lock_outside_write_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_security_boundaries_completion.py", line 80, in test_output_cannot_place_sibling_lock_outside_write_authority
+    with self.assertRaises(AppError) as raised:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.241s
+
+FAILED (failures=1)

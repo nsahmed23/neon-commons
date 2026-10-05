@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "terraform",
+    "apply",
+    "policy",
+    "-s",
+    "dev",
+    "--from-plan",
+    "--planfile",
+    "adopt-no-change.tfplan",
+    "-input=false",
+    "-no-color"
+  ],
+  "cwd": "repository",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "adopt-no-change-apply",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "93222ef52481aed65def784f4e6c6968a558791927c4ea0bbd9694de7c39234d",
+  "tool": "atmos",
+  "transcript_complete": true
+}

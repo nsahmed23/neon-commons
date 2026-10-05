@@ -1,0 +1,25 @@
+{
+  "terraform": {
+    "required_providers": {
+      "microsoft365": {
+        "source": "registry.terraform.io/deploymenttheory/microsoft365",
+        "version": "1.0.0"
+      }
+    }
+  },
+  "provider": {
+    "microsoft365": {}
+  },
+  "resource": {
+    "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json": {
+      "fixture": {
+        "name": "Synthetic validation fixture",
+        "platforms": "windows10",
+        "technologies": [
+          "mdm"
+        ],
+        "settings": "{\"settings\":[{\"id\":\"0\",\"settingInstance\":null}]}"
+      }
+    }
+  }
+}

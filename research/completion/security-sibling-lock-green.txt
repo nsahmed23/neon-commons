@@ -1,0 +1,12 @@
+test_ambient_proxy_cannot_change_capture_route (plugin_tests.test_security_boundaries_completion.CaptureProxyTests.test_ambient_proxy_cannot_change_capture_route) ... ok
+test_hostile_read_write_and_capability_injection (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_hostile_read_write_and_capability_injection) ... ok
+test_initialize_roots_and_environment_cannot_grant_authority (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_initialize_roots_and_environment_cannot_grant_authority) ... ok
+test_legitimate_read_and_read_only_no_state_write (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_legitimate_read_and_read_only_no_state_write) ... ok
+test_output_cannot_place_sibling_lock_outside_write_authority (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_output_cannot_place_sibling_lock_outside_write_authority) ... ok
+test_symlink_and_relative_path_denied (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_symlink_and_relative_path_denied) ... ok
+test_without_host_capability_no_local_read (plugin_tests.test_security_boundaries_completion.MCPAuthorityTests.test_without_host_capability_no_local_read) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.061s
+
+OK

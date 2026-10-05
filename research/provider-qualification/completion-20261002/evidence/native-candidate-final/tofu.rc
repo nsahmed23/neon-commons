@@ -1,0 +1,1 @@
+provider_installation { dev_overrides { "registry.terraform.io/deploymenttheory/microsoft365" = "/tmp/intune-provider-20261002/full-build-current" } }

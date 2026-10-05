@@ -1,0 +1,241 @@
+{
+  "atmos_cli_config": {
+    "base_path": ".",
+    "components": {
+      "terraform": {
+        "base_path": "components/terraform",
+        "apply_auto_approve": false,
+        "append_user_agent": "Atmos/1.199.0 (Cloud Posse; +https://atmos.tools)",
+        "deploy_run_init": false,
+        "init_run_reconfigure": false,
+        "auto_generate_backend_file": false,
+        "command": "/nonexistent/qualification-disabled",
+        "shell": {
+          "prompt": ""
+        },
+        "init": {
+          "pass_vars": false
+        },
+        "plan": {
+          "skip_planfile": false
+        }
+      },
+      "helmfile": {
+        "base_path": "",
+        "use_eks": true,
+        "kubeconfig_path": "",
+        "helm_aws_profile_pattern": "",
+        "cluster_name_pattern": "",
+        "command": ""
+      },
+      "packer": {
+        "base_path": "",
+        "command": ""
+      },
+      "Plugins": null
+    },
+    "stacks": {
+      "base_path": "stacks",
+      "included_paths": [
+        "orgs/*"
+      ],
+      "excluded_paths": null,
+      "name_pattern": "{stage}",
+      "name_template": ""
+    },
+    "workflows": {
+      "base_path": "",
+      "list": {
+        "format": "",
+        "columns": null
+      }
+    }
+  },
+  "atmos_component": "leaf",
+  "atmos_manifest": "orgs/qualification",
+  "atmos_stack": "qualification",
+  "atmos_stack_file": "orgs/qualification",
+  "auth": {},
+  "backend": {},
+  "backend_type": "",
+  "cli_args": [
+    "describe",
+    "component"
+  ],
+  "command": "/nonexistent/qualification-disabled",
+  "component": "demo",
+  "component_info": {
+    "component_path": "/tmp/intune-native-completion/supplement-final/parity-empty_values/components/terraform/demo",
+    "component_type": "terraform",
+    "terraform_config": null
+  },
+  "component_type": "terraform",
+  "deps": [
+    "orgs/qualification"
+  ],
+  "deps_all": [
+    "catalog/a",
+    "orgs/qualification"
+  ],
+  "env": {},
+  "hooks": {},
+  "imports": [
+    "catalog/a"
+  ],
+  "inheritance": null,
+  "metadata": {
+    "component": "demo"
+  },
+  "overrides": {},
+  "providers": {},
+  "remote_state_backend": {},
+  "remote_state_backend_type": "",
+  "settings": {},
+  "sources": {
+    "backend": {},
+    "env": {},
+    "settings": {},
+    "vars": {
+      "empty_list": {
+        "final_value": [],
+        "name": "empty_list",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": []
+          },
+          {
+            "stack_file": "catalog/a",
+            "stack_file_section": "vars",
+            "dependency_type": "import",
+            "variable_value": [
+              "old"
+            ]
+          }
+        ]
+      },
+      "empty_map": {
+        "final_value": {
+          "old": "old"
+        },
+        "name": "empty_map",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": {}
+          },
+          {
+            "stack_file": "catalog/a",
+            "stack_file_section": "vars",
+            "dependency_type": "import",
+            "variable_value": {
+              "old": "old"
+            }
+          }
+        ]
+      },
+      "empty_string": {
+        "final_value": "",
+        "name": "empty_string",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": ""
+          },
+          {
+            "stack_file": "catalog/a",
+            "stack_file_section": "vars",
+            "dependency_type": "import",
+            "variable_value": "old"
+          }
+        ]
+      },
+      "false": {
+        "final_value": false,
+        "name": "false",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": false
+          },
+          {
+            "stack_file": "catalog/a",
+            "stack_file_section": "vars",
+            "dependency_type": "import",
+            "variable_value": true
+          }
+        ]
+      },
+      "null_value": {
+        "final_value": null,
+        "name": "null_value",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": null
+          },
+          {
+            "stack_file": "catalog/a",
+            "stack_file_section": "vars",
+            "dependency_type": "import",
+            "variable_value": "old"
+          }
+        ]
+      },
+      "stage": {
+        "final_value": "qualification",
+        "name": "stage",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": "qualification"
+          }
+        ]
+      },
+      "zero": {
+        "final_value": 0,
+        "name": "zero",
+        "stack_dependencies": [
+          {
+            "stack_file": "orgs/qualification",
+            "stack_file_section": "vars",
+            "dependency_type": "inline",
+            "variable_value": 0
+          },
+          {
+            "stack_file": "catalog/a",
+            "stack_file_section": "vars",
+            "dependency_type": "import",
+            "variable_value": 7
+          }
+        ]
+      }
+    }
+  },
+  "stack": "qualification",
+  "tf_cli_vars": {},
+  "vars": {
+    "empty_list": [],
+    "empty_map": {
+      "old": "old"
+    },
+    "empty_string": "",
+    "false": false,
+    "null_value": null,
+    "stage": "qualification",
+    "zero": 0
+  },
+  "workspace": "qualification-leaf"
+}

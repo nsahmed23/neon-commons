@@ -1,0 +1,40 @@
+{
+  "format_version": "1.0",
+  "valid": false,
+  "error_count": 1,
+  "warning_count": 1,
+  "diagnostics": [
+    {
+      "severity": "error",
+      "summary": "Invalid Settings Catalog JSON",
+      "detail": "setting instance must be an object",
+      "address": "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+      "range": {
+        "filename": "main.tf.json",
+        "start": {
+          "line": 23,
+          "column": 21,
+          "byte": 547
+        },
+        "end": {
+          "line": 23,
+          "column": 79,
+          "byte": 605
+        }
+      },
+      "snippet": {
+        "context": "resource.microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+        "code": "        \"settings\": \"{\\\"settings\\\":[{\\\"id\\\":\\\"0\\\",\\\"settingInstance\\\":null}]}\"",
+        "start_line": 23,
+        "highlight_start_offset": 20,
+        "highlight_end_offset": 78,
+        "values": []
+      }
+    },
+    {
+      "severity": "warning",
+      "summary": "Provider development overrides are in effect",
+      "detail": "The following provider development overrides are set in the CLI configuration:\n - registry.terraform.io/deploymenttheory/microsoft365 in /tmp/intune-provider-20261002/full-build-current\n\nThe behavior may therefore not match any released version of the provider and applying changes may cause the state to become incompatible with published releases."
+    }
+  ]
+}

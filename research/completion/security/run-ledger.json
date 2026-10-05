@@ -1,0 +1,71 @@
+{
+  "schema_version": "security-runs/1",
+  "model_id": null,
+  "model_usage": null,
+  "cost": null,
+  "live_service_trials": 0,
+  "attempts": [
+    {
+      "artifact": "sandbox-regressions-missing-dependency.json",
+      "classified_status": "INFRA_ERROR",
+      "reason": "Missing jsonschema in initial runtime; raw status retained",
+      "sha256": "008eb679184e10448afaea1f8fba1c2603494a087d1047caefdefff8b67cfbe2"
+    },
+    {
+      "artifact": "sandbox-regressions.json",
+      "classified_status": "PASS",
+      "reason": "14 original fixed tests",
+      "sha256": "7974a3b46421c1170ac0af3db5b20fe9b658c6d2020bd93413b49a4188809a9a"
+    },
+    {
+      "artifact": "sandbox-regressions-fixture-file-limit.json",
+      "classified_status": "INFRA_ERROR",
+      "reason": "Fixture interpreter copy exceeded1MiB file cap; raw status retained",
+      "sha256": "0ce43c01c95a1caf493884b6e1c9c3967877256f0ba5e2d25a62c8d03d16092b"
+    },
+    {
+      "artifact": "sandbox-regressions-final.json",
+      "classified_status": "PASS",
+      "reason": "16 tests; file cap64MiB",
+      "sha256": "d56f7f7678f530bfe047834942bece6f5838ca8e1341fcc7363bfb6957371e54"
+    },
+    {
+      "artifact": "sandbox-regressions-history-and-recovery.json",
+      "classified_status": "INVALID_TASK",
+      "reason": "Expanded classifier fixture used placeholder plan incompatible with tightened review; raw failure retained",
+      "sha256": "9931712e1723f1e0b8c54b39797c1affba49e7d7c79d5bf80f5a63955431fd4f"
+    },
+    {
+      "artifact": "sandbox-regressions-qualified.json",
+      "classified_status": "PASS",
+      "reason": "29 tests after valid fixture; current definitive isolated replay",
+      "sha256": "76f50ef0547c85453f8707f35b67d57141a64960d0f3c8006bd254835e0cd998"
+    },
+    {
+      "artifact": "sandbox-regressions-frozen.json",
+      "classified_status": "PASS",
+      "reason": "29 tests on frozen0.4.0 runtime and final audit-tool source",
+      "sha256": "84fd1667ddbe0f5f008a77edeea1a72ae694b0237f4e2d2be6619cdb715de609"
+    }
+  ],
+  "limits": "First exploratory receipts lacked complete per-file source snapshots. They establish observed attempts only. Final snapshot pins final asserted artifact and corpus; model capability/recall is not measured. The29-test security snapshot precedes final resource controls; supplemental owner/model evidence is separately identified and is not relabeled independent bwrap execution.",
+  "final_source_snapshot": "reviewed-source-snapshot.json",
+  "supplemental_runs": [
+    {
+      "artifact": "../protected-green.txt",
+      "status": "PASS",
+      "scope": "owner-executed protected33tests including actual pinned Tofu",
+      "source": "supplemental-verification.json"
+    },
+    {
+      "artifact": "../protected-resource-bounds-green.txt",
+      "status": "PASS",
+      "scope": "4 targeted resource-bound regressions:5GiB virtual reservation denied,65MiB sparse file refused,exact hard limits,process denial/thread success"
+    },
+    {
+      "artifact": "../model-check/results.json",
+      "status": "PASS",
+      "scope": "565states878transitions within18steps;4 deliberately weakened models fail"
+    }
+  ]
+}

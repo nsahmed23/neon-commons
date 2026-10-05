@@ -1,0 +1,40 @@
+{
+  "schema_version": "lease-source-retrieval/1.0",
+  "retrieved_utc_date": "2026-10-04",
+  "retrieval_method": "web source open; rendered primary Microsoft documentation",
+  "raw_source_bytes_archived": false,
+  "pinned_implementation_api_version": "2023-11-03",
+  "latest_version_claimed": false,
+  "sources": [
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/lease-blob",
+      "title": "Lease Blob (REST API) - Azure Storage",
+      "displayed_updated_date": "2023-04-04",
+      "observations": [
+        "PUT blob path with comp=lease; acquire 201, renew/release 200; no response body.",
+        "Acquire accepts a proposed UUID and duration 15 to 60 seconds; renew/release require the held ID.",
+        "Acquire and renew return lease ID; conditional headers are supported.",
+        "Blob leases restrict blob writes/deletes but do not prevent container deletion.",
+        "Service can renew some expired leases; local implementation deliberately refuses an expired capability.",
+        "Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write is required; read observations alone do not establish this grant."
+      ]
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/version-2023-11-03",
+      "title": "Version 2023-11-03 (REST API) - Azure Storage",
+      "observations": ["Documents the pinned service version; no assertion that it is latest."]
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory",
+      "title": "Authorize with Microsoft Entra ID (REST API) - Azure Storage",
+      "observations": ["Storage supports Microsoft Entra bearer tokens; successful authentication does not replace resource-specific authorization."]
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/rest/api/storageservices/specifying-conditional-headers-for-blob-service-operations",
+      "title": "Specifying conditional headers for Blob service operations (REST API)",
+      "observations": ["If-Match conditions bind an operation to a supplied ETag; unsupported or mismatched conditions must fail closed."]
+    }
+  ],
+  "service_execution": "none; all executed IO tests are laboratory responses or mocked connections",
+  "live_lease_qualification": "BLOCKED"
+}

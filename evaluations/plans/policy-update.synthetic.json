@@ -1,0 +1,23 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.10.0",
+  "resource_changes": [
+    {
+      "address": "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.policy[\"synthetic\"]",
+      "change": {
+        "actions": [
+          "update"
+        ],
+        "before": {
+          "id": "22222222-2222-4222-8222-222222222222"
+        },
+        "after": {
+          "id": "22222222-2222-4222-8222-222222222222"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

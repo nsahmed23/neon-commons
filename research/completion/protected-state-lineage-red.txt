@@ -1,0 +1,17 @@
+test_state_replacement_with_desired_value_cannot_claim_success (plugin_tests.test_protected_completion.StateLineageRegressionTests.test_state_replacement_with_desired_value_cannot_claim_success) ... FAIL
+
+======================================================================
+FAIL: test_state_replacement_with_desired_value_cannot_claim_success (plugin_tests.test_protected_completion.StateLineageRegressionTests.test_state_replacement_with_desired_value_cannot_claim_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 292, in test_state_replacement_with_desired_value_cannot_claim_success
+    self.assertEqual(result['status'],'outcome_unknown',result)
+AssertionError: 'succeeded_verified' != 'outcome_unknown'
+- succeeded_verified
++ outcome_unknown
+ : {'status': 'succeeded_verified', 'execution_authorized': False, 'assurance': 'synthetic_local_process_only', 'operation_id': '2caa4c0e6e954c2e9ed93f7ad8902981', 'receipt_sha256': 'adee242988e79415c73405b8cc81f5c1c6791ba5a1cafe22468f1770ddc0baa7'}
+
+----------------------------------------------------------------------
+Ran 1 test in 1.015s
+
+FAILED (failures=1)

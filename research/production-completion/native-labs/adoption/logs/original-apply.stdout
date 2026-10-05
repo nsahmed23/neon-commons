@@ -1,0 +1,50 @@
+
+OpenTofu used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  + create
+
+OpenTofu will perform the following actions:
+
+  # terraform_data.policy will be created
+  + resource "terraform_data" "policy" {
+      + id     = (known after apply)
+      + input  = {
+          + name    = "adoption-lab-dev"
+          + setting = "allow"
+        }
+      + output = (known after apply)
+    }
+
+  # terraform_data.targeting will be created
+  + resource "terraform_data" "targeting" {
+      + id     = (known after apply)
+      + input  = {
+          + excluded_groups = [
+              + "22222222-2222-4222-8222-222222222222",
+            ]
+          + included_groups = [
+              + "11111111-1111-4111-8111-111111111111",
+            ]
+          + policy_id       = (known after apply)
+        }
+      + output = (known after apply)
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+
+Changes to Outputs:
+  + observed_setting = (known after apply)
+  + policy_id        = (known after apply)
+  + targeting_id     = (known after apply)
+terraform_data.policy: Creating...
+terraform_data.policy: Creation complete after 0s [id=203bfa26-d7c3-e231-94e5-907d4b5ab22e]
+terraform_data.targeting: Creating...
+terraform_data.targeting: Creation complete after 0s [id=295829d7-0b68-a4a3-d48a-b28f6e363102]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+observed_setting = "allow"
+policy_id = "203bfa26-d7c3-e231-94e5-907d4b5ab22e"
+targeting_id = "295829d7-0b68-a4a3-d48a-b28f6e363102"

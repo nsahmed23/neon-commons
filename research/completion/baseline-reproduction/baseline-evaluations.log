@@ -1,0 +1,1314 @@
+Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+======================================================================
+ERROR: test_additional_materials (unittest.loader._FailedTest.test_additional_materials)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_additional_materials
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_additional_materials.py", line 10, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+ERROR: test_approval (unittest.loader._FailedTest.test_approval)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_approval
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_approval.py", line 2, in <module>
+    from reference import approval
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/approval.py", line 7, in <module>
+    from corrections.models.contract_model import approval_mismatches
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/corrections/models/contract_model.py", line 12, in <module>
+    from jsonschema import Draft202012Validator,FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+ERROR: test_contracts (unittest.loader._FailedTest.test_contracts)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_contracts
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_contracts.py", line 3, in <module>
+    from jsonschema import Draft202012Validator,FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+ERROR: test_correction_models (unittest.loader._FailedTest.test_correction_models)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_correction_models
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_correction_models.py", line 2, in <module>
+    from corrections.regressions.test_contract_models import ContractTests, ReceiptIndexTests
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/corrections/regressions/test_contract_models.py", line 5, in <module>
+    from contract_model import (schema_errors,provider_settings,capture_errors,reference_errors,
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/corrections/models/contract_model.py", line 12, in <module>
+    from jsonschema import Draft202012Validator,FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+ERROR: test_prefix_is_not_route (test_intake_edges.IntakeEdges.test_prefix_is_not_route)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_intake_edges.py", line 10, in test_prefix_is_not_route
+    b=self.base();b['collections'][0]['pages'][0]['request_url']='https://graph.microsoft.com/beta/deviceManagement/configurationPoliciesNotAnApi';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                                                   ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_unknown_nested_template_metadata (test_intake_edges.IntakeEdges.test_unknown_nested_template_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_intake_edges.py", line 12, in test_unknown_nested_template_metadata
+    b=self.base();b['collections'][0]['pages'][0]['body']['value'][0]['templateReference']['futureRequiredSetting']=123;self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                        ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_wrong_collection_owner_url (test_intake_edges.IntakeEdges.test_wrong_collection_owner_url)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_intake_edges.py", line 8, in test_wrong_collection_owner_url
+    b=self.base();c=next(x for x in b['collections'] if x['kind']=='settings');c['pages'][0]['request_url']=c['pages'][0]['request_url'].replace(P,'99999999-9999-4999-8999-999999999999');self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                                                                                           ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_absent_null_empty_distinct (test_reference.ReferenceTests.test_absent_null_empty_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 39, in test_absent_null_empty_distinct
+    n=normalize(b,P,T)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_all_source_nodes_accounted (test_reference.ReferenceTests.test_all_source_nodes_accounted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 13, in test_all_source_nodes_accounted
+    b=load();n=normalize(b,P,T); rows=n['field_accounting'];self.assertEqual(set(all_pointers(b)),{r['source_pointer'] for r in rows});self.assertEqual(len(rows),len(set(r['source_pointer'] for r in rows)))
+               ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_bash_argv_roundtrip (test_reference.ReferenceTests.test_bash_argv_roundtrip)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 85, in test_bash_argv_roundtrip
+    s=render_bash(sys.executable,['-c',code,*values]);p=subprocess.run(['bash','-c',s],capture_output=True,text=True,check=True);self.assertEqual(json.loads(p.stdout),values)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_command_rejects_control_chars (test_reference.ReferenceTests.test_command_rejects_control_chars)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 80, in test_command_rejects_control_chars
+    self.assertRaises(ValueError,render_bash,'python',[v]);self.assertRaises(ValueError,render_powershell,'python',[v])
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/case.py", line 778, in assertRaises
+    return context.handle('assertRaises', args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/case.py", line 238, in handle
+    callable_obj(*args, **kwargs)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_denied_collection_not_empty_desired (test_reference.ReferenceTests.test_denied_collection_not_empty_desired)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 27, in test_denied_collection_not_empty_desired
+    n=normalize(load('access-denied'),P,T);self.assertTrue(n['blockers']);self.assertIsNone(n['desired']['assignments'])
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_duplicate_display_name_not_selected (test_reference.ReferenceTests.test_duplicate_display_name_not_selected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 18, in test_duplicate_display_name_not_selected
+    def test_duplicate_display_name_not_selected(self):self.assertEqual(normalize(load(),P,T)['object_id'],P)
+                                                                        ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_external_writer_blocks (test_reference.ReferenceTests.test_external_writer_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 52, in test_external_writer_blocks
+    b=load();b['ownership'][0]['current_writer']='other-controller';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                    ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_files_contain_real_import (test_reference.ReferenceTests.test_files_contain_real_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 65, in test_files_contain_real_import
+    f=generate_files(normalize(load(),P,T),context());p=next(v for k,v in f.items() if k.endswith('imports.tf'));self.assertIn(P,p);self.assertNotIn('VERSION-QUALIFIED',p)
+                     ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_forged_complete_nextlink_still_blocks (test_reference.ReferenceTests.test_forged_complete_nextlink_still_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 29, in test_forged_complete_nextlink_still_blocks
+    b=load('missing-page');b['collections'][2]['coverage']='complete';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_generation_is_stable (test_reference.ReferenceTests.test_generation_is_stable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 63, in test_generation_is_stable
+    n=normalize(load(),P,T);self.assertEqual(generate_files(n,context()),generate_files(n,context()))
+      ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_group_reference_not_owned (test_reference.ReferenceTests.test_group_reference_not_owned)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 54, in test_group_reference_not_owned
+    n=normalize(load(),P,T);self.assertTrue(all(x['ownership']=='external' for x in n['references']))
+      ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_id_collision_rejected (test_reference.ReferenceTests.test_id_collision_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 20, in test_id_collision_rejected
+    b=load();b['collections'][0]['pages'][0]['body']['value'][1]['id']=P;self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                         ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_ids_and_assignments_preserved (test_reference.ReferenceTests.test_ids_and_assignments_preserved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 15, in test_ids_and_assignments_preserved
+    n=normalize(load(),P,T);self.assertEqual(n['object_id'],P);self.assertEqual(len(n['desired']['assignments']),3);self.assertEqual(n['desired']['assignments'][0]['filter_type'],'include');self.assertEqual(n['desired']['assignments'][2]['type'],'exclusionGroupAssignmentTarget')
+      ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_malicious_nextlink_blocks (test_reference.ReferenceTests.test_malicious_nextlink_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 31, in test_malicious_nextlink_blocks
+    b=load();b['collections'][2]['pages'][0]['body']['@odata.nextLink']='https://evil.example/x';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                 ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_missing_page_blocks_not_empty (test_reference.ReferenceTests.test_missing_page_blocks_not_empty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 25, in test_missing_page_blocks_not_empty
+    n=normalize(load('missing-page'),P,T);self.assertTrue(n['blockers']);self.assertEqual(len(n['desired']['assignments']),3)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_mutation_guard_detects_lost_exclusion (test_reference.ReferenceTests.test_mutation_guard_detects_lost_exclusion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 98, in test_mutation_guard_detects_lost_exclusion
+    n=normalize(load(),P,T);actual=n['desired']['assignments'][:-1];self.assertNotEqual(actual,n['desired']['assignments'])
+      ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_name_does_not_determine_key (test_reference.ReferenceTests.test_name_does_not_determine_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 17, in test_name_does_not_determine_key
+    b=load();a=normalize(b,P,T);b['collections'][0]['pages'][0]['body']['value'][0]['name']='Renamed';self.assertEqual(a['key'],normalize(b,P,T)['key'])
+               ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_partial_emits_no_active_iac (test_reference.ReferenceTests.test_partial_emits_no_active_iac)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 23, in test_partial_emits_no_active_iac
+    f=generate_files(normalize(load('partial'),P,T),context());self.assertFalse(any(p.endswith(('.tf','.tf.json')) for p in f));self.assertIn('BLOCKED.json',f)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_powershell_quoted_literal (test_reference.ReferenceTests.test_powershell_quoted_literal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 87, in test_powershell_quoted_literal
+    s=render_powershell('python',["O'Brien",'$HOME']);self.assertIn("'O''Brien'",s);self.assertIn("'$HOME'",s);self.assertIn('$PSNativeCommandArgumentPassing',s)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 97, in render_powershell
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_secret_value_not_serialized (test_reference.ReferenceTests.test_secret_value_not_serialized)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 50, in test_secret_value_not_serialized
+    b=load();b['collections'][1]['pages'][0]['body']['value'][0]['settingInstance']['clientSecret']='CANARY_DO_NOT_EMIT';n=normalize(b,P,T);self.assertNotIn('CANARY_DO_NOT_EMIT',json.dumps(n));self.assertTrue(n['blockers'])
+                                                                                                                           ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_supported_has_no_mapping_blockers (test_reference.ReferenceTests.test_supported_has_no_mapping_blockers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 11, in test_supported_has_no_mapping_blockers
+    def test_supported_has_no_mapping_blockers(self):self.assertEqual(normalize(load(),P,T)['blockers'],[])
+                                                                      ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_unknown_field_blocks_execution (test_reference.ReferenceTests.test_unknown_field_blocks_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 21, in test_unknown_field_blocks_execution
+    def test_unknown_field_blocks_execution(self):self.assertTrue(normalize(load('partial'),P,T)['blockers'])
+                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_unknown_polymorph_blocks (test_reference.ReferenceTests.test_unknown_polymorph_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 33, in test_unknown_polymorph_blocks
+    b=load();b['collections'][1]['pages'][0]['body']['value'][0]['settingInstance']['@odata.type']='#microsoft.graph.future';self.assertTrue(normalize(b,P,T)['blockers'])
+                                                                                                                                             ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_write_rerun_and_edit_conflict (test_reference.ReferenceTests.test_write_rerun_and_edit_conflict)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 69, in test_write_rerun_and_edit_conflict
+    f=generate_files(normalize(load(),P,T),context())
+                     ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_wrong_engine_is_rejected (test_reference.ReferenceTests.test_wrong_engine_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 59, in test_wrong_engine_is_rejected
+    c=context();c['engine']='terraform';self.assertRaises(ValueError,generate_files,normalize(load(),P,T),c)
+                                                                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_wrong_provider_version_is_rejected (test_reference.ReferenceTests.test_wrong_provider_version_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 61, in test_wrong_provider_version_is_rejected
+    c=context();c['provider_version']='9.9.9';self.assertRaises(ValueError,generate_files,normalize(load(),P,T),c)
+                                                                                          ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_wrong_stack_is_rejected (test_reference.ReferenceTests.test_wrong_stack_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 57, in test_wrong_stack_is_rejected
+    c=context();c['stack']='production';self.assertRaises(ValueError,generate_files,normalize(load(),P,T),c)
+                                                                                    ^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_wrong_tenant_rejected (test_reference.ReferenceTests.test_wrong_tenant_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_reference.py", line 55, in test_wrong_tenant_rejected
+    def test_wrong_tenant_rejected(self):self.assertTrue(normalize(load(),P,'99999999-9999-4999-8999-999999999999')['blockers'])
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_parser_integer_boundary_matches_oracle (test_repaired_cli.RepairedCli.test_parser_integer_boundary_matches_oracle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/tools/build-reference.py", line 7, in <module>
+    from jsonschema import Draft202012Validator,FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_cli.py", line 50, in test_parser_integer_boundary_matches_oracle
+    load = runpy.run_path(str(ROOT / 'tools/build-reference.py'))['load_with_bytes']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 287, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/tools/build-reference.py", line 13, in <module>
+    raise SystemExit(5)
+SystemExit: 5
+
+======================================================================
+ERROR: test_repaired_contracts (unittest.loader._FailedTest.test_repaired_contracts)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_repaired_contracts
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_contracts.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+ERROR: test_accounting_destination_rule_reason_and_missing_container (test_repaired_oracle.RepairedOracle.test_accounting_destination_rule_reason_and_missing_container)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_assignment_deletion_addition_type_filter_mode_and_id (test_repaired_oracle.RepairedOracle.test_assignment_deletion_addition_type_filter_mode_and_id)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_blanket_refusal_is_not_success_and_false_authority_detected (test_repaired_oracle.RepairedOracle.test_blanket_refusal_is_not_success_and_false_authority_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_every_disposition_and_loss_flag_mutation (test_repaired_oracle.RepairedOracle.test_every_disposition_and_loss_flag_mutation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_four_real_fixture_positive_and_two_argument_api (test_repaired_oracle.RepairedOracle.test_four_real_fixture_positive_and_two_argument_api)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_generated_actual_resource_and_settings_json_mutations (test_repaired_oracle.RepairedOracle.test_generated_actual_resource_and_settings_json_mutations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_generated_hcl_import_address_and_id_mutations (test_repaired_oracle.RepairedOracle.test_generated_hcl_import_address_and_id_mutations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_generated_object_map_and_extra_active_resource (test_repaired_oracle.RepairedOracle.test_generated_object_map_and_extra_active_resource)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_identity_key_digest_tenant_mutations (test_repaired_oracle.RepairedOracle.test_identity_key_digest_tenant_mutations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_incomplete_chain_cannot_claim_complete (test_repaired_oracle.RepairedOracle.test_incomplete_chain_cannot_claim_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_oracle_has_no_producer_imports (test_repaired_oracle.RepairedOracle.test_oracle_has_no_producer_imports)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_partial_no_active_files_cards_or_raw_canaries (test_repaired_oracle.RepairedOracle.test_partial_no_active_files_cards_or_raw_canaries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_raw_digest_receipt_and_strict_byte_parser (test_repaired_oracle.RepairedOracle.test_raw_digest_receipt_and_strict_byte_parser)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_reference_removal_duplicate_contradiction_and_absent (test_repaired_oracle.RepairedOracle.test_reference_removal_duplicate_contradiction_and_absent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_review_proven_generated_guard_and_command_bypasses (test_repaired_oracle.RepairedOracle.test_review_proven_generated_guard_and_command_bypasses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_safe_partial_projection_supported_malformed_known_and_canaries (test_repaired_oracle.RepairedOracle.test_safe_partial_projection_supported_malformed_known_and_canaries)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_settings_id_value_type_child_order_and_wrapper (test_repaired_oracle.RepairedOracle.test_settings_id_value_type_child_order_and_wrapper)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_technology_scope_policy_observed_mutations (test_repaired_oracle.RepairedOracle.test_technology_scope_policy_observed_mutations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_oracle.py", line 25, in setUp
+    self.normalized = normalize(self.source, CONTEXT['selected_policy_id'], CONTEXT['tenant_id'])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_duplicate_reference_in_both_orders (test_repaired_pipeline.PipelineRepairs.test_duplicate_reference_in_both_orders)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 35, in test_duplicate_reference_in_both_orders
+    b=copy.deepcopy(B);b['references'].append(copy.deepcopy(b['references'][0]));self.blocked(b);b['references'].reverse();self.blocked(b)
+                                                                                 ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='AUDIT=probe')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='eval')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='exec')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='true')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='if')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='-python')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python) (executable='unknown-executable')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 96, in test_executable_registry_and_trusted_python
+    with self.assertRaises(ValueError):render_bash(executable,[])
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_executable_registry_and_trusted_python (test_repaired_pipeline.PipelineRepairs.test_executable_registry_and_trusted_python)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 98, in test_executable_registry_and_trusted_python
+    result=subprocess.run(['bash','-c',render_bash(sys.executable,['-c',code,*args])],capture_output=True,text=True,check=True)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 89, in render_bash
+    from .validation import validate_executable
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_forged_mapping_complete_rejected (test_repaired_pipeline.PipelineRepairs.test_forged_mapping_complete_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 112, in test_forged_mapping_complete_rejected
+    n=normalize(copy.deepcopy(B),P,T);n['desired']['settings']['settings'][0]['id']='17'
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_generation_context_selected_and_versions (test_repaired_pipeline.PipelineRepairs.test_generation_context_selected_and_versions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 101, in test_generation_context_selected_and_versions
+    n=normalize(copy.deepcopy(B),P,T)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_incomplete_assignment_is_not_empty (test_repaired_pipeline.PipelineRepairs.test_incomplete_assignment_is_not_empty)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 45, in test_incomplete_assignment_is_not_empty
+    b=copy.deepcopy(B);b['collections'][2]['pages']=[];n,_=self.blocked(b);self.assertIsNone(n['desired']['assignments'])
+                                                           ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_initial_queries_not_complete (test_repaired_pipeline.PipelineRepairs.test_initial_queries_not_complete) (q='?$skiptoken=second')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 27, in test_initial_queries_not_complete
+    b=copy.deepcopy(B);b['collections'][2]['pages'][0]['request_url']+=q;self.blocked(b)
+                                                                         ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_initial_queries_not_complete (test_repaired_pipeline.PipelineRepairs.test_initial_queries_not_complete) (q='?$filter=id%20ne%20null')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 27, in test_initial_queries_not_complete
+    b=copy.deepcopy(B);b['collections'][2]['pages'][0]['request_url']+=q;self.blocked(b)
+                                                                         ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_initial_queries_not_complete (test_repaired_pipeline.PipelineRepairs.test_initial_queries_not_complete) (q='?$select=id,target')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 27, in test_initial_queries_not_complete
+    b=copy.deepcopy(B);b['collections'][2]['pages'][0]['request_url']+=q;self.blocked(b)
+                                                                         ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_initial_queries_not_complete (test_repaired_pipeline.PipelineRepairs.test_initial_queries_not_complete) (q='?$top=1')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 27, in test_initial_queries_not_complete
+    b=copy.deepcopy(B);b['collections'][2]['pages'][0]['request_url']+=q;self.blocked(b)
+                                                                         ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_initial_queries_not_complete (test_repaired_pipeline.PipelineRepairs.test_initial_queries_not_complete) (q='?$expand=children')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 27, in test_initial_queries_not_complete
+    b=copy.deepcopy(B);b['collections'][2]['pages'][0]['request_url']+=q;self.blocked(b)
+                                                                         ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_malformed_record_values_safe (test_repaired_pipeline.PipelineRepairs.test_malformed_record_values_safe)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 106, in test_malformed_record_values_safe
+    b=copy.deepcopy(B);mutate(b);self.blocked(b)
+                                 ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_malformed_setting_variants (test_repaired_pipeline.PipelineRepairs.test_malformed_setting_variants)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 30, in test_malformed_setting_variants
+    b=copy.deepcopy(B);mutate(b);self.blocked(b)
+                                 ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_normalized_guard_flags_rejected (test_repaired_pipeline.PipelineRepairs.test_normalized_guard_flags_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 108, in test_normalized_guard_flags_rejected
+    good=normalize(copy.deepcopy(B),P,T)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_provider_projection_exact (test_repaired_pipeline.PipelineRepairs.test_provider_projection_exact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 21, in test_provider_projection_exact
+    n=normalize(copy.deepcopy(B),P,T)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_unknown_or_malformed_manifest_conflict_preserves_bytes (test_repaired_pipeline.PipelineRepairs.test_unknown_or_malformed_manifest_conflict_preserves_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 47, in test_unknown_or_malformed_manifest_conflict_preserves_bytes
+    f=generate_files(normalize(copy.deepcopy(B),P,T),C)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_unknown_value_and_key_canaries_absent (test_repaired_pipeline.PipelineRepairs.test_unknown_value_and_key_canaries_absent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 38, in test_unknown_value_and_key_canaries_absent
+    n,f=self.blocked(b);serialized=json.dumps(n)+''.join(f.values())
+        ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_unmapped_capability_review_only (test_repaired_pipeline.PipelineRepairs.test_unmapped_capability_review_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 43, in test_unmapped_capability_review_only
+    b=copy.deepcopy(B);setting(b)['settingInstance']['settingDefinitionId']='future_definition';self.blocked(b)
+                                                                                                ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_zero_invalid_guids_and_description (test_repaired_pipeline.PipelineRepairs.test_zero_invalid_guids_and_description)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 33, in test_zero_invalid_guids_and_description
+    b=copy.deepcopy(B);mutate(b);self.blocked(b)
+                                 ^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 15, in blocked
+    n=normalize(b,P,T);f=generate_files(n,C)
+      ^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/core.py", line 135, in normalize
+    from .validation import schema_errors, provider_settings, capability_errors, capture_errors, reference_errors
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/validation.py", line 12, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+======================================================================
+ERROR: test_repaired_regressions (unittest.loader._FailedTest.test_repaired_regressions)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_repaired_regressions
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_regressions.py", line 18, in <module>
+    spec.loader.exec_module(supplied)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/corrections/regressions/test_original_regressions.py", line 13, in <module>
+    from reference.approval import mismatches
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/approval.py", line 7, in <module>
+    from corrections.models.contract_model import approval_mismatches
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/corrections/models/contract_model.py", line 12, in <module>
+    from jsonschema import Draft202012Validator,FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+ERROR: test_repaired_workflow (unittest.loader._FailedTest.test_repaired_workflow)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_repaired_workflow
+Traceback (most recent call last):
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_workflow.py", line 4, in <module>
+    from reference import workflow, approval
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/reference/workflow.py", line 10, in <module>
+    from jsonschema import Draft202012Validator, FormatChecker
+ModuleNotFoundError: No module named 'jsonschema'
+
+
+======================================================================
+FAIL: test_partial (test_cli.Cli.test_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_cli.py", line 11, in test_partial
+    x=self.run_cli('partial',Path(d)/'out');self.assertEqual(x.returncode,2,x.stderr);self.assertTrue((Path(d)/'out/BLOCKED.json').is_file());self.assertEqual(list((Path(d)/'out').rglob('*.tf')),[])
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 5 != 2 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_supported_and_rerun (test_cli.Cli.test_supported_and_rerun)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_cli.py", line 8, in test_supported_and_rerun
+    x=self.run_cli('supported',Path(d)/'out');self.assertEqual(x.returncode,0,x.stderr);self.assertFalse(json.loads(x.stdout)['execution_authorized']);self.assertEqual(json.loads(self.run_cli('supported',Path(d)/'out').stdout)['result'],'unchanged')
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_deleted_exclusion_is_detected (test_invariants.IndependentInvariants.test_deleted_exclusion_is_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_invariants.py", line 12, in test_deleted_exclusion_is_detected
+    self.assertIn('assignment_multiset_changed',invariants.compare(self.raw,self.n))
+AssertionError: 'assignment_multiset_changed' not found in ['oracle_dependency_unavailable']
+
+======================================================================
+FAIL: test_field_lineage_missing_detected (test_invariants.IndependentInvariants.test_field_lineage_missing_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_invariants.py", line 21, in test_field_lineage_missing_detected
+    self.assertIn('source_field_accounting_not_closed',invariants.compare(self.raw,self.n))
+AssertionError: 'source_field_accounting_not_closed' not found in ['oracle_dependency_unavailable']
+
+======================================================================
+FAIL: test_filter_mode_mutation_is_detected (test_invariants.IndependentInvariants.test_filter_mode_mutation_is_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_invariants.py", line 15, in test_filter_mode_mutation_is_detected
+    self.assertIn('assignment_multiset_changed',invariants.compare(self.raw,self.n))
+AssertionError: 'assignment_multiset_changed' not found in ['oracle_dependency_unavailable']
+
+======================================================================
+FAIL: test_id_change_detected (test_invariants.IndependentInvariants.test_id_change_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_invariants.py", line 18, in test_id_change_detected
+    self.assertIn('selected_id_not_present',invariants.compare(self.raw,self.n))
+AssertionError: 'selected_id_not_present' not found in ['oracle_dependency_unavailable']
+
+======================================================================
+FAIL: test_reference_preserves (test_invariants.IndependentInvariants.test_reference_preserves)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_invariants.py", line 9, in test_reference_preserves
+    def test_reference_preserves(self): self.assertEqual(invariants.compare(self.raw,self.n),[])
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['oracle_dependency_unavailable'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'oracle_dependency_unavailable'
+
+- ['oracle_dependency_unavailable']
++ []
+
+======================================================================
+FAIL: test_setting_value_change_detected (test_invariants.IndependentInvariants.test_setting_value_change_detected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_invariants.py", line 24, in test_setting_value_change_detected
+    self.assertIn('settings_subtree_changed',invariants.compare(self.raw,self.n))
+AssertionError: 'settings_subtree_changed' not found in ['oracle_dependency_unavailable']
+
+======================================================================
+FAIL: test_duplicate_key_and_float_input_never_write (test_repaired_cli.RepairedCli.test_duplicate_key_and_float_input_never_write) (raw='{"schema_version":"1.0.0","schema_version":"1.0.0"}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_cli.py", line 46, in test_duplicate_key_and_float_input_never_write
+    self.assertEqual(result.returncode, 3)
+AssertionError: 5 != 3
+
+======================================================================
+FAIL: test_duplicate_key_and_float_input_never_write (test_repaired_cli.RepairedCli.test_duplicate_key_and_float_input_never_write) (raw='{"number":1.5}')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_cli.py", line 46, in test_duplicate_key_and_float_input_never_write
+    self.assertEqual(result.returncode, 3)
+AssertionError: 5 != 3
+
+======================================================================
+FAIL: test_partial_pipeline_is_checked_and_remains_inactive (test_repaired_cli.RepairedCli.test_partial_pipeline_is_checked_and_remains_inactive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_cli.py", line 36, in test_partial_pipeline_is_checked_and_remains_inactive
+    self.assertEqual(result.returncode, 2, result.stderr)
+AssertionError: 5 != 2 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_success_requires_independent_preservation_receipt (test_repaired_cli.RepairedCli.test_success_requires_independent_preservation_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_cli.py", line 26, in test_success_requires_independent_preservation_receipt
+    self.assertEqual(result.returncode, 0, result.stderr)
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_unsupported_canary_never_enters_cli_or_written_artifacts (test_repaired_cli.RepairedCli.test_unsupported_canary_never_enters_cli_or_written_artifacts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_cli.py", line 67, in test_unsupported_canary_never_enters_cli_or_written_artifacts
+    self.assertEqual(result.returncode, 2, result.stderr)
+AssertionError: 5 != 2 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_real_cli_owned_symlink_conflict_preserves_bytes (test_repaired_pipeline.PipelineRepairs.test_real_cli_owned_symlink_conflict_preserves_bytes) (entry='README.md')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 60, in test_real_cli_owned_symlink_conflict_preserves_bytes
+    self.assertEqual(created.returncode,0,created.stderr)
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_real_cli_owned_symlink_conflict_preserves_bytes (test_repaired_pipeline.PipelineRepairs.test_real_cli_owned_symlink_conflict_preserves_bytes) (entry='adoption')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 60, in test_real_cli_owned_symlink_conflict_preserves_bytes
+    self.assertEqual(created.returncode,0,created.stderr)
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_real_cli_unowned_output_conflict_preserves_bytes (test_repaired_pipeline.PipelineRepairs.test_real_cli_unowned_output_conflict_preserves_bytes) (extra='components/terraform/intune-reference/user.tf')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 79, in test_real_cli_unowned_output_conflict_preserves_bytes
+    self.assertEqual(created.returncode,0,created.stderr)
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_real_cli_unowned_output_conflict_preserves_bytes (test_repaired_pipeline.PipelineRepairs.test_real_cli_unowned_output_conflict_preserves_bytes) (extra='stacks/extra.yaml')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 79, in test_real_cli_unowned_output_conflict_preserves_bytes
+    self.assertEqual(created.returncode,0,created.stderr)
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+======================================================================
+FAIL: test_real_cli_unowned_output_conflict_preserves_bytes (test_repaired_pipeline.PipelineRepairs.test_real_cli_unowned_output_conflict_preserves_bytes) (extra='unlisted-directory-link')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/evaluations/test_repaired_pipeline.py", line 79, in test_real_cli_unowned_output_conflict_preserves_bytes
+    self.assertEqual(created.returncode,0,created.stderr)
+AssertionError: 5 != 0 : Validation environment is incomplete. Run tools/runtime-check.py; no input was processed.
+
+
+----------------------------------------------------------------------
+Ran 100 tests in 0.634s
+
+FAILED (failures=18, errors=82)

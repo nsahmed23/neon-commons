@@ -1,0 +1,184 @@
+[
+  {
+    "case": "child_to_override",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "42b4fe6fb3257f1023254b0de30a9c4c9a793a640944321a4dcef5f762d27d69"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "empty_values",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/catalog/a.yaml",
+        "sha256": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "imports_ab",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/catalog/a.yaml",
+        "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+      },
+      {
+        "path": "stacks/catalog/b.yaml",
+        "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "imports_ba",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/catalog/a.yaml",
+        "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+      },
+      {
+        "path": "stacks/catalog/b.yaml",
+        "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "inherits_parent_a",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "inherits_parent_b",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "null_shapes",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/catalog/a.yaml",
+        "sha256": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "parent_to_child",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "scope_local",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "scope_override",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429"
+      }
+    ],
+    "source_unchanged": true
+  },
+  {
+    "case": "type_change",
+    "files": [
+      {
+        "path": "atmos.yaml",
+        "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+      },
+      {
+        "path": "stacks/catalog/a.yaml",
+        "sha256": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b"
+      },
+      {
+        "path": "stacks/orgs/qualification.yaml",
+        "sha256": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9"
+      }
+    ],
+    "source_unchanged": true
+  }
+]

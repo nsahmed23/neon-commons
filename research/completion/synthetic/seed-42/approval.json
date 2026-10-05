@@ -1,0 +1,8 @@
+{
+  "consumed": false,
+  "expires_at_tick": 10,
+  "id": "63369799-dfb0-5390-85af-eb631a58361d",
+  "plan_sha256": "89692165e735e7e5c44e02c4295cd62e80a5acea4fc0aa9121ce913edaa2e171",
+  "simulation": true,
+  "tenant_id": "ca8a8057-a15f-5caa-8979-0090cd1bc11b"
+}

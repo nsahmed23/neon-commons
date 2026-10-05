@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/intune-iac/contracts/1.0.0/command-card.schema.json",
+  "title": "command-card",
+  "description": "Original Appendix B contract. Local validation only; not an official Microsoft schema.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "executable": {
+      "type": "string"
+    },
+    "arguments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "working_directory": {
+      "type": "string"
+    },
+    "effect_class": {
+      "enum": [
+        "local_read",
+        "local_write",
+        "provider_read",
+        "state_mutation",
+        "cloud_mutation",
+        "device_action"
+      ]
+    },
+    "effects": {
+      "type": "object",
+      "properties": {
+        "local_write": {
+          "type": "boolean"
+        },
+        "network": {
+          "type": "boolean"
+        },
+        "state_write": {
+          "type": "boolean"
+        },
+        "cloud_write": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "local_write",
+        "network",
+        "state_write",
+        "cloud_write"
+      ],
+      "additionalProperties": false
+    },
+    "authorization": {
+      "enum": [
+        "emit_only",
+        "protected_ci_required",
+        "explicit_collection_required"
+      ]
+    },
+    "execution_allowed": {
+      "const": false
+    },
+    "expected_exit_codes": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "provider_source": {
+      "type": "string"
+    },
+    "provider_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "purpose",
+    "executable",
+    "arguments",
+    "working_directory",
+    "effect_class",
+    "effects",
+    "authorization",
+    "execution_allowed",
+    "expected_exit_codes",
+    "provider_source",
+    "provider_version"
+  ],
+  "additionalProperties": false
+}

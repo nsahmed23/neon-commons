@@ -1,0 +1,5 @@
+{
+  "intune_iac/blob_lease.py": "311d06c0fe3ce89040c1f3261ef0a7b13baa23d7cddb4989fb1cb515b380bb0d",
+  "intune_iac/identity_binding.py": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+  "plugin_tests/test_blob_lease_independent_v5.py": "8deb1fd10b1f751f85ee4f5c11a9358d04bb6e5802019d5ba2f656d5f1da7233"
+}

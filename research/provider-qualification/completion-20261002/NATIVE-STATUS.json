@@ -1,0 +1,43 @@
+{
+  "status": "QUALIFIED_LOCAL_NATIVE_SLICE",
+  "production_qualified": false,
+  "schema_rpc_qualified": true,
+  "hcl_validation_qualified": true,
+  "configuration_qualified": false,
+  "import_qualified": false,
+  "ordinary_no_change_qualified": false,
+  "refresh_only_no_change_qualified": false,
+  "service_qualified": false,
+  "note": "Full production-source candidate binary, schema and13HCLcases pass. Separate syntheticprovider actualresource import/ordinary/refresh/emptyresponse cases pass. Production Configure/authenticatedidentity/liveGraph remain UNQUALIFIED; production_qualified remainsfalse.",
+  "phase": "complete",
+  "published_baseline": {
+    "schema_rpc_qualified": true,
+    "hcl_matrix_executed": 7,
+    "desired_hcl_contract_passed": false,
+    "receipt": "evidence/native-baseline-final/result.json"
+  },
+  "synthetic_resource_rpc": {
+    "status": "QUALIFIED_SYNTHETIC_RESOURCE_ONLY",
+    "production_provider_configure_qualified": false,
+    "identity_preserving_import": true,
+    "ordinary_saved_plan_no_change": true,
+    "refresh_only_saved_plan_no_change": true,
+    "explicit_zero_none_roundtrip": true,
+    "native_hcl_cases": 13,
+    "native_hcl_cases_passed": 13,
+    "rpc_receipt": "evidence/synthetic-rpc-final-green/result.json",
+    "hcl_receipt": "evidence/synthetic-resource-hcl-final/result.json",
+    "binary_sha256": "7b4c58cc2e086643586c399b264869fde47d8336e9dc6a01adc734350d98b142",
+    "boundary": "Actual selected resource, real Framework RPC, separate synthetic provider Configure with GET-only in-memory transport; not production provider authentication or service qualification",
+    "empty_policy_rejected_before_collections": true,
+    "rpc_binary_sha256": "7b4c58cc2e086643586c399b264869fde47d8336e9dc6a01adc734350d98b142",
+    "hcl_binary_sha256": "7da990a21d679b1157d34788ed18cd3e7707c344d2f2052f3605691e7aecf308",
+    "hcl_boundary": "HCL ran on the explicit-zero schema fixture binary before the final Read guard; final complete production-source binary separately passes all13cases."
+  },
+  "full_provider_binary_built": true,
+  "candidate_binary_sha256": "28d3af959966dc73ef8c001e8f70b8ac7efc5c394162b51351ea8c8dfc97eb06",
+  "native_hcl_cases": 13,
+  "native_hcl_cases_passed": 13,
+  "native_receipt": "evidence/native-candidate-final/result.json",
+  "build_receipt": "evidence/native-full-build-final/result.json"
+}

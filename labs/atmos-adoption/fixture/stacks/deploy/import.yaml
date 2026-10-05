@@ -1,0 +1,5 @@
+vars:
+  stage: import
+components:
+  terraform:
+    identity: {}

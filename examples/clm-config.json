@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "endpoint": "http://127.0.0.1:8700/v1/systemone",
+  "timeout_seconds": 10,
+  "model_identity": {
+    "alias": "intune-evidence",
+    "clm_source_commit": "bb42c6c5bf914fd449bed2f6ca65be80602cb1f7",
+    "encoder": "Qwen/Qwen3-8B",
+    "encoder_revision": "REPLACE_WITH_IMMUTABLE_ENCODER_COMMIT",
+    "tokenizer_sha256": "REPLACE_WITH_TOKENIZER_JSON_SHA256",
+    "head_sha256": "REPLACE_WITH_TRUSTED_HEAD_FILE_SHA256",
+    "head_path": "/srv/clm/heads/immutable.pt",
+    "pooling": "last-token",
+    "embedding_width": 4096,
+    "embedding_service_identity": "REPLACE_WITH_ENCODER_RUNTIME_RELEASE_ID",
+    "embedding_recipe": "raw_tokenizer_no_template",
+    "projection": "REPLACE_WITH_EXACT_CHECKPOINT_CFG_AND_PROJECTION_DIM",
+    "logit_scale": null,
+    "dtype": "float32",
+    "quantization": "none",
+    "temperature": 1.0
+  },
+  "token_budget": {
+    "method": "qwen3_byte_bpe_upper_bound_v1",
+    "tokenizer_path": "/srv/clm/encoder/tokenizer.json",
+    "encoder_max_tokens": 2048,
+    "clm_max_tokens": 2048
+  },
+  "selection": {
+    "min_probability": 0.8,
+    "min_margin": 0.2
+  }
+}

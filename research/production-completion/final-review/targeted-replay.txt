@@ -1,0 +1,11 @@
+Final reviewer replay on 2026-10-04; terminal outputs transcribed from executed tool results.
+
+Command 1:
+python3 -B -m unittest plugin_tests.test_blob_lease_independent_v5.IndependentNativeTransportTests.test_connection_close_response_cannot_keep_worker_after_deadline -v
+Result: Ran 1 test in 0.062s; OK; zero skips. The corrected fixture asserts socketpair creation, stdlib response detachment, and body-read entry.
+
+Command 2:
+python3 -B -m unittest plugin_tests.test_provider_journey_v5.ProviderJourneyTests.test_consumed_approval_and_convergence_do_not_prove_saved_plan_executed plugin_tests.test_provider_journey_v5.ProviderJourneyTests.test_unsigned_journal_cannot_authorize_reconciliation plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_independent_processes_cannot_both_consume_same_approval plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_low_order_identity_public_key_cannot_authorize_static_forgery plugin_tests.test_approval_independent_v5.IndependentApprovalTests.test_native_launcher_checks_authority_before_spawning -v
+Result: Ran 5 tests in 0.613s; OK; zero skips.
+
+These were narrow existing-test replays, not a fresh independent fixture set or a complete integrated suite.

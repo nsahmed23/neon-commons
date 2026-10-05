@@ -1,0 +1,8 @@
+{
+  "archive_sha256": "412f6594404eacbbf61e11c289231a1089e6955e8fe80d081ee1aa6596da4281",
+  "binary_sha256": "903774df6d165f10a0df2a013c2f69e921cfd2b9b4a2d8b1bddc03758a4cca61",
+  "matches_prior_pinned_receipt": true,
+  "matches_new_release_checksum": true,
+  "signature_reverified": false,
+  "scope": "unchanged published provider baseline, not repaired candidate"
+}

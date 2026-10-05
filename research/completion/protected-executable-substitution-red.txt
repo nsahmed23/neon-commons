@@ -1,0 +1,15 @@
+test_synthetic_manifest_cannot_install_an_arbitrary_tool (plugin_tests.test_protected_completion.ExecutableTrustRegressionTests.test_synthetic_manifest_cannot_install_an_arbitrary_tool) ... FAIL
+
+======================================================================
+FAIL: test_synthetic_manifest_cannot_install_an_arbitrary_tool (plugin_tests.test_protected_completion.ExecutableTrustRegressionTests.test_synthetic_manifest_cannot_install_an_arbitrary_tool)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 156, in test_synthetic_manifest_cannot_install_an_arbitrary_tool
+    with self.assertRaises(ValueError):p.SyntheticExecutor(root)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.113s
+
+FAILED (failures=1)

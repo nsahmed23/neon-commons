@@ -1,0 +1,40 @@
+{
+  "format_version": "1.0",
+  "valid": false,
+  "error_count": 1,
+  "warning_count": 1,
+  "diagnostics": [
+    {
+      "severity": "error",
+      "summary": "Invalid Settings Structure",
+      "detail": "Setting at index 0 contains 3 fields ([\"@odata.type\" = \"#microsoft.graph.deviceManagementConfigurationSetting\", \"id\" = \"37\", \"settingInstance\" = \u003cobject\u003e]), but should only contain exactly 2 fields ('id' and 'settingInstance')",
+      "address": "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+      "range": {
+        "filename": "main.tf.json",
+        "start": {
+          "line": 23,
+          "column": 21,
+          "byte": 547
+        },
+        "end": {
+          "line": 23,
+          "column": 616,
+          "byte": 1142
+        }
+      },
+      "snippet": {
+        "context": "resource.microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.fixture",
+        "code": "        \"settings\": \"{\\\"settings\\\":[{\\\"id\\\":\\\"37\\\",\\\"settingInstance\\\":{\\\"@odata.type\\\":\\\"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance\\\",\\\"settingDefinitionId\\\":\\\"device_vendor_msft_policy_config_privacy_letappsaccesslocation\\\",\\\"settingInstanceTemplateReference\\\":null,\\\"choiceSettingValue\\\":{\\\"@odata.type\\\":\\\"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue\\\",\\\"value\\\":\\\"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2\\\",\\\"settingValueTemplateReference\\\":null,\\\"children\\\":[]}},\\\"@odata.type\\\":\\\"#microsoft.graph.deviceManagementConfigurationSetting\\\"}]}\"",
+        "start_line": 23,
+        "highlight_start_offset": 20,
+        "highlight_end_offset": 615,
+        "values": []
+      }
+    },
+    {
+      "severity": "warning",
+      "summary": "Provider development overrides are in effect",
+      "detail": "The following provider development overrides are set in the CLI configuration:\n - registry.terraform.io/deploymenttheory/microsoft365 in /tmp/intune-provider-20261002/baseline-bin\n\nThe behavior may therefore not match any released version of the provider and applying changes may cause the state to become incompatible with published releases."
+    }
+  ]
+}

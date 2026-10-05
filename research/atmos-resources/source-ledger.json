@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "scope": "Selected source audit, not exhaustive repository audit",
+  "repositories": [
+    {
+      "repository": "cloudposse/atmos",
+      "url": "https://github.com/cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "clone_scope": "full working tree, shallow history",
+      "license": "Apache-2.0",
+      "local_clone": "/workspace/scratch/26b6d364cfda/atmos-lab-upstream",
+      "upstream_tests_executed": false
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "url": "https://github.com/cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "clone_scope": "full working tree, shallow history",
+      "license": "Apache-2.0",
+      "local_clone": "/workspace/scratch/26b6d364cfda/atmos-test-helpers-upstream",
+      "upstream_tests_executed": false
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "url": "https://github.com/minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "clone_scope": "full working tree, shallow history",
+      "license": "MIT",
+      "local_clone": "/workspace/scratch/26b6d364cfda/tfmigrate-lab-upstream",
+      "upstream_tests_executed": false
+    }
+  ],
+  "sources": [
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "LICENSE",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/LICENSE",
+      "bytes": 11351,
+      "sha256": "88ba33afee8e890ef376b918ea8eac991ab383aa206e7958e440343b1034ff7d",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/quick-start-simple/README.md",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/quick-start-simple/README.md",
+      "bytes": 1321,
+      "sha256": "b36a75fdecc7beb70f677a968ec03b02293182222f18ec6ceb2e57577d0d3524",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/quick-start-simple/atmos.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/quick-start-simple/atmos.yaml",
+      "bytes": 395,
+      "sha256": "812b01f3bff0c794aa7cafa91130b13f6b9e9da43d26b063719f602054cd2433",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/quick-start-simple/components/terraform/weather/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/quick-start-simple/components/terraform/weather/main.tf",
+      "bytes": 713,
+      "sha256": "66cd3a7bab30cbd67a91807dd2ed9207e28e309d678961f5b41ff3a7b1bce2bb",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/quick-start-simple/components/terraform/weather/versions.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/quick-start-simple/components/terraform/weather/versions.tf",
+      "bytes": 71,
+      "sha256": "7aa8ac7b6ae680ea6328e0416d2ca3f346f1092c4559d8538da41c64d3ffac9c",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/quick-start-simple/stacks/catalog/station.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/quick-start-simple/stacks/catalog/station.yaml",
+      "bytes": 352,
+      "sha256": "33665a9318254446a99bd28b1c27f52ed9122a709ff8a19cbcffd5648486f491",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/quick-start-simple/stacks/deploy/dev.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/quick-start-simple/stacks/deploy/dev.yaml",
+      "bytes": 250,
+      "sha256": "665d5210f454ff0665641de854336e9a25d67caee7ed527effc5e43db4c004e7",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/native-terraform/README.md",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/native-terraform/README.md",
+      "bytes": 2292,
+      "sha256": "2082520c1e78dc64bc184ba5980b025eed07d6aabfd7f9bdcec972ad9858c12d",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/native-terraform/atmos.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/native-terraform/atmos.yaml",
+      "bytes": 730,
+      "sha256": "68917d9488ae3d1f5aa2d8dd924ae315167f200f7c10a95272e656f955b77a54",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/native-terraform/components/terraform/vpc/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/native-terraform/components/terraform/vpc/main.tf",
+      "bytes": 494,
+      "sha256": "9c6c7f3faa44ac7889b5581fbdaac0999fa6e5f75bba84b8ed907e5e3ad95c8c",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/native-terraform/stacks/dev.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/native-terraform/stacks/dev.yaml",
+      "bytes": 449,
+      "sha256": "1c4ed3f2956657fb0aa8f9b503dde958be72a61e046d936c03c3ed0860baa5f7",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/native-terraform/stacks/prod.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/native-terraform/stacks/prod.yaml",
+      "bytes": 484,
+      "sha256": "6efca5a2cfe291d4a249b5483074e864e8e19ca36882655ff6a2b984f400a737",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate/README.md",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate/README.md",
+      "bytes": 3566,
+      "sha256": "f7320bd2ec0ae55ad5758c00120877bec9206d55352a634ed3bd914972c96593",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate/atmos.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate/atmos.yaml",
+      "bytes": 1013,
+      "sha256": "c1830c4776b81c06cc42d30d00ca2d416555f002c926d1cc48ab012654c108a0",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate/stacks/deploy/test.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate/stacks/deploy/test.yaml",
+      "bytes": 963,
+      "sha256": "90194469f7f0cb4f49658afc0a13e6bd31c52fe93c3b28fc1395312327882505",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate/components/terraform/service/versions.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate/components/terraform/service/versions.tf",
+      "bytes": 153,
+      "sha256": "d7bfe767c3101c86f60b46d84f2a0ac2b2317935a690e32e4572634e70030737",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate/components/terraform/service/migrations/20260527090000_rename_legacy_pet.hcl",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate/components/terraform/service/migrations/20260527090000_rename_legacy_pet.hcl",
+      "bytes": 107,
+      "sha256": "d664e128d41c3fa652251d01d312703938575d44cb8f25d051651c9404a54c09",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate-advanced/README.md",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate-advanced/README.md",
+      "bytes": 7096,
+      "sha256": "339091d480df3b3bfce1b3b9a9ab1a141b26e4d3b552e8b33f1645dd499bfb31",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate-advanced/components/terraform/import-demo/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate-advanced/components/terraform/import-demo/main.tf",
+      "bytes": 298,
+      "sha256": "3fe5015750db443332174f3b479bc9e6e13d42b2d54d8cc9b6210c31e54bde88",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tfmigrate-advanced/components/terraform/import-demo/migrations/20260802100000_import_file.hcl",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tfmigrate-advanced/components/terraform/import-demo/migrations/20260802100000_import_file.hcl",
+      "bytes": 104,
+      "sha256": "e6beeb85935c481eed4ef05768d9d922e200df3285c479282b92d6ae2030a523",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tflint/components/terraform/example/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tflint/components/terraform/example/main.tf",
+      "bytes": 346,
+      "sha256": "ebba58c9b40191ee79871d662b28b640b0457ea1d78fa9654f549953b7b95800",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tflint/components/terraform/example/versions.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tflint/components/terraform/example/versions.tf",
+      "bytes": 276,
+      "sha256": "f196b72423787bb1b003de01340b249a2e3ef935e5ca51fd45f7ecdcb5c913c9",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "examples/hooks-tflint/stacks/deploy/test.yaml",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/examples/hooks-tflint/stacks/deploy/test.yaml",
+      "bytes": 934,
+      "sha256": "1835db1de55cf2c965dc8cc93fa55fad54ba5114527a9c121fa1db1e553773d1",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "agent-skills/skills/atmos-terraform-state-migrations/SKILL.md",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/agent-skills/skills/atmos-terraform-state-migrations/SKILL.md",
+      "bytes": 6664,
+      "sha256": "a3a0089b35216332ebdf101fdd5850cddccb666929ad79f7df3999bbdc82d2de",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "tests/fixtures/components/terraform/exit-code/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/tests/fixtures/components/terraform/exit-code/main.tf",
+      "bytes": 529,
+      "sha256": "ea7fd495c9cc9e5974bb176677f4ecf0e11962b9acbf99a3eab02a29d8515e93",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "tests/fixtures/components/terraform/env-example/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/tests/fixtures/components/terraform/env-example/main.tf",
+      "bytes": 408,
+      "sha256": "2c3edbd1e8e7ffd4e13be6418947fff00ea97aa9e38a7ab834592ef1ace7186f",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "path": "tests/fixtures/scenarios/hooks-keychain-test/components/terraform/hook-and-store/main.tf",
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/tests/fixtures/scenarios/hooks-keychain-test/components/terraform/hook-and-store/main.tf",
+      "bytes": 356,
+      "sha256": "69d8f7326b3c3ab79bddf4e877f5409779fbbd9c36af90342c369957d31fb102",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "LICENSE",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/LICENSE",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "go.mod",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/go.mod",
+      "bytes": 10729,
+      "sha256": "777bd888618cd42604b023d0d1ce07d2bdd5221547913e9fbcb742e0f07a810b",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "pkg/atmos/component-helper/README.md",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/pkg/atmos/component-helper/README.md",
+      "bytes": 12122,
+      "sha256": "af6d6666407ca9102ac8e7fa9bb40c6f79e7e566fe1fc3f1558bfb21f467926c",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "pkg/atmos/component-helper/01_deploy.go",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/pkg/atmos/component-helper/01_deploy.go",
+      "bytes": 1068,
+      "sha256": "69ea720e3194e790a8a27a47ea74bb738b745eb38356c6976cd4746717474190",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "pkg/atmos/component-helper/20_drift_tst.go",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/pkg/atmos/component-helper/20_drift_tst.go",
+      "bytes": 891,
+      "sha256": "3aa1c1f2fd0ee0085d4bdad6c830091077ecb7b152c726304abb573b3209da4f",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "pkg/atmos/terraform_apply.go",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/pkg/atmos/terraform_apply.go",
+      "bytes": 2430,
+      "sha256": "e2433c4b5dc2d5d1e7e89d52452a5e1a804c3a7069194fdd148a6004a4b3bd55",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "cloudposse/test-helpers",
+      "commit": "b9bf0df1746c9460e2624dd5bfe9e7f139473b07",
+      "path": "pkg/atmos/terraform_plan.go",
+      "url": "https://github.com/cloudposse/test-helpers/blob/b9bf0df1746c9460e2624dd5bfe9e7f139473b07/pkg/atmos/terraform_plan.go",
+      "bytes": 1736,
+      "sha256": "286362493a98315fefd82e55da6ae5c5df594578c398d50eae5519967faa0f20",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "LICENSE",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/LICENSE",
+      "bytes": 1082,
+      "sha256": "96cc0ca7137701f8060610633c8e9ecc210b630b7d7e2f35ba365a73022d2ac1",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "README.md",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/README.md",
+      "bytes": 26004,
+      "sha256": "8a2b832a786c98a84138a38e54b977bbe9609b76b9d4e0b310c9c123a524d851",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "go.mod",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/go.mod",
+      "bytes": 4752,
+      "sha256": "7a9a85fffee32a8a1d3c6ca44e75273fdd5b670e0b04831cc717eee3a0ced7b2",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfmigrate/migrator.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfmigrate/migrator.go",
+      "bytes": 2928,
+      "sha256": "469f6ebb6525de92132a095810c0900c0c5d7325631ebcf386e719f79ef201de",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfmigrate/state_migrator.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfmigrate/state_migrator.go",
+      "bytes": 7574,
+      "sha256": "1d2ffeeb6256eebf71023afd197d5c917064709fd3ebb9db481628d3ca1d5f6b",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfmigrate/multi_state_migrator.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfmigrate/multi_state_migrator.go",
+      "bytes": 9393,
+      "sha256": "cdf38b439cec45ef9c63a3ace645ebc5bb8c676d5af80dc3772a6345c727172e",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfmigrate/state_import_action.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfmigrate/state_import_action.go",
+      "bytes": 1409,
+      "sha256": "c5ac897e471614d95fb30d151ee781bdbffe0d1697d89fa67f7ce031ebec13f5",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfmigrate/state_action.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfmigrate/state_action.go",
+      "bytes": 2461,
+      "sha256": "1e061b5844e10f539526156d38231587142aeb599e0e087fe91d9da7aeb2d1f6",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfexec/terraform_plan.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfexec/terraform_plan.go",
+      "bytes": 1621,
+      "sha256": "4a584c013d65ac206100270040783f4b168c66fd7b78689d46a9c1b064069d1d",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfexec/terraform_state_push.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfexec/terraform_state_push.go",
+      "bytes": 448,
+      "sha256": "61d5a50a0314d35a0d10400c74c780d983a599901057eda22b2f46640d4d431a",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfexec/terraform_import.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfexec/terraform_import.go",
+      "bytes": 1613,
+      "sha256": "b103e9b452f9fdf3a406bd51e2471aa7b808c299b4b4d0327d454a5e30366853",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "tfexec/executor.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfexec/executor.go",
+      "bytes": 2673,
+      "sha256": "4cfb98c23c8b596de064673e41d66e9ff012f2a2969e2aab654e6b8643ebbffd",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "command/history_runner.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/command/history_runner.go",
+      "bytes": 4735,
+      "sha256": "a1bc98ccf2d8527244df4a8fa7cd2b0a194f2a02435177760557657b4b47ec47",
+      "inspection": "selected relevant contents read"
+    },
+    {
+      "repository": "minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "path": "history/controller.go",
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/history/controller.go",
+      "bytes": 4595,
+      "sha256": "d6862c7200bb5523972cc24de5724a42a72228add63fc4515e6ff701625fa5b7",
+      "inspection": "selected relevant contents read"
+    }
+  ],
+  "installed_atmos_source": {
+    "tag": "v1.199.0",
+    "commit": "10886fe5b17f034c01e2396c0c47de19575a8065",
+    "comparison": "git tree checked: native-terraform, hooks-tfmigrate, hooks-tflint examples and cmd/terraform/migrate absent at this tag; quick-start-simple present"
+  },
+  "ledger_written_at_utc": "2026-09-30T23:03:17.314241+00:00"
+}

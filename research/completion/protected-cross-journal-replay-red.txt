@@ -1,0 +1,15 @@
+test_consumed_request_cannot_gain_new_approval_in_another_journal (plugin_tests.test_protected_completion.CrossJournalReplayRegressionTests.test_consumed_request_cannot_gain_new_approval_in_another_journal) ... FAIL
+
+======================================================================
+FAIL: test_consumed_request_cannot_gain_new_approval_in_another_journal (plugin_tests.test_protected_completion.CrossJournalReplayRegressionTests.test_consumed_request_cannot_gain_new_approval_in_another_journal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 306, in test_consumed_request_cannot_gain_new_approval_in_another_journal
+    with self.assertRaises(ValueError):p.approve_synthetic_operation(req,executor=e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 1.047s
+
+FAILED (failures=1)

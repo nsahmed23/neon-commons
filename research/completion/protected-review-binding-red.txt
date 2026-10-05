@@ -1,0 +1,15 @@
+test_rewritten_preparation_cannot_mislabel_change_as_noop (plugin_tests.test_protected_completion.ReviewBindingRegressionTests.test_rewritten_preparation_cannot_mislabel_change_as_noop) ... FAIL
+
+======================================================================
+FAIL: test_rewritten_preparation_cannot_mislabel_change_as_noop (plugin_tests.test_protected_completion.ReviewBindingRegressionTests.test_rewritten_preparation_cannot_mislabel_change_as_noop)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/e2e4042ea5fd/work/intune-iac/plugin_tests/test_protected_completion.py", line 316, in test_rewritten_preparation_cannot_mislabel_change_as_noop
+    with self.assertRaises(ValueError):p.approve_synthetic_operation(request,executor=e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.558s
+
+FAILED (failures=1)

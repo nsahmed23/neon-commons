@@ -1,0 +1,54 @@
+{
+  "evidence_kind": "mixed_explicit_scopes",
+  "production_qualified": false,
+  "files": {
+    "intune_iac/provider_execution.py": {
+      "sha256": "78933f15bca93d268f41cdd29c94f8f2cc80210762f4f26e994af17af81c4cfa",
+      "bytes": 43006
+    },
+    "plugin_tests/test_provider_execution_v5.py": {
+      "sha256": "da09edccc26a8f4c5eef7296b67d79fcd4cc0f10935493f67f5c0fc37eb36a5c",
+      "bytes": 28153
+    },
+    "labs/production-lifecycle/README.md": {
+      "sha256": "4993561da09ba12dae49112ebf9f25b53ac7ff9f2a8c732d0dc805095ed8a246",
+      "bytes": 5758
+    },
+    "labs/production-lifecycle/modeled_lifecycle.py": {
+      "sha256": "984ca8d1a193bcb883790a18ef4dc6e9e4ea970a5ea2eacccc44f3db0e24f264",
+      "bytes": 5959
+    },
+    "labs/production-lifecycle/native_smoke.py": {
+      "sha256": "9a728e55c8ae8e71a764e86e2d1b111f03fd395dde16393f3f32969c746b30c2",
+      "bytes": 3618
+    },
+    "labs/production-lifecycle/sealed_plan_native.py": {
+      "sha256": "8fbc67492355282e7909cebdb6e930693abb959ac0c3dfd717a4f0c41e13f3c2",
+      "bytes": 3472
+    },
+    "research/production-completion/provider-execution/modeled-lifecycle.json": {
+      "sha256": "49c4eb8599e5035ed789a016efeb085a76b676d6e1be35c6dc7d604b4a5b2a3d",
+      "bytes": 6188
+    },
+    "research/production-completion/provider-execution/native-sealed-plan.json": {
+      "sha256": "f2cef145efb94982d12bd0b4c8ea62ac55e498109d1910e32acf8a2889606865",
+      "bytes": 1137
+    },
+    "research/production-completion/provider-execution/native-smoke.json": {
+      "sha256": "3a4e400caab93634f483593559339af8602ec4dcad3eaa3149c34beaa9abebd3",
+      "bytes": 1692
+    },
+    "research/production-completion/provider-execution/native-smoke.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "research/production-completion/provider-execution/native-smoke.stdout": {
+      "sha256": "0dc845ae6508ff8d38c65849bd88553d3ba719522077eb07ee5d39751fa3d047",
+      "bytes": 1916
+    },
+    "research/production-completion/provider-execution/unit-tests.txt": {
+      "sha256": "d402783f6f510da828b39a3c6731f54c198eeed89e571436f33f92341adc2b75",
+      "bytes": 9077
+    }
+  }
+}

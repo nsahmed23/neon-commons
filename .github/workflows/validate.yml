@@ -1,0 +1,145 @@
+name: Validate engineering candidate
+
+'on':
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash --noprofile --norc -euo pipefail {0}
+
+jobs:
+  validate:
+    name: Linux CPython 3.12 local validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI_ROOT: ${{ runner.temp }}/intune-ci
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONHASHSEED: '0'
+    steps:
+      - id: checkout
+        name: Check out the triggering revision without retained credentials
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          submodules: false
+          lfs: false
+
+      - id: python
+        name: Select the qualified Python minor and exact patch
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12.14'
+          architecture: x64
+          check-latest: false
+
+      - id: platform
+        name: Check the dependency-lock platform
+        run: |
+          python - <<'PY'
+          import platform, sys
+          if (sys.implementation.name != 'cpython' or sys.version_info[:3] != (3, 12, 14)
+                  or platform.system() != 'Linux' or platform.machine() != 'x86_64'):
+              raise SystemExit('This CI lock is qualified only for Linux x86_64 CPython 3.12.14.')
+          PY
+
+      - id: dependencies
+        name: Verify wheel bytes and install into a fresh environment
+        run: |
+          mkdir -p "$CI_ROOT/wheelhouse"
+          python -m pip --isolated download --require-hashes --only-binary=:all: --index-url https://pypi.org/simple --dest "$CI_ROOT/wheelhouse" -r requirements-runtime-linux-x86_64-cp312.lock
+          python scripts/verify-dependencies.py --wheelhouse "$CI_ROOT/wheelhouse"
+          python -m venv "$CI_ROOT/venv"
+          "$CI_ROOT/venv/bin/python" -m pip --isolated install --no-index --no-cache-dir --find-links "$CI_ROOT/wheelhouse" --require-hashes --only-binary=:all: -r requirements-runtime-linux-x86_64-cp312.lock
+          "$CI_ROOT/venv/bin/python" -m pip --isolated check
+          echo "$CI_ROOT/venv/bin" >> "$GITHUB_PATH"
+
+      - id: verify
+        name: Run the complete local and repaired-core verifier
+        run: |
+          python scripts/verify-plugin.py --include-core --output "$CI_ROOT/verification"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ['CI_ROOT']) / 'verification/result.json').read_text())
+          if (report.get('success') is not True or report.get('core_regressions_included') is not True
+                  or any(type(report.get(key)) is not int for key in ('tests', 'passed', 'failures', 'errors', 'skipped'))
+                  or report['tests'] < 1
+                  or report.get('passed') != report['tests']
+                  or any(report.get(key) != 0 for key in ('failures', 'errors', 'skipped'))):
+              raise SystemExit('Local verification is incomplete or unsuccessful.')
+          PY
+
+      - id: smoke
+        name: Exercise CLI, repository and terminal journeys
+        run: |
+          python scripts/qualify-workflow.py --plugin "$GITHUB_WORKSPACE" --output "$CI_ROOT/cli"
+          python scripts/qualify-repository.py --plugin "$GITHUB_WORKSPACE" --output "$CI_ROOT/repository"
+          python scripts/qualify-terminal.py --plugin "$GITHUB_WORKSPACE" --output "$CI_ROOT/terminal"
+
+      - id: release
+        name: Build reviewed engineering-candidate archives
+        run: |
+          python scripts/build-release.py --output-dir "$CI_ROOT/release"
+
+      - id: extract
+        name: Verify archive bytes, member hashes and safe extraction
+        run: |
+          python research/enterprise-ci/check-archives.py --directory "$CI_ROOT/release" --output "$CI_ROOT/extracted" > "$CI_ROOT/archive-verification.json"
+
+      - id: extracted
+        name: Verify the extracted source and runtime
+        run: |
+          python "$CI_ROOT/extracted/intune-iac-source/scripts/verify-plugin.py" --include-core --output "$CI_ROOT/extracted-verification"
+          python "$CI_ROOT/extracted/intune-iac/scripts/intune-iac.py" doctor
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          report = json.loads((Path(os.environ['CI_ROOT']) / 'extracted-verification/result.json').read_text())
+          if (report.get('success') is not True or report.get('core_regressions_included') is not True
+                  or any(type(report.get(key)) is not int for key in ('tests', 'passed', 'failures', 'errors', 'skipped'))
+                  or report['tests'] < 1
+                  or report.get('passed') != report['tests']
+                  or any(report.get(key) != 0 for key in ('failures', 'errors', 'skipped'))):
+              raise SystemExit('Extracted-source verification is incomplete or unsuccessful.')
+          PY
+          python "$CI_ROOT/extracted/intune-iac-source/scripts/build-release.py" --output-dir "$CI_ROOT/rebuilt"
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          root = Path(os.environ['CI_ROOT'])
+          originals = sorted((root / 'release').glob('*.zip'))
+          if len(originals) != 2 or any(path.read_bytes() != (root / 'rebuilt' / path.name).read_bytes() for path in originals):
+              raise SystemExit('Clean-source archive rebuild is not byte-identical.')
+          PY
+
+      - id: evidence
+        name: Retain candidate evidence without granting release approval
+        if: ${{ always() }}
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: engineering-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.CI_ROOT }}/verification
+            ${{ env.CI_ROOT }}/cli
+            ${{ env.CI_ROOT }}/repository
+            ${{ env.CI_ROOT }}/terminal
+            ${{ env.CI_ROOT }}/release
+            ${{ env.CI_ROOT }}/extracted-verification
+            ${{ env.CI_ROOT }}/archive-verification.json
+          if-no-files-found: error
+          retention-days: 7
+          include-hidden-files: false
+          overwrite: false

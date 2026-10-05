@@ -1,0 +1,20 @@
+======================================================================
+FAIL: test_locked_actual_simulation_is_not_success_exit (plugin_tests.test_enterprise_cli.EnterpriseCliTests.test_locked_actual_simulation_is_not_success_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_enterprise_cli.py", line 42, in test_locked_actual_simulation_is_not_success_exit
+    self.assertNotEqual(code, 0)
+AssertionError: 0 == 0
+
+======================================================================
+FAIL: test_lost_response_after_write_is_not_success_exit (plugin_tests.test_enterprise_cli.EnterpriseCliTests.test_lost_response_after_write_is_not_success_exit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_enterprise_cli.py", line 53, in test_lost_response_after_write_is_not_success_exit
+    self.assertNotEqual(code, 0)
+AssertionError: 0 == 0
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.060s
+
+FAILED (failures=2)

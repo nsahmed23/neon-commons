@@ -1,0 +1,33 @@
+{
+  "actions": [
+    {
+      "actions": [
+        "no-op"
+      ],
+      "id": "45838776-e1bd-566b-a8c5-ad684107e7da"
+    },
+    {
+      "actions": [
+        "no-op"
+      ],
+      "id": "8d187561-e16b-5339-81c7-43989cdd0355"
+    },
+    {
+      "actions": [
+        "no-op"
+      ],
+      "id": "6bdb7289-60dd-52fb-85f7-5b03dbb74f76"
+    }
+  ],
+  "repository_revision": "6f4d9f115add8499adbe04594dc35c495e4b5d4a",
+  "simulation": true,
+  "source_sha256": "b47f62d27b27a08419f4a9a5609b028e5858de85651271cccaff56691b32a955",
+  "state_lineage": "c94634c8-d42a-54a3-bbf9-c0fefb1e0094",
+  "state_serial": 1,
+  "target_context": {
+    "backend": "synthetic/42/intune.tfstate",
+    "cloud": "public",
+    "principal": "8ac084ae-af9e-5032-a2e6-7300deda1ca5"
+  },
+  "tenant_id": "ca8a8057-a15f-5caa-8979-0090cd1bc11b"
+}

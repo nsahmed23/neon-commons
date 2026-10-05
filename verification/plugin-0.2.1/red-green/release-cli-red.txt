@@ -1,0 +1,75 @@
+test_manifest_parent_traversal_is_rejected (plugin_tests.test_release_audit.ReleaseAuditTests.test_manifest_parent_traversal_is_rejected) ... FAIL
+test_missing_manifest_is_not_recursive_fallback (plugin_tests.test_release_audit.ReleaseAuditTests.test_missing_manifest_is_not_recursive_fallback) ... FAIL
+test_output_symlink_into_checkout_is_rejected_before_writes (plugin_tests.test_release_audit.ReleaseAuditTests.test_output_symlink_into_checkout_is_rejected_before_writes) ... FAIL
+test_symlinked_runtime_parent_is_rejected (plugin_tests.test_release_audit.ReleaseAuditTests.test_symlinked_runtime_parent_is_rejected) ... FAIL
+test_unlisted_local_data_does_not_enter_source_archive (plugin_tests.test_release_audit.ReleaseAuditTests.test_unlisted_local_data_does_not_enter_source_archive) ... FAIL
+test_missing_dependencies_uses_documented_exit_five (plugin_tests.test_cli_audit.CliAuditTests.test_missing_dependencies_uses_documented_exit_five) ... FAIL
+test_nested_missing_dependencies_uses_exit_five (plugin_tests.test_cli_audit.CliAuditTests.test_nested_missing_dependencies_uses_exit_five) ... FAIL
+
+======================================================================
+FAIL: test_manifest_parent_traversal_is_rejected (plugin_tests.test_release_audit.ReleaseAuditTests.test_manifest_parent_traversal_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 70, in test_manifest_parent_traversal_is_rejected
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_missing_manifest_is_not_recursive_fallback (plugin_tests.test_release_audit.ReleaseAuditTests.test_missing_manifest_is_not_recursive_fallback)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 77, in test_missing_manifest_is_not_recursive_fallback
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_output_symlink_into_checkout_is_rejected_before_writes (plugin_tests.test_release_audit.ReleaseAuditTests.test_output_symlink_into_checkout_is_rejected_before_writes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 61, in test_output_symlink_into_checkout_is_rejected_before_writes
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_symlinked_runtime_parent_is_rejected (plugin_tests.test_release_audit.ReleaseAuditTests.test_symlinked_runtime_parent_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 53, in test_symlinked_runtime_parent_is_rejected
+    with self.assertRaises(ValueError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_unlisted_local_data_does_not_enter_source_archive (plugin_tests.test_release_audit.ReleaseAuditTests.test_unlisted_local_data_does_not_enter_source_archive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_release_audit.py", line 42, in test_unlisted_local_data_does_not_enter_source_archive
+    self.assertEqual(names, {'intune-iac-source/README.md',
+AssertionError: Items in the first set but not the second:
+'intune-iac-source/.env'
+'intune-iac-source/tenant.tfstate'
+'intune-iac-source/capture/export.json'
+
+======================================================================
+FAIL: test_missing_dependencies_uses_documented_exit_five (plugin_tests.test_cli_audit.CliAuditTests.test_missing_dependencies_uses_documented_exit_five)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_cli_audit.py", line 7, in test_missing_dependencies_uses_documented_exit_five
+    self.assertEqual(exit_code({'status': 'missing_dependencies'}), 5)
+AssertionError: 2 != 5
+
+======================================================================
+FAIL: test_nested_missing_dependencies_uses_exit_five (plugin_tests.test_cli_audit.CliAuditTests.test_nested_missing_dependencies_uses_exit_five)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_cli_audit.py", line 10, in test_nested_missing_dependencies_uses_exit_five
+    self.assertEqual(exit_code({'status': 'succeeded_verified',
+AssertionError: 2 != 5
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.010s
+
+FAILED (failures=7)

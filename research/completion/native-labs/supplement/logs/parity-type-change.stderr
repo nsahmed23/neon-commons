@@ -1,0 +1,22 @@
+
+# Error
+
+**Error:** merge error: mergo merge failed: cannot override two slices with
+different type ([]interface {}, string)
+
+ File being processed: orgs/qualification.yaml
+ Import chain:
+   → orgs/qualification.yaml
+
+**Likely cause:** A key is defined as an array in one file and as a string in
+another.
+
+**Debug hint:** Check the files above for keys that have different types.
+
+**Common issues:**
+
+• vars defined as both array and string
+• settings with inconsistent types across imports
+• overrides attempting to change field types
+
+

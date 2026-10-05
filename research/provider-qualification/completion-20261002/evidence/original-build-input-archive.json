@@ -1,0 +1,10 @@
+{
+  "artifact": "/tmp/intune-provider-20261002/pinned-provider-build-inputs.tar.gz",
+  "sha256": "ef85f97faa4203768cdaf67387960b6531c58593f8a7021747486740022d27e5",
+  "bytes": 3659400,
+  "scope": "All 5724 original pinned full-source build input files, including Go tests/internal assets/go.mod/go.sum/LICENSE; excludes noncompiled docs/Git administrative data",
+  "source_manifest_sha256": "4253c2a346bc1ba5a3313912abe2efe98c466991f20de3e97d22e1f9d6ef6d1e",
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "production_qualified": false,
+  "retained_artifact": "pinned-provider-build-inputs.tar.gz"
+}

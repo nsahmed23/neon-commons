@@ -1,0 +1,397 @@
+{
+  "assurance": "bounded_static_triage_only",
+  "coverage_gaps": [
+    {
+      "path": "__pycache__",
+      "reason": "excluded_dependency_or_acquisition_tree"
+    }
+  ],
+  "files": [
+    {
+      "bytes": 58,
+      "candidates": [],
+      "imports": [],
+      "path": "__init__.py",
+      "sha256": "f0f08a85b4620c8ec3639e3717a2e5cabd0f0189be8bde74a3047525d680a084"
+    },
+    {
+      "bytes": 15575,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "hashlib",
+        "io",
+        "pathlib",
+        "re",
+        "yaml",
+        "yaml.nodes"
+      ],
+      "path": "atmos.py",
+      "sha256": "e6c71c2a531a966673c71806b561fd59a77a4dce6415cb4a8d2ea0daf90f6676"
+    },
+    {
+      "bytes": 14451,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "datetime",
+        "hashlib",
+        "io",
+        "os",
+        "pathlib",
+        "re",
+        "time",
+        "urllib.error",
+        "urllib.parse",
+        "urllib.request",
+        "uuid"
+      ],
+      "path": "capture.py",
+      "sha256": "857baddccae4e252a7ca14f93aa89730464cd513c1a56f3a72704e31af9920c0"
+    },
+    {
+      "bytes": 13648,
+      "candidates": [],
+      "imports": [
+        "",
+        "__future__",
+        "argparse",
+        "capture",
+        "engine",
+        "execution",
+        "graph",
+        "importlib.metadata",
+        "importlib.util",
+        "io",
+        "json",
+        "judge",
+        "mcp",
+        "os",
+        "platform",
+        "reconciliation",
+        "repository",
+        "runner",
+        "shutil",
+        "sys",
+        "target",
+        "wizard"
+      ],
+      "path": "cli.py",
+      "sha256": "54dcc518db37482bf7ffcf3446b293adf104f5f6f66110b799af40c10dd88fec"
+    },
+    {
+      "bytes": 10636,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "hashlib",
+        "io",
+        "json",
+        "pathlib",
+        "production",
+        "production_oracle",
+        "reference.core",
+        "reference.invariants",
+        "reference.validation"
+      ],
+      "path": "engine.py",
+      "sha256": "8c110457e892b64cad71fcbf2c16e191c2c5f8f9a1a2d34cd9cc983385ac75e4"
+    },
+    {
+      "bytes": 35658,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "io",
+        "os",
+        "pathlib",
+        "re",
+        "uuid"
+      ],
+      "path": "execution.py",
+      "sha256": "bd2417048ae2214b16e4f2c7f4890eb610f6d29055e397bc185e021f71cb4213"
+    },
+    {
+      "bytes": 40596,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "atmos",
+        "copy",
+        "graph_validation",
+        "hashlib",
+        "io",
+        "pathlib",
+        "production",
+        "production_oracle",
+        "re",
+        "reference.core",
+        "reference.validation",
+        "repository",
+        "urllib.parse",
+        "uuid"
+      ],
+      "path": "graph.py",
+      "sha256": "4959f67c0dd24b23d8d707e0afa6eca5ee13192dbd5f96c60a89ada534c74cad"
+    },
+    {
+      "bytes": 5509,
+      "candidates": [],
+      "imports": [
+        "dataclasses"
+      ],
+      "path": "graph_contract.py",
+      "sha256": "faf42f12d61823bb848c3a1e4fe6622e470b1d63cea7ab727a504b4b10d89c7a"
+    },
+    {
+      "bytes": 22483,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "graph",
+        "graph_contract",
+        "io",
+        "re",
+        "reference.validation"
+      ],
+      "path": "graph_validation.py",
+      "sha256": "a0a28ac1901f0b1b2fc5e4b5a16d95460c9f8495c71860610dbeb4d1a34b9975"
+    },
+    {
+      "bytes": 3585,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "hashlib",
+        "json",
+        "math",
+        "os",
+        "pathlib",
+        "stat",
+        "tempfile"
+      ],
+      "path": "io.py",
+      "sha256": "4b0271fee3565f6f4f765ff1cb48476faf34662d78f2bc0fc14e2e0fb3ccbb41"
+    },
+    {
+      "bytes": 18654,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "hashlib",
+        "http.client",
+        "ipaddress",
+        "json",
+        "math",
+        "os",
+        "pathlib",
+        "re",
+        "socket",
+        "stat",
+        "urllib.error",
+        "urllib.parse",
+        "urllib.request"
+      ],
+      "path": "judge.py",
+      "sha256": "bddb0255926799fef4f50df507fa33cb9021e9e58893edf8990f52934acc4698"
+    },
+    {
+      "bytes": 12534,
+      "candidates": [],
+      "imports": [
+        "",
+        "__future__",
+        "cli",
+        "engine",
+        "execution",
+        "graph",
+        "io",
+        "json",
+        "jsonschema",
+        "pathlib",
+        "repository",
+        "runner",
+        "sys",
+        "target"
+      ],
+      "path": "mcp.py",
+      "sha256": "0c56a51687502d2baa4c058030b74212075e8fd96a27dfb218405b73b6d54710"
+    },
+    {
+      "bytes": 26497,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "copy",
+        "hashlib",
+        "io",
+        "json",
+        "re",
+        "urllib.parse",
+        "uuid"
+      ],
+      "path": "production.py",
+      "sha256": "f4b956719016ca1fb2ad1efa26c69f05f0c483c222a0ed42e8cc46d68d19610d"
+    },
+    {
+      "bytes": 33240,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "hashlib",
+        "hcl2",
+        "hcl2.utils",
+        "itertools",
+        "json",
+        "jsonschema",
+        "math",
+        "pathlib",
+        "re",
+        "urllib.parse",
+        "uuid"
+      ],
+      "path": "production_oracle.py",
+      "sha256": "aa5ccadc090493215f0954e86ed543d834883feda8cf6afb6ef7dd6eb965790c"
+    },
+    {
+      "bytes": 3332,
+      "candidates": [],
+      "imports": [
+        "",
+        "__future__",
+        "io"
+      ],
+      "path": "reconciliation.py",
+      "sha256": "15dfaaff88046c5a603f35404f27b26670b5eed9bd47c28471671fec8dfe22a5"
+    },
+    {
+      "bytes": 28220,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "dataclasses",
+        "hashlib",
+        "io",
+        "math",
+        "os",
+        "pathlib",
+        "re",
+        "stat",
+        "yaml",
+        "yaml.events",
+        "yaml.nodes"
+      ],
+      "path": "repository.py",
+      "sha256": "92eda58e73d578bb0890963553fb1f09e6b49e201e52ce2871f3bf299f7f9dea"
+    },
+    {
+      "bytes": 20071,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "datetime",
+        "engine",
+        "graph",
+        "hashlib",
+        "io",
+        "json",
+        "os",
+        "pathlib",
+        "repository",
+        "uuid"
+      ],
+      "path": "runner.py",
+      "sha256": "7e24e6a403e5fb36b0f6e194f85981bcbf9b529e80d70cecc1ed53dd9dea6596"
+    },
+    {
+      "bytes": 16010,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "collections",
+        "copy",
+        "hashlib",
+        "json",
+        "pathlib",
+        "uuid"
+      ],
+      "path": "synthetic.py",
+      "sha256": "313e4d4385efc3ebb9fb7c032989c764c38ee7071f08165df818619bbe954568"
+    },
+    {
+      "bytes": 16887,
+      "candidates": [],
+      "imports": [
+        "__future__",
+        "datetime",
+        "http.client",
+        "io",
+        "jsonschema",
+        "re",
+        "socket",
+        "ssl",
+        "threading",
+        "urllib.parse"
+      ],
+      "path": "target.py",
+      "sha256": "f1f159c9f17af1be427791fde360a0cbea342348495153c6ed27c1d425623748"
+    },
+    {
+      "bytes": 43663,
+      "candidates": [],
+      "imports": [
+        "",
+        "__future__",
+        "hashlib",
+        "io",
+        "json",
+        "os",
+        "pathlib",
+        "re",
+        "repository",
+        "uuid",
+        "workflow"
+      ],
+      "path": "wizard.py",
+      "sha256": "cae4017b32c4ea8883cd7d8ae00107aefb741844034031954838706e3c4b9450"
+    },
+    {
+      "bytes": 29509,
+      "candidates": [],
+      "imports": [
+        "",
+        "__future__",
+        "hashlib",
+        "io",
+        "os",
+        "pathlib",
+        "re",
+        "reference.validation",
+        "repository",
+        "secrets",
+        "stat",
+        "tempfile",
+        "uuid",
+        "wizard"
+      ],
+      "path": "workflow.py",
+      "sha256": "3d0069f810e89fa717709d3ba05771753652b711b88485651da5594d8799ffe6"
+    }
+  ],
+  "limitations": [
+    "rules do not establish reachability or impact",
+    "non-Python code inventoried but not parsed",
+    "dependency advisories not fetched",
+    "no secret absence guarantee",
+    "file walk assumes trusted nonconcurrent ancestors"
+  ],
+  "limits": {
+    "entries": 20000,
+    "file_bytes": 2097152,
+    "total_bytes": 67108864
+  },
+  "schema_version": "security-inventory/1.0",
+  "source_manifest_sha256": "283c55719d84f84916155ef87e0fda094f3e99f269031317678189e658594ab1",
+  "status": "INCONCLUSIVE",
+  "target_code_executed": false
+}

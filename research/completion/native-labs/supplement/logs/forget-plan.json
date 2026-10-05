@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "plan",
+    "-input=false",
+    "-no-color",
+    "-detailed-exitcode",
+    "-out=forget.tfplan"
+  ],
+  "cwd": "state-curriculum",
+  "exit_code": 2,
+  "expected_exit_codes": [
+    2
+  ],
+  "name": "forget-plan",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "e4e1d9ad339afafc59b5ff231f91a0f11cbc1ab43a6c32716cbb69c34ea3de02",
+  "tool": "tofu",
+  "transcript_complete": true
+}

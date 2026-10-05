@@ -1,0 +1,142 @@
+{
+  "version": "1.0.0",
+  "source_records": [
+    {
+      "repository": "https://github.com/minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "license": "MIT",
+      "path": "tfmigrate/multi_state_migrator.go",
+      "sha256": "cdf38b439cec45ef9c63a3ace645ebc5bb8c676d5af80dc3772a6345c727172e",
+      "inspected_ranges": [
+        [
+          149,
+          203
+        ],
+        [
+          217,
+          249
+        ]
+      ],
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/tfmigrate/multi_state_migrator.go",
+      "decision": "Inspect only. Destination and source StatePush are separate; force and skipped-plan branches must not become production escape hatches.",
+      "code_copied": false
+    },
+    {
+      "repository": "https://github.com/minamijoyo/tfmigrate",
+      "commit": "e9f8a87fef214e2fe3e3108f88fd855d988e7a1d",
+      "license": "MIT",
+      "path": "command/history_runner.go",
+      "sha256": "a1bc98ccf2d8527244df4a8fa7cd2b0a194f2a02435177760557657b4b47ec47",
+      "inspected_ranges": [
+        [
+          93,
+          157
+        ]
+      ],
+      "url": "https://github.com/minamijoyo/tfmigrate/blob/e9f8a87fef214e2fe3e3108f88fd855d988e7a1d/command/history_runner.go",
+      "decision": "Inspect only. Apply effects can succeed before history Save fails; started receipts precede effects and receipt failure retains uncertainty.",
+      "code_copied": false
+    },
+    {
+      "repository": "https://github.com/cloudposse/atmos",
+      "commit": "67c41025906dccbed309334218d2c41a394862e4",
+      "license": "Apache-2.0",
+      "path": "internal/exec/terraform_execute_helpers_args.go",
+      "sha256": "12a17b200523acc8d8b573551e3da1b3871a12df238a05136f77dd07d717ae80",
+      "inspected_ranges": [
+        [
+          21,
+          84
+        ],
+        [
+          97,
+          194
+        ]
+      ],
+      "url": "https://github.com/cloudposse/atmos/blob/67c41025906dccbed309334218d2c41a394862e4/internal/exec/terraform_execute_helpers_args.go",
+      "decision": "Inspect only, newer source than native 1.199.0 baseline. Raw compatibility options can override declarative flags; future adapter must use a fixed action contract and qualify exact installed-version argument construction.",
+      "code_copied": false
+    },
+    {
+      "repository": "https://github.com/hashicorp/agent-skills",
+      "commit": "f706481af9b8fedb66de909f6243ad29601afa0c",
+      "license": "MPL-2.0",
+      "path": "plugins/terraform/skills/provider-test-patterns/references/checks.md",
+      "sha256": "b5e42a63d3553477a15cd99fc6027b1fa2516a45b1584e91a3c786d807df5863",
+      "inspected_ranges": [
+        [
+          25,
+          74
+        ],
+        [
+          165,
+          235
+        ]
+      ],
+      "url": "https://github.com/hashicorp/agent-skills/blob/f706481af9b8fedb66de909f6243ad29601afa0c/plugins/terraform/skills/provider-test-patterns/references/checks.md",
+      "decision": "Use concepts only: typed known-value assertions, identity across steps and distinct pre/post-refresh checks. Do not copy the final basic-config PreApply-empty example without a native counterexample; returning updated config to original ordinarily changes state.",
+      "code_copied": false
+    },
+    {
+      "repository": "https://github.com/hashicorp/agent-skills",
+      "commit": "f706481af9b8fedb66de909f6243ad29601afa0c",
+      "license": "MPL-2.0",
+      "path": "plugins/terraform/skills/terraform-test/references/CI_CD.md",
+      "sha256": "88fdffa4d3b8f361c570cb7c0df90a44380c70eb4471b3e27d552f32820179c8",
+      "inspected_ranges": [
+        [
+          1,
+          80
+        ]
+      ],
+      "url": "https://github.com/hashicorp/agent-skills/blob/f706481af9b8fedb66de909f6243ad29601afa0c/plugins/terraform/skills/terraform-test/references/CI_CD.md",
+      "decision": "Use separation of local/mocked and credentialed integration qualification. The example is guidance, not authenticated evidence or a ready enterprise pipeline.",
+      "code_copied": false
+    },
+    {
+      "repository": "https://github.com/antonbabenko/terraform-skill",
+      "commit": "0a3a4a66e99001347d36a41e10260a825be3ab62",
+      "license": "Apache-2.0",
+      "path": "skills/terraform-skill/references/ci-cd-workflows.md",
+      "sha256": "3ebb9a1d1e88c1f321381a0c179b9f9701e5dc0376bd6fac889feac4dd2de6c4",
+      "inspected_ranges": [
+        [
+          1,
+          115
+        ],
+        [
+          350,
+          385
+        ],
+        [
+          442,
+          595
+        ]
+      ],
+      "url": "https://github.com/antonbabenko/terraform-skill/blob/0a3a4a66e99001347d36a41e10260a825be3ab62/skills/terraform-skill/references/ci-cd-workflows.md",
+      "decision": "Use exact saved-plan handoff, environment protection, keyless identity and restricted sensitive artifacts as requirements. Do not inherit examples using floating tool versions, lock=false or unreviewed auto-apply. No template installed or executed.",
+      "code_copied": false
+    }
+  ],
+  "web_sources": [
+    {
+      "url": "https://developer.hashicorp.com/terraform/internals/json-format",
+      "accessed": "2026-09-30",
+      "mode": "web inspected, no raw acquisition hash",
+      "decision": "Structured change actions/masks/import identities; stricter local forward-version rule and supported-engine gate. Underlying plan authenticity remains external."
+    },
+    {
+      "url": "https://opentofu.org/docs/cli/commands/apply/",
+      "accessed": "2026-09-30",
+      "mode": "web inspected, no raw acquisition hash",
+      "decision": "Passing saved plan does not prompt for approval. Future privileged adapter requires independent protected approval before saved-plan apply."
+    },
+    {
+      "url": "https://opentofu.org/docs/cli/commands/plan/",
+      "accessed": "2026-09-30",
+      "mode": "web inspected, no raw acquisition hash",
+      "decision": "Detailed exit codes distinguish error and nonempty diff; targeting has completeness limitations. JSON cannot prove the invocation was untargeted."
+    }
+  ],
+  "reuse": "Original Python implementation; no upstream code, skill installation or workflow execution."
+}

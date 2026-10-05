@@ -1,0 +1,23 @@
+{
+  "runtime_race": {
+    "exception": "FileExistsError",
+    "preserved": true
+  },
+  "source_race": {
+    "exception": "FileExistsError",
+    "preserved": true
+  },
+  "receipt_race": {
+    "exception": "FileExistsError",
+    "preserved": true
+  },
+  "reserved_member": {
+    "exception": "ValueError",
+    "output_not_created": true
+  },
+  "source_extract_rebuild": {
+    "first_exit": 0,
+    "rebuild_exit": 0,
+    "same_archive_bytes": true
+  }
+}

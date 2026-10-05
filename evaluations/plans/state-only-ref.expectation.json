@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "observed_provider_run": false,
+  "expected_advisory_class": "state_only_by_pinned_source_not_live_proven",
+  "required_source_contract": "msgraph-0.5.0-ref-update-state-only",
+  "execution_authorized": false,
+  "limitation": "Representative plan fragment, not provider execution evidence; context must validate pinned contract independently."
+}

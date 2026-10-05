@@ -1,0 +1,9 @@
+test_hard_limits_and_nondumpable_core_budget (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_hard_limits_and_nondumpable_core_budget) ... ok
+test_parser_like_oversized_virtual_allocation_fails_without_host_allocation (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_parser_like_oversized_virtual_allocation_fails_without_host_allocation) ... ok
+test_process_creation_denied_but_runtime_threads_work (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_process_creation_denied_but_runtime_threads_work) ... ok
+test_sparse_file_budget_stops_growth (plugin_tests.test_protected_completion.ChildResourceBoundaryRegressionTests.test_sparse_file_budget_stops_growth) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.120s
+
+OK

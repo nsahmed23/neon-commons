@@ -1,0 +1,6 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "description": "Packaging fixture only; no live integrations or finished wizard.",
+  "name": "intune-iac-contract-fixture",
+  "version": "0.0.1"
+}

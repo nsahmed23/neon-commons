@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "init",
+    "-input=false",
+    "-no-color"
+  ],
+  "cwd": "partial-failure",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "fault-init",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "b7f275c45861756a414151ff33a21843490ee07badd382e91ffab4b68713b089",
+  "tool": "tofu",
+  "transcript_complete": true
+}

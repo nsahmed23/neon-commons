@@ -1,0 +1,46 @@
+test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) ... 
+  test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='wrong_endpoint_type') ... FAIL
+  test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='inclusion_reversed') ... FAIL
+  test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='wrong_group_uuid') ... FAIL
+  test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='wrong_filter_mode') ... FAIL
+
+======================================================================
+FAIL: test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='wrong_endpoint_type')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 116, in test_recomputed_digest_does_not_accept_contradictory_assignment_relationships
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='inclusion_reversed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 116, in test_recomputed_digest_does_not_accept_contradictory_assignment_relationships
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='wrong_group_uuid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 116, in test_recomputed_digest_does_not_accept_contradictory_assignment_relationships
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+======================================================================
+FAIL: test_recomputed_digest_does_not_accept_contradictory_assignment_relationships (plugin_tests.test_atmos_audit.AtmosAuditTests.test_recomputed_digest_does_not_accept_contradictory_assignment_relationships) (mutation='wrong_filter_mode')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_atmos_audit.py", line 116, in test_recomputed_digest_does_not_accept_contradictory_assignment_relationships
+    with self.assertRaises(AppError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AppError not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.061s
+
+FAILED (failures=4)

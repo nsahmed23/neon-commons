@@ -1,0 +1,28 @@
+{
+  "production_qualified": false,
+  "production_provider": false,
+  "scope": "test-only provider Configure plus actual repaired resource; GET-only synthetic transport",
+  "provider_commit": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a",
+  "candidate_manifest_sha256": "0c9fcb74e70727ddcd51ae8743bf8910617f7d327ac1ac0e222fe1b1433eb289",
+  "go_sha256": "46a07f77bf5b080799416d80759feadd8edecc21c26aad81bbcdbc3b4d865f7c",
+  "fixture_sources": {
+    "main.go": "6807d465a49b9b567c7016e8e504e10c3207c7badd61e47641d4800ed7d96176",
+    "fixture.json": "197509126934a1bd00daf72ad9986ba71bda2c5ac926e3c2e7e881227cfc03fb",
+    "main.tf.json.txt": "210d92f01bc714081a26ba47a8e4b0d613d558872f71e622c271ac7b3e19d4df",
+    "run.py": "652937980bdbda10a573711e82ea84932baa3ed274405a632567e3c231ff35e0",
+    "build.py": "ceffe0db95aa5f3fe1b9719a38dc6ca3cf5cec20ab7d3581aee582153ed5ef87"
+  },
+  "command": [
+    "/tmp/intune-provider-20261002/go/bin/go",
+    "build",
+    "-buildvcs=false",
+    "-mod=readonly",
+    "-p=1",
+    "-o",
+    "/tmp/intune-provider-20261002/synthetic-rpc-build/bin/terraform-provider-microsoft365",
+    "./cmd/intune-synthetic-fixture"
+  ],
+  "status": "built-test-only-provider",
+  "returncode": 0,
+  "binary_sha256": "3787f97ede0596c46de131e8844bbe76fb1994859c469270a8e747e90c4645a6"
+}

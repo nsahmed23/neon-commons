@@ -1,0 +1,16 @@
+{
+  "files": {
+    "BLOCKED.json": "1a3c65cf82f78ac24b64339556a5f42e24758c7b720a0ce31fdae8e4ea64b49d",
+    "README.md": "1234219f1344cfcfbd1025ed8f1ffeab86b7382c6af44312c68121dbc7328857",
+    "adoption/capability.json": "6a95870ec86780fff902f6f13046438f21744ce3af3b4ded8324a71c50cb2553",
+    "adoption/coverage.json": "a140db6ef9205a188c3cbe4511438a350f9c2d23c93de5496c5c511847d032ad",
+    "adoption/field-accounting.json": "99436cbbe14d3793f1152382cb328ed12e6cfdebc32492e3d7317671318ccd1a",
+    "adoption/object-map.json": "2ff3d96a93cdced46bbb9be7ab0937c70311e56a91d0638cfee94ce35d33ea93",
+    "adoption/source-receipt.json": "dd3388259c026997bdcc32d0de5134257b62abbe612acb7f385fff7260d139c6",
+    "adoption/unresolved-paths.json": "e51fc6a5330bbe736990b101e868cd5b0506c18b31d629e1bfb6a8eece417442",
+    "commands/command-cards.json": "1b7849d76f76ec3e7165c2965d1bd28944737627d9a252a13709ec727f6d2242",
+    "review/adoption-input.json": "cabc2b5238be1b209d59ce240577ce52b99a5b8f9905f4afa7b1216187f3e431",
+    "review/proposed-component.tf.txt": "c061b7e20f6905ed7c50ee72c692133ff879e458cf3b9587e00f56784b13e6f4"
+  },
+  "schema_version": "1.0.0"
+}

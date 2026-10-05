@@ -1,0 +1,6 @@
+test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json (plugin_tests.test_protected_completion.NativeBinaryProvenanceRegressionTests.test_rehashed_binary_with_provisioner_cannot_use_benign_plan_json) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 2.171s
+
+OK

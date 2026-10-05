@@ -1,0 +1,128 @@
+test_all_page_counts_apply_to_total_not_page_length (plugin_tests.test_capture_audit.CaptureAuditTests.test_all_page_counts_apply_to_total_not_page_length) ... FAIL
+test_case_variant_assignment_uuid_is_duplicate_but_raw_case_survives (plugin_tests.test_capture_audit.CaptureAuditTests.test_case_variant_assignment_uuid_is_duplicate_but_raw_case_survives) ... FAIL
+test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) ... 
+  test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count=1) ... FAIL
+  test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count='0') ... FAIL
+  test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count=True) ... FAIL
+  test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count=-1) ... FAIL
+test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) ... 
+  test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={}) ... FAIL
+  test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={'id': None}) ... FAIL
+  test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={'id': 1}) ... FAIL
+  test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={'id': ''}) ... FAIL
+test_opaque_setting_identity_is_case_sensitive (plugin_tests.test_capture_audit.CaptureAuditTests.test_opaque_setting_identity_is_case_sensitive) ... ok
+
+======================================================================
+FAIL: test_all_page_counts_apply_to_total_not_page_length (plugin_tests.test_capture_audit.CaptureAuditTests.test_all_page_counts_apply_to_total_not_page_length)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 50, in test_all_page_counts_apply_to_total_not_page_length
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_case_variant_assignment_uuid_is_duplicate_but_raw_case_survives (plugin_tests.test_capture_audit.CaptureAuditTests.test_case_variant_assignment_uuid_is_duplicate_but_raw_case_survives)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 33, in test_case_variant_assignment_uuid_is_duplicate_but_raw_case_survives
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 41, in test_declared_total_must_match_complete_chain
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count='0')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 41, in test_declared_total_must_match_complete_chain
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 41, in test_declared_total_must_match_complete_chain
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_declared_total_must_match_complete_chain (plugin_tests.test_capture_audit.CaptureAuditTests.test_declared_total_must_match_complete_chain) (count=-1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 41, in test_declared_total_must_match_complete_chain
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 59, in test_missing_or_empty_record_identity_cannot_be_complete
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={'id': None})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 59, in test_missing_or_empty_record_identity_cannot_be_complete
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={'id': 1})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 59, in test_missing_or_empty_record_identity_cannot_be_complete
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+======================================================================
+FAIL: test_missing_or_empty_record_identity_cannot_be_complete (plugin_tests.test_capture_audit.CaptureAuditTests.test_missing_or_empty_record_identity_cannot_be_complete) (row={'id': ''})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_capture_audit.py", line 59, in test_missing_or_empty_record_identity_cannot_be_complete
+    self.assertEqual(result["status"], "partial")
+AssertionError: 'captured' != 'partial'
+- captured
++ partial
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.009s
+
+FAILED (failures=10)

@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "terraform",
+    "import",
+    "identity",
+    "-s",
+    "import",
+    "-input=false",
+    "-no-color",
+    "terraform_data.identity",
+    "536a05b0-b0e2-dc69-cee0-805ee5d4feeb"
+  ],
+  "cwd": "repository",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0
+  ],
+  "name": "identity-import",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "b34d029aaf5b05ba47ecc916382470b40b7d40506469c66b1933814f86ebd38a",
+  "tool": "atmos",
+  "transcript_complete": true
+}

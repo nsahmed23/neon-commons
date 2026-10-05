@@ -1,0 +1,165 @@
+{
+  "expected_mapping": "ready",
+  "filters": [
+    "490e4f0e-41e1-5f0b-9432-cf7777ac7a28"
+  ],
+  "groups": [
+    "19a6259c-7b94-5d3f-951b-99798d108c22",
+    "36569b28-b6bc-5633-9940-3ea825cc9d19",
+    "b8930cfe-aaa4-56a9-9676-13874e2fb14a"
+  ],
+  "policies": [
+    {
+      "assignments": [
+        {
+          "filter_id": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+          "filter_type": "include",
+          "group_id": "19a6259c-7b94-5d3f-951b-99798d108c22",
+          "type": "groupAssignmentTarget"
+        },
+        {
+          "filter_type": "none",
+          "group_id": "36569b28-b6bc-5633-9940-3ea825cc9d19",
+          "type": "groupAssignmentTarget"
+        },
+        {
+          "filter_type": "none",
+          "group_id": "b8930cfe-aaa4-56a9-9676-13874e2fb14a",
+          "type": "exclusionGroupAssignmentTarget"
+        }
+      ],
+      "description": "Seed 42; authored synthetic policy 0.",
+      "id": "45838776-e1bd-566b-a8c5-ad684107e7da",
+      "name": "Privacy pilot 3",
+      "platforms": "windows10",
+      "role_scope_tag_ids": [
+        "0",
+        "43"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "children": [],
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+              },
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null
+            }
+          }
+        ]
+      },
+      "technologies": [
+        "mdm"
+      ]
+    },
+    {
+      "assignments": [
+        {
+          "filter_id": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+          "filter_type": "include",
+          "group_id": "19a6259c-7b94-5d3f-951b-99798d108c22",
+          "type": "groupAssignmentTarget"
+        },
+        {
+          "filter_type": "none",
+          "group_id": "36569b28-b6bc-5633-9940-3ea825cc9d19",
+          "type": "groupAssignmentTarget"
+        },
+        {
+          "filter_type": "none",
+          "group_id": "b8930cfe-aaa4-56a9-9676-13874e2fb14a",
+          "type": "exclusionGroupAssignmentTarget"
+        }
+      ],
+      "description": "Seed 42; authored synthetic policy 1.",
+      "id": "8d187561-e16b-5339-81c7-43989cdd0355",
+      "name": "Privacy pilot 3",
+      "platforms": "windows10",
+      "role_scope_tag_ids": [
+        "0",
+        "43"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "children": [],
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+              },
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null
+            }
+          }
+        ]
+      },
+      "technologies": [
+        "mdm"
+      ]
+    },
+    {
+      "assignments": [
+        {
+          "filter_id": "490e4f0e-41e1-5f0b-9432-cf7777ac7a28",
+          "filter_type": "include",
+          "group_id": "19a6259c-7b94-5d3f-951b-99798d108c22",
+          "type": "groupAssignmentTarget"
+        },
+        {
+          "filter_type": "none",
+          "group_id": "36569b28-b6bc-5633-9940-3ea825cc9d19",
+          "type": "groupAssignmentTarget"
+        },
+        {
+          "filter_type": "none",
+          "group_id": "b8930cfe-aaa4-56a9-9676-13874e2fb14a",
+          "type": "exclusionGroupAssignmentTarget"
+        }
+      ],
+      "description": "Seed 42; authored synthetic policy 2.",
+      "id": "6bdb7289-60dd-52fb-85f7-5b03dbb74f76",
+      "name": "Privacy pilot 3",
+      "platforms": "windows10",
+      "role_scope_tag_ids": [
+        "0",
+        "43"
+      ],
+      "settings": {
+        "settings": [
+          {
+            "id": "0",
+            "settingInstance": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+              "choiceSettingValue": {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                "children": [],
+                "settingValueTemplateReference": null,
+                "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+              },
+              "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+              "settingInstanceTemplateReference": null
+            }
+          }
+        ]
+      },
+      "technologies": [
+        "mdm"
+      ]
+    }
+  ],
+  "scope_tags": [
+    "0",
+    "43"
+  ],
+  "tenant_id": "ca8a8057-a15f-5caa-8979-0090cd1bc11b"
+}

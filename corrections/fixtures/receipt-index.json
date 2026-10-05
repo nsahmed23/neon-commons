@@ -1,0 +1,29 @@
+{
+  "schema_version": "2.0.0",
+  "lifecycle": "suspended",
+  "last_stable_state": "object_selection",
+  "artifacts": [
+    {
+      "artifact_id": "source",
+      "kind": "source",
+      "relative_path": "source-export.json",
+      "byte_sha256": "0f510c664fad6eb654ef7f764dd03edfd937725c6599ebb4b841566dd6c7074d",
+      "schema_id": "appendix-b-export/1.0.0",
+      "producer_version": "original-synthetic-fixture",
+      "dependencies": [],
+      "assurance": "synthetic"
+    }
+  ],
+  "decisions": [
+    {
+      "question_id": "input_source",
+      "choice_id": "local_export",
+      "selected_object_ids": [],
+      "source_artifact_ids": [
+        "source"
+      ],
+      "record_kind": "synthetic"
+    }
+  ],
+  "milestone_receipts": []
+}

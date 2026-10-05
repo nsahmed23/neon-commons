@@ -1,0 +1,19 @@
+test_capability_map_is_concrete_bounded_and_review_default (evaluations.test_repaired_contracts.RepairedContractTests.test_capability_map_is_concrete_bounded_and_review_default) ... ok
+test_capture_chain_projections_and_unsafe_urls (evaluations.test_repaired_contracts.RepairedContractTests.test_capture_chain_projections_and_unsafe_urls) ... ok
+test_description_local_boundaries_and_unicode (evaluations.test_repaired_contracts.RepairedContractTests.test_description_local_boundaries_and_unicode) ... ok
+test_duplicate_reference_case_insensitive_rejection (evaluations.test_repaired_contracts.RepairedContractTests.test_duplicate_reference_case_insensitive_rejection) ... ok
+test_field_rules_explicit_metadata_null_reference_and_containers (evaluations.test_repaired_contracts.RepairedContractTests.test_field_rules_explicit_metadata_null_reference_and_containers) ... ok
+test_guid_predicates_every_schema_copy (evaluations.test_repaired_contracts.RepairedContractTests.test_guid_predicates_every_schema_copy)
+Real validator must reject whitespace for every GUID predicate. ... ok
+test_package_import_and_fixture_validation_from_other_cwd (evaluations.test_repaired_contracts.RepairedContractTests.test_package_import_and_fixture_validation_from_other_cwd) ... ok
+test_projection_ids_never_canonicalized_or_renumbered (evaluations.test_repaired_contracts.RepairedContractTests.test_projection_ids_never_canonicalized_or_renumbered) ... ok
+test_projection_preserves_null_absent_and_order (evaluations.test_repaired_contracts.RepairedContractTests.test_projection_preserves_null_absent_and_order) ... ok
+test_registry_blocks_builtins_keywords_assignments_and_absent_tools (evaluations.test_repaired_contracts.RepairedContractTests.test_registry_blocks_builtins_keywords_assignments_and_absent_tools) ... ok
+test_safe_schema_diagnostics_never_echo_rejected_payload (evaluations.test_repaired_contracts.RepairedContractTests.test_safe_schema_diagnostics_never_echo_rejected_payload) ... ok
+test_template_values_null_or_absent_only (evaluations.test_repaired_contracts.RepairedContractTests.test_template_values_null_or_absent_only) ... ok
+test_valid_auth_object_null_transitions (evaluations.test_repaired_contracts.RepairedContractTests.test_valid_auth_object_null_transitions) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.096s
+
+OK

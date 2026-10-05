@@ -1,0 +1,116 @@
+test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) ... 
+  test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='protocolVersion', value=[]) ... ERROR
+  test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='protocolVersion', value={}) ... ERROR
+  test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='protocolVersion', value=None) ... FAIL
+  test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='capabilities', value=[]) ... FAIL
+  test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='clientInfo', value={}) ... FAIL
+  test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='clientInfo', value={'name': [], 'version': '1'}) ... FAIL
+test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) ... 
+  test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) (omitted='protocolVersion') ... FAIL
+  test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) (omitted='capabilities') ... FAIL
+  test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) (omitted='clientInfo') ... FAIL
+test_operations_wait_for_initialized_notification_and_cannot_reinitialize (plugin_tests.test_mcp_audit.MCPAuditTests.test_operations_wait_for_initialized_notification_and_cannot_reinitialize) ... FAIL
+test_stdio_rejects_utf16_before_initialization (plugin_tests.test_mcp_audit.MCPAuditTests.test_stdio_rejects_utf16_before_initialization) ... FAIL
+
+======================================================================
+ERROR: test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='protocolVersion', value=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 29, in test_malformed_initialize_is_rejected_without_losing_next_request
+    responses = self.exchange([initialize(bad), {"jsonrpc": "2.0", "id": 2, "method": "ping"}])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 18, in exchange
+    code = serve(io.BytesIO(incoming), output)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "baseline_mcp.py", line 79, in serve
+TypeError: unhashable type: 'list'
+
+======================================================================
+ERROR: test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='protocolVersion', value={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 29, in test_malformed_initialize_is_rejected_without_losing_next_request
+    responses = self.exchange([initialize(bad), {"jsonrpc": "2.0", "id": 2, "method": "ping"}])
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 18, in exchange
+    code = serve(io.BytesIO(incoming), output)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "baseline_mcp.py", line 79, in serve
+TypeError: unhashable type: 'dict'
+
+======================================================================
+FAIL: test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='protocolVersion', value=None)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 30, in test_malformed_initialize_is_rejected_without_losing_next_request
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='capabilities', value=[])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 30, in test_malformed_initialize_is_rejected_without_losing_next_request
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='clientInfo', value={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 30, in test_malformed_initialize_is_rejected_without_losing_next_request
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_malformed_initialize_is_rejected_without_losing_next_request (plugin_tests.test_mcp_audit.MCPAuditTests.test_malformed_initialize_is_rejected_without_losing_next_request) (field='clientInfo', value={'name': [], 'version': '1'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 30, in test_malformed_initialize_is_rejected_without_losing_next_request
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) (omitted='protocolVersion')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 40, in test_missing_required_initialize_metadata_is_rejected
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) (omitted='capabilities')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 40, in test_missing_required_initialize_metadata_is_rejected
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_missing_required_initialize_metadata_is_rejected (plugin_tests.test_mcp_audit.MCPAuditTests.test_missing_required_initialize_metadata_is_rejected) (omitted='clientInfo')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 40, in test_missing_required_initialize_metadata_is_rejected
+    self.assertIn("error", responses[0])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+======================================================================
+FAIL: test_operations_wait_for_initialized_notification_and_cannot_reinitialize (plugin_tests.test_mcp_audit.MCPAuditTests.test_operations_wait_for_initialized_notification_and_cannot_reinitialize)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 48, in test_operations_wait_for_initialized_notification_and_cannot_reinitialize
+    self.assertIn("error", responses[1])
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 2, 'result': {'tools': [{'name': 'intune_doctor', 'description': 'Report local prerequisites and supported capability boundaries.', 'inputSchema': {'type': 'object', 'properties': {}, 'required': [], 'additionalProperties': False}, 'annotations': {'readOnlyHint': True, 'openWorldHint': False}}, {'name': 'intune_inspect', 'description': 'Inspect a local versioned capture and context. Returns preserved observations and blockers; does not write files.', 'inputSchema': {'type': 'object', 'properties': {'input': {'type': 'string', 'minLength': 1}, 'context': {'type': 'string', 'minLength': 1}}, 'required': ['input', 'context'], 'additionalProperties': False}, 'annotations': {'readOnlyHint': True, 'openWorldHint': False}}, {'name': 'intune_preview', 'description': 'Describe a fixed local action and evidence binding without executing it or writing receipts.', 'inputSchema': {'type': 'object', 'properties': {'action': {'enum': ['inspect', 'generate', 'graph_build', 'graph_query', 'repository_inspect', 'repository_resolve']}, 'parameters': {'type': 'object'}, 'state_dir': {'type': 'string', 'minLength': 1}}, 'required': ['action', 'parameters', 'state_dir'], 'additionalProperties': False}, 'annotations': {'readOnlyHint': True, 'openWorldHint': False}}, {'name': 'intune_run_local', 'description': 'Run one registered local action with file-conflict protection and receipts. No shell, provider, or cloud execution.', 'inputSchema': {'type': 'object', 'properties': {'action': {'enum': ['inspect', 'generate', 'graph_build', 'graph_query', 'repository_inspect', 'repository_resolve']}, 'parameters': {'type': 'object'}, 'state_dir': {'type': 'string', 'minLength': 1}}, 'required': ['action', 'parameters', 'state_dir'], 'additionalProperties': False}, 'annotations': {'readOnlyHint': False, 'destructiveHint': False, 'openWorldHint': False}}, {'name': 'intune_graph_query', 'description': 'Query typed local policy, targeting, setting, impact and Atmos declaration relationships.', 'inputSchema': {'type': 'object', 'properties': {'graph': {'type': 'string', 'minLength': 1}, 'query': {'enum': ['policies', 'assignments', 'why-setting', 'impact', 'dependencies', 'placement']}, 'subject': {'type': 'string', 'minLength': 1}}, 'required': ['graph', 'query'], 'additionalProperties': False}, 'annotations': {'readOnlyHint': True, 'openWorldHint': False}}, {'name': 'intune_repository_inspect', 'description': 'Discover local Atmos stacks and components without evaluating templates or executing commands.', 'inputSchema': {'type': 'object', 'properties': {'root': {'type': 'string', 'minLength': 1}}, 'required': ['root'], 'additionalProperties': False}, 'annotations': {'readOnlyHint': True, 'openWorldHint': False}}, {'name': 'intune_repository_resolve', 'description': 'Resolve supported literal Atmos imports and inheritance. Return structural evidence and origins with configuration values omitted.', 'inputSchema': {'type': 'object', 'properties': {'root': {'type': 'string', 'minLength': 1}, 'stack': {'type': 'string', 'minLength': 1}, 'component': {'type': 'string', 'minLength': 1}}, 'required': ['root', 'stack', 'component'], 'additionalProperties': False}, 'annotations': {'readOnlyHint': True, 'openWorldHint': False}}]}}
+
+======================================================================
+FAIL: test_stdio_rejects_utf16_before_initialization (plugin_tests.test_mcp_audit.MCPAuditTests.test_stdio_rejects_utf16_before_initialization)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-plugin/plugin_tests/test_mcp_audit.py", line 57, in test_stdio_rejects_utf16_before_initialization
+    self.assertIn("error", reply)
+AssertionError: 'error' not found in {'jsonrpc': '2.0', 'id': 1, 'result': {'protocolVersion': '2025-06-18', 'capabilities': {'tools': {'listChanged': False}}, 'serverInfo': {'name': 'intune-iac', 'version': '0.2.0'}}}
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+FAILED (failures=9, errors=2)

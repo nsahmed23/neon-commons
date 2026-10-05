@@ -1,0 +1,18 @@
+test_closed_identity_invalidates_without_network_and_release_unknown (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_closed_identity_invalidates_without_network_and_release_unknown) ... ok
+test_context_exception_is_not_suppressed_and_releases_only_owner (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_context_exception_is_not_suppressed_and_releases_only_owner) ... ok
+test_etag_mutation_during_renew_and_bad_conditions_fail_closed (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_etag_mutation_during_renew_and_bad_conditions_fail_closed) ... ok
+test_expiry_before_and_during_renew_and_clock_rollback (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_expiry_before_and_during_renew_and_clock_rollback) ... ok
+test_fixed_api_acquire_renew_release_and_private_identity (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_fixed_api_acquire_renew_release_and_private_identity) ... ok
+test_long_acquire_response_never_creates_active_lease (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_long_acquire_response_never_creates_active_lease) ... ok
+test_mismatched_response_id_rejects_and_role_never_reacquires (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_mismatched_response_id_rejects_and_role_never_reacquires) ... ok
+test_receipts_and_laboratory_bindings_cannot_mint_live_role (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_receipts_and_laboratory_bindings_cannot_mint_live_role) ... ok
+test_redirect_denial_duplicate_headers_encoding_and_large_body (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_redirect_denial_duplicate_headers_encoding_and_large_body) ... ok
+test_release_lost_response_cancellation_and_repeated_release_no_retry (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_release_lost_response_cancellation_and_repeated_release_no_retry) ... ok
+test_response_loss_on_renew_permanently_loses_capability (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_response_loss_on_renew_permanently_loses_capability) ... ok
+test_two_owners_same_blob_conflict_and_first_remains_active (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_two_owners_same_blob_conflict_and_first_remains_active) ... ok
+test_wrong_credential_no_environment_fallback_and_nonserialization (plugin_tests.test_blob_lease_v5.BlobLeaseTests.test_wrong_credential_no_environment_fallback_and_nonserialization) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.018s
+
+OK

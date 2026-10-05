@@ -1,0 +1,27 @@
+fingerprint,independent_reconstruction_input,earliest_invalidated_milestone
+repository_revision,git HEAD observed in selected repository,repository
+dirty_files_digest,sorted paths and byte hashes of all relevant uncommitted inputs,repository
+source_kind,saved local-export/approved-adapter choice,source
+source_locator_digest,approved local source locator record; never raw credentials,source
+source_digest,independently parsed canonical source plus restricted raw byte digest record,inventory
+capture_contract_digest,versioned adapter boundary/query/relationship requirements,inventory
+exporter_contract_digest,exporter version and exact acquisition/coverage contract,inventory
+selected_ids_digest,validated sorted tenant/family/object IDs from saved developer decisions,selection
+ownership_digest,validated one-writer declarations and observed ownership inventory,ownership
+provider_source,repository required_providers resolution,mapping
+provider_version,"locked provider version, not a guessed latest",mapping
+provider_lock_digest,exact lockfile bytes,mapping
+provider_schema_digest,selected schema/importer/serializer contract provenance,mapping
+api_version,explicit qualified resource-family API version,mapping
+engine_version,resolved pinned OpenTofu executable identity,mapping
+atmos_version,resolved pinned Atmos executable identity,mapping
+tenant_id,approved context selection checked against source and observed caller,source
+cloud,approved service cloud and endpoint mapping,source
+component,selected Atmos component; resolved source provenance,generation
+stack,selected effective stack,generation
+backend_identity_digest,full structured backend fields in approval schema; recomputed,generation
+identity_digest,non-secret principal/authority/federation facts in approval schema,generation
+generated_files_digest,generated manifest bytes plus actual current file byte hashes,generation
+cohort_digest,validated assignment/filter/group scope and freshness-versioned membership record,review
+configuration_digest,closed relevant-file/effective-input manifest described in spec,review
+plan_digest,raw saved plan bytes in restricted artifact store; not JSON summary,review

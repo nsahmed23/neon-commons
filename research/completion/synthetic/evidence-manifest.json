@@ -1,0 +1,19 @@
+{
+  "purpose": "Consistency inventory, not authenticated authority",
+  "files": {
+    "cli-smoke.json": "03851b1702d7caece2e8fe93811405fa7396970794ca62603fa53be761683f97",
+    "python-tests.txt": "f10a1d34b402b2cbed5570dbe0de1858af32cece3631255567fd2d9142907a2c",
+    "result.json": "bb195ac3f8ab53115f72b44ed53aaf75a89cca0831971c47d11aff701c9d0f49",
+    "seed-42/approval.json": "8a9c21ec5a953a1f2c7977cd4a14c67197f782bcfaf446a118a18bdbea937588",
+    "seed-42/capture-estate.json": "7c84bf9f75404047f65eda018dab7d625453ee832b54792250dc396a1fd174d8",
+    "seed-42/capture.json": "730afb9682ab6b05d3974eb734590e4277b74b52a5fcadb445e61916ade3b55f",
+    "seed-42/context.json": "2fa2c21708652bf7c21308c7a60ecbbcaaee0ebb635933df0c2170bdf7a7316b",
+    "seed-42/contexts.json": "d36425c049eff287916e5a32f9c048f609a10dabcc8d31476cc5a77ec2d40304",
+    "seed-42/estate.json": "d1748da84433898664e2ceda5118c22aaac0fc888fc0545c3d07ee78a31312fb",
+    "seed-42/history.json": "2125037ff90598c8a86ccb829aedf9f05b2f5dfd96d7bf64a0bdd97d40e8bd36",
+    "seed-42/plan.json": "f31c02bc48b1accab983c3803d2902fb05440778b9f3fcc939beeaede8bb5aa7",
+    "seed-42/state.json": "276b4b66e81ff3e8116a253da28e0331437975df826e5fca040a6e5c911409cd",
+    "seed-42/truth.json": "b77a6a132c4f6cc406ad57569028255c9e220da88c2b2c2fc2af912c87d917d5",
+    "state-action-red.txt": "016c59d4c0e50a6d8a8a6f823b43aa00f425eb42476e858f662829dec07b6742"
+  }
+}

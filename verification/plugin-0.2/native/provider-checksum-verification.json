@@ -1,0 +1,12 @@
+{
+  "version": "1.0.0",
+  "archive_sha256": "412f6594404eacbbf61e11c289231a1089e6955e8fe80d081ee1aa6596da4281",
+  "binary_member": "terraform-provider-microsoft365_v1.0.0",
+  "binary_sha256": "903774df6d165f10a0df2a013c2f69e921cfd2b9b4a2d8b1bddc03758a4cca61",
+  "matches_release_checksums": true,
+  "matches_github_asset_digest": true,
+  "matches_registry_checksum": true,
+  "gpg_signature_verified": true,
+  "signer_fingerprint": "93C35A0678D1F851B477D95C2BC5232BA17AB08A",
+  "gpg_trust": "Registry-distributed public key; independent identity/key certification not established"
+}

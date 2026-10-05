@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "correction specification with isolated executable models; original remains unmodified",
+  "integrated_repair": false,
+  "original_tests": {
+    "run": 74,
+    "passed": 74,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "adversarial_original": {
+    "run": 33,
+    "passed": 5,
+    "failures": 28,
+    "harness_errors": 0
+  },
+  "correction_models": "see evidence/contract-model-receipt.json",
+  "live_or_host_execution": false,
+  "gaps": {
+    "closed": [
+      "G01"
+    ],
+    "partial": [
+      "G02",
+      "G03",
+      "G04",
+      "G05",
+      "G06",
+      "G07",
+      "G08",
+      "G09",
+      "G10",
+      "G11",
+      "G12"
+    ]
+  },
+  "not_completed": [
+    "integrated normalizer/generator repair",
+    "complete new preservation oracle implementation",
+    "real wizard persistence and UI integration",
+    "complete upstream raw-source/dependency acquisition",
+    "provider process validation/serialization",
+    "native host/PowerShell tests",
+    "agent benchmarks",
+    "tenant/endpoint qualification",
+    "remaining prior family and lab inventory"
+  ]
+}

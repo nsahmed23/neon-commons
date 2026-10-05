@@ -1,0 +1,865 @@
+{
+  "schema_version": "1.0",
+  "adapter": "atmos-literal/1.0",
+  "purpose": "Narrow exact-input native-vs-Python literal vars equivalence; no identity or execution qualification.",
+  "fixture_preparation": "Original fixtures copied, atmos.yaml runtime settings/version/templates/logs removed; child_to_override generated YAML alias expanded to equivalent literal duplicate mapping. Native and Python both consume the prepared shared directory. All original versus prepared file hashes retained.",
+  "python_implementation_sha256": "c655817c058703973d5df96d1e776b618cfcde80c8a1aacb882c5818847efb95",
+  "native_release": "Atmos 1.199.0",
+  "native_binary_sha256": "8e4b057f0cf38686c5eb61db57c8291027a22dfc4ce54a806dc83b34aa96757b",
+  "cases": [
+    {
+      "case": "imports_ab",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/imports_ab",
+      "source_fingerprint": "42aab0a7b7e500a16615e5ef2dfc20a985031046325cb584b4689b8078b76821",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+        },
+        {
+          "path": "stacks/catalog/b.yaml",
+          "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+        },
+        {
+          "path": "stacks/catalog/b.yaml",
+          "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+        },
+        {
+          "path": "stacks/catalog/b.yaml",
+          "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "selected": "b",
+        "nested": {
+          "a": "a",
+          "same": "b",
+          "b": "b",
+          "local": "local"
+        },
+        "items": [
+          "b"
+        ],
+        "stage": "qualification"
+      },
+      "native_receipt": "atmos-python-shared-imports_ab.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "items": [
+          "b"
+        ],
+        "nested": {
+          "a": "a",
+          "b": "b",
+          "local": "local",
+          "same": "b"
+        },
+        "selected": "b",
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "415d897c3b1371ce72d84154af4bd9e66e81ad332e648d687dec672756739557",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "imports_ba",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/imports_ba",
+      "source_fingerprint": "8ac9af4bd66ca7cc62eb78379757e523d45768c5359435bd1f5d59f7ba0de405",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+        },
+        {
+          "path": "stacks/catalog/b.yaml",
+          "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+        },
+        {
+          "path": "stacks/catalog/b.yaml",
+          "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d"
+        },
+        {
+          "path": "stacks/catalog/b.yaml",
+          "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "selected": "a",
+        "nested": {
+          "b": "b",
+          "same": "a",
+          "a": "a",
+          "local": "local"
+        },
+        "items": [
+          "a"
+        ],
+        "stage": "qualification"
+      },
+      "native_receipt": "atmos-python-shared-imports_ba.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "items": [
+          "a"
+        ],
+        "nested": {
+          "a": "a",
+          "b": "b",
+          "local": "local",
+          "same": "a"
+        },
+        "selected": "a",
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "7fceeefe7c29ef8090fe3082b15b23b30acd2ae6615e67741d93692f817a43b4",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "inherits_parent_b",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/inherits_parent_b",
+      "source_fingerprint": "08c21cd4851e801dc729106fcd9ed6b108fcc5123844aa697735f5079d0269c0",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "stage": "qualification",
+        "selected": "parent_b",
+        "nested": {
+          "parent_a": "parent_a",
+          "same": "parent_b",
+          "parent_b": "parent_b",
+          "local": "local"
+        },
+        "items": [
+          "parent_b"
+        ]
+      },
+      "native_receipt": "atmos-python-shared-inherits_parent_b.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "items": [
+          "parent_b"
+        ],
+        "nested": {
+          "local": "local",
+          "parent_a": "parent_a",
+          "parent_b": "parent_b",
+          "same": "parent_b"
+        },
+        "selected": "parent_b",
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "dd10d7cdf6582a15e0757dad9ad318afd76669c4a6be81110b58d1a2fb70ee0a",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "inherits_parent_a",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/inherits_parent_a",
+      "source_fingerprint": "4eadfd04e949a32399b485a9d55f9e044c089420c32252a7b3ec328d5abbd42f",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "stage": "qualification",
+        "selected": "parent_a",
+        "nested": {
+          "parent_b": "parent_b",
+          "same": "parent_a",
+          "parent_a": "parent_a",
+          "local": "local"
+        },
+        "items": [
+          "parent_a"
+        ]
+      },
+      "native_receipt": "atmos-python-shared-inherits_parent_a.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "items": [
+          "parent_a"
+        ],
+        "nested": {
+          "local": "local",
+          "parent_a": "parent_a",
+          "parent_b": "parent_b",
+          "same": "parent_a"
+        },
+        "selected": "parent_a",
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "0de0172429fe659a856187c0459c99449eac9971d5a46bad9b2a4732301d50c6",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "scope_local",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/scope_local",
+      "source_fingerprint": "1f71f9ae8d9c3cb7410c9caff6f20d05fcd3b7920f5af0022867cfcff8c448fe",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "stage": "qualification",
+        "selected": "local",
+        "nested": {
+          "root": "root",
+          "same": "local",
+          "type": "type",
+          "parent": "parent",
+          "local": "local"
+        }
+      },
+      "native_receipt": "atmos-python-shared-scope_local.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "nested": {
+          "local": "local",
+          "parent": "parent",
+          "root": "root",
+          "same": "local",
+          "type": "type"
+        },
+        "selected": "local",
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "b80bac695363b72adbf6891d99126f32a0e708cadca9820514a8658d807c80fe",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "scope_override",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/scope_override",
+      "source_fingerprint": "1969eaa1eb74c3660bb0373c43723b7775ee4dac3c18428a2db434449914b043",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "stage": "qualification",
+        "selected": "override",
+        "nested": {
+          "root": "root",
+          "same": "override",
+          "type": "type",
+          "parent": "parent",
+          "local": "local",
+          "override": "override"
+        }
+      },
+      "native_receipt": "atmos-python-shared-scope_override.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "nested": {
+          "local": "local",
+          "override": "override",
+          "parent": "parent",
+          "root": "root",
+          "same": "override",
+          "type": "type"
+        },
+        "selected": "override",
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "bc8a49fc646016140dac8326bea55978548cc6a91271e78c7336659f9b9c6f22",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "empty_values",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/empty_values",
+      "source_fingerprint": "469fc33cad8d898c20f96afe3a750c111229cfde4b29e466236a7077ba98bc91",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "empty_string": "",
+        "zero": 0,
+        "false": false,
+        "null_value": null,
+        "empty_list": [],
+        "empty_map": {
+          "old": "old"
+        },
+        "stage": "qualification"
+      },
+      "native_receipt": "atmos-python-shared-empty_values.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "empty_list": [],
+        "empty_map": {
+          "old": "old"
+        },
+        "empty_string": "",
+        "false": false,
+        "null_value": null,
+        "stage": "qualification",
+        "zero": 0
+      },
+      "native_receipt_sha256": "842422ce3cc9838c9c3aab2e9ecf51fc50674726081df047f1e35ec8831ec44e",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "type_change",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/type_change",
+      "source_fingerprint": "bd10b487e7ebe513ef0c46d1ef7d3969134a90805cbc600b39a5d511a8129ee0",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "blocked",
+      "python_blockers": [
+        {
+          "code": "merge_type_conflict",
+          "status": "unknown",
+          "path": "stacks/orgs/qualification.yaml",
+          "pointer": "/vars/selected"
+        }
+      ],
+      "python_vars": null,
+      "native_receipt": "atmos-python-shared-type_change.json",
+      "native_returncode": 1,
+      "native_vars": null,
+      "native_receipt_sha256": "90301c833da847f0aa683d81c7f622abdc028dff5928dfc003f46e81892c71dd",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "parent_to_child",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/parent_to_child",
+      "source_fingerprint": "2d6520dfea8fceaa9c9683f5fb9de8030b062790698e06c78f841f38e5ce02eb",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "stage": "qualification",
+        "empty_string": "",
+        "zero": 0,
+        "false": false,
+        "null_value": null,
+        "empty_list": [],
+        "empty_map": {
+          "old": "old"
+        }
+      },
+      "native_receipt": "atmos-python-shared-parent_to_child.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "empty_list": [],
+        "empty_map": {
+          "old": "old"
+        },
+        "empty_string": "",
+        "false": false,
+        "null_value": null,
+        "stage": "qualification",
+        "zero": 0
+      },
+      "native_receipt_sha256": "fa4db7f8920433da2dffdbcc99f17a5da0a9c7d0065f480d612192f4f5feca25",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "child_to_override",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/child_to_override",
+      "source_fingerprint": "fa4acf70bdea54d16dd7584fc0e3bd9cf1e1d928349bba7dfa1725dd1ef2ad53",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "42b4fe6fb3257f1023254b0de30a9c4c9a793a640944321a4dcef5f762d27d69"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "42b4fe6fb3257f1023254b0de30a9c4c9a793a640944321a4dcef5f762d27d69"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "8c6ca52e30e3764d86ef599d7296e4a78ecb2d955cd2caf622fa4bd012328cad"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml",
+        "stacks/orgs/qualification.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "stage": "qualification",
+        "empty_string": "",
+        "zero": 0,
+        "false": false,
+        "null_value": null,
+        "empty_list": [],
+        "empty_map": {
+          "old": "old"
+        }
+      },
+      "native_receipt": "atmos-python-shared-child_to_override.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "empty_list": [],
+        "empty_map": {
+          "old": "old"
+        },
+        "empty_string": "",
+        "false": false,
+        "null_value": null,
+        "stage": "qualification",
+        "zero": 0
+      },
+      "native_receipt_sha256": "cc3f9a4937de9796d33834ef2621d84739409c0d7fac4638f7bfd66aa1e8c424",
+      "exact_sources_match": true,
+      "passed": true
+    },
+    {
+      "case": "null_shapes",
+      "physical_stack": "orgs/qualification",
+      "component": "leaf",
+      "input_directory": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/python-fixtures/null_shapes",
+      "source_fingerprint": "c5fed142514e8bf3b059025da7923dcaaa4deaffbb60c923046ed98b07218e61",
+      "resolver_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6"
+        }
+      ],
+      "complete_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6"
+        }
+      ],
+      "original_fixture_sources": [
+        {
+          "path": "atmos.yaml",
+          "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0"
+        },
+        {
+          "path": "stacks/catalog/a.yaml",
+          "sha256": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63"
+        },
+        {
+          "path": "stacks/orgs/qualification.yaml",
+          "sha256": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6"
+        }
+      ],
+      "differences_from_original": [
+        "atmos.yaml"
+      ],
+      "python_status": "resolved",
+      "python_blockers": [],
+      "python_vars": {
+        "null_to_scalar": "new",
+        "null_to_list": [
+          "new"
+        ],
+        "null_to_map": {
+          "new": 1
+        },
+        "map_to_null": null,
+        "list_to_null": null,
+        "scalar_to_null": null,
+        "stage": "qualification"
+      },
+      "native_receipt": "atmos-python-shared-null_shapes.json",
+      "native_returncode": 0,
+      "native_vars": {
+        "list_to_null": null,
+        "map_to_null": null,
+        "null_to_list": [
+          "new"
+        ],
+        "null_to_map": {
+          "new": 1
+        },
+        "null_to_scalar": "new",
+        "scalar_to_null": null,
+        "stage": "qualification"
+      },
+      "native_receipt_sha256": "f95657ea25266416fc9201740ef35d1f7815e5085b03f9bcdd8bbec230ec3e06",
+      "exact_sources_match": true,
+      "passed": true
+    }
+  ],
+  "all_passed": true
+}

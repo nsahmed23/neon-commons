@@ -1,0 +1,9 @@
+vars:
+  null_to_scalar: null
+  null_to_list: null
+  null_to_map: null
+  map_to_null:
+    old: 1
+  list_to_null:
+  - old
+  scalar_to_null: old

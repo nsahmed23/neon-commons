@@ -1,0 +1,17 @@
+test_duplicate_kind_rejected_before_any_receipt_trust (evaluations.test_repaired_workflow.Workflow.test_duplicate_kind_rejected_before_any_receipt_trust) ... FAIL
+
+======================================================================
+FAIL: test_duplicate_kind_rejected_before_any_receipt_trust (evaluations.test_repaired_workflow.Workflow.test_duplicate_kind_rejected_before_any_receipt_trust)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/scratch/26b6d364cfda/intune-iac-repaired/evaluations/test_repaired_workflow.py", line 81, in test_duplicate_kind_rejected_before_any_receipt_trust
+    self.assertEqual(workflow.resume(self.root,local_resume=True)['next_state'],'blocked_with_offline_alternative')
+AssertionError: 'source_selection' != 'blocked_with_offline_alternative'
+- source_selection
++ blocked_with_offline_alternative
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.021s
+
+FAILED (failures=1)

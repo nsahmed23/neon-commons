@@ -1,0 +1,24 @@
+scope,source_fields,disposition,required_rule
+source,"schema_version,synthetic,captured_at",capture_provenance,source-provenance/v1; validate supported version and timestamp; synthetic is an evidence label and never authority; retain original only
+source,"tenant_id,cloud",configuration_identity,source-target/v1; independently validate selected tenant and explicitly supported cloud before deriving target identity
+source,"exporter,collections,references",capture_provenance,source-containers/v1; classify each source container and descend into its independently validated leaves; restricted original retention never substitutes for leaf accounting
+exporter,"id,version",capture_provenance,exporter-adapter/v1; validate exactly pinned adapter identifier and version before deriving collection roots
+collection,"kind,owner_id,coverage,reason,pages",capture_provenance,capture-collection/v1; exactly one required collection per kind and owner; explicit complete pages required; container and each leaf retain original only
+policy,id,configuration_identity,same object; stable key and import ID independently derived
+policy,@odata.type,service_metadata,validate exact policy discriminator; retain restricted observation; omit from provider desired configuration; rule policy-discriminator/v1
+policy,"name,description,platforms,technologies,roleScopeTagIds",desired,explicit bounded type/value constraints; no hardcoded technology substitution
+policy,"createdDateTime,lastModifiedDateTime,isAssigned,settingCount",service_metadata,counts are checked against captures; not sent as desired
+policy,templateReference,qualified_none_template,required explicit observation; only exact bounded none-template shape may be treated as observed metadata; absent or other shapes block
+policy_template,"templateId,templateFamily,templateDisplayName,templateDisplayVersion",qualified_none_template,account separately for required container and each leaf under policy-none-template/v1; validate empty ID and none family with exact null display metadata; retain restricted observation only; absent container blocks support and must not be inferred as none
+setting_wrapper,id,configuration_identity,preserve in provider config; separately trace constructor wire omission
+setting_wrapper,@odata.type,service_metadata,validate known wrapper discriminator; omit only from provider config
+setting_instance,"@odata.type,settingDefinitionId,simpleSettingValue,choiceSettingValue",desired,per-variant schema; unknown/non-null template blocks reference slice
+setting_instance,settingInstanceTemplateReference,desired,setting-null-template/v1; only null or absent accepted; present null preserves exact destination in provider settings; absent stays absent with no invented record; non-null blocks output
+setting_value,"value,children,@odata.type",desired,correct primitive/container type; preserve child sequence; no invented defaults
+setting_value,settingValueTemplateReference,desired,setting-null-template/v1; only null or absent accepted; present null preserves exact destination in provider settings; absent stays absent with no invented record; non-null blocks output
+accounting,containers and leaves,explicit_field_accounting,field-accounting/v1; emit exactly one record per source container and leaf with rule ID/version and destination pointers or restricted-retention reason plus loss-blocking flag; ancestor rule never substitutes for a leaf rule
+assignment,"id,@odata.type",service_metadata,keep observed service identity; policy targeting equality is semantic target tuple
+assignment_target,"@odata.type,groupId,deviceAndAppManagementAssignmentFilterType,deviceAndAppManagementAssignmentFilterId",desired_relationship,map full include/exclude/filter tuple; none mode absent vs null recorded
+external_reference,"kind,id,ownership,coverage,captured_at",external_reference,"unique validated identity, complete current evidence; never imply group ownership"
+capture,"method,request_url,http_status,captured_at,body,value,@odata.nextLink",capture_provenance,capture-page/v1; validate actual request boundary and full nextLink chain with capture time and successful status; any body error member invalidates completeness even at HTTP200 with a value array; body and value containers descend to observed entity rules; missing observations never imply desired deletion
+unknown,any unclassified field,unsupported,retain original only; safe finding pointer and execution blocker

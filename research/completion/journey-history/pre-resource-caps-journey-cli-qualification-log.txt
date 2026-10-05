@@ -1,0 +1,12 @@
+{
+  "success": true,
+  "checks": {
+    "completed_all_stages": true,
+    "implementation_unchanged": true,
+    "live_gates_retained": true,
+    "no_cloud_authority": true,
+    "generated_current_source": true,
+    "actual_cli_succeeded": true
+  },
+  "result": "/tmp/intune-journey-cli-frozen-20261002/qualification.json"
+}

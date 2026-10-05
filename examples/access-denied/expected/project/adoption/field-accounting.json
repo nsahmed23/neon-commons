@@ -1,0 +1,1484 @@
+{
+  "records": [
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": ""
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/schema_version"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "boolean",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/synthetic"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/tenant_id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/cloud"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/captured_at"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/exporter"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/exporter/id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/exporter/version"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/kind"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/owner_id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/coverage"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/reason"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/request_url"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/method"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/http_status"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/captured_at"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy"
+      ],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/@odata.type"
+      ],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/@odata.type"
+    },
+    {
+      "destination_pointers": [
+        "/object_id",
+        "/key"
+      ],
+      "disposition": "identity",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.identity.v2",
+      "rule_id": "policy.identity.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/id"
+    },
+    {
+      "destination_pointers": [
+        "/desired/name"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.desired.v2",
+      "rule_id": "policy.desired.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/name"
+    },
+    {
+      "destination_pointers": [
+        "/desired/description"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.desired.v2",
+      "rule_id": "policy.desired.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/description"
+    },
+    {
+      "destination_pointers": [
+        "/desired/platforms"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.desired.v2",
+      "rule_id": "policy.desired.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/platforms"
+    },
+    {
+      "destination_pointers": [
+        "/desired/technologies/0"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.desired.v2",
+      "rule_id": "policy.desired.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/technologies"
+    },
+    {
+      "destination_pointers": [
+        "/desired/role_scope_tag_ids"
+      ],
+      "disposition": "desired",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "policy.desired.v2",
+      "rule_id": "policy.desired.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/roleScopeTagIds"
+    },
+    {
+      "destination_pointers": [
+        "/desired/role_scope_tag_ids/0"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.desired.v2",
+      "rule_id": "policy.desired.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/roleScopeTagIds/0"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/createdDateTime"
+      ],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/createdDateTime"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/lastModifiedDateTime"
+      ],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/lastModifiedDateTime"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/settingCount"
+      ],
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/settingCount"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/isAssigned"
+      ],
+      "disposition": "service_owned",
+      "kind": "boolean",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/isAssigned"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/templateReference"
+      ],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/templateReference/templateId"
+      ],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateId"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/templateReference/templateFamily"
+      ],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateFamily"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/templateReference/templateDisplayName"
+      ],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateDisplayName"
+    },
+    {
+      "destination_pointers": [
+        "/observed/policy/templateReference/templateDisplayVersion"
+      ],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "policy.metadata.v2",
+      "rule_id": "policy.metadata.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/0/templateReference/templateDisplayVersion"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/@odata.type"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/name"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/description"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/platforms"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/technologies"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/roleScopeTagIds"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/roleScopeTagIds/0"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/createdDateTime"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/lastModifiedDateTime"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/settingCount"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "boolean",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/isAssigned"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateId"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateFamily"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateDisplayName"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/0/pages/0/body/value/1/templateReference/templateDisplayVersion"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/kind"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/owner_id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/coverage"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/reason"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/request_url"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/method"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/http_status"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/captured_at"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value"
+    },
+    {
+      "destination_pointers": [
+        "/observed/settings/0"
+      ],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "setting.wrapper.v2",
+      "rule_id": "setting.wrapper.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0"
+    },
+    {
+      "destination_pointers": [
+        "/observed/settings/0/@odata.type"
+      ],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "setting.wrapper-type.v2",
+      "rule_id": "setting.wrapper-type.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/@odata.type"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/id"
+      ],
+      "disposition": "identity",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "setting.identity.v2",
+      "rule_id": "setting.identity.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/id"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance"
+      ],
+      "disposition": "desired",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/@odata.type"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/@odata.type"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/settingDefinitionId"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/settingDefinitionId"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/settingInstanceTemplateReference"
+      ],
+      "disposition": "desired",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/settingInstanceTemplateReference"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/choiceSettingValue"
+      ],
+      "disposition": "desired",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/choiceSettingValue/@odata.type"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/@odata.type"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/choiceSettingValue/settingValueTemplateReference"
+      ],
+      "disposition": "desired",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/settingValueTemplateReference"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/choiceSettingValue/value"
+      ],
+      "disposition": "desired",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/value"
+    },
+    {
+      "destination_pointers": [
+        "/desired/settings/settings/0/settingInstance/choiceSettingValue/children"
+      ],
+      "disposition": "desired",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "setting.instance.v2",
+      "rule_id": "setting.instance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/1/pages/0/body/value/0/settingInstance/choiceSettingValue/children"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/kind"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/owner_id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/coverage"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/reason"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0/request_url"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0/method"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "number",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0/http_status"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0/captured_at"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0/body"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/collections/2/pages/0/body/error"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "unsupported",
+      "finding_id": "f_11755175296ca218926573c7",
+      "kind": "string",
+      "loss_blocking": true,
+      "reason": "Restricted original only",
+      "retention_locator": "restricted-original-source",
+      "rule_id": "retention.unsupported.v2",
+      "rule_version": "2.0.0",
+      "source_digest_ref": "849eeb2732b1fbb244082912ac0b10df0997049ad70a9cb0447e475d3c7d45a6",
+      "source_pointer": "opaque:f_11755175296ca218926573c7"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "unsupported",
+      "finding_id": "f_20e33cfcd34dfda9ff71c34a",
+      "kind": "string",
+      "loss_blocking": true,
+      "reason": "Restricted original only",
+      "retention_locator": "restricted-original-source",
+      "rule_id": "retention.unsupported.v2",
+      "rule_version": "2.0.0",
+      "source_digest_ref": "849eeb2732b1fbb244082912ac0b10df0997049ad70a9cb0447e475d3c7d45a6",
+      "source_pointer": "opaque:f_20e33cfcd34dfda9ff71c34a"
+    },
+    {
+      "destination_pointers": [
+        "/references"
+      ],
+      "disposition": "separately_managed",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references"
+    },
+    {
+      "destination_pointers": [
+        "/references/0"
+      ],
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/0"
+    },
+    {
+      "destination_pointers": [
+        "/references/0/kind"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/0/kind"
+    },
+    {
+      "destination_pointers": [
+        "/references/0/id"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/0/id"
+    },
+    {
+      "destination_pointers": [
+        "/references/0/ownership"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/0/ownership"
+    },
+    {
+      "destination_pointers": [
+        "/references/0/coverage"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/0/coverage"
+    },
+    {
+      "destination_pointers": [
+        "/references/0/captured_at"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/0/captured_at"
+    },
+    {
+      "destination_pointers": [
+        "/references/1"
+      ],
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/1"
+    },
+    {
+      "destination_pointers": [
+        "/references/1/kind"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/1/kind"
+    },
+    {
+      "destination_pointers": [
+        "/references/1/id"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/1/id"
+    },
+    {
+      "destination_pointers": [
+        "/references/1/ownership"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/1/ownership"
+    },
+    {
+      "destination_pointers": [
+        "/references/1/coverage"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/1/coverage"
+    },
+    {
+      "destination_pointers": [
+        "/references/1/captured_at"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/1/captured_at"
+    },
+    {
+      "destination_pointers": [
+        "/references/2"
+      ],
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/2"
+    },
+    {
+      "destination_pointers": [
+        "/references/2/kind"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/2/kind"
+    },
+    {
+      "destination_pointers": [
+        "/references/2/id"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/2/id"
+    },
+    {
+      "destination_pointers": [
+        "/references/2/ownership"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/2/ownership"
+    },
+    {
+      "destination_pointers": [
+        "/references/2/coverage"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/2/coverage"
+    },
+    {
+      "destination_pointers": [
+        "/references/2/captured_at"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/2/captured_at"
+    },
+    {
+      "destination_pointers": [
+        "/references/3"
+      ],
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/3"
+    },
+    {
+      "destination_pointers": [
+        "/references/3/kind"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/3/kind"
+    },
+    {
+      "destination_pointers": [
+        "/references/3/id"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/3/id"
+    },
+    {
+      "destination_pointers": [
+        "/references/3/ownership"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/3/ownership"
+    },
+    {
+      "destination_pointers": [
+        "/references/3/coverage"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/3/coverage"
+    },
+    {
+      "destination_pointers": [
+        "/references/3/captured_at"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/3/captured_at"
+    },
+    {
+      "destination_pointers": [
+        "/references/4"
+      ],
+      "disposition": "separately_managed",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/4"
+    },
+    {
+      "destination_pointers": [
+        "/references/4/kind"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/4/kind"
+    },
+    {
+      "destination_pointers": [
+        "/references/4/id"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/4/id"
+    },
+    {
+      "destination_pointers": [
+        "/references/4/ownership"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/4/ownership"
+    },
+    {
+      "destination_pointers": [
+        "/references/4/coverage"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/4/coverage"
+    },
+    {
+      "destination_pointers": [
+        "/references/4/captured_at"
+      ],
+      "disposition": "separately_managed",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "reference.external.v2",
+      "rule_id": "reference.external.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/references/4/captured_at"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "array",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/ownership"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "object",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/ownership/0"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/ownership/0/object_id"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "null",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/ownership/0/current_writer"
+    },
+    {
+      "destination_pointers": [],
+      "disposition": "service_owned",
+      "kind": "string",
+      "loss_blocking": false,
+      "reason": "capture.provenance.v2",
+      "rule_id": "capture.provenance.v2",
+      "rule_version": "2.0.0",
+      "source_pointer": "/ownership/0/adoption_intent"
+    }
+  ],
+  "schema_version": "1.0.0"
+}

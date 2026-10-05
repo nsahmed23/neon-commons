@@ -1,0 +1,8 @@
+{
+  "path": "/workspace/scratch/26b6d364cfda/offline-qualification-0.2-receipts/terraform-provider-microsoft365_1.0.0_linux_amd64.zip",
+  "actual_size": 81129472,
+  "expected_size": 91836195,
+  "actual_sha256": "65b7dfcb623f9bb956aa1ddabb293cb3a146d582a9ce8752ef6ba80a9adb19bd",
+  "expected_sha256": "412f6594404eacbbf61e11c289231a1089e6955e8fe80d081ee1aa6596da4281",
+  "executed": false
+}

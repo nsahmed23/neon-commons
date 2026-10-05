@@ -1,0 +1,78 @@
+{
+  "schema_version": "target-evidence/1.0",
+  "observed_at": "2026-09-30T11:59:30Z",
+  "binding": {
+    "cloud": "public",
+    "tenant_id": "11111111-1111-4111-8111-111111111111",
+    "subscription_id": null,
+    "endpoints": {
+      "graph": "https://graph.microsoft.com",
+      "authority": "https://login.microsoftonline.com",
+      "management": "https://management.azure.com",
+      "storage_audience": "https://storage.azure.com/"
+    },
+    "identity": {
+      "principal_object_id": "11111111-1111-4111-8111-111111111111",
+      "client_id": "33333333-3333-4333-8333-333333333333",
+      "auth_kind": "workload_federation",
+      "federation": {
+        "issuer": "https://token.actions.githubusercontent.com",
+        "subject": "repo:example/infra:environment:lab",
+        "audience": "api://AzureADTokenExchange"
+      }
+    },
+    "repository": {
+      "git_revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "dirty_files_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "source_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "configuration_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "logical_stack": "lab-dev",
+      "physical_stack": "deploy/dev",
+      "component": "intune",
+      "implementation_path": "components/terraform/intune",
+      "runtime_layers_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    },
+    "backend": {
+      "type": "azurerm",
+      "cloud": "public",
+      "tenant_id": "11111111-1111-4111-8111-111111111111",
+      "subscription_id": "22222222-2222-4222-8222-222222222222",
+      "identity": {
+        "principal_object_id": "11111111-1111-4111-8111-111111111111",
+        "client_id": "33333333-3333-4333-8333-333333333333",
+        "auth_kind": "workload_federation",
+        "federation": {
+          "issuer": "https://token.actions.githubusercontent.com",
+          "subject": "repo:example/infra:environment:lab",
+          "audience": "api://AzureADTokenExchange"
+        }
+      },
+      "storage_account_resource_id": "/subscriptions/22222222-2222-4222-8222-222222222222/resourceGroups/reference/providers/Microsoft.Storage/storageAccounts/syntheticstate",
+      "blob_endpoint": "https://syntheticstate.blob.core.windows.net",
+      "container": "tfstate",
+      "key": "intune.tfstate",
+      "workspace": "lab",
+      "resolved_blob_name": "intune.tfstateenv:lab",
+      "state_lineage": "33333333-3333-4333-8333-333333333333",
+      "state_serial": 7,
+      "state_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+    },
+    "ownership": {
+      "mode": "single_writer",
+      "writer_id": "intune-ci",
+      "scope_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "lease_id": "11111111-1111-4111-8111-111111111111",
+      "lease_expires_at": "2026-09-30T12:01:00Z"
+    },
+    "toolchain": {
+      "atmos_version": "1.199.0",
+      "atmos_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "engine": "tofu",
+      "engine_version": "1.10.0",
+      "engine_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "provider_source": "deploymenttheory/microsoft365",
+      "provider_version": "1.0.0",
+      "provider_lock_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    }
+  }
+}

@@ -1,0 +1,377 @@
+[
+  {
+    "path": "atmos-checksum-verification.json",
+    "sha256": "7b8a8c7f294b11f17e8e9d19021e3564e7456565d6d80ac1e3a41faad22b42e7",
+    "bytes": 316
+  },
+  {
+    "path": "atmos-python-comparison.json",
+    "sha256": "0edfa195123d169258f7f636fc030e3a0c7ff96d9bde96405e328eaef211c423",
+    "bytes": 28851
+  },
+  {
+    "path": "base-socket-probe.json",
+    "sha256": "2f752582b0053e034527f7d0a669e593d45d5158e45ff4563286eb060c17cb8c",
+    "bytes": 192
+  },
+  {
+    "path": "compare-python-resolver.py",
+    "sha256": "b9472514ce7a3c15f6a652ddcee2c301c7ba2ec9e5df45fafe1c05374fdf706f",
+    "bytes": 5096
+  },
+  {
+    "path": "native-command-receipts.json",
+    "sha256": "0718065b9415114d9d35926b19c950f93ada302fc758a16cc3144bbe0373aa2d",
+    "bytes": 25989
+  },
+  {
+    "path": "original-atmos-fixtures/child_to_override/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/child_to_override/stacks/orgs/qualification.yaml",
+    "sha256": "8c6ca52e30e3764d86ef599d7296e4a78ecb2d955cd2caf622fa4bd012328cad",
+    "bytes": 565
+  },
+  {
+    "path": "original-atmos-fixtures/empty_values/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/empty_values/stacks/catalog/a.yaml",
+    "sha256": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096",
+    "bytes": 118
+  },
+  {
+    "path": "original-atmos-fixtures/empty_values/stacks/orgs/qualification.yaml",
+    "sha256": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e",
+    "bytes": 237
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ab/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ab/stacks/catalog/a.yaml",
+    "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d",
+    "bytes": 66
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ab/stacks/catalog/b.yaml",
+    "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe",
+    "bytes": 66
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ab/stacks/orgs/qualification.yaml",
+    "sha256": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d",
+    "bytes": 178
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ba/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ba/stacks/catalog/a.yaml",
+    "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d",
+    "bytes": 66
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ba/stacks/catalog/b.yaml",
+    "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe",
+    "bytes": 66
+  },
+  {
+    "path": "original-atmos-fixtures/imports_ba/stacks/orgs/qualification.yaml",
+    "sha256": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4",
+    "bytes": 178
+  },
+  {
+    "path": "original-atmos-fixtures/inherits_parent_a/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/inherits_parent_a/stacks/orgs/qualification.yaml",
+    "sha256": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1",
+    "bytes": 603
+  },
+  {
+    "path": "original-atmos-fixtures/inherits_parent_b/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/inherits_parent_b/stacks/orgs/qualification.yaml",
+    "sha256": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c",
+    "bytes": 603
+  },
+  {
+    "path": "original-atmos-fixtures/null_shapes/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/null_shapes/stacks/catalog/a.yaml",
+    "sha256": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63",
+    "bytes": 142
+  },
+  {
+    "path": "original-atmos-fixtures/null_shapes/stacks/orgs/qualification.yaml",
+    "sha256": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6",
+    "bytes": 260
+  },
+  {
+    "path": "original-atmos-fixtures/parent_to_child/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/parent_to_child/stacks/orgs/qualification.yaml",
+    "sha256": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1",
+    "bytes": 508
+  },
+  {
+    "path": "original-atmos-fixtures/scope_local/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/scope_local/stacks/orgs/qualification.yaml",
+    "sha256": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023",
+    "bytes": 529
+  },
+  {
+    "path": "original-atmos-fixtures/scope_override/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/scope_override/stacks/orgs/qualification.yaml",
+    "sha256": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429",
+    "bytes": 665
+  },
+  {
+    "path": "original-atmos-fixtures/type_change/atmos.yaml",
+    "sha256": "3389ed92e40d5f921bba468b89875e7b268293ad47e725129fe2bde69d1812f0",
+    "bytes": 506
+  },
+  {
+    "path": "original-atmos-fixtures/type_change/stacks/catalog/a.yaml",
+    "sha256": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b",
+    "bytes": 25
+  },
+  {
+    "path": "original-atmos-fixtures/type_change/stacks/orgs/qualification.yaml",
+    "sha256": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9",
+    "bytes": 160
+  },
+  {
+    "path": "provider-candidate-source-manifest.json",
+    "sha256": "48f67679ad2ec725b5e12fac18118bc11715518c74220a9b15e216dcea8b2a7b",
+    "bytes": 1129
+  },
+  {
+    "path": "provider-checksum-verification.json",
+    "sha256": "0b26e7f8a4fc1d02e43bf813f075d36f440c4aeec791a22ea85c3921624d5bbc",
+    "bytes": 581
+  },
+  {
+    "path": "provider-initial-integrity-failure.json",
+    "sha256": "fb3a38cc2b323c050fe05aa6143b2d79e66937deba5207e003804659373017d5",
+    "bytes": 389
+  },
+  {
+    "path": "provider-retry-receipt.json",
+    "sha256": "393d352257f3d0094a9313f6c350f464f5fd446bac43703afb36b813da2528a5",
+    "bytes": 682
+  },
+  {
+    "path": "python-fixtures/child_to_override/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/child_to_override/stacks/orgs/qualification.yaml",
+    "sha256": "42b4fe6fb3257f1023254b0de30a9c4c9a793a640944321a4dcef5f762d27d69",
+    "bytes": 711
+  },
+  {
+    "path": "python-fixtures/empty_values/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/empty_values/stacks/catalog/a.yaml",
+    "sha256": "5c6a99f6bf4bcaaba22f50873cc59c8a7957c649dd94eb6844f94dbea081a096",
+    "bytes": 118
+  },
+  {
+    "path": "python-fixtures/empty_values/stacks/orgs/qualification.yaml",
+    "sha256": "94e624646af8ebb9cc680e9d08aec568aba7057e3d15c86f14c359a37318a14e",
+    "bytes": 237
+  },
+  {
+    "path": "python-fixtures/imports_ab/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/imports_ab/stacks/catalog/a.yaml",
+    "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d",
+    "bytes": 66
+  },
+  {
+    "path": "python-fixtures/imports_ab/stacks/catalog/b.yaml",
+    "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe",
+    "bytes": 66
+  },
+  {
+    "path": "python-fixtures/imports_ab/stacks/orgs/qualification.yaml",
+    "sha256": "876dbf6b8fc5a605b4c8653649106380552f5c4089c631ae2a9e50d8db4c354d",
+    "bytes": 178
+  },
+  {
+    "path": "python-fixtures/imports_ba/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/imports_ba/stacks/catalog/a.yaml",
+    "sha256": "bbc22ba5f7733eb28ee51315dbbbedf63245b6883974ff402fac64683788745d",
+    "bytes": 66
+  },
+  {
+    "path": "python-fixtures/imports_ba/stacks/catalog/b.yaml",
+    "sha256": "b47778d8225499727322c4d8cc19519c81da72b894e5b8419187e985b57c4cfe",
+    "bytes": 66
+  },
+  {
+    "path": "python-fixtures/imports_ba/stacks/orgs/qualification.yaml",
+    "sha256": "dc24ba701b780eea55220c443705d3d0bc4aa408ec16feae003b91530a12afe4",
+    "bytes": 178
+  },
+  {
+    "path": "python-fixtures/inherits_parent_a/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/inherits_parent_a/stacks/orgs/qualification.yaml",
+    "sha256": "737269b8ce42bae7ad5d07e87f1d5e0ea471c87c596c58515c7e7f1d4ca888b1",
+    "bytes": 603
+  },
+  {
+    "path": "python-fixtures/inherits_parent_b/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/inherits_parent_b/stacks/orgs/qualification.yaml",
+    "sha256": "a38a24a8871ee35c08108559f3bf8d25b1d690a602e79e765649cbc94a1b806c",
+    "bytes": 603
+  },
+  {
+    "path": "python-fixtures/null_shapes/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/null_shapes/stacks/catalog/a.yaml",
+    "sha256": "33819733bd5aa1f1e6664e5a68892ccf8128ae97d610b7cfb2aeb2eea8669b63",
+    "bytes": 142
+  },
+  {
+    "path": "python-fixtures/null_shapes/stacks/orgs/qualification.yaml",
+    "sha256": "7e92c638b2d42531fe9630261d833d5a342ec5703588936158e0283ec64763c6",
+    "bytes": 260
+  },
+  {
+    "path": "python-fixtures/parent_to_child/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/parent_to_child/stacks/orgs/qualification.yaml",
+    "sha256": "ec156e3488b6ea8947191431377226a1d2a652ccc137d0b1351f0329e6b753a1",
+    "bytes": 508
+  },
+  {
+    "path": "python-fixtures/scope_local/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/scope_local/stacks/orgs/qualification.yaml",
+    "sha256": "5d25afa92f65cbaa5caa3ac73c166e826d3f58d1215b1bb9218910fb5adb7023",
+    "bytes": 529
+  },
+  {
+    "path": "python-fixtures/scope_override/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/scope_override/stacks/orgs/qualification.yaml",
+    "sha256": "6d41ff0f9f3e19d7913f6ad7e47fff437a67c3abc351befaa355a4f67d141429",
+    "bytes": 665
+  },
+  {
+    "path": "python-fixtures/type_change/atmos.yaml",
+    "sha256": "2e86a67f859e48fe4e393e85b26dd1c58cb480056a1b387b277182551cc0dc8f",
+    "bytes": 274
+  },
+  {
+    "path": "python-fixtures/type_change/stacks/catalog/a.yaml",
+    "sha256": "6980777be3290bcbef4d3f140b6e72ffb594261837c30f46c3547e4bfa41fc3b",
+    "bytes": 25
+  },
+  {
+    "path": "python-fixtures/type_change/stacks/orgs/qualification.yaml",
+    "sha256": "eafd5efb5a42be3b1e912f7bbf39853c6e9e3409ab4cf48e382c46e4189e1ed9",
+    "bytes": 160
+  },
+  {
+    "path": "python-fixtures-native-source-manifest.json",
+    "sha256": "f2ffdc09ff53f99e85be4d95f1a105744dbaae2a332483e228d7f9bf87d0e014",
+    "bytes": 5097
+  },
+  {
+    "path": "qualification-summary.json",
+    "sha256": "e1f3e17b8b77fd05b393a1f383c94801ddc3bac2f0ae76f10515ff01cff1cc92",
+    "bytes": 2283
+  },
+  {
+    "path": "run-empty-supplement.py",
+    "sha256": "d3905812d10f016388d8f49841ca38afec19f376c62ae3cc4dfe0784ccc7c1a8",
+    "bytes": 2707
+  },
+  {
+    "path": "run-provider-qualification.py",
+    "sha256": "3a208aae0d25b86a07dd911c5b8e788f47cba3ae1d9c66c925bce7407fbf9409",
+    "bytes": 3905
+  },
+  {
+    "path": "run-qualification.py",
+    "sha256": "544803e18aaba3a43674a25882db568300809bd551ce6261cdd0245a818ba7ac",
+    "bytes": 8283
+  },
+  {
+    "path": "socket-denied-exec.py",
+    "sha256": "c81ecf163e4322b2f4a74f2f2dfbea058bd45f5f6cb8a66991e740ae9fa48c49",
+    "bytes": 1098
+  },
+  {
+    "path": "tofu-checksum-verification.json",
+    "sha256": "9eec87e05156ae0e9ab7ff0c621b6ddc38961c98db03f721ff194b01d1f81601",
+    "bytes": 521
+  },
+  {
+    "path": "unix-only-exec.py",
+    "sha256": "196fbb9e67f63701665cf81fd0c198997c23cb4819dec91d21722889aff2f24c",
+    "bytes": 1273
+  }
+]

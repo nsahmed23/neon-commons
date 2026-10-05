@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "describe",
+    "component",
+    "leaf",
+    "-s",
+    "qualification",
+    "--format",
+    "json",
+    "--process-functions=false",
+    "--process-templates=false"
+  ],
+  "cwd": "parity-empty_values",
+  "exit_code": 0,
+  "expected_exit_codes": [
+    0,
+    1
+  ],
+  "name": "parity-empty-values",
+  "outcome": "completed",
+  "output_capture_limit_bytes": 2097152,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "35f4a0a77e09bdc4bd76c74b22a9000d0b440e432c67f8c9e69e09db42597da0",
+  "tool": "atmos",
+  "transcript_complete": true
+}

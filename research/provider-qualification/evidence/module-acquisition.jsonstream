@@ -1,0 +1,60 @@
+{
+	"Path": "github.com/microsoftgraph/msgraph-beta-sdk-go",
+	"Version": "v0.165.0",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoftgraph/msgraph-beta-sdk-go/@v/v0.165.0.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoftgraph/msgraph-beta-sdk-go/@v/v0.165.0.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoftgraph/msgraph-beta-sdk-go/@v/v0.165.0.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/microsoftgraph/msgraph-beta-sdk-go@v0.165.0",
+	"Sum": "h1:a92zkfWfDtBTmJLroc5JbYu0gQPtrWaxme2yqIFRERY=",
+	"GoModSum": "h1:xlPPC1rH37ZgJdzBKdrKcVMQga1nHSWilqcdwZU4x/M="
+}
+{
+	"Path": "github.com/microsoft/kiota-serialization-json-go",
+	"Version": "v1.1.4",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-serialization-json-go/@v/v1.1.4.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-serialization-json-go/@v/v1.1.4.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-serialization-json-go/@v/v1.1.4.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/microsoft/kiota-serialization-json-go@v1.1.4",
+	"Sum": "h1:XAhsBjxiunPgsPLLHEbuvAe81Q3wD1pNOE22Dq2CD3k=",
+	"GoModSum": "h1:HUTiYs9llTGLjh9+O+yOkBbNEaZ1kxh3sBPU5tPhmeI="
+}
+{
+	"Path": "github.com/microsoft/kiota-abstractions-go",
+	"Version": "v1.9.4",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-abstractions-go/@v/v1.9.4.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-abstractions-go/@v/v1.9.4.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/microsoft/kiota-abstractions-go/@v/v1.9.4.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/microsoft/kiota-abstractions-go@v1.9.4",
+	"Sum": "h1:VI3UVzSCQHHhRswe3jyaAQHUQWIFhUMp0z5mtZbTbcs=",
+	"GoModSum": "h1:f06pl3qSyvUHEfVNkiRpXPkafx7khZqQEb71hN/pmuU="
+}
+{
+	"Path": "github.com/hashicorp/terraform-plugin-framework",
+	"Version": "v1.19.0",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-framework/@v/v1.19.0.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-framework/@v/v1.19.0.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-framework/@v/v1.19.0.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/hashicorp/terraform-plugin-framework@v1.19.0",
+	"Sum": "h1:q0bwyhxAOR3vfdgbk9iplv3MlTv/dhBHTXjQOtQDoBA=",
+	"GoModSum": "h1:YRXOBu0jvs7xp4AThBbX4mAzYaMJ1JgtFH//oGKxwLc="
+}
+{
+	"Path": "github.com/hashicorp/terraform-plugin-log",
+	"Version": "v0.11.0",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-log/@v/v0.11.0.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-log/@v/v0.11.0.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-log/@v/v0.11.0.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/hashicorp/terraform-plugin-log@v0.11.0",
+	"Sum": "h1:WjhcpZIVqP8YRe83+dIZXncwSgtu4vh27i23G33PUQY=",
+	"GoModSum": "h1:XygBz8+m5kgwTb73MMyrnUjeNQeVWECEfg+h2opMsj0="
+}
+{
+	"Path": "github.com/hashicorp/terraform-plugin-framework-timeouts",
+	"Version": "v0.7.0",
+	"Info": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-framework-timeouts/@v/v0.7.0.info",
+	"GoMod": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-framework-timeouts/@v/v0.7.0.mod",
+	"Zip": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/cache/download/github.com/hashicorp/terraform-plugin-framework-timeouts/@v/v0.7.0.zip",
+	"Dir": "/workspace/scratch/26b6d364cfda/provider-contract-tools/modcache/github.com/hashicorp/terraform-plugin-framework-timeouts@v0.7.0",
+	"Sum": "h1:jblRy1PkLfPm5hb5XeMa3tezusnMRziUGqtT5epSYoI=",
+	"GoModSum": "h1:5jm2XK8uqrdiSRfD5O47OoxyGMCnwTcl8eoiDgSa+tc="
+}
