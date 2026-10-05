@@ -50,6 +50,22 @@ def file_sha(path):
 
 
 def parse_json(data):
+    return _parse_json(data, maximum_depth=64)
+
+
+def parse_provider_schema_json(data):
+    """Decode bounded native schema output, never policy/state/input documents.
+
+    The exact admitted complete provider includes unrelated resource schemas
+    nested 71 levels deep. Keep the general input contract at 64; this fixed
+    profile is only for its already byte-bounded native schema response.
+    """
+    if type(data) is not bytes or len(data) > MAX_BYTES:
+        raise AppError('provider_schema_size', 'Native provider schema exceeds its byte limit.')
+    return _parse_json(data, maximum_depth=96)
+
+
+def _parse_json(data, *, maximum_depth):
     def pairs(items):
         result = {}
         for key, value in items:
@@ -64,7 +80,7 @@ def parse_json(data):
         stack = [(value, 0)]
         while stack:
             item, depth = stack.pop()
-            if depth > 64: raise ValueError('depth')
+            if depth > maximum_depth: raise ValueError('depth')
             if isinstance(item, float) and not math.isfinite(item): raise ValueError('number')
             if isinstance(item, int) and not isinstance(item, bool) and abs(item) > 9007199254740991:
                 raise ValueError('integer')

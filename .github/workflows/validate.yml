@@ -88,6 +88,7 @@ jobs:
           python scripts/qualify-workflow.py --plugin "$GITHUB_WORKSPACE" --output "$CI_ROOT/cli"
           python scripts/qualify-repository.py --plugin "$GITHUB_WORKSPACE" --output "$CI_ROOT/repository"
           python scripts/qualify-terminal.py --plugin "$GITHUB_WORKSPACE" --output "$CI_ROOT/terminal"
+          python scripts/qualify-workbench.py --output "$CI_ROOT/workbench"
 
       - id: release
         name: Build reviewed engineering-candidate archives
@@ -136,6 +137,7 @@ jobs:
             ${{ env.CI_ROOT }}/cli
             ${{ env.CI_ROOT }}/repository
             ${{ env.CI_ROOT }}/terminal
+            ${{ env.CI_ROOT }}/workbench
             ${{ env.CI_ROOT }}/release
             ${{ env.CI_ROOT }}/extracted-verification
             ${{ env.CI_ROOT }}/archive-verification.json

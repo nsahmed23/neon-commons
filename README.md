@@ -1,3 +1,7 @@
+# Intune Workbench — 0.6.0 local engineering candidate
+
+This continuation adds persistent inspection/history, closed-terminal synthetic collection, health/freshness and bounded maintenance using the existing engine and service model. Start with [Workbench commands and limits](docs/WORKBENCH.md). Qualification evidence for this source is separate from the preserved 0.5.1 results below. **Platform qualification and enterprise approval remain incomplete.** No cloud execution authority is added.
+
 # Intune IaC plugin — 0.5.1 engineering epoch
 
 Current release decision: **enterprise acceptance remains BLOCKED**. Version 0.5.1 adds a stateful modeled Intune service, independent semantic preservation checks, complete multi-policy journey data, native Atmos evidence, stronger file/process/durability controls, and new qualification harnesses. See [current scope and acceptance](docs/EPOCH-ACCEPTANCE.md), [connected journey](docs/JOURNEY.md), and [operations and external gates](docs/OPERATIONS-EPOCH.md). The older version descriptions and verification counts below are historical; they do not establish current acceptance. The accompanying exact-archive verification receipts and acceptance ledger are authoritative for the delivered bytes and final tests; [verification history](RELEASE-VERIFICATION.md) does not assert a current final test total.

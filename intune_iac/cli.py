@@ -25,6 +25,7 @@ def doctor():
     return {'version':__version__,'status':'ready' if ready else 'missing_dependencies',
             'python':platform.python_version(),'dependencies':dependencies,
             'capabilities':{'wizard':'available' if ready else 'missing_dependencies',
+                'workbench':'persistent_synthetic_observation_history_and_reviewed_maintenance',
                 'generation':'bounded_synthetic_mapping','production_capture':'explicit_read_only_credentials_required' if os.name=='posix' else 'unavailable_on_platform',
                 'production_generation':'bounded_inactive_candidate','semantic_graph':'local_typed_graph',
                 'atmos_resolution':'bounded_literal_with_provenance','repository_discovery':'local_read_only','action_runner':'local_actions',
@@ -53,6 +54,8 @@ def parser():
     p=argparse.ArgumentParser(prog='intune-iac',description='Inspect Intune captures, query relationships, and build verified local artifacts.')
     p.add_argument('--version',action='version',version=__version__)
     commands=p.add_subparsers(dest='command',required=True)
+    from .workbench import add_parser as add_workbench_parser
+    add_workbench_parser(commands)
     commands.add_parser('doctor',help='Report installed prerequisites and capability boundaries')
     _paths(commands.add_parser('inspect',help='Inspect one policy without writing output'))
     _paths(commands.add_parser('verify',help='Recheck an existing project against source-derived expectations'),True)
@@ -114,6 +117,9 @@ def parser():
 
 
 def execute(args):
+    if args.command=='workbench':
+        from .workbench import command
+        return command(args)
     if args.command=='doctor':return doctor()
     if args.command=='inspect':
         from .engine import inspect_source
@@ -216,7 +222,7 @@ def _simulation_command(args):
 def exit_code(result):
     status=result.get('status')
     if status in {'FAIL','INVALID_TASK','INFRA_ERROR'} or result.get('success') is False:return 3
-    if status in {'INCONCLUSIVE','BLOCKED','NOT_RUN','blocked_live_qualification','unknown_outcome'}:return 2
+    if status in {'INCONCLUSIVE','BLOCKED','NOT_RUN','blocked_live_qualification','unknown_outcome','denied','throttled','interrupted'}:return 2
     if status in {'partial_or_divergent','service_converged_state_unreconciled','readback_unresolved','desired_state_observed_execution_unconfirmed'}:return 2
     if status == 'missing_dependencies':return 5
     if status in {'blocked','needs_review','unavailable','partial','abstained','abstain','review_only','changes_require_review'}:return 2

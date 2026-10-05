@@ -113,7 +113,7 @@ def runtime_files():
     names.extend('docs/'+name for name in ['HOSTS.md','WIZARD.md','GRAPH.md','RUNNER.md','CAPTURE.md','CLM.md','MCP.md','REPOSITORY.md','PRODUCTION-MAPPING.md','PRODUCT-STATUS.md','DATA-HANDLING.md','LABS.md','WORKFLOW.md','TARGET.md','EXECUTION.md','DEPENDENCIES.md','ENTERPRISE-GOAL.md','ENTERPRISE-EXECUTION-LEDGER.md','CI.md'])
     names.extend('docs/'+name for name in ['JOURNEY.md','PROTECTED-EXECUTION.md','SECURITY-ASSURANCE.md','SYNTHETIC-LABS.md','COMPLETION-ACCEPTANCE.md'])
     names.extend('docs/'+name for name in ['IDENTITY-BINDING.md','SIGNED-APPROVAL.md','PROVIDER-JOURNEY.md','BLOB-LEASE.md','PRODUCTION-COMPLETION-ACCEPTANCE.md'])
-    names.extend('docs/'+name for name in ['EPOCH-ACCEPTANCE.md','OPERATIONS-EPOCH.md','TERMINAL-SECURITY-QUALIFICATION.md','POWERSHELL-PREVIEW-QUALIFICATION.md'])
+    names.extend('docs/'+name for name in ['EPOCH-ACCEPTANCE.md','OPERATIONS-EPOCH.md','TERMINAL-SECURITY-QUALIFICATION.md','POWERSHELL-PREVIEW-QUALIFICATION.md','WORKBENCH.md'])
     return sorted(set(names))
 
 

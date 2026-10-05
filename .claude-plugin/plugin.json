@@ -1,6 +1,6 @@
 {
   "name": "intune-iac",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Inspect Intune exports, guide local adoption decisions, and generate independently checked IaC reference artifacts.",
   "author": {
     "name": "Intune IaC project contributors"

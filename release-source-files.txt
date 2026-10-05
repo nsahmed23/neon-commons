@@ -162,6 +162,7 @@ docs/SYNTHETIC-LABS.md
 docs/TARGET.md
 docs/TERMINAL-SECURITY-QUALIFICATION.md
 docs/WIZARD.md
+docs/WORKBENCH.md
 docs/WORKFLOW-IMPLEMENTATION-REPORT.md
 docs/WORKFLOW.md
 docs/superpowers/plans/2026-09-30-atmos-adoption-lab.md
@@ -351,6 +352,7 @@ intune_iac/io.py
 intune_iac/journey.py
 intune_iac/journey_native_atmos.py
 intune_iac/judge.py
+intune_iac/maintenance.py
 intune_iac/mcp.py
 intune_iac/modeled_service.py
 intune_iac/native_atmos.py
@@ -367,6 +369,8 @@ intune_iac/runner.py
 intune_iac/synthetic.py
 intune_iac/target.py
 intune_iac/wizard.py
+intune_iac/workbench.py
+intune_iac/workbench_store.py
 intune_iac/workflow.py
 labs/atmos-adoption/README.md
 labs/atmos-adoption/fixture/atmos.yaml
@@ -468,10 +472,12 @@ plugin_tests/test_journey_native_atmos.py
 plugin_tests/test_judge.py
 plugin_tests/test_lab_audit_regressions.py
 plugin_tests/test_locking_lab.py
+plugin_tests/test_maintenance.py
 plugin_tests/test_mcp_audit.py
 plugin_tests/test_native_atmos_completion.py
 plugin_tests/test_native_convergence_epoch.py
 plugin_tests/test_native_pin_profiles_epoch.py
+plugin_tests/test_native_smoke_observation_epoch.py
 plugin_tests/test_oracle_edge_types.py
 plugin_tests/test_powershell_preview.py
 plugin_tests/test_preservation_audit.py
@@ -482,6 +488,7 @@ plugin_tests/test_provider_contract_lab.py
 plugin_tests/test_provider_engine_pin_epoch.py
 plugin_tests/test_provider_execution_v5.py
 plugin_tests/test_provider_journey_v5.py
+plugin_tests/test_provider_schema_json.py
 plugin_tests/test_reconciliation.py
 plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
@@ -498,6 +505,9 @@ plugin_tests/test_terminal_security_epoch.py
 plugin_tests/test_verifier_contract.py
 plugin_tests/test_wizard.py
 plugin_tests/test_wizard_repository.py
+plugin_tests/test_workbench_cli.py
+plugin_tests/test_workbench_independent.py
+plugin_tests/test_workbench_store.py
 plugin_tests/test_workflow.py
 plugin_tests/test_workflow_audit.py
 provider-api-coverage.csv
@@ -2558,6 +2568,7 @@ scripts/qualify-repository.py
 scripts/qualify-synthetic.py
 scripts/qualify-terminal-security.py
 scripts/qualify-terminal.py
+scripts/qualify-workbench.py
 scripts/qualify-workflow.py
 scripts/security-audit-local.py
 scripts/verify-dependencies.py
@@ -3049,4 +3060,3 @@ wizard/transition-cases.yaml
 wizard/wizard-questions.yaml
 wizard/wizard-state-machine.yaml
 workflowdocs/LOCAL-WORKFLOW.md
-plugin_tests/test_native_smoke_observation_epoch.py

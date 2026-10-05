@@ -23,7 +23,7 @@ import time
 import uuid
 import zipfile
 
-from .io import AppError, canonical, digest, load_json, parse_json, write_json
+from .io import AppError, canonical, digest, load_json, parse_json, parse_provider_schema_json, write_json
 from .production import RESOURCE, _setting, _uuid
 from .native_pins import OPENTOFU_CURRENT_SHA256, OPENTOFU_PINS
 
@@ -497,7 +497,8 @@ class ProviderExecutor:
             result = _supervise([str(self.root / 'tofu'), *tail], cwd=self.work, env=self._environment(),
                                 executable='/proc/self/fd/' + str(fd), pass_fds=tuple(descriptors), active_check=self._active_check)
             if result['code'] != 0: _fail('provider_command_failed')
-            return parse_json(result['stdout']) if name in ('schema', 'validate', 'state') or name.endswith('_show') else None
+            if name == 'schema': return parse_provider_schema_json(result['stdout'])
+            return parse_json(result['stdout']) if name in ('validate', 'state') or name.endswith('_show') else None
         finally:
             for fd in descriptors: os.close(fd)
 
