@@ -1,0 +1,11 @@
+usage: intune-iac workbench schedule-create [-h] --root ROOT --service-root
+                                            SERVICE_ROOT --output OUTPUT
+                                            --interval-seconds
+                                            INTERVAL_SECONDS
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT
+  --service-root SERVICE_ROOT
+  --output OUTPUT
+  --interval-seconds INTERVAL_SECONDS

@@ -1,0 +1,47 @@
+{
+  "schema_version": "independent-process-cleanup-review/1",
+  "at": "2026-10-05T07:55:14.898379+00:00",
+  "status": "PASS_SCOPED_LOCAL_PROCESS_CLEANUP_REVIEW",
+  "before": {
+    "source": "/workspace/intune-continuation/work/releases/continuation-qualified-extracted/source/intune-iac-source",
+    "passed": 29,
+    "failed": 15,
+    "case_count": 44,
+    "result": "before/results.json"
+  },
+  "after": {
+    "passed": 48,
+    "failed": 0,
+    "case_count": 48,
+    "source_sha256": {
+      "intune_iac/protected.py": "95573d0a11ac7212125b88a2ae9c52b77666035551aa4417603b2a3261c612fc",
+      "intune_iac/provider_execution.py": "dbfa4e7d3d9420b56c31fab1a23fccc220c33f54a3dcdd4f51601b5a9868e0fa"
+    },
+    "source_unchanged": true,
+    "result": "after-v2/results.json"
+  },
+  "original_test": {
+    "run": 20,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "unchanged_assertions": true,
+    "result": "repeat-original-after.json"
+  },
+  "remaining_blocking_findings": [],
+  "strict_package_gate": "PENDING_ROOT_EXACT_EXTRACTED_SOURCE_REPLAY",
+  "platform": "Linux x86_64 same-user supervised process groups, readable procfs, waitid(WNOWAIT)",
+  "qualification_exclusions": [
+    "Adversarial unbounded process creation is not an atomic cgroup-kill proof",
+    "Arbitrary session/group escape outside supported seccomp guards",
+    "Host crash, power loss, non-Linux lifecycle, production tenant or device operations"
+  ],
+  "artifacts_sha256": {
+    "INVARIANT.md": "627d28f630f95cde063994469abb0070848d0533c3028d8f2c7f751cc2623b5c",
+    "independent_process_probe_v1.py": "c22f0d56ef02ef976c6f7ed480db15955c83d92e97cb9a90df6adf9fb058e13b",
+    "independent_process_probe.py": "f35fadb796149a49eec5f082b27d8d51411851b73a75ba4b013320caf4428cca",
+    "thread_group_probe.py": "92c3e2b575bce62bbc577db80125e306f97f0720dbca5ca5fe88777556c76c5c",
+    "thread-group-model.json": "38cc62331d3cada58e023f79c4d7878f0e39de9bc6e7b1eb47456adcfdecebee",
+    "repeat_original.py": "e498893fc31eca8de9b2032b1ab5265bb40964d42d8ae36eb77c820b358b7b84"
+  }
+}

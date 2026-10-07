@@ -1,0 +1,10 @@
+usage: intune-iac workbench reference-compare [-h] --root ROOT --object OBJECT
+                                              --reference REFERENCE
+                                              [--company COMPANY]
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT
+  --object OBJECT
+  --reference REFERENCE
+  --company COMPANY

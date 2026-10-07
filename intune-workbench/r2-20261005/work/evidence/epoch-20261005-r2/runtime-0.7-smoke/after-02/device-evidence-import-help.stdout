@@ -1,0 +1,7 @@
+usage: intune-iac workbench device-evidence-import [-h] --root ROOT --input
+                                                   INPUT
+
+options:
+  -h, --help     show this help message and exit
+  --root ROOT
+  --input INPUT

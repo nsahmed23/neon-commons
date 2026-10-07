@@ -1,0 +1,89 @@
+{
+  "commands": {
+    "collection": [
+      "collect (requires --service-root; also runs as a separate headless command)",
+      "import-capture CAPTURE_DIRECTORY",
+      "collection-history [LIMIT [OFFSET]]",
+      "collection RUN_ID",
+      "migrate NEW_BACKUP_PATH",
+      "schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)",
+      "schedule-run JOB_DIR MAX_RUNS MAX_DURATION_SECONDS",
+      "schedule-status JOB_DIR"
+    ],
+    "evidence": [
+      "device-evidence-import ENVELOPE_JSON",
+      "workflow-import ENVELOPE_JSON",
+      "reference-import JSON SHA256 FULL_REVISION HTTPS_SOURCE_URL LICENSE_ID [ASSERTION_CLASS]"
+    ],
+    "limits": "Imported captures and reports remain unverified local evidence. Collection and 
+execution adapters are synthetic; no deployment or rollout authority.",
+    "maintenance": [
+      "propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]",
+      "review OPERATION_DIR",
+      "execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT]",
+      "reconcile OPERATION_DIR",
+      "restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)"
+    ],
+    "navigation": [
+      "overview",
+      "search TEXT",
+      "select EXACT_OBJECT_ID",
+      "inspect",
+      "settings",
+      "relationships",
+      "dictionary [SETTING_ID_QUERY]",
+      "references",
+      "reference-compare REFERENCE_ID [COMPANY_JSON]",
+      "workflows",
+      "history [LIMIT [OFFSET]]",
+      "compare BEFORE_SNAPSHOT AFTER_SNAPSHOT",
+      "health",
+      "queue",
+      "operations [LIMIT [OFFSET]]",
+      "back",
+      "cancel",
+      "quit"
+    ]
+  },
+  "evidence_class": "synthetic",
+  "title": "Intune Workbench"
+}
+{
+  "age_seconds": null,
+  "cloud_authority": false,
+  "coverage": null,
+  "evidence_class": "synthetic",
+  "execution_authorized": false,
+  "freshness": "unknown",
+  "health": {
+    "configuration_parity": "unknown",
+    "deployment_scope": "collection",
+    "endpoint_health": "unknown",
+    "endpoint_outcome": "unknown",
+    "failed": null,
+    "pending": null,
+    "report_freshness": "unknown",
+    "reporting": null,
+    "reporting_outcome_unknown": null,
+    "reporting_success_percent": null,
+    "rollout_ready": false,
+    "service_acceptance": "unknown",
+    "successful": null,
+    "targeted": null,
+    "targeted_success_percent": null,
+    "unknown_or_stale": null
+  },
+  "last_attempt": null,
+  "last_success": null,
+  "limitations": [
+    "Synthetic and imported capture assurance remain distinct; no authenticated Graph or endpoint 
+qualification.",
+    "Same-user local storage is not tamper-proof; changed time and attribution are unknown."
+  ],
+  "objects": [],
+  "pending_observations": [],
+  "retained_last_good": false,
+  "schema_version": 2,
+  "tenant_id": "11111111-1111-4111-8111-111111111111"
+}
+workbench> {"evidence_class": "local_interface_result", "history_persisted": true, "status": "closed"}

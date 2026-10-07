@@ -1,0 +1,738 @@
+{
+  "schema_version": "continuation-acceptance-r2/1",
+  "recorded_at": "2026-10-05T08:19:19.093422+00:00",
+  "authority": "Actual receipts supersede older prose only for their exact source/artifact/scope.",
+  "latest_frozen_strict_candidate": {
+    "version": "0.7.0",
+    "revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+    "source_archive_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a",
+    "strict_passed": 1141,
+    "strict_planned": 1141,
+    "skips": 0,
+    "packaged_grader": "PASS26checks; earlier0.6.2packagedgraderFAILpreserved"
+  },
+  "feature_candidate": {
+    "version": "0.7.0",
+    "status": "LOCAL_SCOPES_QUALIFIED_EXTERNAL_GATES_OPEN",
+    "revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+    "source": {
+      "filename": "Intune_IaC_Plugin_0.7.0_Source.zip",
+      "files": 3072,
+      "listed_hashes": 3071,
+      "bytes": 16546987,
+      "sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    "runtime": {
+      "filename": "Intune_IaC_Plugin_0.7.0.zip",
+      "files": 125,
+      "listed_hashes": 124,
+      "bytes": 485420,
+      "sha256": "e1c0be55b2a21cb14fc404defe9d379a9febdd85e0c1ba5086d1b5e660fc66e5"
+    },
+    "strict_qualification": {
+      "schema_version": "1.0.0",
+      "verified_at": "2026-10-05T08:18:33.927175+00:00",
+      "tests": 1141,
+      "passed": 1141,
+      "planned": 1141,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "expected_failures": 0,
+      "unexpected_successes": 0,
+      "core_regressions_included": true,
+      "success": true,
+      "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+      "not_established": [
+        "Live Graph authenticity or service semantics",
+        "Provider-backed import/no-change plan",
+        "Full native Atmos runtime configuration parity",
+        "Native Windows/PowerShell behavior",
+        "Native host installation",
+        "CLM learned-model quality, calibration or latency"
+      ]
+    },
+    "inherits_062_strict_pass": false,
+    "source_unchanged": true,
+    "byte_identical_rebuilds": true
+  },
+  "laboratory": "Frozen0.7.0 exact strict, connected synthetic journey, native schema validation, runtime scheduled collection and package integrity qualified within their recorded scopes.",
+  "platform": "Linux/Unix RPC schema validation qualified; authenticated platform/device and other host gates remain open.",
+  "production_approved": false,
+  "historical_evidence_rewritten": false,
+  "prior_ledger": {
+    "path": "docs/CONTINUATION-ACCEPTANCE-20261005.json",
+    "sha256": "a3a08c66675ba6d4c001a583d5212e72f97b7affbed1dafb80688252cca2d7fa"
+  },
+  "preserved_prior_rows": [
+    {
+      "requirement_id": "RECOVERY",
+      "description": "Complete named attachment and fresh 30,274-payload file set verified",
+      "status": "PASS",
+      "evidence_class": "byte_integrity",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214",
+      "test_id": "restore_release.py; verify_repository.py",
+      "result_path": "evidence/epoch-20261005/repository-verification-initial.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Only this fresh extraction; prior three unexpected files remain unresolved",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "M1-DELIVERY",
+      "description": "Historical final provider/source/runtime/evidence deliveries and supplement preserved",
+      "status": "PASS",
+      "evidence_class": "artifact_integrity",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "audit-delivery.py",
+      "result_path": "evidence/epoch-20261005/delivery-artifact-audit.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "One frozen reference hashes preappend review; current raw archive correctly binds later full review",
+      "next_action": "Preserve both hashes; no old repair rerun"
+    },
+    {
+      "requirement_id": "M2-JOURNEY",
+      "description": "First connected maintenance journey through actual CLI and terminal",
+      "status": "PASS",
+      "evidence_class": "synthetic_with_independent_persisted_state",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "26 checks;28 subprocess records;3 PTY sessions",
+      "result_path": "evidence/epoch-20261005/workbench-independent-05/receipt.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Existing protected child/model service, no native Intune saved plan or Graph lifecycle",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "M4-OBSERVATIONS",
+      "description": "Atomic tenant scoped persisted observations,history,typed relationships and literal source inheritance",
+      "status": "PASS",
+      "evidence_class": "synthetic_local_store",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "test_workbench_store; test_workbench_cli",
+      "result_path": "evidence/epoch-20261005/workbench-store-implementation-receipt.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Observed dictionary; vendor meanings/docs unknown; source metadata is not authenticated authority",
+      "next_action": "Extend qualified dictionary/OIB and full graph navigation separately"
+    },
+    {
+      "requirement_id": "M5-COLLECT",
+      "description": "Closed-terminal collection with last-good,failed-attempt coverage and reopened history",
+      "status": "PASS",
+      "evidence_class": "synthetic_process_restart",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "closed_terminal_collection_persisted;denied_collection_retains_last_good",
+      "result_path": "evidence/epoch-20261005/workbench-independent-05/receipt.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Synthetic consistency manifest not Graph pagination qualification; approved scheduler not installed",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "M5-HEALTH",
+      "description": "Separate reporting/targeted denominators;unknown/stale and endpoint outcomes explicit",
+      "status": "PASS",
+      "evidence_class": "synthetic_collection_aggregate",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "health_retains_targeted_and_reporting_denominators",
+      "result_path": "evidence/epoch-20261005/workbench-independent-05/receipt.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "100targeted/8successful fixture is collection scoped,not device telemetry; rollout remains unready",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "M5-RECOVERY",
+      "description": "Exact plan/substitution/stale/partial/lost-response recovery with no blind replay",
+      "status": "PASS",
+      "evidence_class": "synthetic_service_and_protected_process",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "test_maintenance;independent CLI recovery",
+      "result_path": "evidence/epoch-20261005/maintenance-tests.log",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Includes abrupt process termination,not host crash/power loss or remote Graph transaction",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "M5-BACKUP",
+      "description": "Tenant/history preserving SQLite backup/restore rejects incomplete schema",
+      "status": "PASS",
+      "evidence_class": "local_filesystem",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "delta-review/journey-recheck;backup-probe-recheck",
+      "result_path": "evidence/epoch-20261005/delta-review/REVIEW.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Local consistency not authenticated backup provenance/encryption/production access policy",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "INDEPENDENT-REVIEW",
+      "description": "New malformed collection,health unknown count and restore-schema findings repaired",
+      "status": "PASS",
+      "evidence_class": "independent_local_review",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "initial negative probes and after rechecks",
+      "result_path": "evidence/epoch-20261005/delta-review/REVIEW.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Same host/user; no hostile-process oracle isolation",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "PROVIDER-RPC-SCHEMA",
+      "description": "Unchanged provider actual Unix RPC init/schema/credential-free validate",
+      "status": "PASS",
+      "evidence_class": "native_tools",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "415097131c64a47c8435ce9528d050382996cfa4bed38d0960548f160a0b0dd3",
+      "test_id": "native-smoke-20261005-after",
+      "result_path": "evidence/epoch-20261005/native-provider-schema/native-smoke-20261005-after.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Selected schema pin unchanged; no authentication/import/refresh/update/device evidence",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "PROVIDER-SCHEMA-REPAIR",
+      "description": "Schema-only96depth/16MiB decoder;general input64 unchanged",
+      "status": "PASS",
+      "evidence_class": "native_tools_and_regression",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "43focused;independent-parser-review",
+      "result_path": "evidence/epoch-20261005/native-provider-schema/RECONCILIATION.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "New current-host issue; initial parser failure retained; duplicate/nonfinite/size safeguards retained",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "STRICT-SOURCE",
+      "description": "Retained first-candidate full verifier; validator host prerequisite failed before recovery",
+      "status": "FAIL",
+      "evidence_class": "local_implementation_tests",
+      "source_revision": "4c50e846cefc17c11831929fc00085df9c1be0d7",
+      "artifact_sha256": "fa4457687cecb15e8e19c00ffe0a9c45344a92a0c658e30044f1ed72d59e2eae",
+      "test_id": "996passes/1046run/2skips",
+      "result_path": "evidence/epoch-20261005/strict-source-final/result.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Strict local suite is not organizational or live-service approval",
+      "next_action": "Retain failure; compare subsequent exact-extracted qualification after original pinned library recovery"
+    },
+    {
+      "requirement_id": "STRICT-EXTRACTED",
+      "description": "Full verifier including core regressions on exact second-candidate extracted source",
+      "status": "FAIL",
+      "evidence_class": "exact_extracted_source_tests",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "1045passes/1046run/0skips",
+      "result_path": "evidence/epoch-20261005/strict-extracted-qualified/result.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Original pinned validator library recovered from official Ubuntu package; location-only test fixture override; product approval code and hash unchanged",
+      "next_action": "Retain pending/failure until actual result; external platform and organizational gates remain separate"
+    },
+    {
+      "requirement_id": "APPROVAL-HOST-PREREQUISITE",
+      "description": "Original hash-pinned signature validator recovered; test-only location override",
+      "status": "PASS",
+      "evidence_class": "artifact_integrity_and_fixture_only_portability",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "58 focused checks;4 independent review assertions",
+      "result_path": "evidence/epoch-20261005/approval-prerequisite/fixture-qualification.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Debian default library mismatch preserved; no product hash,authority or security control was relaxed",
+      "next_action": "Use explicitly pinned test-host library; production host contract unchanged"
+    },
+    {
+      "requirement_id": "EXTRACTED-DELTA",
+      "description": "89 focused delta/CI/artifact tests plus26 independent actual CLI checks on exact extracted source",
+      "status": "PASS",
+      "evidence_class": "exact_extracted_source",
+      "source_revision": "4c50e846cefc17c11831929fc00085df9c1be0d7",
+      "artifact_sha256": "fa4457687cecb15e8e19c00ffe0a9c45344a92a0c658e30044f1ed72d59e2eae",
+      "test_id": "89tests;26checks",
+      "result_path": "evidence/epoch-20261005/extracted-delta-final/run.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "First-candidate focused exact-package replay remains valid for unchanged product bytes; final full extracted suite is separately recorded",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "PACKAGE",
+      "description": "Exact new archives safely extracted and rebuilt byte-identically",
+      "status": "PASS",
+      "evidence_class": "artifact_integrity",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "verify-release-artifact; build from extracted source",
+      "result_path": "evidence/epoch-20261005/reproducibility-qualified.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Hashes prove exact local bytes,not publisher approval",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "RUNTIME",
+      "description": "Exact extracted runtime nine command smoke with closed-terminal collection",
+      "status": "PASS",
+      "evidence_class": "synthetic_extracted_runtime",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "5bd9838c6c4b099e92eb1e20ef8aa3840f8fcf07716764657da73fe6f62da71c",
+      "test_id": "nine actual CLI commands",
+      "result_path": "evidence/epoch-20261005/extracted-runtime-smoke/receipt.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Runtime bytes unchanged across the two source candidates; no credentials or native tenant operations",
+      "next_action": "None for this scoped assertion"
+    },
+    {
+      "requirement_id": "M3-CI",
+      "description": "Existing validation workflow invokes same checker and retains artifacts",
+      "status": "IMPLEMENTED",
+      "evidence_class": "local_static_and_shared_script",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": ".github/workflows/validate.yml;CIContractTests",
+      "result_path": "evidence/epoch-20261005/ci-packaging-focused.log",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Native GitHub protected environments,trust,artifact controls,OIDC not exercised",
+      "next_action": "Explicitly authorized disposable GitHub repository/runner required"
+    },
+    {
+      "requirement_id": "FLEET-SCHEDULER",
+      "description": "Approved recurring fleet collector with real last-run evidence",
+      "status": "NOT_STARTED",
+      "evidence_class": "external_prerequisite",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "none",
+      "result_path": "docs/REMAINING-REQUIREMENTS-20261005.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Headless local collector exists; no cron/GitHub/Azure scheduler installed",
+      "next_action": "Select and qualify approved scheduler and real read-only capture adapter"
+    },
+    {
+      "requirement_id": "VENDOR-DICTIONARY-OIB",
+      "description": "Pinned source/reference adapter and three-way company/upstream/observed review",
+      "status": "NOT_STARTED",
+      "evidence_class": "implementation_gap",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "none",
+      "result_path": "docs/REMAINING-REQUIREMENTS-20261005.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Existing observed dictionary exposes exact values/uses; authoritative meanings and OIB mapping absent",
+      "next_action": "Extend existing adapters using immutable approved source and licensing evidence"
+    },
+    {
+      "requirement_id": "NATIVE-PROVIDER-LIFECYCLE",
+      "description": "Authenticated import/refresh/update/assignment/readback/convergence",
+      "status": "BLOCKED",
+      "evidence_class": "external_prerequisite",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "not run",
+      "result_path": "docs/REMAINING-REQUIREMENTS-20261005.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "RPC schema pass does not supply live lifecycle",
+      "next_action": "Approved tenant/objects/identity/backend/scope and service evidence required"
+    },
+    {
+      "requirement_id": "NATIVE-HOSTS",
+      "description": "Windows/GitBash/PowerShell and host durability qualification",
+      "status": "BLOCKED",
+      "evidence_class": "external_prerequisite",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "not run",
+      "result_path": "docs/REMAINING-REQUIREMENTS-20261005.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Linux PTY and process restart do not qualify Windows or power loss",
+      "next_action": "Native supported hosts; preserve older durability/reappearance negatives"
+    },
+    {
+      "requirement_id": "AZURE-INTUNE-DEVICES",
+      "description": "Actual GitHub/Azure/Entra/Intune/device service evidence",
+      "status": "BLOCKED",
+      "evidence_class": "external_prerequisite",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "not run",
+      "result_path": "docs/REMAINING-REQUIREMENTS-20261005.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "No production tenant mutation,deployment,credential provisioning or privilege expansion authorized",
+      "next_action": "Organization provides approved lab identities/subscription/licensing/devices and explicit pilot scope"
+    },
+    {
+      "requirement_id": "PRODUCTION-APPROVAL",
+      "description": "Organizational AppSec,risk and operational production approval",
+      "status": "BLOCKED",
+      "evidence_class": "organizational_authority",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "not granted",
+      "result_path": "docs/REMAINING-REQUIREMENTS-20261005.md",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Model/local tests cannot grant organizational risk acceptance",
+      "next_action": "Independent authorized organizational review and pilot"
+    },
+    {
+      "requirement_id": "WALLY-PRESERVATION",
+      "description": "87completed/9timeouts/no demonstrated advantage retained unchanged",
+      "status": "PASS",
+      "evidence_class": "historical_evidence",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476",
+      "test_id": "no new experiment",
+      "result_path": "evidence/epoch-20261004/wally/acceptance-ledger.json",
+      "environment": "Linux x86_64 CPython3.12.14 local workspace",
+      "limitation": "Optional read-only reviewer; no positive outcome needed",
+      "next_action": "None for this scoped assertion"
+    }
+  ],
+  "rows": [
+    {
+      "requirement_id": "R2-RECONCILIATION",
+      "status": "PASS",
+      "description": "Prior exact artifacts,3,061 source payloads and prerequisite pins independently reconciled",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/source-integrity.json",
+        "sha256": "975e41f3302a1562ca21d4dccd58f86b97c4c4c8574e06c60a707b9d7b7407c6"
+      },
+      "evidence_scope": "Readonly byte integrity; historical discrepancy not closed",
+      "source_revision": "a3abcc06ae56291b485809f3c43b5e44d3802bb4",
+      "artifact_sha256": "51b2125300794451336344215315ce59f72fbe93ee0af752e8915030afb63476"
+    },
+    {
+      "requirement_id": "R2-PROCESS-BEFORE-AFTER",
+      "status": "PASS_SCOPED",
+      "description": "Both local/provider process cleanup; independent before44cases15fail,after48pass; original20repeatspass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/process-cleanup-review/review-receipt.json",
+        "sha256": "f2898a264b9de6e2000235b637b28a5446dd410da236dad0c503445b8856355d"
+      },
+      "evidence_scope": "Linux readable procfs/same process-group/thread state, not cgroups/hostile host/non-Linux/power loss",
+      "source_revision": "e5c76079ead9bc109725d189487872324d45274f",
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-061-STRICT",
+      "status": "FAIL_PRESERVED",
+      "description": "0.6.1 exact strict1061/1062; backwards-compatible raw-evidence output assertion failed",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.1/strict-suite/result.json",
+        "sha256": "85fce4c59712cb9634ed7ab090351f85b355303fc2b9a7109768bbd3246deef3"
+      },
+      "evidence_scope": "Historical candidate, retained unchanged",
+      "source_revision": "e5c76079ead9bc109725d189487872324d45274f",
+      "artifact_sha256": "e4acb64d8067a0b47d2e345b5b0065baade0beb6edf5c8299790542f825747eb"
+    },
+    {
+      "requirement_id": "R2-062-STRICT",
+      "status": "PASS",
+      "description": "Exact extracted0.6.2 strict1062/1062,zero failures/errors/skips",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.2/strict-suite/result.json",
+        "sha256": "32ca43acd532a53e8bdabd211112a722009905e4efab9e6e9864083cf785af9c"
+      },
+      "evidence_scope": "Applies only to frozen process milestone, not new feature source",
+      "source_revision": "1001eee0c0610c33899181c1414941069e4cde38",
+      "artifact_sha256": "2bb077dda8ca5f41392dcc391a57ca9e9f3864b8e61480811f542c048820194c"
+    },
+    {
+      "requirement_id": "R2-062-PACKAGE",
+      "status": "PASS",
+      "description": "Source/runtime archives rebuild byte-identically; source maps unchanged",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.2/reproducibility.json",
+        "sha256": "eb78d93e28f352c9a43c786287c54a6c0fee94dfe6bacc247f215f3c51c585c1"
+      },
+      "evidence_scope": "3,062 Git-matching source payloads,120 runtime payloads; generated SHA256SUMS distinguished from historical root manifest",
+      "source_revision": "1001eee0c0610c33899181c1414941069e4cde38",
+      "artifact_sha256": "2bb077dda8ca5f41392dcc391a57ca9e9f3864b8e61480811f542c048820194c"
+    },
+    {
+      "requirement_id": "R2-062-NATIVE",
+      "status": "PASS_SCOPED",
+      "description": "Pinned actual init/Unix provider schema RPC/credential-free validate pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.2/native-smoke.json",
+        "sha256": "dc8db3cfe77791bd2257168a2d223d28a66ab17f3e49f931b657b06b02c7c902"
+      },
+      "evidence_scope": "No authenticated Graph/import/update/readback/backend/device or production approval",
+      "source_revision": "1001eee0c0610c33899181c1414941069e4cde38",
+      "artifact_sha256": "2bb077dda8ca5f41392dcc391a57ca9e9f3864b8e61480811f542c048820194c"
+    },
+    {
+      "requirement_id": "R2-062-RUNTIME",
+      "status": "PASS_SCOPED",
+      "description": "Exact runtime nine commands and independent health/backup/state assertions",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.2/runtime-audit/receipt.json",
+        "sha256": "029da15b1b5d1becd17051e87f8fb1e83695f21407a7ed15c9d5ee6559b27a81"
+      },
+      "evidence_scope": "Local synthetic profile; reused separately authored audit, fresh execution",
+      "source_revision": "1001eee0c0610c33899181c1414941069e4cde38",
+      "artifact_sha256": "8167858a8dce27671a50bf025e23508120e5cf9e6fdd3c4ab84504034ba061c6"
+    },
+    {
+      "requirement_id": "R2-062-PACKAGED-GRADER",
+      "status": "FAIL_PRESERVED",
+      "description": "Original packaged grader falsely declared30s timeout after0.7586s and actual exit0",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.2/journey/receipt.json",
+        "sha256": "569d416aec47f79299e0ead6e2d61aa6c8b8323f509eb2563a72b234cc300414"
+      },
+      "evidence_scope": "Packaged grader remains defective in these immutable bytes",
+      "source_revision": "1001eee0c0610c33899181c1414941069e4cde38",
+      "artifact_sha256": "2bb077dda8ca5f41392dcc391a57ca9e9f3864b8e61480811f542c048820194c"
+    },
+    {
+      "requirement_id": "R2-062-EXTERNAL-JOURNEY",
+      "status": "PASS_SCOPED",
+      "description": "Separately bound corrected checker:26checks,28commands,3PTY sessions",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.6.2/journey-supplemental-binding.json",
+        "sha256": "c75b3093f73f4607fd52170ebdc80615067b6e04569ca4d9aca9fb3940fb5324"
+      },
+      "evidence_scope": "Product journey qualified by external checker; does not change original packaged-grader FAIL",
+      "source_revision": "1001eee0c0610c33899181c1414941069e4cde38",
+      "artifact_sha256": "2bb077dda8ca5f41392dcc391a57ca9e9f3864b8e61480811f542c048820194c"
+    },
+    {
+      "requirement_id": "R2-GRADER-REPAIR",
+      "status": "DEVELOPMENT_PASS",
+      "description": "Original deadline preserved; bounded EOF/EIO exit wait and checker identity;10focused regressionspass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/journey-pty-exit-repair/tests.json",
+        "sha256": "25d3c8634d89e7ffeb64a833b76a357b80ddbd24420e7b05be2dea2a476e8918"
+      },
+      "evidence_scope": "Separate grader/test change for next feature artifact",
+      "source_revision": "e9ce7afc431618f94ff544f5d7f241df4a6b54f1",
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-CAPTURE-ADAPTER",
+      "status": "DEVELOPMENT_REVIEW_PASS",
+      "description": "44independent capture consistency, malformed input and authority-negative assertions pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/capture-adapter-review/run-02/receipt.json",
+        "sha256": "366132c25bad9a6fb89d63d845da430ad0878251da6b6ea110db8d6aac32e183"
+      },
+      "evidence_scope": "Caller-supplied local capture; no authentic Graph proof, credentials or network calls",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-CAPTURE-STORE",
+      "status": "DEVELOPMENT_PASS",
+      "description": "62store/adapter tests pass including scoped import, migration, coverage and concurrent artifact publication",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/capture-store/tests-concurrency-after.log",
+        "sha256": "b290c32b2ff0ce80dda4bd66d7dd3fb21f189e75bd9610947c29feb2a5db84d0"
+      },
+      "evidence_scope": "Development source; complete final feature artifact qualification remains separate",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-PROVENANCE",
+      "status": "DEVELOPMENT_PASS",
+      "description": "22provenance tests plus original dictionary regression pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/provenance-green-07.txt",
+        "sha256": "a26d0352bb2a2d7239668031888e318871484af9c9f31e6167276aae4fbe95e8"
+      },
+      "evidence_scope": "Pinned community/local reference, typed comparison and candidate rename history; vendor authority unresolved",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-OIB-READONLY",
+      "status": "PASS_SCOPED_OLDER_SOURCE",
+      "description": "Nine actual pinned OIB/current+rename-history interpretation checks pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/provenance-oib-02/receipt.json",
+        "sha256": "8b9e68562d2b7ae42ec74bfe53f30df2555e73e9bee72fc3a78d269ab75c08b5"
+      },
+      "evidence_scope": "Bound to its recorded older module hash; does not automatically qualify later compatibility edits, native adoption unsupported",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-SCHEDULER",
+      "status": "DEVELOPMENT_PASS",
+      "description": "10finite local headless scheduler tests pass incl SIGINT/SIGKILL,overlap,resume",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/scheduler/qualification-receipt.json",
+        "sha256": "5af775f9af14efbd26e399fd0d3a44d6135bcbe3c8397871996e40f9f9821305"
+      },
+      "evidence_scope": "ModeledService-only, bounded explicit window; no daemon/cron/systemd/liveGraph fleet schedule",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-DEVICE-HEALTH",
+      "status": "DEVELOPMENT_PASS",
+      "description": "Final integration25pass, health8pass and presentation3pass; overlapping checks, not additive",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/integration/implementation-receipt.json",
+        "sha256": "786f0df8dc4cb133ff873fb9cb00fe0ccf1236afab64c4e2bcc537a1691e3434"
+      },
+      "evidence_scope": "Author implementation checks, not independent review; imported endpoint/workflow claims remain caller-asserted, collection aggregates not device truth",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-FEATURE-INTEGRATION-NEGATIVE",
+      "status": "FAIL_PRESERVED",
+      "description": "Earlier combined integration exposed compatibility/fixture mismatches",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/integration/cli-health-after-01.stderr",
+        "sha256": "84947b6d7c3090465f1049c17e906bda7ab7bcd86920a0edf72f197510991cf6"
+      },
+      "evidence_scope": "Earlier development negative; latest integrated/frozen result must be separately appended",
+      "source_revision": null,
+      "artifact_sha256": null
+    },
+    {
+      "requirement_id": "R2-070-PACKAGE",
+      "status": "PASS",
+      "description": "Frozen0.7.0 source3071payloads match Git; exact archive safely extracted",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.7.0/artifact-binding.json",
+        "sha256": "cfc2e79a8d4a6e0cd496358cc8dd0fa67c961328b09a90d1573eb508aef39264"
+      },
+      "evidence_scope": "Full strict suite currently running; source commit and package identity do not imply behavioral completion",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-070-NATIVE",
+      "status": "PASS_SCOPED",
+      "description": "Exact frozen artifact nativeinit/schema/credential-free validate pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.7.0/native-smoke.json",
+        "sha256": "8e30d0238c12b34f9096106bd83d0aa4a59f15e1eb255364edc8b3190a59eddd"
+      },
+      "evidence_scope": "No authenticated cloud resource lifecycle or device evidence",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-070-CONNECTED-PTY",
+      "status": "PASS_SCOPED",
+      "description": "Corrected packaged grader passes26checks/28commands/3PTY sessions",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.7.0/journey/receipt.json",
+        "sha256": "13c774de7d99cfebd3e50b70d56610b1a9ef07ca0321c885b580c4c9a3ed691a"
+      },
+      "evidence_scope": "Original connected synthetic maintenance journey; not an exhaustive PTY oracle for every new command",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-070-RUNTIME",
+      "status": "PASS_SCOPED",
+      "description": "25actual exact runtime commands, including guarded scheduled collection/history/health,pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/receipt.json",
+        "sha256": "1d3cfe1e0b01a1f6b63decc7a1079296ea58b9de28ca6376be35ba68e15fb608"
+      },
+      "evidence_scope": "Runtime/archive bytes unchanged; includes15routehelps, not25complete product journeys",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "e1c0be55b2a21cb14fc404defe9d379a9febdd85e0c1ba5086d1b5e660fc66e5"
+    },
+    {
+      "requirement_id": "R2-FINAL-INDEPENDENT-REVIEW",
+      "status": "PASS_SCOPED",
+      "description": "14new independent probes and18existing scheduler/health tests pass",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/final-independent-review/receipt.json",
+        "sha256": "58855550c7e788a7e56646209b06549cdd7c758561e5088a8d3473028d4a36d7"
+      },
+      "evidence_scope": "Two files changed during review; final hashes and dispatch/terminal re-read recorded. Not organizational AppSec or hostile-process separation.",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-EXPANDED-CLI",
+      "status": "PASS_SCOPED",
+      "description": "48independent checks/25actual CLI commands: capture,reopen,deniedcoverage,two policies,device8of100,workflow,reference,backup/restore",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/capture-store/cli-run-081411/receipt.json",
+        "sha256": "061dcf27bee11fa99c31f60cb6d76a6654f64c16b705a1cb7de79aa7b6b36e11"
+      },
+      "evidence_scope": "Ran main frozen working copy, not extracted source; five recorded source hashes independently equal archive. Scripted stdin, not full PTY. Injected GET, caller-asserted capture/device/source claims; no live service or native OIB adoption.",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a",
+      "source_binding": {
+        "path": "evidence/epoch-20261005-r2/capture-store/expanded-cli-source-binding.json",
+        "sha256": "d9050b644539f648642b09b032edcd45879793104104e92acde1b650d854820b"
+      }
+    },
+    {
+      "requirement_id": "R2-PROVENANCE-LATEST",
+      "status": "PASS_SCOPED",
+      "description": "Nine actual pinned OIB reference/history checks rerun after compatibility fix",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/provenance-oib-03/receipt.json",
+        "sha256": "cecdcb2a731dac8b0fffb06614aac03b241f5d35d9c28d80fdb2289ffd5a3596"
+      },
+      "evidence_scope": "Community reference and candidate lineage; no authenticated tenant identity/vendor authority/native adoption",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-FEATURE-INTEGRATION-AFTER",
+      "status": "DEVELOPMENT_PASS",
+      "description": "25combined CLI/health tests pass after repairs; earlier negative retained",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/integration/cli-health-after-02.stderr",
+        "sha256": "cd95ab8105c92938fa620c58cc269419793e19107c7e7b61ea17831a89327339"
+      },
+      "evidence_scope": "Development/frozen source hashes separate from pending complete strict suite",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-070-STRICT",
+      "status": "PASS",
+      "description": "Exact extracted0.7.0 strict1141/1141,zero failures/errors/skips",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.7.0/strict-suite/result.json",
+        "sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658"
+      },
+      "evidence_scope": "Frozen source/local Linux only; no organizational, live platform, device or other-host approval",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    },
+    {
+      "requirement_id": "R2-070-REPRODUCIBILITY",
+      "status": "PASS",
+      "description": "Both0.7.0 ZIPs rebuild byte-identically; all extracted source maps unchanged",
+      "evidence": {
+        "path": "evidence/epoch-20261005-r2/milestone-0.7.0/reproducibility.json",
+        "sha256": "ae77ea80ee093d99e93ff10f5e9a1ac5a265d6c0fba09a366ee55a07bccc4427"
+      },
+      "evidence_scope": "Frozen source/local Linux only; no organizational, live platform, device or other-host approval",
+      "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    }
+  ],
+  "external_prerequisites": [
+    "Approved Graph read identity/tenant/object scope and independent identity evidence",
+    "Separately authorized disposable objects and backend for native provider write lifecycle",
+    "Actual GitHub protected refs/environments/artifacts/OIDC and Azure lease controls",
+    "Approved Intune licensing/representative devices and independent endpoint effectiveness/health",
+    "Native Windows/GitBash/PowerShell/macOS and host-installation/durability evidence",
+    "Organization-specific AppSec and production approval"
+  ],
+  "remaining_local_gaps": [
+    "Implement bounded GET capture retry/backoff and dedicated comprehensive terminal oracles for new routes; no repeat frozen0.7.0 qualification without source change",
+    "Existing capture transport has no bounded retry/backoff; finite scheduler is local modeled service only",
+    "Authoritative vendor dictionary and supported native OIB adoption remain absent",
+    "Enterprise-scale performance, full handoff mapping and hostile-host/power-loss qualification remain separate"
+  ]
+}

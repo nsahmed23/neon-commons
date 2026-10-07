@@ -1,0 +1,5 @@
+usage: intune-iac workbench schedule-status [-h] --job JOB
+
+options:
+  -h, --help  show this help message and exit
+  --job JOB

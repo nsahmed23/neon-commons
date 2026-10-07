@@ -1,0 +1,72 @@
+{
+  "status": "PASS_LOCAL_REFERENCE_IMPORT_DICTIONARY_AND_COMPARISON",
+  "evidence_class": "actual_acquired_community_source_with_synthetic_tenant_observation",
+  "checks": [
+    "three_raw_artifacts_exact_hash_and_license",
+    "persistent_reopen",
+    "separate_upstream_and_tenant_identities",
+    "actual_name_history_pair",
+    "unknown_vendor_meanings",
+    "local_mapping_separated",
+    "unknown_company_desired",
+    "wrong_hash_rejected_without_artifact",
+    "no_service_requests_or_mutation_during_queries"
+  ],
+  "source_sha256": {
+    "intune_iac/workbench_provenance.py": "5191c5208766147958e0818ae8385b09a46f4c66e55592cb440bdb1bc8945eee",
+    "intune_iac/workbench_store.py": "7edca71acd24085ba5b13f957b0bf4ea35582efa8a4003c866cbe9b14945291a"
+  },
+  "reference_ids": [
+    "e6996fd90a98a91adf24cccd24852715ace09ea602b9baa4c69ec4febf703dcd",
+    "b77466884d87dc7526e0a8ca042ceb65767e8e5aa0b74422adc30aacb70eec80",
+    "79f0aeebdfcc77088957b396de144ddeebbdde0f97f72db9d081a6c4ed546152"
+  ],
+  "files": [
+    {
+      "revision": "1cc71a92abdb9d708c9a3358f323f7894ae81163",
+      "sha256": "9383611ad26df18dc647aa319e0fa152428e0a100f21603536afac478e8a0f1a",
+      "source_url": "https://github.com/SkipToTheEndpoint/OpenIntuneBaseline/blob/1cc71a92abdb9d708c9a3358f323f7894ae81163/WINDOWS/IntuneManagement/SettingsCatalog/Win%20-%20OIB%20-%20SC%20-%20Device%20Security%20-%20D%20-%20Location%20and%20Privacy%20-%20v3.2.json",
+      "license_id": "GPL-3.0"
+    },
+    {
+      "revision": "f655a1c377fe3d895f84853564be91a6bf4f57c2",
+      "sha256": "d88a0d22fc0d7df75df417b6f1b8b49773a37b930febc8cabcf37ebcaaa16215",
+      "source_url": "https://github.com/SkipToTheEndpoint/OpenIntuneBaseline/blob/f655a1c377fe3d895f84853564be91a6bf4f57c2/WINDOWS/IntuneManagement/SettingsCatalog/Win%20-%20OIB%20-%20Device%20Security%20-%20D%20-%20Location%20and%20Privacy%20-%20v3.2.json",
+      "license_id": "GPL-3.0"
+    },
+    {
+      "revision": "d2730d9bb7e04b0a52498f5dc9117e9241dab71f",
+      "sha256": "86f1ea4b3936229a8209ef5e32a6437457a63945446019405743ea4c04f62f71",
+      "source_url": "https://github.com/SkipToTheEndpoint/OpenIntuneBaseline/blob/d2730d9bb7e04b0a52498f5dc9117e9241dab71f/WINDOWS/IntuneManagement/SettingsCatalog/Win%20-%20OIB%20-%20SC%20-%20Device%20Security%20-%20D%20-%20Location%20and%20Privacy%20-%20v3.2.json",
+      "license_id": "GPL-3.0"
+    }
+  ],
+  "history_comparison": {
+    "reference_id": "b77466884d87dc7526e0a8ca042ceb65767e8e5aa0b74422adc30aacb70eec80",
+    "source_revision": "f655a1c377fe3d895f84853564be91a6bf4f57c2",
+    "lineage_basis": "matching_upstream_export_id_candidate",
+    "lineage_authenticated": false,
+    "tenant_identity_established": false,
+    "chronology_verified": false,
+    "comparison_direction": "other_reference_to_selected",
+    "change_class": "name_or_metadata_only",
+    "changed_top_level_fields": [
+      "lastModifiedDateTime",
+      "name"
+    ],
+    "name_before": "Win - OIB - Device Security - D - Location and Privacy - v3.2",
+    "name_after": "Win - OIB - SC - Device Security - D - Location and Privacy - v3.2",
+    "settings": {
+      "status": "equal",
+      "scope": "setting_instances_by_definition_id",
+      "differences": [],
+      "targeting_compared": false,
+      "adoption_qualified": false
+    }
+  },
+  "limitations": [
+    "read-only interpretation only; no supported native OIB adoption",
+    "same user/host; no hostile-process boundary",
+    "no vendor, live Graph/device, GitHub or organizational qualification"
+  ]
+}

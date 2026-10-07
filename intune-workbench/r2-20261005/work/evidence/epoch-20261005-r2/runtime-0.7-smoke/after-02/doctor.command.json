@@ -1,0 +1,14 @@
+{
+  "name": "doctor",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "doctor"
+  ],
+  "exit_code": 0,
+  "started": 1791188064.5790257,
+  "ended": 1791188064.6478937,
+  "stdout_sha256": "ec613bb74ed314c76e195659aec7b8aba305caa5c23c81d5cc7b549c1c2abbbb",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

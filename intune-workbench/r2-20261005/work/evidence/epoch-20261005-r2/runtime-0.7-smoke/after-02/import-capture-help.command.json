@@ -1,0 +1,16 @@
+{
+  "name": "import-capture-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "import-capture",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188064.7965112,
+  "ended": 1791188064.873268,
+  "stdout_sha256": "95aa283bd39d950e4289e3759720367dc671f3fb466ef13d9a3ba2939ee42a05",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

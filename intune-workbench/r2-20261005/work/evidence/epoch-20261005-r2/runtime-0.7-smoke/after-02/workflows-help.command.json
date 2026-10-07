@@ -1,0 +1,16 @@
+{
+  "name": "workflows-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "workflows",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188065.4633365,
+  "ended": 1791188065.5321896,
+  "stdout_sha256": "87058b0c1b04eaead8a5f1f21a8f493abe7b520153c2231a61e4416b80978cb6",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

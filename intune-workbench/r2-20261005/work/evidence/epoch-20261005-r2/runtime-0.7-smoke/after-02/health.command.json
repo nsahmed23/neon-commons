@@ -1,0 +1,17 @@
+{
+  "name": "health",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "health",
+    "--root",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/store"
+  ],
+  "exit_code": 0,
+  "started": 1791188066.7074828,
+  "ended": 1791188066.8602767,
+  "stdout_sha256": "2b12fc899e8765ee4210750edde6c1a76a13fc65f5df3152c1a9d30089687067",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

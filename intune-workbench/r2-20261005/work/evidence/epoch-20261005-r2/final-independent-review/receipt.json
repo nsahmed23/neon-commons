@@ -1,0 +1,38 @@
+{
+  "schema_version": "scoped-independent-workbench-review/1",
+  "finished_at": "2026-10-05T08:14:22.045311+00:00",
+  "status": "PASS_WITH_DECLARED_SCOPE",
+  "confirmed_release_blockers_found": [],
+  "source_end_sha256": {
+    "intune_iac/workbench_scheduler.py": "e8a0336fd4788eed4c0860b15eb19de264d9bf6ce0ad194e228f7283ed301d47",
+    "intune_iac/workbench_health.py": "4d52cf527fb96eed6db1f138be9acc2be5a70cc33a99968eaa37b7b7454e7715",
+    "intune_iac/workbench.py": "b4cf7ac0f4eae2115395d68df2260741c086d35cdf772383210ecdc80ac589b7",
+    "intune_iac/protected.py": "0c7fb4f53a7329d8d467e0b1faadc687501a4fed4335c51ed0b15ec5c2b379c1"
+  },
+  "source_changed_during_review": [
+    "intune_iac/workbench_health.py",
+    "intune_iac/workbench.py"
+  ],
+  "source_change_note": "Concurrent implementers refined per-device status to unknown with separate reported_status and adjusted CLI presentation to local_interface_result. Final dispatch and terminal routes were re-read at 08:14 UTC; probes inspect repaired health output. Reviewer changed no product source.",
+  "independent_probes": {
+    "passed": 14,
+    "failed": 0,
+    "receipt": "independent-probes.json",
+    "replay": "Copy probe.py to a NEW private evidence directory, then execute it with /workspace/intune-runtime/bin/python -B."
+  },
+  "existing_tests": {
+    "passed": 18,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 4.947,
+    "command_record": "existing-tests.json",
+    "raw_log": "existing-tests.stderr"
+  },
+  "limitations": [
+    "Scoped review, not organizational AppSec acceptance.",
+    "Independent assertions share a user and host with the product; not hostile-process oracle isolation.",
+    "Scheduler is finite local modeled collection; no daemon or GitHub/Azure scheduler qualification.",
+    "Cleanup assertions cover ordinary deadlines and observed SIGINT/SIGKILL cases; no guarantee under kernel/host failure or unstoppable processes.",
+    "Imported device/workflow evidence is caller asserted; no authenticated endpoint or external workflow execution proof."
+  ]
+}

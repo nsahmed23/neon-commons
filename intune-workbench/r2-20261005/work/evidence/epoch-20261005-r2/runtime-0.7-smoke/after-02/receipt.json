@@ -1,0 +1,525 @@
+{
+  "status": "PASS",
+  "version": "0.7.0",
+  "commands": [
+    {
+      "name": "version",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "--version"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.5018425,
+      "ended": 1791188064.5789144,
+      "stdout_sha256": "967d9afb101346667166f2e76e81910bc190488d7d41d50ca0072e9d92f00e32",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "doctor",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "doctor"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.5790257,
+      "ended": 1791188064.6478937,
+      "stdout_sha256": "ec613bb74ed314c76e195659aec7b8aba305caa5c23c81d5cc7b549c1c2abbbb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "workbench-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.6480339,
+      "ended": 1791188064.7256305,
+      "stdout_sha256": "c590388456a4af4cc1aa01e92a3467c9a61108776f968d6b9609e110033c2e5b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "migrate-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "migrate",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.725767,
+      "ended": 1791188064.7963781,
+      "stdout_sha256": "0c3fda43048e8dc898770b6be64d0040f9042956c94d332f87cc04657911ad48",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "import-capture-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "import-capture",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.7965112,
+      "ended": 1791188064.873268,
+      "stdout_sha256": "95aa283bd39d950e4289e3759720367dc671f3fb466ef13d9a3ba2939ee42a05",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "device-evidence-import-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "device-evidence-import",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.873381,
+      "ended": 1791188064.9553812,
+      "stdout_sha256": "9f5a356d3da299c5931b4e4c52a5e6c7e202624ccf03bbb39628c4b71935ec93",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "workflow-import-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "workflow-import",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188064.9554815,
+      "ended": 1791188065.0290146,
+      "stdout_sha256": "f26c4f6c666a6498ef575c49f872425224c029c71184acbde04af9189aaf1e72",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reference-import-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "reference-import",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.0291183,
+      "ended": 1791188065.1011941,
+      "stdout_sha256": "5cb71daa93f96c34ad5ac08021c846fdbd4c0d6b394a1088135bdcbc514062fa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "reference-compare-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "reference-compare",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.101292,
+      "ended": 1791188065.1729887,
+      "stdout_sha256": "2848890134034efb96ba2cd699137f4eafc9f252532fc0aa0e9d24357acafacb",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "schedule-create-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "schedule-create",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.1730888,
+      "ended": 1791188065.2483299,
+      "stdout_sha256": "0fb10dc237614c7e14ce9d0f5653d388cdfdda4cf14cd91e587f883a7495a317",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "schedule-run-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "schedule-run",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.2484818,
+      "ended": 1791188065.3174834,
+      "stdout_sha256": "5a3842c4c4c792d24656f0b496e637ebf531b13c6d7ceb2afc6a0e9bcdc5a231",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "schedule-status-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "schedule-status",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.3175833,
+      "ended": 1791188065.3908434,
+      "stdout_sha256": "e657dcbfdbe46668c271f73e1c88d3ad650fb678b6278d762cde2b035bd7d8cd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "references-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "references",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.3909416,
+      "ended": 1791188065.4632382,
+      "stdout_sha256": "1387aff38d7a14e05681ce67be226a7ceaadbc80c95508e126f821ab31e2dcaa",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "workflows-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "workflows",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.4633365,
+      "ended": 1791188065.5321896,
+      "stdout_sha256": "87058b0c1b04eaead8a5f1f21a8f493abe7b520153c2231a61e4416b80978cb6",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "collection-history-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "collection-history",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.532288,
+      "ended": 1791188065.6099327,
+      "stdout_sha256": "b896d88b7fca2810d41901faa835a1c09b9a6945f655da637999ddce729042d9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "collection-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "collection",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.6101308,
+      "ended": 1791188065.6875014,
+      "stdout_sha256": "faacad859cb4a5e6d5d442c251f9ba343db457a42c25aa143e44db079423f35b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "dictionary-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "dictionary",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.6876023,
+      "ended": 1791188065.7509646,
+      "stdout_sha256": "b3437b2335c604dcbbaf63ff9efd985e6e20d468de35ccd3bb9252577e64743a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "health-help",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "health",
+        "--help"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.7510567,
+      "ended": 1791188065.8182411,
+      "stdout_sha256": "1b33afa720278246e35450af84188e542a198e3c29438e3a8aa273b74e17e2f4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "lab",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "lab-create",
+        "--service-root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/service",
+        "--input",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/examples/supported/input/export.json",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.8183594,
+      "ended": 1791188065.8918204,
+      "stdout_sha256": "8ff0bac66a49a446684f855940a830d3cd4fa7528a17c4c2917ec2e05d5bdf4f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "init",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "init",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/store",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.8919995,
+      "ended": 1791188065.9873517,
+      "stdout_sha256": "48b536834e72d6c8b1837b4abc5419d42738a7ddc0183a702434ea001cd86cff",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "schedule-create",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "schedule-create",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/store",
+        "--service-root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/service",
+        "--interval-seconds",
+        "0.1",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/job"
+      ],
+      "exit_code": 0,
+      "started": 1791188065.9874668,
+      "ended": 1791188066.1387308,
+      "stdout_sha256": "9bb8ca6f1fdba6f9556456bf174b227cdd37e973a470ad264763b8c98d02bf05",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "schedule-run",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "schedule-run",
+        "--job",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/job",
+        "--max-runs",
+        "1",
+        "--max-duration-seconds",
+        "5"
+      ],
+      "exit_code": 0,
+      "started": 1791188066.1388423,
+      "ended": 1791188066.4981556,
+      "stdout_sha256": "a1474875fecd862a94f0789e59b1ea386d6af0dc6433294b5463d8fcc9b4ba30",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "schedule-status",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "schedule-status",
+        "--job",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/job"
+      ],
+      "exit_code": 0,
+      "started": 1791188066.4982924,
+      "ended": 1791188066.61889,
+      "stdout_sha256": "03f827a93f5b13c405cb6a53957d50ab65f080c77267b7f535b34ff6a8ec59f8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "collection-history",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "collection-history",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/store"
+      ],
+      "exit_code": 0,
+      "started": 1791188066.619036,
+      "ended": 1791188066.7073584,
+      "stdout_sha256": "91d15f4ff1d4438feef628d94fecfd9b396693b3ceb40c6a23fb8da5409a7836",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "health",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+        "workbench",
+        "health",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/store"
+      ],
+      "exit_code": 0,
+      "started": 1791188066.7074828,
+      "ended": 1791188066.8602767,
+      "stdout_sha256": "2b12fc899e8765ee4210750edde6c1a76a13fc65f5df3152c1a9d30089687067",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "command_count": 25,
+  "archives": {
+    "runtime": {
+      "filename": "Intune_IaC_Plugin_0.7.0.zip",
+      "files": 125,
+      "listed_hashes": 124,
+      "bytes": 485420,
+      "sha256": "e1c0be55b2a21cb14fc404defe9d379a9febdd85e0c1ba5086d1b5e660fc66e5"
+    },
+    "source": {
+      "filename": "Intune_IaC_Plugin_0.7.0_Source.zip",
+      "files": 3072,
+      "listed_hashes": 3071,
+      "bytes": 16546987,
+      "sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    }
+  },
+  "runtime_exact_before_after": true,
+  "archives_unchanged": true,
+  "actual_scheduled_collection_verified": true,
+  "collection_history": {
+    "collections": [
+      {
+        "assurance": {
+          "execution_authorized": false,
+          "provider_qualified": false,
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "cloud_authority": false,
+        "collections": [
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "policies",
+            "owner_id": null,
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          }
+        ],
+        "completed_at": "2026-10-05T08:14:26.416818Z",
+        "coverage": "complete",
+        "error_code": null,
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "object_count": 1,
+        "observed_at": "2026-10-05T08:14:26.410770Z",
+        "run_id": 1,
+        "scope": {
+          "kind": "estate",
+          "object_ids": [
+            "22222222-2222-4222-8222-222222222222"
+          ]
+        },
+        "source": {
+          "cloud_authority": false,
+          "coverage_mechanism": "synthetic_revision_and_id_manifest",
+          "evidence_class": "synthetic",
+          "execution_authorized": false,
+          "observed_estate_sha256": "4d67adcd3e0a698075e0efd639a5241a24514307ac1890a351e3d720dc466c52",
+          "provider_qualified": false,
+          "scheduler": {
+            "actual_started_at": "2026-10-05T08:14:26.301137Z",
+            "job_id": "3410cd5ff8244b15a68b0389d5d16c69",
+            "run_id": "86713e3651f541e5965a543dacdeeedd",
+            "scheduled_for": "2026-10-05T08:14:26.218348Z",
+            "source_adapter": "intune-stateful-model/1.0"
+          },
+          "service_kind": "ModeledService",
+          "service_revision": 1,
+          "service_root": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/service",
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "started_at": "2026-10-05T08:14:26.411167Z",
+        "status": "complete",
+        "tenant_id": "11111111-1111-4111-8111-111111111111"
+      }
+    ],
+    "limit": null,
+    "offset": 0
+  },
+  "audit_script_sha256": "b9ffcadd14d93d9d8384542dfde5751e54c4b530b9b5d125ed6aea2ccf00f264",
+  "limits": [
+    "Local modeled Linux smoke only; no credentials",
+    "Help routing does not qualify live import or provider behavior",
+    "No production, external scheduler, native Windows or organization approval"
+  ]
+}

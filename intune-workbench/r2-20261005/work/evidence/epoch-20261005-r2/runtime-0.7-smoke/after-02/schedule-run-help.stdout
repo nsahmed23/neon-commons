@@ -1,0 +1,9 @@
+usage: intune-iac workbench schedule-run [-h] --job JOB --max-runs MAX_RUNS
+                                         --max-duration-seconds
+                                         MAX_DURATION_SECONDS
+
+options:
+  -h, --help            show this help message and exit
+  --job JOB
+  --max-runs MAX_RUNS
+  --max-duration-seconds MAX_DURATION_SECONDS

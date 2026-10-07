@@ -1,0 +1,16 @@
+{
+  "name": "references-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "references",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188065.3909416,
+  "ended": 1791188065.4632382,
+  "stdout_sha256": "1387aff38d7a14e05681ce67be226a7ceaadbc80c95508e126f821ab31e2dcaa",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

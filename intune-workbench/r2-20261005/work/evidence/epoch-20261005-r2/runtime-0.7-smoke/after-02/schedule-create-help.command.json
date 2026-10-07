@@ -1,0 +1,16 @@
+{
+  "name": "schedule-create-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "schedule-create",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188065.1730888,
+  "ended": 1791188065.2483299,
+  "stdout_sha256": "0fb10dc237614c7e14ce9d0f5653d388cdfdda4cf14cd91e587f883a7495a317",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

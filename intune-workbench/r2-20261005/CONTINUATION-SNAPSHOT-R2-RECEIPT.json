@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "archive": "/workspace/intune-delivery/Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+  "started_at": "2026-10-05T08:19:32.475698+00:00",
+  "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+  "full_repository": true,
+  "historical_file_set_discrepancy_closed": false,
+  "symlink_inventory": [
+    {
+      "path": "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/symlink_raw/raw/page-000000.json",
+      "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/symlink-peer",
+      "attribution": "handoff_contracts independent negative capture-import fixture"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/symlink_raw/raw/page-000000.json",
+      "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/symlink-peer",
+      "attribution": "handoff_contracts independent negative capture-import fixture"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.1/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+      "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.1/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+      "attribution": "root-confirmed native_smoke.py provider cache; native-smoke.json and provider traces are retained"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+      "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.2/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+      "attribution": "root-confirmed native_smoke.py provider cache; native-smoke.json and provider traces are retained"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+      "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+      "attribution": "root-confirmed native_smoke.py provider cache; native-smoke.json and provider traces are retained"
+    }
+  ],
+  "safe_extraction_warning": "This full snapshot preserves negative-fixture symlinks and native qualification provider-cache symlinks, including absolute original-workspace targets. Safe extraction must not follow links: quarantine literal link entries as inert evidence and inspect targets before any recreation. Do not use blanket extractall/unzip or execute from an unreviewed extraction. Original restore_release.py is qualified for the original release ZIP, not this R2 bundle.",
+  "original_restore_release_helper_qualified_for_this_bundle": false,
+  "finished_at": "2026-10-05T08:20:41.299343+00:00",
+  "bytes": 2289864715,
+  "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+  "payload_files": 52165,
+  "payload_symlinks": 5,
+  "payload_directories": 11522,
+  "zip_entries": 63693,
+  "manifest_sha256": "71a06930122bbed74a17b0d49f149b210fb84b5d6a5d5217de9710d0f61c23ef",
+  "verified_payload_entries": 63692,
+  "all_entry_crc_verified": true,
+  "all_payload_sha256_verified": true,
+  "source_entry_set_unchanged": true,
+  "original_archive_unchanged": true,
+  "original_archive_sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214",
+  "previous_continuation_archive_unchanged": true,
+  "previous_continuation_sha256": "e443d4bd4ec1e6412b87a44fbbf0935d6634a706112f6d290c0d6190fc0e8792",
+  "seconds": 68.85201907157898
+}

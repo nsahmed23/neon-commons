@@ -1,0 +1,26 @@
+[
+  {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261005/approval-prerequisite/libsodium.so.23.3.0",
+    "sha256": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+    "expected_sha256": "fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5",
+    "matches": true
+  },
+  {
+    "path": "/workspace/intune-recovery/native-reprobe/tools/tofu",
+    "sha256": "a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a",
+    "expected_sha256": "a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a",
+    "matches": true
+  },
+  {
+    "path": "/workspace/intune-recovery/native-reprobe/tools/terraform-provider-microsoft365",
+    "sha256": "415097131c64a47c8435ce9528d050382996cfa4bed38d0960548f160a0b0dd3",
+    "expected_sha256": "415097131c64a47c8435ce9528d050382996cfa4bed38d0960548f160a0b0dd3",
+    "matches": true
+  },
+  {
+    "path": "/tmp/intune-native-completion/tofu",
+    "sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+    "expected_sha256": "0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627",
+    "matches": true
+  }
+]

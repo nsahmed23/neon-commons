@@ -1,0 +1,15 @@
+usage: intune-iac workbench reference-import [-h] --root ROOT --input INPUT
+                                             --sha256 SHA256 --revision
+                                             REVISION --source-url SOURCE_URL
+                                             --license LICENSE
+                                             [--assertion-class {community_reference,organization_annotation}]
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT
+  --input INPUT
+  --sha256 SHA256
+  --revision REVISION
+  --source-url SOURCE_URL
+  --license LICENSE
+  --assertion-class {community_reference,organization_annotation}

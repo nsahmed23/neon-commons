@@ -1,0 +1,6 @@
+usage: intune-iac workbench migrate [-h] --root ROOT --backup BACKUP
+
+options:
+  -h, --help       show this help message and exit
+  --root ROOT
+  --backup BACKUP

@@ -1,0 +1,6 @@
+usage: intune-iac workbench collection [-h] --root ROOT --run RUN
+
+options:
+  -h, --help   show this help message and exit
+  --root ROOT
+  --run RUN

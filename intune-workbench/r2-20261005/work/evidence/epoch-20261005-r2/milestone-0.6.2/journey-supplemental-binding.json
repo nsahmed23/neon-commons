@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "exit_code": 0,
+  "started_at": 1791187722.3345098,
+  "finished_at": 1791187729.5670178,
+  "product_commit": "1001eee0c0610c33899181c1414941069e4cde38",
+  "source_archive_sha256": "2bb077dda8ca5f41392dcc391a57ca9e9f3864b8e61480811f542c048820194c",
+  "product_root": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.2/source-extracted/intune-iac-source",
+  "external_checker": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/journey-pty-exit-repair/qualify-workbench.py",
+    "sha256": "cd69ba35c9605ea1c35d3ca2a61e8fbb07dfdb027179af284064666690144bcc"
+  },
+  "adapter": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/journey-pty-exit-repair/run_external.py",
+    "sha256": "07df4a0365e9d982c6f187c5445b0a4c849cdf2cd8faffa324dbbe89c741f1c0"
+  },
+  "source_unchanged": true,
+  "original_packaged_grader_failure": "../milestone-0.6.2/journey/receipt.json",
+  "qualification_boundary": "Separately bound corrected external checker executes immutable0.6.2 product; this is not a pass for the packaged grader."
+}

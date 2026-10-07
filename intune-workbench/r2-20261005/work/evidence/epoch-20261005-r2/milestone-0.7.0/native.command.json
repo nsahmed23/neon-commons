@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "labs/production-lifecycle/native_smoke.py",
+    "--tofu",
+    "/workspace/intune-recovery/native-reprobe/tools/tofu",
+    "--provider",
+    "/workspace/intune-recovery/native-reprobe/tools/terraform-provider-microsoft365",
+    "--work",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work",
+    "--receipt",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native-smoke.json",
+    "--provider-trace"
+  ],
+  "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/source-extracted/intune-iac-source",
+  "started_at": "2026-10-05T08:13:43.162994+00:00",
+  "finished_at": "2026-10-05T08:13:48.855607+00:00",
+  "elapsed_seconds": 5.692629417000717,
+  "exit_code": 0,
+  "stdout": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native.stdout",
+    "sha256": "0a9d03fbac0d00ce5094ba13d5bf6c202a210c6e8d8b8871bf18e45ba7bdbd44"
+  },
+  "stderr": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+}

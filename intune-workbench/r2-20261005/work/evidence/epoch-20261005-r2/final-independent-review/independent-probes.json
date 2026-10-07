@@ -1,0 +1,141 @@
+{
+  "checks": [
+    {
+      "name": "caller_asserted_success_not_cloud_or_rollout_authority",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "execution_not_effective_state",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "target_denominator_retained",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "stale_cannot_count_success",
+      "pass": true,
+      "detail": [
+        {
+          "device_id": "one",
+          "status": "unknown",
+          "reported_status": "success",
+          "reason": "stale",
+          "observed_at": "2020-01-01T00:00:00Z",
+          "evidence_ids": [
+            "r1"
+          ]
+        },
+        {
+          "device_id": "two",
+          "status": "unknown",
+          "reason": "missing"
+        }
+      ]
+    },
+    {
+      "name": "denied_cannot_count_success",
+      "pass": true,
+      "detail": [
+        {
+          "device_id": "one",
+          "status": "unknown",
+          "reported_status": "success",
+          "reason": "access_denied",
+          "observed_at": "2026-10-05T11:33:20+00:00",
+          "evidence_ids": [
+            "r1"
+          ]
+        },
+        {
+          "device_id": "two",
+          "status": "unknown",
+          "reason": "missing"
+        }
+      ]
+    },
+    {
+      "name": "partial_cannot_count_success",
+      "pass": true,
+      "detail": [
+        {
+          "device_id": "one",
+          "status": "unknown",
+          "reported_status": "success",
+          "reason": "partial",
+          "observed_at": "2026-10-05T11:33:20+00:00",
+          "evidence_ids": [
+            "r1"
+          ]
+        },
+        {
+          "device_id": "two",
+          "status": "unknown",
+          "reason": "missing"
+        }
+      ]
+    },
+    {
+      "name": "future_cannot_count_success",
+      "pass": true,
+      "detail": [
+        {
+          "device_id": "one",
+          "status": "unknown",
+          "reported_status": "success",
+          "reason": "future",
+          "observed_at": "2090-01-01T00:00:00Z",
+          "evidence_ids": [
+            "r1"
+          ]
+        },
+        {
+          "device_id": "two",
+          "status": "unknown",
+          "reason": "missing"
+        }
+      ]
+    },
+    {
+      "name": "poisoned_startup_environment_not_executed",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "actual_fixed_cli_collection_succeeds",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "scheduler_requests_are_only_GET",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "boolean_run_limit_rejected",
+      "pass": true,
+      "detail": "scheduler_bound_invalid"
+    },
+    {
+      "name": "nan_duration_rejected",
+      "pass": true,
+      "detail": "scheduler_bound_invalid"
+    },
+    {
+      "name": "changed_target_config_rejected",
+      "pass": true,
+      "detail": "scheduler_config_changed"
+    },
+    {
+      "name": "cross_tenant_service_rejected",
+      "pass": true,
+      "detail": "scheduler_source_changed"
+    }
+  ],
+  "passed": 14,
+  "total": 14,
+  "scope": "synthetic in-process health arithmetic and real bounded CLI collector; no platform/cloud authority"
+}

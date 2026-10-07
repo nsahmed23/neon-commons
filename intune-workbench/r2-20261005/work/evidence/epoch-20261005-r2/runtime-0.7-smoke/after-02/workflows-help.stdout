@@ -1,0 +1,6 @@
+usage: intune-iac workbench workflows [-h] --root ROOT --object OBJECT
+
+options:
+  -h, --help       show this help message and exit
+  --root ROOT
+  --object OBJECT  Exact immutable object ID, never a display name

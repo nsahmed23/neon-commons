@@ -1,0 +1,16 @@
+{
+  "name": "dictionary-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "dictionary",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188065.6876023,
+  "ended": 1791188065.7509646,
+  "stdout_sha256": "b3437b2335c604dcbbaf63ff9efd985e6e20d468de35ccd3bb9252577e64743a",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

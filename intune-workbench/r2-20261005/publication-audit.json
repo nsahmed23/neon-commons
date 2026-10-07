@@ -1,0 +1,364 @@
+{
+  "recorded_at": "2026-10-07T03:04:43.695603+00:00",
+  "scope": "Read-only publication artifact and receipt audit; no engineering test rerun",
+  "archive": {
+    "path": "/workspace/intune-delivery/Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b"
+  },
+  "expected_receipt": {
+    "status": "PASS",
+    "archive": "/workspace/intune-delivery/Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+    "started_at": "2026-10-05T08:19:32.475698+00:00",
+    "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+    "full_repository": true,
+    "historical_file_set_discrepancy_closed": false,
+    "symlink_inventory": [
+      {
+        "path": "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/symlink_raw/raw/page-000000.json",
+        "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/symlink-peer",
+        "attribution": "handoff_contracts independent negative capture-import fixture"
+      },
+      {
+        "path": "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/symlink_raw/raw/page-000000.json",
+        "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/symlink-peer",
+        "attribution": "handoff_contracts independent negative capture-import fixture"
+      },
+      {
+        "path": "work/evidence/epoch-20261005-r2/milestone-0.6.1/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.1/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "attribution": "root-confirmed native_smoke.py provider cache; native-smoke.json and provider traces are retained"
+      },
+      {
+        "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.2/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "attribution": "root-confirmed native_smoke.py provider cache; native-smoke.json and provider traces are retained"
+      },
+      {
+        "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "attribution": "root-confirmed native_smoke.py provider cache; native-smoke.json and provider traces are retained"
+      }
+    ],
+    "safe_extraction_warning": "This full snapshot preserves negative-fixture symlinks and native qualification provider-cache symlinks, including absolute original-workspace targets. Safe extraction must not follow links: quarantine literal link entries as inert evidence and inspect targets before any recreation. Do not use blanket extractall/unzip or execute from an unreviewed extraction. Original restore_release.py is qualified for the original release ZIP, not this R2 bundle.",
+    "original_restore_release_helper_qualified_for_this_bundle": false,
+    "finished_at": "2026-10-05T08:20:41.299343+00:00",
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+    "payload_files": 52165,
+    "payload_symlinks": 5,
+    "payload_directories": 11522,
+    "zip_entries": 63693,
+    "manifest_sha256": "71a06930122bbed74a17b0d49f149b210fb84b5d6a5d5217de9710d0f61c23ef",
+    "verified_payload_entries": 63692,
+    "all_entry_crc_verified": true,
+    "all_payload_sha256_verified": true,
+    "source_entry_set_unchanged": true,
+    "original_archive_unchanged": true,
+    "original_archive_sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214",
+    "previous_continuation_archive_unchanged": true,
+    "previous_continuation_sha256": "e443d4bd4ec1e6412b87a44fbbf0935d6634a706112f6d290c0d6190fc0e8792",
+    "seconds": 68.85201907157898
+  },
+  "source_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+  "git_status": "",
+  "evidence_hash_checks": [
+    {
+      "path": "work/docs/CONTINUATION-ACCEPTANCE-20261005.json",
+      "expected_sha256": "a3a08c66675ba6d4c001a583d5212e72f97b7affbed1dafb80688252cca2d7fa",
+      "exists": true,
+      "actual_sha256": "a3a08c66675ba6d4c001a583d5212e72f97b7affbed1dafb80688252cca2d7fa"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/source-integrity.json",
+      "expected_sha256": "975e41f3302a1562ca21d4dccd58f86b97c4c4c8574e06c60a707b9d7b7407c6",
+      "exists": true,
+      "actual_sha256": "975e41f3302a1562ca21d4dccd58f86b97c4c4c8574e06c60a707b9d7b7407c6"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/process-cleanup-review/review-receipt.json",
+      "expected_sha256": "f2898a264b9de6e2000235b637b28a5446dd410da236dad0c503445b8856355d",
+      "exists": true,
+      "actual_sha256": "f2898a264b9de6e2000235b637b28a5446dd410da236dad0c503445b8856355d"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.1/strict-suite/result.json",
+      "expected_sha256": "85fce4c59712cb9634ed7ab090351f85b355303fc2b9a7109768bbd3246deef3",
+      "exists": true,
+      "actual_sha256": "85fce4c59712cb9634ed7ab090351f85b355303fc2b9a7109768bbd3246deef3"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/strict-suite/result.json",
+      "expected_sha256": "32ca43acd532a53e8bdabd211112a722009905e4efab9e6e9864083cf785af9c",
+      "exists": true,
+      "actual_sha256": "32ca43acd532a53e8bdabd211112a722009905e4efab9e6e9864083cf785af9c"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/reproducibility.json",
+      "expected_sha256": "eb78d93e28f352c9a43c786287c54a6c0fee94dfe6bacc247f215f3c51c585c1",
+      "exists": true,
+      "actual_sha256": "eb78d93e28f352c9a43c786287c54a6c0fee94dfe6bacc247f215f3c51c585c1"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/native-smoke.json",
+      "expected_sha256": "dc8db3cfe77791bd2257168a2d223d28a66ab17f3e49f931b657b06b02c7c902",
+      "exists": true,
+      "actual_sha256": "dc8db3cfe77791bd2257168a2d223d28a66ab17f3e49f931b657b06b02c7c902"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/runtime-audit/receipt.json",
+      "expected_sha256": "029da15b1b5d1becd17051e87f8fb1e83695f21407a7ed15c9d5ee6559b27a81",
+      "exists": true,
+      "actual_sha256": "029da15b1b5d1becd17051e87f8fb1e83695f21407a7ed15c9d5ee6559b27a81"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/journey/receipt.json",
+      "expected_sha256": "569d416aec47f79299e0ead6e2d61aa6c8b8323f509eb2563a72b234cc300414",
+      "exists": true,
+      "actual_sha256": "569d416aec47f79299e0ead6e2d61aa6c8b8323f509eb2563a72b234cc300414"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.6.2/journey-supplemental-binding.json",
+      "expected_sha256": "c75b3093f73f4607fd52170ebdc80615067b6e04569ca4d9aca9fb3940fb5324",
+      "exists": true,
+      "actual_sha256": "c75b3093f73f4607fd52170ebdc80615067b6e04569ca4d9aca9fb3940fb5324"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/journey-pty-exit-repair/tests.json",
+      "expected_sha256": "25d3c8634d89e7ffeb64a833b76a357b80ddbd24420e7b05be2dea2a476e8918",
+      "exists": true,
+      "actual_sha256": "25d3c8634d89e7ffeb64a833b76a357b80ddbd24420e7b05be2dea2a476e8918"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/receipt.json",
+      "expected_sha256": "366132c25bad9a6fb89d63d845da430ad0878251da6b6ea110db8d6aac32e183",
+      "exists": true,
+      "actual_sha256": "366132c25bad9a6fb89d63d845da430ad0878251da6b6ea110db8d6aac32e183"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/capture-store/tests-concurrency-after.log",
+      "expected_sha256": "b290c32b2ff0ce80dda4bd66d7dd3fb21f189e75bd9610947c29feb2a5db84d0",
+      "exists": true,
+      "actual_sha256": "b290c32b2ff0ce80dda4bd66d7dd3fb21f189e75bd9610947c29feb2a5db84d0"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/provenance-green-07.txt",
+      "expected_sha256": "a26d0352bb2a2d7239668031888e318871484af9c9f31e6167276aae4fbe95e8",
+      "exists": true,
+      "actual_sha256": "a26d0352bb2a2d7239668031888e318871484af9c9f31e6167276aae4fbe95e8"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/provenance-oib-02/receipt.json",
+      "expected_sha256": "8b9e68562d2b7ae42ec74bfe53f30df2555e73e9bee72fc3a78d269ab75c08b5",
+      "exists": true,
+      "actual_sha256": "8b9e68562d2b7ae42ec74bfe53f30df2555e73e9bee72fc3a78d269ab75c08b5"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/scheduler/qualification-receipt.json",
+      "expected_sha256": "5af775f9af14efbd26e399fd0d3a44d6135bcbe3c8397871996e40f9f9821305",
+      "exists": true,
+      "actual_sha256": "5af775f9af14efbd26e399fd0d3a44d6135bcbe3c8397871996e40f9f9821305"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/integration/implementation-receipt.json",
+      "expected_sha256": "786f0df8dc4cb133ff873fb9cb00fe0ccf1236afab64c4e2bcc537a1691e3434",
+      "exists": true,
+      "actual_sha256": "786f0df8dc4cb133ff873fb9cb00fe0ccf1236afab64c4e2bcc537a1691e3434"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/integration/cli-health-after-01.stderr",
+      "expected_sha256": "84947b6d7c3090465f1049c17e906bda7ab7bcd86920a0edf72f197510991cf6",
+      "exists": true,
+      "actual_sha256": "84947b6d7c3090465f1049c17e906bda7ab7bcd86920a0edf72f197510991cf6"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/artifact-binding.json",
+      "expected_sha256": "cfc2e79a8d4a6e0cd496358cc8dd0fa67c961328b09a90d1573eb508aef39264",
+      "exists": true,
+      "actual_sha256": "cfc2e79a8d4a6e0cd496358cc8dd0fa67c961328b09a90d1573eb508aef39264"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/native-smoke.json",
+      "expected_sha256": "8e30d0238c12b34f9096106bd83d0aa4a59f15e1eb255364edc8b3190a59eddd",
+      "exists": true,
+      "actual_sha256": "8e30d0238c12b34f9096106bd83d0aa4a59f15e1eb255364edc8b3190a59eddd"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/receipt.json",
+      "expected_sha256": "13c774de7d99cfebd3e50b70d56610b1a9ef07ca0321c885b580c4c9a3ed691a",
+      "exists": true,
+      "actual_sha256": "13c774de7d99cfebd3e50b70d56610b1a9ef07ca0321c885b580c4c9a3ed691a"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/receipt.json",
+      "expected_sha256": "1d3cfe1e0b01a1f6b63decc7a1079296ea58b9de28ca6376be35ba68e15fb608",
+      "exists": true,
+      "actual_sha256": "1d3cfe1e0b01a1f6b63decc7a1079296ea58b9de28ca6376be35ba68e15fb608"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/final-independent-review/receipt.json",
+      "expected_sha256": "58855550c7e788a7e56646209b06549cdd7c758561e5088a8d3473028d4a36d7",
+      "exists": true,
+      "actual_sha256": "58855550c7e788a7e56646209b06549cdd7c758561e5088a8d3473028d4a36d7"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/receipt.json",
+      "expected_sha256": "061dcf27bee11fa99c31f60cb6d76a6654f64c16b705a1cb7de79aa7b6b36e11",
+      "exists": true,
+      "actual_sha256": "061dcf27bee11fa99c31f60cb6d76a6654f64c16b705a1cb7de79aa7b6b36e11"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/capture-store/expanded-cli-source-binding.json",
+      "expected_sha256": "d9050b644539f648642b09b032edcd45879793104104e92acde1b650d854820b",
+      "exists": true,
+      "actual_sha256": "d9050b644539f648642b09b032edcd45879793104104e92acde1b650d854820b"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/provenance-oib-03/receipt.json",
+      "expected_sha256": "cecdcb2a731dac8b0fffb06614aac03b241f5d35d9c28d80fdb2289ffd5a3596",
+      "exists": true,
+      "actual_sha256": "cecdcb2a731dac8b0fffb06614aac03b241f5d35d9c28d80fdb2289ffd5a3596"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/integration/cli-health-after-02.stderr",
+      "expected_sha256": "cd95ab8105c92938fa620c58cc269419793e19107c7e7b61ea17831a89327339",
+      "exists": true,
+      "actual_sha256": "cd95ab8105c92938fa620c58cc269419793e19107c7e7b61ea17831a89327339"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/strict-suite/result.json",
+      "expected_sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658",
+      "exists": true,
+      "actual_sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/reproducibility.json",
+      "expected_sha256": "ae77ea80ee093d99e93ff10f5e9a1ac5a265d6c0fba09a366ee55a07bccc4427",
+      "exists": true,
+      "actual_sha256": "ae77ea80ee093d99e93ff10f5e9a1ac5a265d6c0fba09a366ee55a07bccc4427"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/rebuild.stdout",
+      "expected_sha256": "c9bdb1da8cc094a1a74bcb0f12ce673f364069c1a4c6a0bfd5d1d3b18a602d5f",
+      "exists": true,
+      "actual_sha256": "c9bdb1da8cc094a1a74bcb0f12ce673f364069c1a4c6a0bfd5d1d3b18a602d5f"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/rebuild.stderr",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exists": true,
+      "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/native.stdout",
+      "expected_sha256": "0a9d03fbac0d00ce5094ba13d5bf6c202a210c6e8d8b8871bf18e45ba7bdbd44",
+      "exists": true,
+      "actual_sha256": "0a9d03fbac0d00ce5094ba13d5bf6c202a210c6e8d8b8871bf18e45ba7bdbd44"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/native.stderr",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exists": true,
+      "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/journey.stdout",
+      "expected_sha256": "46cbfc87d1a1c6ccc9c44c6167363ec1b3904668412a8f3c8cff9caa600998c8",
+      "exists": true,
+      "actual_sha256": "46cbfc87d1a1c6ccc9c44c6167363ec1b3904668412a8f3c8cff9caa600998c8"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/journey.stderr",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exists": true,
+      "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/strict.stdout",
+      "expected_sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658",
+      "exists": true,
+      "actual_sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658"
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/strict.stderr",
+      "expected_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exists": true,
+      "actual_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "prior_ledger_top_keys": [
+    "schema_version",
+    "source_revision",
+    "source_archive_sha256",
+    "laboratory",
+    "platform",
+    "production_approved",
+    "historical_evidence_rewritten",
+    "rows"
+  ],
+  "preserved_prior_rows_count": 25,
+  "zip_entry_count": 63693,
+  "zip_roots": [
+    "Intune_Atmos_Wally_Continuation_R2"
+  ],
+  "archive_embedded_prominent_evidence": [
+    {
+      "path": "work/CHECKPOINT-20261005-R2.md",
+      "zip_matches": 1,
+      "bytes": 4999,
+      "sha256": "c299cd3b33562816b712fad5fb3eb0f476afcffc255677ce4976f07b9368e199",
+      "matches_working_file": true
+    },
+    {
+      "path": "work/docs/CONTINUATION-ACCEPTANCE-20261005-R2.json",
+      "zip_matches": 1,
+      "bytes": 41029,
+      "sha256": "96e49529c7ae682f88f2f2c3d6af8b725bab8426eb592b51db861abcb7eeab4c",
+      "matches_working_file": true
+    },
+    {
+      "path": "work/docs/EXECUTION-SEQUENCE-20261005-R2.md",
+      "zip_matches": 1,
+      "bytes": 4443,
+      "sha256": "a9a9075d4f1209bd49e64e970f2994294b36d42acd535f42ac2264318ab74ecf",
+      "matches_working_file": true
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/QUALIFICATION.json",
+      "zip_matches": 1,
+      "bytes": 8118,
+      "sha256": "5e180a9d1ab350082fa2915495bee7c7faad572077d8e1ddf62f5968ed841d44",
+      "matches_working_file": true
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/strict-suite/result.json",
+      "zip_matches": 1,
+      "bytes": 759,
+      "sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658",
+      "matches_working_file": true
+    },
+    {
+      "path": "work/evidence/epoch-20261005-r2/milestone-0.7.0/strict-suite/test-log.txt",
+      "zip_matches": 1,
+      "bytes": 191265,
+      "sha256": "be209e96331ee6bb0f5d85f280368ad3eba0260cea513d17ed35964231a34997",
+      "matches_working_file": true
+    }
+  ],
+  "credential_scan": {
+    "scope": "New R2 text evidence/metadata/logs; excludes extracted source/runtime copies, native executable working directories, VCS, binary and >25MiB documents. Pattern scan is bounded; not a guarantee of secret absence. Values never emitted.",
+    "files_scanned": 2189,
+    "bytes_scanned": 46183508,
+    "matches": []
+  },
+  "archive_receipt_matches": true,
+  "evidence_hashes_pass": true,
+  "all_25_prior_ledger_rows_equal": true,
+  "strict_raw_log_tail": [
+    "",
+    "----------------------------------------------------------------------",
+    "Ran 1141 tests in 290.182s",
+    "",
+    "OK"
+  ]
+}

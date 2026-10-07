@@ -1,0 +1,17 @@
+{
+  "name": "schedule-status",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "schedule-status",
+    "--job",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/job"
+  ],
+  "exit_code": 0,
+  "started": 1791188066.4982924,
+  "ended": 1791188066.61889,
+  "stdout_sha256": "03f827a93f5b13c405cb6a53957d50ab65f080c77267b7f535b34ff6a8ec59f8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

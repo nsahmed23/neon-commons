@@ -1,0 +1,1308 @@
+{
+  "commands": {
+    "collection": [
+      "collect (requires --service-root; also runs as a separate headless 
+command)",
+      "import-capture CAPTURE_DIRECTORY",
+      "collection-history [LIMIT [OFFSET]]",
+      "collection RUN_ID",
+      "migrate NEW_BACKUP_PATH",
+      "schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)",
+      "schedule-run JOB_DIR MAX_RUNS MAX_DURATION_SECONDS",
+      "schedule-status JOB_DIR"
+    ],
+    "evidence": [
+      "device-evidence-import ENVELOPE_JSON",
+      "workflow-import ENVELOPE_JSON",
+      "reference-import JSON SHA256 FULL_REVISION HTTPS_SOURCE_URL LICENSE_ID 
+[ASSERTION_CLASS]"
+    ],
+    "limits": "Imported captures and reports remain unverified local evidence. 
+Collection and execution adapters are synthetic; no deployment or rollout 
+authority.",
+    "maintenance": [
+      "propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]",
+      "review OPERATION_DIR",
+      "execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT]",
+      "reconcile OPERATION_DIR",
+      "restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review 
+required)"
+    ],
+    "navigation": [
+      "overview",
+      "search TEXT",
+      "select EXACT_OBJECT_ID",
+      "inspect",
+      "settings",
+      "relationships",
+      "dictionary [SETTING_ID_QUERY]",
+      "references",
+      "reference-compare REFERENCE_ID [COMPANY_JSON]",
+      "workflows",
+      "history [LIMIT [OFFSET]]",
+      "compare BEFORE_SNAPSHOT AFTER_SNAPSHOT",
+      "health",
+      "queue",
+      "operations [LIMIT [OFFSET]]",
+      "back",
+      "cancel",
+      "quit"
+    ]
+  },
+  "evidence_class": "synthetic",
+  "title": "Intune Workbench"
+}
+{
+  "age_seconds": 2.1450483798980713,
+  "cloud_authority": false,
+  "coverage": "complete",
+  "evidence_class": "synthetic",
+  "execution_authorized": false,
+  "freshness": "fresh",
+  "health": {
+    "configuration_parity": "unknown",
+    "deployment_scope": "collection",
+    "endpoint_health": "unknown",
+    "endpoint_outcome": "unknown",
+    "failed": null,
+    "observed_at": "2026-10-05T08:13:43.588290Z",
+    "pending": null,
+    "report_freshness": "fresh",
+    "reporting": 8,
+    "reporting_outcome_unknown": 0,
+    "reporting_success_percent": 100.0,
+    "rollout_ready": false,
+    "service_acceptance": "unknown",
+    "successful": 8,
+    "targeted": 100,
+    "targeted_success_percent": 8.0,
+    "unknown_or_stale": 92
+  },
+  "last_attempt": {
+    "assurance": {
+      "execution_authorized": false,
+      "provider_qualified": false,
+      "source_authenticity_verified": false,
+      "tenant_assurance": "synthetic"
+    },
+    "cloud_authority": false,
+    "collections": [
+      {
+        "coverage": "complete",
+        "kind": "assignments",
+        "owner_id": "22222222-2222-4222-8222-222222222222",
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "assignments",
+        "owner_id": "33333333-3333-4333-8333-333333333333",
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "policies",
+        "owner_id": null,
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "settings",
+        "owner_id": "22222222-2222-4222-8222-222222222222",
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "settings",
+        "owner_id": "33333333-3333-4333-8333-333333333333",
+        "page_count": 0,
+        "reason": null
+      }
+    ],
+    "completed_at": "2026-10-05T08:13:43.594942Z",
+    "coverage": "complete",
+    "error_code": null,
+    "evidence_class": "synthetic",
+    "execution_authorized": false,
+    "object_count": 2,
+    "observed_at": "2026-10-05T08:13:43.588290Z",
+    "run_id": 1,
+    "scope": {
+      "kind": "estate",
+      "object_ids": [
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333"
+      ]
+    },
+    "source": {
+      "cloud_authority": false,
+      "coverage_mechanism": "synthetic_revision_and_id_manifest",
+      "evidence_class": "synthetic",
+      "execution_authorized": false,
+      "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+      "provider_qualified": false,
+      "service_kind": "ModeledService",
+      "service_revision": 1,
+      "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+      "source_authenticity_verified": false,
+      "tenant_assurance": "synthetic"
+    },
+    "started_at": "2026-10-05T08:13:43.588747Z",
+    "status": "complete",
+    "tenant_id": "11111111-1111-4111-8111-111111111111"
+  },
+  "last_success": {
+    "assurance": {
+      "execution_authorized": false,
+      "provider_qualified": false,
+      "source_authenticity_verified": false,
+      "tenant_assurance": "synthetic"
+    },
+    "cloud_authority": false,
+    "collections": [
+      {
+        "coverage": "complete",
+        "kind": "assignments",
+        "owner_id": "22222222-2222-4222-8222-222222222222",
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "assignments",
+        "owner_id": "33333333-3333-4333-8333-333333333333",
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "policies",
+        "owner_id": null,
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "settings",
+        "owner_id": "22222222-2222-4222-8222-222222222222",
+        "page_count": 0,
+        "reason": null
+      },
+      {
+        "coverage": "complete",
+        "kind": "settings",
+        "owner_id": "33333333-3333-4333-8333-333333333333",
+        "page_count": 0,
+        "reason": null
+      }
+    ],
+    "completed_at": "2026-10-05T08:13:43.594942Z",
+    "coverage": "complete",
+    "error_code": null,
+    "evidence_class": "synthetic",
+    "execution_authorized": false,
+    "object_count": 2,
+    "observed_at": "2026-10-05T08:13:43.588290Z",
+    "run_id": 1,
+    "scope": {
+      "kind": "estate",
+      "object_ids": [
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333"
+      ]
+    },
+    "source": {
+      "cloud_authority": false,
+      "coverage_mechanism": "synthetic_revision_and_id_manifest",
+      "evidence_class": "synthetic",
+      "execution_authorized": false,
+      "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+      "provider_qualified": false,
+      "service_kind": "ModeledService",
+      "service_revision": 1,
+      "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+      "source_authenticity_verified": false,
+      "tenant_assurance": "synthetic"
+    },
+    "started_at": "2026-10-05T08:13:43.588747Z",
+    "status": "complete",
+    "tenant_id": "11111111-1111-4111-8111-111111111111"
+  },
+  "limitations": [
+    "Synthetic and imported capture assurance remain distinct; no authenticated 
+Graph or endpoint qualification.",
+    "Same-user local storage is not tamper-proof; changed time and attribution 
+are unknown."
+  ],
+  "objects": [
+    {
+      "age_seconds": 2.1450483798980713,
+      "attribution": "unknown",
+      "body": {
+        "assignments": [
+          {
+            "filter_id": "77777777-7777-4777-8777-777777777777",
+            "filter_type": "include",
+            "group_id": "44444444-4444-4444-8444-444444444444",
+            "type": "groupAssignmentTarget"
+          },
+          {
+            "filter_type": "none",
+            "group_id": "55555555-5555-4555-8555-555555555555",
+            "type": "groupAssignmentTarget"
+          },
+          {
+            "filter_type": "none",
+            "group_id": "66666666-6666-4666-8666-666666666666",
+            "type": "exclusionGroupAssignmentTarget"
+          }
+        ],
+        "description": "Synthetic reference; not production advice.",
+        "name": "Windows Privacy Pilot",
+        "platforms": "windows10",
+        "role_scope_tag_ids": [
+          "0"
+        ],
+        "settings": {
+          "settings": [
+            {
+              "id": "0",
+              "settingInstance": {
+                "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                "choiceSettingValue": {
+                  "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                  "children": [],
+                  "settingValueTemplateReference": null,
+                  "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+                },
+                "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                "settingInstanceTemplateReference": null
+              }
+            }
+          ]
+        },
+        "technologies": [
+          "mdm"
+        ]
+      },
+      "changed_at": null,
+      "cloud_authority": false,
+      "collections": [
+        {
+          "coverage": "complete",
+          "kind": "assignments",
+          "owner_id": "22222222-2222-4222-8222-222222222222",
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "assignments",
+          "owner_id": "33333333-3333-4333-8333-333333333333",
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "policies",
+          "owner_id": null,
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "settings",
+          "owner_id": "22222222-2222-4222-8222-222222222222",
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "settings",
+          "owner_id": "33333333-3333-4333-8333-333333333333",
+          "page_count": 0,
+          "reason": null
+        }
+      ],
+      "coverage": "complete",
+      "dictionary": [
+        {
+          "aliases": [],
+          "assertion_class": "observed",
+          "documentation_date": null,
+          "documentation_source": null,
+          "identifier": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+          "meaning": "unknown",
+          "name": null,
+          "object_id": "22222222-2222-4222-8222-222222222222",
+          "observed_path": "/settings/settings/0/settingInstance",
+          "ownership": "unknown",
+          "type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "value": {
+            "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+            "choiceSettingValue": {
+              "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+              "children": [],
+              "settingValueTemplateReference": null,
+              "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+            },
+            "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+            "settingInstanceTemplateReference": null
+          }
+        }
+      ],
+      "evidence_class": "synthetic",
+      "execution_authorized": false,
+      "field_accounting": {
+        "assignments": "observed_complete",
+        "description": "observed_complete",
+        "name": "observed_complete",
+        "platforms": "observed_complete",
+        "role_scope_tag_ids": "observed_complete",
+        "settings": "observed_complete",
+        "technologies": "observed_complete"
+      },
+      "freshness": "fresh",
+      "health": {
+        "configuration_parity": "unknown",
+        "deployment_scope": "collection",
+        "endpoint_health": "unknown",
+        "endpoint_outcome": "unknown",
+        "failed": null,
+        "observed_at": "2026-10-05T08:13:43.588290Z",
+        "pending": null,
+        "report_freshness": "fresh",
+        "reporting": 8,
+        "reporting_outcome_unknown": 0,
+        "reporting_success_percent": 100.0,
+        "rollout_ready": false,
+        "service_acceptance": "unknown",
+        "successful": 8,
+        "targeted": 100,
+        "targeted_success_percent": 8.0,
+        "unknown_or_stale": 92
+      },
+      "last_attempt": {
+        "assurance": {
+          "execution_authorized": false,
+          "provider_qualified": false,
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "cloud_authority": false,
+        "collections": [
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "policies",
+            "owner_id": null,
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          }
+        ],
+        "completed_at": "2026-10-05T08:13:43.594942Z",
+        "coverage": "complete",
+        "error_code": null,
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "object_count": 2,
+        "observed_at": "2026-10-05T08:13:43.588290Z",
+        "run_id": 1,
+        "scope": {
+          "kind": "estate",
+          "object_ids": [
+            "22222222-2222-4222-8222-222222222222",
+            "33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        "source": {
+          "cloud_authority": false,
+          "coverage_mechanism": "synthetic_revision_and_id_manifest",
+          "evidence_class": "synthetic",
+          "execution_authorized": false,
+          "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+          "provider_qualified": false,
+          "service_kind": "ModeledService",
+          "service_revision": 1,
+          "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "started_at": "2026-10-05T08:13:43.588747Z",
+        "status": "complete",
+        "tenant_id": "11111111-1111-4111-8111-111111111111"
+      },
+      "last_success": {
+        "assurance": {
+          "execution_authorized": false,
+          "provider_qualified": false,
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "cloud_authority": false,
+        "collections": [
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "policies",
+            "owner_id": null,
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          }
+        ],
+        "completed_at": "2026-10-05T08:13:43.594942Z",
+        "coverage": "complete",
+        "error_code": null,
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "object_count": 2,
+        "observed_at": "2026-10-05T08:13:43.588290Z",
+        "run_id": 1,
+        "scope": {
+          "kind": "estate",
+          "object_ids": [
+            "22222222-2222-4222-8222-222222222222",
+            "33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        "source": {
+          "cloud_authority": false,
+          "coverage_mechanism": "synthetic_revision_and_id_manifest",
+          "evidence_class": "synthetic",
+          "execution_authorized": false,
+          "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+          "provider_qualified": false,
+          "service_kind": "ModeledService",
+          "service_revision": 1,
+          "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "started_at": "2026-10-05T08:13:43.588747Z",
+        "status": "complete",
+        "tenant_id": "11111111-1111-4111-8111-111111111111"
+      },
+      "name": "Windows Privacy Pilot",
+      "object_id": "22222222-2222-4222-8222-222222222222",
+      "observed_at": "2026-10-05T08:13:43.588290Z",
+      "ownership": "unknown",
+      "relationships": [
+        {
+          "assertion_class": "observed",
+          "details": {
+            "filter_id": "77777777-7777-4777-8777-777777777777",
+            "filter_type": "include",
+            "group_id": "44444444-4444-4444-8444-444444444444",
+            "type": "groupAssignmentTarget"
+          },
+          "relation": "assignment",
+          "target_id": "44444444-4444-4444-8444-444444444444"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "filter_type": "none",
+            "group_id": "55555555-5555-4555-8555-555555555555",
+            "type": "groupAssignmentTarget"
+          },
+          "relation": "assignment",
+          "target_id": "55555555-5555-4555-8555-555555555555"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "filter_type": "none",
+            "group_id": "66666666-6666-4666-8666-666666666666",
+            "type": "exclusionGroupAssignmentTarget"
+          },
+          "relation": "exclusion",
+          "target_id": "66666666-6666-4666-8666-666666666666"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "assignment_target": "44444444-4444-4444-8444-444444444444",
+            "mode": "include"
+          },
+          "relation": "filter",
+          "target_id": "77777777-7777-4777-8777-777777777777"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "assertion_class": "observed"
+          },
+          "relation": "scope_tag",
+          "target_id": "0"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "assertion_class": "observed",
+            "meaning": "unknown"
+          },
+          "relation": "setting",
+          "target_id": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation"
+        }
+      ],
+      "retained_last_good": false,
+      "run_id": 1,
+      "snapshot_id": 
+"90a2985ff4957351eff39ef05f7932ba850118350b8513b644ee104d271b7e1a",
+      "source": {
+        "cloud_authority": false,
+        "coverage_mechanism": "synthetic_revision_and_id_manifest",
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+        "provider_qualified": false,
+        "service_kind": "ModeledService",
+        "service_revision": 1,
+        "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+        "source_authenticity_verified": false,
+        "tenant_assurance": "synthetic"
+      },
+      "tenant_id": "11111111-1111-4111-8111-111111111111"
+    },
+    {
+      "age_seconds": 2.1450483798980713,
+      "attribution": "unknown",
+      "body": {
+        "assignments": [
+          {
+            "filter_id": "77777777-7777-4777-8777-777777777777",
+            "filter_type": "include",
+            "group_id": "44444444-4444-4444-8444-444444444444",
+            "type": "groupAssignmentTarget"
+          },
+          {
+            "filter_type": "none",
+            "group_id": "55555555-5555-4555-8555-555555555555",
+            "type": "groupAssignmentTarget"
+          },
+          {
+            "filter_type": "none",
+            "group_id": "66666666-6666-4666-8666-666666666666",
+            "type": "exclusionGroupAssignmentTarget"
+          }
+        ],
+        "description": "Synthetic reference; not production advice.",
+        "name": "Windows Privacy Pilot",
+        "platforms": "windows10",
+        "role_scope_tag_ids": [
+          "0"
+        ],
+        "settings": {
+          "settings": [
+            {
+              "id": "0",
+              "settingInstance": {
+                "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                "choiceSettingValue": {
+                  "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                  "children": [],
+                  "settingValueTemplateReference": null,
+                  "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+                },
+                "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                "settingInstanceTemplateReference": null
+              }
+            }
+          ]
+        },
+        "technologies": [
+          "mdm"
+        ]
+      },
+      "changed_at": null,
+      "cloud_authority": false,
+      "collections": [
+        {
+          "coverage": "complete",
+          "kind": "assignments",
+          "owner_id": "22222222-2222-4222-8222-222222222222",
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "assignments",
+          "owner_id": "33333333-3333-4333-8333-333333333333",
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "policies",
+          "owner_id": null,
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "settings",
+          "owner_id": "22222222-2222-4222-8222-222222222222",
+          "page_count": 0,
+          "reason": null
+        },
+        {
+          "coverage": "complete",
+          "kind": "settings",
+          "owner_id": "33333333-3333-4333-8333-333333333333",
+          "page_count": 0,
+          "reason": null
+        }
+      ],
+      "coverage": "complete",
+      "dictionary": [
+        {
+          "aliases": [],
+          "assertion_class": "observed",
+          "documentation_date": null,
+          "documentation_source": null,
+          "identifier": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+          "meaning": "unknown",
+          "name": null,
+          "object_id": "33333333-3333-4333-8333-333333333333",
+          "observed_path": "/settings/settings/0/settingInstance",
+          "ownership": "unknown",
+          "type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "value": {
+            "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+            "choiceSettingValue": {
+              "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+              "children": [],
+              "settingValueTemplateReference": null,
+              "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+            },
+            "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+            "settingInstanceTemplateReference": null
+          }
+        }
+      ],
+      "evidence_class": "synthetic",
+      "execution_authorized": false,
+      "field_accounting": {
+        "assignments": "observed_complete",
+        "description": "observed_complete",
+        "name": "observed_complete",
+        "platforms": "observed_complete",
+        "role_scope_tag_ids": "observed_complete",
+        "settings": "observed_complete",
+        "technologies": "observed_complete"
+      },
+      "freshness": "fresh",
+      "health": {
+        "configuration_parity": "unknown",
+        "deployment_scope": "collection",
+        "endpoint_health": "unknown",
+        "endpoint_outcome": "unknown",
+        "failed": null,
+        "observed_at": "2026-10-05T08:13:43.588290Z",
+        "pending": null,
+        "report_freshness": "fresh",
+        "reporting": 8,
+        "reporting_outcome_unknown": 0,
+        "reporting_success_percent": 100.0,
+        "rollout_ready": false,
+        "service_acceptance": "unknown",
+        "successful": 8,
+        "targeted": 100,
+        "targeted_success_percent": 8.0,
+        "unknown_or_stale": 92
+      },
+      "last_attempt": {
+        "assurance": {
+          "execution_authorized": false,
+          "provider_qualified": false,
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "cloud_authority": false,
+        "collections": [
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "policies",
+            "owner_id": null,
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          }
+        ],
+        "completed_at": "2026-10-05T08:13:43.594942Z",
+        "coverage": "complete",
+        "error_code": null,
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "object_count": 2,
+        "observed_at": "2026-10-05T08:13:43.588290Z",
+        "run_id": 1,
+        "scope": {
+          "kind": "estate",
+          "object_ids": [
+            "22222222-2222-4222-8222-222222222222",
+            "33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        "source": {
+          "cloud_authority": false,
+          "coverage_mechanism": "synthetic_revision_and_id_manifest",
+          "evidence_class": "synthetic",
+          "execution_authorized": false,
+          "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+          "provider_qualified": false,
+          "service_kind": "ModeledService",
+          "service_revision": 1,
+          "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "started_at": "2026-10-05T08:13:43.588747Z",
+        "status": "complete",
+        "tenant_id": "11111111-1111-4111-8111-111111111111"
+      },
+      "last_success": {
+        "assurance": {
+          "execution_authorized": false,
+          "provider_qualified": false,
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "cloud_authority": false,
+        "collections": [
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "assignments",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "policies",
+            "owner_id": null,
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "22222222-2222-4222-8222-222222222222",
+            "page_count": 0,
+            "reason": null
+          },
+          {
+            "coverage": "complete",
+            "kind": "settings",
+            "owner_id": "33333333-3333-4333-8333-333333333333",
+            "page_count": 0,
+            "reason": null
+          }
+        ],
+        "completed_at": "2026-10-05T08:13:43.594942Z",
+        "coverage": "complete",
+        "error_code": null,
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "object_count": 2,
+        "observed_at": "2026-10-05T08:13:43.588290Z",
+        "run_id": 1,
+        "scope": {
+          "kind": "estate",
+          "object_ids": [
+            "22222222-2222-4222-8222-222222222222",
+            "33333333-3333-4333-8333-333333333333"
+          ]
+        },
+        "source": {
+          "cloud_authority": false,
+          "coverage_mechanism": "synthetic_revision_and_id_manifest",
+          "evidence_class": "synthetic",
+          "execution_authorized": false,
+          "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+          "provider_qualified": false,
+          "service_kind": "ModeledService",
+          "service_revision": 1,
+          "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+          "source_authenticity_verified": false,
+          "tenant_assurance": "synthetic"
+        },
+        "started_at": "2026-10-05T08:13:43.588747Z",
+        "status": "complete",
+        "tenant_id": "11111111-1111-4111-8111-111111111111"
+      },
+      "name": "Windows Privacy Pilot",
+      "object_id": "33333333-3333-4333-8333-333333333333",
+      "observed_at": "2026-10-05T08:13:43.588290Z",
+      "ownership": "unknown",
+      "relationships": [
+        {
+          "assertion_class": "observed",
+          "details": {
+            "filter_id": "77777777-7777-4777-8777-777777777777",
+            "filter_type": "include",
+            "group_id": "44444444-4444-4444-8444-444444444444",
+            "type": "groupAssignmentTarget"
+          },
+          "relation": "assignment",
+          "target_id": "44444444-4444-4444-8444-444444444444"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "filter_type": "none",
+            "group_id": "55555555-5555-4555-8555-555555555555",
+            "type": "groupAssignmentTarget"
+          },
+          "relation": "assignment",
+          "target_id": "55555555-5555-4555-8555-555555555555"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "filter_type": "none",
+            "group_id": "66666666-6666-4666-8666-666666666666",
+            "type": "exclusionGroupAssignmentTarget"
+          },
+          "relation": "exclusion",
+          "target_id": "66666666-6666-4666-8666-666666666666"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "assignment_target": "44444444-4444-4444-8444-444444444444",
+            "mode": "include"
+          },
+          "relation": "filter",
+          "target_id": "77777777-7777-4777-8777-777777777777"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "assertion_class": "observed"
+          },
+          "relation": "scope_tag",
+          "target_id": "0"
+        },
+        {
+          "assertion_class": "observed",
+          "details": {
+            "assertion_class": "observed",
+            "meaning": "unknown"
+          },
+          "relation": "setting",
+          "target_id": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation"
+        }
+      ],
+      "retained_last_good": false,
+      "run_id": 1,
+      "snapshot_id": 
+"ca02d9e9d3a227f0a31aacb90fe40dfadacab7d15acb8b5c1045a135900ac8e4",
+      "source": {
+        "cloud_authority": false,
+        "coverage_mechanism": "synthetic_revision_and_id_manifest",
+        "evidence_class": "synthetic",
+        "execution_authorized": false,
+        "observed_estate_sha256": 
+"f6b1f17c45538a4c5a773e981c0b583d2e83d7f706f361a71884a2dda00fb696",
+        "provider_qualified": false,
+        "service_kind": "ModeledService",
+        "service_revision": 1,
+        "service_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/service",
+        "source_authenticity_verified": false,
+        "tenant_assurance": "synthetic"
+      },
+      "tenant_id": "11111111-1111-4111-8111-111111111111"
+    }
+  ],
+  "pending_observations": [],
+  "retained_last_good": false,
+  "schema_version": 2,
+  "tenant_id": "11111111-1111-4111-8111-111111111111"
+}
+workbench> review "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/operation"
+{
+  "approval_digest": 
+"1de213aaf1510e5282ec65528ac1b32274d2fc1645a435f8839bfe9daba2e597",
+  "before": {
+    "assignments": [
+      {
+        "filter_id": "77777777-7777-4777-8777-777777777777",
+        "filter_type": "include",
+        "group_id": "44444444-4444-4444-8444-444444444444",
+        "type": "groupAssignmentTarget"
+      },
+      {
+        "filter_type": "none",
+        "group_id": "55555555-5555-4555-8555-555555555555",
+        "type": "groupAssignmentTarget"
+      },
+      {
+        "filter_type": "none",
+        "group_id": "66666666-6666-4666-8666-666666666666",
+        "type": "exclusionGroupAssignmentTarget"
+      }
+    ],
+    "description": "Synthetic reference; not production advice.",
+    "name": "Windows Privacy Pilot",
+    "platforms": "windows10",
+    "role_scope_tag_ids": [
+      "0"
+    ],
+    "settings": {
+      "settings": [
+        {
+          "id": "0",
+          "settingInstance": {
+            "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+            "choiceSettingValue": {
+              "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+              "children": [],
+              "settingValueTemplateReference": null,
+              "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+            },
+            "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+            "settingInstanceTemplateReference": null
+          }
+        }
+      ]
+    },
+    "technologies": [
+      "mdm"
+    ]
+  },
+  "changes": [
+    "22222222-2222-4222-8222-222222222222:settings_changed"
+  ],
+  "cloud_authority": false,
+  "desired": {
+    "assignments": [
+      {
+        "filter_id": "77777777-7777-4777-8777-777777777777",
+        "filter_type": "include",
+        "group_id": "44444444-4444-4444-8444-444444444444",
+        "type": "groupAssignmentTarget"
+      },
+      {
+        "filter_type": "none",
+        "group_id": "55555555-5555-4555-8555-555555555555",
+        "type": "groupAssignmentTarget"
+      },
+      {
+        "filter_type": "none",
+        "group_id": "66666666-6666-4666-8666-666666666666",
+        "type": "exclusionGroupAssignmentTarget"
+      }
+    ],
+    "description": "Synthetic reference; not production advice.",
+    "name": "Windows Privacy Pilot",
+    "platforms": "windows10",
+    "role_scope_tag_ids": [
+      "0"
+    ],
+    "settings": {
+      "settings": [
+        {
+          "id": "0",
+          "settingInstance": {
+            "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+            "choiceSettingValue": {
+              "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+              "children": [],
+              "settingValueTemplateReference": null,
+              "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_1"
+            },
+            "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+            "settingInstanceTemplateReference": null
+          }
+        }
+      ]
+    },
+    "technologies": [
+      "mdm"
+    ]
+  },
+  "evidence_class": "synthetic_local_process_and_modeled_service_only",
+  "expires_at": 1791188324,
+  "native_provider_qualified": false,
+  "object_id": "22222222-2222-4222-8222-222222222222",
+  "operation_id": "88bdc85dcd404d7daa49f00e3d11f1b5",
+  "operation_root": "/workspace/intune-
+continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/operation",
+  "saved_plan_json_sha256": 
+"b616bce3a0f4a7e3e658e30119d79d00816f6d3b3f6d99f845e62a00d93c9cce",
+  "saved_plan_sha256": 
+"b4cc06979b6d4ad2a59e68861f6461a7b3c166a5b0d3d53ca6dcaf2ad1c98376",
+  "status": "prepared",
+  "tenant_id": "11111111-1111-4111-8111-111111111111"
+}
+workbench> execute "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/journey/operation" 1de213aaf1510e5282ec65528ac1b32274d2fc1645a435f8839bfe9daba2e597
+{
+  "cloud_authority": false,
+  "evidence_class": "synthetic_local_process_and_modeled_service_only",
+  "native_provider_qualified": false,
+  "operation_id": "88bdc85dcd404d7daa49f00e3d11f1b5",
+  "readback": {
+    "classification": "desired_state_observed",
+    "cloud_authority": false,
+    "evidence_class": "synthetic_local_process_and_modeled_service_only",
+    "mismatches": [],
+    "native_provider_qualified": false,
+    "observed_estate": {
+      "cloud": "public",
+      "objects": {
+        "22222222-2222-4222-8222-222222222222": {
+          "assignments": [
+            {
+              "filter_id": "77777777-7777-4777-8777-777777777777",
+              "filter_type": "include",
+              "group_id": "44444444-4444-4444-8444-444444444444",
+              "type": "groupAssignmentTarget"
+            },
+            {
+              "filter_type": "none",
+              "group_id": "55555555-5555-4555-8555-555555555555",
+              "type": "groupAssignmentTarget"
+            },
+            {
+              "filter_type": "none",
+              "group_id": "66666666-6666-4666-8666-666666666666",
+              "type": "exclusionGroupAssignmentTarget"
+            }
+          ],
+          "description": "Synthetic reference; not production advice.",
+          "name": "Windows Privacy Pilot",
+          "platforms": "windows10",
+          "role_scope_tag_ids": [
+            "0"
+          ],
+          "settings": {
+            "settings": [
+              {
+                "id": "0",
+                "settingInstance": {
+                  "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "choiceSettingValue": {
+                    "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                    "children": [],
+                    "settingValueTemplateReference": null,
+                    "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_1"
+                  },
+                  "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                  "settingInstanceTemplateReference": null
+                }
+              }
+            ]
+          },
+          "technologies": [
+            "mdm"
+          ]
+        },
+        "33333333-3333-4333-8333-333333333333": {
+          "assignments": [
+            {
+              "filter_id": "77777777-7777-4777-8777-777777777777",
+              "filter_type": "include",
+              "group_id": "44444444-4444-4444-8444-444444444444",
+              "type": "groupAssignmentTarget"
+            },
+            {
+              "filter_type": "none",
+              "group_id": "55555555-5555-4555-8555-555555555555",
+              "type": "groupAssignmentTarget"
+            },
+            {
+              "filter_type": "none",
+              "group_id": "66666666-6666-4666-8666-666666666666",
+              "type": "exclusionGroupAssignmentTarget"
+            }
+          ],
+          "description": "Synthetic reference; not production advice.",
+          "name": "Windows Privacy Pilot",
+          "platforms": "windows10",
+          "role_scope_tag_ids": [
+            "0"
+          ],
+          "settings": {
+            "settings": [
+              {
+                "id": "0",
+                "settingInstance": {
+                  "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                  "choiceSettingValue": {
+                    "@odata.type": 
+"#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                    "children": [],
+                    "settingValueTemplateReference": null,
+                    "value": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+                  },
+                  "settingDefinitionId": 
+"device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+                  "settingInstanceTemplateReference": null
+                }
+              }
+            ]
+          },
+          "technologies": [
+            "mdm"
+          ]
+        }
+      },
+      "schema_version": "intune-semantic-estate/1.0",
+      "tenant_id": "11111111-1111-4111-8111-111111111111"
+    },
+    "operation_id": "88bdc85dcd404d7daa49f00e3d11f1b5",
+    "replay_authorized": false,
+    "second_plan": {
+      "changes": [],
+      "evidence_class": "modeled_semantic_comparison_only",
+      "status": "no_change"
+    }
+  },
+  "status": "succeeded_verified"
+}
+workbench> quit
+{"evidence_class": "local_interface_result", "history_persisted": true, "status": "closed"}

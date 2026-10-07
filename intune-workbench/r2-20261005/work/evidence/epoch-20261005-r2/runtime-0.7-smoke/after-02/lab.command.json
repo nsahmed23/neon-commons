@@ -1,0 +1,21 @@
+{
+  "name": "lab",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "lab-create",
+    "--service-root",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/service",
+    "--input",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/examples/supported/input/export.json",
+    "--object",
+    "22222222-2222-4222-8222-222222222222"
+  ],
+  "exit_code": 0,
+  "started": 1791188065.8183594,
+  "ended": 1791188065.8918204,
+  "stdout_sha256": "8ff0bac66a49a446684f855940a830d3cd4fa7528a17c4c2917ec2e05d5bdf4f",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

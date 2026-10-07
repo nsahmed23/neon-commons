@@ -1,0 +1,6 @@
+usage: intune-iac workbench health [-h] --root ROOT [--object OBJECT]
+
+options:
+  -h, --help       show this help message and exit
+  --root ROOT
+  --object OBJECT

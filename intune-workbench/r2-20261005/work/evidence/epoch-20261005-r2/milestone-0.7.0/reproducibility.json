@@ -1,0 +1,18 @@
+{
+  "source_unchanged": true,
+  "source_matches_archive": true,
+  "archives": [
+    {
+      "filename": "Intune_IaC_Plugin_0.7.0_Source.zip",
+      "original_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a",
+      "rebuilt_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a",
+      "byte_identical": true
+    },
+    {
+      "filename": "Intune_IaC_Plugin_0.7.0.zip",
+      "original_sha256": "e1c0be55b2a21cb14fc404defe9d379a9febdd85e0c1ba5086d1b5e660fc66e5",
+      "rebuilt_sha256": "e1c0be55b2a21cb14fc404defe9d379a9febdd85e0c1ba5086d1b5e660fc66e5",
+      "byte_identical": true
+    }
+  ]
+}

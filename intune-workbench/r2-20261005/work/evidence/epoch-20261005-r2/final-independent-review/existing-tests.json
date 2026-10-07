@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "plugin_tests.test_workbench_scheduler",
+    "plugin_tests.test_workbench_health",
+    "-v"
+  ],
+  "cwd": "/workspace/intune-continuation/work/projects/intune",
+  "returncode": 0
+}

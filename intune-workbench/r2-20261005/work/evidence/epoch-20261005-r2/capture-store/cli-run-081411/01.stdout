@@ -1,0 +1,29 @@
+usage: intune-iac workbench [-h]
+                            {init,backup,restore,migrate,import-capture,device-evidence-import,workflow-import,reference-import,reference-compare,schedule-create,schedule-run,schedule-status,lab-create,lab-init,collect,overview,health,queue,dictionary,references,workflows,collection-history,collection,search,inspect,settings,relationships,history,compare,operations,terminal,propose,restore-propose,review,execute,reconcile}
+                            ...
+
+positional arguments:
+  {init,backup,restore,migrate,import-capture,device-evidence-import,workflow-import,reference-import,reference-compare,schedule-create,schedule-run,schedule-status,lab-create,lab-init,collect,overview,health,queue,dictionary,references,workflows,collection-history,collection,search,inspect,settings,relationships,history,compare,operations,terminal,propose,restore-propose,review,execute,reconcile}
+    init                Create a private tenant-scoped observation store; no IaC required
+    backup              Create a new private SQLite backup; retain its receipt independently
+    restore             Restore validated local observations to a new private root; not remote
+                        infrastructure
+    migrate             Back up and explicitly migrate the observation schema
+    import-capture      Import an existing Graph capture directory and its raw-page receipts
+                        without network access
+    device-evidence-import
+                        Import inert tenant/object-bound local evidence
+    workflow-import     Import inert tenant/object-bound local evidence
+    reference-import    Record exact pinned local reference bytes without adoption authority
+    schedule-create     Create a bounded local synthetic collection schedule; installs no daemon
+    schedule-run        Run an explicit finite local collection window
+    lab-create (lab-init)
+                        Create the existing local synthetic service from a synthetic capture
+    collect             Collect independently of the terminal into persistent observations
+    propose             Prepare a bounded correction with existing engine evidence; synthetic
+                        service only
+    restore-propose     Propose historical restoration as a new change requiring independent fresh
+                        review
+
+options:
+  -h, --help            show this help message and exit

@@ -1,0 +1,30 @@
+{
+  "schema_version": "intune-r2-split-release/1",
+  "archive": {
+    "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b"
+  },
+  "parts": [
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01",
+      "bytes": 1500000000,
+      "sha256": "cdf6430b1117306ea5a8a53a664b331bd0a65598f709961c10b27ea469f6bc47",
+      "url": "https://github.com/nsahmed23/neon-commons/releases/download/intune-r2-handoff-20261007/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02",
+      "bytes": 789864715,
+      "sha256": "30cad9a46ec9175cef45904ab2725a2471ea9928bbf323ac9c4dd58a1bc88911",
+      "url": "https://github.com/nsahmed23/neon-commons/releases/download/intune-r2-handoff-20261007/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02"
+    }
+  ],
+  "snapshot": {
+    "root": "Intune_Atmos_Wally_Continuation_R2",
+    "manifest": "CONTINUATION-SNAPSHOT-R2-MANIFEST.json",
+    "manifest_sha256": "71a06930122bbed74a17b0d49f149b210fb84b5d6a5d5217de9710d0f61c23ef"
+  },
+  "product_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+  "release_url": "https://github.com/nsahmed23/neon-commons/releases/tag/intune-r2-handoff-20261007",
+  "split_reason": "The unchanged complete archive exceeds GitHub release per-asset size limit; concatenate both byte parts in listed order. No payload was omitted or repackaged."
+}

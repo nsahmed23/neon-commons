@@ -1,0 +1,8 @@
+usage: intune-iac workbench references [-h] --root ROOT [--limit LIMIT]
+                                       [--offset OFFSET]
+
+options:
+  -h, --help       show this help message and exit
+  --root ROOT
+  --limit LIMIT    Explicit bounded page size, 1 through 1000
+  --offset OFFSET

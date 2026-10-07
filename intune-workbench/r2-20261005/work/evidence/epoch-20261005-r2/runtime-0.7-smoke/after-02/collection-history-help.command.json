@@ -1,0 +1,16 @@
+{
+  "name": "collection-history-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "collection-history",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188065.532288,
+  "ended": 1791188065.6099327,
+  "stdout_sha256": "b896d88b7fca2810d41901faa835a1c09b9a6945f655da637999ddce729042d9",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

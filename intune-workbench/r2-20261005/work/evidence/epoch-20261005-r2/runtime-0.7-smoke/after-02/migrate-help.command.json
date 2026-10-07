@@ -1,0 +1,16 @@
+{
+  "name": "migrate-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "migrate",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188064.725767,
+  "ended": 1791188064.7963781,
+  "stdout_sha256": "0c3fda43048e8dc898770b6be64d0040f9042956c94d332f87cc04657911ad48",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

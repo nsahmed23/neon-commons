@@ -1,0 +1,11 @@
+usage: intune-iac workbench collection-history [-h] --root ROOT
+                                               [--object OBJECT]
+                                               [--limit LIMIT]
+                                               [--offset OFFSET]
+
+options:
+  -h, --help       show this help message and exit
+  --root ROOT
+  --object OBJECT
+  --limit LIMIT    Explicit bounded page size, 1 through 1000
+  --offset OFFSET

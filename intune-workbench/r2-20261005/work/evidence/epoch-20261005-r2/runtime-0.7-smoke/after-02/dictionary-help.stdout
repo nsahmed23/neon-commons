@@ -1,0 +1,6 @@
+usage: intune-iac workbench dictionary [-h] --root ROOT [--query QUERY]
+
+options:
+  -h, --help     show this help message and exit
+  --root ROOT
+  --query QUERY

@@ -1,0 +1,16 @@
+{
+  "name": "device-evidence-import-help",
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/runtime-0.7-smoke/after-02/extracted/intune-iac/scripts/intune-iac.py",
+    "workbench",
+    "device-evidence-import",
+    "--help"
+  ],
+  "exit_code": 0,
+  "started": 1791188064.873381,
+  "ended": 1791188064.9553812,
+  "stdout_sha256": "9f5a356d3da299c5931b4e4c52a5e6c7e202624ccf03bbb39628c4b71935ec93",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

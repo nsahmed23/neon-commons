@@ -1,0 +1,889 @@
+{
+  "status": "PASS",
+  "evidence_class": "injected_GET_capture_actual_CLI_direct_SQL_assertions",
+  "network_requests": 0,
+  "checks": [
+    {
+      "id": "command_1_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_2_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_3_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_4_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "complete_capture_not_authenticated",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_5_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "literal_policy_and_targeting_preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "literal_typed_setting_preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_6_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_7_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "policy_scoped_import_preserves_other_policy",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_8_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_9_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "identical_snapshot_dedup_preserves_history",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_10_exit",
+      "passed": true,
+      "detail": {
+        "actual": 2,
+        "expected": 2
+      }
+    },
+    {
+      "id": "denial_is_preserved",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_11_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "denial_retains_exact_last_good",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_12_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "unrelated_policy_not_marked_denied",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_13_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "individual_collection_history",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_14_exit",
+      "passed": true,
+      "detail": {
+        "actual": 2,
+        "expected": 2
+      }
+    },
+    {
+      "id": "error_payload_not_disclosed",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_15_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "terminal_reopen_observes_history",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_16_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_17_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "independent_denominator_arithmetic",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "endpoint_outcome_and_rollout_remain_unknown",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_18_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_19_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "workflow_link_remains_inert",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_20_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "reference_bytes_and_authority_distinct",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_21_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "dictionary_retains_observation_and_reference",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_22_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "reference_equal_settings_not_automatic_adoption",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "sqlite_atomic_counts",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "sqlite_failed_run_has_no_published_objects",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "sqlite_artifact_scope",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "sqlite_stable_object_heads",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "command_23_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_24_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "command_25_exit",
+      "passed": true,
+      "detail": {
+        "actual": 0,
+        "expected": 0
+      }
+    },
+    {
+      "id": "backup_restore_preserves_denied_last_good",
+      "passed": true,
+      "detail": null
+    },
+    {
+      "id": "backup_digest_matches_retained_bytes",
+      "passed": true,
+      "detail": null
+    }
+  ],
+  "commands": [
+    {
+      "sequence": 1,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "--help"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "01.stdout",
+      "stderr": "01.stderr"
+    },
+    {
+      "sequence": 2,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "init",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "02.stdout",
+      "stderr": "02.stderr"
+    },
+    {
+      "sequence": 3,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "terminal",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store"
+      ],
+      "stdin": "quit\n",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "03.stdout",
+      "stderr": "03.stderr"
+    },
+    {
+      "sequence": 4,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/capture-first"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "04.stdout",
+      "stderr": "04.stderr"
+    },
+    {
+      "sequence": 5,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "inspect",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "05.stdout",
+      "stderr": "05.stderr"
+    },
+    {
+      "sequence": 6,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/capture-second"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "06.stdout",
+      "stderr": "06.stderr"
+    },
+    {
+      "sequence": 7,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "overview",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "07.stdout",
+      "stderr": "07.stderr"
+    },
+    {
+      "sequence": 8,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/capture-identical"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "08.stdout",
+      "stderr": "08.stderr"
+    },
+    {
+      "sequence": 9,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "history",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "09.stdout",
+      "stderr": "09.stderr"
+    },
+    {
+      "sequence": 10,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/capture-denied"
+      ],
+      "stdin": null,
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "stdout": "10.stdout",
+      "stderr": "10.stderr"
+    },
+    {
+      "sequence": 11,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "inspect",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "11.stdout",
+      "stderr": "11.stderr"
+    },
+    {
+      "sequence": 12,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "inspect",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "33333333-3333-4333-8333-333333333333"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "12.stdout",
+      "stderr": "12.stderr"
+    },
+    {
+      "sequence": 13,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "collection-history",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "13.stdout",
+      "stderr": "13.stderr"
+    },
+    {
+      "sequence": 14,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "collection",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--run",
+        "4"
+      ],
+      "stdin": null,
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "stdout": "14.stdout",
+      "stderr": "14.stderr"
+    },
+    {
+      "sequence": 15,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "terminal",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store"
+      ],
+      "stdin": "select 22222222-2222-4222-8222-222222222222\ninspect\nhistory\nback\nquit\n",
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "15.stdout",
+      "stderr": "15.stderr"
+    },
+    {
+      "sequence": 16,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "device-evidence-import",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--input",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/device-evidence.json"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "16.stdout",
+      "stderr": "16.stderr"
+    },
+    {
+      "sequence": 17,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "health",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "17.stdout",
+      "stderr": "17.stderr"
+    },
+    {
+      "sequence": 18,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "workflow-import",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--input",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/workflow.json"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "18.stdout",
+      "stderr": "18.stderr"
+    },
+    {
+      "sequence": 19,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "workflows",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "19.stdout",
+      "stderr": "19.stderr"
+    },
+    {
+      "sequence": 20,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "reference-import",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--input",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/reference.json",
+        "--sha256",
+        "66eff4ccb242da0b9e46cc0e511ee85224fb217d680e1c8ffbd7f557aa3705af",
+        "--revision",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "--source-url",
+        "https://example.invalid/reference/policy.json",
+        "--license",
+        "CC0-1.0"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "20.stdout",
+      "stderr": "20.stderr"
+    },
+    {
+      "sequence": 21,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "dictionary",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--query",
+        "letappsaccesslocation"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "21.stdout",
+      "stderr": "21.stderr"
+    },
+    {
+      "sequence": 22,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "reference-compare",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222",
+        "--reference",
+        "dfab5c15d3dd328af9c07b502a9cb5b76f8df3719f66e0f4ac1298a7e27715f1"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "22.stdout",
+      "stderr": "22.stderr"
+    },
+    {
+      "sequence": 23,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "backup",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/store",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/backup.sqlite3"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "23.stdout",
+      "stderr": "23.stderr"
+    },
+    {
+      "sequence": 24,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "restore",
+        "--input",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/backup.sqlite3",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/restored",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "24.stdout",
+      "stderr": "24.stderr"
+    },
+    {
+      "sequence": 25,
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/projects/intune/scripts/intune-iac.py",
+        "workbench",
+        "inspect",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/restored",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "stdin": null,
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "stdout": "25.stdout",
+      "stderr": "25.stderr"
+    }
+  ],
+  "limitations": [
+    "Injected GET data is not authenticated Graph evidence.",
+    "Assertions use literal expectations and SQLite reads; same-user execution is not protected oracle isolation.",
+    "Terminal sessions use scripted stdin, not PTY/native Windows."
+  ],
+  "retained_entrypoint_correction": {
+    "attempt": [
+      "python",
+      "-m",
+      "intune_iac"
+    ],
+    "exit_code": 1,
+    "correct": "scripts/intune-iac.py"
+  },
+  "finished_at": "2026-10-05T08:14:13.623227+00:00",
+  "run_root": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411",
+  "checks_passed": 48,
+  "checks_total": 48,
+  "command_count": 25,
+  "capture_requests": [
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222/settings",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222/assignments",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/33333333-3333-4333-8333-333333333333/settings",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/33333333-3333-4333-8333-333333333333/assignments",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222/settings",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222/assignments",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222/settings",
+      "injected": true
+    },
+    {
+      "method": "GET",
+      "url": "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/22222222-2222-4222-8222-222222222222/assignments",
+      "injected": true
+    }
+  ],
+  "source_hashes": {
+    "intune_iac/workbench_store.py": "7edca71acd24085ba5b13f957b0bf4ea35582efa8a4003c866cbe9b14945291a",
+    "intune_iac/capture_adapter.py": "d6f3f4ff43f5c5d45bdcde153ae97ac13aeb84b9fe2db8229169d0fe700202e1",
+    "intune_iac/workbench.py": "b4cf7ac0f4eae2115395d68df2260741c086d35cdf772383210ecdc80ac589b7",
+    "intune_iac/workbench_health.py": "4d52cf527fb96eed6db1f138be9acc2be5a70cc33a99968eaa37b7b7454e7715",
+    "intune_iac/workbench_provenance.py": "5191c5208766147958e0818ae8385b09a46f4c66e55592cb440bdb1bc8945eee"
+  }
+}

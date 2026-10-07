@@ -1,0 +1,40 @@
+{
+  "status": "PASS_RECORDED_SOURCE_BINDING",
+  "recorded_at": "2026-10-05T08:16:47.674818+00:00",
+  "original_receipt": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-store/cli-run-081411/receipt.json",
+  "original_receipt_sha256": "061dcf27bee11fa99c31f60cb6d76a6654f64c16b705a1cb7de79aa7b6b36e11",
+  "execution_location": "Main frozen working copy /workspace/intune-continuation/work/projects/intune, not extracted archive",
+  "checks": 48,
+  "commands": 25,
+  "source_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+  "observed_current_main_clean": true,
+  "source_archive_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a",
+  "recorded_source_files": {
+    "intune_iac/workbench_store.py": {
+      "receipt_sha256": "7edca71acd24085ba5b13f957b0bf4ea35582efa8a4003c866cbe9b14945291a",
+      "archive_sha256": "7edca71acd24085ba5b13f957b0bf4ea35582efa8a4003c866cbe9b14945291a",
+      "matches": true
+    },
+    "intune_iac/capture_adapter.py": {
+      "receipt_sha256": "d6f3f4ff43f5c5d45bdcde153ae97ac13aeb84b9fe2db8229169d0fe700202e1",
+      "archive_sha256": "d6f3f4ff43f5c5d45bdcde153ae97ac13aeb84b9fe2db8229169d0fe700202e1",
+      "matches": true
+    },
+    "intune_iac/workbench.py": {
+      "receipt_sha256": "b4cf7ac0f4eae2115395d68df2260741c086d35cdf772383210ecdc80ac589b7",
+      "archive_sha256": "b4cf7ac0f4eae2115395d68df2260741c086d35cdf772383210ecdc80ac589b7",
+      "matches": true
+    },
+    "intune_iac/workbench_health.py": {
+      "receipt_sha256": "4d52cf527fb96eed6db1f138be9acc2be5a70cc33a99968eaa37b7b7454e7715",
+      "archive_sha256": "4d52cf527fb96eed6db1f138be9acc2be5a70cc33a99968eaa37b7b7454e7715",
+      "matches": true
+    },
+    "intune_iac/workbench_provenance.py": {
+      "receipt_sha256": "5191c5208766147958e0818ae8385b09a46f4c66e55592cb440bdb1bc8945eee",
+      "archive_sha256": "5191c5208766147958e0818ae8385b09a46f4c66e55592cb440bdb1bc8945eee",
+      "matches": true
+    }
+  },
+  "coverage_limit": "Only five source hashes recorded by expanded CLI receipt are compared here; full archive/Git identity is separately proven by milestone artifact-binding.json. Existing command logs remain unchanged. This binding is not an extracted-source execution claim."
+}
