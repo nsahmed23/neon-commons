@@ -1,13 +1,13 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T23:10:51.545495+00:00",
+  "recorded_at": "2026-10-07T23:24:32.062181+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "8fb914a36651b0bd79e3e4f2d342294613682685"
+    "latest_completed_checkpoint": "72c090f3ab626985207bb44c48c78003b5413072"
   },
   "contract": {
     "path": "docs/INTUNE-WORKBENCH-STRICT-CONTRACT-20261007.md",
@@ -36,7 +36,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Local implementations and exact scopes are recorded without adding overlapping counts. Laboratory finish line remains incomplete pending protected adoption, remaining native source/evidence integration and final exact-package gates. Platform qualification and organizational risk/production approval are separate and absent."
+    "explanation": "Connected native-tool laboratory adoption/maintenance and exact scoped negative/PTY evidence are preserved. Laboratory finish line remains incomplete pending staged recovery/source/evidence integration, required exact-package gates and the stopped provider finding. Platform qualification and organizational approval remain absent."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -476,7 +476,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -695,7 +763,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -1026,7 +1162,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -1196,7 +1400,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -1316,7 +1588,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -1475,7 +1815,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -1867,7 +2275,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -2074,7 +2550,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -2273,7 +2817,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -2498,7 +3110,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/worker_provider.py": "3672d3e6b30b5ba47171666e40df8a8cd7b77a7174122deee659d07e79dd0b48",
@@ -2671,7 +3351,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -2886,7 +3634,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -3583,7 +4399,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/worker_host.py": "c8e448b52e77681b8ec9002696eabadd6992f65bc3835c64da5c231c64629fea",
@@ -5620,7 +6504,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -5759,7 +6711,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -5894,7 +6914,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -6099,7 +7187,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -6653,7 +7809,75 @@
       "outcomes": {
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "local_implementation_gap": "Separately approved durable adoption is staged across state/broker, native provider and service authority lanes. Approved bounded design uses existing nonempty empty-resource state, one exact object/address, complete declared ownership scope and GET-only Graph; state-only approval is separate from saved-plan apply. Actual integrated native adoption/recovery qualification remains outstanding.",
       "evidence_receipts": [
@@ -8979,7 +10203,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "fault_evidence_map": {
         "path": "evidence/epoch-20261007-r4/independent/FAULT-FAMILY-MAP-01.json",
@@ -11514,7 +12806,75 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_adoption_increment13": {
+          "status": "PASS",
+          "observed_source_revision": "72c090f3ab626985207bb44c48c78003b5413072",
+          "scope": "Actual pinned Atmos/OpenTofu/provider/Docker through nonforwarding synthetic Graph/Azure protocols. Protected state-only adoption and first no-change plan; same-authority committed source correction, fresh saved plan/new signature/apply/readback/no-op; three distinct acquisition/state-write interruptions. Independent literal raw checks and actual PTY reopen.",
+          "counts": "16 adoption producer,25 literal oracle,19 independent raw,15 independent PTY,18 maintenance producer and three16-control interruption scopes overlap; never add. Independent maintenance18 is another overlapping scope; before evaluator ordering/exit-code errors remain.",
+          "limitations": "No live Azure/Graph/CI/Windows/device evidence. Source-to-declared-repository execution capability and interrupted adoption recovery remain staged. Raw ID37 mapping stays unsupported; no evidence promotion. Acquisition evaluator exit-code error preserved and corrected by read-only evaluation, not native replay.",
+          "next_action": "Integrate reviewed recovery and explicit source-intent binding, qualify existing interrupted authorities, finish native source/evidence paths, then exact-package gates.",
+          "receipts": [
+            {
+              "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+              "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+              "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+              "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+              "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+              "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+              "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+            },
+            {
+              "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+              "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+            }
+          ]
+        },
+        "new_evidence": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+            "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+            "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+            "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+            "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+            "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+            "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+            "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+          }
+        ]
       },
       "fault_evidence_map": {
         "path": "evidence/epoch-20261007-r4/independent/FAULT-FAMILY-MAP-01.json",
@@ -13328,5 +14688,5 @@
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 12
+  "checkpoint_increment": 13
 }

@@ -725,3 +725,32 @@ interruption cases without runtime edits during signing. Portable signed worker
 evidence, native source writing, source/execution binding and adoption recovery
 remain staged dependencies. Final packages, required external routes and
 accountable organizational approval remain incomplete.
+
+Increment13 preserves actual checkpoint12 native adoption, first no-change plan,
+same-authority source correction/exact saved-plan application, independent
+readback and second no-change plan. Index02 records each exact operation and
+source snapshot. Independent raw19 and LinuxPTY15 scopes overlap the producer
+and literal assertions; no combined count is claimed. All3288 selected source
+files matched checkpoint12 raw Git objects; inventory32 validates selection.
+
+Three independently approved native interruption operations retain their own
+once rows, source inventories, leases and unknown outcomes. The acquisition
+harness initially expected exit0, while the application correctly returned3 for
+unknown. Its failed evaluation remains; read-only reevaluation corrected only
+the oracle and did not rerun import. Fault roots under /tmp are mandatory full
+R4 evidence inputs. No adoption lease was released or import replayed.
+
+Recovery, source-intent execution binding, native guarded source editing and
+portable signed evidence remain staged. Root review and independent controls
+found receipt-envelope, cleanup, publisher-rotation, synthetic/live contradiction
+and interrupted source-edit defects; before records remain, and only precisely
+rechecked repairs may be integrated. External gates are not used to defer these
+local requirements. The source-intent watchdog also needs thread-safe verified
+source rechecks; the initial main-thread-only Git failure is retained.
+
+Resume from integration/COMMIT-13.json and worker-provider/
+NATIVE-ADOPTION-EVIDENCE-INDEX-02.json: inspect git status, integrate only reviewed
+source pins, then freeze new runtime before fresh recovery approvals. Retain
+original operation authorities and history. Do not rerun historical full suites.
+Final packages, native Windows/real service routes, AppSec and accountable
+production approval remain incomplete.
