@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "started_unix": 1791343041.0107143,
+  "manifest_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json",
+  "helper_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/distribution-tooling/restore_r2.py",
+  "authentication_supplied": false,
+  "helper_download": {
+    "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/distribution-tooling/restore_r2.py",
+    "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/distribution-tooling/restore_r2.py",
+    "http_status": 200,
+    "bytes": 21100,
+    "sha256": "d073a532a5d89bda9fe682269dae64526d1749ded0c9972323c6f4d569919dcb"
+  },
+  "manifest_download": {
+    "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json",
+    "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json",
+    "http_status": 200,
+    "bytes": 13465,
+    "sha256": "8f766c149362ceb44f2e78f6d923a2a57c28d7895a5420f6473d79bf1b141d75"
+  },
+  "return_code": 0,
+  "reassembled_archive": {
+    "path": "/workspace/intune-publication/public-download/Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b"
+  },
+  "part_count": 24,
+  "fresh_downloaded_helper_verified": true,
+  "archive_byte_identity_verified": true,
+  "extraction_repeated": false,
+  "note": "Exact ZIP and unchanged helper already passed full extraction; public transfer is independently verified here.",
+  "finished_unix": 1791343127.4172182,
+  "seconds": 86.40650486946106
+}

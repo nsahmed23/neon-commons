@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "/workspace/intune-publication/public-download/restore_r2.py",
+    "--manifest",
+    "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json",
+    "--output",
+    "/workspace/intune-publication/public-download/Intune_Atmos_Wally_Continuation_20261005_R2.zip"
+  ],
+  "cwd": "/workspace/intune-publication/public-download",
+  "authentication_supplied": false
+}
