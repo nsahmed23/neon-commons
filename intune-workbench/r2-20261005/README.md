@@ -23,6 +23,12 @@ SHA-256: `7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b`.
 
 [Snapshot receipt](CONTINUATION-SNAPSHOT-R2-RECEIPT.json) describes 52,165 regular files, five literal symlinks and 11,522 directories. All six saved threads, original inputs, source, historical and new evidence are preserved. The historical three unexpected temporary files remain unresolved.
 
-**Transfer status: release-attachment upload pending.** The configured GitHub connection accepts repository writes but `uploads.github.com` currently returns HTTP 401 even for a small receipt. The existing completed ZIP has not changed. Planned two-part attachment URLs in [the distribution manifest](R2-DISTRIBUTION-MANIFEST.json) are not yet verified public download links. Do not mistake the automatic GitHub Source code ZIP for the complete repository snapshot.
+**Transfer status: release-attachment upload pending.** See the recorded [upload blocker](UPLOAD-BLOCKER.json). The configured GitHub connection accepts repository writes but `uploads.github.com` currently returns HTTP 401 even for a small receipt. The existing completed ZIP has not changed. Planned two-part attachment URLs in [the distribution manifest](R2-DISTRIBUTION-MANIFEST.json) are not yet verified public download links. Do not mistake the automatic GitHub Source code ZIP for the complete repository snapshot.
 
 [The restore helper](distribution-tooling/restore_r2.py), its [usage and limits](distribution-tooling/README.md), and [extraction precautions](R2-SNAPSHOT-EXTRACTION.md) are provided for the completed transfer. The helper verifies fixed archive/manifest pins and can quarantine the five symbolic links as inert literal text when safely extracting to a fresh directory. It is new distribution tooling; its tests are separate from the preserved 1,141 product tests.
+
+## Downloadable exact product packages
+
+The [runtime package](packages/Intune_IaC_Plugin_0.7.0.zip), [source package](packages/Intune_IaC_Plugin_0.7.0_Source.zip) and [archive receipt](packages/Intune_IaC_Plugin_Archive_Receipt.json) are byte-identical copies of the qualified packages. They are product packages, not substitutes for the complete six-thread snapshot.
+
+The restoration helper also passed full extraction of the unchanged R2 ZIP and an independently implemented complete filesystem rehash: [extraction receipt](distribution-tooling/full-extraction-result.json), [independent verification](distribution-tooling/full-extraction-independent-verification.json). This does not alter the original snapshot or its historical extraction-limit prose.

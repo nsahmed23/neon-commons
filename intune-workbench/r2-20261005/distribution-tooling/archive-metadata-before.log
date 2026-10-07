@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/workspace/intune-publication/helper/restore_r2.py", line 285, in inspect_archive
+    require(stat.S_ISREG(mapping[manifest_name].external_attr >> 16), 'Snapshot manifest must be regular')
+  File "/workspace/intune-publication/helper/restore_r2.py", line 40, in require
+    raise RestoreError(message)
+restore_r2.RestoreError: Snapshot manifest must be regular

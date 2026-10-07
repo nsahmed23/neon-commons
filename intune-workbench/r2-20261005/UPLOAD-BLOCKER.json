@@ -1,0 +1,41 @@
+{
+  "status": "RELEASE_ASSET_UPLOAD_BLOCKED",
+  "repository_content_published": true,
+  "product_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+  "handoff_commit_with_220_exact_records": "1b808a851d4349e8daa2397c317e250fc9dc7189",
+  "release_id": 405334929,
+  "release_tag": "intune-r2-handoff-20261007",
+  "release_remains_draft": true,
+  "published_release_assets": 0,
+  "observed_failures": [
+    {
+      "operation": "gh release upload of R2-DISTRIBUTION-MANIFEST.json",
+      "host": "uploads.github.com",
+      "http_status": 401,
+      "message": "Bad credentials"
+    },
+    {
+      "operation": "Python HTTPS upload with the configured GH_TOKEN and Bearer scheme",
+      "host": "uploads.github.com",
+      "http_status": 401,
+      "request_id": "C94F:1B156B:1BA0A2:287FBD:6AC5B77E",
+      "message": "Bad credentials"
+    },
+    {
+      "operation": "REST API asset POST availability check",
+      "host": "api.github.com",
+      "http_status": 404,
+      "message": "Not Found"
+    }
+  ],
+  "configuration_observation": {
+    "observations_current": true,
+    "network_policy": "unrestricted/enforced",
+    "credential_values_inspected_or_disclosed": false
+  },
+  "unchanged_archive": {
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b"
+  },
+  "required_prerequisite": "An existing authorized GitHub credential transport covering uploads.github.com, or user-selected Git chunk transfer route. No new credentials or privileges were provisioned."
+}

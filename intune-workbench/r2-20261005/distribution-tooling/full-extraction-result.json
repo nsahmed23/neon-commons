@@ -1,0 +1,117 @@
+{
+  "archive": "/workspace/intune-delivery/Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+  "bytes": 2289864715,
+  "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+  "extraction": {
+    "schema": "intune-r2-safe-extraction/1",
+    "status": "PASS",
+    "archive": "/workspace/intune-delivery/Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+    "source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+    "regular_files_verified": 52165,
+    "directories_verified": 11522,
+    "quarantined_symlinks": [
+      {
+        "archive_path": "Intune_Atmos_Wally_Continuation_R2/work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/symlink_raw/raw/page-000000.json",
+        "quarantine_path": "LINK-QUARANTINE/000000.target.txt",
+        "literal_target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/symlink-peer",
+        "bytes": 105,
+        "sha256": "405a616acd1c0d7f548fb4a2f4a1b3fe44a7d84cf84aa42600e167cce81d7998"
+      },
+      {
+        "archive_path": "Intune_Atmos_Wally_Continuation_R2/work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/symlink_raw/raw/page-000000.json",
+        "quarantine_path": "LINK-QUARANTINE/000001.target.txt",
+        "literal_target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/symlink-peer",
+        "bytes": 105,
+        "sha256": "b65147026b1e6116d86b8f01d12de91bb9ad2a56ddc7a2733751a781b0f87b22"
+      },
+      {
+        "archive_path": "Intune_Atmos_Wally_Continuation_R2/work/evidence/epoch-20261005-r2/milestone-0.6.1/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "quarantine_path": "LINK-QUARANTINE/000002.target.txt",
+        "literal_target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.1/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "bytes": 167,
+        "sha256": "4300b6f21fe1bd9ecdde7372b5cc65aca177c4fe5524a934c479ba3625dc7524"
+      },
+      {
+        "archive_path": "Intune_Atmos_Wally_Continuation_R2/work/evidence/epoch-20261005-r2/milestone-0.6.2/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "quarantine_path": "LINK-QUARANTINE/000003.target.txt",
+        "literal_target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.6.2/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "bytes": 167,
+        "sha256": "56d5b789cc2f94c648ec2ba07eb0d16157a85e010db3dc0dd8955c9eddc1e959"
+      },
+      {
+        "archive_path": "Intune_Atmos_Wally_Continuation_R2/work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work/work/.terraform/providers/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "quarantine_path": "LINK-QUARANTINE/000004.target.txt",
+        "literal_target": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2/milestone-0.7.0/native-work/mirror/registry.terraform.io/deploymenttheory/microsoft365/1.0.0/linux_amd64",
+        "bytes": 167,
+        "sha256": "39a97cd7842ecb642f7b936a1a41cdb4c7de5d9f83267ae95dc6f885a89f42da"
+      }
+    ],
+    "hardlink_groups_preserved_as_independent_regular_files": [
+      {
+        "group": "hardlink-1",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink-peer-export.json",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink_export_json/export.json"
+        ]
+      },
+      {
+        "group": "hardlink-2",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink-peer-context.json",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink_context_json/context.json"
+        ]
+      },
+      {
+        "group": "hardlink-3",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink-peer-capture-receipt.json",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink_capture-receipt_json/capture-receipt.json"
+        ]
+      },
+      {
+        "group": "hardlink-4",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink-peer-raw",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-01/hardlink_raw/raw/page-000000.json"
+        ]
+      },
+      {
+        "group": "hardlink-5",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink-peer-export.json",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink_export_json/export.json"
+        ]
+      },
+      {
+        "group": "hardlink-6",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink-peer-context.json",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink_context_json/context.json"
+        ]
+      },
+      {
+        "group": "hardlink-7",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink-peer-capture-receipt.json",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink_capture-receipt_json/capture-receipt.json"
+        ]
+      },
+      {
+        "group": "hardlink-8",
+        "paths": [
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink-peer-raw",
+          "work/evidence/epoch-20261005-r2/capture-adapter-review/run-02/hardlink_raw/raw/page-000000.json"
+        ]
+      }
+    ],
+    "archive_manifest_sha256": "71a06930122bbed74a17b0d49f149b210fb84b5d6a5d5217de9710d0f61c23ef",
+    "snapshot_root": "Intune_Atmos_Wally_Continuation_R2",
+    "all_zip_entry_crc_verified": true,
+    "all_payload_sha256_verified": true,
+    "archive_manifest_member_sets_equal": true,
+    "restored_mode_policy": "private directories 0700; files 0600 or 0700 when original execute bits set; no special bits",
+    "no_archive_content_executed": true,
+    "historical_file_set_discrepancy_closed": false,
+    "warning": "Literal symlink targets are inert evidence. No links recreated. Hardlink fixture semantics require deliberate isolated reconstruction."
+  }
+}

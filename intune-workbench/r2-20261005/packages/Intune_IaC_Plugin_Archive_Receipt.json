@@ -1,0 +1,28 @@
+{
+  "version": "0.7.0",
+  "archives": [
+    {
+      "filename": "Intune_IaC_Plugin_0.7.0.zip",
+      "files": 125,
+      "listed_hashes": 124,
+      "bytes": 485420,
+      "sha256": "e1c0be55b2a21cb14fc404defe9d379a9febdd85e0c1ba5086d1b5e660fc66e5"
+    },
+    {
+      "filename": "Intune_IaC_Plugin_0.7.0_Source.zip",
+      "files": 3072,
+      "listed_hashes": 3071,
+      "bytes": 16546987,
+      "sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a"
+    }
+  ],
+  "source_inventory_sha256": "ca6b0bc94752e3acfed93eeffe932ade4211e0105842bd9f6a34f66ae0467f29",
+  "source_selection": "Explicit reviewed file inventory; unlisted local files are excluded. Contents are not automatically classified for secrets.",
+  "runtime_excludes": [
+    "tests",
+    "golden output projects",
+    "historical research",
+    "upstream clones",
+    "model weights"
+  ]
+}

@@ -1,0 +1,40 @@
+test_cli_pins_reject_other_archive (__main__.RestoreTests.test_cli_pins_reject_other_archive) ... ok
+test_corrupt_completed_part_rejected_and_preserved (__main__.RestoreTests.test_corrupt_completed_part_rejected_and_preserved) ... Downloading/verifying part 1/2: part0
+ok
+test_corrupt_download_rejected_and_preserved (__main__.RestoreTests.test_corrupt_download_rejected_and_preserved) ... Downloading/verifying part 1/2: part0
+ok
+test_duplicate_archive_rejected (__main__.RestoreTests.test_duplicate_archive_rejected) ... ok
+test_duplicate_json_keys_rejected (__main__.RestoreTests.test_duplicate_json_keys_rejected) ... ok
+test_duplicate_manifest_rejected (__main__.RestoreTests.test_duplicate_manifest_rejected) ... ok
+test_existing_completed_output_never_replaced (__main__.RestoreTests.test_existing_completed_output_never_replaced) ... ok
+test_extra_archive_file_rejected (__main__.RestoreTests.test_extra_archive_file_rejected) ... ok
+test_extract_existing_destination_unchanged (__main__.RestoreTests.test_extract_existing_destination_unchanged) ... ok
+test_http_not_accepted (__main__.RestoreTests.test_http_not_accepted) ... ok
+test_https_resume_bad_range_rejected (__main__.RestoreTests.test_https_resume_bad_range_rejected) ... ok
+test_https_resume_full_response_fallback (__main__.RestoreTests.test_https_resume_full_response_fallback) ... ok
+test_https_resume_with_valid_content_range (__main__.RestoreTests.test_https_resume_with_valid_content_range) ... ok
+test_link_inventory_mismatch_rejected (__main__.RestoreTests.test_link_inventory_mismatch_rejected) ... ok
+test_literal_symlink_quarantine_and_exact_regular_payload (__main__.RestoreTests.test_literal_symlink_quarantine_and_exact_regular_payload) ... ok
+test_missing_archive_file_rejected (__main__.RestoreTests.test_missing_archive_file_rejected) ... ok
+test_partial_symlink_never_followed (__main__.RestoreTests.test_partial_symlink_never_followed) ... ok
+test_reassembly_preserves_exact_bytes (__main__.RestoreTests.test_reassembly_preserves_exact_bytes) ... Downloading/verifying part 1/2: part0
+Downloading/verifying part 2/2: part1
+ok
+test_reject_symlink_output_ancestor (__main__.RestoreTests.test_reject_symlink_output_ancestor) ... ok
+test_resume_incomplete_part (__main__.RestoreTests.test_resume_incomplete_part) ... Downloading/verifying part 1/2: part0
+Downloading/verifying part 2/2: part1
+ok
+test_resume_second_part (__main__.RestoreTests.test_resume_second_part) ... Downloading/verifying part 1/2: part0
+Downloading/verifying part 2/2: part1
+ok
+test_symlink_literal_mismatch_retained (__main__.RestoreTests.test_symlink_literal_mismatch_retained) ... ok
+test_symlink_type_disagreement_rejected (__main__.RestoreTests.test_symlink_type_disagreement_rejected) ... ok
+test_traversal_rejected_before_output (__main__.RestoreTests.test_traversal_rejected_before_output) ... ok
+test_untyped_manifest_entry_supported (__main__.RestoreTests.test_untyped_manifest_entry_supported) ... ok
+test_wrong_payload_hash_retains_partial_extraction (__main__.RestoreTests.test_wrong_payload_hash_retains_partial_extraction) ... ok
+test_wrong_snapshot_manifest_hash_rejected_before_output (__main__.RestoreTests.test_wrong_snapshot_manifest_hash_rejected_before_output) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 0.011s
+
+OK
