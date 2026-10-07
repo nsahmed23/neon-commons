@@ -1,7 +1,8 @@
 """Inactive exact native presentation/store composition; no CLI activates it.
 
 Existing read commands and explicit local repository-intent/proposal commands
-are admitted. The latter persist local evidence; neither edits source nor runs a plan. The complete parser remains shared; service/worker/mutation
+are admitted. Explicit source-edit/recovery commands mutate only an exact reviewed
+local source file; no command in this capability executes a protected plan. The complete parser remains shared; service/worker/mutation
 routes are explicitly unsupported until their native capabilities are reviewed.
 """
 from __future__ import annotations
@@ -16,7 +17,8 @@ READ_ONLY_COMMANDS = frozenset({'quit', 'exit', 'help', 'overview', 'next', 'pre
     'dictionary', 'dictionary-page', 'collections', 'history', 'history-recent', 'views', 'views-page'})
 
 
-LOCAL_SOURCE_COMMANDS = frozenset({'repository-import', 'source-acceptance-propose'})
+LOCAL_SOURCE_COMMANDS = frozenset({'repository-import', 'source-acceptance-propose', 'source-review',
+    'source-edit', 'source-edit-status', 'source-edit-recover'})
 
 def _fail(code):
     raise AppError(code, 'The inactive native Workspace capability or command route was not established.') from None

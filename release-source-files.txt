@@ -3331,3 +3331,24 @@ docs/WINDOWS-SOURCE-R4.md
 
 # R4 distinct protected adoption navigation; literal PTY before/after retained externally.
 plugin_tests/test_workbench_adoption_tui_r4.py
+
+# R4 separately approved interrupted native adoption lease recovery and typed disposition.
+intune_iac/worker_adoption_projection.py
+intune_iac/worker_adoption_recovery.py
+intune_iac/worker_adoption_disposition.py
+plugin_tests/test_worker_adoption_projection_r4.py
+plugin_tests/test_worker_adoption_recovery_r4.py
+docs/WORKER-ADOPTION-RECOVERY-R4.md
+
+# R4 separately approved no-change verification after interrupted adoption.
+intune_iac/worker_adoption_reconcile.py
+plugin_tests/test_worker_adoption_reconcile_r4.py
+plugin_tests/test_workbench_adoption_recovery_tui_r4.py
+docs/WORKER-ADOPTION-RECOVERY-PLAN-R4.md
+
+# R4 inactive native bounded source edit, retained uncertainty and explicit recovery.
+intune_iac/windows_source_edit.py
+plugin_tests/test_windows_source_edit_r4.py
+plugin_tests/test_windows_source_qualifier_r4.py
+scripts/qualify-windows-source-edit.py
+docs/WINDOWS-SOURCE-EDIT-R4.md

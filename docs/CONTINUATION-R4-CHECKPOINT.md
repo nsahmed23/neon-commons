@@ -754,3 +754,30 @@ source pins, then freeze new runtime before fresh recovery approvals. Retain
 original operation authorities and history. Do not rerun historical full suites.
 Final packages, native Windows/real service routes, AppSec and accountable
 production approval remain incomplete.
+
+Increment14 integrates the reviewed initial-import recovery/projection/typed
+baseline disposition and separately signed Plan-only verification bridge. It
+also integrates the inactive native source editor with exact identity/metadata
+and ancillary-input rechecks, retained partial journals and explicit recovery.
+All files are admitted deliberately into source/runtime selection.
+
+The native source119 changed/adjacent methods and independent16/6/7 scopes
+pass with recorded Win32 boundaries. Actual native Windows is BLOCKED0.
+Recovery23 component and31 bridge/presentation scopes pass; the23 receipt
+explicitly lacks a separately configured raw log. Two read-only native fault
+preflights classify exact original baseline versus committed successor. No
+recovery lease release or native recovery Plan has yet occurred.
+
+This is a preserved failing candidate, not a release: B-NOOP-01 records
+independent no-op JSON mutants (wrong ID, unequal values, wrong filter) accepted
+by the minimal parser. Initial and recovery paths need one strict value/artifact
+repair. The actual binary remained unchanged; no full capability bypass is
+claimed. Original passing native bytes and failed controls remain. New signing
+is held until repair, while source-intent, portable evidence and Plan-phase
+recovery work continues independently.
+
+Resume: read integration/COMMIT-14.json, git status --short, the92-row ledger and
+worker-service/plan-evidence-staging proposals. Integrate only reviewed repair
+pins, then freeze a new source revision before recovering the original fault
+authorities. Do not replay import. Finish remaining local integration and exact
+package/delivery gates; all platform/organizational approvals remain separate.

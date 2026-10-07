@@ -29,16 +29,18 @@ def _import(store,root,stack,component,object_id,pointer,revision,backend,resour
     from . import workbench_views as engine
     _store(store);engine._identity(object_id)
     if type(revision) is not str or not re.fullmatch('[0-9a-f]{40}',revision):engine._fail('workbench_repository_revision')
-    report=source._resolve(root,engine._text(stack),engine._text(component),api)
-    if report.get('status')!='resolved' or report.get('abstract') or not report.get('implementation_exists'):engine._fail('workbench_repository_unresolved')
-    body=copy.deepcopy(engine._pointer(report['effective'],pointer));analysis=engine.semantics.analyze(body)
-    if analysis['status']!='supported':_fail('windows_source_policy_projection_unsupported')
-    scope=engine._scope({'repository':str(PureWindowsPath(root)),'stack':stack,'component':component,'backend':backend})
-    data=engine._repository_intent(store,object_id,scope,revision,resource_address,pointer,body,report,analysis)
-    data['native_source_snapshot']={'captured_root_identity':report['native_source_access']['root_identity'],
-        'read_started_at':report['native_source_access']['read_started_at'],
-        'read_completed_at':report['native_source_access']['read_completed_at'],
-        'source_bytes_verified_at_read':True,'git_revision_verified':False,'publication_after_guard_release':True}
+    from .windows_source_edit import LOCK
+    with storage._lock(root,LOCK,api):
+        report=source._resolve(root,engine._text(stack),engine._text(component),api)
+        if report.get('status')!='resolved' or report.get('abstract') or not report.get('implementation_exists'):engine._fail('workbench_repository_unresolved')
+        body=copy.deepcopy(engine._pointer(report['effective'],pointer));analysis=engine.semantics.analyze(body)
+        if analysis['status']!='supported':_fail('windows_source_policy_projection_unsupported')
+        scope=engine._scope({'repository':str(PureWindowsPath(root)),'stack':stack,'component':component,'backend':backend})
+        data=engine._repository_intent(store,object_id,scope,revision,resource_address,pointer,body,report,analysis)
+        data['native_source_snapshot']={'captured_root_identity':report['native_source_access']['root_identity'],
+            'read_started_at':report['native_source_access']['read_started_at'],
+            'read_completed_at':report['native_source_access']['read_completed_at'],
+            'source_bytes_verified_at_read':True,'git_revision_verified':False,'publication_after_guard_release':True}
     return store.record_artifact('repository_intent',None,data)
 
 

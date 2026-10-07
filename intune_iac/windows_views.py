@@ -37,6 +37,8 @@ class _NativeViewReader:
             except AppError as error:
                 readback={'status':'unknown','reason':error.code,
                     'recorded_revision_and_source_hashes_preserved':True,'git_revision_verified':False}
+                pending=getattr(error,'source_edit_pending',None)
+                if pending is not None:readback['pending_local_source_edit']=pending
             result['repository']['current_working_source_readback']=readback
         if self.issues and result.get('deployment',{}).get('reason')=='verified_deployment_missing':
             result['deployment']['reason']='required_deployment_evidence_unsupported_or_unverified'

@@ -433,6 +433,10 @@ HELP = {
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
                    'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
+                   'source-review PROPOSAL_DIR DIGEST',
+                   'source-edit PROPOSAL_DIR DIGEST EXPIRY ACK-LOCAL-FILE-EDIT',
+                   'source-edit-status SOURCE_ROOT OPERATION_ID',
+                   'source-edit-recover SOURCE_ROOT OPERATION_ID complete|rollback|abort EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-acceptance-propose FIELD NEW_OUTPUT_DIR', 'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
                    'field-semantics', 'back', 'cancel', 'quit'],
     'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
@@ -448,6 +452,9 @@ HELP = {
                  'adoption-history (selected object)', 'adoption-review JOB_ROOT POLICY_PATH',
                  'adoption-status JOB_ROOT POLICY_PATH', 'adoption-attach JOB_ROOT POLICY_PATH (no dispatch)',
                  'adoption-cancel JOB_ROOT POLICY_PATH', 'adoption-recover JOB_ROOT POLICY_PATH (no import replay)'],
+    'adoption_recovery_plan': ['adoption-plan-review JOB_ROOT POLICY_PATH', 'adoption-plan-status JOB_ROOT POLICY_PATH',
+                              'adoption-plan-attach JOB_ROOT POLICY_PATH (read-only)',
+                              'adoption-plan-cancel JOB_ROOT POLICY_PATH', 'adoption-plan-recover JOB_ROOT POLICY_PATH (no replay)'],
     'collection': ['collect (requires --service-root; also runs as a separate headless command)',
                    'import-capture CAPTURE_DIRECTORY', 'collection-history [LIMIT [OFFSET]]', 'collection RUN_ID',
                    'migrate NEW_BACKUP_PATH', 'schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)',
@@ -577,6 +584,20 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'repository-import' and len(values) == 8:
                 from .workbench_views import import_repository
                 result = import_repository(store,*values)
+            elif name in ('source-review', 'source-edit', 'source-edit-status', 'source-edit-recover'):
+                if _store_capability is None:
+                    raise AppError('source_edit_native_capability_required','This route requires the explicit inactive native store capability.')
+                from .windows_source_edit import review_source_proposal, apply_source_proposal, inspect_source_edit, recover_source_edit
+                if name == 'source-review' and len(values) == 2:
+                    result = review_source_proposal(store,*values)
+                elif name == 'source-edit' and len(values) == 4 and values[3] == 'ACK-LOCAL-FILE-EDIT':
+                    result = apply_source_proposal(store,values[0],values[1],float(values[2]),acknowledged=True)
+                elif name == 'source-edit-status' and len(values) == 2:
+                    result = inspect_source_edit(store,*values)
+                elif name == 'source-edit-recover' and len(values) == 5 and values[4] == 'ACK-LOCAL-FILE-EDIT':
+                    result = recover_source_edit(store,values[0],values[1],values[2],float(values[3]),acknowledged=True)
+                else:
+                    raise AppError('source_edit_arguments','Use help; an exact local file-edit acknowledgment and bounded expiry are required.')
             elif name == 'source-acceptance-propose' and len(values) == 2:
                 if selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
@@ -592,6 +613,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 from .adoption_cli import invoke
                 result = invoke(name.removeprefix('adoption-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
+            elif name in ('adoption-plan-review', 'adoption-plan-status', 'adoption-plan-attach', 'adoption-plan-cancel', 'adoption-plan-recover') and len(values) == 2:
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from .adoption_cli import invoke_plan
+                result = invoke_plan(name.removeprefix('adoption-plan-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
             elif name == 'service-link' and len(values) == 2:
                 if selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')

@@ -1,13 +1,13 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T23:24:32.062181+00:00",
+  "recorded_at": "2026-10-07T23:35:27.338997+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "72c090f3ab626985207bb44c48c78003b5413072"
+    "latest_completed_checkpoint": "11835c2923a1cde0f4ba387305e9687afee224bc"
   },
   "contract": {
     "path": "docs/INTUNE-WORKBENCH-STRICT-CONTRACT-20261007.md",
@@ -36,7 +36,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Connected native-tool laboratory adoption/maintenance and exact scoped negative/PTY evidence are preserved. Laboratory finish line remains incomplete pending staged recovery/source/evidence integration, required exact-package gates and the stopped provider finding. Platform qualification and organizational approval remain absent."
+    "explanation": "Laboratory finish line remains incomplete: newly integrated bounded recovery/native source routes have precise passing local scopes, but independent no-op parser negatives fail and signing is held for repair. Source-intent/portable evidence and Plan-phase recovery remain staged; exact final packages, real platforms and organizational approval remain pending."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -447,7 +447,19 @@
         "evidence/epoch-20261007-r4/independent/windows-repository-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/packaging/NATIVE-SOURCE-ADMISSION-29.json",
         "evidence/epoch-20261007-r4/windows-source/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -544,7 +556,12 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -587,6 +604,54 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
           "sha256": "46ae28a4fc3912cd4a37630f26f6e8630fc0b1a7572213b9fa82592537777f4c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "native_views_increment10": {
@@ -734,7 +799,14 @@
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
@@ -878,6 +950,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
           "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1132,7 +1232,14 @@
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
@@ -1277,6 +1384,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
           "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1371,7 +1506,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -1523,6 +1665,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "native_views_increment10": {
@@ -1559,7 +1729,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -1703,6 +1880,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "protected_adoption_increment12": {
@@ -1786,7 +1991,14 @@
       "test_procedure_id": "R4-A12",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -1898,6 +2110,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ]
     },
@@ -1920,7 +2160,12 @@
         "evidence/epoch-20261007-r4/independent/windows-repository-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/packaging/NATIVE-SOURCE-ADMISSION-29.json",
         "evidence/epoch-20261007-r4/windows-source/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual source patch/whole-file review, git apply --check, commit, both affected stack imports and fresh existing-engine plan qualified with independent assertions. Corrected source gives no-op and known-bad value gives update in synthetic_local_process_only profile. YAML alias rejection preserved; full diff exposes comment loss. Not native provider convergence.",
@@ -1951,7 +2196,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -1981,6 +2231,26 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
           "sha256": "46ae28a4fc3912cd4a37630f26f6e8630fc0b1a7572213b9fa82592537777f4c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "native_source_increment11": {
@@ -2012,7 +2282,12 @@
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -2053,7 +2328,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
@@ -2076,6 +2356,26 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
           "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "native_views_increment10": {
@@ -2247,7 +2547,22 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -2343,7 +2658,12 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        }
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -2464,6 +2784,66 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -2521,7 +2901,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
@@ -2711,6 +3098,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -2788,7 +3203,22 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -2885,7 +3315,12 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        }
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -3006,6 +3441,66 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3082,7 +3577,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual pinned Atmos1.230.1/OpenTofu1.13.1/provider route qualified against local TLS service fixtures. Correct exact-plan arguments are two-token --from-plan --planfile; advertised --from-plan=... replanning failure retained. Native local import/no-change/change/exact-plan/readback/convergence completed; real platform and combined worker integration remain open.",
@@ -3244,6 +3746,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
@@ -3322,7 +3852,22 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -3419,7 +3964,12 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        }
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -3520,6 +4070,66 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3605,7 +4215,22 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Both original-computed and exact description-recovery committed-state schemas now have local signed recovery evidence. Original uncertain execution stays unknown after converged service/state readback. No blind apply replay. Constructed already-unlocked transfer evidence is separate from native fault creation. Real Azure/Graph/CI/Windows/device and hostile-host qualification are absent.",
@@ -3702,7 +4327,12 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        }
       },
       "source_file_sha256": {
         "intune_iac/protected_worker.py": "f63c0e776b8ca45b77c421a26bd65ce71ca8d929410728f5f92bb25b5c9defae",
@@ -3827,6 +4457,66 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -4364,7 +5054,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -4541,6 +5238,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "native_fault_increment": {
@@ -5608,7 +6333,12 @@
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/windows-reader-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/windows-dictionary/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -5639,7 +6369,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
@@ -5662,6 +6397,26 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-reader-after-01/RESULT.json",
           "sha256": "0c026366beb1f57d34e1cedb445c1088a53078b76cfd249f0d0ceeeb870864b4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ]
     },
@@ -5738,7 +6493,12 @@
         "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-before-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-after-04/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json"
+        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -5773,7 +6533,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -5839,6 +6604,26 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
           "sha256": "11330d8e1b61c46477d75777794f7393f18c17f46af42866a7985067b3bf13ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -6466,7 +7251,14 @@
         "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-before-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-after-04/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json"
+        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -6634,6 +7426,34 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
           "sha256": "11330d8e1b61c46477d75777794f7393f18c17f46af42866a7985067b3bf13ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -6673,7 +7493,27 @@
         "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
         "evidence/epoch-20261007-r4/independent/adoption-pty-before-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-after-04/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json"
+        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -6779,7 +7619,17 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        },
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -6845,6 +7695,86 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
           "sha256": "11330d8e1b61c46477d75777794f7393f18c17f46af42866a7985067b3bf13ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -6879,7 +7809,27 @@
         "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-before-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-after-04/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json"
+        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -6982,7 +7932,17 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        },
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -7032,6 +7992,86 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
           "sha256": "11330d8e1b61c46477d75777794f7393f18c17f46af42866a7985067b3bf13ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -7145,7 +8185,27 @@
         "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-before-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-pty-after-04/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json"
+        "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -7255,7 +8315,17 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        },
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
@@ -7313,6 +8383,86 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-service/adoption-ui-staging/APPLIED-RECEIPT.json",
           "sha256": "11330d8e1b61c46477d75777794f7393f18c17f46af42866a7985067b3bf13ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -7507,7 +8657,12 @@
         "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
-        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Host capability discovery now rejects unsupported storage/worker routes before unsafe imports or store creation, while help remains usable. Linux import-denial probes are not native Windows evidence. Native Windows has missing identity/ACL/reparse/durability implementations, beyond unavailable qualification; qualifier records required cases unsupported/blocked rather than passing negative gates as functionality.",
@@ -7532,7 +8687,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "intune_iac/host_capabilities.py": "88e5f7153686acda2c5315b805e55a06054bf2e57710bbe57999281c384b6023",
@@ -7575,6 +8735,26 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
           "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ]
     },
@@ -7604,7 +8784,12 @@
         "evidence/epoch-20261007-r4/independent/windows-repository-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/packaging/NATIVE-SOURCE-ADMISSION-29.json",
         "evidence/epoch-20261007-r4/windows-source/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "Inactive native storage, reader, capture/publication, console/context and scheduling components have separate local/recorded Win32 evidence. Ordinary Windows profile remains unsupported until actual host/Git Bash/mintty/terminal/toolchain qualification. Native current source and portable protected execution evidence integration remain explicit code/design work.",
@@ -7630,7 +8815,12 @@
       "outcomes": {
         "laboratory": "UNSUPPORTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "source_file_sha256": {
         "scripts/qualify-windows-workbench.py": "bcf31b5dc95d250b30635f797e1de1e7a1f54df5f88f7d753b6da1bba08db735",
@@ -7688,6 +8878,26 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
           "sha256": "46ae28a4fc3912cd4a37630f26f6e8630fc0b1a7572213b9fa82592537777f4c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "windows_inactive_components": {
@@ -7734,7 +8944,13 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E04",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
+      ],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
       "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Windows host owner: actual supported native PowerShell environment.",
@@ -7758,8 +8974,35 @@
       "outcomes": {
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
-      }
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
+        }
+      ]
     },
     {
       "id": "E05",
@@ -7782,7 +9025,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
       ],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
@@ -7920,6 +9170,34 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
       ],
       "staged_adoption_increment11": {
@@ -9398,7 +10676,13 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-changed-source-locks",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
@@ -9784,7 +11068,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "fault_evidence_map": {
         "path": "evidence/epoch-20261007-r4/independent/FAULT-FAMILY-MAP-01.json",
@@ -9792,7 +11081,29 @@
         "entry": "FAULT-02"
       },
       "remaining_local_evidence": "New complete runtime inventory and explicit lockfile alteration require changed-scope final tests; source substitution alone is not proof of every tool/lock binding.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
+        }
+      ]
     },
     {
       "id": "E-FAULT-03",
@@ -9813,7 +11124,22 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -10271,7 +11597,12 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        }
       },
       "fault_evidence_map": {
         "path": "evidence/epoch-20261007-r4/independent/FAULT-FAMILY-MAP-01.json",
@@ -10312,6 +11643,66 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
         }
       ],
       "protected_adoption_increment12": {
@@ -12656,7 +14047,27 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+        "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+        "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -12874,7 +14285,17 @@
             "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
             "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
           }
-        ]
+        ],
+        "recovery_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "Integrated original-import projection/recovery/disposition and separately signed Plan-only bridge.23 self-contained component methods and31 bridge/presentation methods pass separately;6 help routes verified. Two actual stopped-operation read-only preflights each6 assertions distinguish baseline/successor. No lease release or native recovery Plan yet.",
+          "limitations": "The23-run receipt was persisted from actual tool output without a separately configured raw log; this limitation remains. No-op plan output parser has independent known-bad failures; new signing is held pending shared repair. Initial/recovery Plan-phase lease recovery remains staged."
+        },
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "fault_evidence_map": {
         "path": "evidence/epoch-20261007-r4/independent/FAULT-FAMILY-MAP-01.json",
@@ -12947,6 +14368,86 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-ADOPTION-EVIDENCE-INDEX-02.json",
+          "sha256": "6b8fe268351ed66c11f0f0c41124d939bd1f1ff8705082186b3cfa23622998a7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-raw-01/RESULT.json",
+          "sha256": "3e0e0ee4f21983c18bec2ae2ae6ea9991ebc8b4909fc661abe49f21a100c17a8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-pty-01/RESULT.json",
+          "sha256": "eab61dba16c70e9e5bd691f01a1ad089f3f85bb83eb73491244b16cf0f53ee75"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
+          "sha256": "2de5f28ed701184c4175481c4df0a9e6689f6fb9eee06340bcf1daf329b131d0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
+          "sha256": "0fbeea9344cddab49f21278ae93100fadb49a836b8b09c0f3442f8bc334d1923"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
+          "sha256": "1d6b9528fd1e1f78300fabfe4461e17adc4af50a6d6f5ad5dbb42174d282b4e8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+          "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/ADOPTION-RECOVERY-INSERTION-01.json",
+          "sha256": "7b3aa3e2d039918a9afe96bdf6ba2c021f7d9717f98122a6e0af644ce772d2fc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-staging/integrated-qualified-01/receipt.json",
+          "sha256": "82b07bfece1edcf0bed68f4703970bede26393a465158b3332773044a653bf12"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/APPLIED-RECEIPT.json",
+          "sha256": "50edb6adc31def108d2a86b4d863d201ed2d14ca231a93f33607f9ae1f8d0061"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-reconcile-staging/applied-01/QUALIFICATION.json",
+          "sha256": "1258fa58a54e60d71b7698f7b7df95c6ee4472888fda378fec2d1831b44f5581"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
+          "sha256": "4049f6433b2116a027ab4c3132a57232036161dd86eb0fa9d19bf53b54f12f73"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
+          "sha256": "2c5cca1f848dc1b6f8d104b9e24c9aa2d0a8455ed697d4679a51fab5caa95051"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
+          "sha256": "9fc0c91288352f5c21d456c5f8b2b5de84ecf6b47b6b41a156101cc971593aaf"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+          "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ],
       "native_fault_increment": {
@@ -14146,7 +15647,12 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-conflicting-reference-updates",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/source-acceptance/conflict-01/RESULT.json"
+        "evidence/epoch-20261007-r4/source-acceptance/conflict-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -14266,7 +15772,12 @@
       "outcomes": {
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
-        "organizational_production_approval": "BLOCKED"
+        "organizational_production_approval": "BLOCKED",
+        "native_source_edit_increment14": {
+          "status": "IMPLEMENTED",
+          "scope": "119 actual changed/adjacent methods on integrated bytes, with separate independent16 writer,6 ancillary and7 qualifier controls; overlapping scopes. Real application/SQLite/file bytes with recorded Win32 effects. Exact source edit, both explicit recovery directions, pending views, retained partial receipts, metadata and identity/ancillary-change rejection.",
+          "limitations": "Native Windows remains BLOCKED0. No namespace durability, host power-loss, hostile-process containment or organizational support inferred. Ordinary native profile stays gated."
+        }
       },
       "fault_evidence_map": {
         "path": "evidence/epoch-20261007-r4/independent/FAULT-FAMILY-MAP-01.json",
@@ -14279,6 +15790,26 @@
         {
           "path": "evidence/epoch-20261007-r4/source-acceptance/conflict-01/RESULT.json",
           "sha256": "16a7ef329241d396ae8c05540f6dbe5ad3870fac63cb6fc9e03921fd0acf86f0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/SOURCE-RECEIPT-01.json",
+          "sha256": "f3a6b5256da7f0bb43477a36b25ce0b02b96940917387dd2ce1cb1d702b909ea"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
+          "sha256": "46f04d1d1c6945957913346f3ecd508674715c4d42b59287a5a0db76acb67413"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
+          "sha256": "fd229a855175a7e9ad1cdad40552ca93ae81a25188eaaf706e7698ef73b3e1fe"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
+          "sha256": "ce24cf73fc1789add1cc054b4c32e2036e49af26573509f49ead8d2d5208a37e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+          "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
       ]
     },
@@ -14686,7 +16217,52 @@
       },
       "remaining_local_evidence": "Actual healthCLI on native successfulservice store passes5 independent assertions: endpointhealth/outcome/approval unknown, alldevicedenominators null, norolloutauthority, exactdatabaseunchanged. Releasedartifact linkage pending; enrolleddeviceevidence blocked.",
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+    },
+    {
+      "id": "B-NOOP-01",
+      "description": "Native no-change verification binds exact archived binary/JSON/exit artifacts and complete identity/value/targeting to independently observed successor state.",
+      "milestone": "B",
+      "required_profile": "local-native-protocol-and-declared-pilot",
+      "status": "FAIL",
+      "evidence_class": "independent-isolated-parser-negative-controls",
+      "observed_source_revision": "11835c2923a1cde0f4ba387305e9687afee224bc plus exact reviewed recovery insertion",
+      "applicable_revision": "Exact worker_adoption_reconcile.py0cc1ca64 and original worker_adoption.pye5282cac; checkpoint14 commit in external receipt",
+      "artifact_sha256": null,
+      "test_procedure_id": "adoption-recovery-plan-artifact-before-01",
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/independent/adoption-recovery-plan-artifact-before-01/RESULT.json"
+      ],
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-recovery-plan-artifact-before-01/RESULT.json",
+          "sha256": "f7d7a61b7d6fce8d0bb27be6973536b4f1932e6e56e09858faabbf2e0f3fb496"
+        }
+      ],
+      "environment": "Linux; preserved actual native plan binary, independent mutated JSON; no new native dispatch",
+      "limitation": "Inert parser accepted wrong immutable ID, unequal before/after and wrong filter despite no-op label. This is not a demonstrated full runtime-capability bypass. Prior native positive bytes/scopes remain valid historical evidence.",
+      "next_action": "Integrate shared strict no-op validator and durable artifact capture for initial and recovery Plan paths; recheck same mutants and native positive before new signed recovery.",
+      "blocker_owner": "Workbench worker/verification maintainer (active observation lane)",
+      "depends_on": [
+        "B05",
+        "B08"
+      ],
+      "existing_code": [
+        "intune_iac/worker_adoption.py",
+        "intune_iac/worker_adoption_reconcile.py"
+      ],
+      "existing_entrypoints": [
+        "worker_adoption._qualify_completion",
+        "RecoveryPlanJob.reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "FAIL",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
     }
   ],
-  "checkpoint_increment": 13
+  "checkpoint_increment": 14
 }

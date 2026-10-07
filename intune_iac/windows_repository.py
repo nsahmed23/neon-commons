@@ -36,6 +36,8 @@ class _Access:
         self.directories=[];self.accesses={};self.kinds={};self.entries=0;self.classifications=[]
         self.accesses[self.root]=wc._Directory(self.root,api,stack,self.directories)
         self.root_identity=self.accesses[self.root].pin.receipt()
+        from .windows_source_edit import _check_pending
+        self.source_edit_history=_check_pending(self)
     @staticmethod
     def path(value):return PureWindowsPath(value)
     def contained(self,path):
@@ -112,6 +114,7 @@ def _report(access,stack,component):
     report=core._Repository(access.root,_access=access).resolve(stack,component)
     report['native_source_access']={'root_identity':access.root_identity,'raw_source_order_preserved':True,
         'held_source_and_namespace_revalidation':True,'git_revision_verified':False,
+        'local_source_edit_history':access.source_edit_history,
         'platform_qualified':False,'workbench_profile_enabled':False}
     return report
 
