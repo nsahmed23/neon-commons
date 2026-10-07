@@ -554,3 +554,45 @@ Windows capture/publication, shared terminal/context and inactive scheduled-job
 integration, qualify exact final packages and verify suitable delivery. Windows
 local components do not imply native-host qualification. Laboratory completion
 is still incomplete, platform qualification blocked, production approval absent.
+
+Increment8 committedb1ea9331de53228c0a0220928d8c0c38471b2a63 (24paths).
+Exact detached source passed98tests in9named modules,36.180seconds, clean
+trackedtree; receipt `integration/checkpoint8-changed-01/RECEIPT.json`.
+All300 recorded top-level receipt references matched50unique retained files
+at ledger integrity check01. This is scoped integrity, not all nested evidence.
+
+Increment9 integrates inactive Windows capture/publication and the shared
+console/context workspace. Source-label mutation and alternate POSIX relocation
+of native-bound capture both have retained failing-before/passing-after evidence.
+Native observation source receipt binds155local methods and14independent controls
+with explicit overlapping scope; actual Windows qualifier remainsBLOCKED0.
+Console uses existing Workspace/parser/engine, explicit Ctrl+Enter submission,
+append-only navigation context and pre-dispatch rejection of unsupported native
+commands. Real Windows/IME/mintty remain unqualified. Scheduler and native views
+completion are still staged implementation dependencies.
+
+Reconciliation discovered durable protected-service import/adoption is a real
+local code gap: the native import evidence used a preparation harness. The
+legacy provider prepare route is still network-denied. A separately approved
+state mutation/recovery contract is now being designed; do not hand this back
+as a credentials-only blocker or exclude adoption from the requirement.
+Doctor accurately reports this distinction and inactive Windows components
+without enabling any ordinary unsupported host route. Actual10doctor assertions
+and17CLI/host regressions pass; scopes overlap other suites.
+
+The CI validator preparation now recovers exact existing public package/library
+pins without installation or repinning. Public download and seven actual
+preparation controls pass; hosted CI remains unqualified. Current managed
+environment metadata has no capabilities, identities, secrets or runtime
+variables; no values were requested. Source changes remain on the dedicated
+continuation branch. Read latest commit receipt and this ledger before resuming.
+
+The exact integrated console increment passed 45 scoped tests in 8.284 seconds,
+including 16 existing Linux PTY/no-TTY cases; seven independent recorded-Win32
+application checks overlap that scope. CI preparation independently passed ten
+controls, and the actual YAML step plus existing vault/CI consumers passed 17
+scoped cases. Inventory 23 explicitly admits 3,248 source and 233 runtime files.
+New transfer helpers are still under review and excluded from this checkpoint.
+Scheduler review found a shadowed duplicate renderer and erroneous success after
+cleanup failure; both failing candidates remain preserved, with repairs staged.
+No native scheduler activation, real Windows qualification or production claim.

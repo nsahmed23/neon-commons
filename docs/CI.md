@@ -80,3 +80,16 @@ repairs source locally; actual admission and runner execution of final bytes
 remain a required GitHub gate. Source and handoff branches were observed
 unprotected; read permissions reported by a connector do not authorize changing
 branch controls, deployments, protected environments or production identities.
+
+The 0.9.0 candidate also prepares the already admitted libsodium validator
+explicitly. `scripts/prepare-ci-validator.py --package EXACT_DEB --output NEW_DIR`
+checks the original161290-byte Ubuntu package SHA-256
+`74d6f8fbd65f7f71b6f4f4223bef5fb57c1c14cd4e9ce788ead2b88e8c3ee236` before
+reading its payload, then checks the unchanged355040-byte library pin
+`fe00408090ea084504d7cb0130af56a22554fe299034b864551b65a64ca8a7b5`.
+It reads only the selected regular library/copyright members, executes no
+maintainer script, installs no system package and records the extraction tool.
+The workflow supplies the verified path to test fixtures through GITHUB_ENV.
+This is local dependency preparation, not new library or hosted-run approval;
+missing/wrong package bytes remain a failing prerequisite. The hosted image,
+network availability and actual final CI run still require their own evidence.

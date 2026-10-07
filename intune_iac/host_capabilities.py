@@ -27,7 +27,7 @@ _PROFILE_REQUIREMENTS = {
 }
 
 _MISSING_IMPLEMENTATION = {
-    'posix': 'A reviewed native Windows private-filesystem and process adapter is not implemented.',
+    'posix': 'This ordinary route still requires POSIX; inactive Windows components do not activate a qualified native route.',
     'linux': 'This adapter is implemented for Linux; an equivalent native host adapter is not implemented.',
     'x86_64': 'The protected native tool/provider profile is pinned for Linux x86_64.',
     'effective_uid': 'Windows token/SID ownership and DACL checks must replace POSIX effective-UID/mode checks.',
@@ -35,10 +35,10 @@ _MISSING_IMPLEMENTATION = {
     'directory_open': 'A Windows directory-handle implementation with equivalent validation is required.',
     'descriptor_relative_open': 'Descriptor-relative no-follow traversal needs a reviewed native equivalent.',
     'fsync': 'The host requires verified file/namespace durability and failure propagation.',
-    'fcntl_lock': 'LockFileEx or an equivalent reviewed native locking adapter is not implemented.',
+    'fcntl_lock': 'This ordinary route requires fcntl; separately implemented inactive LockFileEx components do not activate this profile.',
     'procfs': 'Windows process/job ownership and descendant census require a separate native implementation.',
     'waitid_wnowait': 'Native process-handle retention, descendant termination and independent cleanup observation are required.',
-    'termios': 'Native console/mintty input, mode restoration and visual interaction are not implemented or qualified here.',
+    'termios': 'This ordinary route requires termios; the inactive native console adapter and mintty route remain unqualified.',
 }
 
 
@@ -102,7 +102,7 @@ def report():
         'limitations': ['A discovered symbol does not prove that a particular filesystem, ACL, runner or terminal satisfies the contract.',
                        'Existing adapters still verify exact files, identities, locks, tool pins, network policy and cleanup at dispatch.',
                        'libseccomp, native provider/tool pins, real CI/backend/service/device behavior and organizational approval require their own evidence.',
-                       'Native Windows private workbench storage, protected execution and observation are implementation gaps, not merely missing test receipts.',
+                       'Inactive native Windows storage, observation and console components have separate local evidence; this ordinary profile is not enabled by their presence. Native protected execution and remaining integration gaps stay explicit.',
                        'No-tty text presentation cannot make an unsupported private store or worker portable.'],
         'native_windows_qualified': False, 'platform_qualified': False, 'production_approved': False}
 

@@ -177,7 +177,13 @@ class _Reader:
                                'Local persisted receipts are not independent tamper-proof authentication.']}
 
     def capture(self, object_id, output, *, max_elapsed_seconds=120):
+        return self._capture_with_storage(object_id,output,max_elapsed_seconds=max_elapsed_seconds)
+
+    def _capture_with_storage(self,object_id,output,*,max_elapsed_seconds=120,storage=None):
         self._fresh()
+        if storage is not None:
+            from .windows_observation import _admit_storage
+            _admit_storage(storage,self)
         if object_id not in self._spec.object_ids:
             _fail('reader_scope_mismatch')
         roots = (capture_module.GRAPH_ROOT,
@@ -202,10 +208,11 @@ class _Reader:
                 _fail('reader_response_invalid')
             return response.status, response.body, response.headers
         live = type(self) is LiveGraphReader
-        result = capture_module.capture(self._spec.tenant_id, object_id, output, transport=get,
+        capture_into = capture_module.capture if storage is None else storage.capture
+        result = capture_into(self._spec.tenant_id, object_id, output, transport=get,
             max_elapsed_seconds=remaining, max_pages=100, max_attempts_per_page=3, max_retry_delay_seconds=30,
             source_is_synthetic=not live)
-        batch = load_capture(output, tenant_id=self._spec.tenant_id)
+        batch = load_capture(output, tenant_id=self._spec.tenant_id) if storage is None else storage.load(output,self._spec.tenant_id)
         # Preserve the completed observation even if the token expires just
         # after its last response; its immutable evidence was bound before read.
         source = {'schema_version': VERSION, 'identity': asdict(self._spec),
@@ -215,7 +222,8 @@ class _Reader:
             'source_authenticity_verified': live, 'provider_qualified': False,
             'execution_authorized': False, 'cloud_authority': False, 'source_is_synthetic': not live,
             'read_scope': {'configuration_policy_listing': 'tenant-wide', 'settings_and_assignments': list(self._spec.object_ids)}}
-        return CapturedObservation(_CAPTURE, Path(output), batch, source, result['cancelled'])
+        return CapturedObservation(_CAPTURE, Path(output) if storage is None else storage.path(output),
+            batch, source, result['cancelled'],storage=storage)
 
     def close(self):
         self._token, self._closed = '', True
@@ -251,21 +259,28 @@ def _bind(spec, credential, transport, clock, duration, seal):
 
 
 class CapturedObservation:
-    __slots__ = ('_path', '_batch', '_source', '_digest', '_pid', 'cancelled')
+    __slots__ = ('_path', '_batch', '_source', '_digest', '_source_digest', '_storage', '_pid', 'cancelled')
 
-    def __init__(self, seal, path, batch, source, cancelled):
+    def __init__(self, seal, path, batch, source, cancelled, *, storage=None):
         if seal is not _CAPTURE:
             _fail('reader_capture_constructor_forbidden')
         self._path, self._batch, self._source = path, batch, source
-        self._digest, self._pid, self.cancelled = digest(batch), os.getpid(), cancelled
+        self._digest, self._source_digest = digest(batch), digest(source)
+        self._storage, self._pid, self.cancelled = storage, os.getpid(), cancelled
 
     def __reduce_ex__(self, protocol):
         raise TypeError('Captured observation capabilities cannot be serialized.')
 
     def verified(self):
-        if self._pid != os.getpid() or digest(self._batch) != self._digest:
+        if (self._pid != os.getpid() or digest(self._batch) != self._digest
+                or digest(self._source) != self._source_digest):
             _fail('reader_capture_changed')
-        current = load_capture(self._path, tenant_id=self._batch['tenant_id'])
+        if self._storage is None:
+            current = load_capture(self._path, tenant_id=self._batch['tenant_id'])
+        else:
+            from .windows_observation import _admit_storage
+            _admit_storage(self._storage)
+            current = self._storage.load(self._path,self._batch['tenant_id'])
         if digest(current) != self._digest:
             _fail('reader_capture_changed')
         return current, parse_json(canonical(self._source))
@@ -279,6 +294,17 @@ def publish_batch(store, captures, *, job_id, attempt_id, failures=()):
     """
     if type(store) is not WorkbenchStore or type(captures) not in (list, tuple):
         _fail('reader_publication_invalid')
+    # Native captures are bound to one sealed target. This public POSIX route
+    # must not relocate them into another same-tenant store.
+    if any(type(item) is CapturedObservation and item._storage is not None for item in captures):
+        _fail('reader_publication_invalid')
+    return _publish_batch(store,captures,job_id=job_id,attempt_id=attempt_id,failures=failures)
+
+
+def _publish_batch(store,captures,*,job_id,attempt_id,failures=(),_transaction=None,_validate_transaction=None):
+    # Only the original public gate or a recognized sealed native target may
+    # select this internal engine path. No CLI/JSON argument supplies callbacks.
+    if type(captures) not in (list,tuple):_fail('reader_publication_invalid')
     if not 1 <= len(captures) + len(failures) <= MAX_OBJECTS:
         _fail('reader_publication_invalid')
     if any(type(value) is not str or len(value) != 32 or any(c not in '0123456789abcdef' for c in value)
@@ -315,8 +341,9 @@ def publish_batch(store, captures, *, job_id, attempt_id, failures=()):
         _fail('reader_duplicate_publication_scope')
     result_ids = []
     store._require_v2()
-    with store._connection(True) as db, db:
+    with (store._connection if _transaction is None else _transaction)(True) as db, db:
         db.execute('BEGIN IMMEDIATE')
+        if _validate_transaction is not None:_validate_transaction(db)
         for batch, source in batches:
             oid, observed_at, status = batch['object_id'], batch['observed_at'], batch['status']
             domain = 'reader:' + job_id + ':' + attempt_id + ':' + oid

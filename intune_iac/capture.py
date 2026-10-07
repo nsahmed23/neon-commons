@@ -1,6 +1,8 @@
 """GET-only public Graph capture. Raw bytes are restricted; results contain safe codes."""
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import hashlib
 import math
 import os
@@ -91,8 +93,8 @@ def _retry_delay(headers, attempt):
 
 class _Reads:
     """One capture's bounded GET budget and immutable response/attempt records."""
-    def __init__(self, raw_fd, transport, native, max_pages, max_attempts, elapsed, delay, progress):
-        self.raw_fd, self.transport, self.native = raw_fd, transport, native
+    def __init__(self, write_raw, transport, native, max_pages, max_attempts, elapsed, delay, progress):
+        self.write_raw, self.transport, self.native = write_raw, transport, native
         self.max_pages, self.max_attempts, self.max_delay = max_pages, max_attempts, delay
         self.deadline = time.monotonic() + elapsed
         self.progress = progress
@@ -143,7 +145,7 @@ class _Reads:
                 stored = raw[:available]
                 complete = len(raw) <= available and len(raw) <= MAX_PAGE_BYTES
                 name = f'page-{len(self.pages):06d}.json'
-                _write(self.raw_fd, name, stored)
+                self.write_raw(name, stored)
                 self.total_bytes += len(stored)
                 record = {'kind':kind,'owner_id':owner,'request_url':url,'method':'GET',
                           'http_status':status,'captured_at':event['captured_at'],
@@ -213,6 +215,36 @@ def _write(directory_fd, name, data):
         stream.write(data); stream.flush(); os.fsync(stream.fileno())
 
 
+class _PosixFiles:
+    def __init__(self,output,descriptor,raw):
+        self.output,self.descriptor,self.raw=output,descriptor,raw
+    def write_raw(self,name,data):_write(self.raw,name,data)
+    def write(self,name,data):_write(self.descriptor,name,data)
+    def finish(self):os.fsync(self.raw);os.fsync(self.descriptor)
+
+
+@contextmanager
+def _posix_output(destination):
+    output,descriptor=_new_directory(destination);raw=None;primary=None
+    try:
+        os.mkdir('raw',0o700,dir_fd=descriptor)
+        raw=os.open('raw',os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=descriptor)
+        os.fchmod(raw,0o700)
+        yield _PosixFiles(output,descriptor,raw)
+    except BaseException as error:primary=error;raise
+    finally:
+        failures=[]
+        for handle in (raw,descriptor):
+            if handle is not None:
+                try:os.close(handle)
+                except BaseException as error:failures.append(error)
+        if failures:
+            if primary is not None:
+                primary.capture_cleanup_failures=[type(error).__name__ for error in failures]
+                if hasattr(primary,'add_note'):primary.add_note('Capture descriptor cleanup also failed; preserve the primary failure and retained output.')
+            else:raise failures[0]
+
+
 def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
             max_pages=100, transport=None, *, max_attempts_per_page=3,
             max_elapsed_seconds=MAX_ELAPSED_SECONDS,
@@ -232,6 +264,17 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
     if (os.name != 'posix' or not hasattr(os, 'O_DIRECTORY') or not hasattr(os, 'O_NOFOLLOW')
             or not {os.open, os.mkdir} <= os.supports_dir_fd):
         raise AppError('capture_platform_unavailable', 'Secure capture persistence is unavailable on this platform; use a supported POSIX host.')
+    return _capture(tenant_id,policy_id,output_path,token_env,max_pages,transport,
+        max_attempts_per_page=max_attempts_per_page,max_elapsed_seconds=max_elapsed_seconds,
+        max_retry_delay_seconds=max_retry_delay_seconds,progress=progress,
+        source_is_synthetic=source_is_synthetic,output_factory=_posix_output)
+
+
+def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
+            max_pages=100, transport=None, *, max_attempts_per_page=3,
+            max_elapsed_seconds=MAX_ELAPSED_SECONDS,
+            max_retry_delay_seconds=MAX_RETRY_DELAY_SECONDS, progress=None,
+            source_is_synthetic=False, output_factory):
     tenant_id = _identity(tenant_id); policy_id = _identity(policy_id)
     if type(max_pages) is not int or not 1 <= max_pages <= 10000:
         raise AppError('capture_limit_invalid', 'Capture page limit must be an integer from 1 through 10000.')
@@ -255,135 +298,129 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
     if not callable(transport):
         raise AppError('capture_transport_invalid', 'Capture transport must be callable.')
 
-    output, output_fd = _new_directory(output_path)
-    raw_fd = None
     try:
-        os.mkdir('raw', 0o700, dir_fd=output_fd)
-        raw_fd = os.open('raw', os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=output_fd)
-        os.fchmod(raw_fd, 0o700)
-        started = _stamp()
-        reads = _Reads(raw_fd,transport,native,max_pages,max_attempts_per_page,
-                       max_elapsed_seconds,max_retry_delay_seconds,progress)
-        collections = []
-        for kind, owner, root in [('policies', None, GRAPH_ROOT),
-                                  ('settings', policy_id, GRAPH_ROOT+'/'+policy_id+'/settings'),
-                                  ('assignments', policy_id, GRAPH_ROOT+'/'+policy_id+'/assignments')]:
-            pages = []; reason = None; coverage = 'partial'; url = root; seen = set()
-            record_ids = set(); selected_matches = 0; observed_rows = 0; declared_counts = []
-            while url is not None:
-                reason = reads.limit()
-                if reason: break
-                if not _trusted(url, root):
-                    reason = 'untrusted_continuation'; break
-                if url in seen:
-                    reason = 'duplicate_or_looped_page'; break
-                seen.add(url)
-                response, reason = reads.read(url, kind, owner)
-                if response is None: break
-                record, stored = response
-                status = record['http_status']; captured_at = record['captured_at']
-                complete_bytes = record['raw_capture_complete']
-                body = {}; parsed = False
-                if complete_bytes:
-                    try:
-                        decoded = parse_json(stored.decode('utf-8'))
-                        if isinstance(decoded, dict): body = decoded; parsed = True
-                    except (AppError, UnicodeError):
-                        pass
-                pages.append({'request_url':url,'method':'GET','http_status':status,
-                              'captured_at':captured_at,'body':body})
-                if reason: break
-                if not complete_bytes:
-                    reason = 'byte_limit'; break
-                if status != 200:
-                    reason = 'access_denied' if status in {401,403} else 'http_error'
-                    coverage = 'access_denied' if status in {401,403} else 'partial'; break
-                if not parsed:
-                    reason = 'malformed_json'; break
-                if 'error' in body:
-                    reason = 'error_envelope'; break
-                if not isinstance(body.get('value'), list) or any(not isinstance(v,dict) for v in body['value']):
-                    reason = 'invalid_collection_body'; break
-                if '@odata.count' in body:
-                    count = body['@odata.count']
-                    if type(count) is not int or count < 0:
-                        reason = 'invalid_collection_count'; break
-                    declared_counts.append(count)
-                observed_rows += len(body['value'])
-                duplicate = False; missing = False
-                for record in body['value']:
-                    record_id = record.get('id')
-                    if not isinstance(record_id, str) or not record_id:
-                        missing = True; continue
-                    # UUID spelling is not identity for policy/assignment records.
-                    # Setting IDs remain opaque strings; source bytes are untouched.
-                    comparison_id = record_id
-                    if (kind in {'policies', 'assignments'}
-                            and re.fullmatch(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', record_id)):
-                        comparison_id = str(UUID(record_id))
-                    if comparison_id in record_ids: duplicate = True
-                    record_ids.add(comparison_id)
-                    if kind == 'policies' and record_id.lower() == policy_id.lower(): selected_matches += 1
-                if missing:
-                    reason = 'missing_record_identity'; break
-                if duplicate:
-                    reason = 'duplicate_record_identity'; break
-                if '@odata.nextLink' in body:
-                    next_url = body['@odata.nextLink']
-                    if not isinstance(next_url, str) or not next_url:
-                        reason = 'invalid_continuation'; break
-                    url = next_url
-                else:
-                    url = None; coverage = 'complete'
-            if coverage == 'complete' and any(count != observed_rows for count in declared_counts):
-                coverage = 'partial'; reason = 'collection_count_mismatch'
-            if kind == 'policies' and coverage == 'complete' and selected_matches != 1:
-                coverage = 'partial'; reason = 'selected_policy_missing' if not selected_matches else 'duplicate_record_identity'
-            collections.append({'kind':kind,'owner_id':owner,'coverage':coverage,
-                                'reason':reason,'pages':pages})
-        export = {'schema_version':'1.0.0','synthetic':source_is_synthetic,'tenant_id':tenant_id,
-                  'cloud':'public','captured_at':started,
-                  'exporter':{'id':'intune-iac-settings-catalog-graph','version':'1.0.0'},
-                  'collections':collections,'references':[],'ownership':[]}
-        context = {'schema_version':'1.0.0','tenant_id':tenant_id,'selected_policy_id':policy_id,
-                   'cloud':'public','provider_source':'deploymenttheory/microsoft365',
-                   'engine':'tofu','component':'intune-reference','stack':'reference-dev',
-                   'authorization':'emit_only','source_is_synthetic':source_is_synthetic}
-        export_bytes = canonical(export)+b'\n'; context_bytes = canonical(context)+b'\n'
-        _write(output_fd, 'export.json', export_bytes)
-        _write(output_fd, 'context.json', context_bytes)
-        receipt = {'schema_version':'1.1.0','adapter':export['exporter'],
-                   'tenant_id':tenant_id,'selected_policy_id':policy_id,'cloud':'public','api_version':'beta',
-                   'tenant_assurance':'caller_asserted','started_at':started,'finished_at':_stamp(),
-                   'target_assurance':'proposed_reference_labels_only',
-                   'source_is_synthetic':source_is_synthetic,
-                   'source_provenance_assurance':'caller_declared',
-                   'context_assurance':'proposed_emit_only_labels_not_observed_toolchain',
-                   'toolchain_observed':False,
-                   'limits':{'max_pages':max_pages,'max_page_bytes':MAX_PAGE_BYTES,
-                             'max_total_bytes':MAX_TOTAL_BYTES,'request_timeout_seconds':REQUEST_TIMEOUT,
-                             'max_elapsed_seconds':max_elapsed_seconds,
-                             'max_attempts_per_page':max_attempts_per_page,
-                             'max_retry_delay_seconds':max_retry_delay_seconds},
-                   'pages':reads.pages,'attempt_count':len(reads.attempts),'attempts':reads.attempts,
-                   'cancelled':reads.cancelled,
-                   'export_byte_sha256':hashlib.sha256(export_bytes).hexdigest(),
-                   'context_byte_sha256':hashlib.sha256(context_bytes).hexdigest(),
-                   'source_authenticity_verified':False,'provider_qualified':False,
-                   'execution_authorized':False}
-        _write(output_fd, 'capture-receipt.json', canonical(receipt)+b'\n')
-        os.fsync(raw_fd); os.fsync(output_fd)
-        complete = all(c['coverage']=='complete' for c in collections)
-        return {'status':'captured' if complete else 'partial','output':str(output),
-                'export':str(output/'export.json'),'context':str(output/'context.json'),
-                'receipt':str(output/'capture-receipt.json'),'page_count':len(reads.pages),
-                'attempt_count':len(reads.attempts),'retry_count':sum(a['retry'] for a in reads.attempts),
-                'cancelled':reads.cancelled,
-                'coverage':[{'kind':c['kind'],'coverage':c['coverage'],'reason':c['reason']} for c in collections],
-                'tenant_assurance':'caller_asserted','source_authenticity_verified':False,
-                'provider_qualified':False,'execution_authorized':False}
+        with output_factory(output_path) as files:
+            output=files.output
+            started = _stamp()
+            reads = _Reads(files.write_raw,transport,native,max_pages,max_attempts_per_page,
+                           max_elapsed_seconds,max_retry_delay_seconds,progress)
+            collections = []
+            for kind, owner, root in [('policies', None, GRAPH_ROOT),
+                                      ('settings', policy_id, GRAPH_ROOT+'/'+policy_id+'/settings'),
+                                      ('assignments', policy_id, GRAPH_ROOT+'/'+policy_id+'/assignments')]:
+                pages = []; reason = None; coverage = 'partial'; url = root; seen = set()
+                record_ids = set(); selected_matches = 0; observed_rows = 0; declared_counts = []
+                while url is not None:
+                    reason = reads.limit()
+                    if reason: break
+                    if not _trusted(url, root):
+                        reason = 'untrusted_continuation'; break
+                    if url in seen:
+                        reason = 'duplicate_or_looped_page'; break
+                    seen.add(url)
+                    response, reason = reads.read(url, kind, owner)
+                    if response is None: break
+                    record, stored = response
+                    status = record['http_status']; captured_at = record['captured_at']
+                    complete_bytes = record['raw_capture_complete']
+                    body = {}; parsed = False
+                    if complete_bytes:
+                        try:
+                            decoded = parse_json(stored.decode('utf-8'))
+                            if isinstance(decoded, dict): body = decoded; parsed = True
+                        except (AppError, UnicodeError):
+                            pass
+                    pages.append({'request_url':url,'method':'GET','http_status':status,
+                                  'captured_at':captured_at,'body':body})
+                    if reason: break
+                    if not complete_bytes:
+                        reason = 'byte_limit'; break
+                    if status != 200:
+                        reason = 'access_denied' if status in {401,403} else 'http_error'
+                        coverage = 'access_denied' if status in {401,403} else 'partial'; break
+                    if not parsed:
+                        reason = 'malformed_json'; break
+                    if 'error' in body:
+                        reason = 'error_envelope'; break
+                    if not isinstance(body.get('value'), list) or any(not isinstance(v,dict) for v in body['value']):
+                        reason = 'invalid_collection_body'; break
+                    if '@odata.count' in body:
+                        count = body['@odata.count']
+                        if type(count) is not int or count < 0:
+                            reason = 'invalid_collection_count'; break
+                        declared_counts.append(count)
+                    observed_rows += len(body['value'])
+                    duplicate = False; missing = False
+                    for record in body['value']:
+                        record_id = record.get('id')
+                        if not isinstance(record_id, str) or not record_id:
+                            missing = True; continue
+                        # UUID spelling is not identity for policy/assignment records.
+                        # Setting IDs remain opaque strings; source bytes are untouched.
+                        comparison_id = record_id
+                        if (kind in {'policies', 'assignments'}
+                                and re.fullmatch(r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', record_id)):
+                            comparison_id = str(UUID(record_id))
+                        if comparison_id in record_ids: duplicate = True
+                        record_ids.add(comparison_id)
+                        if kind == 'policies' and record_id.lower() == policy_id.lower(): selected_matches += 1
+                    if missing:
+                        reason = 'missing_record_identity'; break
+                    if duplicate:
+                        reason = 'duplicate_record_identity'; break
+                    if '@odata.nextLink' in body:
+                        next_url = body['@odata.nextLink']
+                        if not isinstance(next_url, str) or not next_url:
+                            reason = 'invalid_continuation'; break
+                        url = next_url
+                    else:
+                        url = None; coverage = 'complete'
+                if coverage == 'complete' and any(count != observed_rows for count in declared_counts):
+                    coverage = 'partial'; reason = 'collection_count_mismatch'
+                if kind == 'policies' and coverage == 'complete' and selected_matches != 1:
+                    coverage = 'partial'; reason = 'selected_policy_missing' if not selected_matches else 'duplicate_record_identity'
+                collections.append({'kind':kind,'owner_id':owner,'coverage':coverage,
+                                    'reason':reason,'pages':pages})
+            export = {'schema_version':'1.0.0','synthetic':source_is_synthetic,'tenant_id':tenant_id,
+                      'cloud':'public','captured_at':started,
+                      'exporter':{'id':'intune-iac-settings-catalog-graph','version':'1.0.0'},
+                      'collections':collections,'references':[],'ownership':[]}
+            context = {'schema_version':'1.0.0','tenant_id':tenant_id,'selected_policy_id':policy_id,
+                       'cloud':'public','provider_source':'deploymenttheory/microsoft365',
+                       'engine':'tofu','component':'intune-reference','stack':'reference-dev',
+                       'authorization':'emit_only','source_is_synthetic':source_is_synthetic}
+            export_bytes = canonical(export)+b'\n'; context_bytes = canonical(context)+b'\n'
+            files.write('export.json', export_bytes)
+            files.write('context.json', context_bytes)
+            receipt = {'schema_version':'1.1.0','adapter':export['exporter'],
+                       'tenant_id':tenant_id,'selected_policy_id':policy_id,'cloud':'public','api_version':'beta',
+                       'tenant_assurance':'caller_asserted','started_at':started,'finished_at':_stamp(),
+                       'target_assurance':'proposed_reference_labels_only',
+                       'source_is_synthetic':source_is_synthetic,
+                       'source_provenance_assurance':'caller_declared',
+                       'context_assurance':'proposed_emit_only_labels_not_observed_toolchain',
+                       'toolchain_observed':False,
+                       'limits':{'max_pages':max_pages,'max_page_bytes':MAX_PAGE_BYTES,
+                                 'max_total_bytes':MAX_TOTAL_BYTES,'request_timeout_seconds':REQUEST_TIMEOUT,
+                                 'max_elapsed_seconds':max_elapsed_seconds,
+                                 'max_attempts_per_page':max_attempts_per_page,
+                                 'max_retry_delay_seconds':max_retry_delay_seconds},
+                       'pages':reads.pages,'attempt_count':len(reads.attempts),'attempts':reads.attempts,
+                       'cancelled':reads.cancelled,
+                       'export_byte_sha256':hashlib.sha256(export_bytes).hexdigest(),
+                       'context_byte_sha256':hashlib.sha256(context_bytes).hexdigest(),
+                       'source_authenticity_verified':False,'provider_qualified':False,
+                       'execution_authorized':False}
+            files.write('capture-receipt.json', canonical(receipt)+b'\n')
+            files.finish()
+            complete = all(c['coverage']=='complete' for c in collections)
+            return {'status':'captured' if complete else 'partial','output':str(output),
+                    'export':str(output/'export.json'),'context':str(output/'context.json'),
+                    'receipt':str(output/'capture-receipt.json'),'page_count':len(reads.pages),
+                    'attempt_count':len(reads.attempts),'retry_count':sum(a['retry'] for a in reads.attempts),
+                    'cancelled':reads.cancelled,
+                    'coverage':[{'kind':c['kind'],'coverage':c['coverage'],'reason':c['reason']} for c in collections],
+                    'tenant_assurance':'caller_asserted','source_authenticity_verified':False,
+                    'provider_qualified':False,'execution_authorized':False}
     except OSError:
         raise AppError('capture_write_failed', 'Capture persistence failed; inspect the restricted output before retrying.') from None
-    finally:
-        if raw_fd is not None: os.close(raw_fd)
-        os.close(output_fd)

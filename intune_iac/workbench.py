@@ -255,6 +255,9 @@ def _queue(store, *, limit=None, offset=0):
 
 def _dictionary(store, query='', *, object_id=None, limit=None, offset=0):
     """Observed setting identifiers and exact uses, without invented vendor facts."""
+    from .windows_workbench import WindowsWorkbenchStore
+    if type(store) is WindowsWorkbenchStore:
+        return store.dictionary(query, object_id=object_id, limit=limit, offset=offset)
     from .workbench_provenance import dictionary
     return dictionary(store, query, object_id=object_id, limit=limit, offset=offset)
 
@@ -459,7 +462,7 @@ def _render(value, output_fn):
             output_fn(part)
 
 
-def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None):
+def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, _store_capability=None):
     """Retain interrupt intent even when a native callback translates its exception.
 
     SQLite can turn KeyboardInterrupt from a progress callback into OperationalError.
@@ -488,7 +491,7 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, resu
         signal.signal(signal.SIGINT, receive_interrupt)
     try:
         return _run_terminal(root, service_root=service_root, input_fn=input_fn,
-                             output_fn=output_fn, result_fn=result_fn, interrupt_check=check_interrupt)
+                             output_fn=output_fn, result_fn=result_fn, interrupt_check=check_interrupt, _store_capability=_store_capability)
     except KeyboardInterrupt:
         value = {'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'}
         if result_fn is None:
@@ -501,7 +504,7 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, resu
             signal.signal(signal.SIGINT, previous)
 
 
-def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None):
+def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None, _store_capability=None):
     """Accessible line terminal; no shell invocation, animation, or hidden approval.
 
     The store, not the process, owns history. Closing this interface never stops
@@ -517,7 +520,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             _render(value, output_fn)
         else:
             result_fn(value)
-    store = _store(root)
+    if _store_capability is None:
+        store = _store(root)
+    else:
+        from .windows_workspace_binding import admit_store
+        store = admit_store(root, _store_capability)
     selected = None
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
     def show_page(specification=None):
@@ -551,6 +558,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             parts = shlex.split(line)
             if not parts: continue
             name, values = parts[0].lower(), parts[1:]
+            if _store_capability is not None:
+                from .windows_workspace_binding import require_command
+                require_command(name)
             if name in ('quit', 'exit') and not values:
                 return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
             if name == 'help' and not values: result = HELP

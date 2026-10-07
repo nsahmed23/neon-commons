@@ -206,10 +206,21 @@ class KeyReader:
 
 class Workspace:
     """UI state contains navigation only. Typed engine values remain authoritative."""
-    def __init__(self, root, *, theme='dark', no_color=False, reduced_motion=True, stdin=None, stdout=None):
+    def __init__(self, root, *, theme='dark', no_color=False, reduced_motion=True, stdin=None, stdout=None, _native_binding=None):
         from .workbench_store import WorkbenchStore, _private
-        self.store = WorkbenchStore(root)
-        self.context_path = self.store.root / 'workspace-context.json'
+        self.native_binding = _native_binding
+        if _native_binding is None:
+            self.store = WorkbenchStore(root)
+            self.context_path = self.store.root / 'workspace-context.json'
+            self.submission_key = 'enter'
+        else:
+            from .windows_workspace_binding import NativeWorkspaceBinding
+            if type(_native_binding) is not NativeWorkspaceBinding:
+                raise AppError('workspace_native_binding_required', 'An exact native presentation capability is required.')
+            _native_binding.check(root)
+            self.store = _native_binding.store
+            self.context_path = None
+            self.submission_key = 'submit'
         self.stdin = sys.stdin if stdin is None else stdin
         self.stdout = sys.stdout if stdout is None else stdout
         self.theme = theme
@@ -236,13 +247,17 @@ class Workspace:
         self.execution_result = None
         self.active_service = None
         self.pending = deque()
-        self.size = terminal_size(self.stdout)
+        self.size = self._terminal_size()
         self.key_reader = None
         self._detail_cache = None
         self.context_valid = False
-        if self.context_path.exists() or self.context_path.is_symlink():
+        value = None
+        if self.native_binding is not None:
+            value = self.native_binding.context.load()
+        elif self.context_path.exists() or self.context_path.is_symlink():
             _private(self.context_path)
             value = load_json(self.context_path)
+        if value is not None:
             self._validate_context(value)
             self.selected = value['selected']
             self.view_command = value['view_command']
@@ -258,6 +273,9 @@ class Workspace:
             if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views')):
                 self.pending.append(self.view_command)
             self.context_valid = True
+
+    def _terminal_size(self):
+        return self.native_binding.console.size() if self.native_binding is not None else terminal_size(self.stdout)
 
     def _validate_context(self, value):
         from .workbench_store import _identity
@@ -294,14 +312,18 @@ class Workspace:
 
     def save_context(self):
         from .workbench_store import _private
-        _private(self.store.root, True)
-        if self.context_path.exists() or self.context_path.is_symlink(): _private(self.context_path)
+        if self.native_binding is None:
+            _private(self.store.root, True)
+            if self.context_path.exists() or self.context_path.is_symlink(): _private(self.context_path)
         value = {'schema_version': CONTEXT_VERSION, 'tenant_id': self.store.tenant_id,
                  'selected': self.selected, 'view_command': self.view_command,
                  'page_command': self.page_command, 'tab': self.tab,
                  'service_navigation': self.active_service}
         self._validate_context(value)
-        write_json(self.context_path, value)
+        if self.native_binding is None:
+            write_json(self.context_path, value)
+        else:
+            self.native_binding.context.save(value)
 
     def receive(self, value):
         """Callback after the SAME engine has validated/executed an input."""
@@ -559,7 +581,7 @@ class Workspace:
         return lines + detail
 
     def draw(self):
-        self.size = terminal_size(self.stdout)
+        self.size = self._terminal_size()
         width, height = self.size
         inner = width - 2
         header = 'INTUNE WORKBENCH  /  ' + TABS[self.tab]
@@ -641,12 +663,13 @@ class Workspace:
     def input(self, _prompt):
         if self.pending:
             return self._send(self.pending.popleft())
-        if self.key_reader is None: self.key_reader = KeyReader(self.stdin)
+        if self.key_reader is None:
+            self.key_reader = self.native_binding.console.key_reader if self.native_binding is not None else KeyReader(self.stdin)
         self.draw()
         while True:
             key = self.key_reader.read()
             if key is None:
-                if terminal_size(self.stdout) != self.size: self.draw()
+                if self._terminal_size() != self.size: self.draw()
                 continue
             if key in ('interrupt', 'eof'):
                 if key == 'interrupt': raise KeyboardInterrupt
@@ -669,7 +692,9 @@ class Workspace:
                 if key == 'escape':
                     self.mode = None; self.buffer = ''; self.cursor = 0; self.input_overflow = False
                     self.notice = 'EDIT CANCELLED: no command submitted; active external runs are unchanged.'
-                elif key == 'enter':
+                elif key == 'enter' and self.submission_key != 'enter':
+                    self.notice = 'Ctrl+Enter submits this edit; ordinary Enter does not submit pasted input.'
+                elif key == self.submission_key:
                     if self.input_overflow:
                         self.mode = None; self.buffer = ''; self.cursor = 0; self.input_overflow = False
                         self.notice = 'INPUT REJECTED: oversized edit discarded; no command submitted.'

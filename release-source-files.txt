@@ -3252,3 +3252,22 @@ scripts/build-evidence-layer.py
 plugin_tests/test_build_evidence_layer_r4.py
 scripts/verify-source-linkage.py
 plugin_tests/test_source_linkage_r4.py
+
+# R4 inactive native capture/publication continuation; recorded-local proof only.
+intune_iac/windows_capture_writer.py
+intune_iac/windows_observation.py
+plugin_tests/test_windows_observation_r4.py
+scripts/qualify-windows-observation.py
+docs/WINDOWS-OBSERVATION-R4.md
+
+# R4 inactive native console/navigation binding; existing engine, no profile activation.
+intune_iac/windows_terminal.py
+intune_iac/windows_workspace_context.py
+intune_iac/windows_workspace_binding.py
+plugin_tests/test_windows_terminal_r4.py
+plugin_tests/test_windows_workspace_context_r4.py
+plugin_tests/test_windows_workspace_binding_r4.py
+scripts/qualify-native-console.py
+docs/NATIVE-WINDOWS-CONSOLE-R4.md
+docs/EXECUTION-SEQUENCE-R4.md
+scripts/prepare-ci-validator.py

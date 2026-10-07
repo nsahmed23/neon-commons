@@ -23,7 +23,7 @@ PINS = {
     'python': 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97',
     'evidence': 'actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f',
 }
-ORDER = ['workspace', 'checkout', 'python', 'platform', 'dependencies', 'verify', 'smoke', 'release', 'extract', 'extracted', 'evidence']
+ORDER = ['workspace', 'checkout', 'python', 'platform', 'dependencies', 'validator', 'verify', 'smoke', 'release', 'extract', 'extracted', 'evidence']
 
 
 def contract_issues(document):
@@ -59,6 +59,11 @@ def contract_issues(document):
     for required in ('--require-hashes', '--only-binary=:all:', '--no-index', 'verify-dependencies.py', 'requirements-runtime-linux-x86_64-cp312.lock'):
         if required not in dep: issues.append('dependency_gate')
     if dep.count('--require-hashes') != 2: issues.append('dependency_hashes')
+    validator = indexed['validator'].get('run', '')
+    for required in ('curl --disable', '--proto \'=https\'', '--max-time 60', '--max-filesize 161290',
+                     'scripts/prepare-ci-validator.py', 'INTUNE_TEST_VALIDATOR_LIBRARY=',
+                     'libsodium23_1.0.18-1ubuntu0.24.04.1_amd64.deb'):
+        if required not in validator: issues.append('validator_prerequisite')
     verify = indexed['verify'].get('run', '')
     if 'scripts/verify-plugin.py --include-core' not in verify or 'raise SystemExit' not in verify: issues.append('full_verifier')
     for script in ('qualify-workflow.py', 'qualify-repository.py', 'qualify-terminal.py'):

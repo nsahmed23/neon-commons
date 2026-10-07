@@ -322,6 +322,18 @@
           "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
         }
       ]
+    },
+    {
+      "id": "R4-NATIVE-CAPTURE-CROSS-STORE",
+      "status": "FAIL",
+      "description": "Earlier13 native target controls did not exercise public POSIX publication accepting a native-bound capture into another same-tenant store. Reproduced before, repaired exact-type storage rejection, independent14 afterPASS. Original failure and superseded assessment retained.",
+      "evidence": "evidence/epoch-20261007-r4/windows-observation/ATTEMPTS-02.json"
+    },
+    {
+      "id": "R4-DURABLE-IMPORT-GAP",
+      "status": "NOT_STARTED",
+      "description": "Native Atmos import/preparation evidence is real local harness evidence, not new protected service durable adoption capability. Separate approval/state mutation/recovery route required; staged architecture work active. Ordinary provider prepare remains legacy restricted route.",
+      "owner": "root and protected worker implementation"
     }
   ],
   "rows": [
@@ -1382,7 +1394,9 @@
         "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
         "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
         "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
-        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json"
       ],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
@@ -1411,7 +1425,17 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+          "sha256": "f6c09bb87d38926c3f8a07d0436b6634b5190e8875080818742f16de56238e1b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
+          "sha256": "478db0b5eeba5c2d56535ca3b6e499c308e8b05cc2151bad2631246fe2402d26"
+        }
+      ]
     },
     {
       "id": "B03",
@@ -2872,7 +2896,8 @@
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -2930,9 +2955,18 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
           "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+          "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
         }
       ],
-      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged.",
+      "native_windows_increment9": {
+        "status": "IMPLEMENTED",
+        "scope": "Inactive native target-bound capture and atomic publication;155 changed-scope repository methods and independent14 controls overlap. Source-label mutation and alternate POSIX cross-store publication FAIL-before evidence retained. No real native host or authenticated service evidence.",
+        "source_receipt_sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+      }
     },
     {
       "id": "C02",
@@ -3023,7 +3057,8 @@
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3081,9 +3116,18 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
           "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+          "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
         }
       ],
-      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged.",
+      "native_windows_increment9": {
+        "status": "IMPLEMENTED",
+        "scope": "Inactive native target-bound capture and atomic publication;155 changed-scope repository methods and independent14 controls overlap. Source-label mutation and alternate POSIX cross-store publication FAIL-before evidence retained. No real native host or authenticated service evidence.",
+        "source_receipt_sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+      }
     },
     {
       "id": "C04",
@@ -3101,7 +3145,8 @@
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3159,6 +3204,10 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
           "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+          "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
         }
       ],
       "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
@@ -3177,7 +3226,8 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3229,6 +3279,10 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+          "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
         }
       ]
     },
@@ -3246,7 +3300,8 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3297,8 +3352,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+          "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
         }
-      ]
+      ],
+      "native_windows_increment9": {
+        "status": "IMPLEMENTED",
+        "scope": "Inactive native target-bound capture and atomic publication;155 changed-scope repository methods and independent14 controls overlap. Source-label mutation and alternate POSIX cross-store publication FAIL-before evidence retained. No real native host or authenticated service evidence.",
+        "source_receipt_sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+      }
     },
     {
       "id": "C07",
@@ -3703,7 +3767,10 @@
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -3764,9 +3831,27 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+          "sha256": "47c29383aa5998f128e3c349e334523b1f93b4f0d971545d30c50d3435465167"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+          "sha256": "f984946388c38e0fda60925fc3a8dfde99ed4fd9da6c3bf9adff029b5caa5cff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+          "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
       ],
-      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
+      "native_console_increment9": {
+        "status": "IMPLEMENTED",
+        "scope": "Inactive exact native store/console/context composition uses existing Workspace and parser. Actual45-test integrated source run includes16 existing LinuxPTY/noTTY cases; independent7 recordedWin32 application checks overlap. Native host, IME/mintty and unsupported journals/mutation routes remain unqualified.",
+        "runtime_activation": false,
+        "source_receipt": "windows-terminal-staging/INTEGRATED.json"
+      }
     },
     {
       "id": "D02",
@@ -3925,7 +4010,10 @@
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -3990,6 +4078,18 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+          "sha256": "47c29383aa5998f128e3c349e334523b1f93b4f0d971545d30c50d3435465167"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+          "sha256": "f984946388c38e0fda60925fc3a8dfde99ed4fd9da6c3bf9adff029b5caa5cff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+          "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
@@ -4439,7 +4539,10 @@
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -4500,9 +4603,27 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+          "sha256": "47c29383aa5998f128e3c349e334523b1f93b4f0d971545d30c50d3435465167"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+          "sha256": "f984946388c38e0fda60925fc3a8dfde99ed4fd9da6c3bf9adff029b5caa5cff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+          "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
       ],
-      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
+      "native_console_increment9": {
+        "status": "IMPLEMENTED",
+        "scope": "Inactive exact native store/console/context composition uses existing Workspace and parser. Actual45-test integrated source run includes16 existing LinuxPTY/noTTY cases; independent7 recordedWin32 application checks overlap. Native host, IME/mintty and unsupported journals/mutation routes remain unqualified.",
+        "runtime_activation": false,
+        "source_receipt": "windows-terminal-staging/INTEGRATED.json"
+      }
     },
     {
       "id": "D10",
@@ -4518,7 +4639,10 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
@@ -4559,6 +4683,18 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+          "sha256": "47c29383aa5998f128e3c349e334523b1f93b4f0d971545d30c50d3435465167"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+          "sha256": "f984946388c38e0fda60925fc3a8dfde99ed4fd9da6c3bf9adff029b5caa5cff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+          "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
       ]
     },
@@ -4578,7 +4714,10 @@
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -4646,9 +4785,27 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+          "sha256": "47c29383aa5998f128e3c349e334523b1f93b4f0d971545d30c50d3435465167"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+          "sha256": "f984946388c38e0fda60925fc3a8dfde99ed4fd9da6c3bf9adff029b5caa5cff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+          "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
       ],
-      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
+      "native_console_increment9": {
+        "status": "IMPLEMENTED",
+        "scope": "Inactive exact native store/console/context composition uses existing Workspace and parser. Actual45-test integrated source run includes16 existing LinuxPTY/noTTY cases; independent7 recordedWin32 application checks overlap. Native host, IME/mintty and unsupported journals/mutation routes remain unqualified.",
+        "runtime_activation": false,
+        "source_receipt": "windows-terminal-staging/INTEGRATED.json"
+      }
     },
     {
       "id": "D12",
@@ -4723,7 +4880,10 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
         "evidence/epoch-20261007-r4/host-capabilities/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+        "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Host capability discovery now rejects unsupported storage/worker routes before unsafe imports or store creation, while help remains usable. Linux import-denial probes are not native Windows evidence. Native Windows has missing identity/ACL/reparse/durability implementations, beyond unavailable qualification; qualifier records required cases unsupported/blocked rather than passing negative gates as functionality.",
@@ -4763,6 +4923,18 @@
         {
           "path": "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
           "sha256": "0f871777c362a1fdcea5a5e60bae474ba0b5a76181d5b0c7ed1351de0f8436a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+          "sha256": "31e5a9713a609f1967c9e2d4de775b6d14ad4246d8be7c36e8926cbd64000614"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+          "sha256": "b2542e2af06eef040abc522121ce5cf28f54396bf6301ac3f85c99c9821bdf37"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+          "sha256": "85d8d6a1a749d2a64b48fe25f3fcc49aa24daec3912326bf2fa970d328eb4ffc"
         }
       ]
     },
@@ -4780,7 +4952,14 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
         "evidence/epoch-20261007-r4/host-capabilities/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+        "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+        "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Host capability discovery now rejects unsupported storage/worker routes before unsafe imports or store creation, while help remains usable. Linux import-denial probes are not native Windows evidence. Native Windows has missing identity/ACL/reparse/durability implementations, beyond unavailable qualification; qualifier records required cases unsupported/blocked rather than passing negative gates as functionality.",
@@ -4820,6 +4999,34 @@
         {
           "path": "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
           "sha256": "0f871777c362a1fdcea5a5e60bae474ba0b5a76181d5b0c7ed1351de0f8436a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+          "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+          "sha256": "31e5a9713a609f1967c9e2d4de775b6d14ad4246d8be7c36e8926cbd64000614"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+          "sha256": "b2542e2af06eef040abc522121ce5cf28f54396bf6301ac3f85c99c9821bdf37"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+          "sha256": "85d8d6a1a749d2a64b48fe25f3fcc49aa24daec3912326bf2fa970d328eb4ffc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
+          "sha256": "47c29383aa5998f128e3c349e334523b1f93b4f0d971545d30c50d3435465167"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
+          "sha256": "f984946388c38e0fda60925fc3a8dfde99ed4fd9da6c3bf9adff029b5caa5cff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+          "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
       ]
     },
@@ -4934,7 +5141,7 @@
       "evidence_path": [],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
-      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Tenant owner: disposable object/group/filter scope, exact approved operations and recovery.",
+      "next_action": "Implement separately approved durable import/adoption preparation and qualify exact native route before external disposable policy lifecycle.",
       "blocker_owner": "Tenant owner: disposable object/group/filter scope, exact approved operations and recovery.",
       "depends_on": [
         "A14",
@@ -4958,7 +5165,8 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "local_implementation_gap": "Protected service durable identity-preserving import/adoption is missing; native import/no-change currently uses retained preparation harness, while legacy provider prepare remains network-denied. Code gap is independently actionable and not excused by missing tenant access."
     },
     {
       "id": "E06",
@@ -5055,7 +5263,12 @@
         "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
         "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
         "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
-        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+        "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json"
       ],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
@@ -5083,7 +5296,29 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+          "sha256": "31e5a9713a609f1967c9e2d4de775b6d14ad4246d8be7c36e8926cbd64000614"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+          "sha256": "b2542e2af06eef040abc522121ce5cf28f54396bf6301ac3f85c99c9821bdf37"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+          "sha256": "85d8d6a1a749d2a64b48fe25f3fcc49aa24daec3912326bf2fa970d328eb4ffc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+          "sha256": "f6c09bb87d38926c3f8a07d0436b6634b5190e8875080818742f16de56238e1b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
+          "sha256": "478db0b5eeba5c2d56535ca3b6e499c308e8b05cc2151bad2631246fe2402d26"
+        }
+      ]
     },
     {
       "id": "E09",
@@ -5180,7 +5415,9 @@
         "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
         "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
         "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
-        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
@@ -5209,7 +5446,17 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+          "sha256": "f6c09bb87d38926c3f8a07d0436b6634b5190e8875080818742f16de56238e1b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
+          "sha256": "478db0b5eeba5c2d56535ca3b6e499c308e8b05cc2151bad2631246fe2402d26"
+        }
+      ]
     },
     {
       "id": "F02",
@@ -5330,7 +5577,9 @@
         "evidence/epoch-20261007-r4/independent/REVIEW-CHECKPOINT.json",
         "evidence/epoch-20261007-r4/packaging/DEVELOPMENT-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
-        "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -5370,6 +5619,14 @@
         {
           "path": "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
           "sha256": "44c17309100062e9cbe586d93f2cf64fc0af80a7b2b4531d92cabc1c16d5ab3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ci-validator-01/RESULT.json",
+          "sha256": "f6c09bb87d38926c3f8a07d0436b6634b5190e8875080818742f16de56238e1b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
+          "sha256": "478db0b5eeba5c2d56535ca3b6e499c308e8b05cc2151bad2631246fe2402d26"
         }
       ]
     },
@@ -5481,7 +5738,10 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/REVIEW-CHECKPOINT.json",
         "evidence/epoch-20261007-r4/packaging/DEVELOPMENT-RECEIPT-02.json",
-        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json"
+        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
+        "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+        "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -5521,6 +5781,18 @@
         {
           "path": "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
           "sha256": "44c17309100062e9cbe586d93f2cf64fc0af80a7b2b4531d92cabc1c16d5ab3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
+          "sha256": "31e5a9713a609f1967c9e2d4de775b6d14ad4246d8be7c36e8926cbd64000614"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
+          "sha256": "b2542e2af06eef040abc522121ce5cf28f54396bf6301ac3f85c99c9821bdf37"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+          "sha256": "85d8d6a1a749d2a64b48fe25f3fcc49aa24daec3912326bf2fa970d328eb4ffc"
         }
       ]
     },
@@ -11063,5 +11335,5 @@
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 8
+  "checkpoint_increment": 9
 }
