@@ -329,12 +329,15 @@ def record_local_deployment(store,operation,intent_id):
         'platform_qualified':False,'cloud_authority':False,'execution_authorized':False})
 
 
-def _deployment(store,object_id,scope):
+def _deployment(store,object_id,scope,*,_native_reader=None):
     from . import workbench_service_views as service_views
     candidates=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and
         (scope is None or r['data'].get('scope')==scope or r['data'].get('evidence_class')==service_views.KIND)]
     for row in sorted(candidates,key=lambda r:r['sequence'],reverse=True):
         data=row['data']
+        if _native_reader is not None:
+            _native_reader.reject('deployment',row=row)
+            continue
         if data.get('evidence_class')==service_views.KIND:
             try:return service_views.deployment(store,row)
             except (AppError,OSError,KeyError):continue
@@ -481,10 +484,13 @@ def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_f
 def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=None,limit=100,offset=0,
           query='',ownership_filter=None,coverage_filter=None,health_filter=None):
     now=time.time() if now is None else _time(now)
+    from .windows_views import _reader_for
+    native_reader=_reader_for(store)
     if scope is not None:scope=_scope(scope)
     if object_id is None:
         if operation is not None or intent_id is not None:_fail('workbench_views_object_required')
-        return _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_filter,health_filter)
+        result=_estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_filter,health_filter)
+        return native_reader.decorate(result) if native_reader is not None else result
     if query or any(value is not None for value in (ownership_filter,coverage_filter,health_filter)):_fail('workbench_views_filters_estate_only')
     _identity(object_id)
     choices=_intents(store,object_id,scope)
@@ -505,7 +511,7 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     if raw_observation is not None:observed['raw_capture_observation']=raw_observation
     coverage_ok=(observed.get('coverage')=='complete' and observed.get('freshness')=='fresh'
         and observed.get('last_attempt',{}).get('status')=='complete' and _fresh(observed.get('observed_at'),3600,now))
-    deployment=_deployment(store,object_id,scope)
+    deployment=_deployment(store,object_id,scope,_native_reader=native_reader)
     comparisons={name:_unknown('baseline_missing_or_incomplete') for name in ('collector_snapshot_delta','provider_refresh_vs_state','repository_vs_deployment','observed_vs_deployment','repository_vs_observed')}
     if observed.get('body') is not None:
         history=list(reversed(store.recent_history(object_id,limit=2)))
@@ -543,10 +549,15 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
         links=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and r['data'].get('evidence_class')==service_views.KIND]
         if links:
             selected_link=max(links,key=lambda r:r['sequence'])
-            try:proposed=service_views.proposed(store,selected_link)
-            except (AppError,OSError,KeyError) as exc:
-                proposed=_unknown('linked_service_unavailable_or_changed',error_code=getattr(exc,'code',type(exc).__name__),link_artifact_id=selected_link['artifact_id'])
-    if operation is not None:
+            if native_reader is not None:
+                proposed=native_reader.reject('proposed_service',row=selected_link)
+            else:
+                try:proposed=service_views.proposed(store,selected_link)
+                except (AppError,OSError,KeyError) as exc:
+                    proposed=_unknown('linked_service_unavailable_or_changed',error_code=getattr(exc,'code',type(exc).__name__),link_artifact_id=selected_link['artifact_id'])
+    if operation is not None and native_reader is not None:
+        proposed=native_reader.reject('proposed_operation')
+    elif operation is not None:
         from . import maintenance
         root,plan,journal,desired,request=maintenance._load(operation)
         if plan['object_id']!=object_id or plan['tenant_id']!=store.tenant_id:_fail('workbench_proposed_identity')
@@ -575,6 +586,7 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
         'deployment':deployment or _unknown('verified_deployment_missing'),'field_semantics':semantics.contract(),
         'cloud_authority':False,'execution_authorized':False,'limitations':['Cooperative same-user evidence is not a protected audit anchor.',
         'Declared ownership and imported refresh/deployment claims are not authenticated external authority.']}
+    if native_reader is not None:result=native_reader.decorate(result)
     if len(canonical(result))>16*1024*1024:_fail('workbench_views_bound')
     return result
 

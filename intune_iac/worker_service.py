@@ -524,6 +524,22 @@ class ServiceJob:
         permit = ServicePermit(_SEAL, self, payload, runtime)
         server = None; thread = None; result = None; primary = None; transport = None
         stopped = threading.Event(); watchdog_fault = []; watchdog = None
+        shutdown_failures = []; recording_failures = []; interruption = None; shutdown_interrupted = False
+        recording_uncertain = False
+        def failed(error, phase, failures):
+            nonlocal primary, interruption, shutdown_interrupted
+            failures.append({'phase': phase, 'error': getattr(error, 'code', type(error).__name__)})
+            if primary is None: primary = error
+            if isinstance(error, (KeyboardInterrupt, SystemExit)):
+                if interruption is None: interruption = error
+                shutdown_interrupted = True
+        def finish_thread(value, timeout, phase):
+            if value is None: return
+            try:
+                value.join(timeout=timeout)
+                if value.is_alive(): _fail('service_shutdown_thread_active')
+            except BaseException as error:
+                failed(error, phase, shutdown_failures)
         try:
             permit.check_active()
             guard = (broker.live_guard(self.manifest['execution_binding_sha256'], binding=runtime.binding, recheck=permit.check_active)
@@ -547,16 +563,22 @@ class ServiceJob:
             result = host.launch(spec, self.root / 'host-run')
         except BaseException as error:
             primary = error
+            if isinstance(error, (KeyboardInterrupt, SystemExit)): interruption = error
             receipt_path = self.root / 'host-run/receipt.json'
-            if receipt_path.exists():
-                try: result = _bounded_private_json(receipt_path)
-                except AppError: pass
+            try:
+                if receipt_path.exists(): result = _bounded_private_json(receipt_path)
+            except BaseException as receipt_error:
+                failed(receipt_error, 'host_receipt_read', recording_failures)
         finally:
             stopped.set()
-            if watchdog is not None: watchdog.join(timeout=35)
+            # Revoke broker authority before cleanup; a failed close or join
+            # must not leave a permit active or skip recording the first cause.
             permit.active = False
-            if server is not None: server.close()
-            if thread is not None: thread.join(timeout=12)
+            finish_thread(watchdog, 35, 'watchdog_join')
+            if server is not None:
+                try: server.close()
+                except BaseException as error: failed(error, 'broker_close', shutdown_failures)
+            finish_thread(thread, 12, 'broker_join')
             native_recovery = None
             if transport is not None and self.manifest['broker_policy'].get('native_lock') is not None:
                 try:
@@ -565,26 +587,56 @@ class ServiceJob:
                     native_recovery = {'artifact': str(self.root / 'native-lease-recovery.json'),
                         'sha256': digest(private_record), 'automatic_release_authorized': False,
                         'state': 'independent_current_blob_context_required'}
-                except Exception as error:
+                except BaseException as error:
+                    failed(error, 'native_recovery_archive', recording_failures)
                     native_recovery = {'state': 'recovery_archive_failed', 'error': getattr(error, 'code', type(error).__name__),
                         'automatic_release_authorized': False}
             outcome = {'host': result, 'primary_error': getattr(primary, 'code', type(primary).__name__) if primary else None,
                 'independent_service_readback': 'required', 'production_authorized': False,
                 'watchdog_error': watchdog_fault[0] if watchdog_fault else None, 'native_backend_recovery': native_recovery,
-                'operation_outcome': 'host_completed_service_unverified' if result and result['status'] == 'complete' else 'outcome_unknown'}
-            with self.policy.connection() as db:
-                db.execute('BEGIN IMMEDIATE')
-                db.execute('UPDATE jobs SET status=?,outcome=?,controller_pid=NULL,controller_start=NULL WHERE id=?',
-                    (outcome['operation_outcome'], canonical(outcome).decode(), self.identifier))
-                self.policy.event(db, self.identifier, 'worker_stopped', outcome); db.execute('COMMIT')
+                'shutdown_failures': shutdown_failures, 'recording_failures': recording_failures,
+                'authority_recording': 'committed',
+                'operation_outcome': 'host_completed_service_unverified' if result and result.get('status') == 'complete'
+                    and primary is None and not shutdown_failures else 'outcome_unknown'}
+            try:
+                with self.policy.connection() as db:
+                    db.execute('BEGIN IMMEDIATE')
+                    db.execute('UPDATE jobs SET status=?,outcome=?,controller_pid=NULL,controller_start=NULL WHERE id=?',
+                        (outcome['operation_outcome'], canonical(outcome).decode(), self.identifier))
+                    self.policy.event(db, self.identifier, 'worker_stopped', outcome); db.execute('COMMIT')
+            except BaseException as error:
+                # COMMIT may already have succeeded. Preserve the authority as
+                # observed and never re-dispatch to resolve missing evidence.
+                recording_uncertain = True
+                failed(error, 'authority_outcome', recording_failures)
+                outcome['authority_recording'] = 'failed_or_uncertain'
+                outcome['primary_error'] = getattr(primary, 'code', type(primary).__name__)
             try:
                 protected._exclusive(self.root / 'service-receipt.json', canonical(outcome))
-            except OSError as error:
-                with self.policy.connection() as db:
-                    self.policy.event(db, self.identifier, 'receipt_archive_failed',
-                        {'error': type(error).__name__, 'known_outcome_preserved': True, 'retry_authorized': False})
-        if isinstance(primary, (KeyboardInterrupt, SystemExit)) and not watchdog_fault: raise primary
-        return self.status()
+            except BaseException as error:
+                failed(error, 'service_receipt_archive', recording_failures)
+                try:
+                    with self.policy.connection() as db:
+                        self.policy.event(db, self.identifier, 'receipt_archive_failed',
+                            {'error': getattr(error, 'code', type(error).__name__),
+                             'primary_error': getattr(primary, 'code', type(primary).__name__),
+                             'authority_recording': outcome['authority_recording'],
+                             'known_outcome_preserved': not recording_uncertain, 'retry_authorized': False})
+                except BaseException as event_error:
+                    recording_uncertain = True
+                    failed(event_error, 'receipt_failure_event', recording_failures)
+        if primary is not None:
+            primary.service_failure_record = outcome
+        if interruption is not None and (not watchdog_fault or shutdown_interrupted):
+            if interruption is primary: raise interruption
+            raise interruption from primary
+        if recording_uncertain: raise primary
+        try: return self.status()
+        except BaseException as error:
+            if primary is None: raise
+            failed(error, 'final_status_read', recording_failures)
+            if isinstance(error, (KeyboardInterrupt, SystemExit)): raise error from primary
+            raise primary from error
     def reconcile(self, readback):
         """Release ownership only after a sealed fresh independent state read.
 

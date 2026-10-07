@@ -596,3 +596,61 @@ New transfer helpers are still under review and excluded from this checkpoint.
 Scheduler review found a shadowed duplicate renderer and erroneous success after
 cleanup failure; both failing candidates remain preserved, with repairs staged.
 No native scheduler activation, real Windows qualification or production claim.
+
+Increment9 committed `f58bbadf9672cc0d52b5997366ac0611ead76634`. The exact
+detached source passed162 changed-scope tests in13modules, with a clean tracked
+tree. All3248 selected source files independently matched raw Git commit/tree/
+blob objects in `source-linkage/CHECKPOINT9-FULL-LINKAGE-01.json`. These results
+do not qualify the later changes or final packages.
+
+Increment10 integrates the separately reviewed native observation job, existing
+Generic Credential reader and disabled Task Scheduler material. No credential
+is provisioned or task registered. Scope is local SQLite and recorded Win32;
+actual Windows, Task Scheduler and authenticated Graph remain blocked. The
+57-test owner scope overlaps independent compound-failure, retention and
+measurement-cancellation controls. Every prior failed candidate remains in
+`windows-observer-scheduler-staging/` and `independent/windows-scheduler-*`.
+
+Exact ordered eight-layer download and offline/new-branch Git transfer tools
+are now admitted. Independent tiny reconstruction and actual owned-local-Git
+controls prove the expected-absent race repair. They do not establish public
+R4 availability or fresh complete-corpus reconstruction. Source inventory25
+contains3258files/runtime241 before the later views and shutdown admissions.
+
+Ordinary service shutdown review reproduced five compound counterexamples:
+four errors and one failure because cleanup or outcome recording could hide
+the first host failure/interruption. The repair revokes the permit before
+cleanup, preserves primary/secondary causes and cancellation, retains writer
+ownership, and records pre/postcommit uncertainty without replay. The five
+original oracles now pass;36 changed/adjacent service and native Docker/TLS/
+readback tests pass. Independent review is still pending in this working note.
+Before source and all logs remain in `worker-service/shutdown-*`.
+
+Protected state-only adoption now has an approved bounded architecture and
+three staged implementation lanes. Empty selected state does not establish
+global ownership; complete declared-scope evidence and separately signed sole
+writer intent are required. Native import lock metadata `OperationTypeInvalid`
+is admissible only in the new exact adoption contract. Ordinary saved-plan
+apply must remain unchanged. Current native preparation evidence remains a
+harness scope until the durable product entrypoint and recovery pass.
+
+Resume from the latest `integration/COMMIT-*.json`; run `git status --short`
+in the dedicated continuation branch, read this checkpoint and the ledger,
+then complete independent review/integration before signing new native runs.
+Do not mutate runtime source during a signed whole-inventory qualification.
+Final packages, public readback, platform gates and accountable production
+approval remain outstanding; no background completion is implied.
+
+Increment10 independent service review now passes12 controls on exact
+`worker_service.py`636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f.
+The same source passed36 changed/adjacent tests. A lost duplicate receipt file
+retains its known authoritative DB outcome with an explicit archive-failure
+event; an uncertain DB acknowledgement is separately recorded and cannot replay.
+The initial counterexamples and independent evaluator setup errors remain.
+
+The native four-view adapter is integrated through the same text/workspace
+engine:48 selected repository tests and14 independent input/state controls
+pass with explicit overlapping scope. Raw targeting/unsupported IDs, distinct
+drift baselines and unchanged SQLite bytes are independently checked. Native
+source revalidation is still a separate staged implementation; unsupported
+worker journals are never opened or promoted into verified baselines.

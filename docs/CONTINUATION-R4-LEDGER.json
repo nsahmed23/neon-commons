@@ -1,6 +1,6 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T21:54:34.009263+00:00",
+  "recorded_at": "2026-10-07T22:35:09.642630+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
@@ -35,7 +35,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Implemented local scopes are recorded row by row. Laboratory finish line remains incomplete pending integrated service, final exact-package journeys, security disposition and release gates."
+    "explanation": "Local implementations and exact scopes are recorded without adding overlapping counts. Laboratory finish line remains incomplete pending protected adoption, remaining native source/evidence integration and final exact-package gates. Platform qualification and organizational risk/production approval are separate and absent."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -334,6 +334,48 @@
       "status": "NOT_STARTED",
       "description": "Native Atmos import/preparation evidence is real local harness evidence, not new protected service durable adoption capability. Separate approval/state mutation/recovery route required; staged architecture work active. Ordinary provider prepare remains legacy restricted route.",
       "owner": "root and protected worker implementation"
+    },
+    {
+      "id": "R4-SERVICE-SHUTDOWN-PRIMARY",
+      "status": "FAIL",
+      "description": "Ordinary ServiceJob finally could mask original host failure/interrupt with broker-close or outcome DB recording error. Exact prior source and five failing controls retained. Repair preserves original cause, separate shutdown/cancellation, ownership and failed-or-uncertain DB outcome without replay; independent review pending.",
+      "evidence": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        }
+      ]
+    },
+    {
+      "id": "R4-SCHEDULER-COMPOUND-REPAIRS",
+      "status": "PASS",
+      "description": "Independent same controls confirm staged scheduler repair for primary cleanup/publication failure, capture retention overshoot and measurement interruption. Earlier failures retained; native Windows and scheduler remain unqualified.",
+      "evidence": [
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
+        }
+      ]
     }
   ],
   "rows": [
@@ -384,7 +426,9 @@
       "test_procedure_id": "R4-A01",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -428,8 +472,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
-      ]
+      ],
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A02",
@@ -449,7 +506,9 @@
         "evidence/epoch-20261007-r4/service-ui/SOURCE-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
@@ -517,10 +576,23 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A03",
@@ -540,7 +612,9 @@
         "evidence/epoch-20261007-r4/service-ui/SOURCE-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
@@ -608,10 +682,23 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A04",
@@ -626,7 +713,9 @@
       "test_procedure_id": "R4-A04",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -670,8 +759,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
-      ]
+      ],
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A05",
@@ -687,7 +789,9 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Bounded newest-first history and exact snapshot lookup repair overflow after 1,000 observations. Actual CLI and Linux PTY navigate 1,001 retained records and import a workflow receipt for the oldest observation. Legacy chronological history cap unchanged. Final focused31 PASS overlaps prior suites; earlier 79/80 composed result and timestamp fixture error retained.",
@@ -729,8 +833,21 @@
         {
           "path": "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "05fae9784548d4a476d110021483e27aae2e0605d1732b853d42644692d6e9c4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
-      ]
+      ],
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A06",
@@ -745,7 +862,9 @@
       "test_procedure_id": "R4-A06",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -789,8 +908,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
-      ]
+      ],
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A07",
@@ -810,7 +942,9 @@
         "evidence/epoch-20261007-r4/service-ui/SOURCE-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
@@ -879,10 +1013,23 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A08",
@@ -958,7 +1105,9 @@
       "test_procedure_id": "R4-A09",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -1002,8 +1151,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
-      ]
+      ],
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "A10",
@@ -1256,7 +1418,9 @@
       "test_procedure_id": "R4-A14",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -1312,8 +1476,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
-      ]
+      ],
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "B01",
@@ -1464,7 +1641,11 @@
         "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
-        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -1557,11 +1738,34 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
           "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+          "sha256": "35adef1c58e208276b1d4930d14eae600b2cbb08108616c3d03a99896d773920"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
+          "sha256": "1b86ee2675b3650672ab383e204be53253e6690f12b85af39e35bd5b47e05eb0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "shutdown_increment10": {
+        "status": "IMPLEMENTED",
+        "source_file_sha256": {
+          "intune_iac/worker_service.py": "636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f"
+        },
+        "scope": "Actual signed service/TLS/SQLite fault boundaries, five unchanged before oracles (1FAIL4ERROR) nowPASS;36 changed/adjacent service/nativeDockerTLS/readback methodsPASS. Primary cause, cancellation, ownership and pre/postcommit recording uncertainty preserved. Independent12 controls PASS against same exact bytes; all counts are separate overlapping scopes."
+      }
     },
     {
       "id": "B04",
@@ -1732,7 +1936,11 @@
         "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
-        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -1826,6 +2034,22 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
           "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+          "sha256": "35adef1c58e208276b1d4930d14eae600b2cbb08108616c3d03a99896d773920"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
+          "sha256": "1b86ee2675b3650672ab383e204be53253e6690f12b85af39e35bd5b47e05eb0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1854,6 +2078,13 @@
         ],
         "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
         "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      },
+      "shutdown_increment10": {
+        "status": "IMPLEMENTED",
+        "source_file_sha256": {
+          "intune_iac/worker_service.py": "636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f"
+        },
+        "scope": "Actual signed service/TLS/SQLite fault boundaries, five unchanged before oracles (1FAIL4ERROR) nowPASS;36 changed/adjacent service/nativeDockerTLS/readback methodsPASS. Primary cause, cancellation, ownership and pre/postcommit recording uncertainty preserved. Independent12 controls PASS against same exact bytes; all counts are separate overlapping scopes."
       }
     },
     {
@@ -2161,7 +2392,11 @@
         "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
-        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Both original-computed and exact description-recovery committed-state schemas now have local signed recovery evidence. Original uncertain execution stays unknown after converged service/state readback. No blind apply replay. Constructed already-unlocked transfer evidence is separate from native fault creation. Real Azure/Graph/CI/Windows/device and hostile-host qualification are absent.",
@@ -2259,6 +2494,22 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
           "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+          "sha256": "35adef1c58e208276b1d4930d14eae600b2cbb08108616c3d03a99896d773920"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
+          "sha256": "1b86ee2675b3650672ab383e204be53253e6690f12b85af39e35bd5b47e05eb0"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -2293,6 +2544,13 @@
         ],
         "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
         "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      },
+      "shutdown_increment10": {
+        "status": "IMPLEMENTED",
+        "source_file_sha256": {
+          "intune_iac/worker_service.py": "636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f"
+        },
+        "scope": "Actual signed service/TLS/SQLite fault boundaries, five unchanged before oracles (1FAIL4ERROR) nowPASS;36 changed/adjacent service/nativeDockerTLS/readback methodsPASS. Primary cause, cancellation, ownership and pre/postcommit recording uncertainty preserved. Independent12 controls PASS against same exact bytes; all counts are separate overlapping scopes."
       }
     },
     {
@@ -2764,7 +3022,11 @@
         "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
-        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -2825,6 +3087,22 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
           "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+          "sha256": "35adef1c58e208276b1d4930d14eae600b2cbb08108616c3d03a99896d773920"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
+          "sha256": "1b86ee2675b3650672ab383e204be53253e6690f12b85af39e35bd5b47e05eb0"
         }
       ],
       "native_fault_increment": {
@@ -2833,7 +3111,14 @@
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
       },
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "shutdown_increment10": {
+        "status": "IMPLEMENTED",
+        "source_file_sha256": {
+          "intune_iac/worker_service.py": "636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f"
+        },
+        "scope": "Actual signed service/TLS/SQLite fault boundaries, five unchanged before oracles (1FAIL4ERROR) nowPASS;36 changed/adjacent service/nativeDockerTLS/readback methodsPASS. Primary cause, cancellation, ownership and pre/postcommit recording uncertainty preserved. Independent12 controls PASS against same exact bytes; all counts are separate overlapping scopes."
+      }
     },
     {
       "id": "B14",
@@ -2897,7 +3182,12 @@
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -2959,6 +3249,26 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
           "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
       ],
       "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged.",
@@ -2966,6 +3276,14 @@
         "status": "IMPLEMENTED",
         "scope": "Inactive native target-bound capture and atomic publication;155 changed-scope repository methods and independent14 controls overlap. Source-label mutation and alternate POSIX cross-store publication FAIL-before evidence retained. No real native host or authenticated service evidence.",
         "source_receipt_sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+      },
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
       }
     },
     {
@@ -2983,10 +3301,15 @@
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
-        "evidence/epoch-20261007-r4/observation-native-cron/CAPABILITY-REASSESSMENT-03.json"
+        "evidence/epoch-20261007-r4/observation-native-cron/CAPABILITY-REASSESSMENT-03.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual pinned BusyBox cron attempted: host UID1000 ignored private crontab; isolated namespace UID0 parsed jobs but initgroups returned EPERM. Zero observer processes launched. All daemons stopped/reaped; no added capability or host service activation. Existing durable observer/scheduling adapter and CLI tests have narrower scopes.",
+      "limitation": "Actual pinned BusyBox cron attempted: host UID1000 ignored private crontab; isolated namespace UID0 parsed jobs but initgroups returned EPERM. Zero observer processes launched. All daemons stopped/reaped; no added capability or host service activation. Existing durable observer/scheduling adapter and CLI tests have narrower scopes. Native Windows independent-job implementation now integrated; inactive InteractiveToken profile requires named logon session, real Task Scheduler activation/closed-terminal proof remains blocked. Runtime binding covers interpreter/application, not whole DLL/stdlib/OS.",
       "next_action": "On approved disposable Linux host with working user-service manager or authorized scheduler process, run preserved exact observation-native-cron procedure; inspect independent SQLite collection timestamps/PIDs/last-good history and restart. Live credential/schedule activation requires applicable authority.",
       "blocker_owner": "Operations/host environment owner",
       "depends_on": [
@@ -3037,9 +3360,37 @@
         {
           "path": "evidence/epoch-20261007-r4/observation-native-cron/CAPABILITY-REASSESSMENT-03.json",
           "sha256": "4c28fd8b8609e5360ee37f9420325e4c2258c706205d55beba1fa703ff405057"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
       ],
-      "implementation_status": "IMPLEMENTED"
+      "implementation_status": "IMPLEMENTED",
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
+      }
     },
     {
       "id": "C03",
@@ -3058,7 +3409,12 @@
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3120,6 +3476,26 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
           "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
       ],
       "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged.",
@@ -3127,6 +3503,14 @@
         "status": "IMPLEMENTED",
         "scope": "Inactive native target-bound capture and atomic publication;155 changed-scope repository methods and independent14 controls overlap. Source-label mutation and alternate POSIX cross-store publication FAIL-before evidence retained. No real native host or authenticated service evidence.",
         "source_receipt_sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+      },
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
       }
     },
     {
@@ -3146,7 +3530,12 @@
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3208,9 +3597,37 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
           "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
       ],
-      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged.",
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
+      }
     },
     {
       "id": "C05",
@@ -3227,7 +3644,12 @@
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3283,8 +3705,36 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
           "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
-      ]
+      ],
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
+      }
     },
     {
       "id": "C06",
@@ -3301,7 +3751,12 @@
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3356,12 +3811,40 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-observation/SOURCE-RECEIPT-01.json",
           "sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
       ],
       "native_windows_increment9": {
         "status": "IMPLEMENTED",
         "scope": "Inactive native target-bound capture and atomic publication;155 changed-scope repository methods and independent14 controls overlap. Source-label mutation and alternate POSIX cross-store publication FAIL-before evidence retained. No real native host or authenticated service evidence.",
         "source_receipt_sha256": "670ec7e2ad33fae11936799da3ef175c6504b7f52a5fb0a919ead7e4c8058f65"
+      },
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
       }
     },
     {
@@ -3564,7 +4047,12 @@
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
         "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3626,9 +4114,37 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
           "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
         }
       ],
-      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged.",
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
+      }
     },
     {
       "id": "C11",
@@ -3770,7 +4286,9 @@
         "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
-        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -3843,6 +4361,14 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
           "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -3851,6 +4377,11 @@
         "scope": "Inactive exact native store/console/context composition uses existing Workspace and parser. Actual45-test integrated source run includes16 existing LinuxPTY/noTTY cases; independent7 recordedWin32 application checks overlap. Native host, IME/mintty and unsupported journals/mutation routes remain unqualified.",
         "runtime_activation": false,
         "source_receipt": "windows-terminal-staging/INTEGRATED.json"
+      },
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
       }
     },
     {
@@ -3927,7 +4458,9 @@
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -3990,9 +4523,22 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
-      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "D04",
@@ -4013,7 +4559,9 @@
         "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
-        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -4090,9 +4638,22 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
           "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
-      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "D05",
@@ -4200,7 +4761,9 @@
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -4281,10 +4844,23 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      }
     },
     {
       "id": "D07",
@@ -4717,7 +5293,9 @@
         "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/INTEGRATED.json",
         "evidence/epoch-20261007-r4/windows-terminal-staging/integrated-01.stderr",
-        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -4797,6 +5375,14 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
           "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -4805,6 +5391,11 @@
         "scope": "Inactive exact native store/console/context composition uses existing Workspace and parser. Actual45-test integrated source run includes16 existing LinuxPTY/noTTY cases; independent7 recordedWin32 application checks overlap. Native host, IME/mintty and unsupported journals/mutation routes remain unqualified.",
         "runtime_activation": false,
         "source_receipt": "windows-terminal-staging/INTEGRATED.json"
+      },
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
       }
     },
     {
@@ -5044,11 +5635,18 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/windows-dictionary/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
       ],
       "environment": "Required approved external profile; not established by this record",
-      "limitation": "Native Windows client storage implementation and real Windows/Git Bash/mintty qualification are both incomplete. Linux negative routing is not a substitute.",
-      "next_action": "Complete reviewed native private storage/reader path, then run exact packaged native qualifier on authorized Windows host; host owner supplies environment.",
+      "limitation": "Inactive native storage, reader, capture/publication, console/context and scheduling components have separate local/recorded Win32 evidence. Ordinary Windows profile remains unsupported until actual host/Git Bash/mintty/terminal/toolchain qualification. Native current source and portable protected execution evidence integration remain explicit code/design work.",
+      "next_action": "Finish native source-reader and execution evidence paths; qualify exact package components on authorized Windows host with NTFS, existing identity and actual terminal/shell routes.",
       "blocker_owner": "Windows host owner: actual Windows/Git Bash/mintty and chosen terminal.",
       "depends_on": [
         "E02",
@@ -5080,6 +5678,34 @@
         {
           "path": "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
           "sha256": "0f871777c362a1fdcea5a5e60bae474ba0b5a76181d5b0c7ed1351de0f8436a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/DELIVERY-RECEIPT-01.json",
+          "sha256": "eb3480e629e4ac36f21918fd9956067a931a297b3bea27f1fc62e0660036e908"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-observer-scheduler-staging/INTEGRATION-01.json",
+          "sha256": "22103608de4b5a2386835c7bf34911d8b4c00408626bee8a1750fa437a2898ca"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-after-02/RESULT.json",
+          "sha256": "5cf321ee62787e363d3ac83556daa65c7fe88ea1b8b63d04eed3d8ed62ea80ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-retention-after-03/RESULT.json",
+          "sha256": "ae9f5fd6dba98a4b33608c08fe1e5eec4d243425c886b1ea65b4c5ce8a959569"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-scheduler-measurement-after-01/RESULT.json",
+          "sha256": "045efe670889f2083c95eb895f2243387fe03b2dda52965cb1cd33380332a06d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
+          "sha256": "e38a951e1bf315e4f9313f4ce523bf0e8b9521fef85a99446b154414c56f4fa8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+          "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
         }
       ],
       "windows_inactive_components": {
@@ -5087,6 +5713,19 @@
         "storage": "windows-storage/SOURCE-RECEIPT-01.json",
         "status": "IMPLEMENTED",
         "qualification": "BLOCKED: no native Windows execution; inactive components do not establish functional store support"
+      },
+      "native_scheduler_increment10": {
+        "status": "IMPLEMENTED",
+        "observed_source_revision": "f58bbadf9672cc0d52b5997366ac0611ead76634",
+        "source_scope": "Exact six-file integration in receipt; checkpoint commit follows",
+        "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
+        "native_host_qualified": false,
+        "task_registered_or_activated": false
+      },
+      "native_views_increment10": {
+        "status": "IMPLEMENTED",
+        "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
+        "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
       }
     },
     {
@@ -5166,7 +5805,7 @@
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
       },
-      "local_implementation_gap": "Protected service durable identity-preserving import/adoption is missing; native import/no-change currently uses retained preparation harness, while legacy provider prepare remains network-denied. Code gap is independently actionable and not excused by missing tenant access."
+      "local_implementation_gap": "Separately approved durable adoption is staged across state/broker, native provider and service authority lanes. Approved bounded design uses existing nonempty empty-resource state, one exact object/address, complete declared ownership scope and GET-only Graph; state-only approval is separate from saved-plan apply. Actual integrated native adoption/recovery qualification remains outstanding."
     },
     {
       "id": "E06",
@@ -5509,7 +6148,10 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/REVIEW-CHECKPOINT.json",
         "evidence/epoch-20261007-r4/packaging/DEVELOPMENT-RECEIPT-02.json",
-        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json"
+        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
+        "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+        "evidence/epoch-20261007-r4/independent/release-transfer-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/git-expected-absence-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -5551,6 +6193,18 @@
         {
           "path": "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
           "sha256": "44c17309100062e9cbe586d93f2cf64fc0af80a7b2b4531d92cabc1c16d5ab3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+          "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/release-transfer-02/RESULT.json",
+          "sha256": "974a532c71ed1c7a5f2963862be1192e1558eedc448008e0921617de908cbd49"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/git-expected-absence-after-01/RESULT.json",
+          "sha256": "8c750f89ccbe0ba591165de67daadeaff5c9445bb70f9b5dd88542096a73c0f7"
         }
       ],
       "evidence_producer_increment8": {
@@ -5559,6 +6213,14 @@
         "receipt": {
           "path": "evidence/epoch-20261007-r4/packaging/evidence-producer-05/RECEIPT.json",
           "sha256": "d0bf373e06ae0acef993c8907ec7b8033aea3890689b77774d6e29f8f73c4ff9"
+        }
+      },
+      "transfer_increment10": {
+        "status": "PASS",
+        "scope": "Exact-byte ordered eight-layer transfer and new-branch-only Git publication controls on independent tiny fixtures/owned local Git. No public R4 transfer, final archive, or simultaneous full-corpus restoration claim.",
+        "source_receipt": {
+          "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+          "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
         }
       }
     },
@@ -5644,7 +6306,11 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/REVIEW-CHECKPOINT.json",
         "evidence/epoch-20261007-r4/packaging/DEVELOPMENT-RECEIPT-02.json",
-        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json"
+        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -5684,8 +6350,31 @@
         {
           "path": "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
           "sha256": "44c17309100062e9cbe586d93f2cf64fc0af80a7b2b4531d92cabc1c16d5ab3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+          "sha256": "35adef1c58e208276b1d4930d14eae600b2cbb08108616c3d03a99896d773920"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
+          "sha256": "1b86ee2675b3650672ab383e204be53253e6690f12b85af39e35bd5b47e05eb0"
         }
-      ]
+      ],
+      "shutdown_increment10": {
+        "status": "IMPLEMENTED",
+        "source_file_sha256": {
+          "intune_iac/worker_service.py": "636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f"
+        },
+        "scope": "Actual signed service/TLS/SQLite fault boundaries, five unchanged before oracles (1FAIL4ERROR) nowPASS;36 changed/adjacent service/nativeDockerTLS/readback methodsPASS. Primary cause, cancellation, ownership and pre/postcommit recording uncertainty preserved. Independent12 controls PASS against same exact bytes; all counts are separate overlapping scopes."
+      }
     },
     {
       "id": "F06",
@@ -5741,7 +6430,10 @@
         "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
         "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
         "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
-        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json"
+        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+        "evidence/epoch-20261007-r4/independent/release-transfer-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/git-expected-absence-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -5793,24 +6485,46 @@
         {
           "path": "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
           "sha256": "85d8d6a1a749d2a64b48fe25f3fcc49aa24daec3912326bf2fa970d328eb4ffc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+          "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/release-transfer-02/RESULT.json",
+          "sha256": "974a532c71ed1c7a5f2963862be1192e1558eedc448008e0921617de908cbd49"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/git-expected-absence-after-01/RESULT.json",
+          "sha256": "8c750f89ccbe0ba591165de67daadeaff5c9445bb70f9b5dd88542096a73c0f7"
         }
-      ]
+      ],
+      "transfer_increment10": {
+        "status": "PASS",
+        "scope": "Exact-byte ordered eight-layer transfer and new-branch-only Git publication controls on independent tiny fixtures/owned local Git. No public R4 transfer, final archive, or simultaneous full-corpus restoration claim.",
+        "source_receipt": {
+          "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+          "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
+        }
+      }
     },
     {
       "id": "F08",
       "description": "Public delivery excludes raw tenant captures/credentials/state/saved plans/restricted evidence, records omissions and does not claim complete private corpus.",
       "milestone": "F",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED",
       "evidence_class": "new-local-evidence-required",
       "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-F08",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/packaging/public-review-01/PUBLIC-SUITABILITY-PREPARATION-04.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
-      "next_action": "Implement and independently exercise Public delivery excludes raw tenant captures/credentials/state/saved plans/restricted evidence, records omissions and does not claim complete private corpus.",
+      "limitation": "Frozen prior corpus public-suitability preparation reviewed exact binaries, nested archives/Git objects, SQLite, fixture keys/certificates and historical provider examples; no real organization/tenant credential identified in that scope. Final additions and exact final archive require delta review. Historical provenance anomalies, dangling blobs and unlinked bytecode remain open. This is scoped publication preparation, not AppSec approval or public readback.",
+      "next_action": "Review final frozen evidence delta and archive identities; record explicit omissions and publish only suitable final artifacts using exact new-branch transfer and verified anonymous readback.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -5828,10 +6542,16 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/public-review-01/PUBLIC-SUITABILITY-PREPARATION-04.json",
+          "sha256": "e8fb765c7b8c2d998dd7ae6185e089d4d46ad7f186c2471199629b7ca2fb6678"
+        }
+      ]
     },
     {
       "id": "F09",
@@ -5847,7 +6567,10 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/REVIEW-CHECKPOINT.json",
         "evidence/epoch-20261007-r4/packaging/DEVELOPMENT-RECEIPT-02.json",
-        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json"
+        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
+        "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+        "evidence/epoch-20261007-r4/independent/release-transfer-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/git-expected-absence-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -5887,8 +6610,28 @@
         {
           "path": "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
           "sha256": "44c17309100062e9cbe586d93f2cf64fc0af80a7b2b4531d92cabc1c16d5ab3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+          "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/release-transfer-02/RESULT.json",
+          "sha256": "974a532c71ed1c7a5f2963862be1192e1558eedc448008e0921617de908cbd49"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/git-expected-absence-after-01/RESULT.json",
+          "sha256": "8c750f89ccbe0ba591165de67daadeaff5c9445bb70f9b5dd88542096a73c0f7"
         }
-      ]
+      ],
+      "transfer_increment10": {
+        "status": "PASS",
+        "scope": "Exact-byte ordered eight-layer transfer and new-branch-only Git publication controls on independent tiny fixtures/owned local Git. No public R4 transfer, final archive, or simultaneous full-corpus restoration claim.",
+        "source_receipt": {
+          "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
+          "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
+        }
+      }
     },
     {
       "id": "F10",
@@ -9447,7 +10190,11 @@
         "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
-        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -9614,6 +10361,22 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
           "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-before-01/RECEIPT.json",
+          "sha256": "da9c646be896236f4772ae4a1c0793af06b1b3b3806abb6224615a407bf7d279"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
+          "sha256": "35adef1c58e208276b1d4930d14eae600b2cbb08108616c3d03a99896d773920"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
+          "sha256": "1dccb7dea318ff0fd47b0f525e47c24ceaffbe326f7c4a81958159a8da46a448"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
+          "sha256": "1b86ee2675b3650672ab383e204be53253e6690f12b85af39e35bd5b47e05eb0"
         }
       ],
       "native_fault_increment": {
@@ -9646,6 +10409,13 @@
         ],
         "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
         "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      },
+      "shutdown_increment10": {
+        "status": "IMPLEMENTED",
+        "source_file_sha256": {
+          "intune_iac/worker_service.py": "636d6cd88004a164dce03bd7e3b3b680e2ff0b52e4bfbec3f62ad9cb6154887f"
+        },
+        "scope": "Actual signed service/TLS/SQLite fault boundaries, five unchanged before oracles (1FAIL4ERROR) nowPASS;36 changed/adjacent service/nativeDockerTLS/readback methodsPASS. Primary cause, cancellation, ownership and pre/postcommit recording uncertainty preserved. Independent12 controls PASS against same exact bytes; all counts are separate overlapping scopes."
       }
     },
     {
@@ -11335,5 +12105,5 @@
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 9
+  "checkpoint_increment": 10
 }

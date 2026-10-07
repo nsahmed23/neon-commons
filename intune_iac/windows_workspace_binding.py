@@ -13,7 +13,7 @@ from .io import AppError
 
 READ_ONLY_COMMANDS = frozenset({'quit', 'exit', 'help', 'overview', 'next', 'previous', 'back', 'cancel',
     'search', 'search-page', 'select', 'inspect', 'settings', 'relationships', 'health', 'health-page',
-    'dictionary', 'dictionary-page', 'collections', 'history', 'history-recent'})
+    'dictionary', 'dictionary-page', 'collections', 'history', 'history-recent', 'views', 'views-page'})
 
 
 def _fail(code):

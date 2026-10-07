@@ -3271,3 +3271,23 @@ scripts/qualify-native-console.py
 docs/NATIVE-WINDOWS-CONSOLE-R4.md
 docs/EXECUTION-SEQUENCE-R4.md
 scripts/prepare-ci-validator.py
+
+# R4 exact ordered transfer preparation; public publication remains a separate gate.
+scripts/download-complete-layers.py
+scripts/stage-release-git.py
+plugin_tests/test_release_transfer_r4.py
+docs/DELIVERY-TRANSFER-R4.md
+
+# R4 inactive native observation jobs and existing-credential reader; no task activation.
+intune_iac/windows_observation_jobs.py
+intune_iac/windows_observer_credentials.py
+scripts/intune-windows-observer.py
+scripts/qualify-windows-observer-job.py
+plugin_tests/test_windows_observer_jobs_r4.py
+docs/WINDOWS-OBSERVER-JOB-R4.md
+
+# R4 inactive native four views and compound protected-service shutdown controls.
+intune_iac/windows_views.py
+plugin_tests/test_windows_views_r4.py
+docs/WINDOWS-FOUR-VIEWS-R4.md
+plugin_tests/test_worker_service_shutdown_r4.py

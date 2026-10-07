@@ -56,10 +56,12 @@ class NativeSeamTests(unittest.TestCase):
         with patch.object(workbench_provenance,'_read',side_effect=AssertionError('POSIX package read reached')):
             result=workbench._dictionary(native,'fixture',limit=10,offset=0)
         self.assertEqual(result,{'route':'native package reader'});self.assertEqual(len(calls),1)
-    def test_unimplemented_native_local_journal_views_denied(self):
-        for command in ('views','views-page'):
-            with self.assertRaises(AppError) as caught:binding.require_command(command)
-            self.assertEqual(caught.exception.code,'native_workspace_command_unimplemented')
+    def test_native_store_views_admitted_with_journal_denials_in_evidence_reader(self):
+        for command in ('views','views-page'):binding.require_command(command)
+        # Actual store/journal/raw and command-route controls are independently
+        # asserted in test_windows_views_r4; no execution route is admitted here.
+        for command in ('execute','service-link','service-attach','approve'):
+            with self.assertRaises(AppError):binding.require_command(command)
     def test_same_engine_explicit_route_guard_precedes_action(self):
         lines=iter(['collect','service-cancel anything anything','overview','quit']);seen=[]
         # Modeled admission only: native namespace/ACL is not asserted. The

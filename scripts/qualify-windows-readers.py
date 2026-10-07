@@ -28,7 +28,7 @@ REQUIRED_FILES=('intune_iac/capture_adapter.py','intune_iac/windows_capture.py',
     'intune_iac/windows_workbench.py','intune_iac/workbench_store.py','intune_iac/workbench_provenance.py',
     'intune_iac/windows_directory.py','intune_iac/windows_storage.py','intune_iac/windows_sqlite.py',
     'intune_iac/workbench_schema.py','intune_iac/observation_contract.py','intune_iac/io.py',
-    'intune_iac/production.py','scripts/intune-windows-inspect.py','scripts/qualify-windows-readers.py',
+    'intune_iac/production.py','intune_iac/workbench_views.py','intune_iac/windows_views.py','intune_iac/workbench_semantics.py','scripts/intune-windows-inspect.py','scripts/qualify-windows-readers.py',
     'corrections/contracts/capability-map.json','corrections/contracts/vendor-documentation.json')
 
 
@@ -129,7 +129,7 @@ def main(argv=None):
             check('independent-one-attempt',db.execute('SELECT count(*) FROM collection_runs').fetchone()[0]==1)
             check('independent-one-snapshot',db.execute('SELECT count(*) FROM snapshots').fetchone()[0]==1)
         for operation,tail in (('inspect',[batch['object_id']]),('raw',[batch['object_id']]),
-                ('history',[batch['object_id']]),('dictionary',['--object-id',batch['object_id']]),
+                ('history',[batch['object_id']]),('views',[batch['object_id']]),('dictionary',['--object-id',batch['object_id']]),
                 ('lineage',[batch['object_id']]),('reference-compare',[batch['object_id'],imported['artifact_id']])):
             argv=[sys.executable,'-B',str(ROOT/'scripts/intune-windows-inspect.py'),'--qualification-only',
                 '--store',str(root),'--tenant',args.tenant,operation,*tail]
@@ -137,6 +137,11 @@ def main(argv=None):
             value=parse_json(child.stdout) if child.returncode==0 else {}
             check('text-'+operation,child.returncode==0 and value.get('qualification_only') is True and value.get('platform_qualified') is False)
             if operation=='raw':check('text-raw-exact-local-byte-integrity',value.get('result',{}).get('capture_integrity',{}).get('status')=='verified_local_bytes')
+            if operation=='views':
+                detail=value.get('result',{})
+                check('text-four-views-exact-identity',detail.get('tenant_id')==args.tenant and detail.get('object_id')==batch['object_id'])
+                check('text-four-views-no-invented-deployment',detail.get('deployment',{}).get('status')=='unknown' and detail.get('native_evidence_access',{}).get('execution_journals')=='unsupported')
+                check('text-four-views-guarded-literal-observation',detail.get('observed',{}).get('raw_capture_observation',{}).get('capture_integrity',{}).get('status')=='verified_local_bytes')
             if operation=='dictionary':
                 check('text-dictionary-explicit-provenance',value.get('result',{}).get('fact_provenance_contract',{}).get('schema_version')=='workbench-dictionary-provenance/1')
             if operation=='reference-compare':check('text-comparison-no-execution-authority',value.get('result',{}).get('execution_authorized') is False)

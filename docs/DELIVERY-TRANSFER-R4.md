@@ -21,6 +21,9 @@ download tool additionally requires immutable HTTPS URLs at the declared
 origin. Query strings, credentials, mutable branches, unsafe paths, duplicate
 URLs and redirects are refused. No Authorization header or cookie is supplied.
 Existing execution-network proxy configuration can carry the HTTPS request.
+The receipt's authentication statement applies only to origin request headers.
+Existing proxy configuration is inherited; proxy credentials are neither
+inspected nor asserted absent.
 
 From independently reviewed published tool and manifest pins:
 
@@ -87,8 +90,11 @@ After review of the exact frozen archive public disposition, explicit `--push`
 additionally requires `--expected-remote-main FULL_UNRELATED_MAIN_COMMIT`,
 `--gh-executable PINNED_GH`, and `--gh-sha256 GH_SHA256`. It uses only existing
 credential transport, refuses an existing proposed R4 branch or changed Neon
-main, and never force-pushes. It verifies the returned new branch and unchanged
-main. A failure after requesting push records remote outcome as uncertain and
+main, and never overwrites an existing remote ref. Publication uses an exact
+empty expected-absence lease for that ref and requires Git's exact new-branch
+porcelain result. An up-to-date response cannot establish that this invocation
+created the branch, even when Git returns success. It then verifies the returned
+new branch and unchanged main. A failure after requesting push records remote outcome as uncertain and
 does not retry automatically. A prepared bare repository can instead be pushed
 by the same explicitly reviewed Git command; no new credentials are provisioned.
 

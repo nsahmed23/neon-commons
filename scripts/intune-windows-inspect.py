@@ -31,6 +31,9 @@ def main(argv=None):
     dictionary=commands.add_parser('dictionary');dictionary.add_argument('--query',default='');dictionary.add_argument('--object-id')
     lineage=commands.add_parser('lineage');lineage.add_argument('object_id');lineage.add_argument('--pointer')
     comparison=commands.add_parser('reference-compare');comparison.add_argument('object_id');comparison.add_argument('reference_id')
+    views=commands.add_parser('views');views.add_argument('object_id',nargs='?')
+    views.add_argument('--query',default='');views.add_argument('--ownership');views.add_argument('--coverage');views.add_argument('--health')
+    views.add_argument('--operation')
     commands.add_parser('storage-status')
     args=parser.parse_args(argv)
     try:
@@ -53,6 +56,10 @@ def main(argv=None):
         elif args.command=='reference-compare':
             from intune_iac.workbench_provenance import compare_reference
             value=compare_reference(store,args.object_id,args.reference_id)
+        elif args.command=='views':
+            from intune_iac.workbench_views import views
+            value=views(store,args.object_id,operation=args.operation,query=args.query,
+                ownership_filter=args.ownership,coverage_filter=args.coverage,health_filter=args.health,**page)
         else:value=store.storage_status()
         result={'schema_version':'intune-windows-inspection/1','evidence_class':'local_readonly_inspection',
             'qualification_only':True,'workbench_profile_enabled':False,'platform_qualified':False,
