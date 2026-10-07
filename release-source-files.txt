@@ -3352,3 +3352,13 @@ plugin_tests/test_windows_source_edit_r4.py
 plugin_tests/test_windows_source_qualifier_r4.py
 scripts/qualify-windows-source-edit.py
 docs/WINDOWS-SOURCE-EDIT-R4.md
+
+# R4 exact source approval, retained native no-change proof and explicit evidence snapshot.
+intune_iac/worker_source_intent.py
+docs/WORKER-SOURCE-INTENT-R4.md
+intune_iac/worker_plan_evidence.py
+plugin_tests/test_worker_plan_evidence_r4.py
+docs/NATIVE-PLAN-EVIDENCE-R4.md
+scripts/prepare-evidence-snapshot.py
+plugin_tests/test_evidence_snapshot_r4.py
+docs/EVIDENCE-SNAPSHOT-R4.md

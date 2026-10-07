@@ -1,9 +1,12 @@
 # Protected state-only adoption
 
-This staged implementation adds an independently signed native import operation
-to the existing service authority. It does not change ordinary saved-plan apply
-permissions. Integration, actual native composition, external qualification and
-organizational approval are separate gates; consult the final source receipt.
+The integrated native import uses an independent signature and the existing
+service authority. Ordinary saved-plan apply permissions remain separate.
+Checkpoint12 (`72c090f3`) qualified the actual pinned native import, first no-change
+plan and subsequent same-authority maintenance. `NATIVE-ADOPTION-EVIDENCE-INDEX-02.json`
+records those historical source and assertion scopes. External qualification,
+organizational approval and qualification of the exact final package remain
+separate gates; later repairs do not rewrite those earlier receipts.
 
 `worker_adoption.py` uses the same physical `service.sqlite3` `jobs`, `ownership`,
 `consumed`, `revoked` and `events` tables as `ServiceJob`. Its additive
@@ -57,11 +60,25 @@ manifest strings cannot supply arbitrary commands or environment values.
 reads the imported state, verifies the closed successor projection and freshly
 captures Graph parity. It then consumes the one preapproved Plan-only attempt,
 runs the separately pinned native controls and retains the binary/JSON/exit code.
-Only exit0, the exact selected resource's no-op action, no drift/output changes,
-confirmed host cleanup and another authenticated unlocked receiving-state/Graph
-read can mint the sealed completion accepted by `job.reconcile(...)`. Completion
-releases ownership as `adopted_verified`. Unsupported management mapping remains
-visible and cannot become apply permission or endpoint-health evidence.
+A successful host return causes a bounded guarded read of the exact binary,
+JSON and exit-code bytes. New exclusive archived copies and a receipt bind their
+hashes to that host outcome before durable result publication. A recording error
+or cancellation preserves the host outcome, unknown status and reservations.
+`worker_plan_evidence.py` checks the complete fixed native representation: exit0,
+no-op, no drift/output/deferred changes, exact immutable identity, before/after/
+planned/prior full values equal the independently received state, and literal
+configuration equal the reviewed source and intended values. JSON booleans,
+integers and floats remain distinct; assignments include the full exclusion and
+include-filter targeting. Both working and archived bytes, the reviewed source
+and receiving-state bytes are checked again before reconciliation releases
+ownership as `adopted_verified`. The helper establishes content relationships;
+it cannot authenticate receiving state, mint a completion or grant authority.
+The binary/JSON relation relies on the closed pinned host command and the
+authenticated controller's immediate capture, not a decoder for opaque plan
+binaries. Local trusted-controller custody remains an explicit profile boundary.
+Unsupported management mapping cannot become apply permission or endpoint-health
+evidence. Historical pending first-plan outcomes without this retained output
+capture fail closed; their records are not rewritten or silently upgraded.
 
 Primary, cleanup and recording failures remain distinguishable. A secondary
 recording failure cannot silently discard the first cause; real KeyboardInterrupt
@@ -88,12 +105,17 @@ Initial recovery cancels authority, refuses cleanup while the exact controller
 is alive, stops only its recorded container and preserves uncertain ownership.
 It cannot automatically release an Azure lease, re-import, reconstruct an old
 captured-observation capability from files or mark unknown execution successful.
-Fresh-process original-contract observation and separately signed adoption lease
-recovery are separate active work. Missing those paths must remain visible until
-their own actual native interruption journeys qualify. Ordinary apply/committed
-state recovery gates are not broadened.
+Fresh-process original-contract observation, distinct signed initial-import
+lease recovery and the separately signed Plan-only recovery bridge are now
+integrated. Their current code and focused local contracts do not establish a
+new native interruption/release/reconciliation pass. The shared no-op repair
+closes retained parser counterexamples; the new native route and exact final
+package must be qualified against its new source. A distinct stopped-Plan phase
+adapter for initial verification or a recovery Plan's own interrupted lease
+remains separately staged until reviewed and qualified. No original import or
+Plan is replayed. Ordinary apply/committed-state recovery gates are not broadened.
 
-The staged replay is `qualify_adoption_contracts.py --output NEW` under the R4
+The historical admission replay is `qualify_adoption_contracts.py --output NEW` under the R4
 service evidence directory, using `INTUNE_TEST_VALIDATOR_LIBRARY` to name the
 retained exact validator where needed. Its receipt separates actual loopback
 identity/read operations, real independent signatures and raw shared SQLite

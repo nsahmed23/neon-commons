@@ -26,6 +26,7 @@ from .io import AppError, canonical, digest, load_json, parse_json
 from .provider_journey import _outside_repository, _private, _absolute
 
 VERSION = 'worker-service-operation/1'
+INTENT_VERSION = 'worker-service-operation/2'
 SIGNATURE_DOMAIN = b'intune-workbench:worker-service-approval:v1\x00'
 _SEAL = object()
 _HASH = re.compile(r'[0-9a-f]{64}')
@@ -113,7 +114,9 @@ def validate_manifest(value, *, require_implementation=True):
         'execution_binding_sha256', 'host_spec', 'broker_policy', 'state_contracts', 'saved_plan_sha256',
         'identity_binding_sha256', 'run_binding_sha256', 'storage_binding_sha256', 'provider_binding',
         'tenant_id', 'object_ids', 'backend_scope_sha256', 'implementation_files', 'precondition_binding', 'run_context'}
-    if type(value) is not dict or set(value) != fields or value['schema_version'] != VERSION:
+    version = value.get('schema_version') if type(value) is dict else None
+    if version == INTENT_VERSION: fields.add('source_authoring_binding')
+    if type(value) is not dict or set(value) != fields or version not in (VERSION, INTENT_VERSION):
         _fail('service_manifest_invalid')
     if (type(value['operation_id']) is not str or not _UUID.fullmatch(value['operation_id'])
             or value['profile'] not in _PROFILES or value['action'] not in ('apply_saved_plan', 'host_qualification')
@@ -146,6 +149,13 @@ def validate_manifest(value, *, require_implementation=True):
                 any(context[key] != native.get(other) for key, other in [('source_revision', 'source_revision'),
                     ('source_sha256', 'source_sha256'), ('effective_inputs_sha256', 'effective_input_sha256'),
                     ('provider_lock_sha256', 'lockfile_sha256')])): _fail('service_run_context_binding')
+    if version == INTENT_VERSION:
+        if value['action'] != 'apply_saved_plan' or value['profile'] == 'native_docker_laboratory_tls':
+            _fail('service_source_intent_profile')
+        from .worker_source_intent import validate_operation_binding
+        validate_operation_binding(value['source_authoring_binding'], provider_binding=value['provider_binding'],
+            run_context=context, tenant_id=value['tenant_id'], object_ids=value['object_ids'],
+            backend_scope_sha256=value['backend_scope_sha256'])
     spec = _host_spec(value['host_spec'])
     policy = broker.validate_policy(value['broker_policy'])
     expected_profile = {'azure_public_pilot': 'azure_public_pilot',
@@ -198,6 +208,16 @@ def make_manifest(*, operation_id, profile, expires_at, execution_binding_sha256
         'precondition_binding': precondition_binding})
 
 
+def make_intent_manifest(*, source_intent, **kwargs):
+    """Versioned review material using the same exact-operation signature."""
+    from .worker_source_intent import RepositoryExecutionIntent
+    if type(source_intent) is not RepositoryExecutionIntent: _fail('service_source_capability_required')
+    value = make_manifest(**kwargs)
+    value['schema_version'] = INTENT_VERSION
+    value['source_authoring_binding'] = source_intent.check()
+    return validate_manifest(value)
+
+
 class ControllerBinding:
     """Host-policy capability, explicitly not CI or encryption-service evidence."""
     def __init__(self, seal, kind, facts, recheck):
@@ -225,7 +245,7 @@ def trusted_storage_binding(facts, *, recheck):
 
 class ServiceRuntime:
     def __init__(self, seal, *, profile, run, storage, upstream, certificate, private_key,
-            prewrite, binding=None, credentials=None, state_contracts=None, precondition=None):
+            prewrite, binding=None, credentials=None, state_contracts=None, precondition=None, source_intent=None):
         if seal is not _SEAL or not callable(prewrite): _fail('service_runtime_capability_required')
         if (type(run) is not ControllerBinding or run.kind != 'run' or
                 type(storage) is not ControllerBinding or storage.kind != 'storage'):
@@ -233,12 +253,22 @@ class ServiceRuntime:
         self.profile, self.run, self.storage, self.upstream = profile, run, storage, upstream
         self.certificate, self.private_key, self.prewrite = certificate, private_key, prewrite
         self.binding, self.credentials, self.precondition = binding, credentials, precondition
+        self.source_intent = source_intent
         self.state_contracts = {} if state_contracts is None else dict(state_contracts)
         self.pid = os.getpid()
     def __repr__(self): return '<ServiceRuntime redacted>'
     def __reduce_ex__(self, protocol): raise TypeError('Service runtime cannot be serialized.')
     def check(self, manifest):
         if self.pid != os.getpid() or self.profile != manifest['profile']: _fail('service_runtime_profile')
+        if manifest['schema_version'] == INTENT_VERSION:
+            from .worker_source_intent import RepositoryExecutionIntent, validate_operation_binding
+            if type(self.source_intent) is not RepositoryExecutionIntent: _fail('service_source_capability_required')
+            facts = self.source_intent.check()
+            if facts != manifest['source_authoring_binding']: _fail('service_source_binding_changed')
+            validate_operation_binding(facts, provider_binding=manifest['provider_binding'],
+                run_context=manifest['run_context'], tenant_id=manifest['tenant_id'], object_ids=manifest['object_ids'],
+                backend_scope_sha256=manifest['backend_scope_sha256'])
+        elif self.source_intent is not None: _fail('service_source_capability_unexpected')
         self.run.check(manifest['run_binding_sha256']); self.storage.check(manifest['storage_binding_sha256'])
         if self.profile == 'azure_public_pilot':
             ib.require_live_binding(self.binding)
@@ -451,7 +481,7 @@ class ServiceJob:
         self.policy = ServicePolicy(policy_path); self.root = _private(job_root, directory=True)
         if self.root.parent != self.policy.jobs_root: _fail('service_job_outside_policy')
         self.manifest = _bounded_private_json(self.root / 'manifest.json')
-        if self.manifest.get('schema_version') != VERSION: _fail('service_job_domain')
+        if self.manifest.get('schema_version') not in (VERSION, INTENT_VERSION): _fail('service_job_domain')
         self.sha256, self.identifier = digest(self.manifest), self.manifest.get('operation_id')
         self._check(expiry=False)
     def _check(self, *, expiry=True):

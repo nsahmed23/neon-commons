@@ -327,7 +327,7 @@ class RecoveryPlanJob:
         return self._dispatch(payload,runtime,spec,raw)
     def _dispatch(self,payload,runtime,spec,receipt_raw):
         permit=_Permit(self,payload,runtime);server=thread=watchdog=transport=result=primary=interruption=None
-        stopped=threading.Event();faults=[];shutdown=[];recording=[];uncertain=False
+        stopped=threading.Event();faults=[];shutdown=[];recording=[];uncertain=False;plan_outputs=None
         def secondary(error,phase,target):
             nonlocal primary,interruption
             target.append({'phase':phase,'error':str(getattr(error,'code',type(error).__name__))})
@@ -355,6 +355,9 @@ class RecoveryPlanJob:
                         return
             watchdog=threading.Thread(target=monitor,daemon=True,name='adoption-recovery-plan-watchdog');watchdog.start()
             permit.check_active();result=host.launch(spec,self.root/'host-run')
+            if result.get('status')=='complete':
+                from . import worker_plan_evidence as evidence
+                plan_outputs=evidence.capture(spec.job_root,self.root/'plan-output',host_result=result)
         except BaseException as error:
             primary=error
             if isinstance(error,(KeyboardInterrupt,SystemExit)):interruption=error
@@ -376,7 +379,7 @@ class RecoveryPlanJob:
             status='plan_host_completed_unverified' if complete else 'outcome_unknown'
             report={'host':result,'status':status,'primary_error':str(getattr(primary,'code',type(primary).__name__)) if primary else None,
                 'shutdown_failures':shutdown,'recording_failures':recording,'watchdog_error':faults[0] if faults else None,
-                'native_backend_recovery':lease,'authority_recording':'committed','original_ownership_retained':True,
+                'native_backend_recovery':lease,'plan_output_capture':plan_outputs,'authority_recording':'committed','original_ownership_retained':True,
                 'import_replayed':False,'graph_mutation_authorized':False,'state_content_write_authorized':False}
             try:
                 with self.policy.connection() as db:
@@ -407,7 +410,7 @@ class RecoveryPlanJob:
                 or actual['projection_sha256']!=expected['projection_sha256'] or actual['original_contract_sha256']!=expected['original_contract_sha256']
                 or {k:v for k,v in actual['state'].items() if k!='etag'}!={k:v for k,v in expected['state'].items() if k!='etag'}
                 or facts['lock_metadata_remaining'] is not False or facts['fresh_observation']['metadata']):_fail('adoption_recovery_final_readback_changed')
-        plan=self._plan_evidence();capture=completion.captured_observation()
+        plan=self._plan_evidence(completion=completion);capture=completion.captured_observation()
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE');row=db.execute('SELECT status,dispatches,outcome,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
             old=db.execute('SELECT status,dispatches,outcome,controller_pid,controller_start FROM jobs WHERE id=?',(self.original.identifier,)).fetchone()
@@ -424,6 +427,17 @@ class RecoveryPlanJob:
             if 'receipt' in host_envelope and host_envelope.pop('receipt')!=str(self.root/'host-run/receipt.json'):
                 _fail('adoption_recovery_host_receipt_changed')
             if (host_manifest.get('host_spec')!=self.manifest['host_spec'] or digest(host_manifest)!=host_result.get('manifest_sha256') or host_receipt!=host_envelope):_fail('adoption_recovery_host_receipt_changed')
+            from . import worker_plan_evidence as evidence, worker_provider as provider
+            record=outcome.get('plan_output_capture')
+            if digest(record)!=plan['plan_output_proof']['capture_sha256']:_fail('adoption_recovery_plan_output_record_changed')
+            spec=service._host_spec(self.manifest['host_spec'])
+            final_proof=evidence.qualify(record,job_root=spec.job_root,archive=self.root/'plan-output',
+                state_raw=evidence._read(completion.observation.root/'state.raw'),
+                source_raw=evidence._read(Path(spec.source_root)/'project'/provider.PROJECT/'main.tf.json'),
+                object_id=self.original.manifest['object_ids'][0],state_sha256=facts['fresh_observation']['state']['sha256'],
+                source_sha256=self.manifest['provider_binding']['source_sha256'],
+                effective_inputs_sha256=self.manifest['provider_binding']['effective_input_sha256'])
+            if final_proof!=plan['plan_output_proof']:_fail('adoption_recovery_plan_output_changed')
             report={'schema_version':'adoption-recovery-plan-convergence/1','original_operation_id':self.original.identifier,
                 'original_manifest_sha256':self.original.sha256,'recovery_plan_operation_id':self.identifier,'recovery_plan_manifest_sha256':self.sha256,
                 'previous_import_outcome':parse_json(old[2]),'previous_import_status':old[0],'first_plan_outcome':outcome,
@@ -457,16 +471,25 @@ class RecoveryPlanJob:
         if row[0]!='reconciled' or digest(parse_json(row[1]))!=report_sha:_fail('adoption_recovery_capture_binding_changed')
         capture.verified();return capture
 
-    def _plan_evidence(self):
-        from intune_iac import worker_adoption_provider as provider
-        root=Path(self.manifest['host_spec']['job_root']);paths=[root/part.removeprefix('/job/') for part in (provider.PLAN_PATH,provider.PLAN_JSON_PATH,provider.PLAN_EXIT_PATH)]
-        pins={str(path):host._hash_file(path,32*1024*1024) for path in paths}
-        if _private(paths[2]).read_bytes()!=b'0\n':_fail('adoption_recovery_plan_changes_or_failure')
-        plan=parse_json(_private(paths[1]).read_bytes())
-        if (type(plan) is not dict or plan.get('format_version')!='1.2' or plan.get('terraform_version')!='1.13.1' or plan.get('errored') is True
-                or plan.get('resource_drift') not in (None,[]) or type(plan.get('resource_changes')) is not list or len(plan['resource_changes'])!=1
-                or plan['resource_changes'][0].get('address')!=self.original.manifest['provider_binding']['resource_address']
-                or plan['resource_changes'][0].get('change',{}).get('actions')!=['no-op']
-                or any(change.get('actions')!=['no-op'] for change in plan.get('output_changes',{}).values())):_fail('adoption_recovery_plan_not_converged')
-        return {'first_plan_no_change':True,'exit_code':0,'artifacts':pins,'binary_sha256':pins[str(paths[0])],'json_sha256':pins[str(paths[1])],
-            'graph_state_content_write_authorized':False,'scope':'actual closed native first-plan/show; no import or apply'}
+    def _plan_evidence(self,*,completion):
+        from . import worker_plan_evidence as evidence, worker_provider as provider
+        facts=_completion(self.original,completion)
+        with self.policy.connection() as db:
+            row=db.execute('SELECT status,outcome FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
+        if row is None or row[0]!='plan_host_completed_unverified' or not row[1]:_fail('adoption_recovery_plan_not_completed')
+        outcome=parse_json(row[1]);record=outcome.get('plan_output_capture')
+        if type(record) is not dict:_fail('adoption_recovery_plan_output_not_retained')
+        if record.get('host_result_sha256')!=digest(outcome.get('host')):_fail('adoption_recovery_plan_output_host_changed')
+        spec=service._host_spec(self.manifest['host_spec'])
+        # Sealed completion independently authenticates these exact receiving
+        # bytes. The shared helper itself makes no authentication claim.
+        state_path=completion.observation.root/'state.raw'
+        source_path=Path(spec.source_root)/'project'/provider.PROJECT/'main.tf.json'
+        qualified=evidence.qualify(record,job_root=spec.job_root,archive=self.root/'plan-output',
+            state_raw=evidence._read(state_path),source_raw=evidence._read(source_path),
+            object_id=self.original.manifest['object_ids'][0],state_sha256=facts['fresh_observation']['state']['sha256'],
+            source_sha256=self.manifest['provider_binding']['source_sha256'],effective_inputs_sha256=self.manifest['provider_binding']['effective_input_sha256'])
+        return {'first_plan_no_change':True,'exit_code':0,'artifacts':qualified['artifacts'],
+            'binary_sha256':record['artifacts']['plan.bin']['sha256'],'json_sha256':record['artifacts']['plan.json']['sha256'],
+            'plan_output_proof':qualified,'graph_state_content_write_authorized':False,
+            'scope':'actual closed native first-plan/show with post-host artifacts and complete source/state value parity; no import or apply'}

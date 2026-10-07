@@ -477,7 +477,7 @@ class AdoptionJob:
         prefix = 'verification-' if verification else ''
         server = thread = watchdog = transport = result = primary = interruption = None
         stopped = threading.Event(); shutdown_failures = []; recording_failures = []; watchdog_fault = []
-        recording_uncertain = False; shutdown_interrupted = False
+        recording_uncertain = False; shutdown_interrupted = False; plan_outputs = None
         def failed(error, phase, failures):
             nonlocal primary, interruption, shutdown_interrupted
             failures.append({'phase': phase, 'error': getattr(error, 'code', type(error).__name__)})
@@ -514,6 +514,9 @@ class AdoptionJob:
                         return
             watchdog = threading.Thread(target=monitor, daemon=True, name='intune-adoption-watchdog'); watchdog.start()
             result = host.launch(spec, self.root / (prefix + 'host-run'))
+            if verification and result.get('status') == 'complete':
+                from . import worker_plan_evidence as plan_evidence
+                plan_outputs = plan_evidence.capture(spec.job_root, self.root / 'verification-plan-output', host_result=result)
         except BaseException as error:
             primary = error
             if isinstance(error, (KeyboardInterrupt, SystemExit)): interruption = error
@@ -540,7 +543,7 @@ class AdoptionJob:
             outcome = {'host': result, 'primary_error': getattr(primary, 'code', type(primary).__name__) if primary else None,
                 'operation_outcome': status, 'watchdog_error': watchdog_fault[0] if watchdog_fault else None,
                 'shutdown_failures': shutdown_failures, 'recording_failures': recording_failures,
-                'authority_recording': 'committed', 'native_backend_recovery': recovery,
+                'authority_recording': 'committed', 'native_backend_recovery': recovery, 'plan_output_capture': plan_outputs,
                 'graph_mutation_authorized': False, 'independent_state_graph_and_plan': 'required',
                 'production_authorized': False, 'import_replay_authorized': False}
             try:
@@ -643,6 +646,11 @@ class AdoptionJob:
                     or owners != service._scopes(self.manifest) or consumed != (self.sha256,)):
                 _fail('adoption_reconciliation_not_ready')
             prior = parse_json(row[2]); verification = parse_json(phase[2])
+            if digest(verification.get('plan_output_capture')) != facts['plan_output_proof']['capture_sha256']:
+                _fail('adoption_plan_output_record_changed')
+            # Recheck guarded source/archive/state bytes inside the final ownership
+            # transaction; the held capability alone does not freeze files.
+            if completion.verified(self) != facts: _fail('adoption_completion_changed')
             if any(item.get('host', {}).get('cleanup', {}).get('removed') is not True for item in (prior, verification)):
                 _fail('adoption_host_cleanup_unconfirmed')
             report = {'previous_import_outcome': prior, 'first_plan_outcome': verification, 'independent_completion': facts,
@@ -764,8 +772,9 @@ class _AdoptionCompletion:
         if self._pid != os.getpid() or job.sha256 != self._sha or digest(self._facts) != self._digest:
             _fail('adoption_completion_changed')
         if self._state.facts() != self._facts['receiving_state']: _fail('adoption_completion_state_changed')
+        from . import worker_plan_evidence as evidence
         for path, expected in self._artifacts.items():
-            if host._hash_file(Path(path), 32 * 1024 * 1024) != expected: _fail('adoption_completion_artifact_changed')
+            if hashlib.sha256(evidence._read(Path(path))).hexdigest() != expected: _fail('adoption_completion_artifact_changed')
         return _copy(self._facts)
     def captured_observation(self, job):
         """Exact fresh proof capture for publication, never rehydrated from JSON."""
@@ -781,27 +790,40 @@ class LaboratoryAdoptionCompletion(_AdoptionCompletion): pass
 
 
 def _qualify_completion(job, runtime):
-    from intune_iac import worker_adoption_provider as provider
+    from . import worker_plan_evidence as evidence, worker_provider as provider
     spec = service._host_spec(job.manifest['verification_host_spec'])
-    paths = [Path(spec.job_root) / value.removeprefix('/job/') for value in
-        (provider.PLAN_PATH, provider.PLAN_JSON_PATH, provider.PLAN_EXIT_PATH)]
-    artifacts = {str(path): host._hash_file(path, 32 * 1024 * 1024) for path in paths}
-    if _private(paths[2]).read_bytes() != b'0\n': _fail('adoption_first_plan_changes_or_failure')
-    plan = parse_json(_private(paths[1]).read_bytes())
-    if (type(plan) is not dict or plan.get('format_version') != '1.2' or plan.get('terraform_version') != '1.13.1'
-            or plan.get('errored') is True or plan.get('resource_drift') not in (None, [])
-            or type(plan.get('resource_changes')) is not list or len(plan['resource_changes']) != 1
-            or plan['resource_changes'][0].get('address') != job.manifest['provider_binding']['resource_address']
-            or plan['resource_changes'][0].get('change', {}).get('actions') != ['no-op']
-            or any(change.get('actions') != ['no-op'] for change in plan.get('output_changes', {}).values())):
-        _fail('adoption_first_plan_not_converged')
+    with job.policy.connection() as db:
+        row = db.execute('SELECT verification_status,verification_outcome FROM adoption_operations WHERE operation_id=?', (job.identifier,)).fetchone()
+    if row is None or row[0] != 'first_plan_host_completed_unverified' or not row[1]: _fail('adoption_first_plan_not_ready')
+    outcome = parse_json(row[1]); record = outcome.get('plan_output_capture')
+    if type(record) is not dict: _fail('adoption_plan_output_not_retained')
+    if record.get('host_result_sha256') != digest(outcome.get('host')): _fail('adoption_plan_output_host_changed')
     state = _backend_observation(job, runtime, job.root / ('after-first-plan-' + uuid.uuid4().hex), baseline=False)
+    receiving = state.facts()
+    source_path = Path(spec.source_root) / 'project' / provider.PROJECT / 'main.tf.json'
+    qualified = evidence.qualify(record, job_root=spec.job_root, archive=job.root / 'verification-plan-output',
+        state_raw=evidence._read(state._root / 'state.raw'), source_raw=evidence._read(source_path),
+        object_id=job.manifest['object_ids'][0], state_sha256=receiving['state']['sha256'],
+        source_sha256=job.manifest['provider_binding']['source_sha256'],
+        effective_inputs_sha256=job.manifest['provider_binding']['effective_input_sha256'])
+    # Expected hashes come from the earlier durable capture, never a second
+    # mutable read that could silently bless changed bytes after qualification.
+    artifacts = {str(path): record['artifacts'][name]['sha256'] for name, path in evidence.paths(spec.job_root).items()}
+    for name in evidence.FILES:
+        artifacts[str(job.root / 'verification-plan-output' / name)] = record['artifacts'][name]['sha256']
+    artifacts[str(job.root / 'verification-plan-output' / 'receipt.json')] = hashlib.sha256(canonical(record)).hexdigest()
+    artifacts[str(source_path)] = job.manifest['provider_binding']['source_sha256']
+    artifacts[str(state._root / 'state.raw')] = receiving['state']['sha256']
     facts = {'schema_version': 'native-adoption-independent-completion/1', 'operation_id': job.identifier,
-        'manifest_sha256': job.sha256, 'receiving_state': state.facts(), 'native_first_plan_exit_code': 0,
-        'native_first_plan_sha256': artifacts[str(paths[0])], 'native_first_plan_json_sha256': artifacts[str(paths[1])],
-        'first_plan_no_change': True, 'import_replayed': False, 'graph_mutation_authorized': False,
+        'manifest_sha256': job.sha256, 'receiving_state': receiving, 'native_first_plan_exit_code': 0,
+        'native_first_plan_sha256': record['artifacts']['plan.bin']['sha256'],
+        'native_first_plan_json_sha256': record['artifacts']['plan.json']['sha256'],
+        'first_plan_no_change': True, 'plan_output_proof': qualified,
+        'import_replayed': False, 'graph_mutation_authorized': False,
         'management_mapping_status': job.manifest['state_contract']['management_mapping_status'],
         'management_mapping_blockers': job.manifest['state_contract']['management_mapping_blockers'],
         'endpoint_effectiveness': 'unestablished', 'production_approved': False}
     cls = LiveAdoptionCompletion if runtime.profile == 'azure_public_pilot' else LaboratoryAdoptionCompletion
-    return cls(_SEAL, job, state, facts, artifacts)
+    completed = cls(_SEAL, job, state, facts, artifacts)
+    completed.verified(job)
+    return completed

@@ -1,6 +1,6 @@
 # Inactive Windows Workbench storage adapter
 
-`intune_iac/windows_workbench.py` implements the next native persistence seam over the existing engine. It is available through the explicit `WindowsWorkbenchStore` component API, qualification harness and qualification-only read-only text launcher. **The ordinary Windows Workbench CLI remains UNSUPPORTED.** No host capability gate, collector, worker, UI route or credentials are enabled by this change.
+`intune_iac/windows_workbench.py` implements the next native persistence seam over the existing engine. It is available through the explicit `WindowsWorkbenchStore` component API and qualification-only inspection, source and observer interfaces. **The ordinary Windows Workbench CLI remains UNSUPPORTED.** The native console/context composition, authenticated-reader storage binding, finite observer jobs, current-source views, intent/proposal and bounded source-edit recovery are now integrated as inactive components. No ordinary host capability gate, live schedule, credential or production worker is activated.
 
 The existing schema and read/query/history/health code are reused. `workbench_schema.py` holds the same schema SQL, signatures and validation; `observation_contract.py` holds the same field set, model URL and eight-object laboratory bound. The original imports remain reexported. The POSIX `WorkbenchStore` class now checks its host profile in its constructor, create, connection and restore entrypoints before filesystem dispatch. Modeled collection imports its POSIX service only inside that guarded route. This permits importing the inactive native component without pretending a POSIX store is portable.
 
@@ -70,7 +70,17 @@ On the current Linux host the native procedure returns BLOCKED with zero native 
 
 ## Remaining required work
 
-The Windows endpoint/runner owner supplies the actual host and independent native evidence. The storage owner must resolve native VFS, sharing, DACL inheritance/sidecar and namespace durability findings. Capture/provenance readers now use the inactive native file seam described in [WINDOWS-READERS-R4.md](WINDOWS-READERS-R4.md); `collect` still rejects explicitly and the authenticated observation publisher has not admitted this class. Native packaged dictionary reads now have an inactive fixed-asset seam, documented in [WINDOWS-READONLY-CONTINUATION-R4.md](WINDOWS-READONLY-CONTINUATION-R4.md). Native scheduling/process containment and TUI/terminal restoration remain separate implementations/qualification. After those dependencies, wire the reviewed component to the actual Windows application route and qualify complete init, collection/import, inspection/history, change/recovery and closed-terminal journeys on exact packages. AppSec and accountable organizational pilot approval remain required.
+The Windows endpoint/runner owner supplies actual native host evidence. The storage owner must resolve native VFS, sharing, DACL inheritance/sidecar and namespace durability findings without waiving failed barriers. The following code paths are now integrated; do not repeat their implementation merely because Windows qualification is blocked.
+
+| Capability | Integrated entrypoint and evidence guide | Remaining boundary |
+|---|---|---|
+| Capture/provenance/dictionary and four views | Native store APIs; `scripts/intune-windows-inspect.py`; [readers](WINDOWS-READERS-R4.md), [four views](WINDOWS-FOUR-VIEWS-R4.md) | Real native filesystem/shell qualification; unknown linked POSIX journal paths remain unsupported. |
+| Typed authenticated observation target | `windows_observation.bind_native_target`; [observation](WINDOWS-OBSERVATION-R4.md) | Exact live/laboratory capture binding is implemented; authentic Graph evidence and native OS behavior require separate real routes. Ordinary modeled `collect` remains denied. |
+| Independent finite jobs and disabled Task Scheduler material | `scripts/intune-windows-observer.py`; [observer jobs](WINDOWS-OBSERVER-JOB-R4.md) | Actual Windows closed-terminal scheduling, existing authorized credential and account evidence. No task has been registered or activated. |
+| Shared visual/text workspace | `windows_workspace_binding` + `windows_terminal` + `windows_workspace_context`; [console](NATIVE-WINDOWS-CONSOLE-R4.md) | Native console/terminal restoration, Git Bash/mintty, PowerShell and international-layout gates remain. |
+| Current source, intent/proposal, reviewed local source edit/recovery | `scripts/intune-windows-source.py`; [repository](WINDOWS-REPOSITORY-R4.md), [source](WINDOWS-SOURCE-R4.md), [edit/recovery](WINDOWS-SOURCE-EDIT-R4.md) | Actual native ACL/rename/barrier qualification; no Git authentication or protected exact-plan approval is inferred. |
+
+Qualify the connected journeys on exact final packages. Protected execution and verified remote evidence remain separate contracts; a local source edit never authorizes tenant apply. Native power loss and hostile-process containment, AppSec review and accountable organizational pilot approval remain required.
 
 
 ## Native capture reader extension

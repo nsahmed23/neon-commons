@@ -781,3 +781,31 @@ worker-service/plan-evidence-staging proposals. Integrate only reviewed repair
 pins, then freeze a new source revision before recovering the original fault
 authorities. Do not replay import. Finish remaining local integration and exact
 package/delivery gates; all platform/organizational approvals remain separate.
+
+Increment15 integrates the exact local source-authoring/worker-v2 binding, shared
+post-host native no-change artifact capture and full typed content validation,
+and explicit-root evidence snapshot preparation. Source/runtime inventory is
+root-owned; new files are deliberately admitted. COMMIT-15.json records the
+exact commit and tree. The current contract link now names its actual existing
+STRICT-CONTINUATION-CONTRACT-R4.md path; earlier ledger versions remain in Git.
+
+Independent no-op mutants exposed boolean/integer/float equivalence; root review
+also found required=true versus1, absent-versus-null and a regular-to-FIFO read
+race. Exact before attempts are retained. Repaired inserted38 checks pass, with
+separate overlapping independent content/archive/source review evidence. This
+establishes a local repair, not a new native caller or live platform pass. The
+next freeze must exercise initial and recovery Plans with these exact bytes.
+
+Portable evidence reopen after a newer sequence also failed independent signed
+CLI controls. Its staged repair passes the unchanged five assertions; integration
+and adoption-domain/native-store restore qualification remain pending. These
+failures are not erased by subsequent passes. Snapshot preparation has fourteen
+local controls; full-corpus copying, independent review, final public suitability
+and archive reconstruction have not occurred. Unresolved temporary inputs and
+explicit IPC/capsule mappings remain visible.
+
+Resume from integration/COMMIT-15.json and git status --short. Finish reviewed
+common Plan-phase integration, freeze runtime, then recover the retained native
+fault authorities with new exact approvals and no import replay. Complete the
+same-authority v2 source journey and portable evidence path; then qualify exact
+final packages and delivery. Historical1242/1141 totals are not repeated or added.

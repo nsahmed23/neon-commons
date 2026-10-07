@@ -1,13 +1,8 @@
 # Native Windows continuation procedure
 
-The launchers and qualification procedure are implemented. **The native Windows
-private store still requires a native implementation**, including SID/DACL and
-reparse-safe handle checks, locking and namespace durability; the existing
-POSIX implementation cannot be enabled by obtaining a Windows test machine.
-Git Bash/mintty, chosen-terminal and PowerShell execution are not qualified by
-the Linux tests. A Linux invocation of the Windows qualifier writes a BLOCKED
-receipt and executes zero native probes. No installation, registry change,
-system configuration, cloud access or production operation is performed.
+The launchers and qualification procedures are implemented. The private native store, observation binding/jobs, console/context, current-source/intent/proposal and bounded source-edit recovery now exist as inactive components over the existing engine. **The ordinary Windows profile remains UNSUPPORTED, and real native qualification is BLOCKED on the current Linux host.** Missing host evidence must not be reported as missing implementation, and local recorded Win32 controls must not be reported as native passes. See [the current adapter map](WINDOWS-WORKBENCH-ADAPTER-R4.md).
+
+The native SID/DACL, reparse, VFS, locking and namespace durability behavior still requires real evidence. Git Bash/mintty, chosen-terminal and PowerShell execution are not qualified by Linux tests. A Linux invocation of the native qualifier writes a BLOCKED receipt and executes zero native probes. No installation, registry change, system configuration, cloud access or production operation is performed by these qualification preparations.
 
 The initial native shell target is CPython **3.12**, Git for Windows Bash and
 **PowerShell 7** using .NET `ProcessStartInfo.ArgumentList`. Exact binary hashes

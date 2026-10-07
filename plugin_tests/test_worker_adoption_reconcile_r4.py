@@ -44,26 +44,13 @@ class RecoveryPlanContracts(unittest.TestCase):
     def test_json_completion_and_runtime_do_not_mint_capabilities(self):
         with self.assertRaises(AppError):bridge._completion({}, {'approved':True})
         with self.assertRaises(AppError):bridge.RecoveryPlanRuntime(None,profile='native_docker_laboratory_protocol',run={},storage={},binding={},credentials={},upstream={},certificate='',private_key='',provider={})
-    def test_readonly_plan_result_rejects_drift_changes_and_exit2(self):
-        from intune_iac import worker_adoption_provider as provider
-        root=self.root/'plan';root.mkdir(mode=0o700)
-        paths=[root/value.removeprefix('/job/') for value in (provider.PLAN_PATH,provider.PLAN_JSON_PATH,provider.PLAN_EXIT_PATH)]
-        for path in paths:path.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
-        paths[0].write_bytes(b'fixture-plan-not-native');paths[0].chmod(0o600)
-        plan={'format_version':'1.2','terraform_version':'1.13.1','resource_changes':[{'address':'selected','change':{'actions':['no-op']}}]}
-        paths[1].write_bytes(canonical(plan));paths[1].chmod(0o600);paths[2].write_bytes(b'0\n');paths[2].chmod(0o600)
-        # Testing only the inert artifact parser; this uninitialized object is
-        # never passed to dispatch/reconcile and is no runtime capability.
-        case=object.__new__(bridge.RecoveryPlanJob);case.manifest={'host_spec':{'job_root':str(root)}}
-        class Source:manifest={'provider_binding':{'resource_address':'selected'}}
-        case.original=Source()
-        self.assertTrue(case._plan_evidence()['first_plan_no_change'])
-        paths[2].write_bytes(b'2\n')
-        with self.assertRaises(AppError):case._plan_evidence()
-        paths[2].write_bytes(b'0\n')
-        for invalid in [dict(plan,resource_drift=[{'address':'selected'}]),dict(plan,resource_changes=[{'address':'selected','change':{'actions':['update']}}])]:
-            paths[1].write_bytes(canonical(invalid))
-            with self.assertRaises(AppError):case._plan_evidence()
+    def test_inert_plan_parser_cannot_substitute_json_for_receiving_completion(self):
+        # The public recovery path now requires exact sealed receiving state.
+        # Literal native-format content/tamper controls have their own shared
+        # helper suite and cannot manufacture this capability.
+        case=object.__new__(bridge.RecoveryPlanJob)
+        case.original={}
+        with self.assertRaises(AppError):case._plan_evidence(completion={'approved':True})
     def _signature_close_fault(self,secondary):
         signed=self.signed();opened=[];real_open=os.open;real_close=os.close
         def tracked_open(path,*args,**kwargs):

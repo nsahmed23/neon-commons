@@ -21,8 +21,9 @@ supports a declared profile.
 The four views retain distinct scopes:
 
 * Repository: recorded revision, source hashes, resolved inputs and scope in the
-  stored artifact. Current native working-source rereading/resolution is still
-  unimplemented and explicitly unknown; no fresh-source claim is implied.
+  stored artifact. Current native working-source rereading uses the same literal
+  resolver through held private handles and exposes its read interval separately.
+  It does not authenticate the recorded Git revision or prove future freshness.
 * Observed: existing current/last-good snapshot, literal latest capture,
   collection/mapping coverage, timestamps and native byte revalidation result.
 * Proposed: missing operation remains unknown. Linked protected-service or
@@ -47,9 +48,11 @@ missing-deployment negative control. Its help and SOURCE_PINS contract remain
 the executable procedure. Linux reports BLOCKED with zero native commands and
 checks; recorded native API tests do not replace this gate.
 
-Remaining local implementation is a native guarded repository source accessor
-for the current literal Atmos resolver and a scoped independently verified
-execution-evidence reader or authenticated access to the qualified worker host.
-These are code/architecture gaps, distinct from absent native OS qualification.
+The native repository accessor, intent import, bounded proposal and local source
+edit/recovery are now integrated; see WINDOWS-REPOSITORY-R4.md,
+WINDOWS-SOURCE-R4.md and WINDOWS-SOURCE-EDIT-R4.md. Protected execution
+evidence must use its explicitly reviewed authenticated/signed delivery contract;
+a stored local POSIX journal path never supplies that authority. Native OS
+qualification remains separate from these implemented readers.
 No cloud access, credential provisioning, scheduler activation, deployment or
 organizational risk acceptance is introduced by this change.
