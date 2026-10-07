@@ -1,0 +1,36 @@
+{
+  "scope": "Only these attributed working-copy cache files; no inference about original three archive-absent temporary files or historical reappearance/stale-lock causes. Raw copies are inert delivery evidence and excluded from exact source/runtime manifests.",
+  "rows": [
+    {
+      "path": "/workspace/intune-continuation/work/projects/intune/intune_iac/__pycache__/capture.cpython-312.pyc",
+      "bytes": 27008,
+      "sha256": "42aaf76ee57be20895bb766023679d5a4b2ec0b84c2b3c5af9bdb6127a00ed00",
+      "mtime_ns": 1791343611130233245,
+      "mode": "0o600",
+      "cause": "Previously attributed reviewer reproduction ran Python without -B and without PYTHONDONTWRITEBYTECODE; original attribution retained.",
+      "preserved_copy": "capture.cpython-312.pyc.raw",
+      "original_preserved": true
+    },
+    {
+      "path": "/workspace/intune-continuation/work/projects/intune/intune_iac/__pycache__/capture_adapter.cpython-312.pyc",
+      "bytes": 29827,
+      "sha256": "0ebe9c81df89e3fb481653ad5347160fc5896e7b0f5f0ad55f99779edfd58d1c",
+      "mtime_ns": 1791343611141739901,
+      "mode": "0o600",
+      "cause": "Previously attributed reviewer reproduction ran Python without -B and without PYTHONDONTWRITEBYTECODE; original attribution retained.",
+      "preserved_copy": "capture_adapter.cpython-312.pyc.raw",
+      "original_preserved": true
+    },
+    {
+      "path": "/workspace/intune-continuation/work/projects/intune/scripts/__pycache__/qualify-workbench-performance.cpython-312.pyc",
+      "bytes": 41218,
+      "sha256": "484173a3c60a447a067f99824bc6fd2f12f44dda3bc849292638bf00b6652f3a",
+      "mtime_ns": 1791343461984107865,
+      "mode": "0o600",
+      "cause": "Explicit py_compile validation produces a pyc even when Python -B disables automatic import bytecode writes; command-created cache is preserved.",
+      "preserved_copy": "qualify-workbench-performance.cpython-312.pyc.raw",
+      "original_preserved": true
+    }
+  ],
+  "prior_attribution": "../retry-independent-review/known-working-cache-provenance.json"
+}

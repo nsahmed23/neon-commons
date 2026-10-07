@@ -1,0 +1,40 @@
+[
+  {
+    "label": "qualify",
+    "argv": [
+      "/workspace/intune-runtime/bin/python",
+      "-B",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/native-codex-container/qualify-native.py",
+      "--plugin",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+      "--output",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.5926077365875244,
+    "stdout": "final02-qualify.stdout",
+    "stdout_sha256": "b95b4dc9c69d4a0b5a59f792206ddfe6e60b765d9c14659897425de031a9d798",
+    "stderr": "final02-qualify.stderr",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "label": "grade",
+    "argv": [
+      "/workspace/intune-runtime/bin/python",
+      "-B",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/native-codex-container/grade-native.py",
+      "--case",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02",
+      "--runtime-zip",
+      "/workspace/intune-continuation/work/releases/continuation-0.8.0-r3-final02/Intune_IaC_Plugin_0.8.0.zip",
+      "--commit",
+      "c122e38e33641336bc5af47b9dbf06eb0e58bc32"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.06616377830505371,
+    "stdout": "final02-grade.stdout",
+    "stdout_sha256": "abb7daa0a1c43438975c9e254d700b451756c8cc8feede7bb48a9919b5fab043",
+    "stderr": "final02-grade.stderr",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

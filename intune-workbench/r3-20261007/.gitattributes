@@ -1,0 +1,2 @@
+# Preserve exact archive, receipt and raw terminal bytes in Git.
+* -text

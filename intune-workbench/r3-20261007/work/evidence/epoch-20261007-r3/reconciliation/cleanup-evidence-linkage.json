@@ -1,0 +1,60 @@
+{
+  "scope": "Read-only retained repair/qualification linkage; no tests repeated",
+  "evidence_base": "/workspace/intune-continuation/work/evidence/epoch-20261005-r2",
+  "artifacts": {
+    "process-cleanup/before-command.json": {
+      "sha256": "8fc4f31b2ae14bc3093b12dd1ebe868251178d00fba6419f2f517330a33a8c55",
+      "bytes": 2957
+    },
+    "process-cleanup/before-result.json": {
+      "sha256": "e900ece2be371c6f96be5f9718066c31fbdc0feca969320be524c08d81ac6da1",
+      "bytes": 49
+    },
+    "process-cleanup/before.stderr": {
+      "sha256": "10d217742505ebd91db49e949584f028b32187674d0db57015305c8dab8b87c8",
+      "bytes": 10677
+    },
+    "process-cleanup/qualification-summary.json": {
+      "sha256": "d2dfeff8038a02ba1e217eced3fdf1474c22e3ac8023f0dda8f0d4b5a30dd589",
+      "bytes": 3870
+    },
+    "process-cleanup-review/before/results.json": {
+      "sha256": "5544da50901a3eca87aa942b2e002b4f04b6d3e4b67337bb424a95941189adce",
+      "bytes": 35738
+    },
+    "process-cleanup-review/after-v2/results.json": {
+      "sha256": "a7a56d37d8fe92bf6d0a43fa8e9d725a9bcb2706311eae2f72b30ad45d159551",
+      "bytes": 54039
+    },
+    "process-cleanup-review/repeat-original-after.json": {
+      "sha256": "5d630f2683df25c3f9b32c78ade3570a80d924a4b656d54e9b35aa9e019882cf",
+      "bytes": 677
+    },
+    "process-cleanup-review/review-receipt.json": {
+      "sha256": "f2898a264b9de6e2000235b637b28a5446dd410da236dad0c503445b8856355d",
+      "bytes": 2053
+    },
+    "process-cleanup-review/REVIEW.md": {
+      "sha256": "f17c5fef152e9c9a44a7b11349b395d2c0069ef4e47a263d04d67cf6ce790c93",
+      "bytes": 4811
+    },
+    "process-cleanup-compatibility/repair.patch": {
+      "sha256": "3c14ad7789b4791fb9cfeeb3e2aacf353ce07423b1a112893020871c95c9e015",
+      "bytes": 3032
+    },
+    "process-cleanup-compatibility/after.stderr": {
+      "sha256": "60b7a0de2ec559d469603ab432891186c6f62bc186dda3b4ff38ac40dc80d9ad",
+      "bytes": 3355
+    },
+    "milestone-0.6.2/strict-suite/result.json": {
+      "sha256": "32ca43acd532a53e8bdabd211112a722009905e4efab9e6e9864083cf785af9c",
+      "bytes": 759
+    },
+    "milestone-0.7.0/strict-suite/result.json": {
+      "sha256": "7e875a03561e4d6735264fc5a53e2098a7f86da75c2ff56247a879a413960658",
+      "bytes": 759
+    }
+  },
+  "runtime_delta_after_repair": "cleanup-repair-to-r2.patch",
+  "runtime_delta_sha256": "5305cdda6d16d91335a20384da3bb3f1df5cc3c0c0b8f24aa808a879e244235a"
+}

@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "git",
+    "-c",
+    "credential.helper=!gh auth git-credential",
+    "push",
+    "https://github.com/nsahmed23/neon-commons.git",
+    "289ee9477372825aad848f4482cf681c2ff43b02:refs/heads/intune-workbench-source-0.8.0"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 1.3537704944610596,
+  "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "status": "SOURCE_PUBLISHED_FINAL03_STRICT_PENDING",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_sha256": "ac5bd46f6418f01f7154cf987f70eac8503da17f9819d224dc56a3abd87233cd",
+  "scope": "Separate source branch fast-forward only; no main change or deployment"
+}

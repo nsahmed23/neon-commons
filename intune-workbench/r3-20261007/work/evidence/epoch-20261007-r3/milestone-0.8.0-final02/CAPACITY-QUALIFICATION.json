@@ -1,0 +1,287 @@
+{
+  "capacity-source": {
+    "status": "PASS_SCOPED",
+    "command_count": 48,
+    "named_checks": 10,
+    "source_unchanged": true,
+    "databases_unchanged": true,
+    "all_thresholds_passed": true,
+    "receipt_sha256": "75901f5e2e1e6e734637de307453b75b1dbbc57176022fd5ebf142879d90607f",
+    "preregistration_sha256": "23c13477c0704059d76d44882fdcab5f491a3db05f9babdbe336a0c539eb9069",
+    "grader": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-capacity.py",
+      "sha256": "5cd496f647b29c8b28b1832340242ca2b007d16f05d7639e9eeed600e2aeb058"
+    },
+    "helper": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-performance.py",
+      "sha256": "fc9be268a59742c29609002ee15ded031b4096dbc4c1d174db31b4b941b70972"
+    },
+    "metrics": {
+      "inspect-1": {
+        "samples": 3,
+        "max_wall_seconds": 0.11829893799995261,
+        "max_cpu_seconds": 0.116738,
+        "max_rss_mib": 45.0
+      },
+      "inspect-1000": {
+        "samples": 3,
+        "max_wall_seconds": 0.10885061999988466,
+        "max_cpu_seconds": 0.10788199999999999,
+        "max_rss_mib": 45.0
+      },
+      "overview-page-0": {
+        "samples": 3,
+        "max_wall_seconds": 0.5942250660000354,
+        "max_cpu_seconds": 0.59197,
+        "max_rss_mib": 45.0
+      },
+      "overview-page-950": {
+        "samples": 3,
+        "max_wall_seconds": 0.4478751490000832,
+        "max_cpu_seconds": 0.44748,
+        "max_rss_mib": 45.0
+      },
+      "overview-complete-union": {
+        "samples": 20,
+        "max_wall_seconds": 0.5149001539998608,
+        "max_cpu_seconds": 0.512802,
+        "max_rss_mib": 45.0
+      },
+      "global-unique-search": {
+        "samples": 1,
+        "max_wall_seconds": 0.5537107420000211,
+        "max_cpu_seconds": 0.552818,
+        "max_rss_mib": 45.0
+      },
+      "global-setting-search-last-page": {
+        "samples": 1,
+        "max_wall_seconds": 0.6011576920000152,
+        "max_cpu_seconds": 0.59937,
+        "max_rss_mib": 45.0
+      },
+      "literal-wildcard-search": {
+        "samples": 1,
+        "max_wall_seconds": 0.5300000569995973,
+        "max_cpu_seconds": 0.52917,
+        "max_rss_mib": 45.0
+      },
+      "scoped-settings": {
+        "samples": 1,
+        "max_wall_seconds": 0.09073717999990549,
+        "max_cpu_seconds": 0.090154,
+        "max_rss_mib": 45.0
+      },
+      "scoped-health": {
+        "samples": 1,
+        "max_wall_seconds": 0.14663997299976472,
+        "max_cpu_seconds": 0.145395,
+        "max_rss_mib": 45.0
+      },
+      "scoped-dictionary": {
+        "samples": 1,
+        "max_wall_seconds": 0.09444698700008303,
+        "max_cpu_seconds": 0.09267,
+        "max_rss_mib": 45.0
+      },
+      "paged-dictionary": {
+        "samples": 1,
+        "max_wall_seconds": 0.3613068330000715,
+        "max_cpu_seconds": 0.360667,
+        "max_rss_mib": 45.0
+      },
+      "bounded-references": {
+        "samples": 1,
+        "max_wall_seconds": 0.08379851300014707,
+        "max_cpu_seconds": 0.08332799999999999,
+        "max_rss_mib": 45.0
+      },
+      "retain-unpaged-byte-bound": {
+        "samples": 1,
+        "max_wall_seconds": 0.969320056000015,
+        "max_cpu_seconds": 0.9676130000000001,
+        "max_rss_mib": 45.0
+      },
+      "invalid-page-limit": {
+        "samples": 2,
+        "max_wall_seconds": 0.08190514099987922,
+        "max_cpu_seconds": 0.081425,
+        "max_rss_mib": 45.0
+      },
+      "invalid-page-offset": {
+        "samples": 1,
+        "max_wall_seconds": 0.08564824199993382,
+        "max_cpu_seconds": 0.082167,
+        "max_rss_mib": 45.0
+      },
+      "denied-pending-page": {
+        "samples": 1,
+        "max_wall_seconds": 0.4197714890001407,
+        "max_cpu_seconds": 0.41810899999999995,
+        "max_rss_mib": 45.0
+      },
+      "pending-only-final-page": {
+        "samples": 1,
+        "max_wall_seconds": 0.34213050000016665,
+        "max_cpu_seconds": 0.341692,
+        "max_rss_mib": 45.0
+      },
+      "inspect-never-complete": {
+        "samples": 1,
+        "max_wall_seconds": 0.08422770599963769,
+        "max_cpu_seconds": 0.083669,
+        "max_rss_mib": 45.0
+      },
+      "terminal-pty": {
+        "samples": 1,
+        "max_wall_seconds": 1.8119100769999932,
+        "max_cpu_seconds": 1.7815539999999999,
+        "max_rss_mib": 45.0
+      }
+    }
+  },
+  "capacity-runtime": {
+    "status": "PASS_SCOPED",
+    "command_count": 48,
+    "named_checks": 10,
+    "source_unchanged": true,
+    "databases_unchanged": true,
+    "all_thresholds_passed": true,
+    "receipt_sha256": "6fb2e781f963e3be333379dc9653e818d2c50b31870e12a9d6928dab9c10a7b1",
+    "preregistration_sha256": "03a191e4414566312d782fa9222bde5ae0ffc8bbb26f75102725ab8d0b6b7649",
+    "grader": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-capacity.py",
+      "sha256": "5cd496f647b29c8b28b1832340242ca2b007d16f05d7639e9eeed600e2aeb058"
+    },
+    "helper": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-performance.py",
+      "sha256": "fc9be268a59742c29609002ee15ded031b4096dbc4c1d174db31b4b941b70972"
+    },
+    "metrics": {
+      "inspect-1": {
+        "samples": 3,
+        "max_wall_seconds": 0.10197393899989038,
+        "max_cpu_seconds": 0.101301,
+        "max_rss_mib": 45.0
+      },
+      "inspect-1000": {
+        "samples": 3,
+        "max_wall_seconds": 0.10721472700015511,
+        "max_cpu_seconds": 0.106545,
+        "max_rss_mib": 45.0
+      },
+      "overview-page-0": {
+        "samples": 3,
+        "max_wall_seconds": 0.5131742100002157,
+        "max_cpu_seconds": 0.511517,
+        "max_rss_mib": 45.0
+      },
+      "overview-page-950": {
+        "samples": 3,
+        "max_wall_seconds": 0.38189499899999646,
+        "max_cpu_seconds": 0.38108,
+        "max_rss_mib": 45.0
+      },
+      "overview-complete-union": {
+        "samples": 20,
+        "max_wall_seconds": 0.4804316510003446,
+        "max_cpu_seconds": 0.47896199999999994,
+        "max_rss_mib": 45.0
+      },
+      "global-unique-search": {
+        "samples": 1,
+        "max_wall_seconds": 0.46217957499993645,
+        "max_cpu_seconds": 0.46129899999999996,
+        "max_rss_mib": 45.0
+      },
+      "global-setting-search-last-page": {
+        "samples": 1,
+        "max_wall_seconds": 0.5097605230002955,
+        "max_cpu_seconds": 0.509187,
+        "max_rss_mib": 45.0
+      },
+      "literal-wildcard-search": {
+        "samples": 1,
+        "max_wall_seconds": 0.45906184500017844,
+        "max_cpu_seconds": 0.456962,
+        "max_rss_mib": 45.0
+      },
+      "scoped-settings": {
+        "samples": 1,
+        "max_wall_seconds": 0.0972065079999993,
+        "max_cpu_seconds": 0.096606,
+        "max_rss_mib": 45.0
+      },
+      "scoped-health": {
+        "samples": 1,
+        "max_wall_seconds": 0.1589673160001439,
+        "max_cpu_seconds": 0.15789299999999998,
+        "max_rss_mib": 45.0
+      },
+      "scoped-dictionary": {
+        "samples": 1,
+        "max_wall_seconds": 0.0924896629999239,
+        "max_cpu_seconds": 0.091666,
+        "max_rss_mib": 45.0
+      },
+      "paged-dictionary": {
+        "samples": 1,
+        "max_wall_seconds": 0.42254309300005843,
+        "max_cpu_seconds": 0.420509,
+        "max_rss_mib": 45.0
+      },
+      "bounded-references": {
+        "samples": 1,
+        "max_wall_seconds": 0.08604216899993844,
+        "max_cpu_seconds": 0.08489699999999999,
+        "max_rss_mib": 45.0
+      },
+      "retain-unpaged-byte-bound": {
+        "samples": 1,
+        "max_wall_seconds": 0.995742570999937,
+        "max_cpu_seconds": 0.995082,
+        "max_rss_mib": 45.0
+      },
+      "invalid-page-limit": {
+        "samples": 2,
+        "max_wall_seconds": 0.09004575700009809,
+        "max_cpu_seconds": 0.088838,
+        "max_rss_mib": 45.0
+      },
+      "invalid-page-offset": {
+        "samples": 1,
+        "max_wall_seconds": 0.08862326600001325,
+        "max_cpu_seconds": 0.087984,
+        "max_rss_mib": 45.0
+      },
+      "denied-pending-page": {
+        "samples": 1,
+        "max_wall_seconds": 0.38368254200031515,
+        "max_cpu_seconds": 0.382179,
+        "max_rss_mib": 45.0
+      },
+      "pending-only-final-page": {
+        "samples": 1,
+        "max_wall_seconds": 0.3257526190000135,
+        "max_cpu_seconds": 0.324891,
+        "max_rss_mib": 45.0
+      },
+      "inspect-never-complete": {
+        "samples": 1,
+        "max_wall_seconds": 0.09867667199978314,
+        "max_cpu_seconds": 0.09634,
+        "max_rss_mib": 45.0
+      },
+      "terminal-pty": {
+        "samples": 1,
+        "max_wall_seconds": 1.796150089999628,
+        "max_cpu_seconds": 1.7656309999999997,
+        "max_rss_mib": 45.0
+      }
+    }
+  },
+  "candidate_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+  "candidate_source_sha256": "c83ebc6ba21dae43c57268c6cff34e66592ebbafb53e30bc25274b0c97a31d02",
+  "candidate_runtime_sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+  "original_import_database_sha256": "408cd5eae0bd98181be4173ef528cb36c45e65d025e37ac6bb6536497aef9f56",
+  "scope": "Two isolated sequential local Linux quiet-window read-only capacity qualifications of exact final02 source/runtime. Forty-eight actual CLI/PTY commands per exact extraction; checks overlap and must not be added to unit-suite counts. Runtime used separately bound exact-source grader/helper. Original 1000-import fixture reused without reingestion; original ingestion scope remains recorded at source9191."
+}

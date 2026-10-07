@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "scripts/verify-release-artifact.py",
+    "--archive",
+    "/workspace/intune-continuation/work/releases/continuation-0.8.0-r3-final03/Intune_IaC_Plugin_0.8.0.zip",
+    "--sha256",
+    "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+    "--extract",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/runtime-extracted"
+  ],
+  "cwd": "/workspace/intune-continuation/work/projects/intune",
+  "started_at": "2026-10-07T04:17:06.442943+00:00",
+  "finished_at": "2026-10-07T04:17:06.507068+00:00",
+  "elapsed_seconds": 0.0641449160002594,
+  "exit_code": 0,
+  "stdout": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.stdout",
+    "sha256": "8f26f94ac52dde0b4387a864a9c5993c5b02160ef4e784d222726c48fab1d542"
+  },
+  "stderr": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+}

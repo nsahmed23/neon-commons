@@ -1,0 +1,95 @@
+{
+  "recorded_at": "2026-10-07T04:16:17.468348+00:00",
+  "actor": "root assistant explicit functions.exec / exec_command Python subprocess orchestration",
+  "process_pid": 18998,
+  "parent": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+  "commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "changed_file": "plugin_tests/test_native_smoke_observation_epoch.py",
+  "commands": [
+    {
+      "label": "before-head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "26387c81fe3b03e20874f9a9e529724c7b1d1fac1c84e5a2e568ed84129826f9",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "changed-files",
+      "argv": [
+        "git",
+        "diff",
+        "--name-only"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "3275a624626aaa8796ddbd6bc6b4a530a9ecf490c2020e5a84f81b2f1d9e0721",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "check",
+      "argv": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "plugin_tests/test_native_smoke_observation_epoch.py"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-m",
+        "Assert native guard delegation across interrupt-safe process acquisition"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "0c5bf0e83b06ad26699c0a1bba9ffea16d10c99440c39dc8ad6985cf69b4cf0a",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "after-head",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "7917052d780318c11a79b92afd28ea5d0a55952491561931da4998574800fb57",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "clean",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain"
+      ],
+      "exit_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "runtime_product_code_changed": false,
+  "historical_actor_gap_resolved": false
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": "r3-final03-completed-text-index/1",
+  "recorded_at": "2026-10-07T04:19:47.054833+00:00",
+  "entries": [
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/artifact-binding.json",
+      "bytes": 1088,
+      "sha256": "7ac863bd989885dc03c8934ec4f7d64ad22b083607b3c6c4007539ca7d924f7e"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.command.json",
+      "bytes": 994,
+      "sha256": "a690a25d97429bbce1eeecca071b9f046a29e5e96d0550a1fd1a9afaa90180e7"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.command.json",
+      "bytes": 1256,
+      "sha256": "007f9b9b2582d0853c19b88b33d5cc39a9b55b44105729b558a7f0cc516a7abf"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.command.json",
+      "bytes": 1266,
+      "sha256": "1d6d93f28838af3fa24360b5399e9612a861988a80c55ae3b5c32a626fd0aa6e"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/REUSED-QUALIFICATION-EVIDENCE.json",
+      "bytes": 9650,
+      "sha256": "da366886b6124637e22dc73f675da40bb24a2efe5a1dc2814c7686daa2d6a00c"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/final03-commit-command/RECEIPT.json",
+      "bytes": 2962,
+      "sha256": "cb2b0334093b59765068f69ffeffa878e8462357cb500b485fcf4abccfbf5c3b"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/strict-native-observation-repair/before.json",
+      "bytes": 268,
+      "sha256": "5344db0340f459c94a3eb234a7e32ea5fbc8577cb0335f6fce36191095629632"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/strict-native-observation-repair/after.json",
+      "bytes": 9098,
+      "sha256": "988065c3250bfca1534f2ff9ef8fd5fec6720db6db62c24dbfc12eedd5faf1fe"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/strict-native-observation-repair/after-02.json",
+      "bytes": 9098,
+      "sha256": "563591f96085f967937abf5bdbed75694c029df4d2643e06034f09d8dfc65ff7"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/strict-native-observation-repair/README.md",
+      "bytes": 2492,
+      "sha256": "72ed625e6db74d3fb52a1e75106d7ec7550395a0dd89370c49d344427a6468d1"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/strict-native-observation-independent-review/REVIEW.json",
+      "bytes": 2115,
+      "sha256": "a130fb8c6e5bf777ed726cd3048f36bf430872d1e9386451c8bd9c94e33c83bc"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/strict-native-observation-independent-review/UNCHANGED-RUNTIME-AND-NATIVE-EVIDENCE.json",
+      "bytes": 7479,
+      "sha256": "7bb5f437ec199e4c703ec1a2da89632979fb6fd8a9c88776c6dcdf9125467904"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime/receipt.json",
+      "bytes": 82355,
+      "sha256": "54013f9053699f80317c8bd00aa7c324edd9653dea05e8210061e147657a2623"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey/receipt.json",
+      "bytes": 36295,
+      "sha256": "831a4c90f4652ca5dc1a8183bf17a0e203c8caf4baa4748236771a537cadca8c"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source/receipt.json",
+      "bytes": 21221,
+      "sha256": "8069ad18d7ac6b8f8b8de8d717c079476ca54416e90438271a7d3d1da9281f97"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/receipt.json",
+      "bytes": 21148,
+      "sha256": "d84dff4c8ff31f93fe05173c0ce3ff040c96bdac2b0cc34cc331bb0da097d0cf"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/CAPACITY-QUALIFICATION.json",
+      "bytes": 9849,
+      "sha256": "6918276e5ecf07b0ae7f28817d3af78cd4fa992dd9e98a14186995def9a6a664"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/receipt.json",
+      "bytes": 98657,
+      "sha256": "75901f5e2e1e6e734637de307453b75b1dbbc57176022fd5ebf142879d90607f"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/preregistration.json",
+      "bytes": 14784,
+      "sha256": "23c13477c0704059d76d44882fdcab5f491a3db05f9babdbe336a0c539eb9069"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/receipt.json",
+      "bytes": 91996,
+      "sha256": "6fb2e781f963e3be333379dc9653e818d2c50b31870e12a9d6928dab9c10a7b1"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/preregistration.json",
+      "bytes": 11668,
+      "sha256": "03a191e4414566312d782fa9222bde5ae0ffc8bbb26f75102725ab8d0b6b7649"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.json",
+      "bytes": 5215,
+      "sha256": "22f6f95d865a59dd69c71c164160af6d88b55d61c2a8dba8caabaf2dd8b55445"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.command.json",
+      "bytes": 1432,
+      "sha256": "00aba9464112d8cc7681c9a632323dcd2e5d483c07f49798078e1458211ba22c"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/receipt.json",
+      "bytes": 10527,
+      "sha256": "f49fa66a4d2da3652e40e51444bc604f3b8f85260e861113a5f97a709e3b03fa"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/assertions.json",
+      "bytes": 3889,
+      "sha256": "3c84ce77b5b6d7f5c5a29897665bc2c4d835b9ef841a3da493acfd3316674e2f"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/native-codex-container/FINAL02-COMMANDS.json",
+      "bytes": 1688,
+      "sha256": "89e4a969f7638f02dd91c9ae5147867cd351521c467a5cb5d0b782a84e2dafa5"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/native-codex-container/RESULT-FINAL02.md",
+      "bytes": 2285,
+      "sha256": "9b368281d8d69a3e7ab88340ee639d616b71611182341d811544ae90d748b0fc"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/native-codex-container/EVIDENCE-HASHES-FINAL02.json",
+      "bytes": 35300,
+      "sha256": "6369b81b8b9d78905393dad57e186c38bb7f7efb8a3f6f397161df9ab2370083"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/native-codex-container/INDEPENDENT-SPOTCHECK-FINAL02.json",
+      "bytes": 3245,
+      "sha256": "480da727bd18b36ff4bbd8bf434a3b3bc3d678b1ea960092b346ea461d62e690"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/commit-transition-provenance/RECEIPT.json",
+      "bytes": 2387,
+      "sha256": "7dd6ed7f3fa13f0c2c7f58c26bd73544e83c2b269d9c8aac3c9067f2dd1f9f06"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source/receipt.json",
+      "bytes": 82486,
+      "sha256": "2b2eba853cbc8dcff5c1a46990392aa300a6273d46e02f19531efe2089fcffea"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/change-security-review/final-289ee94/SECURITY-REVIEW.json",
+      "bytes": 65933,
+      "sha256": "49c952f80037e6b43c067c6c4d47d0d8b7d0f22cf647fad07c9f2871acda4d27"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/change-security-review/final-289ee94/ACCOUNTING-CLOSURE.json",
+      "bytes": 3600,
+      "sha256": "24245cb6f98f0b79c5dd0e5a7cb0563d6fe909f70f3765e0bc395fd14af4b058"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/failed-final02-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "bytes": 224158,
+      "sha256": "232d70a1c58a8c79ea0dcd03b2bfdfd9fb4e31224f0d8118ca4581c4bd29ea24"
+    }
+  ],
+  "pending_current_gates": [
+    "R3-FINAL03-STRICT",
+    "R3-FINAL03-REPRODUCIBILITY"
+  ],
+  "scope": "Completed receipts only. Reused observations retain original commit/artifact identity; complete failed-final02 ledger is hash-bound and embedded with all prior ledgers unchanged."
+}

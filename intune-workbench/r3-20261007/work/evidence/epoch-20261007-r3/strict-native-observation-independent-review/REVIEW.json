@@ -1,0 +1,21 @@
+{
+  "recorded_at": "2026-10-07T04:15:59.672418+00:00",
+  "status": "PASS_SCOPED_REVIEW",
+  "reviewer": "independent publication_audit lane",
+  "reviewed_test_sha256": "01fb4992680253a613bd81ee12e7ec355a9e19c2df4ab427305338ea49787cb5",
+  "reviewed_diff_sha256": "de2b4af434f4c710f7f8605ab05b8a53d29930c4c8f606837d967579ce061d3b",
+  "owner_focused_receipt_sha256": "563591f96085f967937abf5bdbed75694c029df4d2643e06034f09d8dfc65ff7",
+  "owner_focused_stderr_sha256": "13b96ed43ad62b23c6812e318f100b156de88f41891dfeb3b15c976596356e17",
+  "unchanged_runtime_proof_sha256": "7bb5f437ec199e4c703ec1a2da89632979fb6fd8a9c88776c6dcdf9125467904",
+  "findings": [
+    "Final02 sole strict failure was object identity between preexec wrapper and original guard, not failure to install the network guard.",
+    "Replacement invokes real original guard within forked child and writes proof only after it returns; distinct child PID is asserted.",
+    "Exact caller SIGINT handler and full mask including an unrelated SIGUSR1 mask are asserted before guard and again in parent after supervision.",
+    "Outer finally restores original handler and mask even if a regression assertion fails.",
+    "All existing environment, fixed trace value, Popen security controls, exact stdout and private-log-permission checks remain.",
+    "Additional exact argv, cwd, umask, stdin, stdout and stderr controls strengthen coverage.",
+    "All 41 runtime Python modules plus native smoke harness match final02 commit; six raw native init/schema/validate streams and bound receipts verify existing successful evidence."
+  ],
+  "scope": "Independent static/diff/raw-evidence review; the owner reran six focused tests successfully. This reviewer did not rerun product tests, native commands or containers. No source/test changes by reviewer.",
+  "qualification_carry_forward": "Final02 native/CLI/capacity evidence remains valid for unchanged runtime. Bind any final03 runtime package to exact cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515 bytes before carry-forward; new source strict completion remains separately required."
+}

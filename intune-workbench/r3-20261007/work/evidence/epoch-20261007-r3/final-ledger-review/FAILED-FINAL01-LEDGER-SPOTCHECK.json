@@ -1,0 +1,13 @@
+{
+  "status": "PASS_SCOPED_LEDGER_UPDATE",
+  "ledger_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/failed-final01-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+  "ledger_sha256": "f90764edde243bc03fef987a873fa61e697a265d0764235867e8b3ab052cbdad",
+  "row_count": 16,
+  "receipt_refs": 42,
+  "bad_refs": [],
+  "strict_status": "FAIL_PRESERVED",
+  "strict_scope": "Exact e8c581d source strict gate completed: 1,236 planned/run, 1,234 passed, one failure, one error, zero skips/expected failures/unexpected successes. Capture proxy regression referenced a removed test seam; scheduler SIGINT check observed a live R-state descendant after return. This candidate is not qualified. Both results and full logs are retained.",
+  "repro_status": "PASS_SCOPED",
+  "R2_preserved_exact": true,
+  "new_candidate_qualification_inferred": false
+}

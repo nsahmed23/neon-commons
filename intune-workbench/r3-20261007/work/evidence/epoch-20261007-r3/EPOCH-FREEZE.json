@@ -1,0 +1,92 @@
+{
+  "recorded_at": "2026-10-07T04:29:53.672033+00:00",
+  "status": "EPOCH_COORDINATOR_FREEZE_READY_FOR_TYPED_ARCHIVE",
+  "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "source": {
+    "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+    "files": 3088,
+    "listed_hashes": 3087,
+    "bytes": 16627882,
+    "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+  },
+  "runtime": {
+    "filename": "Intune_IaC_Plugin_0.8.0.zip",
+    "files": 130,
+    "listed_hashes": 129,
+    "bytes": 513895,
+    "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+  },
+  "strict": {
+    "schema_version": "1.0.0",
+    "verified_at": "2026-10-07T04:25:01.235121+00:00",
+    "tests": 1242,
+    "passed": 1242,
+    "planned": 1242,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "core_regressions_included": true,
+    "success": true,
+    "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+    "not_established": [
+      "Live Graph authenticity or service semantics",
+      "Provider-backed import/no-change plan",
+      "Full native Atmos runtime configuration parity",
+      "Native Windows/PowerShell behavior",
+      "Native host installation",
+      "CLM learned-model quality, calibration or latency"
+    ]
+  },
+  "laboratory": "Qualified only recorded exact-source and byte-equivalent application/runtime scopes.",
+  "platform": "Observed Linux native provider schema and Codex CLI lifecycle; remaining authentic service, skill invocation, other hosts and device gates open.",
+  "organizational_production_approval": false,
+  "references": [
+    {
+      "path": "CHECKPOINT-20261007-R3.md",
+      "bytes": 11051,
+      "sha256": "5bfb1566e96b0a4060d2594a3f13f6d48213585735b3d53d36a492fdc52c9e30"
+    },
+    {
+      "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "bytes": 310833,
+      "sha256": "7c1e5839c1c470199fd31f849b67730f7236c2a61e7375b1a6075e0e99f8b6a7"
+    },
+    {
+      "path": "docs/EXECUTION-SEQUENCE-20261007-R3.md",
+      "bytes": 8872,
+      "sha256": "f4b12242d05415ffd0b30b7203562a3666131ae413fc796b313171ffdf1bec3f"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/final03-ledger-review/final-03/REVIEW.json",
+      "bytes": 13049,
+      "sha256": "c68a3f4c2d2915e942fd1a1a519f06b808f09ec365fac571ffeb4368f896e7f6"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/QUALIFICATION.json",
+      "bytes": 17133,
+      "sha256": "bee571c5a89c8cae342fe09305c1986b606b468f9c9e37c01c9bcfea5ffe4983"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/artifact-binding.json",
+      "bytes": 1088,
+      "sha256": "7ac863bd989885dc03c8934ec4f7d64ad22b083607b3c6c4007539ca7d924f7e"
+    },
+    {
+      "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/REUSED-QUALIFICATION-EVIDENCE.json",
+      "bytes": 9650,
+      "sha256": "da366886b6124637e22dc73f675da40bb24a2efe5a1dc2814c7686daa2d6a00c"
+    }
+  ],
+  "all_agent_evidence_writers_reported_stopped": true,
+  "source_worktree_clean": true,
+  "entire_workspace_file_set_or_provenance_closure_claimed": false,
+  "preserved_gaps": [
+    "Historical three archive-absent temporary files and workspace restart/reappearance findings",
+    "Earlier c122 commit-command actor attribution",
+    "External implementation, platform and organization gates in current ledger"
+  ],
+  "review_copy_observation": "Root explicitly installed final canonical checkpoint/ledger/sequence while first reviewer read was in progress. Earlier mismatch is preserved as concurrent known work-document installation; final stable equality passed. No product source changed.",
+  "archive_rule": "Archive entire epoch including all failures, pending/recovered drafts, fixtures, binaries and literal symlinks. Do not write further epoch files after this receipt; transfer evidence lives outside the epoch."
+}

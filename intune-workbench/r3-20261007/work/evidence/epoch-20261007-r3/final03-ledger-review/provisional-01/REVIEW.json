@@ -1,0 +1,254 @@
+{
+  "recorded_at": "2026-10-07T04:21:42.229333+00:00",
+  "status": "PASS_PROVISIONAL_LEDGER_CONSISTENCY",
+  "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "inputs": {
+    "evidence/epoch-20261007-r3/final03-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json": {
+      "bytes": 307851,
+      "sha256": "59b948e995dc22015d9a1fbcb95c3d8f744608a4010ac68259b2126c84bde9ce"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/EVIDENCE-INDEX.json": {
+      "bytes": 7673,
+      "sha256": "c12e59115863d3896b7ce8b16b6ade42abf6c989119ee8c447bd89a2f1c6e32c"
+    },
+    "evidence/epoch-20261007-r3/failed-final02-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json": {
+      "bytes": 224158,
+      "sha256": "232d70a1c58a8c79ea0dcd03b2bfdfd9fb4e31224f0d8118ca4581c4bd29ea24"
+    },
+    "docs/CONTINUATION-ACCEPTANCE-20261005-R2.json": {
+      "bytes": 41029,
+      "sha256": "96e49529c7ae682f88f2f2c3d6af8b725bab8426eb592b51db861abcb7eeab4c"
+    },
+    "evidence/epoch-20261007-r3/failed-final01-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json": {
+      "bytes": 142640,
+      "sha256": "f90764edde243bc03fef987a873fa61e697a265d0764235867e8b3ab052cbdad"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/REUSED-QUALIFICATION-EVIDENCE.json": {
+      "bytes": 9650,
+      "sha256": "da366886b6124637e22dc73f675da40bb24a2efe5a1dc2814c7686daa2d6a00c"
+    },
+    "evidence/epoch-20261007-r3/independent-artifact-reuse-final03/receipt.json": {
+      "bytes": 111429,
+      "sha256": "bae40bed1f232afd1e24d6d3f131cfd82fc5325e9066cb39d9bdc7da0536ff62"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source/receipt.json": {
+      "bytes": 82486,
+      "sha256": "2b2eba853cbc8dcff5c1a46990392aa300a6273d46e02f19531efe2089fcffea"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/EXECUTION-SEQUENCE-20261007-R3.md": {
+      "bytes": 8164,
+      "sha256": "97610c7d2b9ce4409656d841619e3f194ef200e2b85311c0b862385e4e2a38ef"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/CHECKPOINT-20261007-R3.md": {
+      "bytes": 10714,
+      "sha256": "e33f93eda2d3ffceeb45e2b2eeda5d2507774c056656533fddbb9ec8a93ea68d"
+    }
+  },
+  "checks": [
+    {
+      "name": "exact_final03_authority",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "failed_final02_ledger_embedded_unchanged",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "R2_ledger_embedded_unchanged_and_hash_bound",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "nested_failed_final01_retained",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "exact_R2_1141_scope_untouched",
+      "passed": true,
+      "details": {
+        "schema_version": "1.0.0",
+        "verified_at": "2026-10-05T08:18:33.927175+00:00",
+        "tests": 1141,
+        "passed": 1141,
+        "planned": 1141,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expected_failures": 0,
+        "unexpected_successes": 0,
+        "core_regressions_included": true,
+        "success": true,
+        "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+        "not_established": [
+          "Live Graph authenticity or service semantics",
+          "Provider-backed import/no-change plan",
+          "Full native Atmos runtime configuration parity",
+          "Native Windows/PowerShell behavior",
+          "Native host installation",
+          "CLM learned-model quality, calibration or latency"
+        ]
+      }
+    },
+    {
+      "name": "14_rows_33_direct_refs_34_indexed_refs",
+      "passed": true,
+      "details": {
+        "direct_row_refs": 33,
+        "indexed_refs": 34,
+        "additional_index_ref": "Preserved failed-final02 ledger is the34th reference."
+      }
+    },
+    {
+      "name": "all_completed_indexed_refs_match_bytes",
+      "passed": true,
+      "details": {
+        "bad": []
+      }
+    },
+    {
+      "name": "all_row_refs_equal_indexed_refs",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "byte_equivalence_independently_qualified",
+      "passed": true,
+      "details": {
+        "independent_checks": 428,
+        "verified_refs": 284,
+        "not_dynamic_tests": true
+      }
+    },
+    {
+      "name": "actual_commit_only_reviewed_test_changed",
+      "passed": true,
+      "details": {
+        "git_changed": [
+          "plugin_tests/test_native_smoke_observation_epoch.py"
+        ],
+        "archive_changed": [
+          "SHA256SUMS",
+          "plugin_tests/test_native_smoke_observation_epoch.py"
+        ]
+      }
+    },
+    {
+      "name": "six_reused_scopes_keep_original_identities",
+      "passed": true,
+      "details": [
+        {
+          "id": "R3-FINAL03-REUSED-CONNECTED-RUNTIME",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-MAINTENANCE-GRADER",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-CAPTURE",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-CAPACITY",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-NATIVE-PROVIDER",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-NATIVE-CODEX",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        }
+      ]
+    },
+    {
+      "name": "fresh_source_journey_counts_match_raw",
+      "passed": true,
+      "details": {
+        "checks": 64,
+        "commands": 34,
+        "pty": 10
+      }
+    },
+    {
+      "name": "strict_and_repro_pending_without_completed_receipts",
+      "passed": true,
+      "details": {
+        "strict-suite/result.json": false,
+        "reproducibility.json": false,
+        "QUALIFICATION.json": false
+      }
+    },
+    {
+      "name": "nine_external_gates_and_missing_implementation_explicit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "open_c122_actor_gap_not_closed_by_new_commit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "historical_failures_discrepancies_and_replays_explicit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_CHECKPOINT-20261007-R3.md",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_EVIDENCE-INDEX.json",
+      "passed": true,
+      "details": null
+    }
+  ],
+  "pending_gates_at_review": {
+    "strict-suite/result.json": false,
+    "reproducibility.json": false,
+    "QUALIFICATION.json": false
+  },
+  "scope": "Read-only receipt/document/hash/commit-delta review. No source edits, product imports, test/native/CLI reruns, or new platform approval. Counts428/284 are independent artifact-review checks and refs, not strict tests.",
+  "followup": "Wait for actual final03 strict/repro/QUALIFICATION. Preserve this provisional receipt and append final review; never infer pass from reused runtime evidence.",
+  "documentation_note": "Native replay lists the recorded c122 commit explicitly. A future genuinely changed runtime must pass its own matching commit to the grader; preserved native observations must keep c122 identity."
+}

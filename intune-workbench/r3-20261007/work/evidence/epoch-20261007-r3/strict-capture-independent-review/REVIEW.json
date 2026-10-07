@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-10-07T03:53:28.667622+00:00",
+  "status": "PASS_SCOPED",
+  "reviewed_test_sha256": "e1d2581fb3beecd17a4e6653c3b9920cc8a9cdd6a0a564e5b23a0718f44e0129",
+  "product_transport_bytes_equal_failed_final01_commit": {
+    "intune_iac/capture.py": true,
+    "intune_iac/identity_binding.py": true
+  },
+  "preserved_original_strict_log_sha256": "9885d28158575ff9d76c6768c25362c421e33539d077c60cc215bc488403de77",
+  "independent_probe_receipt_sha256": "f4e3b5c9fd91c2b241654c830b2e66a7befad0290e15452e71d503bfb7139c85",
+  "finding": "Original strict failure patches removed capture.build_opener symbol; it is an obsolete test seam, not evidence of proxy routing. New test observes the actual network destination with a low-level no-network trap and includes a proxy-sensitive control. No product transport repair is needed.",
+  "review_conclusion": "Approved scoped regression repair: retains original security requirement (ambient proxies cannot change capture credential destination), asserts external route and controlled failure rather than constructor/handler layout; no product transport or HTTPConnection replacement. Independent probe reproduces same externally observable distinction.",
+  "limitations": [
+    "Route-selection and fail-closed before any network, TLS handshake or credential dispatch only.",
+    "Does not replace preserved actual TLS fixtures, complete strict suite, live Graph qualification, or organizational approval."
+  ]
+}

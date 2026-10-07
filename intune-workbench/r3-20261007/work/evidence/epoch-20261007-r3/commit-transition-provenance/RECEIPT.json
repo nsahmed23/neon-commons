@@ -1,0 +1,61 @@
+{
+  "status": "CONTENT_AND_PARENT_VERIFIED_COMMIT_COMMAND_ACTOR_NOT_ATTRIBUTED",
+  "commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+  "parent": "e8c581dcfbb4543609eebb2d48eacbadec026ee8",
+  "observed_commit_timestamp": "2026-10-07T03:57:03Z",
+  "observation": "Commit already existed when a later root explicit commit attempt returned nothing to commit. The commit message differs slightly from that attempted command. Maintenance and capture lanes report no Git mutations. This receipt does not infer the writer or cause (including possible command retry).",
+  "source_integrity": "All six changed files were reviewed; commit tree is clean and all 3087 source package payloads match this exact commit. Final qualification uses a fresh extraction bound to this commit. Actor attribution and byte/content integrity are distinct.",
+  "artifact_binding_sha256": "7fb573b998f4e323663b0ad57b59440e302f5a43ff8e96fc9eaa31b586614d28",
+  "source_or_archive_bytes_changed_by_investigation": false,
+  "historical_three_file_discrepancy_closed": false,
+  "commands": [
+    {
+      "name": "commit-object",
+      "argv": [
+        "git",
+        "cat-file",
+        "commit",
+        "c122e38e33641336bc5af47b9dbf06eb0e58bc32"
+      ],
+      "exit_code": 0,
+      "file": "commit-object.txt",
+      "sha256": "8e405b653d45d8595b42f3ea53f341611dcd6757465ae6ab675fac1bde850cca"
+    },
+    {
+      "name": "reflog",
+      "argv": [
+        "git",
+        "reflog",
+        "-3",
+        "--date=iso-strict"
+      ],
+      "exit_code": 0,
+      "file": "reflog.txt",
+      "sha256": "8d85ef8abedba89ae66c918402094cf8d3cad15f35cfca37a497062174353be0"
+    },
+    {
+      "name": "reviewed-delta",
+      "argv": [
+        "git",
+        "diff",
+        "e8c581dcfbb4543609eebb2d48eacbadec026ee8",
+        "c122e38e33641336bc5af47b9dbf06eb0e58bc32"
+      ],
+      "exit_code": 0,
+      "file": "reviewed-delta.txt",
+      "sha256": "d158fec2e00198ea13b62d1436051348e3e9bbd39c12c6e7aec2e4695c1bbeda"
+    },
+    {
+      "name": "status",
+      "argv": [
+        "git",
+        "status",
+        "--porcelain"
+      ],
+      "exit_code": 0,
+      "file": "status.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "next_action": "Retain execution-system command audit if available; do not rewrite the commit or claim full workspace provenance closure."
+}

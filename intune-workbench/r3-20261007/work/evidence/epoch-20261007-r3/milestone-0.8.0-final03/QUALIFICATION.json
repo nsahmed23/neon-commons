@@ -1,0 +1,343 @@
+{
+  "candidate": {
+    "commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+    "source_payloads_match_git": true,
+    "excluded_git_metadata": {
+      "SHA256SUMS": "80ad114f36093cba18b866934d3224ab6007d39b"
+    },
+    "excluded_metadata_reason": "Historical preserved root manifest; release generates and independently verifies its own exact contents manifest.",
+    "source_payloads": 3087,
+    "source": {
+      "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+      "files": 3088,
+      "listed_hashes": 3087,
+      "bytes": 16627882,
+      "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+    },
+    "runtime": {
+      "filename": "Intune_IaC_Plugin_0.8.0.zip",
+      "files": 130,
+      "listed_hashes": 129,
+      "bytes": 513895,
+      "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+    },
+    "release": "/workspace/intune-continuation/work/releases/continuation-0.8.0-r3-final03",
+    "extracted_source": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+    "archive_and_extracted_file_maps_match": true
+  },
+  "commands": {
+    "connected-source": {
+      "command": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "scripts/qualify-workbench-connected.py",
+        "--plugin",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+        "--python",
+        "/workspace/intune-runtime/bin/python",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source"
+      ],
+      "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+      "started_at": "2026-10-07T04:17:14.505533+00:00",
+      "finished_at": "2026-10-07T04:17:37.054305+00:00",
+      "elapsed_seconds": 22.548791824000546,
+      "exit_code": 0,
+      "stdout": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stdout",
+        "sha256": "1dddec35416e477053afb44e9886c5ba090dfbbfaca2916dc4c73d1c5b612027"
+      },
+      "stderr": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+    },
+    "rebuild": {
+      "command": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "scripts/build-release.py",
+        "--output-dir",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/independent-rebuild"
+      ],
+      "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+      "started_at": "2026-10-07T04:17:37.054726+00:00",
+      "finished_at": "2026-10-07T04:17:39.074143+00:00",
+      "elapsed_seconds": 2.0194333570007075,
+      "exit_code": 0,
+      "stdout": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.stdout",
+        "sha256": "aed25681ca47ebc1693d4de9357bd6968c27ff94882937a21b1c2a3d261c1154"
+      },
+      "stderr": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+    },
+    "strict": {
+      "command": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "scripts/verify-plugin.py",
+        "--include-core",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite"
+      ],
+      "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+      "started_at": "2026-10-07T04:17:14.505289+00:00",
+      "finished_at": "2026-10-07T04:25:01.330144+00:00",
+      "elapsed_seconds": 466.8248827240004,
+      "exit_code": 0,
+      "stdout": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stdout",
+        "sha256": "4fd265797b091fd7fd6acf208293e3cf0c3c3698191991b6370442e7800ed533"
+      },
+      "stderr": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stderr",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+    }
+  },
+  "source_integrity": {
+    "source_unchanged": true,
+    "source_matches_archive": true,
+    "archives": [
+      {
+        "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+        "original_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+        "rebuilt_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+        "byte_identical": true
+      },
+      {
+        "filename": "Intune_IaC_Plugin_0.8.0.zip",
+        "original_sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+        "rebuilt_sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+        "byte_identical": true
+      }
+    ],
+    "runtime_unchanged": true,
+    "runtime_matches_archive": true
+  },
+  "strict": {
+    "schema_version": "1.0.0",
+    "verified_at": "2026-10-07T04:25:01.235121+00:00",
+    "tests": 1242,
+    "passed": 1242,
+    "planned": 1242,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "core_regressions_included": true,
+    "success": true,
+    "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+    "not_established": [
+      "Live Graph authenticity or service semantics",
+      "Provider-backed import/no-change plan",
+      "Full native Atmos runtime configuration parity",
+      "Native Windows/PowerShell behavior",
+      "Native host installation",
+      "CLM learned-model quality, calibration or latency"
+    ]
+  },
+  "new_connected_source_qualified": true,
+  "reused_scoped_evidence": {
+    "status": "PASS_BYTE_EQUIVALENT_SCOPE_REUSE",
+    "current_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+    "prior_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+    "current_source": {
+      "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+      "files": 3088,
+      "listed_hashes": 3087,
+      "bytes": 16627882,
+      "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+    },
+    "prior_source": {
+      "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+      "files": 3088,
+      "listed_hashes": 3087,
+      "bytes": 16627390,
+      "sha256": "c83ebc6ba21dae43c57268c6cff34e66592ebbafb53e30bc25274b0c97a31d02"
+    },
+    "runtime_archive_byte_identical": true,
+    "runtime": {
+      "filename": "Intune_IaC_Plugin_0.8.0.zip",
+      "files": 130,
+      "listed_hashes": 129,
+      "bytes": 513895,
+      "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+    },
+    "source_archive_changed_paths": [
+      "SHA256SUMS",
+      "plugin_tests/test_native_smoke_observation_epoch.py"
+    ],
+    "application_grader_fixture_and_harness_files_unchanged": true,
+    "prior_strict_failure_preserved": {
+      "schema_version": "1.0.0",
+      "verified_at": "2026-10-07T04:13:30.665779+00:00",
+      "tests": 1242,
+      "passed": 1241,
+      "planned": 1242,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "expected_failures": 0,
+      "unexpected_successes": 0,
+      "core_regressions_included": true,
+      "success": false,
+      "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+      "not_established": [
+        "Live Graph authenticity or service semantics",
+        "Provider-backed import/no-change plan",
+        "Full native Atmos runtime configuration parity",
+        "Native Windows/PowerShell behavior",
+        "Native host installation",
+        "CLM learned-model quality, calibration or latency"
+      ]
+    },
+    "prior_qualification_sha256": "e2169ab10098890807061f870269cb47bf8a507009947929961aa0ad89cb26d5",
+    "reused_commands_with_original_paths_and_hashes": {
+      "native": {
+        "command": [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "labs/production-lifecycle/native_smoke.py",
+          "--tofu",
+          "/workspace/intune-recovery/native-reprobe/tools/tofu",
+          "--provider",
+          "/workspace/intune-recovery/native-reprobe/tools/terraform-provider-microsoft365",
+          "--work",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-work",
+          "--receipt",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.json",
+          "--provider-trace"
+        ],
+        "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source",
+        "started_at": "2026-10-07T04:05:34.311967+00:00",
+        "finished_at": "2026-10-07T04:05:39.777865+00:00",
+        "elapsed_seconds": 5.465911958000106,
+        "exit_code": 0,
+        "stdout": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.stdout",
+          "sha256": "64cb16ad2e387d770bc2c4158e51695b52c588ad11696c7a51e6b1086b4f1edc"
+        },
+        "stderr": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+      },
+      "journey": {
+        "command": [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "scripts/qualify-workbench.py",
+          "--output",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey",
+          "--python",
+          "/workspace/intune-runtime/bin/python"
+        ],
+        "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source",
+        "started_at": "2026-10-07T04:05:34.312304+00:00",
+        "finished_at": "2026-10-07T04:05:40.692490+00:00",
+        "elapsed_seconds": 6.380203540999901,
+        "exit_code": 0,
+        "stdout": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey.stdout",
+          "sha256": "699fbe5de99f8f27e8d60eaf41033e3dd70ff86a0772babd8a6a0651058e4836"
+        },
+        "stderr": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+      },
+      "connected-runtime": {
+        "command": [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "scripts/qualify-workbench-connected.py",
+          "--plugin",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+          "--python",
+          "/workspace/intune-runtime/bin/python",
+          "--output",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime"
+        ],
+        "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source",
+        "started_at": "2026-10-07T04:05:40.692835+00:00",
+        "finished_at": "2026-10-07T04:06:03.270113+00:00",
+        "elapsed_seconds": 22.577295393999975,
+        "exit_code": 0,
+        "stdout": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime.stdout",
+          "sha256": "e491e5271e8591119008266467ce77c0f358e6b26cdd239b73a9e4b518a0cc16"
+        },
+        "stderr": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+      },
+      "capture-source": {
+        "command": [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/capture-retry/qualify_capture_retry.py",
+          "--project",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source",
+          "--output",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source"
+        ],
+        "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source",
+        "started_at": "2026-10-07T04:06:02.333740+00:00",
+        "finished_at": "2026-10-07T04:06:05.124726+00:00",
+        "elapsed_seconds": 2.790999026999998,
+        "exit_code": 0,
+        "stdout": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source.stdout",
+          "sha256": "26feeac231d5be2cf447c90945f43e447c24c3cf66aaa2f4936a53735adba485"
+        },
+        "stderr": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+      },
+      "capture-runtime": {
+        "command": [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/capture-retry/qualify_capture_retry.py",
+          "--project",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+          "--output",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime"
+        ],
+        "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source",
+        "started_at": "2026-10-07T04:06:03.270445+00:00",
+        "finished_at": "2026-10-07T04:06:05.911403+00:00",
+        "elapsed_seconds": 2.6409764209997775,
+        "exit_code": 0,
+        "stdout": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime.stdout",
+          "sha256": "26feeac231d5be2cf447c90945f43e447c24c3cf66aaa2f4936a53735adba485"
+        },
+        "stderr": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime.stderr",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+      }
+    },
+    "scope": "Only test and regenerated contents manifest changed. All product, checker, fixture and native harness bytes remain identical. Prior successful scoped commands retain their original source/archive identities; the failed strict result is not reused as a pass. Exact unchanged runtime native/capacity evidence remains applicable. New source strict, connected CLI/PTY and rebuild run separately."
+  },
+  "local_candidate_qualified": true,
+  "production_qualified": false,
+  "live_service_qualified": false,
+  "limits": "Exact final03 source strict/connected/rebuild; byte-identical runtime and unchanged application/harness scopes reuse identified final02 successful receipts. No missing live/platform/organizational gate is passed; historical failures and actor-attribution gap remain open."
+}

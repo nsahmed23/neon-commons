@@ -1,0 +1,130 @@
+{
+  "recorded_at": "2026-10-07T04:07:36.908424+00:00",
+  "status": "PASS_SCOPED",
+  "source_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+  "runtime_zip": "/workspace/intune-continuation/work/releases/continuation-0.8.0-r3-final02/Intune_IaC_Plugin_0.8.0.zip",
+  "runtime_zip_sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+  "runtime_files": 130,
+  "native_commands": 10,
+  "positive_native_commands": 9,
+  "negative_native_commands": 1,
+  "checks": [
+    {
+      "name": "exact_runtime_zip_matches_every_mounted_file",
+      "passed": true
+    },
+    {
+      "name": "exact_runtime_unchanged_after_native_lifecycle",
+      "passed": true
+    },
+    {
+      "name": "nine_expected_native_commands_exit_zero",
+      "passed": true
+    },
+    {
+      "name": "actual_codex_version_recorded",
+      "passed": true
+    },
+    {
+      "name": "new_local_marketplace_registered",
+      "passed": true
+    },
+    {
+      "name": "available_plugin_discovered_before_install",
+      "passed": true
+    },
+    {
+      "name": "unknown_local_plugin_rejected",
+      "passed": true
+    },
+    {
+      "name": "native_install_result_has_expected_identity_version_private_path",
+      "passed": true
+    },
+    {
+      "name": "native_list_observes_one_enabled_installed_plugin",
+      "passed": true
+    },
+    {
+      "name": "all_130_installed_cache_files_exactly_match_final_runtime",
+      "passed": true
+    },
+    {
+      "name": "operational_skill_bytes_installed_exactly_without_execution_claim",
+      "passed": true
+    },
+    {
+      "name": "native_private_configuration_records_local_source_and_enabled_plugin",
+      "passed": true
+    },
+    {
+      "name": "post_uninstall_native_list_empty",
+      "passed": true
+    },
+    {
+      "name": "cache_payloads_absent_after_uninstall",
+      "passed": true
+    },
+    {
+      "name": "native_marketplace_removed",
+      "passed": true
+    },
+    {
+      "name": "final_private_home_contains_only_empty_config",
+      "passed": true
+    },
+    {
+      "name": "no_credential_file_in_disposable_home_before_or_after_uninstall",
+      "passed": true
+    },
+    {
+      "name": "native_container_nonroot",
+      "passed": true
+    },
+    {
+      "name": "native_container_zero_capabilities",
+      "passed": true
+    },
+    {
+      "name": "native_container_no_new_privileges_and_seccomp",
+      "passed": true
+    },
+    {
+      "name": "native_container_network_none_only_loopback_no_route",
+      "passed": true
+    },
+    {
+      "name": "native_container_readonly_root_not_privileged_no_host_pid",
+      "passed": true
+    },
+    {
+      "name": "only_exact_source_binary_script_and_private_output_mounted",
+      "passed": true
+    },
+    {
+      "name": "private_home_tmpfs_with_nonroot_owner",
+      "passed": true
+    },
+    {
+      "name": "native_container_exited_zero_and_removed",
+      "passed": true
+    },
+    {
+      "name": "native_commands_are_only_version_and_plugin_lifecycle",
+      "passed": true
+    }
+  ],
+  "passed": 26,
+  "failed": 0,
+  "grader_sha256": "0b1e51b1c86feeb6b0bd90064b6da1e494b7abe05c355dcee3962cc129d76e8e",
+  "driver_sha256": "6f2f81f28d59b8ee41448614a0b89b1bbcf3e08a8613ca077d8bfd5775ae4e5b",
+  "native_receipt_sha256": "f49fa66a4d2da3652e40e51444bc604f3b8f85260e861113a5f97a709e3b03fa",
+  "scope": "Actual Linux Codex CLI local registration/discovery/install/list/uninstall of exact 0.8.0 runtime; independently compared installed cache and config. No skill invocation or model session.",
+  "remaining": [
+    "Authentic skill loading and model-triggered workflow",
+    "Claude host",
+    "Native Windows/macOS",
+    "Organizational AppSec and production approval"
+  ],
+  "independence": "Assertions use literal expected identity/transitions and raw JSON/tar/kernel/ZIP observations; grader imports no product code. This is not organizational external review."
+}

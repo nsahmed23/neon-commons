@@ -1,0 +1,381 @@
+{
+  "recorded_at": "2026-10-07T04:28:18.972245+00:00",
+  "status": "REQUIRES_RECONCILIATION",
+  "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "inputs": {
+    "evidence/epoch-20261007-r3/final03-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json": {
+      "bytes": 310833,
+      "sha256": "7c1e5839c1c470199fd31f849b67730f7236c2a61e7375b1a6075e0e99f8b6a7"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/EVIDENCE-INDEX.json": {
+      "bytes": 9325,
+      "sha256": "edb3e9a228fc826857bf9752182125ec4a2388ef480d61a7b28578a93fbb0b17"
+    },
+    "evidence/epoch-20261007-r3/failed-final02-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json": {
+      "bytes": 224158,
+      "sha256": "232d70a1c58a8c79ea0dcd03b2bfdfd9fb4e31224f0d8118ca4581c4bd29ea24"
+    },
+    "docs/CONTINUATION-ACCEPTANCE-20261005-R2.json": {
+      "bytes": 41029,
+      "sha256": "96e49529c7ae682f88f2f2c3d6af8b725bab8426eb592b51db861abcb7eeab4c"
+    },
+    "evidence/epoch-20261007-r3/failed-final01-reconciliation/CONTINUATION-ACCEPTANCE-20261007-R3.json": {
+      "bytes": 142640,
+      "sha256": "f90764edde243bc03fef987a873fa61e697a265d0764235867e8b3ab052cbdad"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/REUSED-QUALIFICATION-EVIDENCE.json": {
+      "bytes": 9650,
+      "sha256": "da366886b6124637e22dc73f675da40bb24a2efe5a1dc2814c7686daa2d6a00c"
+    },
+    "evidence/epoch-20261007-r3/independent-artifact-reuse-final03/receipt.json": {
+      "bytes": 111429,
+      "sha256": "bae40bed1f232afd1e24d6d3f131cfd82fc5325e9066cb39d9bdc7da0536ff62"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source/receipt.json": {
+      "bytes": 82486,
+      "sha256": "2b2eba853cbc8dcff5c1a46990392aa300a6273d46e02f19531efe2089fcffea"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite/result.json": {
+      "bytes": 759,
+      "sha256": "4fd265797b091fd7fd6acf208293e3cf0c3c3698191991b6370442e7800ed533"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/reproducibility.json": {
+      "bytes": 708,
+      "sha256": "239e8421603acd0edc63db8ced29d3e3f8493dc09a4cf67853a2d8f57fa10374"
+    },
+    "evidence/epoch-20261007-r3/milestone-0.8.0-final03/QUALIFICATION.json": {
+      "bytes": 17133,
+      "sha256": "bee571c5a89c8cae342fe09305c1986b606b468f9c9e37c01c9bcfea5ffe4983"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/pending-before-closure/RECOVERY.json": {
+      "bytes": 1956,
+      "sha256": "d1c2dbde42d05c020e2567987fa555bab9a396952444babeae08c12a465542af"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/EXECUTION-SEQUENCE-20261007-R3.md": {
+      "bytes": 8872,
+      "sha256": "f4b12242d05415ffd0b30b7203562a3666131ae413fc796b313171ffdf1bec3f"
+    },
+    "evidence/epoch-20261007-r3/final03-reconciliation/CHECKPOINT-20261007-R3.md": {
+      "bytes": 11051,
+      "sha256": "5bfb1566e96b0a4060d2594a3f13f6d48213585735b3d53d36a492fdc52c9e30"
+    }
+  },
+  "checks": [
+    {
+      "name": "exact_final03_authority",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "failed_final02_ledger_embedded_unchanged",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "R2_ledger_embedded_unchanged_and_hash_bound",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "nested_failed_final01_retained",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "exact_R2_1141_scope_untouched",
+      "passed": true,
+      "details": {
+        "schema_version": "1.0.0",
+        "verified_at": "2026-10-05T08:18:33.927175+00:00",
+        "tests": 1141,
+        "passed": 1141,
+        "planned": 1141,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expected_failures": 0,
+        "unexpected_successes": 0,
+        "core_regressions_included": true,
+        "success": true,
+        "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+        "not_established": [
+          "Live Graph authenticity or service semantics",
+          "Provider-backed import/no-change plan",
+          "Full native Atmos runtime configuration parity",
+          "Native Windows/PowerShell behavior",
+          "Native host installation",
+          "CLM learned-model quality, calibration or latency"
+        ]
+      }
+    },
+    {
+      "name": "14_rows_and_complete_indexed_refs",
+      "passed": true,
+      "details": {
+        "rows": 14,
+        "direct_row_refs": 40,
+        "indexed_refs": 42,
+        "additional_index_refs": [
+          "Preserved failed-final02 ledger",
+          "Exact provisional-input recovery receipt"
+        ]
+      }
+    },
+    {
+      "name": "all_completed_indexed_refs_match_bytes",
+      "passed": true,
+      "details": {
+        "bad": []
+      }
+    },
+    {
+      "name": "all_row_refs_equal_indexed_refs",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "byte_equivalence_independently_qualified",
+      "passed": true,
+      "details": {
+        "independent_checks": 428,
+        "verified_refs": 284,
+        "not_dynamic_tests": true
+      }
+    },
+    {
+      "name": "actual_commit_only_reviewed_test_changed",
+      "passed": true,
+      "details": {
+        "git_changed": [
+          "plugin_tests/test_native_smoke_observation_epoch.py"
+        ],
+        "archive_changed": [
+          "SHA256SUMS",
+          "plugin_tests/test_native_smoke_observation_epoch.py"
+        ]
+      }
+    },
+    {
+      "name": "six_reused_scopes_keep_original_identities",
+      "passed": true,
+      "details": [
+        {
+          "id": "R3-FINAL03-REUSED-CONNECTED-RUNTIME",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-MAINTENANCE-GRADER",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-CAPTURE",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-CAPACITY",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-NATIVE-PROVIDER",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        },
+        {
+          "id": "R3-FINAL03-REUSED-NATIVE-CODEX",
+          "original_revision_preserved": true,
+          "applicability_separate": true,
+          "original_evidence_objects_preserved": true,
+          "runtime_exact": true,
+          "reuse_hash": true
+        }
+      ]
+    },
+    {
+      "name": "fresh_source_journey_counts_match_raw",
+      "passed": true,
+      "details": {
+        "checks": 64,
+        "commands": 34,
+        "pty": 10
+      }
+    },
+    {
+      "name": "strict_and_repro_complete_with_receipts",
+      "passed": true,
+      "details": {
+        "strict-suite/result.json": true,
+        "reproducibility.json": true,
+        "QUALIFICATION.json": true
+      }
+    },
+    {
+      "name": "actual_final_strict1242_zero_fail_error_skip",
+      "passed": true,
+      "details": {
+        "schema_version": "1.0.0",
+        "verified_at": "2026-10-07T04:25:01.235121+00:00",
+        "tests": 1242,
+        "passed": 1242,
+        "planned": 1242,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expected_failures": 0,
+        "unexpected_successes": 0,
+        "core_regressions_included": true,
+        "success": true,
+        "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+        "not_established": [
+          "Live Graph authenticity or service semantics",
+          "Provider-backed import/no-change plan",
+          "Full native Atmos runtime configuration parity",
+          "Native Windows/PowerShell behavior",
+          "Native host installation",
+          "CLM learned-model quality, calibration or latency"
+        ]
+      }
+    },
+    {
+      "name": "exact_final_qualification_local_only",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "completed_repro_exact_archives_and_source_maps",
+      "passed": true,
+      "details": {
+        "source_unchanged": true,
+        "source_matches_archive": true,
+        "archives": [
+          {
+            "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+            "original_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+            "rebuilt_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+            "byte_identical": true
+          },
+          {
+            "filename": "Intune_IaC_Plugin_0.8.0.zip",
+            "original_sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+            "rebuilt_sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+            "byte_identical": true
+          }
+        ],
+        "runtime_unchanged": true,
+        "runtime_matches_archive": true
+      }
+    },
+    {
+      "name": "no_pending_current_local_gates",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "nine_external_gates_and_missing_implementation_explicit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "open_c122_actor_gap_not_closed_by_new_commit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "historical_failures_discrepancies_and_replays_explicit",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "all_four_pending_inputs_preserved_exactly",
+      "passed": true,
+      "details": [
+        {
+          "name": "CONTINUATION-ACCEPTANCE-20261007-R3.json",
+          "recorded_hash_matches": true,
+          "recorded_size_matches": true,
+          "equals_actual_provisional_copy": true
+        },
+        {
+          "name": "CHECKPOINT-20261007-R3.md",
+          "recorded_hash_matches": true,
+          "recorded_size_matches": true,
+          "equals_actual_provisional_copy": true
+        },
+        {
+          "name": "EXECUTION-SEQUENCE-20261007-R3.md",
+          "recorded_hash_matches": true,
+          "recorded_size_matches": true,
+          "equals_actual_provisional_copy": true
+        },
+        {
+          "name": "EVIDENCE-INDEX.json",
+          "recorded_hash_matches": true,
+          "recorded_size_matches": true,
+          "equals_actual_provisional_copy": true
+        }
+      ]
+    },
+    {
+      "name": "installed_work_copy_matches_CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": false,
+      "details": null
+    },
+    {
+      "name": "installed_work_copy_matches_CHECKPOINT-20261007-R3.md",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "installed_work_copy_matches_EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_CHECKPOINT-20261007-R3.md",
+      "passed": true,
+      "details": null
+    },
+    {
+      "name": "draft_stable_EVIDENCE-INDEX.json",
+      "passed": true,
+      "details": null
+    }
+  ],
+  "completed_gates_present": {
+    "strict-suite/result.json": true,
+    "reproducibility.json": true,
+    "QUALIFICATION.json": true
+  },
+  "provisional_review_sha256": "8deb7fc1402497c8c69bcfd1f0b5e96ff137896d8c85f8ad83725dd03b084597",
+  "scope": "Read-only receipt/document/hash/commit-delta review. No source edits, product imports, test/native/CLI reruns, or new platform approval. Counts428/284 are independent artifact-review checks and refs, not strict tests.",
+  "followup": "No remaining local candidate receipt reconciliation blocker found. Preserve external implementation/platform/organizational gates and unresolved historical/provenance gaps. Publication/download qualification is separate.",
+  "documentation_note": "Native replay lists the recorded c122 commit explicitly. A future genuinely changed runtime must pass its own matching commit to the grader; preserved native observations must keep c122 identity."
+}

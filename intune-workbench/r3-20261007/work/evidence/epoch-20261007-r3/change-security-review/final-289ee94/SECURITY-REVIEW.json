@@ -1,0 +1,1510 @@
+{
+  "schema": "r3-security-change-review/3",
+  "stage": "final_frozen",
+  "baseline_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+  "head": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "inventory_stable": true,
+  "file_count": 40,
+  "accounted": [
+    {
+      "path": ".claude-plugin/plugin.json",
+      "sha256": "f362ad9aa95794dad3363e51e2460e754096c5a5953643a621075ef8ab94158f",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "strict_json_pass",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": ".codex-plugin/plugin.json",
+      "sha256": "7b4c3f932d99e7eeba049076fa41ab234d956e2f9c00878ad3cdb3968614a693",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "strict_json_pass",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "README.md",
+      "sha256": "913b38b1e30101d7290e0a4ae050fd6aff6a4e9a065b5ad7d41da6661e47a2fd",
+      "disposition": "modified",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "RELEASE-VERIFICATION.md",
+      "sha256": "20a2b43e2ea1218018f4c199e62e75823eb4c1709334ec1d5e0ab1a63057df9b",
+      "disposition": "modified",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "corrections/contracts/vendor-documentation.json",
+      "sha256": "c758641e932f85014e5ec3451073828ad0f04a20fb850196ae6bb1b0f699bcd8",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "strict_json_pass",
+      "security_workstreams": [
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-06",
+        "TERM-07",
+        "TERM-12"
+      ],
+      "evidence_refs": [
+        "vendor_review",
+        "vendor_cli",
+        "connected",
+        "capacity_unit",
+        "capacity_parity"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "docs/CONTINUATION-R3.md",
+      "sha256": "c9675b6a24083172d9fabae7c925053155da293be53c75961194742806c5a11d",
+      "disposition": "added",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "docs/EXTERNAL-QUALIFICATION-R3.md",
+      "sha256": "500015949866ffaab841a235000c75d641a1b08c7b9a9207b8a4dcc64256295b",
+      "disposition": "added",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "docs/HOSTS.md",
+      "sha256": "414a9edb1dfd3eaa2e46e7c9a0440cfe69e48d6fbad67b8faa58d96a95e13396",
+      "disposition": "modified",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "docs/VENDOR-REFERENCE-LINEAGE.md",
+      "sha256": "b5b39bce94a494a7e1bc33e82fa579f93ca0ec9ea8b087c184d63f978e642b40",
+      "disposition": "added",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "docs/WORKBENCH.md",
+      "sha256": "f48dfedebfc176504535b99578960c6c9385b82352476d75602fe256c82fd4c8",
+      "disposition": "modified",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/__init__.py",
+      "sha256": "679a20dc27e66ccd23eb3f3b6f340d8dd931b0ffd375c30f20159d371bdc9044",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/capture.py",
+      "sha256": "0791f19c5dde8943dbd98878e72df2a7886c360f8cfdfcf6d9cec1613e3ce0d2",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-09",
+        "TERM-12",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "retry_independent",
+        "capture_cli",
+        "capture_unit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/capture_adapter.py",
+      "sha256": "659b7b3f2a70458b04245a9a59c7c707eff05a13108021a263a5aa4d52c8bf74",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-09",
+        "TERM-12",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "retry_independent",
+        "capture_cli",
+        "capture_unit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/cli.py",
+      "sha256": "cd5dca9f543e2db412221262ab157b4f1c43fcbdc6f09bfe3a4744da65f961e3",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-09",
+        "TERM-12",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "retry_independent",
+        "capture_cli",
+        "capture_unit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/maintenance.py",
+      "sha256": "dc842e9c04b25b4cb8dc34afce10766e565f683e9a89af75931b03ce278e07f7",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "visibility",
+        "workspace",
+        "connected"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/modeled_service.py",
+      "sha256": "a50ab8897fc5156f02efe2606714e2642a6a5e38119091feb07c864ca055e3de",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "visibility",
+        "workspace",
+        "connected"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "sha256": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-09",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "preserved_final01_strict",
+        "spawn_original_before",
+        "spawn_deterministic_before",
+        "spawn_mask_only_after",
+        "spawn_mask_only_thread_failure",
+        "final_spawn_evidence_1",
+        "final_spawn_evidence_2"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/provider_execution.py",
+      "sha256": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-09",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "preserved_final01_strict",
+        "spawn_original_before",
+        "spawn_deterministic_before",
+        "spawn_mask_only_after",
+        "spawn_mask_only_thread_failure",
+        "final_spawn_evidence_1",
+        "final_spawn_evidence_2"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/workbench.py",
+      "sha256": "72a2df4b1277bdf0a8dfb1a2e42ab9b66320eb33175a86ba53656bad773eeea0",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-07",
+        "TERM-10",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "adoption_independent",
+        "connected",
+        "vendor_cli",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/workbench_adoption.py",
+      "sha256": "f54f120c989410ac0aa20f5e28994a2dd58d0083c1b73eec19408c656f6999ee",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-07",
+        "TERM-10",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "adoption_independent",
+        "connected",
+        "vendor_cli",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/workbench_provenance.py",
+      "sha256": "827e07e7740fc0b01c68c7789b320faf2e43125dbeb33e81f968ceb524683056",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-06",
+        "TERM-07",
+        "TERM-12"
+      ],
+      "evidence_refs": [
+        "vendor_review",
+        "vendor_cli",
+        "connected",
+        "capacity_unit",
+        "capacity_parity"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "intune_iac/workbench_store.py",
+      "sha256": "0004319abe8fc9c2539ceb0cabca7e9f53734cfc87d7a2315e77efc95fbd9c76",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-07",
+        "TERM-10",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "adoption_independent",
+        "connected",
+        "vendor_cli",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin.json",
+      "sha256": "ea35542fbb9387ad51e07d638f7906fed58c94ecd904ae87431b9f966c6cb135",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "strict_json_pass",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_capture.py",
+      "sha256": "066ced019df4408bf462112a61cc5758fe5b9ef93ae7b499e858ab9e049d9ffc",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-09",
+        "TERM-12",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "retry_independent",
+        "capture_cli",
+        "capture_unit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_capture_retry.py",
+      "sha256": "4198457eb879cad6b8cc7e2d53bc56ade1edfee3eddae79e0efbe933b8d92e32",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-09",
+        "TERM-12",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "retry_independent",
+        "capture_cli",
+        "capture_unit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_native_smoke_observation_epoch.py",
+      "sha256": "01fb4992680253a613bd81ee12e7ec355a9e19c2df4ab427305338ea49787cb5",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-09",
+        "TERM-12",
+        "TERM-13"
+      ],
+      "evidence_refs": [
+        "preserved_final02_strict",
+        "native_observation_before",
+        "native_observation_after",
+        "native_observation_independent",
+        "native_observation_runtime_identity",
+        "explicit_final03_commit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_process_cleanup.py",
+      "sha256": "103c8003881fb2030565fd70352fbd5880a6728d777d4f4ed80d8e0a5ba8a5b2",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-09",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "preserved_final01_strict",
+        "spawn_original_before",
+        "spawn_deterministic_before",
+        "spawn_mask_only_after",
+        "spawn_mask_only_thread_failure",
+        "final_spawn_evidence_1",
+        "final_spawn_evidence_2"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_security_boundaries_completion.py",
+      "sha256": "e1d2581fb3beecd17a4e6653c3b9920cc8a9cdd6a0a564e5b23a0718f44e0129",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S06"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-12",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "proxy_test_before",
+        "proxy_test_after",
+        "proxy_test_independent"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_visibility_recovery.py",
+      "sha256": "51ad8f1a06f72af65fd72b350d5e5478c3a9ddbc34288f16aef25c8db07510f9",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S03",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "visibility",
+        "workspace",
+        "connected"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_workbench_adoption.py",
+      "sha256": "fc7ed59829e4e1379736317ab21483b9acca27a212d9d812d983091cf3a1e0e5",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-07",
+        "TERM-10",
+        "TERM-14",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "adoption_independent",
+        "connected",
+        "vendor_cli",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_workbench_capacity.py",
+      "sha256": "82df61969e6f23f026e53c45608113168c9daebd8f28059bebdc44d933f52263",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-15"
+      ],
+      "evidence_refs": [
+        "capacity_before",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_workbench_dictionary_capacity.py",
+      "sha256": "a68c288cf35fd6b35dac4b803f13c124e35899c9214ec9ff977c899d189e04ee",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-15"
+      ],
+      "evidence_refs": [
+        "capacity_before",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_workbench_paging.py",
+      "sha256": "b7ff21c0e6007c809200dedb7fec6f42ef39039711427355d17cd93199bff0da",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-15"
+      ],
+      "evidence_refs": [
+        "capacity_before",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_workbench_retry_review.py",
+      "sha256": "2e62be7f069c9165ebc5f395d7c9d3a7dba25ce9957912053e0635e430bac14a",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-08",
+        "TERM-09",
+        "TERM-12",
+        "TERM-13",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "retry_independent",
+        "capture_cli",
+        "capture_unit"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "plugin_tests/test_workbench_vendor_lineage.py",
+      "sha256": "08cdaee12075ee295efb39dc078f396b780067a9bfcc60bce0216f38f212869c",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-06",
+        "TERM-07",
+        "TERM-12"
+      ],
+      "evidence_refs": [
+        "vendor_review",
+        "vendor_cli",
+        "connected",
+        "capacity_unit",
+        "capacity_parity"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "release-source-files.txt",
+      "sha256": "7aa282e6893fd28db09660af35fa380451d74a6136add0e01055f126b30a8ed4",
+      "disposition": "modified",
+      "scanner": "not_scanned_by_bundled_rules",
+      "syntax": "utf8_pass_not_semantic_validation",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "scripts/build-release.py",
+      "sha256": "1ff2243b30e19faa010b30821c4399fbba6f337f6d4b5236f7a8a6eebbdde2b3",
+      "disposition": "modified",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S05",
+        "S08"
+      ],
+      "scenarios": [],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "scripts/qualify-workbench-capacity.py",
+      "sha256": "5cd496f647b29c8b28b1832340242ca2b007d16f05d7639e9eeed600e2aeb058",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-04",
+        "TERM-06",
+        "TERM-10",
+        "TERM-13",
+        "TERM-14",
+        "TERM-15"
+      ],
+      "evidence_refs": [
+        "capacity_before",
+        "capacity_unit",
+        "capacity_parity",
+        "capacity_cli_development"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "scripts/qualify-workbench-connected.py",
+      "sha256": "748d773498fd088b481dce4c2ea23d5bec93277405ed92530fa8b8dcfc8aced6",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S02",
+        "S03",
+        "S04",
+        "S06",
+        "S07"
+      ],
+      "scenarios": [
+        "TERM-03",
+        "TERM-07",
+        "TERM-09",
+        "TERM-10",
+        "TERM-12",
+        "TERM-13",
+        "TERM-14",
+        "TERM-15",
+        "TERM-16"
+      ],
+      "evidence_refs": [
+        "connected"
+      ],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    },
+    {
+      "path": "scripts/qualify-workbench-performance.py",
+      "sha256": "fc9be268a59742c29609002ee15ded031b4096dbc4c1d174db31b4b941b70972",
+      "disposition": "added",
+      "scanner": "included",
+      "syntax": "python_ast",
+      "security_workstreams": [
+        "S03",
+        "S06"
+      ],
+      "scenarios": [
+        "TERM-13",
+        "TERM-15"
+      ],
+      "evidence_refs": [],
+      "qualification_limit": "Every linked run retains its own source and host scope, including failing/intermediate candidates. Final artifact execution is a separate gate."
+    }
+  ],
+  "evidence_refs": {
+    "retry_independent": {
+      "path": "retry-independent-review/REVIEW.json",
+      "exists": true,
+      "sha256": "301f6115ec5f95292dc4457085fbe7aae68d4e5cc35a4adcae67324565853124"
+    },
+    "capture_cli": {
+      "path": "capture-retry/cli-02/receipt.json",
+      "exists": true,
+      "sha256": "5e84d26b1da3cece5bda2992448805242423be2f31f380dc2322b8418fc6f5ed"
+    },
+    "capture_unit": {
+      "path": "capture-retry/after-03.json",
+      "exists": true,
+      "sha256": "0f82d33827e04c8f813a645657274cb894b1b5c0b9b47c6977b46af6e4bb0993"
+    },
+    "visibility": {
+      "path": "visibility-recovery/QUALIFICATION.json",
+      "exists": true,
+      "sha256": "6af282e66e546f2e751397fdeca36007ed44fdab7c5dd6036bb9771cce54f4a3"
+    },
+    "workspace": {
+      "path": "visibility-recovery/workspace-restart-review.json",
+      "exists": true,
+      "sha256": "dcd01b8ec7537dbc1d4d080cbe767034751a26db49c0360c555cac9f225609ab"
+    },
+    "adoption_independent": {
+      "path": "independent-adoption-review/after-02/receipt.json",
+      "exists": true,
+      "sha256": "2ab52a83a03357d6bb8692604bddf69c09f29864ae4afe1e6b38fcb9cb0c559d"
+    },
+    "vendor_review": {
+      "path": "vendor-reference/review-repair-receipt.json",
+      "exists": true,
+      "sha256": "9dd17471e0d73f48d16ad7901f8642dbcdbccc7e943aa1db94fdc04f78da25a9"
+    },
+    "vendor_cli": {
+      "path": "vendor-reference/cli-after-review/receipt.json",
+      "exists": true,
+      "sha256": "001f460888a6619387c56787bcca56472565e510656ba7af7f39d94aee5aa211"
+    },
+    "connected": {
+      "path": "connected-journey/development-05/receipt.json",
+      "exists": true,
+      "sha256": "7528a73d7bc91b903665d9092e2d4d3c27d54f81bd3356a095d4be089aa3d0b4"
+    },
+    "capacity_before": {
+      "path": "capacity-repair-review/before/receipt.json",
+      "exists": true,
+      "sha256": "a9cb69c24c99f98b07b8a45496287df1cb698b0e1aa318a90ca16e3696cdaca8"
+    },
+    "capacity_unit": {
+      "path": "capacity-repair/QUALIFICATION.json",
+      "exists": true,
+      "sha256": "8fcb1cede6ff68c444a78aae69eec2720a9d0e99278045ef98ce2223dd603f79"
+    },
+    "capacity_parity": {
+      "path": "capacity-repair/parity-01/receipt.json",
+      "exists": true,
+      "sha256": "5d17010bfebb291360b73877fcfe4a5f820410abdf8e240b24332722f5185259"
+    },
+    "capacity_cli_development": {
+      "path": "capacity-repair-review/development-01/receipt.json",
+      "exists": true,
+      "sha256": "7bb44e23ec8633e0e5a23d237d1ee98458a9c21ffd9d28ed9a84eab3709a6ab9"
+    },
+    "preserved_final01_strict": {
+      "path": "milestone-0.8.0-final01/strict-suite/result.json",
+      "exists": true,
+      "sha256": "c77c1fb7d81f3994a0454f52edee9619848aa63d38105e844b870aff9030b414"
+    },
+    "spawn_original_before": {
+      "path": "strict-scheduler-repair/before-original.json",
+      "exists": true,
+      "sha256": "aa38f990692e42cfc87c18f7061fc39e48647ed95874bd91f8a89471b30508a1"
+    },
+    "spawn_deterministic_before": {
+      "path": "strict-scheduler-repair/before-deterministic.json",
+      "exists": true,
+      "sha256": "754fd17353333536ee2984cf4ca68836617df97a98b33eafa8c2d6bc26af0320"
+    },
+    "spawn_mask_only_after": {
+      "path": "strict-scheduler-repair/after-focused.json",
+      "exists": true,
+      "sha256": "bc13cf8cbf2347575d0807a52ea5a093dd6cc90273d329c5fa8fa782e6e0918c"
+    },
+    "spawn_mask_only_thread_failure": {
+      "path": "strict-scheduler-independent-review/background-after-01/receipt.json",
+      "exists": true,
+      "sha256": "dff0c80fa46dab8c488ea8e4ffdcb02e9f5f618259c1cec84181f3d89e4f181c"
+    },
+    "proxy_test_before": {
+      "path": "strict-capture-proxy-repair/before.json",
+      "exists": true,
+      "sha256": "a639839c4af9b83253d672ecc54e885685c6466cbef3ba01686d1edb2d5a2142"
+    },
+    "proxy_test_after": {
+      "path": "strict-capture-proxy-repair/after.json",
+      "exists": true,
+      "sha256": "5185ae20017ba0b7f6a1d63223ad76b4cc7deb1c77a8307cb96ef50edc82c57a"
+    },
+    "proxy_test_independent": {
+      "path": "strict-capture-independent-review/REVIEW.json",
+      "exists": true,
+      "sha256": "3ebe81e1259b4ea28232a3f5c2c16d39d56a3f9e39d5912e66f62e4ec74c1cb4"
+    },
+    "native_codex_first_candidate": {
+      "path": "native-codex-container/final-runtime-01/assertions.json",
+      "exists": true,
+      "sha256": "5c60637c91e4c060b82924f8ae9b04443f18695cb897c86ec3f390d5da2f7546"
+    },
+    "capacity_first_candidate": {
+      "path": "milestone-0.8.0-final01/CAPACITY-QUALIFICATION.json",
+      "exists": true,
+      "sha256": "c44cedd9080134b311b32e433d8430f81971b2344d5ec3cd354c90eb49835c49"
+    },
+    "preserved_c122_review": {
+      "path": "change-security-review/final-c122e38/SECURITY-REVIEW.json",
+      "exists": true,
+      "sha256": "47ddffb241f20faa47b0f30ea344aed9ae603e2ae8a05932f7e445e31c095854"
+    },
+    "preserved_final02_strict": {
+      "path": "milestone-0.8.0-final02/strict-suite/result.json",
+      "exists": true,
+      "sha256": "6d8069f666abf6f8aed776af32c1adcd4947c3448b69db1a9080a2c5a925bb9a"
+    },
+    "native_observation_before": {
+      "path": "strict-native-observation-repair/before.json",
+      "exists": true,
+      "sha256": "5344db0340f459c94a3eb234a7e32ea5fbc8577cb0335f6fce36191095629632"
+    },
+    "native_observation_after": {
+      "path": "strict-native-observation-repair/after-02.json",
+      "exists": true,
+      "sha256": "563591f96085f967937abf5bdbed75694c029df4d2643e06034f09d8dfc65ff7"
+    },
+    "native_observation_independent": {
+      "path": "strict-native-observation-independent-review/REVIEW.json",
+      "exists": true,
+      "sha256": "a130fb8c6e5bf777ed726cd3048f36bf430872d1e9386451c8bd9c94e33c83bc"
+    },
+    "native_observation_runtime_identity": {
+      "path": "strict-native-observation-independent-review/UNCHANGED-RUNTIME-AND-NATIVE-EVIDENCE.json",
+      "exists": true,
+      "sha256": "7bb5f437ec199e4c703ec1a2da89632979fb6fd8a9c88776c6dcdf9125467904"
+    },
+    "native_codex_final02": {
+      "path": "native-codex-container/final-runtime-02/assertions.json",
+      "exists": true,
+      "sha256": "3c84ce77b5b6d7f5c5a29897665bc2c4d835b9ef841a3da493acfd3316674e2f"
+    },
+    "explicit_final03_commit": {
+      "path": "final03-commit-command/RECEIPT.json",
+      "exists": true,
+      "sha256": "cb2b0334093b59765068f69ffeffa878e8462357cb500b485fcf4abccfbf5c3b"
+    },
+    "final_spawn_evidence_1": {
+      "path": "strict-scheduler-independent-review/REVIEW.json",
+      "exists": true,
+      "sha256": "892a605f7305584998ab06de690871d3c5092dbb2c9b43493378080cbd599afa"
+    },
+    "final_spawn_evidence_2": {
+      "path": "strict-scheduler-repair/after-focused-02.json",
+      "exists": true,
+      "sha256": "545306440b600ae5c58b6d96b378c9197ad46d121bc01ed06649dfeedd245c3b"
+    }
+  },
+  "raw_ast_candidate_count": 11,
+  "candidate_triage": [
+    {
+      "path": "intune_iac/protected.py",
+      "line": 530,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "        guard,release_guard=_network_filter()\n        with _defer_spawn_interrupt(guard) as child_guard:\n            process=subprocess.Popen(argv,cwd=cwd,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,\n                                     shell=False,close_fds=True,pass_fds=pass_fds,start_new_session=True,executable=executable,preexec_fn=child_guard)\n        for pipe in (process.stdout,process.stderr):\n            os.set_blocking(pipe.fileno(),False);selector.register(pipe,selectors.EVENT_READ)\n        deadline=time.monotonic()+timeout\n        while selector.get_map():\n            remaining=deadline-time.monotonic()\n            if remaining<=0: _fail('process_timeout')",
+      "product_runtime_site": true,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Actual product subprocess boundary: private supervisor retains explicit argv, shell=False, close_fds, pinned executable/descriptor contract, new session and existing child guard. Ownership transfer and SIGINT delivery are newly changed and require the linked deterministic/background-thread/native scheduler evidence. Original child/session anchor, terminal-state census, output/deadline and guard mechanisms are separately compared. No source policy becomes executable code; this is cooperative Linux process supervision, not hostile-host or SIGKILL containment."
+    },
+    {
+      "path": "intune_iac/provider_execution.py",
+      "line": 689,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "        if active_check is not None: active_check()\n        with protected._defer_spawn_interrupt(guard) as child_guard:\n            process = subprocess.Popen(argv, cwd=cwd, env=env, executable=executable, pass_fds=pass_fds,\n                                       stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,\n                                       close_fds=True, shell=False, start_new_session=True, umask=0o077, preexec_fn=child_guard)\n        for pipe in (process.stdout, process.stderr):\n            os.set_blocking(pipe.fileno(), False); selector.register(pipe, selectors.EVENT_READ)\n        deadline = time.monotonic() + timeout\n        while selector.get_map():\n            if active_check is not None: active_check()",
+      "product_runtime_site": true,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Actual product subprocess boundary: private supervisor retains explicit argv, shell=False, close_fds, pinned executable/descriptor contract, new session and existing child guard. Ownership transfer and SIGINT delivery are newly changed and require the linked deterministic/background-thread/native scheduler evidence. Original child/session anchor, terminal-state census, output/deadline and guard mechanisms are separately compared. No source policy becomes executable code; this is cooperative Linux process supervision, not hostile-host or SIGKILL containment."
+    },
+    {
+      "path": "plugin_tests/test_security_boundaries_completion.py",
+      "line": 50,
+      "rule": "ambient_proxy_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "            with patch('socket.create_connection', side_effect=block_connection):\n                with self.assertRaises(urllib.error.URLError):\n                    urllib.request.build_opener().open(GRAPH_ROOT, timeout=2)\n        self.assertEqual(selected, [('attacker.invalid', 8080)])\n\n\nclass MCPAuthorityTests(unittest.TestCase):\n    def test_without_host_capability_no_local_read(self):\n        from intune_iac.mcp import call_tool\n        with tempfile.TemporaryDirectory() as td:",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "This urllib call is an explicit sensitivity control in the security regression test: with a hostile proxy environment it must select attacker:8080 and hit the no-network trap. The actual product _NativeTransport uses HTTPSConnection and selects graph.microsoft.com:443 in both clean and hostile proxy/CA environments. The independent route review and unchanged product hashes are linked; no live TLS or credential dispatch is claimed."
+    },
+    {
+      "path": "plugin_tests/test_workbench_adoption.py",
+      "line": 39,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "\n    def process(self, *args, input=None):\n        return subprocess.run([sys.executable, '-B', str(CLI), *map(str, args)], input=input,\n                              text=True, capture_output=True, cwd='/tmp', timeout=40,\n                              env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))\n\n    def call(self, *args):\n        result = self.process('workbench', *args)\n        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)\n        return json.loads(result.stdout)",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Evaluator subprocess site using fixture-owned argv and local bounded cases. Tests inspect actual process or native network route effects and retain failures. Test-owned monkeypatches are explicit fault-injection seams; they do not replace original process-state assertions or certify arbitrary-code isolation."
+    },
+    {
+      "path": "plugin_tests/test_workbench_paging.py",
+      "line": 30,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "\n    def process(self, *args, input=None):\n        return subprocess.run([sys.executable, '-B', str(CLI), 'workbench', *map(str, args)],\n                              input=input, text=True, capture_output=True, timeout=20,\n                              env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))\n\n    def call(self, *args):\n        result = self.process(*args)\n        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)\n        return json.loads(result.stdout)",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Evaluator subprocess site using fixture-owned argv and local bounded cases. Tests inspect actual process or native network route effects and retain failures. Test-owned monkeypatches are explicit fault-injection seams; they do not replace original process-state assertions or certify arbitrary-code isolation."
+    },
+    {
+      "path": "plugin_tests/test_workbench_vendor_lineage.py",
+      "line": 213,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "\n    def call(self, *args, input=None):\n        done = subprocess.run([sys.executable, '-B', str(CLI), 'workbench', *map(str, args)],\n            capture_output=True, text=True, input=input, timeout=30, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))\n        self.assertEqual(done.returncode, 0, done.stderr + done.stdout)\n        return done.stdout if input is not None else json.loads(done.stdout)\n\n    def test_real_cli_alias_facts_and_source_navigation(self):\n        result = self.call('dictionary', '--root', self.store, '--query', 'Let Windows apps access location')\n        self.assertEqual(result['entries'][0]['vendor_documentation'][0]['data_type'], 'int')",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Evaluator subprocess site using fixture-owned argv and local bounded cases. Tests inspect actual process or native network route effects and retain failures. Test-owned monkeypatches are explicit fault-injection seams; they do not replace original process-state assertions or certify arbitrary-code isolation."
+    },
+    {
+      "path": "scripts/qualify-workbench-capacity.py",
+      "line": 153,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "        settings=termios.tcgetattr(slave);settings[3]&=~termios.ECHO;termios.tcsetattr(slave,termios.TCSANOW,settings)\n        started=time.monotonic();sent=0;data=bytearray();deadline=started+30\n        child=subprocess.Popen(argv,stdin=slave,stdout=slave,stderr=slave,start_new_session=True,cwd=measurement.PROJECT,\n            env={'PATH':'/usr/bin:/bin','HOME':str(self.root),'LANG':'C.UTF-8','LC_ALL':'C.UTF-8','TERM':'xterm','PYTHONDONTWRITEBYTECODE':'1'})\n        os.close(slave);done=False;timed_out=False\n        try:\n            while not done:\n                if time.monotonic()>deadline or len(data)>8*1024*1024:\n                    timed_out=True;os.killpg(child.pid,signal.SIGKILL)\n                ready,_,_=select.select([master],[],[],.01)",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Independent capacity evaluator launches a fixed workbench CLI in an actual PTY with a minimal environment, selected interpreter, fresh process group, bounded deadline and output, and process-group termination on timeout. It copies the preserved actual-import fixture; additional denied/pending SQL fixture rows are explicitly synthetic. Its development run retained source drift as FAIL_PRESERVED despite passing functional assertions; final frozen qualification remains separate."
+    },
+    {
+      "path": "scripts/qualify-workbench-connected.py",
+      "line": 97,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "        index = len(self.results['commands']) + 1\n        started = time.time()\n        value = subprocess.run(argv, input=stdin, text=True, capture_output=True, cwd=PROJECT,\n            env={**os.environ, 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONPATH': str(PROJECT)}, timeout=timeout)\n        prefix = '%03d-command' % index\n        (self.root / (prefix + '.stdout')).write_text(value.stdout)\n        (self.root / (prefix + '.stderr')).write_text(value.stderr)\n        self.results['commands'].append({'argv': argv, 'stdin': stdin, 'returncode': value.returncode,\n            'stdout': prefix + '.stdout', 'stderr': prefix + '.stderr', 'seconds': time.time() - started})\n        self.save()",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Qualification helper uses evaluator-selected interpreter and fixed CLI/worker argv, never shell=True. CLI commands have deadlines; PTY additionally bounds output and retains interrupt/restore evidence. Ordinary subprocess output is fixture-bounded but not an arbitrary untrusted-program resource boundary. Same-user inherited environment is explicit."
+    },
+    {
+      "path": "scripts/qualify-workbench-connected.py",
+      "line": 126,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "        baseline = termios.tcgetattr(slave)\n        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 24, columns, 0, 0))\n        process = subprocess.Popen(argv, stdin=slave, stdout=slave, stderr=slave, cwd=PROJECT,\n            env={**os.environ, 'TERM': 'xterm', 'PYTHONDONTWRITEBYTECODE': '1'}, start_new_session=True)\n        output = bytearray(); sent = prompts_seen = 0; resized = False\n        started = time.time(); deadline = time.monotonic() + 120\n        log = '%03d-connected-pty.stdout' % (len(self.results['commands']) + 1)\n        restored = False\n        try:\n            while time.monotonic() < deadline:",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Qualification helper uses evaluator-selected interpreter and fixed CLI/worker argv, never shell=True. CLI commands have deadlines; PTY additionally bounds output and retains interrupt/restore evidence. Ordinary subprocess output is fixture-bounded but not an arbitrary untrusted-program resource boundary. Same-user inherited environment is explicit."
+    },
+    {
+      "path": "scripts/qualify-workbench-performance.py",
+      "line": 142,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "    def snapshot_processes(self, name):\n        # Do not record full argv or environment, which could contain credentials.\n        completed = subprocess.run(['ps', '-eo', 'pid,ppid,comm,pcpu,pmem'], capture_output=True, check=True)\n        (self.root/name).write_bytes(completed.stdout)\n\n    def save(self):\n        dump(self.root/'receipt.json', self.result)\n\n    def check(self, name, predicate):\n        self.result['checks'].append({'id': name, 'passed': bool(predicate)})",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Read-only process metadata snapshot excludes argv/environment. Executable ps is selected by the evaluator host PATH, not attacker-supplied policy data; pinning this diagnostic is not established. It is not a product execution boundary or authority check."
+    },
+    {
+      "path": "scripts/qualify-workbench-performance.py",
+      "line": 163,
+      "rule": "subprocess_boundary_review",
+      "severity": null,
+      "status": "candidate",
+      "source_excerpt": "        timed_out = False\n        with stdout.open('wb') as out, stderr.open('wb') as err:\n            child = subprocess.Popen(command, cwd=PROJECT, env=env, stdout=out, stderr=err, start_new_session=True)\n            while True:\n                waited, status, usage = os.wait4(child.pid, os.WNOHANG)\n                if waited:\n                    break\n                if time.monotonic()-started > 60:\n                    timed_out = True\n                    os.killpg(child.pid, signal.SIGKILL)",
+      "product_runtime_site": false,
+      "disposition": "REVIEWED_NOT_CONFIRMED_FINDING",
+      "reason": "Measurement launches a fixed workbench argv with explicit minimal environment, selected interpreter, fresh process group, 60-second deadline and process-group kill on timeout; stdout/stderr go to task-owned files. No policy text forms executable code. This controlled evaluator is not a hostile arbitrary-code sandbox."
+    }
+  ],
+  "unchanged_security_boundaries": [
+    {
+      "path": "intune_iac/identity_binding.py",
+      "baseline_sha256": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+      "current_sha256": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/approval_authority.py",
+      "baseline_sha256": "7770a65bf142491768cd74a10871e601ea0ffabeed1afbe21315e1d03fbe7c0e",
+      "current_sha256": "7770a65bf142491768cd74a10871e601ea0ffabeed1afbe21315e1d03fbe7c0e",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/blob_lease.py",
+      "baseline_sha256": "473827427b199f8af515787d5db1b5f75cc2dbcdaef4c35dedb99138503c7a57",
+      "current_sha256": "473827427b199f8af515787d5db1b5f75cc2dbcdaef4c35dedb99138503c7a57",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/repository.py",
+      "baseline_sha256": "a4850231a6709c56a3427fcb0ea88b8faa3229ed67b932ca96c763d787492b59",
+      "current_sha256": "a4850231a6709c56a3427fcb0ea88b8faa3229ed67b932ca96c763d787492b59",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/security-audit-local.py",
+      "baseline_sha256": "010c7c4d09ac070d4494686d75979c3032df316659501e1b363dcfcf24208858",
+      "current_sha256": "010c7c4d09ac070d4494686d75979c3032df316659501e1b363dcfcf24208858",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/qualify-change-coverage.py",
+      "baseline_sha256": "2ce2dc73a27a65ecf3f123945fff66f25772df9287724343ddfef563f1beed12",
+      "current_sha256": "2ce2dc73a27a65ecf3f123945fff66f25772df9287724343ddfef563f1beed12",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/qualify-terminal-security.py",
+      "baseline_sha256": "077855dc34da8ca75f1872626f09578b184a84451e657243c5d4646b35dffcfa",
+      "current_sha256": "077855dc34da8ca75f1872626f09578b184a84451e657243c5d4646b35dffcfa",
+      "unchanged": true
+    }
+  ],
+  "observed_repairs": [
+    {
+      "id": "R3-RETRY-CANCELLATION-PROVENANCE",
+      "receipt": "retry_independent",
+      "scope": "Bidirectional cancelled evidence consistency; partial import never became execution authority."
+    },
+    {
+      "id": "R3-ADOPTION-RECONSTRUCTION",
+      "receipt": "adoption_independent",
+      "scope": "Completed handoff reconstructs exact artifacts, collection scope and saved observation, with held/symlink lock rejection."
+    },
+    {
+      "id": "R3-VENDOR-NAV-DATA",
+      "receipt": "vendor_review",
+      "scope": "Historical lineage remains reachable and typed malformed data fails safely."
+    },
+    {
+      "id": "R3-CAPACITY-SCOPED-READ",
+      "receipt": "capacity_unit",
+      "scope": "Actual oversized estate previously blocked exact inspection/search/startup. Exact reads now avoid full-estate response hydration; combined pages and global documented-field search preserve negative/pending freshness, byte limits, read-only bytes, Unicode and literal matching. Finite SQL-work and decoded-metadata budgets fail closed. Independent development drift failure is retained; frozen performance/CLI gates remain separate."
+    },
+    {
+      "id": "R3-NATIVE-OBSERVATION-TEST-GUARD-DELEGATION",
+      "receipt": "native_observation_independent",
+      "scope": "Final02 strict 1241/1242 sole failure asserted preexec callable object identity. New test executes the actual original guard in the forked child, proves exact caller handler/mask restoration, and preserves or strengthens argv, environment, descriptor, session, umask and private-log assertions. Six focused tests passed. Runtime code and native harness are byte-identical to qualified c122; no native commands are rerun by this review."
+    },
+    {
+      "id": "R3-STRICT-PROXY-TEST-SEAM",
+      "receipt": "proxy_test_independent",
+      "scope": "Legacy test patched removed urllib entrypoint and errored. Updated socket seam observes actual native HTTPSConnection route under hostile proxy/CA environment, with urllib sensitivity control. Product transport is unchanged; no successful Graph TLS claim."
+    },
+    {
+      "id": "R3-SPAWN-INTERRUPT-OWNERSHIP",
+      "receipt_keys": [
+        "final_spawn_evidence_1",
+        "final_spawn_evidence_2"
+      ],
+      "scope": "Actual SIGINT can arrive after child creation before supervisor reference assignment; earlier terminal-state cleanup proof cannot run without ownership. Mask-only first repair passed single-thread probes but independently failed with a benign unblocked background thread. Revised bounded callback plus mask deferral passed eight independent actual-signal cases bound to the final source; all prior stages remain preserved."
+    }
+  ],
+  "workstream_limits": {
+    "S01": "Capture uses existing fixed-origin HTTPS GET. Protected/provider child ownership acquisition and signal restoration changed; full launch arguments, guard and session controls remain separately accounted. No new shell hook or manifest grants authority.",
+    "S02": "No added product shell-eval or dynamic import of user policy/repository data. Harness subprocess candidates individually reviewed.",
+    "S03": "The original terminal-state cleanup and guard functions remain separately byte-compared. New SIGINT ownership transfer has deterministic real-signal and benign-thread negatives. No parent-SIGKILL containment or new bounded preexec-startup deadline is inferred. Resource/capacity tests retain their source scope.",
+    "S04": "CLI/PTY evidence covers safe controls, unknown paths and numeric retry progress. Native Windows/GitBash/PowerShell/macOS terminal proof remains external.",
+    "S05": "Every changed tracked/untracked candidate path is accounted against Git and copied bytes. Changed protected/provider boundaries are explicitly separated from unchanged identity, approval, lease, repository and security harness files. Scanner gaps remain explicit.",
+    "S06": "Durable evidence and negative reconstruction checked within cooperative same-user profile; no independent host-protected log anchor. SEC-GAP-WORKSPACE-RESTART remains unresolved despite current 896-write nonreproduction.",
+    "S07": "Existing connected wrong-approval, delayed-readback, stale/denied-observation and no-duplicate-mutation evidence is preserved. New spawn cleanup root-cause evidence is separate from old descendant census repairs; intermediate mask-only failure is retained.",
+    "S08": "Native Codex CLI install/discovery/uninstall was separately qualified against exact c122 final02 runtime. Final03 changes only a regression test; runtime carry-forward requires exact ZIP cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515 correspondence. Its model/skill invocation remains unrun. Final03 source strict completion remains a separate gate. Other native platforms, live service/device/backend and organizational approval remain separate."
+  },
+  "gaps": [
+    "Bounded AST triage only; INCONCLUSIVE status intentionally retained.",
+    "Non-Python JSON syntax checked separately, not a complete schema or supply-chain audit. Markdown/text receives byte/UTF8 and manual scope review, not code parsing.",
+    "No new dependency advisory refresh or proof of secret absence; dependencies unchanged in the observed delta.",
+    "No scanner hook, native editor interception or privileged host boundary qualified.",
+    "No authenticated Graph/native Intune lifecycle, real workflow/OIDC/Azure/device evidence or organizational approval inferred.",
+    "Historical unexplained original temporary files, stale locks/receipts and reappearance causes remain open.",
+    "Qualification helpers use evaluator-owned inputs and same-user filesystem; they cannot qualify a hostile agent against private oracles.",
+    "Per-thread masking alone did not protect main-thread Python signal dispatch in a multithreaded process; preserved intermediate failure must not be labelled final success.",
+    "SIGINT handling during Popen construction does not establish a deadline for stalled preexec/host operations or recovery after parent SIGKILL.",
+    "The explicit final03 commit-command receipt does not retrospectively establish the actor of the earlier c122 commit; that provenance gap remains open."
+  ],
+  "security_certified": false,
+  "production_approved": false,
+  "prior_review": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/change-security-review/final-e8c581d/SECURITY-REVIEW.json",
+    "sha256": "7be66397924e75f83ab162cc50cb2454f0f1004ca154881e859da4c5941bca15",
+    "scope": "Preserved e8c581d candidate; later strict failure retained."
+  },
+  "security_boundary_comparison": [
+    {
+      "path": "intune_iac/protected.py",
+      "baseline_sha256": "0c7fb4f53a7329d8d467e0b1faadc687501a4fed4335c51ed0b15ec5c2b379c1",
+      "current_sha256": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891",
+      "unchanged": false
+    },
+    {
+      "path": "intune_iac/provider_execution.py",
+      "baseline_sha256": "dbfa4e7d3d9420b56c31fab1a23fccc220c33f54a3dcdd4f51601b5a9868e0fa",
+      "current_sha256": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+      "unchanged": false
+    },
+    {
+      "path": "intune_iac/identity_binding.py",
+      "baseline_sha256": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+      "current_sha256": "4a6692e1c6f46734fa4d6e952350e51358946855c8fab0a6de31c5316d0f201a",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/approval_authority.py",
+      "baseline_sha256": "7770a65bf142491768cd74a10871e601ea0ffabeed1afbe21315e1d03fbe7c0e",
+      "current_sha256": "7770a65bf142491768cd74a10871e601ea0ffabeed1afbe21315e1d03fbe7c0e",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/blob_lease.py",
+      "baseline_sha256": "473827427b199f8af515787d5db1b5f75cc2dbcdaef4c35dedb99138503c7a57",
+      "current_sha256": "473827427b199f8af515787d5db1b5f75cc2dbcdaef4c35dedb99138503c7a57",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/repository.py",
+      "baseline_sha256": "a4850231a6709c56a3427fcb0ea88b8faa3229ed67b932ca96c763d787492b59",
+      "current_sha256": "a4850231a6709c56a3427fcb0ea88b8faa3229ed67b932ca96c763d787492b59",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/security-audit-local.py",
+      "baseline_sha256": "010c7c4d09ac070d4494686d75979c3032df316659501e1b363dcfcf24208858",
+      "current_sha256": "010c7c4d09ac070d4494686d75979c3032df316659501e1b363dcfcf24208858",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/qualify-change-coverage.py",
+      "baseline_sha256": "2ce2dc73a27a65ecf3f123945fff66f25772df9287724343ddfef563f1beed12",
+      "current_sha256": "2ce2dc73a27a65ecf3f123945fff66f25772df9287724343ddfef563f1beed12",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/qualify-terminal-security.py",
+      "baseline_sha256": "077855dc34da8ca75f1872626f09578b184a84451e657243c5d4646b35dffcfa",
+      "current_sha256": "077855dc34da8ca75f1872626f09578b184a84451e657243c5d4646b35dffcfa",
+      "unchanged": true
+    }
+  ],
+  "changed_security_boundaries": [
+    {
+      "path": "intune_iac/protected.py",
+      "baseline_sha256": "0c7fb4f53a7329d8d467e0b1faadc687501a4fed4335c51ed0b15ec5c2b379c1",
+      "current_sha256": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891",
+      "unchanged": false
+    },
+    {
+      "path": "intune_iac/provider_execution.py",
+      "baseline_sha256": "dbfa4e7d3d9420b56c31fab1a23fccc220c33f54a3dcdd4f51601b5a9868e0fa",
+      "current_sha256": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+      "unchanged": false
+    }
+  ],
+  "unchanged_cleanup_and_guard_functions": [
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_network_filter",
+      "baseline_sha256": "b5ee816fea0b41a4caa2e7fa82682ea1698edb3161759e1f2278bf3877c244c1",
+      "current_sha256": "b5ee816fea0b41a4caa2e7fa82682ea1698edb3161759e1f2278bf3877c244c1",
+      "exact_source_unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_process_group_members",
+      "baseline_sha256": "b689c358250bda2e60a1afcaa17f1d1c3a360ac62506a77688b1aaa2fff89621",
+      "current_sha256": "b689c358250bda2e60a1afcaa17f1d1c3a360ac62506a77688b1aaa2fff89621",
+      "exact_source_unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_peek_process_exit",
+      "baseline_sha256": "0833d9f17320ac4ad9da1dab323cd75265a358a1d75a0d2c517d44a5f39b1db6",
+      "current_sha256": "0833d9f17320ac4ad9da1dab323cd75265a358a1d75a0d2c517d44a5f39b1db6",
+      "exact_source_unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_wait_process_exit",
+      "baseline_sha256": "c771bfa2f4973c146506f55e8f0cfdb8b494990095c506ad610be33421a00271",
+      "current_sha256": "c771bfa2f4973c146506f55e8f0cfdb8b494990095c506ad610be33421a00271",
+      "exact_source_unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_cleanup_process_group",
+      "baseline_sha256": "7719d79c7ef61401fa44143a90214f0222974494570b0dec5aa697a705843458",
+      "current_sha256": "7719d79c7ef61401fa44143a90214f0222974494570b0dec5aa697a705843458",
+      "exact_source_unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_release_process_resources",
+      "baseline_sha256": "62a35ecf8b075a311507237c2e60fa4bc1f71927cbc20b22d804092e73c6e3d6",
+      "current_sha256": "62a35ecf8b075a311507237c2e60fa4bc1f71927cbc20b22d804092e73c6e3d6",
+      "exact_source_unchanged": true
+    },
+    {
+      "path": "intune_iac/provider_execution.py",
+      "function": "_network_guard",
+      "baseline_sha256": "a7a0bfe9fa8ef52dbfd64a924bc5aab4da8daaf86889f3eb532cc61c95a1ea92",
+      "current_sha256": "a7a0bfe9fa8ef52dbfd64a924bc5aab4da8daaf86889f3eb532cc61c95a1ea92",
+      "exact_source_unchanged": true
+    }
+  ],
+  "current_bytes_match_final_commit": true,
+  "final_spawn_review_binding": {
+    "current_commit_matches": false,
+    "qualified_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+    "qualified_commit_is_ancestor": true,
+    "intervening_changed_files": [
+      "plugin_tests/test_native_smoke_observation_epoch.py"
+    ],
+    "intervening_delta_only_native_observation_test": true,
+    "qualified_runtime_scope_preserved": true,
+    "current_source_hashes_match": {
+      "intune_iac/protected.py": true,
+      "intune_iac/provider_execution.py": true
+    },
+    "all_raw_epoch_receipts_match_declared_hashes": {
+      "before-01": true,
+      "after-01": true,
+      "background-after-01": true,
+      "after-handler-single-01": true,
+      "after-handler-background-01": true
+    },
+    "final_independent_cases": 8,
+    "passed": 8,
+    "failed": 0,
+    "original_scheduler_assertion_byte_identical": true,
+    "preserved_history": "Original 0/4, mask-only single-thread 4/4, mask-only background 2/4, final single/background 8/8; every raw receipt retained.",
+    "scope": "Actual real-signal inside-constructor and before-assignment observations for both supervisors, with and without a benign background thread. Main-thread supervision only; no new preexec timeout or SIGKILL containment."
+  }
+}

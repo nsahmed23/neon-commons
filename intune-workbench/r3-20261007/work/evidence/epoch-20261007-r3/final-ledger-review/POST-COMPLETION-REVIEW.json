@@ -1,0 +1,87 @@
+{
+  "recorded_at": "2026-10-07T03:52:19.896830+00:00",
+  "status": "FINAL_STRICT_FAILURE_REQUIRES_NEW_CANDIDATE_QUALIFICATION",
+  "source_commit": "e8c581dcfbb4543609eebb2d48eacbadec026ee8",
+  "prior_draft_review": "draft-04/REVIEW.json",
+  "new_receipts": {
+    "strict-suite/result.json": {
+      "bytes": 760,
+      "sha256": "c77c1fb7d81f3994a0454f52edee9619848aa63d38105e844b870aff9030b414"
+    },
+    "strict-suite/test-log.txt": {
+      "bytes": 211756,
+      "sha256": "9885d28158575ff9d76c6768c25362c421e33539d077c60cc215bc488403de77"
+    },
+    "reproducibility.json": {
+      "bytes": 708,
+      "sha256": "751bfda40306a42405e8f6eeec0f832a6b1436d61d484b5c8c8a9566d0b79f6f"
+    },
+    "QUALIFICATION.json": {
+      "bytes": 14133,
+      "sha256": "7d379f2123761efbdb6e4937c6d110e0ac4a11ee62340bfadcfd0d17d3f4354c"
+    }
+  },
+  "strict": {
+    "schema_version": "1.0.0",
+    "verified_at": "2026-10-07T03:51:25.145719+00:00",
+    "tests": 1236,
+    "passed": 1234,
+    "planned": 1236,
+    "failures": 1,
+    "errors": 1,
+    "skipped": 0,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "core_regressions_included": true,
+    "success": false,
+    "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+    "not_established": [
+      "Live Graph authenticity or service semantics",
+      "Provider-backed import/no-change plan",
+      "Full native Atmos runtime configuration parity",
+      "Native Windows/PowerShell behavior",
+      "Native host installation",
+      "CLM learned-model quality, calibration or latency"
+    ]
+  },
+  "reproducibility": {
+    "source_unchanged": true,
+    "source_matches_archive": true,
+    "archives": [
+      {
+        "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+        "original_sha256": "ae9a643c7262ddf63a35780b88be1f85a9c5f86f5b23ede27e17f65449050198",
+        "rebuilt_sha256": "ae9a643c7262ddf63a35780b88be1f85a9c5f86f5b23ede27e17f65449050198",
+        "byte_identical": true
+      },
+      {
+        "filename": "Intune_IaC_Plugin_0.8.0.zip",
+        "original_sha256": "2350b83a4394d6025c6b9741f159626b8b6a0debff59b69684e6f2db2deb830b",
+        "rebuilt_sha256": "2350b83a4394d6025c6b9741f159626b8b6a0debff59b69684e6f2db2deb830b",
+        "byte_identical": true
+      }
+    ],
+    "runtime_unchanged": true,
+    "runtime_matches_archive": true
+  },
+  "local_candidate_qualified": false,
+  "failures": [
+    {
+      "type": "ERROR",
+      "test": "plugin_tests.test_security_boundaries_completion.CaptureProxyTests.test_ambient_proxy_cannot_change_capture_route",
+      "observed": "Removed capture.build_opener mock seam causes AttributeError; proxy route invariant requires real newtransportnegative assertion, not deleting coverage."
+    },
+    {
+      "type": "FAILURE",
+      "test": "plugin_tests.test_workbench_scheduler.WorkbenchSchedulerTests.test_real_sigint_cleans_child_and_preserves_interrupted_run",
+      "observed": "Immediate procfs task state R after scheduler returns; cleanup outcome cannot be treated as confirmed or masked with sleeps."
+    }
+  ],
+  "required_documentation_update": [
+    "Strict changes PENDING to FAIL_PRESERVED with1234/1236,1failure,1error,0skips.",
+    "Reproducibility changes PENDING to PASS_SCOPED for exact existingartifact hashes and before/aftermapclosure.",
+    "Earlier scoped connected/capture/capacity/native results remain valid for e8c581d; overall candidate qualification remains false.",
+    "Original0.7.0R2strict1141result and originaldescendant cleanup repair evidence remain unchanged, distinct from newly exposed scheduler invariant."
+  ],
+  "review_tooling_history": "draft01 retains path-index reviewerTypeError; draft02 retains wrongcapture pass-field falsefailure; draft03 retains shorthand48/48 wording falsefailure. Each is explicitly corrected in its own note; none altered product/assertions/docs. draft04 consistencychecks22/22, but finalstrict/repro completed during thatreview, requiring this followup."
+}

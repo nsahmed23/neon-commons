@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "scripts/build-release.py",
+    "--output-dir",
+    "/workspace/intune-continuation/work/releases/continuation-0.8.0-r3-final03"
+  ],
+  "cwd": "/workspace/intune-continuation/work/projects/intune",
+  "started_at": "2026-10-07T04:17:02.874765+00:00",
+  "finished_at": "2026-10-07T04:17:04.995161+00:00",
+  "elapsed_seconds": 2.1204217849999623,
+  "exit_code": 0,
+  "stdout": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.stdout",
+    "sha256": "aed25681ca47ebc1693d4de9357bd6968c27ff94882937a21b1c2a3d261c1154"
+  },
+  "stderr": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+}

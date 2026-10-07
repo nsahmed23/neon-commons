@@ -1,0 +1,2030 @@
+{
+  "status": "PASS_BYTE_EQUIVALENT_SCOPE_REUSE",
+  "started_at": "2026-10-07T04:19:09.263518+00:00",
+  "finished_at": "2026-10-07T04:19:10.153048+00:00",
+  "checks": [
+    {
+      "name": "exact_candidate_identities",
+      "passed": true
+    },
+    {
+      "name": "hash:work/releases/continuation-0.8.0-r3-final02/Intune_IaC_Plugin_0.8.0_Source.zip",
+      "passed": true
+    },
+    {
+      "name": "02_source_size",
+      "passed": true
+    },
+    {
+      "name": "02_source_unique_paths",
+      "passed": true
+    },
+    {
+      "name": "02_source_complete_manifest",
+      "passed": true
+    },
+    {
+      "name": "hash:work/releases/continuation-0.8.0-r3-final02/Intune_IaC_Plugin_0.8.0.zip",
+      "passed": true
+    },
+    {
+      "name": "02_runtime_size",
+      "passed": true
+    },
+    {
+      "name": "02_runtime_unique_paths",
+      "passed": true
+    },
+    {
+      "name": "02_runtime_complete_manifest",
+      "passed": true
+    },
+    {
+      "name": "hash:work/releases/continuation-0.8.0-r3-final03/Intune_IaC_Plugin_0.8.0_Source.zip",
+      "passed": true
+    },
+    {
+      "name": "03_source_size",
+      "passed": true
+    },
+    {
+      "name": "03_source_unique_paths",
+      "passed": true
+    },
+    {
+      "name": "03_source_complete_manifest",
+      "passed": true
+    },
+    {
+      "name": "hash:work/releases/continuation-0.8.0-r3-final03/Intune_IaC_Plugin_0.8.0.zip",
+      "passed": true
+    },
+    {
+      "name": "03_runtime_size",
+      "passed": true
+    },
+    {
+      "name": "03_runtime_unique_paths",
+      "passed": true
+    },
+    {
+      "name": "03_runtime_complete_manifest",
+      "passed": true
+    },
+    {
+      "name": "runtime_archives_entire_bytes_equal",
+      "passed": true
+    },
+    {
+      "name": "source_payload_file_sets_equal",
+      "passed": true
+    },
+    {
+      "name": "only_reviewed_test_and_manifest_changed",
+      "passed": true
+    },
+    {
+      "name": "reviewed_test_bytes_exact",
+      "passed": true
+    },
+    {
+      "name": "02_source_all_declared_extracted_bytes_match_archive",
+      "passed": true
+    },
+    {
+      "name": "02_runtime_all_declared_extracted_bytes_match_archive",
+      "passed": true
+    },
+    {
+      "name": "03_source_all_declared_extracted_bytes_match_archive",
+      "passed": true
+    },
+    {
+      "name": "03_runtime_all_declared_extracted_bytes_match_archive",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "old_strict_failure_preserved_not_passed",
+      "passed": true
+    },
+    {
+      "name": "reused_native_original_receipt_and_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.stderr",
+      "passed": true
+    },
+    {
+      "name": "reused_journey_original_receipt_and_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey.stderr",
+      "passed": true
+    },
+    {
+      "name": "reused_connected-runtime_original_receipt_and_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime.stderr",
+      "passed": true
+    },
+    {
+      "name": "reused_capture-source_original_receipt_and_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source.stderr",
+      "passed": true
+    },
+    {
+      "name": "reused_capture-runtime_original_receipt_and_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_valid_scoped_result",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/preregistration.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-1_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0001-inspect-1.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0001-inspect-1.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-1000_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0002-inspect-1000.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0002-inspect-1000.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-page-0_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0003-overview-page-0.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0003-overview-page-0.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-page-950_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0004-overview-page-950.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0004-overview-page-950.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-1_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0005-inspect-1.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0005-inspect-1.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-1000_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0006-inspect-1000.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0006-inspect-1000.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-page-0_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0007-overview-page-0.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0007-overview-page-0.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-page-950_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0008-overview-page-950.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0008-overview-page-950.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-1_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0009-inspect-1.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0009-inspect-1.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-1000_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0010-inspect-1000.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0010-inspect-1000.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-page-0_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0011-overview-page-0.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0011-overview-page-0.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-page-950_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0012-overview-page-950.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0012-overview-page-950.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0013-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0013-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0014-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0014-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0015-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0015-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0016-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0016-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0017-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0017-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0018-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0018-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0019-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0019-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0020-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0020-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0021-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0021-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0022-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0022-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0023-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0023-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0024-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0024-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0025-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0025-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0026-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0026-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0027-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0027-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0028-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0028-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0029-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0029-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0030-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0030-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0031-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0031-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0032-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0032-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_global-unique-search_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0033-global-unique-search.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0033-global-unique-search.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_global-setting-search-last-page_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0034-global-setting-search-last-page.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0034-global-setting-search-last-page.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_literal-wildcard-search_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0035-literal-wildcard-search.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0035-literal-wildcard-search.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_scoped-settings_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0036-scoped-settings.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0036-scoped-settings.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_scoped-health_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0037-scoped-health.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0037-scoped-health.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_scoped-dictionary_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0038-scoped-dictionary.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0038-scoped-dictionary.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_paged-dictionary_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0039-paged-dictionary.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0039-paged-dictionary.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_bounded-references_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0040-bounded-references.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0040-bounded-references.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_retain-unpaged-byte-bound_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0041-retain-unpaged-byte-bound.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0041-retain-unpaged-byte-bound.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_invalid-page-limit_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0042-invalid-page-limit.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0042-invalid-page-limit.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_invalid-page-limit_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0043-invalid-page-limit.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0043-invalid-page-limit.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_invalid-page-offset_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0044-invalid-page-offset.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0044-invalid-page-offset.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_denied-pending-page_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0045-denied-pending-page.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0045-denied-pending-page.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_pending-only-final-page_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0046-pending-only-final-page.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0046-pending-only-final-page.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_inspect-never-complete_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0047-inspect-never-complete.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0047-inspect-never-complete.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-source_terminal-pty_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/terminal-pty.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-capacity.py",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-performance.py",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_valid_scoped_result",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/preregistration.json",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-1_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0001-inspect-1.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0001-inspect-1.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-1000_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0002-inspect-1000.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0002-inspect-1000.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-page-0_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0003-overview-page-0.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0003-overview-page-0.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-page-950_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0004-overview-page-950.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0004-overview-page-950.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-1_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0005-inspect-1.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0005-inspect-1.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-1000_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0006-inspect-1000.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0006-inspect-1000.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-page-0_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0007-overview-page-0.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0007-overview-page-0.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-page-950_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0008-overview-page-950.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0008-overview-page-950.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-1_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0009-inspect-1.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0009-inspect-1.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-1000_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0010-inspect-1000.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0010-inspect-1000.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-page-0_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0011-overview-page-0.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0011-overview-page-0.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-page-950_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0012-overview-page-950.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0012-overview-page-950.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0013-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0013-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0014-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0014-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0015-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0015-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0016-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0016-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0017-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0017-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0018-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0018-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0019-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0019-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0020-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0020-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0021-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0021-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0022-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0022-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0023-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0023-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0024-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0024-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0025-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0025-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0026-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0026-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0027-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0027-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0028-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0028-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0029-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0029-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0030-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0030-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0031-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0031-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_overview-complete-union_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0032-overview-complete-union.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0032-overview-complete-union.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_global-unique-search_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0033-global-unique-search.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0033-global-unique-search.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_global-setting-search-last-page_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0034-global-setting-search-last-page.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0034-global-setting-search-last-page.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_literal-wildcard-search_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0035-literal-wildcard-search.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0035-literal-wildcard-search.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_scoped-settings_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0036-scoped-settings.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0036-scoped-settings.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_scoped-health_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0037-scoped-health.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0037-scoped-health.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_scoped-dictionary_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0038-scoped-dictionary.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0038-scoped-dictionary.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_paged-dictionary_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0039-paged-dictionary.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0039-paged-dictionary.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_bounded-references_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0040-bounded-references.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0040-bounded-references.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_retain-unpaged-byte-bound_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0041-retain-unpaged-byte-bound.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0041-retain-unpaged-byte-bound.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_invalid-page-limit_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0042-invalid-page-limit.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0042-invalid-page-limit.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_invalid-page-limit_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0043-invalid-page-limit.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0043-invalid-page-limit.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_invalid-page-offset_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0044-invalid-page-offset.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0044-invalid-page-offset.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_denied-pending-page_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0045-denied-pending-page.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0045-denied-pending-page.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_pending-only-final-page_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0046-pending-only-final-page.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0046-pending-only-final-page.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_inspect-never-complete_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0047-inspect-never-complete.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0047-inspect-never-complete.stderr",
+      "passed": true
+    },
+    {
+      "name": "capacity-runtime_terminal-pty_threshold",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/terminal-pty.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-capacity.py",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-performance.py",
+      "passed": true
+    },
+    {
+      "name": "native_success_remains_correctly_scoped",
+      "passed": true
+    },
+    {
+      "name": "native_command_observed_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/init.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/init.stderr",
+      "passed": true
+    },
+    {
+      "name": "native_command_observed_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/schema.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/schema.stderr",
+      "passed": true
+    },
+    {
+      "name": "native_command_observed_success",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/validate.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/validate.stderr",
+      "passed": true
+    },
+    {
+      "name": "connected-runtime_stable_scoped_result",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-connected.py",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-connected.py",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench.py",
+      "passed": true
+    },
+    {
+      "name": "journey_stable_scoped_result",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench.py",
+      "passed": true
+    },
+    {
+      "name": "capture-source_successful_result",
+      "passed": true
+    },
+    {
+      "name": "capture-source_product_source_binding_intune_iac/capture.py",
+      "passed": true
+    },
+    {
+      "name": "capture-source_product_source_binding_intune_iac/capture_adapter.py",
+      "passed": true
+    },
+    {
+      "name": "capture-source_product_source_binding_intune_iac/cli.py",
+      "passed": true
+    },
+    {
+      "name": "capture-runtime_successful_result",
+      "passed": true
+    },
+    {
+      "name": "capture-runtime_product_source_binding_intune_iac/capture.py",
+      "passed": true
+    },
+    {
+      "name": "capture-runtime_product_source_binding_intune_iac/capture_adapter.py",
+      "passed": true
+    },
+    {
+      "name": "capture-runtime_product_source_binding_intune_iac/cli.py",
+      "passed": true
+    },
+    {
+      "name": "native_codex_exact_runtime_scope",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/package-after.json",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/package-before.json",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-after.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/remove.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/create.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/create.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/native.sh",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/start.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-before.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-after.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/start.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/remove.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-before.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/installed-files.sha256",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/result.txt",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/mountinfo.txt",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/identity.txt",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/routes.txt",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/final-files.sha256",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/process-status.txt",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/interfaces.txt",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/final-home.tar",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/after-uninstall-files.sha256",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.stderr",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.exit",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.argv",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.stdout",
+      "passed": true
+    },
+    {
+      "name": "hash:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/installed-home.tar",
+      "passed": true
+    }
+  ],
+  "verified_hash_references": {
+    "work/releases/continuation-0.8.0-r3-final02/Intune_IaC_Plugin_0.8.0_Source.zip": "c83ebc6ba21dae43c57268c6cff34e66592ebbafb53e30bc25274b0c97a31d02",
+    "work/releases/continuation-0.8.0-r3-final02/Intune_IaC_Plugin_0.8.0.zip": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+    "work/releases/continuation-0.8.0-r3-final03/Intune_IaC_Plugin_0.8.0_Source.zip": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+    "work/releases/continuation-0.8.0-r3-final03/Intune_IaC_Plugin_0.8.0.zip": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/QUALIFICATION.json": "e2169ab10098890807061f870269cb47bf8a507009947929961aa0ad89cb26d5",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.stdout": "64cb16ad2e387d770bc2c4158e51695b52c588ad11696c7a51e6b1086b4f1edc",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey.stdout": "699fbe5de99f8f27e8d60eaf41033e3dd70ff86a0772babd8a6a0651058e4836",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime.stdout": "e491e5271e8591119008266467ce77c0f358e6b26cdd239b73a9e4b518a0cc16",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source.stdout": "26feeac231d5be2cf447c90945f43e447c24c3cf66aaa2f4936a53735adba485",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime.stdout": "26feeac231d5be2cf447c90945f43e447c24c3cf66aaa2f4936a53735adba485",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/receipt.json": "75901f5e2e1e6e734637de307453b75b1dbbc57176022fd5ebf142879d90607f",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/preregistration.json": "23c13477c0704059d76d44882fdcab5f491a3db05f9babdbe336a0c539eb9069",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0001-inspect-1.stdout": "af9daaa046fc7d38fd2b06bcf7811c4e3ffb9bd5849f73b7910cd3a93d37a0f9",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0001-inspect-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0002-inspect-1000.stdout": "5eb9e3728ebae1e3f970cf3ef661737718eed39c9d61a46476396870b7c0bee4",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0002-inspect-1000.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0003-overview-page-0.stdout": "449239ef8a8143c0fa45133d1f28f0ca2afd23141d7a43af1fb559476e56b2a7",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0003-overview-page-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0004-overview-page-950.stdout": "9c15c6fff7d8067bc5a51154a4aafd991ee09c0ee76df7d61d8e2ae11987324d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0004-overview-page-950.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0005-inspect-1.stdout": "b1b16be052feec22eef5b882383fcae4e84d7cb92baeb0a03556a5eefcc54cfa",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0005-inspect-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0006-inspect-1000.stdout": "32f1944fe8c465eedc768d9c4a0a7a7c7557b5827d09b04624788907503816d8",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0006-inspect-1000.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0007-overview-page-0.stdout": "29f0dfd5f49f0c254d1d13ad3af02ab82ae4cd9875801969ae6ad2b804163356",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0007-overview-page-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0008-overview-page-950.stdout": "facbbd8af66e520c5469c5605a3800166497d89623a456818937dbdbb06ba80a",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0008-overview-page-950.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0009-inspect-1.stdout": "a82105e4d21b0433e9f7a881ca8ade870a7df3d317bb9df40ba8dfc5a1593239",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0009-inspect-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0010-inspect-1000.stdout": "458753d012bc8dd78f059e075ea40e3349f338384ba8a5eef249e798a4646f33",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0010-inspect-1000.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0011-overview-page-0.stdout": "a7f334bd0ce97dae620901c062bb5e3e61e2a08e2d8dcd23caafd97fd17c6f61",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0011-overview-page-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0012-overview-page-950.stdout": "07a2ef75f5730d9da8d5550395235c25970ccf667da1ae85ed8825cc483567ff",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0012-overview-page-950.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0013-overview-complete-union.stdout": "097acf51e5685acfb058f44fe29e1bb38731749448ead7625055b938163eda1d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0013-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0014-overview-complete-union.stdout": "7315bd53318c0b597924fcbe1673d37c48ee2344030fcc93fdeb33ced79074a4",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0014-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0015-overview-complete-union.stdout": "0ab31d3d12e0f4a6e993a13ffc35f1b2ced435ab71e27e3e3f4a8a8ec8ba5d83",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0015-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0016-overview-complete-union.stdout": "779539280e2267d3795dad5ceebd27423ec951d96a3af7044ca760ae47eec64f",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0016-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0017-overview-complete-union.stdout": "ef5709f417506d1ebfc3a9f95a23f4413a53976c691e4cecbc376fdb58a26d78",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0017-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0018-overview-complete-union.stdout": "2723f4a955d6ecbc9c3019621f21c747ea775becff8adf93aabc6b931f91de77",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0018-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0019-overview-complete-union.stdout": "ea5ed51eb0f209095f14b44256439f8ee70264d801ba643bd20b4c06b6d33efb",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0019-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0020-overview-complete-union.stdout": "b9ed731c9822f7f63b0b3e527b9f33b095a63719cbdf7acdad2230dd7a0211d8",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0020-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0021-overview-complete-union.stdout": "a1559a785b43c7b283c0118f307247c06f34a96a0f35ff6e920c01ccf1b5b390",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0021-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0022-overview-complete-union.stdout": "6d5670140c64ed0a57bf466217b21cfed24824ada4a74e67ea13c9845ced8bae",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0022-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0023-overview-complete-union.stdout": "e5b035d92d8c86831f7178a38f77f71d04df73b8c1df7e5bcf0dd7dee8db7a68",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0023-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0024-overview-complete-union.stdout": "5413b154e0c19e07068ed51a48f12c56f29feca036bd88f201190b78bd77a66c",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0024-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0025-overview-complete-union.stdout": "959d774e1865bbcffad84756c55ecd1ae62c59e6da62ba3d7f4039ace48116eb",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0025-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0026-overview-complete-union.stdout": "755dbbb6c781cbf2b0ae4e0885be24732ec36ef8982aaa5ee0059f769e7cd060",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0026-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0027-overview-complete-union.stdout": "4f69dae0f1b424b18d9bffaecafbd18c34fab35311ad4ea88437a1b76bb886b1",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0027-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0028-overview-complete-union.stdout": "6972237908d4a2827bc773da58949ac3dadb73a066c1baa0b7f8e57e0bfe2a0b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0028-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0029-overview-complete-union.stdout": "efc043bf5a60b3d170d9bcaac491bcca725e837acddec030c50e85c4e1c09d71",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0029-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0030-overview-complete-union.stdout": "cd13dcd79ac8ef3d5efad877e57fe68cb5dda62f7e422940b46b9c5bf251281a",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0030-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0031-overview-complete-union.stdout": "9ac9a2f940bfa31f57beb2b405f9a3de3af223c1cf929e3cbcfba2e68ac0805a",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0031-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0032-overview-complete-union.stdout": "e59163f79425db9a5a78a48a42aba55d9059b5175f30a33036e5d2964f61fc88",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0032-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0033-global-unique-search.stdout": "c7502f69021e8c420084de7a74b5be5808b15c8fcd4513aafb0f9a832d0ebc03",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0033-global-unique-search.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0034-global-setting-search-last-page.stdout": "54c125e7f611572c7ce4ff9136981b48459a76c9037f1597656d58ea26082791",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0034-global-setting-search-last-page.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0035-literal-wildcard-search.stdout": "e2f1320ac1ee19bb2ae261b31e47a55d6ed498af56fab90b3884cb4bb7e9af2f",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0035-literal-wildcard-search.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0036-scoped-settings.stdout": "7a018ded214cc80dee0e2f218d24c3643f7f3e74037eb5a05f1f288081945e63",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0036-scoped-settings.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0037-scoped-health.stdout": "7cfe8f61a22d86cf78ae8e973b62fed8ac604daa364d566658154fb714f6e516",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0037-scoped-health.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0038-scoped-dictionary.stdout": "2fa02e3be55f69a5ddaee48d29597090bce0179f942cf6eaa91cc65090e68d19",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0038-scoped-dictionary.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0039-paged-dictionary.stdout": "0e95fb1b39909d460f07059ba558868c07e524cf1843ecbf78603825c64b7251",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0039-paged-dictionary.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0040-bounded-references.stdout": "70dcd2c0c0cddaacda4d3d1cc751a531534d76ac981019532132cae755e96034",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0040-bounded-references.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0041-retain-unpaged-byte-bound.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0041-retain-unpaged-byte-bound.stderr": "cffe5da55c5e60c3404017cd30f1506eba0bd17de21c28e4a9478910fe3528bd",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0042-invalid-page-limit.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0042-invalid-page-limit.stderr": "4b80aeeb6f6e60a5f2c7c417d795057ad61d1ab028653f9f9411f32a4073864d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0043-invalid-page-limit.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0043-invalid-page-limit.stderr": "4b80aeeb6f6e60a5f2c7c417d795057ad61d1ab028653f9f9411f32a4073864d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0044-invalid-page-offset.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0044-invalid-page-offset.stderr": "4b80aeeb6f6e60a5f2c7c417d795057ad61d1ab028653f9f9411f32a4073864d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0045-denied-pending-page.stdout": "6e50fc55e0320e81bd32ec787eed15306926b9cf1b400284997f6703fb63ceb1",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0045-denied-pending-page.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0046-pending-only-final-page.stdout": "e97dac2e65bc5d03f89408de61cea20136ac2a3dd93fdbaa21a1e95979b6bcdc",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0046-pending-only-final-page.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0047-inspect-never-complete.stdout": "17e7a047ee3559bea48bb3e83c08ee8b980679b083cb31b2fed7820bbb527c2c",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/0047-inspect-never-complete.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/terminal-pty.stdout": "f69ce57faaa805dd131f3d9d4c75776a95468bd5001d70a20f86821fe30adef1",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-capacity.py": "5cd496f647b29c8b28b1832340242ca2b007d16f05d7639e9eeed600e2aeb058",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-performance.py": "fc9be268a59742c29609002ee15ded031b4096dbc4c1d174db31b4b941b70972",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/receipt.json": "6fb2e781f963e3be333379dc9653e818d2c50b31870e12a9d6928dab9c10a7b1",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/preregistration.json": "03a191e4414566312d782fa9222bde5ae0ffc8bbb26f75102725ab8d0b6b7649",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0001-inspect-1.stdout": "a243ec09d73f929f0a36c58cb6310842c20cca81fd76c0a5ba321c37d33111b8",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0001-inspect-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0002-inspect-1000.stdout": "08da99a86e39ff37b1205792117e6e50c1a977a1d6663a2aa9e00e8c03ec1e21",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0002-inspect-1000.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0003-overview-page-0.stdout": "f3068c55a7c5d429f6793b7e5678c4d2a0ff0049250cf7ea6fd9b725ef9c2da6",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0003-overview-page-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0004-overview-page-950.stdout": "d16f9e6fa5e4a5b67dd0171c97912d97cb1203b9541a7399ca29c4a3fa7b8111",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0004-overview-page-950.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0005-inspect-1.stdout": "45a6f6ea02e0bae146405aca872d51c1b42ef7fc8aff794e3148bcf12b01771f",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0005-inspect-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0006-inspect-1000.stdout": "049ed759d2a3e28f7a79e026dd21b90158ab7ad6abf5dd400713ac4e58ed81f4",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0006-inspect-1000.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0007-overview-page-0.stdout": "7d41cd12ec3f604d6add58e4d1cdd7b36d7e35625618e4c54daf1e370f214bed",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0007-overview-page-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0008-overview-page-950.stdout": "36f2abc86903b60a72bd00fd2d08ac1adfcae5bf13e2e2048f71aa8b6127e536",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0008-overview-page-950.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0009-inspect-1.stdout": "5c896acb341807150004c8ae98a18801e20f57c7432bca6ea928ea88a58c5391",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0009-inspect-1.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0010-inspect-1000.stdout": "0fc8145043f64944fb97cc46eb1addd62914a4e8f97889a732b99e60ab04791b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0010-inspect-1000.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0011-overview-page-0.stdout": "8bd1dcf48de4ab36266afefbc9ef6819f0b9c2b188e049fc61251200ab60b249",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0011-overview-page-0.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0012-overview-page-950.stdout": "302104d11061ee2e962cd940365da612aac9adc75c5e2130e3417729f524bba4",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0012-overview-page-950.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0013-overview-complete-union.stdout": "4a75874d2867817a8ed927f006ff9882489e37906d21c2afb16868696e5d925b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0013-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0014-overview-complete-union.stdout": "6d91f8fa0a39bc2f6213597880cf953328237868b492de5fe2609fe9c82c1815",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0014-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0015-overview-complete-union.stdout": "f80177e9b01f209719ace36ece497a0d5b9f35fa835d715f44f46a67e7717487",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0015-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0016-overview-complete-union.stdout": "ea2ef20b6a001af3bf0079ad35eb69cabd71e559d523c7100880f382c5284522",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0016-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0017-overview-complete-union.stdout": "04fcb28ec345cb89c51b791307ec7e56912aa10072bec7bf1cffb8aa7472373b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0017-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0018-overview-complete-union.stdout": "e329fc21b8f23e1b56904377568019fcb9bf3f729ecfed37a34191c7fe56025b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0018-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0019-overview-complete-union.stdout": "5008c71c00762d45d0ef0719c4a634b5b6058322f391bf665d1acdafe1d94ca2",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0019-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0020-overview-complete-union.stdout": "84da3e6b52344ab9003d915524af694cec726a12b992809b9ba2c54135abae22",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0020-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0021-overview-complete-union.stdout": "710cfc276b304801f0323d69a3443142c9d1a4c272163c9b991aef60fe13e656",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0021-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0022-overview-complete-union.stdout": "27518f9bd47081a8d9303806a8ef5c82227940ec5220efe7c4781924bb750f21",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0022-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0023-overview-complete-union.stdout": "dccf7fa129093920d707ec493ed4c29302d8cf7b9ba118bac2ba1bdde5714184",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0023-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0024-overview-complete-union.stdout": "7fd625bb1cd1ce1cc8db3dc2271a8d3779fdec3f81001df49288ea1ca713b807",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0024-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0025-overview-complete-union.stdout": "56c49e72b531c82fc05d59e7fa4474184c062299308563efb279f5f4458d41c4",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0025-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0026-overview-complete-union.stdout": "f02f81a252b434f9bfd528be602b3e477d2569f4799d7d051e8b81abdd4186c0",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0026-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0027-overview-complete-union.stdout": "5d760584a357b2ac026b462437e0e14020d2b41d33efd9e3905f88936922f80a",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0027-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0028-overview-complete-union.stdout": "9cf5d1d0bf02b8e4ca1f89093985d122e5372c20ae9674138fd51955c62f5742",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0028-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0029-overview-complete-union.stdout": "acb39c15114132e12b5c5b1176e968be9d9678591add3425d016fb5736a8034d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0029-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0030-overview-complete-union.stdout": "df48827176aa7830b5dd35ae4e8d3776a3ddabb90af132550d82c35eab4b0782",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0030-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0031-overview-complete-union.stdout": "00d51f3b8cb11ec4d077b964dec499373607ac6d6e7c1d3b5fee683fc629fb65",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0031-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0032-overview-complete-union.stdout": "587cd9a6501f4a7476aa175a0e359d18cc333fab5aca585acec59473de805c29",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0032-overview-complete-union.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0033-global-unique-search.stdout": "03b94dedacb0660a945b0e3d9c218d09a46651ba9e293ef589f17a304f71dc7c",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0033-global-unique-search.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0034-global-setting-search-last-page.stdout": "b32ea824b34377fe8ac688a66292ed5e877ce46f66fb2d52261711efdde8a7f9",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0034-global-setting-search-last-page.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0035-literal-wildcard-search.stdout": "e2f1320ac1ee19bb2ae261b31e47a55d6ed498af56fab90b3884cb4bb7e9af2f",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0035-literal-wildcard-search.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0036-scoped-settings.stdout": "7a018ded214cc80dee0e2f218d24c3643f7f3e74037eb5a05f1f288081945e63",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0036-scoped-settings.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0037-scoped-health.stdout": "7cfe8f61a22d86cf78ae8e973b62fed8ac604daa364d566658154fb714f6e516",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0037-scoped-health.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0038-scoped-dictionary.stdout": "2fa02e3be55f69a5ddaee48d29597090bce0179f942cf6eaa91cc65090e68d19",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0038-scoped-dictionary.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0039-paged-dictionary.stdout": "0e95fb1b39909d460f07059ba558868c07e524cf1843ecbf78603825c64b7251",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0039-paged-dictionary.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0040-bounded-references.stdout": "70dcd2c0c0cddaacda4d3d1cc751a531534d76ac981019532132cae755e96034",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0040-bounded-references.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0041-retain-unpaged-byte-bound.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0041-retain-unpaged-byte-bound.stderr": "cffe5da55c5e60c3404017cd30f1506eba0bd17de21c28e4a9478910fe3528bd",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0042-invalid-page-limit.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0042-invalid-page-limit.stderr": "4b80aeeb6f6e60a5f2c7c417d795057ad61d1ab028653f9f9411f32a4073864d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0043-invalid-page-limit.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0043-invalid-page-limit.stderr": "4b80aeeb6f6e60a5f2c7c417d795057ad61d1ab028653f9f9411f32a4073864d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0044-invalid-page-offset.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0044-invalid-page-offset.stderr": "4b80aeeb6f6e60a5f2c7c417d795057ad61d1ab028653f9f9411f32a4073864d",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0045-denied-pending-page.stdout": "604f30793bd3a0f0893e298139765dce850ac4e18e70d897905480aef99b9992",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0045-denied-pending-page.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0046-pending-only-final-page.stdout": "a058b9fc5401a0e2c84ff456663f99f8ec7f6c86706390e105dd41a4076144a7",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0046-pending-only-final-page.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0047-inspect-never-complete.stdout": "17e7a047ee3559bea48bb3e83c08ee8b980679b083cb31b2fed7820bbb527c2c",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/0047-inspect-never-complete.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/terminal-pty.stdout": "46977cf36ae36fe37d2af45a076f23b0beb4c22241b3b7c6750d2df9544e97e8",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/init.stdout": "d83a93629ca1f2a7bd6daf7e859a8eafc8601dac32d61ff03f301ac0ad1f3dd7",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/init.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/schema.stdout": "1dda5e1033b8ca202a5b47525f4c1f74d1c25cf2f9b480558ef8492a5a8a576b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/schema.stderr": "363c1083bdae4468ea2417e4b753ef8586eeb59a418ab2540d023a08a180017b",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/validate.stdout": "4cd9eddc4d07c5aff74dadb6b3544f98186f6705ac60e0d94d545fc42b45b9b6",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.logs/validate.stderr": "eee5aa047bb56cbf39f4302dc3eb7e297fe0522e242bcd12e3a1ac1730aa9106",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench-connected.py": "748d773498fd088b481dce4c2ea23d5bec93277405ed92530fa8b8dcfc8aced6",
+    "work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/source-extracted/intune-iac-source/scripts/qualify-workbench.py": "cd69ba35c9605ea1c35d3ca2a61e8fbb07dfdb027179af284064666690144bcc",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/receipt.json": "f49fa66a4d2da3652e40e51444bc604f3b8f85260e861113a5f97a709e3b03fa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/package-after.json": "746b8c3bd9b3479aa3370704341d33c9912bfc9b1590202ecdb1dbcb37651ad1",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/package-before.json": "746b8c3bd9b3479aa3370704341d33c9912bfc9b1590202ecdb1dbcb37651ad1",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-after.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/remove.stdout": "9cb47fd0ba0733a2951f7520ba7f1b9b039608c7c1e42f1f27c73207597469db",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/create.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/create.stdout": "c85354919e3d970fcebcddfe9aebb85697329ced6a759d18ba883d6a9531fd4b",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/native.sh": "8ad43b6c9b84abc2337f6c8a6c2862c49a10cac0fe460fb74985ba20af7f38be",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/start.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-before.stdout": "8d8d93c25d45c98cc8ba5f6b09340fe1ee4139e0d64d96bdac237f7cbf3e40e2",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-after.stdout": "86b2caf488a68fb1a7ed239ff9bbfc4481535c7c612da74287dc53780618f88c",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/start.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/remove.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/inspect-before.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.argv": "99e32ca30f360cc8269c63bbd1e2d0c433f44401289f849d23ef8f6269f1dc55",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.stdout": "8f55cf15d58dc6dcaa54e2da452b0a1ef0658fb81fdfba86c34d74dc2e9f590f",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.exit": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.argv": "3f1df325406c30346b8fcc4e0c1b5e4e912b3b83decefdd134cfd86116b893c7",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.argv": "a17b3514a26cc48f69206fb7d22c1f2cdf4cda72116400d21c16e5ed6edb8668",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.stdout": "b1c1072fbaeb5e996623b5ab2e4a8bf48a203794d98a86fd7843d4755cb2bb4f",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/installed-files.sha256": "c4f9e2305691a36b58623cd681bd6a89d1f2932afb65a5d03d41b2c25a32a78d",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/result.txt": "0ae943566e424d5cdb685cd88cec8258d0b4225fbb3753e4eeda9f50b3640a06",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.argv": "6dea4cd67c38f902eca6b03e538fa543cfa33b28040f050344121a33bc35dcba",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.stdout": "6d92ea50967573bd5813d2870806a0bb1eaa92cb6a91115a12ed75780a58ea08",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/02-marketplace-add.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.argv": "c99a9f4f6d4dc43f4d6f56e5c314e268f05f596ccd87ae56fc664228fcd8e108",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.stdout": "21962037787af48448d33c990bb6d08f0034fca53ea45d00ef32876c4363bf52",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/mountinfo.txt": "f13eb3cc8f60ac9ab09ca329bf932e322a5ece8029ef614c78bb93006f80e89d",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/identity.txt": "e02633b3e3160a15fc3f3f98b658ca400774e81dac5cab00dbb5486e94004a13",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.stdout": "8a09df1fd57e59bf0d53eede78ad0135e802fab73fba96a1a6af20d42dc67900",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/05-list-installed.stdout": "4eb3f8627fdaff7e3853cd5477539d29f031cdfe04263e1ebc81fbf80ae8a746",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/routes.txt": "9bfb5e4beb5b2844bc6a69d6d480a47995940f888d810efdb2afbf2e8cc5292e",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.stdout": "158f4415765f804622953bb1c3fff91172fa05c5885eec0478773fb97bdee883",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/final-files.sha256": "30714f1471cbfebeefd8419fa66fa6369d3370dbc8458745e4c6368845bb659e",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/process-status.txt": "d4598ae69d3c4cb846742b996bb009c113961589a3c0d988c373e6bf8d0d9050",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.stderr": "69990134997cdd73bc8fc8df39d6343000a7030f2d3040da45ebac2a91ae28c7",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.argv": "bea5259d85887dc5ed7ff7e697bf615a77d728bea7a975ed0c89c19399631c20",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/06-uninstall.stdout": "d751a37cab25df9567a2abb6f45dc54cd82579d32c0801abd008d29c578d1f8c",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/01-version.argv": "f33a05f688572560c46ab9158f696b52b0f2b30b8aca340c9cda64497fedae2e",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/04-install.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.argv": "74fbd34fb4154a75059e30880073cbb3a1855c6b4e874aceb0323eac3192cd80",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/interfaces.txt": "c6c7524e2111f22a9f7577211232d89a9e68cf5b9ed4a41ba77957c9771380a5",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/final-home.tar": "37f8cf3c2ae1d02888330bf2357759fb89c2b23b58143449275abad4a3da14af",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/08-remove-marketplace.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.argv": "6dea4cd67c38f902eca6b03e538fa543cfa33b28040f050344121a33bc35dcba",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/after-uninstall-files.sha256": "b16712b485a6e5ce452c8bf7a83aa05df48a512d6d438274f8e44f273f70d543",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03-list-available.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/07-list-after-uninstall.stdout": "050e2dee988ae4ba4d1d8220591b660829a9ee3f06f52d548acc87522ee90885",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.exit": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/09-marketplaces-after-remove.argv": "1dba93e47debcd21a35e2c9ab507687167423d0e80144affb32f6f4aee447386",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/03b-invalid-install.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/output/installed-home.tar": "ad951fd2ec0d8b7e22ac07547f4758cece0221f4542ccfffbed898aa7f9f4655"
+  },
+  "details": {
+    "changed_source_paths": [
+      "SHA256SUMS",
+      "plugin_tests/test_native_smoke_observation_epoch.py"
+    ],
+    "unchanged_source_payloads": 3086,
+    "runtime_payloads": 130,
+    "prior_receipts_current_hashes": {
+      "milestone-0.8.0-final02/QUALIFICATION.json": "e2169ab10098890807061f870269cb47bf8a507009947929961aa0ad89cb26d5",
+      "milestone-0.8.0-final02/CAPACITY-QUALIFICATION.json": "6918276e5ecf07b0ae7f28817d3af78cd4fa992dd9e98a14186995def9a6a664",
+      "milestone-0.8.0-final02/native-smoke.json": "22f6f95d865a59dd69c71c164160af6d88b55d61c2a8dba8caabaf2dd8b55445",
+      "milestone-0.8.0-final02/connected-runtime/receipt.json": "54013f9053699f80317c8bd00aa7c324edd9653dea05e8210061e147657a2623",
+      "milestone-0.8.0-final02/journey/receipt.json": "831a4c90f4652ca5dc1a8183bf17a0e203c8caf4baa4748236771a537cadca8c",
+      "milestone-0.8.0-final02/capture-source/receipt.json": "8069ad18d7ac6b8f8b8de8d717c079476ca54416e90438271a7d3d1da9281f97",
+      "milestone-0.8.0-final02/capture-runtime/receipt.json": "d84dff4c8ff31f93fe05173c0ce3ff040c96bdac2b0cc34cc331bb0da097d0cf",
+      "native-codex-container/INDEPENDENT-SPOTCHECK-FINAL02.json": "480da727bd18b36ff4bbd8bf434a3b3bc3d678b1ea960092b346ea461d62e690"
+    }
+  },
+  "replay_sha256": "da865aed6f307f3bfd36c3d3d6e6d50b29c042ab21ac90be4fe7fe787958401b",
+  "reviewed_root_reuse_proof_sha256": "da366886b6124637e22dc73f675da40bb24a2efe5a1dc2814c7686daa2d6a00c",
+  "preserved_initial_harness_error": "before-01-receipt.json and replay-v1.py preserve initial wrong receipt-schema assertion (expected passed/False; actual defined PASS/empty drift list), corrected without changing product or evidence.",
+  "scope": "Independent read-only ZIP and preserved evidence validation. No product imports, app/native/test/container reruns. Final02 scoped evidence retains original identity; failed strict remains failed. Final03 new strict/source-connected/rebuild results are deliberately not assessed or presumed passed.",
+  "limitations": [
+    "Laboratory and already measured native scope only; no new cloud/provider lifecycle, authenticated host skill use, device or organizational approval."
+  ]
+}

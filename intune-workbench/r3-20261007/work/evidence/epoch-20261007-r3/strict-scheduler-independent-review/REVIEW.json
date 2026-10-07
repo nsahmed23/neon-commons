@@ -1,0 +1,588 @@
+{
+  "recorded_at": "2026-10-07T04:05:06.022147+00:00",
+  "status": "PASS_SCOPED_INDEPENDENT_SIGINT_ACQUISITION_REVIEW",
+  "current_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+  "root_cause": "Popen could be interrupted by SIGINT after fork before returned process reference was assigned. Finally saw process=None and skipped cleanup. This precedes the previously repaired R2 group cleanup code.",
+  "initial_repair_finding": "pthread_sigmask in the spawning thread alone did not prevent Python main-thread SIGINT callback when a benign unblocked background thread received the process-directed signal; independent inside-constructor cases preserved live R-state children for both supervisors.",
+  "final_repair": "Require main-thread supervision before process creation; temporarily defer Python SIGINT callback as well as mask during Popen/reference assignment. Child restores exact caller handler/mask before guard. Parent restores exact caller state and delivers pending original callback only after ownership acquisition. Existing group cleanup then confirms termination.",
+  "results": {
+    "before-01": {
+      "path": "before-01/receipt.json",
+      "sha256": "cda4407ea2d73a6815ce823f3724b9fc1fb2efc2b84ceb5f15016d05fb4b8e9d",
+      "status": "FAIL_PRESERVED",
+      "passed": 0,
+      "failed": 4,
+      "source_stable": true,
+      "source_sha256": {
+        "intune_iac/protected.py": "0c7fb4f53a7329d8d467e0b1faadc687501a4fed4335c51ed0b15ec5c2b379c1",
+        "intune_iac/provider_execution.py": "dbfa4e7d3d9420b56c31fab1a23fccc220c33f54a3dcdd4f51601b5a9868e0fa",
+        "plugin_tests/test_workbench_scheduler.py": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f"
+      },
+      "case_results": [
+        {
+          "supervisor": "protected",
+          "phase": "inside_constructor",
+          "passed": false,
+          "original_identity": {
+            "pid": 14330,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14330,
+            "session": 14330,
+            "starttime": 302609
+          },
+          "immediate_tasks": [
+            {
+              "tid": 14330,
+              "state": "R",
+              "starttime": 302609
+            }
+          ],
+          "immediate_observation": {
+            "pid": 14330,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14330,
+            "session": 14330,
+            "starttime": 302609
+          },
+          "terminal_before_evaluator_cleanup": false,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "protected",
+          "phase": "before_assignment",
+          "passed": false,
+          "original_identity": {
+            "pid": 14331,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14331,
+            "session": 14331,
+            "starttime": 302610
+          },
+          "immediate_tasks": [
+            {
+              "tid": 14331,
+              "state": "R",
+              "starttime": 302610
+            }
+          ],
+          "immediate_observation": {
+            "pid": 14331,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14331,
+            "session": 14331,
+            "starttime": 302610
+          },
+          "terminal_before_evaluator_cleanup": false,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "inside_constructor",
+          "passed": false,
+          "original_identity": {
+            "pid": 14332,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14332,
+            "session": 14332,
+            "starttime": 302610
+          },
+          "immediate_tasks": [
+            {
+              "tid": 14332,
+              "state": "R",
+              "starttime": 302610
+            }
+          ],
+          "immediate_observation": {
+            "pid": 14332,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14332,
+            "session": 14332,
+            "starttime": 302610
+          },
+          "terminal_before_evaluator_cleanup": false,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "before_assignment",
+          "passed": false,
+          "original_identity": {
+            "pid": 14333,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14333,
+            "session": 14333,
+            "starttime": 302611
+          },
+          "immediate_tasks": [
+            {
+              "tid": 14333,
+              "state": "R",
+              "starttime": 302611
+            }
+          ],
+          "immediate_observation": {
+            "pid": 14333,
+            "state": "R",
+            "ppid": 14325,
+            "pgrp": 14333,
+            "session": 14333,
+            "starttime": 302611
+          },
+          "terminal_before_evaluator_cleanup": false,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        }
+      ]
+    },
+    "after-01": {
+      "path": "after-01/receipt.json",
+      "sha256": "4e3ccff3a9f316c9547e9692cb1735835e3d1690812b8a379f8152f1a2d55200",
+      "status": "PASS_SCOPED",
+      "passed": 4,
+      "failed": 0,
+      "source_stable": true,
+      "source_sha256": {
+        "intune_iac/protected.py": "66de1e87148d31865d5b12c2e257b9fdacf7821e4876de52ff09c0658aba485e",
+        "intune_iac/provider_execution.py": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+        "plugin_tests/test_workbench_scheduler.py": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f"
+      },
+      "case_results": [
+        {
+          "supervisor": "protected",
+          "phase": "inside_constructor",
+          "passed": true,
+          "original_identity": {
+            "pid": 14413,
+            "state": "R",
+            "ppid": 14412,
+            "pgrp": 14413,
+            "session": 14413,
+            "starttime": 303762
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "protected",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14414,
+            "state": "R",
+            "ppid": 14412,
+            "pgrp": 14414,
+            "session": 14414,
+            "starttime": 303763
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "inside_constructor",
+          "passed": true,
+          "original_identity": {
+            "pid": 14415,
+            "state": "R",
+            "ppid": 14412,
+            "pgrp": 14415,
+            "session": 14415,
+            "starttime": 303764
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14416,
+            "state": "R",
+            "ppid": 14412,
+            "pgrp": 14416,
+            "session": 14416,
+            "starttime": 303765
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        }
+      ]
+    },
+    "background-after-01": {
+      "path": "background-after-01/receipt.json",
+      "sha256": "dff0c80fa46dab8c488ea8e4ffdcb02e9f5f618259c1cec84181f3d89e4f181c",
+      "status": "FAIL_PRESERVED",
+      "passed": 2,
+      "failed": 2,
+      "source_stable": true,
+      "source_sha256": {
+        "intune_iac/protected.py": "66de1e87148d31865d5b12c2e257b9fdacf7821e4876de52ff09c0658aba485e",
+        "intune_iac/provider_execution.py": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+        "plugin_tests/test_workbench_scheduler.py": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f"
+      },
+      "case_results": [
+        {
+          "supervisor": "protected",
+          "phase": "inside_constructor",
+          "passed": false,
+          "original_identity": {
+            "pid": 14521,
+            "state": "R",
+            "ppid": 14516,
+            "pgrp": 14521,
+            "session": 14521,
+            "starttime": 308027
+          },
+          "immediate_tasks": [
+            {
+              "tid": 14521,
+              "state": "R",
+              "starttime": 308027
+            }
+          ],
+          "immediate_observation": {
+            "pid": 14521,
+            "state": "R",
+            "ppid": 14516,
+            "pgrp": 14521,
+            "session": 14521,
+            "starttime": 308027
+          },
+          "terminal_before_evaluator_cleanup": false,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "protected",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14522,
+            "state": "R",
+            "ppid": 14516,
+            "pgrp": 14522,
+            "session": 14522,
+            "starttime": 308027
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "inside_constructor",
+          "passed": false,
+          "original_identity": {
+            "pid": 14523,
+            "state": "R",
+            "ppid": 14516,
+            "pgrp": 14523,
+            "session": 14523,
+            "starttime": 308029
+          },
+          "immediate_tasks": [
+            {
+              "tid": 14523,
+              "state": "R",
+              "starttime": 308029
+            }
+          ],
+          "immediate_observation": {
+            "pid": 14523,
+            "state": "R",
+            "ppid": 14516,
+            "pgrp": 14523,
+            "session": 14523,
+            "starttime": 308029
+          },
+          "terminal_before_evaluator_cleanup": false,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14524,
+            "state": "R",
+            "ppid": 14516,
+            "pgrp": 14524,
+            "session": 14524,
+            "starttime": 308029
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        }
+      ]
+    },
+    "after-handler-single-01": {
+      "path": "after-handler-single-01/receipt.json",
+      "sha256": "6b344de389e55cf689764537bee4ab51060f9db81c0b309fc2829d4361989b16",
+      "status": "PASS_SCOPED",
+      "passed": 4,
+      "failed": 0,
+      "source_stable": true,
+      "source_sha256": {
+        "intune_iac/protected.py": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891",
+        "intune_iac/provider_execution.py": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+        "plugin_tests/test_workbench_scheduler.py": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f"
+      },
+      "case_results": [
+        {
+          "supervisor": "protected",
+          "phase": "inside_constructor",
+          "passed": true,
+          "original_identity": {
+            "pid": 14751,
+            "state": "R",
+            "ppid": 14750,
+            "pgrp": 14751,
+            "session": 14751,
+            "starttime": 320219
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "protected",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14752,
+            "state": "R",
+            "ppid": 14750,
+            "pgrp": 14752,
+            "session": 14752,
+            "starttime": 320220
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "inside_constructor",
+          "passed": true,
+          "original_identity": {
+            "pid": 14753,
+            "state": "R",
+            "ppid": 14750,
+            "pgrp": 14753,
+            "session": 14753,
+            "starttime": 320221
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14754,
+            "state": "R",
+            "ppid": 14750,
+            "pgrp": 14754,
+            "session": 14754,
+            "starttime": 320222
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        }
+      ]
+    },
+    "after-handler-background-01": {
+      "path": "after-handler-background-01/receipt.json",
+      "sha256": "4e19bbea62b5128d6e577525ad1d82c7fca2d5b1795eec8bbea7b07cd855a005",
+      "status": "PASS_SCOPED",
+      "passed": 4,
+      "failed": 0,
+      "source_stable": true,
+      "source_sha256": {
+        "intune_iac/protected.py": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891",
+        "intune_iac/provider_execution.py": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+        "plugin_tests/test_workbench_scheduler.py": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f"
+      },
+      "case_results": [
+        {
+          "supervisor": "protected",
+          "phase": "inside_constructor",
+          "passed": true,
+          "original_identity": {
+            "pid": 14756,
+            "state": "R",
+            "ppid": 14746,
+            "pgrp": 14756,
+            "session": 14756,
+            "starttime": 320236
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "protected",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14757,
+            "state": "R",
+            "ppid": 14746,
+            "pgrp": 14757,
+            "session": 14757,
+            "starttime": 320238
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "inside_constructor",
+          "passed": true,
+          "original_identity": {
+            "pid": 14758,
+            "state": "R",
+            "ppid": 14746,
+            "pgrp": 14758,
+            "session": 14758,
+            "starttime": 320239
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        },
+        {
+          "supervisor": "provider",
+          "phase": "before_assignment",
+          "passed": true,
+          "original_identity": {
+            "pid": 14759,
+            "state": "R",
+            "ppid": 14746,
+            "pgrp": 14759,
+            "session": 14759,
+            "starttime": 320240
+          },
+          "immediate_tasks": [],
+          "immediate_observation": null,
+          "terminal_before_evaluator_cleanup": true,
+          "parent_mask_restored": true,
+          "handler_unchanged": true
+        }
+      ]
+    }
+  },
+  "final_independent_cases": 8,
+  "final_passed": 8,
+  "final_failed": 0,
+  "original_scheduler_assertion": {
+    "path": "plugin_tests/test_workbench_scheduler.py",
+    "r2_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+    "r2_sha256": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f",
+    "current_sha256": "2d95aa70674a363abeabba70f36aea6ff473760c21a45b4a35cf77094eeb697f",
+    "byte_identical": true,
+    "immediate_state_assertion_preserved": true,
+    "full_test_rerun_by_this_reviewer": false
+  },
+  "source_binding": {
+    "intune_iac/protected.py": {
+      "current_sha256": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891",
+      "matches_final_single_probe": true,
+      "matches_final_background_probe": true
+    },
+    "intune_iac/provider_execution.py": {
+      "current_sha256": "653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731",
+      "matches_final_single_probe": true,
+      "matches_final_background_probe": true
+    }
+  },
+  "unchanged_existing_security_functions": [
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_cleanup_process_group",
+      "before_sha256": "7719d79c7ef61401fa44143a90214f0222974494570b0dec5aa697a705843458",
+      "after_sha256": "7719d79c7ef61401fa44143a90214f0222974494570b0dec5aa697a705843458",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_network_filter",
+      "before_sha256": "b5ee816fea0b41a4caa2e7fa82682ea1698edb3161759e1f2278bf3877c244c1",
+      "after_sha256": "b5ee816fea0b41a4caa2e7fa82682ea1698edb3161759e1f2278bf3877c244c1",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/protected.py",
+      "function": "_release_process_resources",
+      "before_sha256": "62a35ecf8b075a311507237c2e60fa4bc1f71927cbc20b22d804092e73c6e3d6",
+      "after_sha256": "62a35ecf8b075a311507237c2e60fa4bc1f71927cbc20b22d804092e73c6e3d6",
+      "unchanged": true
+    },
+    {
+      "path": "intune_iac/provider_execution.py",
+      "function": "_network_guard",
+      "before_sha256": "a7a0bfe9fa8ef52dbfd64a924bc5aab4da8daaf86889f3eb532cc61c95a1ea92",
+      "after_sha256": "a7a0bfe9fa8ef52dbfd64a924bc5aab4da8daaf86889f3eb532cc61c95a1ea92",
+      "unchanged": true
+    }
+  ],
+  "independence": "Independent actual-Popen fault timing, actual SIGINT, real current protected/provider guards. Literal original PID/starttime and every immediate task state inspected before evaluator kill/reap. No cleanup implementation imported into oracle and no post-return sleeps. Product modules loaded only as subjects.",
+  "scope_limits": [
+    "Cooperative Linux supported main-thread Python SIGINT cancellation; other Python threads may exist.",
+    "A temporary process-global Python handler is now used during child acquisition; this is an explicit scope change, not inherited no-handler R2 behavior.",
+    "Exact supplied masks/handlers restored; caller SIG_DFL abrupt termination, other signals, SIGKILL and hostile-host behavior are not newly qualified.",
+    "Popen/preexec startup does not gain a new timeout; no hung-startup cancellation guarantee. Existing post-spawn execution/cleanup bounds remain.",
+    "No arbitrary process-group escape, host crash/power-loss or authenticated provider/cloud/device qualification.",
+    "Final exact-package strict suite and replay remain distinct required gates; scoped review does not turn failed e8 final01 into a pass."
+  ],
+  "historical_authority": "R2 1141 result and prior descendant/task cleanup repair remain unchanged. Original e8 strict1234/1236 failure/error remains preserved. REVIEW-PENDING.json and all mask-only/background negatives remain intact.",
+  "correction": "Initial chat reversed failed background phase labels; raw receipt and subsequent correction establish inside_constructor failures. No result was deleted."
+}

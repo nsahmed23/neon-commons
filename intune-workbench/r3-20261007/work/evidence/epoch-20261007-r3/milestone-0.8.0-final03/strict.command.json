@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "scripts/verify-plugin.py",
+    "--include-core",
+    "--output",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite"
+  ],
+  "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+  "started_at": "2026-10-07T04:17:14.505289+00:00",
+  "finished_at": "2026-10-07T04:25:01.330144+00:00",
+  "elapsed_seconds": 466.8248827240004,
+  "exit_code": 0,
+  "stdout": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stdout",
+    "sha256": "4fd265797b091fd7fd6acf208293e3cf0c3c3698191991b6370442e7800ed533"
+  },
+  "stderr": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+}

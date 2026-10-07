@@ -1,0 +1,176 @@
+{
+  "schema_version": "intune-r3-evidence-split-release/1",
+  "scope": "Entire R3 evidence epoch supplement; complete immutable R2 repository remains separately required",
+  "archive": {
+    "name": "Intune_R3_Evidence_20261007.zip",
+    "bytes": 1013682416,
+    "sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35"
+  },
+  "provenance": {
+    "complete_repository": false,
+    "complete_r3_evidence_epoch": true,
+    "r2_base": {
+      "archive": "Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+      "bytes": 2289864715,
+      "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+      "source_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "data_commit": "57131e285b87abd11df0b0196866d22db2a615e4",
+      "manifest_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json"
+    },
+    "r3_source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+    "r3_source_and_runtime_archives": [
+      {
+        "name": "Intune_IaC_Plugin_0.8.0_Source.zip",
+        "bytes": 16627882,
+        "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+        "type": "exact_source"
+      },
+      {
+        "name": "Intune_IaC_Plugin_0.8.0.zip",
+        "bytes": 513895,
+        "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+        "type": "exact_runtime",
+        "byte_identical_to_final02": true
+      }
+    ],
+    "historical_three_unexpected_files_closed": false,
+    "notes": "Product packages/checkpoint/acceptance documents distributed separately; this archive supplements the complete immutable R2 base.",
+    "prior_candidates_preserved": [
+      {
+        "source_commit": "e8c581dcfbb4543609eebb2d48eacbadec026ee8",
+        "scope": "Failed initial final candidate and all raw receipts/intermediates remain within complete R3 evidence epoch"
+      },
+      {
+        "source_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+        "scope": "Final02 strict 1241/1242 failure and valid unchanged-runtime gates retained",
+        "commit_actor_attribution": "unresolved"
+      }
+    ],
+    "qualification_status": "Final03 exact extracted source1242/1242 PASS; final ledger review28/28 PASS; local scope; evidence epoch frozen for distribution",
+    "qualification": {
+      "source_strict": {
+        "tests": 1242,
+        "passed": 1242,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "scope": "exact extracted source"
+      },
+      "source_and_runtime_maps_unchanged": true,
+      "source_and_runtime_rebuilds_byte_identical": true,
+      "runtime_gates": "Valid final02 runtime gates reused because final03 runtime ZIP is byte-identical; no new broader platform claim",
+      "laboratory_completion_distinct_from_platform_and_organization_approval": true,
+      "live_platform_and_production_approval": "not established",
+      "final_ledger_independent_review": {
+        "checks": 28,
+        "passed": 28,
+        "scope": "Reconciliation of final source and unchanged runtime evidence; no live platform or production approval"
+      }
+    },
+    "epoch_freeze": {
+      "path": "work/evidence/epoch-20261007-r3/EPOCH-FREEZE.json",
+      "sha256": "82f321d006fbd455cf23a3bdd445a95b091da838a320c88dd7aa4f4a57016354",
+      "no_post_freeze_epoch_writes_authorized": true
+    }
+  },
+  "chunk_bytes": 96000000,
+  "part_count": 11,
+  "symlinks_are_literal_zip_entries": true,
+  "automatic_extraction": false,
+  "parts": [
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part01",
+      "bytes": 96000000,
+      "sha256": "6f9ed055d52dbb39564f186891a628d65b9f7f1ee3792efa4ad50782defd13ae",
+      "git_blob": "a4cbdf40501d52bc9ce53a5b676641181d7c7f31",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part01",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part01"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part02",
+      "bytes": 96000000,
+      "sha256": "3e53a223aa720eb615c69d4202b68b8e13ccaae9c7446fe22d483e0d58659827",
+      "git_blob": "55052cc3611d1c85f959524a628f9aa92f171813",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part02",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part02"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part03",
+      "bytes": 96000000,
+      "sha256": "6c4b77602b0374d2b11cc6e78c8afd0a991f7d39701d86a10fcc18a9bc333306",
+      "git_blob": "60d2c36392460f3ea3bd9dc358a2d7691266b8d7",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part03",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part03"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part04",
+      "bytes": 96000000,
+      "sha256": "a590e887687f3d05d095a4d3ab629679e9e7fe1db49ffa512c393b91a122976c",
+      "git_blob": "b487a8fb9377f48b94260e9144d1477dc1a18462",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part04",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part04"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part05",
+      "bytes": 96000000,
+      "sha256": "649e53111bab733edfcaaf9f32ebd5fab38f6e8b262bb9788981690aa9c18d5d",
+      "git_blob": "ed3c3894e55f5da10008666f6ef5fe9eb6d5ff70",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part05",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part05"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part06",
+      "bytes": 96000000,
+      "sha256": "2d921d81afef53d1e3e917e8519b95d550b9465cc1ccd43a7f8b84f5f131cf0e",
+      "git_blob": "4b5bf0a2a82e962ecc4ffd95c22aadc1c429929e",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part06",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part06"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part07",
+      "bytes": 96000000,
+      "sha256": "0f87fde4e8e2caea4fce7569526ef8c349c8d78b11a195f4a2c4b7a471b5ae80",
+      "git_blob": "b8f1dfde7548b4ee79c54ffab908b901ea9fe464",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part07",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part07"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part08",
+      "bytes": 96000000,
+      "sha256": "1833ddc7dd988e6900f55a6597b1cdf741e31534b9153e2d73856db2a261ea25",
+      "git_blob": "3312a7a1c89a3ed21975d8a003cbc956f31186b6",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part08",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part08"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part09",
+      "bytes": 96000000,
+      "sha256": "a1d82f729cfbe2e621d8b5e722ab828ae0b5462f3c1f5a8200c41fcbb354fd65",
+      "git_blob": "ec6cdfbd685f0b14cea3efed5deaaf2c6cc4caf1",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part09",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part09"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part10",
+      "bytes": 96000000,
+      "sha256": "c96200b473132b41395c00bcb15c1d4df4fb431d6de94bb0b665dcbc5b2148db",
+      "git_blob": "89673f2a47690d7ce332946b03d74ef428c273b6",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part10",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part10"
+    },
+    {
+      "name": "Intune_R3_Evidence_20261007.zip.part11",
+      "bytes": 53682416,
+      "sha256": "e132f2b9b56ea5a03cf1b12c01c9a9006579b54033e5b4c901ee7343182bf183",
+      "git_blob": "f36317b1c3f45161cb957cb5eb289dfe9eee5399",
+      "repository_path": "intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part11",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/4b7f007542a0389259df5c0ba2635550e97dde1b/intune-workbench/r3-evidence-20261007/Intune_R3_Evidence_20261007.zip.part11"
+    }
+  ],
+  "data_commit": "4b7f007542a0389259df5c0ba2635550e97dde1b",
+  "data_branch": "intune-r3-evidence-data-20261007",
+  "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "download_helper": "restore_r3_evidence.py requires independently published final size and SHA-256; no extraction",
+  "complete_repository": false,
+  "complete_evidence_epoch": true
+}

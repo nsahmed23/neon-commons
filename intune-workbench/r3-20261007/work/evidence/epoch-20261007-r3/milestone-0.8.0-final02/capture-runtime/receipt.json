@@ -1,0 +1,640 @@
+{
+  "schema": "capture-retry-cli-qualification/1",
+  "commands": [
+    {
+      "name": "capture-retry",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/retry"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_seconds": 0.10247990100015159
+    },
+    {
+      "name": "init",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "init",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_seconds": 0.10547811700007514
+    },
+    {
+      "name": "import",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/retry"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_seconds": 0.12033207900003617
+    },
+    {
+      "name": "reopened-inspect",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "inspect",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_seconds": 0.11076683800001774
+    },
+    {
+      "name": "collection",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "collection",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--run",
+        "1"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_seconds": 0.10260905899986028
+    },
+    {
+      "name": "capture-denied",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/denied"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.11325449400010257
+    },
+    {
+      "name": "import-denied",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/denied"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.1159457549997569
+    },
+    {
+      "name": "inspect-after-denial",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "inspect",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--object",
+        "22222222-2222-4222-8222-222222222222"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "elapsed_seconds": 0.10470070400015175
+    },
+    {
+      "name": "capture-exhausted",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/exhausted"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.11465161900014209
+    },
+    {
+      "name": "import-exhausted",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/exhausted"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.11942429400005494
+    },
+    {
+      "name": "capture-delay",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/delay"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.09881200600011653
+    },
+    {
+      "name": "import-delay",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/delay"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.1080810029998247
+    },
+    {
+      "name": "capture-redirect",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/redirect"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.10689645799993741
+    },
+    {
+      "name": "import-redirect",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/redirect"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.10539620600002308
+    },
+    {
+      "name": "capture-origin",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/origin"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.09169520199975523
+    },
+    {
+      "name": "import-origin",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/origin"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.13201068099988333
+    },
+    {
+      "name": "capture-cancel",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/cancel"
+      ],
+      "exit_code": 130,
+      "expected_exit_code": 130,
+      "elapsed_seconds": 0.08813697599998704
+    },
+    {
+      "name": "import-cancel",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/cancel"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.1049030250001124
+    },
+    {
+      "name": "capture-deadline",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "capture",
+        "--tenant",
+        "11111111-1111-4111-8111-111111111111",
+        "--policy",
+        "22222222-2222-4222-8222-222222222222",
+        "--output",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/slow",
+        "--max-elapsed-seconds",
+        ".1"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.18591567100020256
+    },
+    {
+      "name": "import-deadline",
+      "argv": [
+        "/workspace/intune-runtime/bin/python",
+        "-B",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/local_connection_cli.py",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/runtime-extracted/intune-iac",
+        "36399",
+        "workbench",
+        "import-capture",
+        "--root",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/store",
+        "--capture",
+        "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/slow"
+      ],
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "elapsed_seconds": 0.11170163199994931
+    }
+  ],
+  "checks": [
+    {
+      "id": "capture-retry_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-retry_presentation",
+      "pass": true
+    },
+    {
+      "id": "five_get_attempts_two_retries",
+      "pass": true
+    },
+    {
+      "id": "every_received_body_retained",
+      "pass": true
+    },
+    {
+      "id": "failed_attempts_not_successful_pages",
+      "pass": true
+    },
+    {
+      "id": "retry_delay_progress_is_numeric",
+      "pass": true
+    },
+    {
+      "id": "init_exit",
+      "pass": true
+    },
+    {
+      "id": "init_presentation",
+      "pass": true
+    },
+    {
+      "id": "import_exit",
+      "pass": true
+    },
+    {
+      "id": "import_presentation",
+      "pass": true
+    },
+    {
+      "id": "reopened-inspect_exit",
+      "pass": true
+    },
+    {
+      "id": "reopened-inspect_presentation",
+      "pass": true
+    },
+    {
+      "id": "literal_imported_policy",
+      "pass": true
+    },
+    {
+      "id": "collection_exit",
+      "pass": true
+    },
+    {
+      "id": "collection_presentation",
+      "pass": true
+    },
+    {
+      "id": "retry_history_persisted",
+      "pass": true
+    },
+    {
+      "id": "independent_sqlite_retry_binding",
+      "pass": true
+    },
+    {
+      "id": "capture-denied_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-denied_presentation",
+      "pass": true
+    },
+    {
+      "id": "import-denied_exit",
+      "pass": true
+    },
+    {
+      "id": "import-denied_presentation",
+      "pass": true
+    },
+    {
+      "id": "denial_not_promoted",
+      "pass": true
+    },
+    {
+      "id": "inspect-after-denial_exit",
+      "pass": true
+    },
+    {
+      "id": "inspect-after-denial_presentation",
+      "pass": true
+    },
+    {
+      "id": "last_good_preserved_stale",
+      "pass": true
+    },
+    {
+      "id": "capture-exhausted_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-exhausted_presentation",
+      "pass": true
+    },
+    {
+      "id": "exhausted_explicit_reason",
+      "pass": true
+    },
+    {
+      "id": "import-exhausted_exit",
+      "pass": true
+    },
+    {
+      "id": "import-exhausted_presentation",
+      "pass": true
+    },
+    {
+      "id": "capture-delay_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-delay_presentation",
+      "pass": true
+    },
+    {
+      "id": "delay_explicit_reason",
+      "pass": true
+    },
+    {
+      "id": "import-delay_exit",
+      "pass": true
+    },
+    {
+      "id": "import-delay_presentation",
+      "pass": true
+    },
+    {
+      "id": "capture-redirect_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-redirect_presentation",
+      "pass": true
+    },
+    {
+      "id": "redirect_explicit_reason",
+      "pass": true
+    },
+    {
+      "id": "import-redirect_exit",
+      "pass": true
+    },
+    {
+      "id": "import-redirect_presentation",
+      "pass": true
+    },
+    {
+      "id": "capture-origin_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-origin_presentation",
+      "pass": true
+    },
+    {
+      "id": "origin_explicit_reason",
+      "pass": true
+    },
+    {
+      "id": "import-origin_exit",
+      "pass": true
+    },
+    {
+      "id": "import-origin_presentation",
+      "pass": true
+    },
+    {
+      "id": "known_delay_displayed_before_sigint",
+      "pass": true
+    },
+    {
+      "id": "capture-cancel_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-cancel_presentation",
+      "pass": true
+    },
+    {
+      "id": "cancel_is_bounded_and_durable",
+      "pass": true
+    },
+    {
+      "id": "import-cancel_exit",
+      "pass": true
+    },
+    {
+      "id": "import-cancel_presentation",
+      "pass": true
+    },
+    {
+      "id": "capture-deadline_exit",
+      "pass": true
+    },
+    {
+      "id": "capture-deadline_presentation",
+      "pass": true
+    },
+    {
+      "id": "body_deadline_bounds_actual_entrypoint",
+      "pass": true
+    },
+    {
+      "id": "import-deadline_exit",
+      "pass": true
+    },
+    {
+      "id": "import-deadline_presentation",
+      "pass": true
+    },
+    {
+      "id": "requests_remained_get_and_scoped",
+      "pass": true
+    },
+    {
+      "id": "denied_and_redirect_not_retried",
+      "pass": true
+    },
+    {
+      "id": "failed_collections_preserve_one_success",
+      "pass": true
+    }
+  ],
+  "success": true,
+  "source_hashes": {
+    "intune_iac/capture.py": "0791f19c5dde8943dbd98878e72df2a7886c360f8cfdfcf6d9cec1613e3ce0d2",
+    "intune_iac/capture_adapter.py": "659b7b3f2a70458b04245a9a59c7c707eff05a13108021a263a5aa4d52c8bf74",
+    "intune_iac/cli.py": "cd5dca9f543e2db412221262ab157b4f1c43fcbdc6f09bfe3a4744da65f961e3"
+  },
+  "scope": "Actual CLI subprocesses and loopback HTTP, fixed-origin native request path with evaluator-only HTTPS connection substitution; no Graph/TLS/authenticity qualification. Raw SQLite assertions use literal expected values, no product normalizer."
+}

@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "-m",
+    "unittest",
+    "plugin_tests.test_native_smoke_observation_epoch.NativeSmokeObservationTests.test_trace_adds_only_fixed_env_value_and_preserves_popen_controls"
+  ],
+  "returncode": 1
+}

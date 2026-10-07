@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "scripts/qualify-workbench-connected.py",
+    "--plugin",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+    "--python",
+    "/workspace/intune-runtime/bin/python",
+    "--output",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source"
+  ],
+  "cwd": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+  "started_at": "2026-10-07T04:17:14.505533+00:00",
+  "finished_at": "2026-10-07T04:17:37.054305+00:00",
+  "elapsed_seconds": 22.548791824000546,
+  "exit_code": 0,
+  "stdout": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stdout",
+    "sha256": "1dddec35416e477053afb44e9886c5ba090dfbbfaca2916dc4c73d1c5b612027"
+  },
+  "stderr": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stderr",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "environment_profile": "minimal PATH/HOME/LANG/LC_ALL; PYTHONDONTWRITEBYTECODE=1; explicit exact validator and ToFu paths"
+}

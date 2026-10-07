@@ -1,0 +1,26 @@
+{
+  "commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "source_payloads_match_git": true,
+  "excluded_git_metadata": {
+    "SHA256SUMS": "80ad114f36093cba18b866934d3224ab6007d39b"
+  },
+  "excluded_metadata_reason": "Historical preserved root manifest; release generates and independently verifies its own exact contents manifest.",
+  "source_payloads": 3087,
+  "source": {
+    "filename": "Intune_IaC_Plugin_0.8.0_Source.zip",
+    "files": 3088,
+    "listed_hashes": 3087,
+    "bytes": 16627882,
+    "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+  },
+  "runtime": {
+    "filename": "Intune_IaC_Plugin_0.8.0.zip",
+    "files": 130,
+    "listed_hashes": 129,
+    "bytes": 513895,
+    "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+  },
+  "release": "/workspace/intune-continuation/work/releases/continuation-0.8.0-r3-final03",
+  "extracted_source": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted/intune-iac-source",
+  "archive_and_extracted_file_maps_match": true
+}

@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "archive": "Intune_IaC_Plugin_0.8.0_Source.zip",
+  "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+  "members": 3088,
+  "manifest_entries": 3087,
+  "expanded_bytes": 59486019,
+  "root": "intune-iac-source",
+  "extracted_to": "/workspace/intune-continuation/work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/source-extracted",
+  "publisher_authenticated": false
+}

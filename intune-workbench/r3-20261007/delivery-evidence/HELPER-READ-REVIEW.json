@@ -1,0 +1,15 @@
+{
+  "recorded_at": "2026-10-07T04:32:28.851809+00:00",
+  "status": "PASS_SCOPED_READ_REVIEW",
+  "helper_path": "/workspace/intune-publication/r3-tooling/restore_r3_evidence.py",
+  "helper_sha256": "a619056fdedcd161104bfaa64f73a060c4ce2abac2cddd5220202ed6ca7fd840",
+  "observations": [
+    "Requires independently supplied whole ZIP byte count and SHA-256 matching the manifest.",
+    "Validates unique ordered part names, bounds, sums and hashes, then checks reconstructed whole bytes/hash.",
+    "Refuses existing final output; uses exclusive/private partial with no-follow descriptor, flock and link without replacement.",
+    "Interrupted or corrupt partial bytes remain preserved; resume verifies existing bytes against complete part pins.",
+    "No archive extraction or execution, no credentials, no changes to original complete R2 snapshot."
+  ],
+  "scope": "Read-only implementation/documentation spot-check; no helper tests or full public reconstruction rerun by this reviewer. Separate owner qualification and actual anonymous reconstruction remain required.",
+  "future_publication_requirement": "Published helper must match this hash or a separately reviewed revision."
+}

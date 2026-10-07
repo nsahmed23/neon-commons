@@ -1,0 +1,116 @@
+{
+  "recorded_at": "2026-10-07T04:08:07.637769+00:00",
+  "status": "PASS_SCOPED",
+  "reviewer": "independent publication_audit lane",
+  "checks": [
+    {
+      "name": "all_raw_receipt_file_hashes_match",
+      "passed": true
+    },
+    {
+      "name": "26_claimed_assertions_have_explicit_pass",
+      "passed": true
+    },
+    {
+      "name": "grader_driver_receipt_bytes_match_claim",
+      "passed": true
+    },
+    {
+      "name": "final_runtime_identity_size_hash_count",
+      "passed": true
+    },
+    {
+      "name": "zip_mount_and_before_after_exact",
+      "passed": true
+    },
+    {
+      "name": "installed-home.tar_no_links_or_special_members",
+      "passed": true
+    },
+    {
+      "name": "final-home.tar_no_links_or_special_members",
+      "passed": true
+    },
+    {
+      "name": "130_installed_regular_payloads_exact",
+      "passed": true
+    },
+    {
+      "name": "local_marketplace_and_enabled_configuration",
+      "passed": true
+    },
+    {
+      "name": "final_home_only_empty_config_no_auth",
+      "passed": true
+    },
+    {
+      "name": "exact_ten_native_commands_no_model_session",
+      "passed": true
+    },
+    {
+      "name": "nine_success_one_expected_rejection",
+      "passed": true
+    },
+    {
+      "name": "native_version_recorded",
+      "passed": true
+    },
+    {
+      "name": "registered_exact_local_marketplace",
+      "passed": true
+    },
+    {
+      "name": "available_then_enabled_transition",
+      "passed": true
+    },
+    {
+      "name": "uninstall_then_marketplace_removal_observed",
+      "passed": true
+    },
+    {
+      "name": "kernel_uid_caps_seccomp_no_new_privileges",
+      "passed": true
+    },
+    {
+      "name": "network_none_loopback_no_routes",
+      "passed": true
+    },
+    {
+      "name": "no_privilege_or_host_pid_readonly_root",
+      "passed": true
+    },
+    {
+      "name": "exact_explicit_mount_allowlist",
+      "passed": true
+    },
+    {
+      "name": "private_nonroot_home_tmpfs",
+      "passed": true
+    },
+    {
+      "name": "container_successful_teardown",
+      "passed": true
+    },
+    {
+      "name": "final02_assertion_identity",
+      "passed": true
+    },
+    {
+      "name": "final02_wrapper_commands_and_raw_hashes",
+      "passed": true
+    }
+  ],
+  "passed": 24,
+  "failed": 0,
+  "raw_hash_references_checked": 64,
+  "native_commands": 10,
+  "cached_runtime_files": 130,
+  "reviewed_assertions_sha256": "3c84ce77b5b6d7f5c5a29897665bc2c4d835b9ef841a3da493acfd3316674e2f",
+  "reviewed_wrapper_sha256": "89e4a969f7638f02dd91c9ae5147867cd351521c467a5cb5d0b782a84e2dafa5",
+  "review_script_sha256": "890829266cd0276d273c4591e4254974373e2d325503d53083a6a836515db9db",
+  "scope": "Read-only review of preserved raw native lifecycle, archive, config and Docker/kernel evidence. No product imports, app invocation, container rerun, source edits or claims of model/skill invocation. Original 26 assertions were reviewed; these grouped cross-checks are separate, not additional strict-suite tests.",
+  "limitations": [
+    "Same laboratory host and saved evidence; not organizational or hostile-kernel attestation.",
+    "No authenticated model session, skill invocation, Claude workflow, Windows/macOS qualification or production approval."
+  ]
+}

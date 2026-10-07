@@ -1,0 +1,67 @@
+{
+  "complete_repository": false,
+  "complete_r3_evidence_epoch": true,
+  "r2_base": {
+    "archive": "Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+    "source_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+    "data_commit": "57131e285b87abd11df0b0196866d22db2a615e4",
+    "manifest_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json"
+  },
+  "r3_source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "r3_source_and_runtime_archives": [
+    {
+      "name": "Intune_IaC_Plugin_0.8.0_Source.zip",
+      "bytes": 16627882,
+      "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+      "type": "exact_source"
+    },
+    {
+      "name": "Intune_IaC_Plugin_0.8.0.zip",
+      "bytes": 513895,
+      "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+      "type": "exact_runtime",
+      "byte_identical_to_final02": true
+    }
+  ],
+  "historical_three_unexpected_files_closed": false,
+  "notes": "Product packages/checkpoint/acceptance documents distributed separately; this archive supplements the complete immutable R2 base.",
+  "prior_candidates_preserved": [
+    {
+      "source_commit": "e8c581dcfbb4543609eebb2d48eacbadec026ee8",
+      "scope": "Failed initial final candidate and all raw receipts/intermediates remain within complete R3 evidence epoch"
+    },
+    {
+      "source_commit": "c122e38e33641336bc5af47b9dbf06eb0e58bc32",
+      "scope": "Final02 strict 1241/1242 failure and valid unchanged-runtime gates retained",
+      "commit_actor_attribution": "unresolved"
+    }
+  ],
+  "qualification_status": "Final03 exact extracted source1242/1242 PASS; final ledger review28/28 PASS; local scope; evidence epoch frozen for distribution",
+  "qualification": {
+    "source_strict": {
+      "tests": 1242,
+      "passed": 1242,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "scope": "exact extracted source"
+    },
+    "source_and_runtime_maps_unchanged": true,
+    "source_and_runtime_rebuilds_byte_identical": true,
+    "runtime_gates": "Valid final02 runtime gates reused because final03 runtime ZIP is byte-identical; no new broader platform claim",
+    "laboratory_completion_distinct_from_platform_and_organization_approval": true,
+    "live_platform_and_production_approval": "not established",
+    "final_ledger_independent_review": {
+      "checks": 28,
+      "passed": 28,
+      "scope": "Reconciliation of final source and unchanged runtime evidence; no live platform or production approval"
+    }
+  },
+  "epoch_freeze": {
+    "path": "work/evidence/epoch-20261007-r3/EPOCH-FREEZE.json",
+    "sha256": "82f321d006fbd455cf23a3bdd445a95b091da838a320c88dd7aa4f4a57016354",
+    "no_post_freeze_epoch_writes_authorized": true
+  }
+}

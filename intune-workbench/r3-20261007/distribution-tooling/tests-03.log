@@ -1,0 +1,31 @@
+test_bare_git_chunks_preserve_exact_bytes_without_worktree_copies (__main__.R3DeliveryTests.test_bare_git_chunks_preserve_exact_bytes_without_worktree_copies) ... Staged 1/6 exact chunks without chunk files
+Staged 2/6 exact chunks without chunk files
+Staged 3/6 exact chunks without chunk files
+Staged 4/6 exact chunks without chunk files
+Staged 5/6 exact chunks without chunk files
+Staged 6/6 exact chunks without chunk files
+ok
+test_builder_never_follows_output_ancestor_for_zip_or_receipt (__main__.R3DeliveryTests.test_builder_never_follows_output_ancestor_for_zip_or_receipt) ... ok
+test_builder_rejects_existing_output_and_preserves_it (__main__.R3DeliveryTests.test_builder_rejects_existing_output_and_preserves_it) ... ok
+test_builder_rejects_output_inside_input (__main__.R3DeliveryTests.test_builder_rejects_output_inside_input) ... ok
+test_builder_rejects_special_file_instead_of_skipping (__main__.R3DeliveryTests.test_builder_rejects_special_file_instead_of_skipping) ... ok
+test_caller_pins_cannot_be_replaced_by_manifest (__main__.R3DeliveryTests.test_caller_pins_cannot_be_replaced_by_manifest) ... ok
+test_changed_epoch_fails_and_preserves_partial (__main__.R3DeliveryTests.test_changed_epoch_fails_and_preserves_partial) ... ok
+test_corrupt_chunk_preserved_and_not_published (__main__.R3DeliveryTests.test_corrupt_chunk_preserved_and_not_published) ... Downloading/verifying part 1/2: part01
+ok
+test_entire_epoch_bytes_links_directories_and_hardlinks_preserved (__main__.R3DeliveryTests.test_entire_epoch_bytes_links_directories_and_hardlinks_preserved) ... ok
+test_http_range_is_checked (__main__.R3DeliveryTests.test_http_range_is_checked) ... ok
+test_output_never_overwritten (__main__.R3DeliveryTests.test_output_never_overwritten) ... ok
+test_reassembly_exact_byte_identity_and_no_extraction (__main__.R3DeliveryTests.test_reassembly_exact_byte_identity_and_no_extraction) ... Downloading/verifying part 1/2: part01
+Downloading/verifying part 2/2: part02
+ok
+test_resume_partial_into_second_chunk (__main__.R3DeliveryTests.test_resume_partial_into_second_chunk) ... Downloading/verifying part 1/2: part01
+Downloading/verifying part 2/2: part02
+ok
+test_resume_symlink_not_followed (__main__.R3DeliveryTests.test_resume_symlink_not_followed) ... ok
+test_wrong_schema_duplicate_parts_and_traversal_rejected (__main__.R3DeliveryTests.test_wrong_schema_duplicate_parts_and_traversal_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 0.054s
+
+OK
