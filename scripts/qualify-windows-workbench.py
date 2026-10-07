@@ -95,7 +95,13 @@ def procedure_manifest(root):
         'authorization': 'Local disposable qualification only; no service credentials, installation, registry change or production write.',
         'automated_scope': ['Exact package file map and tool hashes', 'Git Bash native argument transport including MSYS Graph versus filesystem conversion',
                             'PowerShell .NET ArgumentList and native exit propagation', 'Harmless literal hostile strings and CRLF byte preservation',
-                            'Actual help/doctor/store-init/overview/text-terminal entrypoints and independent SQLite tenant/empty-history assertions'],
+                            'Actual help/doctor and explicit host implementation gate',
+                            'When native storage is implemented: store-init/overview/text-terminal and independent SQLite assertions; otherwise exact unsupported rejections and no-created-store assertions'],
+        'required_implementation_gate': {'profile': 'workbench_store',
+            'discovery': 'Read host_capabilities from the exact package doctor entrypoint before attempting storage.',
+            'current_native_windows_status': 'UNSUPPORTED',
+            'meaning': 'Current private store uses POSIX primitives. A valid unsupported rejection is a negative control and cannot pass native functional qualification.',
+            'next_implementation': 'Reviewed SID/DACL, reparse-safe handle, native locking and durable SQLite storage adapter; see docs/HOST-CAPABILITIES-R4.md.'},
         'required_interactive_cases': [
             {'id': 'WIN-MINTTY', 'procedure': 'Launch the verified Bash wrapper from actual mintty with --python ABSOLUTE_NATIVE_PYTHON -- workbench terminal --root PRIVATE_STORE; record terminal/version, actual key stream, raw capture and independent before/after store facts.'},
             {'id': 'WIN-CHOSEN-TERMINAL', 'procedure': 'Repeat in the organizationally chosen terminal; exercise narrow width, resize, Unicode width, non-color cues, reduced motion, back/edit/cancel/resume and terminal restoration. Use the actual visual command discovered in this candidate help.'},
@@ -106,6 +112,38 @@ def procedure_manifest(root):
         'unsupported': ['Windows PowerShell 5.1 .NET argument transport', 'UNC paths in this initial qualifier'],
         'reference_launcher': str(root / 'scripts/intune-iac.py'),
     }
+
+
+def store_profile_gate(document):
+    """Read the candidate's explicit implementation contract; never infer support."""
+    try:
+        report = document['host_capabilities']
+        profile = report['profiles']['workbench_store']
+        status = profile['status']
+        missing = profile['missing_primitives']
+        if (report['schema_version'] != 'intune-host-capabilities/1' or
+                status not in ('IMPLEMENTED', 'UNSUPPORTED') or type(missing) is not list or
+                any(type(item) is not str for item in missing) or
+                (status == 'IMPLEMENTED') != (not missing)):
+            raise ValueError
+    except (KeyError, TypeError, ValueError):
+        raise ValueError('host_capability_report_required') from None
+    return {'profile': 'workbench_store', 'implementation_status': status,
+            'status': 'UNSUPPORTED' if status == 'UNSUPPORTED' else 'IMPLEMENTED',
+            'functional_qualification': 'BLOCKED' if status == 'UNSUPPORTED' else 'NOT_STARTED',
+            'missing_primitives': missing,
+            'qualification_scope': 'Negative rejection is not functional native Windows evidence.'}
+
+
+def qualification_status(assertions, gates):
+    """A passed negative control cannot satisfy the required functional route."""
+    if not assertions or any(row.get('passed') is not True for row in assertions):
+        return 'FAIL'
+    if not gates or any(gate.get('status') not in ('PASS', 'UNSUPPORTED') for gate in gates):
+        return 'FAIL'
+    if any(gate['status'] == 'UNSUPPORTED' for gate in gates):
+        return 'UNSUPPORTED'
+    return 'PASS' if all(gate.get('functional_qualification') == 'PASS' for gate in gates) else 'FAIL'
 
 
 def main(argv=None):
@@ -134,7 +172,7 @@ def main(argv=None):
                'started_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
                'environment': {'sys_platform': sys.platform, 'platform': platform.platform(), 'python': sys.version},
                'declared_source_commit': args.source_commit, 'source_linkage_assurance': 'Caller-declared until matched by independent release receipt; package bytes checked separately.',
-               'package': None, 'tools': {}, 'commands': [], 'assertions': [], 'blockers': [],
+               'package': None, 'tools': {}, 'commands': [], 'assertions': [], 'blockers': [], 'implementation_gates': [],
                'limitations': ['No installed service, cloud call or credential activation.', 'No native mintty/ConPTY interaction inferred from piped subprocesses.',
                                'PowerShell injected cleanup failure is a local contract control, not observed OS cleanup failure.',
                                'A timeout records uncertain descendant cleanup; this qualifier is not the protected process supervisor.']}
@@ -261,17 +299,51 @@ def main(argv=None):
         run(shell+'-doctor',builder(root/'scripts'/f'intune-workbench.{suffix}',['doctor']))
         run(shell+'-invalid-command',builder(root/'scripts'/f'intune-workbench.{suffix}',['invalid-synthetic-command']),expected=2)
         store = output / (shell+' private store 雪')
-        run(shell+'-store-init',builder(root/'scripts'/f'intune-workbench.{suffix}', ['workbench','init','--root',str(store),'--tenant',TENANT]))
-        run(shell+'-store-overview',builder(root/'scripts'/f'intune-workbench.{suffix}', ['workbench','overview','--root',str(store)]))
-        run(shell+'-text-terminal',builder(root/'scripts'/f'intune-workbench.{suffix}', ['workbench','terminal','--root',str(store)]),input_bytes=b'help\nquit\n')
+        try:
+            gate = store_profile_gate(json.loads((commands/(shell+'-doctor')/'stdout.raw').read_text(encoding='utf-8')))
+            check(shell+'-host-capability-contract', True)
+        except (OSError, ValueError):
+            check(shell+'-host-capability-contract', False)
+            receipt['implementation_gates'].append({'shell': shell, 'profile': 'workbench_store', 'status': 'FAIL',
+                'functional_qualification': 'BLOCKED', 'reason': 'Missing or inconsistent capability contract; no storage probe dispatched.'})
+            continue
+        gate['shell'] = shell
+        receipt['implementation_gates'].append(gate)
+        unsupported = gate['status'] == 'UNSUPPORTED'
+        expected_store_exit = 2 if unsupported else 0
+        run(shell+'-store-init',builder(root/'scripts'/f'intune-workbench.{suffix}', ['workbench','init','--root',str(store),'--tenant',TENANT]),expected=expected_store_exit)
+        run(shell+'-store-overview',builder(root/'scripts'/f'intune-workbench.{suffix}', ['workbench','overview','--root',str(store)]),expected=expected_store_exit)
+        run(shell+'-text-terminal',builder(root/'scripts'/f'intune-workbench.{suffix}', ['workbench','terminal','--root',str(store)]),expected=expected_store_exit,input_bytes=b'help\nquit\n')
+        if unsupported:
+            for operation in ('store-init', 'store-overview', 'text-terminal'):
+                try:
+                    error = json.loads((commands/(shell+'-'+operation)/'stderr.raw').read_text(encoding='utf-8'))['error']
+                    detail = error['details']
+                    valid = (error['code'] == 'host_profile_unsupported' and detail['profile'] == 'workbench_store'
+                             and detail['status'] == 'UNSUPPORTED' and detail['platform_qualified'] is False)
+                    check(shell+'-'+operation+'-unsupported-contract', valid)
+                except (OSError, ValueError, KeyError, TypeError):
+                    check(shell+'-'+operation+'-unsupported-contract', False)
+            check(shell+'-unsupported-no-store-created', not store.exists() and not store.is_symlink())
+            receipt['blockers'].append({'code': 'native_store_implementation_required', 'owner': 'Workbench native host adapter maintainer',
+                'next_action': 'Implement and review the native private storage contract before native functional qualification; preserve these rejection controls.'})
+            continue
         try:
             with sqlite3.connect((store/'observations.sqlite3').as_uri()+'?mode=ro',uri=True) as db:
                 tenant = db.execute("SELECT value FROM metadata WHERE key='tenant_id'").fetchone()
                 observations = db.execute('SELECT COUNT(*) FROM observations').fetchone()[0]
                 operations = db.execute('SELECT COUNT(*) FROM operations').fetchone()[0]
-            check(shell+'-independent-store',tenant==(TENANT,) and observations==0 and operations==0,
+            independent_store = tenant==(TENANT,) and observations==0 and operations==0
+            check(shell+'-independent-store',independent_store,
                   {'tenant':tenant,'observations':observations,'operations':operations})
-        except (OSError,sqlite3.Error): check(shell+'-independent-store',False)
+        except (OSError,sqlite3.Error):
+            independent_store = False
+            check(shell+'-independent-store',False)
+        store_commands = [row for row in receipt['commands'] if row['id'] in
+                          {shell+'-store-init', shell+'-store-overview', shell+'-text-terminal'}]
+        passed = independent_store and len(store_commands)==3 and all(row['exit']==0 and not row['timed_out'] for row in store_commands)
+        gate['functional_qualification'] = 'PASS' if passed else 'FAIL'
+        gate['status'] = gate['functional_qualification']
     check('no-command-canary',not (output/'SYNTHETIC-CANARY').exists() and not (fixture/'SYNTHETIC-CANARY').exists())
     check('payload-still-byte-exact',payload.read_bytes()==b'line1\r\nline2\x00\xff\r\n')
 
@@ -292,9 +364,10 @@ def main(argv=None):
         after=package_identity(root,args.package_zip,args.package_sha256)
         check('exact-package-unchanged',after==receipt['package'])
     except (ValueError,OSError,zipfile.BadZipFile): check('exact-package-unchanged',False)
-    receipt['status']='PASS' if all(row['passed'] for row in receipt['assertions']) else 'FAIL'
+    receipt['automated_assertions_status']='PASS' if all(row['passed'] for row in receipt['assertions']) else 'FAIL'
+    receipt['status'] = qualification_status(receipt['assertions'], receipt['implementation_gates'])
     receipt['blockers'].append({'code':'required_interactive_and_platform_routes_remain','owner':'Windows, tenant, identity, backend, CI, device and approval owners','next_action':'Run procedure-manifest.json interactive cases, then separately authorized service/CI/backend/device procedures. This scoped PASS cannot approve the declared pilot.'})
-    return finish(0 if receipt['status']=='PASS' else 1)
+    return finish(0 if receipt['status']=='PASS' else (3 if receipt['status']=='UNSUPPORTED' else 1))
 
 
 if __name__ == '__main__':

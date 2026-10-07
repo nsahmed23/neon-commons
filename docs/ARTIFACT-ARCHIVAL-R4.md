@@ -16,6 +16,12 @@ copy. Host compromise and debugger access are outside this boundary.
 Inputs are regular private files, at most 64 MiB. Outputs require an existing
 private parent directory and a new destination; symlinks and overwrites are
 rejected. Publication stages, fsyncs and exclusively links the completed file.
+Every ancestor is opened without following links, and reads and publication
+use names relative to the held parent directory descriptor. Replacing a parent
+pathname after admission cannot redirect bytes into its replacement. If another
+process renames that directory, an operation can finish in the original inode
+at its new location; this is not same-account hostile-process isolation. Protect
+the archival directory from concurrent administrative moves during a procedure.
 Original plaintext inputs remain unchanged. Encryption uses a random 24-byte
 nonce; archives intentionally differ while recovered plaintext is byte-exact.
 
@@ -79,3 +85,8 @@ append, private permissions, symlink/overwrite denial, size and native pin
 rejection. This does not replace external AppSec review, encrypted runtime
 volumes, Azure storage controls, credential custody or tested organizational
 key recovery.
+
+`plugin_tests.test_artifact_path_race_r4` preserves two deterministic
+failing-before/passing-after controls at the actual read/staging open boundary.
+The native library must successfully initialize and report the expected key,
+nonce and authentication-tag sizes before any encryption or decryption.

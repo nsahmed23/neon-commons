@@ -175,8 +175,8 @@ def import_workflow_run(store, path):
         relationships.append({'relation': 'related_operation', 'target_id': value['related_operation'],
                               'assertion_class': 'caller_asserted_relationship', 'local_target_verified': True})
     if 'observed_after' in value:
-        matches = [row for row in store.history(object_id) if row['snapshot_id'] == value['observed_after'] and _time(row['observed_at']) <= observed_at]
-        if not matches: _fail('workbench_workflow_snapshot_unknown')
+        if not store.has_observed_snapshot(object_id, value['observed_after'], at_or_before=observed_at):
+            _fail('workbench_workflow_snapshot_unknown')
         relationships.append({'relation': 'observed_after', 'target_id': value['observed_after'],
                               'assertion_class': 'caller_asserted_time_order', 'local_target_verified': True})
     data = {**value, 'relationships': relationships, 'source_path': source_path, 'source_sha256': source_sha,

@@ -277,11 +277,39 @@ class VisualPTYTests(unittest.TestCase):
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
             context = json.loads((self.store.root / 'workspace-context.json').read_text())
-            if context['view_command'] == 'history': break
+            if context['view_command'] == 'history-recent 10 0': break
             time.sleep(.02)
         self.assertEqual(context['selected'], saved['selected'])
-        self.assertEqual(context['view_command'], 'history')
+        self.assertEqual(context['view_command'], 'history-recent 10 0')
         self.close_visual()
+        self.assertEqual(self.store.operations(), [])
+
+    def test_1001_observation_history_pages_and_resume_through_actual_pty(self):
+        from plugin_tests.test_workbench_recent_history_r4 import retained_fixture
+        fixture = self.root / 'retained-history'; fixture.mkdir()
+        self.store, oid = retained_fixture(fixture)
+        self.launch(); self.read_until(b'Ready.'); self.key(b'\r'); self.key(b'4')
+        self.key(b':history-recent 2 0\r')
+        self.key(b'n')
+        context = json.loads((self.store.root / 'workspace-context.json').read_text())
+        self.assertEqual(context['selected'], oid)
+        self.assertEqual(context['view_command'], 'history-recent 2 2')
+        self.assertEqual(context['tab'], 3)
+        self.key(b'p')
+        context = json.loads((self.store.root / 'workspace-context.json').read_text())
+        self.assertEqual(context['view_command'], 'history-recent 2 0')
+        self.key(b'n'); self.close_visual()
+        self.output = bytearray(); self.launch(); self.read_until(b'[OBSERVATION HISTORY]')
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline:
+            context = json.loads((self.store.root / 'workspace-context.json').read_text())
+            if context['view_command'] == 'history-recent 2 2': break
+            time.sleep(.02)
+        self.assertEqual(context['selected'], oid)
+        self.assertEqual(context['view_command'], 'history-recent 2 2')
+        self.assertIn(b'Newest first', self.output)
+        self.close_visual()
+        self.assertEqual(self.store.recent_history_page(oid)['pagination']['total_observations'], 1001)
         self.assertEqual(self.store.operations(), [])
 
     def test_resize_hostile_strings_and_bracketed_paste_need_submission(self):

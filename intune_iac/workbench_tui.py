@@ -22,9 +22,9 @@ MAX_COMMAND = 16384
 MAX_RENDER_LINES = 200000
 CONTEXT_VERSION = 'intune-workspace-context/1'
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
-              'history', 'health', 'operations', 'views', 'help'}
+              'history', 'history-recent', 'health', 'operations', 'views', 'help'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help')
-TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history', 'operations', 'operations', 'views', 'help')
+TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help')
 ANSI_START = '\x1b[?1049h\x1b[?25l\x1b[?2004h'
 ANSI_END = '\x1b[0m\x1b[?2004l\x1b[?25h\x1b[?1049l'
 
@@ -244,6 +244,11 @@ class Workspace:
                 raise AppError('workspace_context_invalid', 'Workspace navigation exceeds its bounds.')
             parts = shlex.split(command)
             valid = (len(parts) == 1 and parts[0] in READ_VIEWS)
+            if parts and parts[0] == 'history-recent':
+                valid = (value['selected'] is not None and 1 <= len(parts) <= 3 and
+                         all(p.isascii() and p.isdigit() for p in parts[1:]) and
+                         (len(parts) < 2 or len(parts[1]) <= 4 and 1 <= int(parts[1]) <= 1000) and
+                         (len(parts) < 3 or len(parts[2]) <= 10 and 0 <= int(parts[2]) <= 1000000000))
             if key == 'page_command':
                 valid = ((parts and parts[0] == 'overview' and len(parts) <= 3 and
                           all(p.isascii() and p.isdigit() for p in parts[1:])) or
@@ -278,7 +283,13 @@ class Workspace:
                     self.active_operation = None; self.execution_result = None
                 self.selected = object_id
                 self.view_command = 'inspect'
-            if value.get('status') == 'selection_cleared' or self.last_command in ('next', 'previous'): self.selected = None
+            history_page = value.get('pagination', {}).get('scope') == 'history_page'
+            if value.get('status') == 'selection_cleared' or (self.last_command in ('next', 'previous') and not history_page): self.selected = None
+            if self.selected is None and self.view_command.startswith('history-recent'):
+                self.view_command = 'overview'
+            if history_page and isinstance(value.get('history'), list):
+                self.selected = value['object_id']
+                self.view_command = 'history-recent %d %d' % (value['pagination']['limit'], value['pagination']['offset'])
             if 'objects' in value and isinstance(value['objects'], list):
                 self.rows = [row for row in value['objects'] if isinstance(row, dict) and isinstance(row.get('object_id'), str)]
                 self.highlight = min(self.highlight, max(0, len(self.rows) - 1))
@@ -305,7 +316,7 @@ class Workspace:
             if len(parts) >= 2 and parts[0] in ('execute', 'reconcile'):
                 self.active_operation = parts[1]
                 self.execution_result = value
-            if self.last_command in READ_VIEWS: self.view_command = self.last_command
+            if self.last_command in READ_VIEWS and not history_page: self.view_command = self.last_command
             # Persist only after successful result. Rendering never stores raw
             # commands, approvals, paths, captures or credential material.
             self.save_context()
@@ -338,6 +349,9 @@ class Workspace:
             rows.append('[EDGE EVIDENCE AND UNCERTAINTY]')
         elif self.tab == 3 and isinstance(value.get('history'), list):
             rows.append('[OBSERVATION HISTORY]')
+            if value.get('order') == 'observed_at_desc_observation_id_desc':
+                field('Order', 'Newest first; n shows older observations, p shows newer observations.')
+                field('History page', value.get('pagination', {}))
             rows.extend(wrap('Comparison baseline: collected snapshot to collected snapshot. Observation time does not establish actor or change time.', width))
             for item in value['history'][:12]:
                 if isinstance(item, dict):
@@ -480,7 +494,7 @@ class Workspace:
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
-                'relationships': 2, 'lineage': 2, 'history': 3, 'compare': 3, 'review': 4,
+                'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7}
         if name in tabs: self.tab = tabs[name]
         self.last_command = command
@@ -508,7 +522,7 @@ class Workspace:
             return None
         if tab == 6 and self.active_operation and self.selected is not None:
             return self._send('views ' + shlex.quote(self.active_operation))
-        if command in ('inspect', 'relationships', 'history', 'views') and self.selected is None:
+        if command in ('inspect', 'relationships', 'history', 'history-recent', 'views') and self.selected is None:
             self.notice = 'Select an exact identity from Estate first.'
             self.draw()
             return None

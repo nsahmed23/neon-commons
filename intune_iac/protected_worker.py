@@ -396,14 +396,8 @@ class WorkerJob:
 
 
 def add_parser(commands):
-    parser = commands.add_parser('worker', help='Durable service job contract; local network-denied qualification profiles only')
-    routes = parser.add_subparsers(dest='worker_command', required=True)
-    for name in ('prepare', 'review', 'status', 'attach', 'run', 'cancel', 'reconcile'):
-        route = routes.add_parser(name)
-        route.add_argument('--job-root', required=True); route.add_argument('--policy', required=True)
-        if name == 'prepare':
-            route.add_argument('--executor-root', required=True); route.add_argument('--context', required=True)
-        if name == 'run': route.add_argument('--receipt', required=True)
+    from .workbench_parsers import add_worker_parser
+    return add_worker_parser(commands)
 
 
 def command(args):

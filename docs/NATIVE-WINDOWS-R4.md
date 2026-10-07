@@ -1,8 +1,11 @@
 # Native Windows continuation procedure
 
-The launchers and qualification procedure are implemented. **Native Windows,
+The launchers and qualification procedure are implemented. **The native Windows
+private store still requires a native implementation**, including SID/DACL and
+reparse-safe handle checks, locking and namespace durability; the existing
+POSIX implementation cannot be enabled by obtaining a Windows test machine.
 Git Bash/mintty, chosen-terminal and PowerShell execution are not qualified by
-the Linux tests.** A Linux invocation of the Windows qualifier writes a BLOCKED
+the Linux tests. A Linux invocation of the Windows qualifier writes a BLOCKED
 receipt and executes zero native probes. No installation, registry change,
 system configuration, cloud access or production operation is performed.
 
@@ -107,12 +110,24 @@ terminal control bytes, and exact CRLF/NUL/non-UTF-8 payload bytes. It verifies
 isolated Python and native exit 37. A harmless modeled PowerShell process
 injects cleanup failure to exercise the actual exit-resolution function; this
 does not claim an OS cleanup failure was observed. The application cases run
-help, doctor, invalid-command rejection, private store initialization,
-overview and piped text terminal. Independent SQL asserts the known tenant and
-zero observations/operations; product display output is not its own oracle.
+help, doctor and invalid-command rejection. The exact candidate's doctor report
+must declare the storage implementation prerequisites before any store probe.
+Missing or inconsistent reports fail this gate. When the route is UNSUPPORTED,
+store initialization, overview and the text terminal must return the explicit
+`host_profile_unsupported` contract with exit 2 and create no store. These are
+negative controls; the required native storage gate remains UNSUPPORTED and
+functional qualification BLOCKED. The overall qualifier exits 3 / UNSUPPORTED
+even if its automated negative and shell assertions pass.
+
+After the reviewed native adapter exists, the same procedure requires successful
+private store initialization, overview and piped text terminal. Independent SQL
+then asserts the known tenant and zero observations/operations; product display
+output is not its own oracle. The implementation contract is documented in
+`docs/HOST-CAPABILITIES-R4.md`; no permission or lock fallback is enabled.
 
 The piped text terminal is explicitly **not** a mintty, ConPTY or visual
-interaction test. `receipt.json` can PASS its named native shell/smoke scope
+interaction test. Once the required store implementation exists, `receipt.json`
+can PASS its named native shell/smoke scope
 while `native_windows_qualified`, `platform_qualified` and
 `production_approved` remain false. A timeout preserves a descendant-cleanup
 uncertainty blocker; inspect task-owned processes before cleanup or retry.

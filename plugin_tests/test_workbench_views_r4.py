@@ -106,7 +106,8 @@ class ViewsR4Tests(unittest.TestCase):
         from datetime import datetime,timezone
         from plugin_tests.test_workbench_health import document
         from intune_iac.workbench_health import import_device_evidence
-        now=time.time();stamp=datetime.fromtimestamp(now,timezone.utc).isoformat()
+        observed=datetime.fromtimestamp(time.time(),timezone.utc)
+        now=observed.timestamp();stamp=observed.isoformat()
         def evidence(reporting,status='success'):
             doc=document(100,reporting);doc['as_of']=stamp
             for row in doc['rows']:row.update(observed_at=stamp,status=status)

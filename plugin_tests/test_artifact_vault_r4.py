@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 
 from intune_iac import artifact_vault as vault
 from intune_iac.io import AppError
@@ -120,6 +121,18 @@ class ArtifactVaultTests(unittest.TestCase):
         bad = self.write('long-key', self.key+b'x')
         with bad.open('rb') as descriptor, self.assertRaises(AppError):
             vault.read_key_fd(descriptor.fileno())
+
+    def test_native_initialization_failure_prevents_cipher_use_and_publication(self):
+        from intune_iac.approval_authority import VerifierPin, _validator
+        library = _validator(VerifierPin(Path(sys.executable), '', LIBRARY, LIBRARY_SHA))
+        class FailedInitialization:
+            def __getattr__(self, name):
+                if name == 'sodium_init':
+                    return lambda: -1
+                return getattr(library, name)
+        with patch('intune_iac.approval_authority._validator', return_value=FailedInitialization()):
+            with self.assertRaises(AppError): self.seal('initialization-denied')
+        self.assertFalse((self.root / 'initialization-denied').exists())
 
 
 if __name__ == '__main__': unittest.main()

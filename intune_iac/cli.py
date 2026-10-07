@@ -15,17 +15,21 @@ from .io import AppError, load_json
 
 
 def doctor():
+    from .host_capabilities import report as host_report
+    host = host_report()
     dependencies = {}
     for package, module in [('jsonschema','jsonschema'),('PyYAML','yaml'),('python-hcl2','hcl2')]:
         try: version = importlib.metadata.version(package)
         except importlib.metadata.PackageNotFoundError: version = None
         dependencies[package] = {'available':importlib.util.find_spec(module) is not None, 'version':version}
     ready = all(v['available'] for v in dependencies.values())
-    provider_platform = sys.platform == 'linux' and platform.machine() == 'x86_64'
-    return {'version':__version__,'status':'ready' if ready else 'missing_dependencies',
+    provider_platform = host['profiles']['protected_worker']['status'] == 'IMPLEMENTED'
+    return {'version':__version__,'status':'ready' if ready else 'missing_dependencies', 'host_capabilities': host,
+            'status_scope':'Runtime package dependencies only; route prerequisites are reported separately in host_capabilities.',
             'python':platform.python_version(),'dependencies':dependencies,
             'capabilities':{'wizard':'available' if ready else 'missing_dependencies',
-                'workbench':'persistent_synthetic_observation_history_and_reviewed_maintenance',
+                'workbench':('persistent_scoped_observation_history_and_reviewed_maintenance'
+                    if host['profiles']['workbench_store']['status']=='IMPLEMENTED' else 'unsupported_host'),
                 'generation':'bounded_synthetic_mapping','production_capture':'explicit_read_only_credentials_required' if os.name=='posix' else 'unavailable_on_platform',
                 'production_generation':'bounded_inactive_candidate','semantic_graph':'local_typed_graph',
                 'atmos_resolution':'bounded_literal_with_provenance','repository_discovery':'local_read_only','action_runner':'local_actions',
@@ -33,7 +37,7 @@ def doctor():
                 'complete_journey':'receipt_reconstructed_local_simulation_or_gated_live_review',
                 'synthetic_estates':'seeded_26_case_corpus_with_independent_oracle',
                 'native_atmos':'pinned_linux_amd64_literal_comparison_requires_explicit_binary',
-                'protected_execution':'fixed_local_fixture_only_no_cloud_authority',
+                'protected_execution':'fixed_local_fixture_only_no_cloud_authority' if provider_platform else 'unsupported_platform',
                 'guided_cohort_workflow':'local_receipt_backed', 'target_binding':'consistency_and_partial_get_observation',
                 'plan_review':'offline_show_json', 'reconciliation':'local_simulation_and_fixed_native_output_fixture',
                 'cloud_apply':'unavailable','state_import':'unavailable',
@@ -56,7 +60,7 @@ def parser():
     commands=p.add_subparsers(dest='command',required=True)
     from .workbench import add_parser as add_workbench_parser
     add_workbench_parser(commands)
-    from .protected_worker import add_parser as add_worker_parser
+    from .workbench_parsers import add_worker_parser
     add_worker_parser(commands)
     from .artifact_vault import add_parser as add_artifact_parser
     add_artifact_parser(commands)
@@ -128,9 +132,13 @@ def execute(args):
         from .workbench import command
         return command(args)
     if args.command=='worker':
+        from .host_capabilities import require_profile
+        require_profile('protected_worker')
         from .protected_worker import command
         return command(args)
     if args.command=='artifact':
+        from .host_capabilities import require_profile
+        require_profile('artifact_vault')
         from .artifact_vault import command
         return command(args)
     if args.command=='doctor':return doctor()
@@ -263,8 +271,11 @@ def main(argv=None):
         if args.command=='capture' and result.get('cancelled') is True:return 130
         return exit_code(result)
     except AppError as error:
-        print(json.dumps({'status':'error','error':{'code':error.code,'message':error.message}}),file=sys.stderr)
-        return 4 if error.code in {'output_conflict','capture_output_conflict'} else (2 if error.code in {'capture_platform_unavailable','provider_platform_unsupported','identity_fd_platform_unsupported'} else 3)
+        detail = {'code':error.code,'message':error.message}
+        if error.code == 'host_profile_unsupported' and type(getattr(error, 'details', None)) is dict:
+            detail['details'] = error.details
+        print(json.dumps({'status':'error','error':detail}),file=sys.stderr)
+        return 4 if error.code in {'output_conflict','capture_output_conflict'} else (2 if error.code in {'capture_platform_unavailable','provider_platform_unsupported','identity_fd_platform_unsupported','host_profile_unsupported'} else 3)
     except ImportError:
         print(json.dumps({'status':'error','error':{'code':'missing_dependencies','message':'Install the pinned runtime requirements in your Python environment.'}}),file=sys.stderr)
         return 5

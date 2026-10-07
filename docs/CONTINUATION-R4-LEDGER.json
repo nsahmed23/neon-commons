@@ -32,18 +32,10 @@
     "null_identity": "No new candidate/artifact identity exists yet; never fill with baseline hash to imply new qualification."
   },
   "outcomes": {
-    "laboratory": {
-      "status": "IMPLEMENTED",
-      "scope": "Partial R4 implementation with scoped local and independent candidate evidence; not laboratory complete."
-    },
-    "platform": {
-      "status": "BLOCKED",
-      "scope": "Required Windows/Git Bash, live native provider/service, Azure backend, chosen CI and enrolled devices."
-    },
-    "organizational_production_approval": {
-      "status": "BLOCKED",
-      "scope": "Accountable AppSec, pilot, operations, risk and release decision; absent."
-    }
+    "laboratory": "IMPLEMENTED",
+    "platform": "BLOCKED",
+    "organizational_production_approval": "BLOCKED",
+    "explanation": "Implemented local scopes are recorded row by row. Laboratory finish line remains incomplete pending integrated service, final exact-package journeys, security disposition and release gates."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -258,7 +250,9 @@
     "Original three unexpected ZIP-absent temporary files and SEC-GAP-WORKSPACE-RESTART/reappearance/stale-lock findings remain unresolved.",
     "c122e38 commit-command actor attribution remains unresolved despite verified commit/content/parent/package linkage.",
     "All failed final01/final02 candidates and SIGINT cleanup/acquisition intermediate negatives remain immutable.",
-    "Wally remains optional/read-only: 87 completed reviews, nine timeouts, no demonstrated benefit; no positive result prerequisite."
+    "Wally remains optional/read-only: 87 completed reviews, nine timeouts, no demonstrated benefit; no positive result prerequisite.",
+    "R4 malformed Graph error triggers SDK nil dereference in pinned provider; exact native negative captures preserve unchanged state and zero Graph writes. Isolated candidate source is untested; automated agent execution rejection stopped repair/build task. See worker-provider/provider-negative/PRESERVATION-STOP-RECEIPT.json.",
+    "R4 native broker is still under integration/review; metadata-effect admission negative retained. No live dispatch or production completion claimed."
   ],
   "discovery_notes": [
     "Applicable packaging AGENTS.md is /workspace/intune-continuation/AGENTS.md; no project-local AGENTS.md was discovered outside acquired third-party research subtrees.",
@@ -549,17 +543,18 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A05",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Bounded newest-first history and exact snapshot lookup repair overflow after 1,000 observations. Actual CLI and Linux PTY navigate 1,001 retained records and import a workflow receipt for the oldest observation. Legacy chronological history cap unchanged. Final focused31 PASS overlaps prior suites; earlier 79/80 composed result and timestamp fixture error retained.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "A02"
@@ -587,18 +582,16 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
-        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
-        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+        "intune_iac/workbench_store.py": "cd31c41f48567a6689c6756253e3e3f8dca0186a1208671b01edcf650b0e0943",
+        "intune_iac/workbench_views.py": "a3e8c42c62d740df848650af4d0184329f58a92353cb4ebcc997c28913bd70d2",
+        "intune_iac/workbench.py": "757f36dc861dc06622f98384bf161ebad3d74be8d603754c71c1ad8bedd62c09",
+        "intune_iac/workbench_tui.py": "0b784614727d2c2c8de097bd225fafac5595022775f7c3152ef5391e5fa4b114",
+        "intune_iac/workbench_health.py": "020138af9ea56d5b9e81f916553e48d2bdf2114ff8eb014ddd6e2c58a646ca4b"
       },
       "evidence_receipts": [
         {
-          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
-        },
-        {
-          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
-          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+          "path": "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "05fae9784548d4a476d110021483e27aae2e0605d1732b853d42644692d6e9c4"
         }
       ]
     },
@@ -1031,17 +1024,18 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A13",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/source-acceptance/alias-resume-01/RECEIPT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual source patch/whole-file review, git apply --check, commit, both affected stack imports and fresh existing-engine plan qualified with independent assertions. Corrected source gives no-op and known-bad value gives update in synthetic_local_process_only profile. YAML alias rejection preserved; full diff exposes comment loss. Not native provider convergence.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -1071,18 +1065,13 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
-        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_views.py": "a3e8c42c62d740df848650af4d0184329f58a92353cb4ebcc997c28913bd70d2",
         "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
       },
       "evidence_receipts": [
         {
-          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
-        },
-        {
-          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
-          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+          "path": "evidence/epoch-20261007-r4/source-acceptance/alias-resume-01/RECEIPT.json",
+          "sha256": "b796095cd5450c05906970adce50eec2814545dd4cb10644a8911587ec159ac2"
         }
       ]
     },
@@ -1458,16 +1447,19 @@
       "description": "Qualify pinned Atmos route with actual engine/provider and supported arguments; never silently bypass Atmos.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B06",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/worker-provider/DELIVERY-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-provider/INDEPENDENT-NATIVE-ASSERTIONS.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Qualify pinned Atmos route with actual engine/provider and supported arguments; never silently bypass Atmos.",
+      "limitation": "Actual pinned Atmos1.230.1/OpenTofu1.13.1/provider route qualified against local TLS service fixtures. Correct exact-plan arguments are two-token --from-plan --planfile; advertised --from-plan=... replanning failure retained. Native local import/no-change/change/exact-plan/readback/convergence completed; real platform and combined worker integration remain open.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -1489,10 +1481,24 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/worker_provider.py": "4550d6fed20b1ee204437bfdcb205973af682ba7930d75712f2862653e5b233a",
+        "plugin_tests/test_worker_provider_r4.py": "d29bdaef4153458fcb8316adcbb76cf94ca82416b21ef56278df58c310aba173"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/DELIVERY-RECEIPT.json",
+          "sha256": "316ec8513f1513a848079deb0d301c5e664ea11efcbb0426cbd669a367f40b69"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/INDEPENDENT-NATIVE-ASSERTIONS.json",
+          "sha256": "3ab8abc41a3c2501c256bbf848505a87c7f7ca5e3dfc3cac22bde16af69ec89b"
+        }
+      ]
     },
     {
       "id": "B07",
@@ -1819,17 +1825,20 @@
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
-      "evidence_class": "local-encrypted-archive-partial-requirement",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B12",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/artifact-vault/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/artifact-vault/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/artifact-vault/PATH-RACE-REPAIR-RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/vault-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/vault-parent-race-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Six-kind exact-byte encrypted archive and key-backup recovery implemented;7local tests including12actualCLI calls. Independent review pending. Plaintext processing/store, host encrypted volumes, retention enforcement and organizational key custody not qualified.",
-      "next_action": "Independent archive boundary review; integrate reviewed archival lifecycle and qualify host encrypted storage/key custody.",
+      "limitation": "All six exact-byte archival kinds qualified using pinned initialized libsodium and separate key recovery. Two parent-replacement races reproduced before descriptor-relative nofollow repair;10 focused tests PASS after. Independent19 assertions precede latest path repair and retain exact earlier applicability. Runtime store/job remains plaintext unless approved host encryption supplied; metadata retention is not a deletion lock. Independent3/3 new native-crypto path/init controls also pass on exact repaired bytes; their API scope is distinct from prior actual CLI19.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -1851,13 +1860,29 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/artifact_vault.py": "fecc1b99925d0c05a49d02a858410979194e0cea378a095d347eed2572d2078c"
-      }
+        "intune_iac/artifact_vault.py": "49fbfb4a1d481ea8bfdc1a99cf9c64291e61db81d9f44e2ea33c74825bfb3ee9",
+        "plugin_tests/test_artifact_vault_r4.py": "dae52287cf0b1112a15b50bf1d2a6b12476dcce7a17132be22511a2e0b46c275",
+        "plugin_tests/test_artifact_path_race_r4.py": "6f93b5ca6e11697b17dc637fdfca680f808cb4260551847a1b7a858684c40e63"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/artifact-vault/PATH-RACE-REPAIR-RECEIPT.json",
+          "sha256": "e9bc98fb6e581520d37201a0bdef5ccbcdf3637304aaef9e54dd6dcdce16ff3a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/vault-cli-02/RESULT.json",
+          "sha256": "d17e950df05bc76e3eade65e088cfd720231f91795ce782f26da7e884bf94437"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/vault-parent-race-after-01/RESULT.json",
+          "sha256": "a2ec7f1bad11f0f0f2fcac0b656c6ba07b9a9938690c88adb88ad6587cd6b982"
+        }
+      ]
     },
     {
       "id": "B13",
@@ -1866,18 +1891,21 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B13",
       "evidence_path": [
         "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
         "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-host/qualified-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-host/BOUNDARY-REPAIR-RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -1911,21 +1939,21 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
-        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+        "intune_iac/worker_host.py": "c8e448b52e77681b8ec9002696eabadd6992f65bc3835c64da5c231c64629fea",
+        "plugin_tests/test_worker_host_r4.py": "308319b3e596deecc1ed64463aff0862dd415808d2226c45e2345f60c9466d54"
       },
       "evidence_receipts": [
         {
-          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
-          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+          "path": "evidence/epoch-20261007-r4/worker-host/qualified-01/RECEIPT.json",
+          "sha256": "0a82979855cb501cc049f7336edea00a5a67883d6dd5fe863d7f1c83c59262bc"
         },
         {
-          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
-          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+          "path": "evidence/epoch-20261007-r4/worker-host/BOUNDARY-REPAIR-RECEIPT.json",
+          "sha256": "449c89894b38f6879ed4a121a19589a987971b2d23732fbd6754a3b8a56a3bad"
         },
         {
-          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
-          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+          "path": "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json",
+          "sha256": "5835cfed8d6b288cd1c94cd5c2a0ef1baf55b62544de13e24c6fa09aa96fefce"
         }
       ]
     },
@@ -2384,16 +2412,18 @@
       "description": "Persist typed relationships, versioned history/workflow receipts, and maintenance queue owner/rationale/review/expiry/linked proposals.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C07",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Persist typed relationships, versioned history/workflow receipts, and maintenance queue owner/rationale/review/expiry/linked proposals.",
+      "limitation": "Immutable reviewed queue metadata and compare-and-swap concurrent updates implemented. Policy-bound reporting and fresh cross-stack writer evidence replace collection-wide/report-owner assumptions. Human reviewer is distinct from declared writer; no finding suppression or automatic write. Focused and actual CLI assertions are overlapping local evidence, not production qualification.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "A09",
@@ -2419,26 +2449,39 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_queue.py": "6a4d187917323cd6d753096ee325ca061799b7ba272b4f7bce29edcbd75b83be",
+        "intune_iac/workbench_store.py": "cd31c41f48567a6689c6756253e3e3f8dca0186a1208671b01edcf650b0e0943",
+        "intune_iac/workbench.py": "757f36dc861dc06622f98384bf161ebad3d74be8d603754c71c1ad8bedd62c09"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
+          "sha256": "57236b8fa23ff941a2d59f0d91f4c24311ecfd9d1f21148c281b10618cc3dc7f"
+        }
+      ]
     },
     {
       "id": "C08",
       "description": "Dictionary separates vendor docs, community advice, observation, company annotation and AI interpretation with versioned provenance.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C08",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/dictionary-taxonomy/raw-cli-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Dictionary separates vendor docs, community advice, observation, company annotation and AI interpretation with versioned provenance.",
+      "limitation": "Versioned dictionary provenance separates vendor documentation, community advice, observation, company annotation and AI interpretation. AI facts explicitly absent and ingestion unsupported; no model claim. Original vendor input bytes preserved. Nine actual commands/eight assertions overlap 46 focused tests; not a combined count.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -2463,26 +2506,39 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_provenance.py": "30f58492b112870a27666817efa392abe0561d003590cf30f8e2278840b11302",
+        "plugin_tests/test_workbench_dictionary_taxonomy_r4.py": "2c62ad9f8ebd42803c4631c4295977d9bd24f802bef004a5616184d86be3c6fb"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/dictionary-taxonomy/raw-cli-01/RESULT.json",
+          "sha256": "e5b1d5a6f093a4dd26622b11941d1152f3cd038d0cb478f887bec4bdf0227e9f"
+        }
+      ]
     },
     {
       "id": "C09",
       "description": "Health separates parity, service acceptance, device report, processing, effective state and outcome; reporting and targeted denominators remain distinct, no automatic writes.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C09",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
+        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Health separates parity, service acceptance, device report, processing, effective state and outcome; reporting and targeted denominators remain distinct, no automatic writes.",
+      "limitation": "Local independent checks retain targeted/reporting denominators and unknown endpoint effectiveness. Collection success cannot hide missing policy reports. No actual device/service evidence; current per-policy repair also has preserved failing-before and passing-after logs under queue/.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "C01"
@@ -2507,10 +2563,25 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "757f36dc861dc06622f98384bf161ebad3d74be8d603754c71c1ad8bedd62c09",
+        "intune_iac/workbench_health.py": "020138af9ea56d5b9e81f916553e48d2bdf2114ff8eb014ddd6e2c58a646ca4b",
+        "plugin_tests/test_queue_reporting_scope_r4.py": "2976f1417e84bdcab299d81f0a99bcbce7d51726203d6fb42cbcb9ae9d18d1a1"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
+          "sha256": "3fa4b6591aea61bc421720f3e0944df7f7041ed6a60bf298c55d7039181f8ad7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
+          "sha256": "57236b8fa23ff941a2d59f0d91f4c24311ecfd9d1f21148c281b10618cc3dc7f"
+        }
+      ]
     },
     {
       "id": "C10",
@@ -3003,18 +3074,19 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D06",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Bounded newest-first history and exact snapshot lookup repair overflow after 1,000 observations. Actual CLI and Linux PTY navigate 1,001 retained records and import a workflow receipt for the oldest observation. Legacy chronological history cap unchanged. Final focused31 PASS overlaps prior suites; earlier 79/80 composed result and timestamp fixture error retained.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3039,21 +3111,16 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
-        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+        "intune_iac/workbench_store.py": "cd31c41f48567a6689c6756253e3e3f8dca0186a1208671b01edcf650b0e0943",
+        "intune_iac/workbench_views.py": "a3e8c42c62d740df848650af4d0184329f58a92353cb4ebcc997c28913bd70d2",
+        "intune_iac/workbench.py": "757f36dc861dc06622f98384bf161ebad3d74be8d603754c71c1ad8bedd62c09",
+        "intune_iac/workbench_tui.py": "0b784614727d2c2c8de097bd225fafac5595022775f7c3152ef5391e5fa4b114",
+        "intune_iac/workbench_health.py": "020138af9ea56d5b9e81f916553e48d2bdf2114ff8eb014ddd6e2c58a646ca4b"
       },
       "evidence_receipts": [
         {
-          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
-          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
-        },
-        {
-          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
-        },
-        {
-          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
-          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+          "path": "evidence/epoch-20261007-r4/history/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "05fae9784548d4a476d110021483e27aae2e0605d1732b853d42644692d6e9c4"
         }
       ]
     },
@@ -3426,16 +3493,18 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E01",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json"
+        "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
+        "evidence/epoch-20261007-r4/host-capabilities/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Bounded profile and executable native host procedures prepared;11local tests exercise Bash/argv only. Windows qualifier correctly returnsBLOCKED on Linux withzero nativeWindowscommands. Windows/Git Bash/mintty/PowerShell actual qualification remains required.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Host capability discovery now rejects unsupported storage/worker routes before unsafe imports or store creation, while help remains usable. Linux import-denial probes are not native Windows evidence. Native Windows has missing identity/ACL/reparse/durability implementations, beyond unavailable qualification; qualifier records required cases unsupported/blocked rather than passing negative gates as functionality.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -3459,14 +3528,18 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "scripts/intune-workbench.sh": "9fd24595c7c3ca6772c48dbd970c06c55fb7efd61ce9663e8e869db4e435e7a8",
-        "scripts/intune-workbench.ps1": "18d780cb3d276f6c7e41c92ac26b1973f87ce8b8c7468365963b7b24db93c7b5",
-        "scripts/qualify-windows-workbench.py": "8e887f275b3a6f469f7c4036d6b6d45d9faa14f11256fad911df3d0bc2394b6c"
+        "intune_iac/host_capabilities.py": "88e5f7153686acda2c5315b805e55a06054bf2e57710bbe57999281c384b6023",
+        "intune_iac/cli.py": "99ad24ba027bae663b77de8d188cf122643485230d1e86d1101b42470f1fbec6",
+        "scripts/qualify-windows-workbench.py": "bcf31b5dc95d250b30635f797e1de1e7a1f54df5f88f7d753b6da1bba08db735"
       },
       "evidence_receipts": [
         {
-          "path": "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
-          "sha256": "f930f5421a7910c072452519238ac6d1452b67ab8d2463b0eb09979b2cce9536"
+          "path": "evidence/epoch-20261007-r4/host-capabilities/SOURCE-RECEIPT-01.json",
+          "sha256": "a3b6c30406c04b938a4c2f3bbf52311594bf6452c80030a83ef1c8bc26f0b659"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
+          "sha256": "0f871777c362a1fdcea5a5e60bae474ba0b5a76181d5b0c7ed1351de0f8436a3"
         }
       ]
     },
@@ -3477,16 +3550,18 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E02",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json"
+        "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
+        "evidence/epoch-20261007-r4/host-capabilities/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Bounded profile and executable native host procedures prepared;11local tests exercise Bash/argv only. Windows qualifier correctly returnsBLOCKED on Linux withzero nativeWindowscommands. Windows/Git Bash/mintty/PowerShell actual qualification remains required.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Host capability discovery now rejects unsupported storage/worker routes before unsafe imports or store creation, while help remains usable. Linux import-denial probes are not native Windows evidence. Native Windows has missing identity/ACL/reparse/durability implementations, beyond unavailable qualification; qualifier records required cases unsupported/blocked rather than passing negative gates as functionality.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "E01"
@@ -3510,14 +3585,18 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "scripts/intune-workbench.sh": "9fd24595c7c3ca6772c48dbd970c06c55fb7efd61ce9663e8e869db4e435e7a8",
-        "scripts/intune-workbench.ps1": "18d780cb3d276f6c7e41c92ac26b1973f87ce8b8c7468365963b7b24db93c7b5",
-        "scripts/qualify-windows-workbench.py": "8e887f275b3a6f469f7c4036d6b6d45d9faa14f11256fad911df3d0bc2394b6c"
+        "intune_iac/host_capabilities.py": "88e5f7153686acda2c5315b805e55a06054bf2e57710bbe57999281c384b6023",
+        "intune_iac/cli.py": "99ad24ba027bae663b77de8d188cf122643485230d1e86d1101b42470f1fbec6",
+        "scripts/qualify-windows-workbench.py": "bcf31b5dc95d250b30635f797e1de1e7a1f54df5f88f7d753b6da1bba08db735"
       },
       "evidence_receipts": [
         {
-          "path": "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
-          "sha256": "f930f5421a7910c072452519238ac6d1452b67ab8d2463b0eb09979b2cce9536"
+          "path": "evidence/epoch-20261007-r4/host-capabilities/SOURCE-RECEIPT-01.json",
+          "sha256": "a3b6c30406c04b938a4c2f3bbf52311594bf6452c80030a83ef1c8bc26f0b659"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
+          "sha256": "0f871777c362a1fdcea5a5e60bae474ba0b5a76181d5b0c7ed1351de0f8436a3"
         }
       ]
     },
@@ -3526,16 +3605,18 @@
       "description": "Qualify actual Windows paths/Graph slash paths/spaces/hyphens/Unicode/quotes/CRLF; binary plans/captures remain exact.",
       "milestone": "E",
       "required_profile": "required-native-platform",
-      "status": "BLOCKED",
-      "evidence_class": "external-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "UNSUPPORTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E03",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json"
+      ],
       "environment": "Required approved external profile; not established by this record",
-      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
-      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Windows host owner: actual Windows/Git Bash/mintty and chosen terminal.",
+      "limitation": "Native Windows client storage implementation and real Windows/Git Bash/mintty qualification are both incomplete. Linux negative routing is not a substitute.",
+      "next_action": "Complete reviewed native private storage/reader path, then run exact packaged native qualifier on authorized Windows host; host owner supplies environment.",
       "blocker_owner": "Windows host owner: actual Windows/Git Bash/mintty and chosen terminal.",
       "depends_on": [
         "E02",
@@ -3555,10 +3636,20 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "UNSUPPORTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "scripts/qualify-windows-workbench.py": "bcf31b5dc95d250b30635f797e1de1e7a1f54df5f88f7d753b6da1bba08db735",
+        "intune_iac/host_capabilities.py": "88e5f7153686acda2c5315b805e55a06054bf2e57710bbe57999281c384b6023"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
+          "sha256": "0f871777c362a1fdcea5a5e60bae474ba0b5a76181d5b0c7ed1351de0f8436a3"
+        }
+      ]
     },
     {
       "id": "E04",
@@ -4861,16 +4952,19 @@
       "description": "Missing device reports remain unknown with targeted denominator",
       "milestone": "E",
       "required_profile": "local-negative-control-and-required-native-route",
-      "status": "NOT_STARTED",
-      "evidence_class": "independent-negative-control-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-missing-device-reports",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
+        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
-      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "limitation": "Local independent checks retain targeted/reporting denominators and unknown endpoint effectiveness. Collection success cannot hide missing policy reports. No actual device/service evidence; current per-policy repair also has preserved failing-before and passing-after logs under queue/.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -4908,10 +5002,25 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "757f36dc861dc06622f98384bf161ebad3d74be8d603754c71c1ad8bedd62c09",
+        "intune_iac/workbench_health.py": "020138af9ea56d5b9e81f916553e48d2bdf2114ff8eb014ddd6e2c58a646ca4b",
+        "plugin_tests/test_queue_reporting_scope_r4.py": "2976f1417e84bdcab299d81f0a99bcbce7d51726203d6fb42cbcb9ae9d18d1a1"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
+          "sha256": "3fa4b6591aea61bc421720f3e0944df7f7041ed6a60bf298c55d7039181f8ad7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
+          "sha256": "57236b8fa23ff941a2d59f0d91f4c24311ecfd9d1f21148c281b10618cc3dc7f"
+        }
+      ]
     },
     {
       "id": "E-FAULT-13",
@@ -5203,16 +5312,19 @@
       "description": "Graph acceptance without endpoint evidence never reports effective endpoint success",
       "milestone": "E",
       "required_profile": "local-negative-control-and-required-native-route",
-      "status": "NOT_STARTED",
-      "evidence_class": "independent-negative-control-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "03d7096edcb939ddd3b077f78211c170dfecf065",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-acceptance-without-endpoint",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
+        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
-      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "limitation": "Local independent checks retain targeted/reporting denominators and unknown endpoint effectiveness. Collection success cannot hide missing policy reports. No actual device/service evidence; current per-policy repair also has preserved failing-before and passing-after logs under queue/.",
+      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -5250,11 +5362,26 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "757f36dc861dc06622f98384bf161ebad3d74be8d603754c71c1ad8bedd62c09",
+        "intune_iac/workbench_health.py": "020138af9ea56d5b9e81f916553e48d2bdf2114ff8eb014ddd6e2c58a646ca4b",
+        "plugin_tests/test_queue_reporting_scope_r4.py": "2976f1417e84bdcab299d81f0a99bcbce7d51726203d6fb42cbcb9ae9d18d1a1"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
+          "sha256": "3fa4b6591aea61bc421720f3e0944df7f7041ed6a60bf298c55d7039181f8ad7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
+          "sha256": "57236b8fa23ff941a2d59f0d91f4c24311ecfd9d1f21148c281b10618cc3dc7f"
+        }
+      ]
     }
   ],
-  "checkpoint_increment": 2
+  "checkpoint_increment": 3
 }

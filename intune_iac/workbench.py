@@ -20,10 +20,12 @@ from .io import AppError, load_json
 def add_parser(commands):
     group = commands.add_parser('workbench', help='Persistent inspection, collection, history and explicitly synthetic maintenance')
     sub = group.add_subparsers(dest='workbench_command', required=True)
-    from .observation_jobs import add_parser as add_observer_parser
+    from .workbench_parsers import add_observer_parser
     add_observer_parser(sub)
     from .workbench_views import add_parser as add_views_parser
     add_views_parser(sub)
+    from .workbench_queue import add_parser as add_queue_parser
+    add_queue_parser(sub)
     workspace = sub.add_parser('workspace', help='Visual workspace over the complete text command engine; text fallback without a supported TTY')
     workspace.add_argument('--root', required=True)
     workspace.add_argument('--service-root')
@@ -88,16 +90,17 @@ def add_parser(commands):
     collect.add_argument('--stack', help='Physical manifest selector for --repo')
     collect.add_argument('--component', help='Component selector for --repo')
     collect.add_argument('--fault', choices=['deny', 'throttle', 'cross-origin', 'loop'])
-    for name in ('overview', 'health', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'operations', 'terminal'):
+    for name in ('overview', 'health', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'operations', 'terminal'):
         item = sub.add_parser(name)
         item.add_argument('--root', required=True)
-        if name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'workflows'):
+        if name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'workflows'):
             item.add_argument('--object', required=True, help='Exact immutable object ID, never a display name')
         if name in ('search', 'dictionary'): item.add_argument('--query', default='')
         if name in ('operations', 'health', 'collection-history', 'dictionary'): item.add_argument('--object')
-        if name in ('history', 'operations', 'collection-history', 'references', 'overview', 'search', 'dictionary', 'queue', 'health'):
+        if name in ('history', 'history-recent', 'operations', 'collection-history', 'references', 'overview', 'search', 'dictionary', 'queue', 'health'):
             item.add_argument('--limit', type=int, help='Explicit bounded page size, 1 through 1000')
             item.add_argument('--offset', type=int, default=0)
+        if name == 'history-recent': item.set_defaults(limit=10)
         if name == 'compare':
             item.add_argument('--before', required=True)
             item.add_argument('--after', required=True)
@@ -121,6 +124,8 @@ def add_parser(commands):
 
 
 def _store(root):
+    from .host_capabilities import require_profile
+    require_profile('workbench_store')
     from .workbench_store import WorkbenchStore
     return WorkbenchStore(root)
 
@@ -167,7 +172,25 @@ def _health(store, object_id=None, *, limit=None, offset=0):
 
 def _queue(store, *, limit=None, offset=0):
     """Evidence gaps are review findings, never inferred authorization to fix."""
+    from .workbench_health import device_health
+    from .workbench_views import _ownership_result
+    import time
     overview = store.overview(limit=limit, offset=offset)
+    # One bounded artifact read per kind, not per object/finding. Ownership is
+    # an immutable-object/assignment writer claim; a human owner label from a
+    # capture or review annotation must not establish that writer relationship.
+    ownership_rows = store.artifacts(kind='ownership_index')
+    ownership_index = max(ownership_rows, key=lambda item: item['sequence']) if ownership_rows else None
+    intents = {}
+    for item in store.artifacts(kind='repository_intent'):
+        intents[item['data']['target_object_id']] = item
+    claims = {}
+    if ownership_index:
+        for source in ownership_index['data']['document']['sources']:
+            for claim in source['claims']:
+                claims.setdefault(claim['object_id'], []).append(dict(claim, scope=source['scope'],
+                    observed_at=source['observed_at'], coverage=source['coverage']))
+    ownership_now = time.time()
     findings = []
     for row in overview.get('objects', []) + overview.get('pending_observations', []):
         reasons = []
@@ -176,18 +199,43 @@ def _queue(store, *, limit=None, offset=0):
         attempt = row.get('last_attempt', overview.get('last_attempt'))
         if attempt and attempt.get('status') != 'complete':
             reasons.append(('collection_incomplete', 'Last collection did not complete; preserved values are last-good evidence.'))
-        health = row.get('health', {})
-        if health.get('report_freshness') != 'fresh' or health.get('unknown_or_stale'):
+        health = device_health(store, row['object_id'])
+        reporting = health['stages']['execution']
+        if (reporting.get('targeted') is None or reporting.get('reporting') is None or
+                reporting.get('unknown') is None or reporting['unknown'] > 0 or
+                reporting['reporting'] < reporting['targeted']):
             reasons.append(('reporting_incomplete', 'Missing or stale reporting cannot establish rollout readiness or endpoint success.'))
         source = row.get('source') or {}
-        if not source.get('owner'):
-            reasons.append(('ownership_unknown', 'An observed policy does not establish repository or team ownership.'))
+        intent = intents.get(row['object_id'])
+        selected_scope = intent['data']['scope'] if intent else None
+        writer = _ownership_result(ownership_index, row['object_id'], selected_scope, ownership_now, claims)
+        writer_status = writer['status']
+        if writer_status == 'conflicting_claims':
+            reasons.append(('ownership_conflicting_claims', 'Multiple declared state addresses claim the same object or assignment writer; resolve the conflict before preparing execution.'))
+        elif writer_status == 'no_ownership_found_in_declared_scope':
+            reasons.append(('ownership_unclaimed', 'No writer was found in the complete fresh declared scopes; this does not prove absence of writers outside those scopes.'))
+        elif writer_status == 'owned_elsewhere':
+            reasons.append(('ownership_elsewhere', 'The declared writer belongs to another selected stack/component/backend scope; coordinate its owner before proposing a change.'))
+        elif writer_status == 'unknown':
+            if ownership_index is not None and not writer['fresh']:
+                reasons.append(('ownership_stale', 'Declared ownership evidence is stale or future-dated; collect every scope again before assessing the writer.'))
+            else:
+                reasons.append(('ownership_unknown', 'Writer ownership is unknown because the index, selected scope, complete scope coverage, or object and assignment writer evidence is missing.'))
+        writer_evidence = {key: writer[key] for key in ('status', 'claims', 'conflicting_parts', 'scope',
+            'declared_scope_complete', 'fresh', 'evidence_class', 'artifact_id', 'reason') if key in writer}
+        writer_evidence.update(cloud_authority=False, execution_authorized=False,
+            selected_repository_intent_id=intent['artifact_id'] if intent else None)
         related = store.operations(object_id=row['object_id'])
         for finding, rationale in reasons:
             findings.append({'tenant_id': overview['tenant_id'], 'object_id': row['object_id'],
-                'owner': source.get('owner'), 'owner_assertion': 'source_declared' if source.get('owner') else 'unknown',
+                'owner': None, 'owner_assertion': 'unknown', 'owner_role': 'human_review_assignee',
+                'source_owner_claim': {'value': source.get('owner'), 'assertion_class': 'source_declared'},
+                'writer_ownership': writer_evidence,
                 'finding': finding, 'evidence': {'snapshot_id': row['snapshot_id'], 'observed_at': row['observed_at'],
-                    'last_attempt': attempt, 'evidence_class': row.get('evidence_class', 'unknown')},
+                    'last_attempt': attempt, 'evidence_class': row.get('evidence_class', 'unknown'),
+                    'policy_reporting': {'artifact_id': health.get('artifact_id'), 'evidence_class': health['evidence_class'],
+                        'stage': 'execution', **{key: reporting.get(key) for key in ('targeted', 'reporting', 'unknown')},
+                        'endpoint_effectiveness_established': False}},
                 'freshness': row.get('freshness'), 'priority': 'review', 'priority_rationale': rationale,
                 'review_due': None, 'related_proposals': related, 'exception_expiry': None,
                 'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
@@ -198,6 +246,8 @@ def _queue(store, *, limit=None, offset=0):
                          'freshness': 'unknown', 'priority': 'review', 'priority_rationale': 'Collect before assessing policy state.',
                          'review_due': None, 'related_proposals': [], 'exception_expiry': None,
                          'compatibility': 'unqualified', 'action_state': 'collection_required', 'automatic_remediation': False})
+    from .workbench_queue import decorate_findings
+    findings = decorate_findings(store, findings)
     return {'evidence_class': overview.get('evidence_class', 'unknown'), 'cloud_authority': False, 'findings': findings,
             **_page_metadata(overview), 'findings_scope': 'observation_page' if limit is not None else 'all_admitted_observations'}
 
@@ -208,12 +258,34 @@ def _dictionary(store, query='', *, object_id=None, limit=None, offset=0):
     return dictionary(store, query, object_id=object_id, limit=limit, offset=offset)
 
 
-def _facet(store, object_id, facet):
+def _inspection(store, object_id):
+    """Combine an exact observed object with the current declared writer evidence.
+
+    The raw observation remains unchanged. Selected repository intent and state
+    claims are distinct management evidence, never authenticated cloud ownership.
+    """
+    from .workbench_views import _intents, _latest, ownership
     value = store.inspect(object_id)
+    intent = _latest(_intents(store, object_id, None))
+    scope = intent['data']['scope'] if intent else None
+    writer = ownership(store, object_id, scope)
+    return {**value, 'ownership': writer['status'], 'ownership_evidence': writer,
+            'selected_repository': None if intent is None else {
+                'artifact_id': intent['artifact_id'], 'scope': scope,
+                'source_revision': intent['data'].get('source_revision'),
+                'evidence_class': intent['data'].get('evidence_class'),
+                'selection_basis': 'latest_recorded_repository_intent_for_immutable_object'},
+            'management_coverage': {'declared_scope_complete': writer['declared_scope_complete'],
+                                    'fresh': writer['fresh'], 'cloud_authority': False}}
+
+
+def _facet(store, object_id, facet):
+    value = _inspection(store, object_id)
     body = value.get('body') or {}
     if facet == 'settings':
         return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
                 'settings': body.get('settings'), 'source': value.get('source'), 'coverage': value.get('coverage'),
+                'ownership': value['ownership'], 'ownership_evidence': value['ownership_evidence'],
                 'dictionary': _dictionary(store, object_id=object_id)}
     from .workbench_health import workflow_lineage
     lineage = workflow_lineage(store, object_id)
@@ -227,15 +299,25 @@ def _facet(store, object_id, facet):
             'source': value.get('source'), 'workflows': lineage, 'coverage': value.get('coverage'),
             'adoption_lineage': adoptions,
             'assignments': body.get('assignments'),
-            'ownership': 'Source-declared only; an observation does not establish managed ownership.'}
+            'ownership': value['ownership'], 'ownership_evidence': value['ownership_evidence'],
+            'selected_repository': value['selected_repository']}
 
 
 def command(args):
     name = args.workbench_command
+    from .host_capabilities import require_profile
+    from . import workbench_views
+    if name == 'field-semantics':
+        return workbench_views.command(args)
+    require_profile('workbench_store')
+    if name.startswith('observer-') or name.startswith('schedule-'):
+        require_profile('graph_observer')
+    from . import workbench_queue
+    if name in workbench_queue.COMMANDS:
+        return workbench_queue.command(args)
     from . import observation_jobs
     if name in observation_jobs.COMMANDS:
         return observation_jobs.command(args)
-    from . import workbench_views
     if name in workbench_views.COMMANDS:
         return workbench_views.command(args)
     if name == 'workspace':
@@ -311,7 +393,7 @@ def command(args):
     if name == 'queue': return _queue(store, limit=args.limit, offset=args.offset)
     if name == 'dictionary': return _dictionary(store, args.query, object_id=args.object, limit=args.limit, offset=args.offset)
     if name == 'search': return _search(store, args.query, limit=args.limit, offset=args.offset)
-    if name == 'inspect': return store.inspect(args.object)
+    if name == 'inspect': return _inspection(store, args.object)
     if name == 'adoption-lineage':
         from .workbench_adoption import lineage
         return lineage(store, args.object)
@@ -321,6 +403,7 @@ def command(args):
     if name in ('settings', 'relationships'): return _facet(store, args.object, name)
     if name == 'history': return {'object_id': args.object, 'history': store.history(args.object, limit=args.limit, offset=args.offset),
                                   'limit': args.limit, 'offset': args.offset}
+    if name == 'history-recent': return store.recent_history_page(args.object, limit=args.limit, offset=args.offset)
     if name == 'compare': return store.compare(args.object, args.before, args.after)
     if name == 'operations': return {'operations': store.operations(object_id=args.object, limit=args.limit, offset=args.offset),
                                      'limit': args.limit, 'offset': args.offset}
@@ -330,7 +413,7 @@ def command(args):
 HELP = {
     'navigation': ['overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
-                   'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
+                   'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
                    'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
                    'field-semantics', 'back', 'cancel', 'quit'],
@@ -420,6 +503,8 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
     def show_page(specification=None):
         target = page if specification is None else specification
+        if target['kind'] == 'history-recent':
+            return store.recent_history_page(target['object_id'], limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'views':
             from .workbench_views import views
             return views(store, limit=target['limit'], offset=target['offset'], query=target['query'],
@@ -470,6 +555,8 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 result = contract()
             elif name in ('back', 'cancel') and not values:
                 selected = None
+                if page['kind'] == 'history-recent':
+                    page.clear(); page.update(kind='overview', limit=10, offset=0, query='')
                 result = {'status': 'selection_cleared', 'mutation_dispatched': False}
             elif name == 'overview' and len(values) <= 2:
                 result = set_page('overview', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
@@ -482,13 +569,13 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                         present({'status': 'end_of_observation_pages', 'pagination': pagination})
                         continue
                     page['offset'] = pagination['next_offset']
-                selected = None
+                selected = page.get('object_id') if page['kind'] == 'history-recent' else None
                 result = show_page()
             elif name == 'search': result = set_page('search', query=' '.join(values))
             elif name == 'search-page' and len(values) >= 3:
                 result = set_page('search', int(values[0]), int(values[1]), ' '.join(values[2:]))
             elif name == 'select' and len(values) == 1:
-                result = store.inspect(values[0])
+                result = _inspection(store, values[0])
                 selected = values[0]
             elif name == 'health' and len(values) <= 2:
                 result = (_health(store, selected) if selected is not None and not values else
@@ -536,9 +623,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'operations' and len(values) <= 2:
                 result = {'operations': store.operations(object_id=selected, limit=int(values[0]) if values else None,
                           offset=int(values[1]) if len(values) == 2 else 0)}
-            elif name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'propose', 'workflows', 'reference-compare'):
+            elif name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'propose', 'workflows', 'reference-compare'):
                 if selected is None: raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                if name == 'inspect' and not values: result = store.inspect(selected)
+                if name == 'inspect' and not values: result = _inspection(store, selected)
                 elif name in ('settings', 'relationships') and not values: result = _facet(store, selected, name)
                 elif name == 'adoption-lineage' and not values:
                     from .workbench_adoption import lineage
@@ -555,6 +642,12 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 elif name == 'history' and len(values) <= 2:
                     result = {'object_id': selected, 'history': store.history(selected,
                               limit=int(values[0]) if values else None, offset=int(values[1]) if len(values) == 2 else 0)}
+                elif name == 'history-recent' and len(values) <= 2:
+                    candidate = {'kind':'history-recent','object_id':selected,
+                                 'limit':int(values[0]) if values else 10,
+                                 'offset':int(values[1]) if len(values)==2 else 0,'query':''}
+                    result = show_page(candidate)
+                    page.clear(); page.update(candidate)
                 elif name == 'compare' and len(values) == 2: result = store.compare(selected, *values)
                 elif name == 'propose' and len(values) in (2, 3):
                     if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')

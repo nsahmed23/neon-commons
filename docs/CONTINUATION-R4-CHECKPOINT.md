@@ -172,3 +172,81 @@ Azure identity/state; enrolled pilot devices; approved hostile/crash host tests;
 and AppSec/operations/risk approval. No real tenant or platform write was
 authorized or executed by this increment. Laboratory completion remains
 incomplete, platform qualification blocked, organizational approval absent.
+
+## Increment 3 — persistent review, bounded history and native host preparation
+
+Parent commit is `03d7096edcb939ddd3b077f78211c170dfecf065`. This checkpoint
+preserves immutable queue review metadata with concurrent-update rejection,
+policy-bound reporting gaps, shared ownership evidence in the inspector,
+versioned dictionary provenance, portable parser/host readiness gates,
+bounded recent history and native host/provider adapters. It also repairs
+archival native initialization and parent-directory replacement races.
+The commit receipt under `integration/COMMIT-03.json` records the resulting
+commit, explicit Git actor/argv, exact files and remaining working tree.
+
+The root changed-scope integration run passed **109 tests** in 12 selected
+modules; raw output is `integration/increment3-precommit.stderr`. The separate
+history scope passed **31 tests**, including actual CLI and Linux PTY navigation
+over 1,001 retained observations and workflow import referencing the oldest
+snapshot. These runs overlap other evidence and are not summed into a new
+strict-suite count. The composed history run's earlier 79/80 result is retained:
+the failed health fixture rounded a timestamp into the future. The fixture now
+uses its serialized time; the product's future-evidence rejection is unchanged.
+
+Independent archival review reproduced two ancestor-replacement races before
+repair. Descriptor-relative no-follow traversal now keeps reads and publication
+bound to the held directory inode. Ten focused tests and three independent
+native-crypto controls pass; old failures and a test invocation missing its
+pinned library variable remain in `artifact-vault/`. This does not provide
+same-account hostile-process isolation or encrypt the running SQLite/job volume.
+
+Actual pinned Atmos/OpenTofu/provider work against local TLS fixtures completed
+import, an unchanged first plan, one description correction, exact saved-plan
+application, independent policy/assignment fixture readback and convergence.
+The valid Atmos invocation uses separate `--from-plan --planfile` arguments.
+The advertised combined form that replanned and stopped at EOF is retained.
+Nine actual Docker host checks cover restrictions, native invocation, timeout,
+output limits, interruption, controller loss and cleanup. Neither fixture nor
+container results establish authenticated Azure/Intune platform qualification.
+
+A separate native negative uncovered a real provider robustness defect:
+malformed Graph error content causes an SDK nil dereference. Conformant 400/403
+errors return ordinary diagnostics; all three preserve exact state bytes with
+zero Graph writes and zero OOM kills. The isolated source candidate is untested,
+and no replacement binary exists. Automated agent execution rejected the repair
+task for possible cybersecurity risk without identifying a specific command.
+No retry was attempted. See
+`worker-provider/provider-negative/PRESERVATION-STOP-RECEIPT.json`; this remains
+a release blocker, independent of the valid successful local lifecycle.
+
+Native Windows is **UNSUPPORTED at implementation level**, not merely waiting
+for a test host. Capability checks now explain missing storage/security
+primitives and reject before creating a store. Native qualification records
+functional cases as unsupported/blocked even when these negative gates pass.
+Linux import-denial probes do not substitute for Windows/Git Bash/mintty or
+PowerShell evidence. An isolated Windows private-storage component is the next
+unblocked implementation dependency; the Linux path remains unchanged.
+
+Active work excluded from this commit includes native broker lease/metadata/
+chunked-body integration, authenticated fresh-read preconditions, the protected
+service orchestrator, and the isolated Windows component. Preserve their files.
+The broker's independently reproduced metadata-effect admission failure stays
+open until its owner records repair and independent replay. Source/runtime
+packages remain version 0.8.0 pending a reviewed final candidate; no R4 release
+or public readback is claimed.
+
+Resume at the actual checkout and inspect current work before executing:
+
+```bash
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+git log -3 --oneline
+/workspace/intune-runtime/bin/python -B scripts/intune-iac.py doctor
+/workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench history-recent --help
+```
+
+Continue service/broker/precondition integration, independent boundary review,
+final source-bound journeys, release gates and reproducible layered recovery.
+The CI platform choice remains pending; no tenant or platform change is
+authorized. Laboratory completion remains incomplete, platform qualification
+blocked, and organizational production approval absent.

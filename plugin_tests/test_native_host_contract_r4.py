@@ -106,6 +106,44 @@ class QualificationProcedureContract(unittest.TestCase):
             self.assertFalse(receipt['native_windows_qualified'])
             self.assertEqual(receipt['commands'], [])
             self.assertEqual(receipt['blockers'][0]['code'], 'native_windows_host_required')
+            self.assertEqual(receipt['implementation_gates'],[])
+            procedure=json.loads((out/'procedure-manifest.json').read_text())
+            self.assertEqual(procedure['required_implementation_gate']['current_native_windows_status'],'UNSUPPORTED')
+
+    def test_unavailable_store_is_a_required_unsupported_gate_not_functional_pass(self):
+        module=self.module()
+        document={'host_capabilities':{'schema_version':'intune-host-capabilities/1','profiles':{
+            'workbench_store':{'status':'UNSUPPORTED','missing_primitives':['effective_uid','fcntl_lock']}}}}
+        value=module.store_profile_gate(document)
+        self.assertEqual(value['status'],'UNSUPPORTED')
+        self.assertEqual(value['functional_qualification'],'BLOCKED')
+        self.assertEqual(value['missing_primitives'],['effective_uid','fcntl_lock'])
+        document['host_capabilities']['profiles']['workbench_store']={'status':'IMPLEMENTED','missing_primitives':[]}
+        value=module.store_profile_gate(document)
+        self.assertEqual(value['status'],'IMPLEMENTED')
+        self.assertEqual(value['functional_qualification'],'NOT_STARTED')
+
+    def test_missing_or_inconsistent_implementation_report_cannot_admit_store(self):
+        module=self.module()
+        for profile in ({}, {'status':'PASS','missing_primitives':[]},
+                        {'status':'IMPLEMENTED','missing_primitives':['fcntl_lock']},
+                        {'status':'UNSUPPORTED','missing_primitives':[]},
+                        {'status':'UNSUPPORTED','missing_primitives':'fcntl_lock'}):
+            with self.subTest(profile=profile):
+                document={'host_capabilities':{'schema_version':'intune-host-capabilities/1','profiles':{'workbench_store':profile}}}
+                with self.assertRaisesRegex(ValueError,'host_capability_report_required'):
+                    module.store_profile_gate(document)
+
+    def test_required_unsupported_or_unfinished_route_never_becomes_pass(self):
+        module=self.module(); assertions=[{'passed':True}]
+        unsupported={'status':'UNSUPPORTED','functional_qualification':'BLOCKED'}
+        passed={'status':'PASS','functional_qualification':'PASS'}
+        self.assertEqual(module.qualification_status(assertions,[unsupported]),'UNSUPPORTED')
+        self.assertEqual(module.qualification_status(assertions,[passed,unsupported]),'UNSUPPORTED')
+        self.assertEqual(module.qualification_status(assertions,[{'status':'IMPLEMENTED','functional_qualification':'NOT_STARTED'}]),'FAIL')
+        self.assertEqual(module.qualification_status(assertions,[]),'FAIL')
+        self.assertEqual(module.qualification_status([{'passed':False}],[unsupported]),'FAIL')
+        self.assertEqual(module.qualification_status(assertions,[passed,passed]),'PASS')
 
     def test_output_reuse_is_rejected_and_existing_evidence_unchanged(self):
         with tempfile.TemporaryDirectory() as td:

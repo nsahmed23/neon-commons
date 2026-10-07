@@ -37,7 +37,8 @@ class Store:
         self.rows.append(value);return value
     def artifacts(self,kind=None,object_id=None,**kw):return [r for r in self.rows if (kind is None or r['kind']==kind) and (object_id is None or r['object_id']==object_id)]
     def operations(self,object_id=None):return [{'operation_id':'op-local','object_id':OBJECT}]
-    def history(self,object_id):return [{'snapshot_id':'a'*64,'observed_at':STAMP}]
+    def has_observed_snapshot(self,object_id,snapshot_id,*,at_or_before):
+        return object_id==OBJECT and snapshot_id=='a'*64 and at_or_before>=NOW
 
 
 class HealthTests(unittest.TestCase):

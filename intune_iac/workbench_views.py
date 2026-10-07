@@ -499,12 +499,15 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     deployment=_deployment(store,object_id,scope)
     comparisons={name:_unknown('baseline_missing_or_incomplete') for name in ('collector_snapshot_delta','provider_refresh_vs_state','repository_vs_deployment','observed_vs_deployment','repository_vs_observed')}
     if observed.get('body') is not None:
-        history=store.history(object_id)
+        history=list(reversed(store.recent_history(object_id,limit=2)))
         if coverage_ok and len(history)>=2:
             before,after=history[-2:]
-            comparisons['collector_snapshot_delta']=_comparison(before['body'],after['body'],
-                baseline={'kind':'prior_collector_snapshot','snapshot_id':before['snapshot_id'],'observed_at':before['observed_at']},
-                current={'snapshot_id':after['snapshot_id'],'observed_at':after['observed_at']},attribution='unknown',change_time='unknown')
+            if all(after.get(key)==observed.get(key) for key in ('snapshot_id','run_id','observed_at')):
+                comparisons['collector_snapshot_delta']=_comparison(before['body'],after['body'],
+                    baseline={'kind':'prior_collector_snapshot','snapshot_id':before['snapshot_id'],'observed_at':before['observed_at']},
+                    current={'snapshot_id':after['snapshot_id'],'observed_at':after['observed_at']},attribution='unknown',change_time='unknown')
+            else:
+                comparisons['collector_snapshot_delta']=_unknown('history_current_observation_mismatch')
         if intent and coverage_ok:comparisons['repository_vs_observed']=_comparison(repo['desired'],observed['body'],classification='desired_observed_difference',drift_established=False)
     refresh=_latest([r for r in _rows(store,'provider_refresh') if r['data']['document']['object_id']==object_id and (scope is None or r['data']['document']['scope']==scope)])
     state_present=None
@@ -628,9 +631,9 @@ def add_parser(sub):
 
 
 def command(args):
-    from .workbench_store import WorkbenchStore
     name=args.workbench_command
     if name=='field-semantics':return semantics.contract()
+    from .workbench_store import WorkbenchStore
     store=WorkbenchStore(args.root)
     if name=='repository-import':return import_repository(store,args.repo,args.stack,args.component,args.object,args.pointer,args.revision,args.backend,args.resource_address,git_executable=args.git_executable,git_sha256=args.git_sha256)
     if name=='ownership-import':return import_ownership(store,args.input)

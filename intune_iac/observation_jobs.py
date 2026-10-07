@@ -417,18 +417,8 @@ def scheduler_artifacts(job, output):
 
 
 def add_parser(sub):
-    create = sub.add_parser('observer-create', help='Create an inactive scoped Graph reader job; no network or credentials read')
-    for name in ('root', 'tenant', 'client', 'principal', 'secret-env', 'output'):
-        create.add_argument('--' + name, required=True)
-    create.add_argument('--object', action='append', required=True)
-    create.add_argument('--interval-seconds', type=float, default=300)
-    create.add_argument('--max-duration-seconds', type=float, default=120)
-    create.add_argument('--laboratory-fixture', help='Explicit hash-pinned recorded-response profile; cannot establish live authentication')
-    for name in ('observer-run', 'observer-status', 'observer-scheduler'):
-        command = sub.add_parser(name)
-        command.add_argument('--job', required=True)
-        if name == 'observer-scheduler':
-            command.add_argument('--output', required=True)
+    from .workbench_parsers import add_observer_parser
+    return add_observer_parser(sub)
 
 
 def command(args):

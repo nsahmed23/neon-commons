@@ -8,6 +8,7 @@ An archive authenticates bytes and context, not tenant truth or permission to ac
 from __future__ import annotations
 
 import ctypes
+from contextlib import contextmanager
 import hashlib
 import os
 from pathlib import Path
@@ -16,7 +17,6 @@ import select
 import stat
 import struct
 import sys
-import tempfile
 import time
 
 from .io import AppError, canonical, parse_json
@@ -34,53 +34,68 @@ def _fail(code):
     raise AppError(code, 'Encrypted artifact could not be admitted. Original inputs are unchanged.')
 
 
-def _private_path(value, *, directory=False):
+@contextmanager
+def _parent(value, *, private=False):
+    """Walk directories without following links, then hold the selected inode.
+
+    A concurrent rename can detach this directory from its original pathname;
+    it cannot redirect a subsequent read or publication into its replacement.
+    This is not isolation from another process running as the same account.
+    """
     path = Path(value).absolute()
-    if any(p.is_symlink() for p in (path, *path.parents)):
+    if '..' in path.parts or not path.name:
         _fail('artifact_unsafe_path')
-    if path.exists():
-        info = path.stat()
-        expected = stat.S_ISDIR if directory else stat.S_ISREG
-        if not expected(info.st_mode) or info.st_uid != os.geteuid() or info.st_mode & 0o077:
+    descriptor = None
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC
+    try:
+        descriptor = os.open(path.anchor, flags)
+        for part in path.parts[1:-1]:
+            child = os.open(part, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = child
+        info = os.fstat(descriptor)
+        if private and (info.st_uid != os.geteuid() or info.st_mode & 0o077):
             _fail('artifact_private_path_required')
-    elif directory:
-        _fail('artifact_directory_missing')
-    return path
+        yield descriptor, path.name
+    except OSError:
+        _fail('artifact_unsafe_path')
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
 
 
 def _read(value, maximum):
-    path = _private_path(value)
-    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-    with os.fdopen(fd, 'rb') as source:
-        info = os.fstat(source.fileno())
-        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_mode & 0o077 or info.st_size > maximum:
-            _fail('artifact_input_limit_or_permissions')
-        contents = source.read(maximum + 1)
+    with _parent(value) as (parent, name):
+        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC, dir_fd=parent)
+        with os.fdopen(fd, 'rb') as source:
+            info = os.fstat(source.fileno())
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_mode & 0o077 or info.st_size > maximum:
+                _fail('artifact_input_limit_or_permissions')
+            contents = source.read(maximum + 1)
     if len(contents) > maximum:
         _fail('artifact_input_limit')
     return contents
 
 
 def _write_new(value, data):
-    path = _private_path(value)
-    _private_path(path.parent, directory=True)
-    if path.exists():
-        _fail('artifact_output_exists')
-    fd, temporary = tempfile.mkstemp(prefix='.artifact-stage-', dir=path.parent)
-    try:
-        with os.fdopen(fd, 'wb') as output:
-            output.write(data)
-            output.flush()
-            os.fsync(output.fileno())
-        # link is exclusive; never replace a preexisting destination or symlink.
-        os.link(temporary, path, follow_symlinks=False)
-        parent = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    with _parent(value, private=True) as (parent, name):
+        temporary = '.artifact-stage-' + os.urandom(16).hex()
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC,
+                     0o600, dir_fd=parent)
         try:
-            os.fsync(parent)
+            with os.fdopen(fd, 'wb') as output:
+                output.write(data)
+                output.flush()
+                os.fsync(output.fileno())
+            # Both names are relative to the same held directory, even if its
+            # original pathname is concurrently replaced with a symlink.
+            try:
+                os.link(temporary, name, src_dir_fd=parent, dst_dir_fd=parent, follow_symlinks=False)
+            except FileExistsError:
+                _fail('artifact_output_exists')
         finally:
-            os.close(parent)
-    finally:
-        os.unlink(temporary)
+            os.unlink(temporary, dir_fd=parent)
+            os.fsync(parent)
 
 
 def _library(path, sha256):
@@ -89,6 +104,17 @@ def _library(path, sha256):
     from .approval_authority import VerifierPin, _validator
     lib = _validator(VerifierPin(Path(sys.executable), '', Path(path), sha256))
     try:
+        initialize = lib.sodium_init
+        initialize.argtypes = []
+        initialize.restype = ctypes.c_int
+        if initialize() not in (0, 1):
+            _fail('artifact_native_initialization_failed')
+        for suffix, expected in (('keybytes', 32), ('npubbytes', 24), ('abytes', 16)):
+            size = getattr(lib, 'crypto_aead_xchacha20poly1305_ietf_' + suffix)
+            size.argtypes = []
+            size.restype = ctypes.c_size_t
+            if size() != expected:
+                _fail('artifact_algorithm_contract')
         encrypt = lib.crypto_aead_xchacha20poly1305_ietf_encrypt
         decrypt = lib.crypto_aead_xchacha20poly1305_ietf_decrypt
         encrypt.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulonglong), ctypes.c_char_p,

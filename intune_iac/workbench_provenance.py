@@ -23,6 +23,8 @@ MAX_LINEAGE_FIELDS = 4096
 MAX_LINEAGE_ORIGINS = 8192
 VENDOR_DOCUMENTATION_SHA256 = 'c758641e932f85014e5ec3451073828ad0f04a20fb850196ae6bb1b0f699bcd8'
 SCHEMA = 'workbench-source-reference/1.0'
+FACT_PROVENANCE_SCHEMA = 'workbench-dictionary-provenance/1'
+_REFERENCE_CLASSES = ('community_reference', 'organization_annotation')
 _HASH = re.compile(r'[0-9a-f]{64}\Z')
 _REVISION = re.compile(r'[0-9a-f]{40}\Z')
 _OIB_TOKEN = re.compile(r'OIBID:([0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})(?![0-9A-Za-z-])')
@@ -128,7 +130,7 @@ def _metadata(expected_sha256, source_revision, source_url, license_id, assertio
         url = urlsplit(source_url)
         if url.scheme!='https' or not url.hostname or url.username or url.password or url.query or url.fragment: _fail()
     except ValueError: _fail()
-    if not _text(license_id,128) or assertion_class not in ('community_reference','organization_annotation'): _fail()
+    if not _text(license_id,128) or assertion_class not in _REFERENCE_CLASSES: _fail()
 
 
 def reference_import(store, path, expected_sha256, source_revision, source_url, license_id,
@@ -344,6 +346,60 @@ def repository_lineage(store, object_id, pointer=None):
     return result
 
 
+def fact_taxonomy():
+    """Versioned presentation contract; categories cannot confer authority.
+
+    AI output is not currently an input to this dictionary. Its absence is
+    explicit so a future adapter cannot silently mix interpretation with facts.
+    Adding such an adapter needs a separately versioned, reviewed input contract.
+    """
+    return {'schema_version': FACT_PROVENANCE_SCHEMA,
+        'categories': {
+            'vendor_documentation': {'container': 'vendor_documentation',
+                'origin': 'release_pinned_factual_summary', 'caller_import_allowed': False,
+                'meaning': 'Pinned documentation and citations; not authenticated current service or device behavior.'},
+            'observed_value': {'container': 'actual_uses', 'origin': 'observation_store',
+                'caller_import_allowed': False,
+                'meaning': 'Exact collected/imported value; authenticity, coverage and freshness remain per-record evidence.'},
+            'community_advice': {'container': 'references', 'origin': 'community_reference',
+                'caller_import_allowed': True, 'import_assertion_class': 'community_reference',
+                'meaning': 'Caller-supplied community material; no vendor, tenant, ownership or approval authority.'},
+            'company_annotation': {'container': 'references', 'origin': 'organization_annotation',
+                'caller_import_allowed': True, 'import_assertion_class': 'organization_annotation',
+                'meaning': 'Caller-asserted company annotation; not authenticated organizational approval or desired intent.'},
+            'local_mapping': {'container': 'local_mapping', 'origin': 'release_local_mapping_contract',
+                'caller_import_allowed': False,
+                'meaning': 'Bounded implementation mapping; neither vendor semantics nor live provider qualification.'},
+            'ai_interpretation': {'container': None, 'origin': 'not_implemented',
+                'caller_import_allowed': False,
+                'meaning': 'No AI interpretation has been collected or produced. There is no AI annotation ingestion route.'}},
+        'rules': ['Keep categories separate; a recommendation is not an observed fact.',
+                  'A matching setting identifier or display name never upgrades provenance.',
+                  'Absence stays explicit; no category supplies missing facts from another category.',
+                  'Each observation retains its own evidence class, time, freshness and coverage.',
+                  'Categories and references confer no authority to change a repository or service.'],
+        'admitted_reference_assertion_classes': list(_REFERENCE_CLASSES),
+        'source_authenticity_from_category': False, 'organizational_approval_from_category': False,
+        'execution_authorized': False, 'cloud_authority': False}
+
+
+def _fact_provenance(row):
+    """Indexes into exact existing records; no normalization or fact synthesis."""
+    pointers = {
+        'vendor_documentation': ['/vendor_documentation/' + str(i) for i in range(len(row['vendor_documentation']))],
+        'observed_value': ['/actual_uses/' + str(i) for i in range(len(row['actual_uses']))],
+        'community_advice': ['/references/' + str(i) for i, item in enumerate(row['references']) if item['assertion_class'] == 'community_reference'],
+        'company_annotation': ['/references/' + str(i) for i, item in enumerate(row['references']) if item['assertion_class'] == 'organization_annotation'],
+        'local_mapping': ['/local_mapping/' + str(i) for i in range(len(row['local_mapping']))],
+        'ai_interpretation': []}
+    return {'schema_version': FACT_PROVENANCE_SCHEMA,
+        'categories': {name: {'availability': 'present' if values else 'not_implemented' if name == 'ai_interpretation' else 'absent',
+                              'record_count': len(values), 'record_pointers': values,
+                              'source_authenticity_inferred': False, 'execution_authorized': False}
+                       for name, values in pointers.items()},
+        'pointer_scope': 'this_dictionary_entry', 'cross_category_promotion': False}
+
+
 def dictionary(store, query='', *, object_id=None, limit=None, offset=0):
     if type(query) is not str or len(query)>512: _fail()
     entries = {}
@@ -394,15 +450,18 @@ def dictionary(store, query='', *, object_id=None, limit=None, offset=0):
         identifier = facts['setting_definition_id']
         if identifier in entries:
             entry(identifier)['vendor_documentation'].append(copy.deepcopy(facts))
+    for row in entries.values():
+        row['fact_provenance'] = _fact_provenance(row)
     def matches(row):
         terms = [row['identifier'], *row['aliases']]
         for facts in row['vendor_documentation']:
             terms.extend([facts['name'], facts['csp_uri'], *facts['aliases']])
         return any(query.casefold() in term.casefold() for term in terms)
     return {'query':query, 'entries':[entries[key] for key in sorted(entries) if matches(entries[key])],
+            'fact_provenance_contract': fact_taxonomy(),
             'observation_scope': observation_scope,
             'freshness':overview.get('freshness','unknown'),'cloud_authority':False,'execution_authorized':False,
-            'qualification':'Observed values, local mappings, community/company references and pinned vendor documentation are separate. Graph enum translation and observed-device applicability remain unqualified.'}
+            'qualification':'Observed values, local mappings, community/company references and pinned vendor documentation are separate. AI interpretation is absent and ingestion unsupported. Graph enum translation and observed-device applicability remain unqualified.'}
 
 
 def _compare(left, right):

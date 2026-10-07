@@ -22,6 +22,8 @@ import time
 from uuid import UUID
 
 from .io import AppError, canonical, digest, parse_json, sync_directory
+from .host_capabilities import require_profile
+require_profile('workbench_store')
 from .modeled_service import BASE, FIELDS, MAX_OBJECTS, ModeledService
 
 SCHEMA_VERSION = 2
@@ -68,7 +70,8 @@ _MIGRATION_STATEMENTS = (
 )
 _SCHEMA_SQL = _SCHEMA_SQL_V1 + '\nBEGIN IMMEDIATE;\n' + ';\n'.join(_MIGRATION_STATEMENTS) + ';\nPRAGMA user_version=2;\nCOMMIT;\n'
 _ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule','adoption',
-    'repository_intent','ownership_index','provider_refresh','deployment_receipt'})
+    'repository_intent','ownership_index','provider_refresh','deployment_receipt','queue_review'})
+_UNSPECIFIED_PRIOR = object()
 
 
 def _migrate_v1_to_v2(db):
@@ -845,6 +848,56 @@ class WorkbenchStore:
                 result.append(value)
             return result
 
+    def recent_history(self, object_id, *, limit=10, offset=0):
+        """A bounded newest-first slice; never materialize the retained history."""
+        return self._recent_history(object_id, limit, offset, include_total=False)['history']
+
+    def recent_history_page(self, object_id, *, limit=10, offset=0):
+        """Newest-first page and exact continuation from the same read transaction."""
+        return self._recent_history(object_id, limit, offset, include_total=True)
+
+    def has_observed_snapshot(self, object_id, snapshot_id, *, at_or_before):
+        """Identity/time-bound existence, including snapshots outside recent pages."""
+        _identity(object_id)
+        if type(snapshot_id) is not str or re.fullmatch('[0-9a-f]{64}', snapshot_id) is None:
+            _fail('workbench_query_invalid')
+        if at_or_before is None: _fail('workbench_time_invalid')
+        cutoff = _timestamp(at_or_before)
+        with self._connection() as db, self._query_budget(db):
+            row = db.execute('SELECT observed_at FROM observations WHERE tenant_id=? AND object_id=? AND snapshot_id=? ORDER BY observed_at LIMIT 1',
+                             (self.tenant_id,object_id,snapshot_id)).fetchone()
+            # Match the published microsecond timestamp used by legacy history.
+            # Raw REAL timestamps can otherwise round across an equal ISO cutoff.
+            return row is not None and _timestamp(_iso(row['observed_at'])) <= cutoff
+
+    def _recent_history(self, object_id, limit, offset, *, include_total):
+        _identity(object_id)
+        # Unlike legacy history(), this entrypoint always requires a bounded page.
+        if limit is None: _fail('workbench_query_invalid')
+        limit, offset, _ = _page(limit, offset)
+        with self._connection() as db, self._query_budget(db):
+            db.execute('BEGIN')
+            rows = db.execute(
+                'SELECT o.*,s.body_json FROM observations o JOIN snapshots s USING(snapshot_id) WHERE o.tenant_id=? AND o.object_id=? ORDER BY o.observed_at DESC,o.observation_id DESC LIMIT ? OFFSET ?',
+                (self.tenant_id,object_id,limit,offset))
+            result, size = [], 0
+            for row in rows:
+                value = self._observation(db,row); size += len(canonical(value))
+                if size > MAX_QUERY_BYTES: _fail('workbench_query_limit')
+                result.append(value)
+            value = {'object_id':object_id,'history':result,'limit':limit,'offset':offset,
+                     'order':'observed_at_desc_observation_id_desc'}
+            if include_total:
+                total = db.execute('SELECT COUNT(*) FROM observations WHERE tenant_id=? AND object_id=?',
+                                   (self.tenant_id,object_id)).fetchone()[0]
+                returned = len(result); has_more = offset+returned < total
+                value['pagination'] = {'total_observations':total,'returned_observations':returned,
+                    'limit':limit,'offset':offset,'has_more':has_more,
+                    'next_offset':offset+returned if has_more else None,
+                    'complete':offset==0 and returned==total,'scope':'history_page'}
+            if len(canonical(value)) > MAX_QUERY_BYTES: _fail('workbench_query_limit')
+            return value
+
     def compare(self, object_id, before_id, after_id):
         _identity(object_id)
         with self._connection() as db:
@@ -897,7 +950,7 @@ class WorkbenchStore:
             'recorded_at':_iso(row['recorded_at']),'evidence_class':'caller_asserted_artifact',
             'cloud_authority':False,'execution_authorized':False}
 
-    def record_artifact(self, kind, object_id, data):
+    def record_artifact(self, kind, object_id, data, *, expected_prior=_UNSPECIFIED_PRIOR):
         """Append immutable inert provenance; this never grants execution authority."""
         self._require_v2()
         if type(kind) is not str or kind not in _ARTIFACT_KINDS or type(data) is not dict:_fail('workbench_artifact_invalid')
@@ -907,12 +960,39 @@ class WorkbenchStore:
         if data.get('object_id',object_id)!=object_id:_fail('workbench_artifact_object_mismatch')
         if data.get('cloud_authority') not in (None,False) or data.get('execution_authorized') not in (None,False):
             _fail('workbench_authority_rejected')
+        if kind == 'queue_review':
+            if expected_prior is _UNSPECIFIED_PRIOR or (expected_prior is not None and
+                    (type(expected_prior) is not str or len(expected_prior) != 64 or
+                     any(c not in '0123456789abcdef' for c in expected_prior))):
+                _fail('workbench_queue_prior_required')
+            if (type(data.get('queue_key')) is not str or len(data['queue_key']) != 64 or
+                    any(c not in '0123456789abcdef' for c in data['queue_key']) or
+                    data.get('previous_artifact_id') != expected_prior):
+                _fail('workbench_queue_prior_required')
+        elif expected_prior is not _UNSPECIFIED_PRIOR:
+            _fail('workbench_artifact_invalid')
         body=_json(data)
         artifact_id=digest({'tenant_id':self.tenant_id,'kind':kind,'object_id':object_id,'data':parse_json(body)})
         with self._connection(True) as db, db:
             db.execute('BEGIN IMMEDIATE')
             if object_id is not None and not db.execute('SELECT 1 FROM snapshots WHERE tenant_id=? AND object_id=? UNION SELECT 1 FROM run_scope_objects WHERE object_id=? LIMIT 1',
                     (self.tenant_id,object_id,object_id)).fetchone():_fail('workbench_object_missing')
+            if kind == 'queue_review':
+                # Compare and append under the same write transaction. Reading a
+                # head outside this lock permits two concurrent reviewers to win.
+                rows = db.execute('SELECT * FROM artifacts WHERE tenant_id=? AND kind=? AND object_id IS ? ORDER BY sequence DESC LIMIT 1001',
+                                  (self.tenant_id,kind,object_id))
+                latest, count, size = None, 0, 0
+                for candidate in rows:
+                    count += 1
+                    size += len(candidate['data_json'].encode('utf-8'))
+                    if count > 1000 or size > MAX_QUERY_BYTES:
+                        _fail('workbench_query_limit')
+                    value = self._artifact(candidate)
+                    if latest is None and value['data'].get('queue_key') == data['queue_key']:
+                        latest = value['artifact_id']
+                if latest != expected_prior:
+                    _fail('workbench_queue_conflict')
             previous=db.execute('SELECT * FROM artifacts WHERE artifact_id=?',(artifact_id,)).fetchone()
             if previous:return {**self._artifact(previous),'created':False}
             db.execute('INSERT INTO artifacts(artifact_id,tenant_id,kind,object_id,data_json,recorded_at) VALUES(?,?,?,?,?,?)',
