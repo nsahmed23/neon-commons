@@ -10,6 +10,7 @@ from pathlib import Path
 import signal
 import sys
 import tempfile
+import threading
 import time
 import unittest
 from unittest.mock import patch
@@ -103,6 +104,144 @@ class ProcessCleanupTests(unittest.TestCase):
         for pid in self.record_pids(): self.assert_stopped(pid)
         self.assertEqual(evidence['process_cleanup']['status'], 'confirmed')
         self.assertEqual(evidence['primary_error'], 'KeyboardInterrupt')
+
+    def test_real_sigint_before_spawn_returns_cannot_lose_owned_child(self):
+        """Deliver the real signal in the Popen-to-supervisor ownership gap."""
+        actual_spawn = protected.subprocess.Popen
+        for profile in ('protected', 'provider'):
+            with self.subTest(profile=profile):
+                spawned = []; evidence = {}
+                original_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+                def interrupt_before_return(*args, **kwargs):
+                    process = actual_spawn(*args, **kwargs)
+                    spawned.append(process)
+                    os.kill(os.getpid(), signal.SIGINT)
+                    return process
+                try:
+                    with patch.object(protected.subprocess, 'Popen', side_effect=interrupt_before_return):
+                        with self.assertRaises(KeyboardInterrupt):
+                            self.call(profile, 'import time;time.sleep(60)', evidence=evidence)
+                    self.assertEqual(len(spawned), 1)
+                    self.assert_stopped(spawned[0].pid)
+                    self.assertEqual(evidence['process_cleanup']['status'], 'confirmed')
+                    self.assertTrue(evidence['process_cleanup']['direct_child_reaped'])
+                    self.assertEqual(evidence['primary_error'], 'KeyboardInterrupt')
+                    self.assertEqual(signal.pthread_sigmask(signal.SIG_BLOCK, set()), original_mask)
+                finally:
+                    # A failing-before run must preserve its finding without
+                    # leaving the independently observed survivor running.
+                    for process in spawned:
+                        if process.poll() is None:
+                            os.killpg(process.pid, signal.SIGKILL)
+                            process.wait(timeout=5)
+                        for stream in (process.stdout, process.stderr):
+                            if stream is not None: stream.close()
+
+    def test_spawn_restores_parent_and_child_signal_masks(self):
+        original_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        code = ('import signal\n'
+                'print(",".join(str(int(s)) for s in sorted(signal.pthread_sigmask(signal.SIG_BLOCK,set()))))')
+        for profile in ('protected', 'provider'):
+            for inherited in (original_mask, original_mask | {signal.SIGINT, signal.SIGUSR1}):
+                with self.subTest(profile=profile, inherited=sorted(inherited)):
+                    signal.pthread_sigmask(signal.SIG_SETMASK, inherited)
+                    try:
+                        result = self.call(profile, code)
+                        observed = result if profile == 'protected' else result['stdout']
+                        self.assertEqual(observed.strip(), ','.join(str(int(s)) for s in sorted(inherited)).encode())
+                        self.assertEqual(signal.pthread_sigmask(signal.SIG_BLOCK, set()), inherited)
+                    finally:
+                        signal.pthread_sigmask(signal.SIG_SETMASK, original_mask)
+
+    def test_background_thread_signal_cannot_bypass_spawn_ownership(self):
+        actual_spawn = protected.subprocess.Popen
+        for profile in ('protected', 'provider'):
+            with self.subTest(profile=profile):
+                release = threading.Event()
+                worker = threading.Thread(target=release.wait)
+                worker.start()
+                spawned = []; evidence = {}
+                def interrupt_before_return(*args, **kwargs):
+                    process = actual_spawn(*args, **kwargs); spawned.append(process)
+                    # A signal accepted by another unblocked thread still runs
+                    # Python's handler on main, even if main masks SIGINT.
+                    signal.pthread_kill(worker.ident, signal.SIGINT)
+                    injection_deadline = time.monotonic() + 0.05
+                    while time.monotonic() < injection_deadline: pass
+                    return process
+                try:
+                    with patch.object(protected.subprocess, 'Popen', side_effect=interrupt_before_return):
+                        with self.assertRaises(KeyboardInterrupt):
+                            self.call(profile, 'import time;time.sleep(60)', evidence=evidence)
+                    self.assert_stopped(spawned[0].pid)
+                    self.assertEqual(evidence['process_cleanup']['status'], 'confirmed')
+                finally:
+                    release.set(); worker.join(timeout=5)
+                    for process in spawned:
+                        if process.poll() is None:
+                            os.killpg(process.pid, signal.SIGKILL); process.wait(timeout=5)
+                        for stream in (process.stdout, process.stderr):
+                            if stream is not None: stream.close()
+
+    def test_failed_spawn_restores_mask_and_handler_without_inventing_cleanup(self):
+        original_mask = signal.pthread_sigmask(signal.SIG_BLOCK, set())
+        original_handler = signal.getsignal(signal.SIGINT)
+        for profile in ('protected', 'provider'):
+            for inherited in (original_mask, original_mask | {signal.SIGINT, signal.SIGUSR1}):
+                with self.subTest(profile=profile, inherited=sorted(inherited)):
+                    signal.pthread_sigmask(signal.SIG_SETMASK, inherited)
+                    evidence = {}
+                    try:
+                        with patch.object(protected.subprocess, 'Popen', side_effect=OSError('spawn fixture')):
+                            with self.assertRaises(OSError): self.call(profile, 'pass', evidence=evidence)
+                        self.assertEqual(signal.pthread_sigmask(signal.SIG_BLOCK, set()), inherited)
+                        self.assertEqual(signal.getsignal(signal.SIGINT), original_handler)
+                        self.assertEqual(evidence['process_cleanup'], {})
+                    finally:
+                        signal.pthread_sigmask(signal.SIG_SETMASK, original_mask)
+
+    def test_spawn_preserves_custom_and_ignored_sigint_handlers(self):
+        actual_spawn = protected.subprocess.Popen
+        original_handler = signal.getsignal(signal.SIGINT)
+        for profile in ('protected', 'provider'):
+            with self.subTest(profile=profile):
+                completed = []; callbacks = []
+                def original(signum, frame):
+                    callbacks.append((signum, bool(completed)))
+                def interrupt_before_return(*args, **kwargs):
+                    process = actual_spawn(*args, **kwargs)
+                    os.kill(os.getpid(), signal.SIGINT)
+                    completed.append(True)
+                    return process
+                try:
+                    signal.signal(signal.SIGINT, original)
+                    with patch.object(protected.subprocess, 'Popen', side_effect=interrupt_before_return):
+                        self.call(profile, 'pass')
+                    self.assertEqual(callbacks, [(signal.SIGINT, True)])
+                    self.assertIs(signal.getsignal(signal.SIGINT), original)
+                    signal.signal(signal.SIGINT, signal.SIG_IGN)
+                    with patch.object(protected.subprocess, 'Popen', side_effect=interrupt_before_return):
+                        result = self.call(profile, 'import signal;print(signal.getsignal(signal.SIGINT)==signal.SIG_IGN)')
+                    output = result if profile == 'protected' else result['stdout']
+                    self.assertEqual(output, b'True\n')
+                    self.assertEqual(signal.getsignal(signal.SIGINT), signal.SIG_IGN)
+                finally:
+                    signal.signal(signal.SIGINT, original_handler)
+
+    def test_background_thread_supervision_rejects_before_spawn(self):
+        for profile in ('protected', 'provider'):
+            with self.subTest(profile=profile):
+                errors = []
+                def run():
+                    try: self.call(profile, 'pass')
+                    except BaseException as error: errors.append(error)
+                with patch.object(protected.subprocess, 'Popen') as spawn:
+                    thread = threading.Thread(target=run); thread.start(); thread.join(timeout=5)
+                    self.assertFalse(thread.is_alive())
+                    spawn.assert_not_called()
+                self.assertEqual(len(errors), 1)
+                self.assertIsInstance(errors[0], AppError)
+                self.assertEqual(errors[0].code, 'process_supervision_main_thread_required')
 
     def test_provider_authority_revocation_after_pipes_closed_is_preserved(self):
         calls = []

@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import urllib.error
 import urllib.request
 
 from intune_iac.io import AppError
@@ -13,15 +14,41 @@ from intune_iac.io import AppError
 
 class CaptureProxyTests(unittest.TestCase):
     def test_ambient_proxy_cannot_change_capture_route(self):
-        from intune_iac.capture import _http_transport
-        actual = urllib.request.build_opener
-        built = []
-        def record(*handlers):
-            value = actual(*handlers); built.append(value); return value
-        with patch.dict(os.environ, {'HTTPS_PROXY': 'http://attacker.invalid:8080', 'HTTP_PROXY': 'http://attacker.invalid:8080'}, clear=True):
-            with patch('intune_iac.capture.build_opener', side_effect=record):
-                _http_transport('synthetic-canary')
-        self.assertFalse(any(isinstance(h, urllib.request.ProxyHandler) and h.proxies for h in built[0].handlers))
+        from intune_iac.capture import GRAPH_ROOT, _http_transport
+        selected = []
+
+        def block_connection(address, *args, **kwargs):
+            # Observe the real HTTPSConnection route selection, then stop
+            # before DNS, external network access, TLS or credential dispatch.
+            selected.append(address)
+            raise OSError('fixture blocks all external connections')
+
+        hostile = {
+            key: 'http://attacker.invalid:8080'
+            for key in ('HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY',
+                        'http_proxy', 'ALL_PROXY', 'all_proxy')
+        }
+        hostile.update({'NO_PROXY': '', 'no_proxy': '',
+                        'SSL_CERT_FILE': '/nonexistent/hostile-ca.pem',
+                        'SSL_CERT_DIR': '/nonexistent/hostile-ca-directory'})
+        for environment in ({}, hostile):
+            with self.subTest(ambient_proxy=bool(environment)):
+                selected.clear()
+                with patch.dict(os.environ, environment, clear=True):
+                    with patch('socket.create_connection', side_effect=block_connection):
+                        with self.assertRaises(AppError) as raised:
+                            _http_transport('synthetic-canary')(GRAPH_ROOT, timeout=2)
+                self.assertEqual(raised.exception.code, 'identity_transport_unavailable')
+                self.assertEqual(selected, [('graph.microsoft.com', 443)])
+
+        # Positive sensitivity control: this same observer must detect a
+        # transport that actually consults the hostile proxy environment.
+        selected.clear()
+        with patch.dict(os.environ, hostile, clear=True):
+            with patch('socket.create_connection', side_effect=block_connection):
+                with self.assertRaises(urllib.error.URLError):
+                    urllib.request.build_opener().open(GRAPH_ROOT, timeout=2)
+        self.assertEqual(selected, [('attacker.invalid', 8080)])
 
 
 class MCPAuthorityTests(unittest.TestCase):

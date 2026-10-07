@@ -685,9 +685,10 @@ def _supervise(argv, *, cwd, env, executable, pass_fds, timeout=60, output_limit
     try:
         guard, release = _network_guard()
         if active_check is not None: active_check()
-        process = subprocess.Popen(argv, cwd=cwd, env=env, executable=executable, pass_fds=pass_fds,
-                                   stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                   close_fds=True, shell=False, start_new_session=True, umask=0o077, preexec_fn=guard)
+        with protected._defer_spawn_interrupt(guard) as child_guard:
+            process = subprocess.Popen(argv, cwd=cwd, env=env, executable=executable, pass_fds=pass_fds,
+                                       stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       close_fds=True, shell=False, start_new_session=True, umask=0o077, preexec_fn=child_guard)
         for pipe in (process.stdout, process.stderr):
             os.set_blocking(pipe.fileno(), False); selector.register(pipe, selectors.EVENT_READ)
         deadline = time.monotonic() + timeout

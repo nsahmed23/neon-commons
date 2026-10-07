@@ -6,6 +6,7 @@ No request, attestation, or approval JSON can enable cloud execution.
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 import hashlib
 import ctypes
 import os
@@ -16,6 +17,7 @@ import signal
 import stat
 import subprocess
 import sys
+import threading
 import time
 import uuid
 
@@ -478,6 +480,43 @@ def _release_process_resources(process, selector, release):
     return errors
 
 
+@contextmanager
+def _defer_spawn_interrupt(guard):
+    """Acquire the child reference before delivering a pending SIGINT.
+
+    Popen can otherwise be interrupted after fork but before its return value
+    reaches the supervisor, leaving no owned reference for finally cleanup.
+    A mask alone is insufficient when another Python thread accepts SIGINT:
+    Python still dispatches that handler on main. Defer that callback as well.
+    Restore the caller's exact handler and mask in the child before its guard.
+    The caller must assign the process inside this main-thread context.
+    """
+    if threading.current_thread() is not threading.main_thread():
+        _fail('process_supervision_main_thread_required')
+    previous_handler = signal.getsignal(signal.SIGINT)
+    previous_mask = None; pending = []
+    def defer(signum, frame):
+        # Standard signals may coalesce. Keep only one bounded pending callback.
+        pending[:] = [(signum, frame)]
+    def child_guard():
+        signal.signal(signal.SIGINT, previous_handler)
+        signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+        guard()
+    signal.signal(signal.SIGINT, defer)
+    try:
+        previous_mask = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGINT})
+        yield child_guard
+    finally:
+        try:
+            signal.signal(signal.SIGINT, previous_handler)
+        finally:
+            if previous_mask is not None:
+                signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+        if pending:
+            if callable(previous_handler): previous_handler(*pending[0])
+            elif previous_handler == signal.SIG_DFL: os.kill(os.getpid(), signal.SIGINT)
+
+
 def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_limit=MAX_OUTPUT, executable=None, evidence=None, cleanup_evidence=None):
     """Private primitive: byte-bounded pipes and process-group deadline on Linux."""
     if type(timeout) is not int or not 1<=timeout<=60 or type(output_limit)is not int or not 1<=output_limit<=MAX_OUTPUT: _fail('invalid_process_bound')
@@ -487,8 +526,9 @@ def _supervise(argv, *, cwd, env, pass_fds=(), timeout=PROCESS_TIMEOUT, output_l
     release_guard=lambda:None
     try:
         guard,release_guard=_network_filter()
-        process=subprocess.Popen(argv,cwd=cwd,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
-                                 shell=False,close_fds=True,pass_fds=pass_fds,start_new_session=True,executable=executable,preexec_fn=guard)
+        with _defer_spawn_interrupt(guard) as child_guard:
+            process=subprocess.Popen(argv,cwd=cwd,env=env,stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+                                     shell=False,close_fds=True,pass_fds=pass_fds,start_new_session=True,executable=executable,preexec_fn=child_guard)
         for pipe in (process.stdout,process.stderr):
             os.set_blocking(pipe.fileno(),False);selector.register(pipe,selectors.EVENT_READ)
         deadline=time.monotonic()+timeout
