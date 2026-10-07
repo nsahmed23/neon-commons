@@ -1,7 +1,9 @@
 """Native smoke evidence cannot infer a command failure from a separate probe."""
 import importlib.util
 import json
+import os
 from pathlib import Path
+import signal
 import sys
 import tempfile
 import unittest
@@ -21,23 +23,53 @@ class NativeSmokeObservationTests(unittest.TestCase):
             root=Path(directory);observation={};env={'PATH':'/usr/bin:/bin','TF_INPUT':'0'}
             original_guard=pe._network_guard
             original_popen=pe.subprocess.Popen
-            seen={};guard_calls=[]
+            original_handler=signal.getsignal(signal.SIGINT)
+            original_mask=signal.pthread_sigmask(signal.SIG_BLOCK,set())
+            caller_mask=original_mask|{signal.SIGUSR1}
+            guard_evidence=root/'guard-evidence.json'
+            seen={};seen_args=[];guard_calls=[]
             def observed_guard():
-                result=original_guard();guard_calls.append(result);return result
+                result=original_guard();guard_calls.append(result)
+                def child_guard():
+                    # Forked child evidence proves the ownership wrapper really
+                    # delegates after restoring the caller's signal policy.
+                    observed={'pid':os.getpid(),
+                              'mask':sorted(int(value) for value in signal.pthread_sigmask(signal.SIG_BLOCK,set())),
+                              'original_handler':signal.getsignal(signal.SIGINT) is original_handler}
+                    result[0]()
+                    observed['original_guard_returned']=True
+                    guard_evidence.write_text(json.dumps(observed))
+                return child_guard,result[1]
             def observed_popen(*args,**kwargs):
+                seen_args.extend(args)
                 seen.update(kwargs)
                 return original_popen(*args,**kwargs)
-            with patch.object(pe.subprocess,'Popen',side_effect=observed_popen), patch.object(pe,'_network_guard',side_effect=observed_guard):
-                with smoke.observe_supervisor(root,'schema',observation,provider_trace=True):
-                    result=pe._supervise([sys.executable,'-I','-S','-c','import os;print(os.environ["TF_LOG_PROVIDER"])'],
-                        cwd=root,env=env,executable=sys.executable,pass_fds=())
+            signal.pthread_sigmask(signal.SIG_SETMASK,caller_mask)
+            try:
+                with patch.object(pe.subprocess,'Popen',side_effect=observed_popen), patch.object(pe,'_network_guard',side_effect=observed_guard):
+                    with smoke.observe_supervisor(root,'schema',observation,provider_trace=True):
+                        result=pe._supervise([sys.executable,'-I','-S','-c','import os;print(os.environ["TF_LOG_PROVIDER"])'],
+                            cwd=root,env=env,executable=sys.executable,pass_fds=())
+                self.assertEqual(signal.pthread_sigmask(signal.SIG_BLOCK,set()),caller_mask)
+                self.assertIs(signal.getsignal(signal.SIGINT),original_handler)
+            finally:
+                signal.signal(signal.SIGINT,original_handler)
+                signal.pthread_sigmask(signal.SIG_SETMASK,original_mask)
             self.assertIs(pe._network_guard,original_guard)
             self.assertEqual(env,{'PATH':'/usr/bin:/bin','TF_INPUT':'0'})
             self.assertEqual(seen['env'],env|{'TF_LOG_PROVIDER':'TRACE'})
-            self.assertEqual(len(guard_calls),1);self.assertIs(seen['preexec_fn'],guard_calls[0][0])
+            self.assertEqual(len(guard_calls),1);self.assertTrue(callable(seen['preexec_fn']))
+            observed_guard_state=json.loads(guard_evidence.read_text())
+            self.assertNotEqual(observed_guard_state.pop('pid'),os.getpid())
+            self.assertEqual(observed_guard_state,{'mask':sorted(int(value) for value in caller_mask),
+                'original_handler':True,'original_guard_returned':True})
             self.assertIs(seen['shell'],False)
             self.assertIs(seen['close_fds'],True);self.assertIs(seen['start_new_session'],True)
             self.assertEqual(seen['pass_fds'],());self.assertEqual(seen['executable'],sys.executable)
+            self.assertEqual(seen_args,[[sys.executable,'-I','-S','-c','import os;print(os.environ["TF_LOG_PROVIDER"])']])
+            self.assertEqual(seen['cwd'],root);self.assertEqual(seen['umask'],0o077)
+            self.assertEqual(seen['stdin'],pe.subprocess.DEVNULL)
+            self.assertEqual((seen['stdout'],seen['stderr']),(pe.subprocess.PIPE,pe.subprocess.PIPE))
             self.assertEqual(result,{'code':0,'stdout':b'TRACE\n'})
             self.assertEqual(observation['environment_delta'],{'TF_LOG_PROVIDER':'TRACE'})
             self.assertEqual((root/'schema.stderr').stat().st_mode & 0o777,0o600)
