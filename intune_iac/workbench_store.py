@@ -391,11 +391,18 @@ class WorkbenchStore:
         except (AppError,OSError) as error: self._terminal_failure(run_id,error)
         return self.collection_detail(run_id)
 
+    def _load_capture(self, path):
+        from .capture_adapter import load_capture
+        return load_capture(path,tenant_id=self.tenant_id)
+
+    @staticmethod
+    def _capture_parent(path):
+        return Path(path).parent
+
     def import_capture(self, path):
         """Import verified local capture bytes, without authenticating a tenant."""
         self._require_v2()
-        from .capture_adapter import load_capture
-        batch = parse_json(_json(load_capture(path,tenant_id=self.tenant_id)))
+        batch = parse_json(_json(self._load_capture(path)))
         if type(batch) is not dict or set(batch)!={'tenant_id','object_id','observed_at','status','collections','body','source','scope','capture_sha256'}: _fail('workbench_capture_batch_invalid')
         if batch['tenant_id'] != self.tenant_id: _fail('workbench_wrong_tenant')
         if type(batch['observed_at']) not in (int,float): _fail('workbench_time_invalid')
@@ -824,10 +831,9 @@ class WorkbenchStore:
         # committed bytes and projection; retain mismatched local evidence for
         # inspection, but never expose it as a verified deployment baseline.
         try:
-            from .capture_adapter import load_capture
             source = value['source']
-            root = Path(source['artifacts']['capture-receipt.json']['path']).parent
-            captured = load_capture(root, tenant_id=self.tenant_id)
+            root = self._capture_parent(source['artifacts']['capture-receipt.json']['path'])
+            captured = self._load_capture(root)
             if (captured['object_id'] != object_id or captured['capture_sha256'] != source['capture_sha256'] or
                     canonical(captured['source']['raw_observed']) != canonical(source['raw_observed']) or
                     canonical(captured['source']['artifacts']) != canonical(source['artifacts'])):

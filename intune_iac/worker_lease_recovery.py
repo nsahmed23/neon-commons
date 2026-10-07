@@ -92,7 +92,8 @@ class _Context:
         identity,target=binding.backend_configuration(backend_credential)
         declared=job.manifest['provider_binding']['backend']
         if (asdict(identity)!=declared['identity'] or any(asdict(target)[k]!=declared['backend'][k] for k in
-                ('subscription_id','storage_account_resource_id','blob_endpoint','container','key','workspace'))):_fail('lease_recovery_backend_identity')
+                ('subscription_id','storage_account_resource_id','blob_endpoint','container','key','workspace',
+                 'state_lineage','state_serial','state_sha256'))):_fail('lease_recovery_backend_identity')
         self.identity,self.target=identity,target
         self.binding_sha256=binding.evidence()['binding_sha256'];self.backend_sha256=digest({'identity':asdict(identity),'target':asdict(target)})
     def __repr__(self):return '<'+type(self).__name__+' redacted>'
@@ -132,6 +133,10 @@ class _Context:
             if set(metadata)-{'x-ms-meta-terraformlockid'}:_fail('lease_recovery_metadata_unknown')
             lockmeta=metadata.get('x-ms-meta-terraformlockid')
             if lockmeta is not None and lockmeta not in self.original['recorded_metadata']:_fail('lease_recovery_metadata_changed')
+            if require_locked and lockmeta is None and self.original['recorded_metadata']:
+                journal=inspect_native_recovery(self.job.root/'broker.sqlite3',policy=self.job.manifest['broker_policy'])
+                if not any(row['action']=='metadata_clear' for row in journal['entries']):
+                    _fail('lease_recovery_metadata_missing')
             revision=StateRevision.observe(response.body,etag=headers.get('etag'))
             if (revision.lineage!=self.target.state_lineage or revision.serial!=self.target.state_serial or revision.sha256!=self.target.state_sha256):
                 _fail('lease_recovery_current_revision_mismatch')
@@ -321,7 +326,7 @@ def observe_uncertain(manifest,*,context,policy,output):
 
 class _RecoveryCompletion:
     """Fresh authenticated evidence; never authority to transfer ownership."""
-    def __init__(self,seal,*,context,observation,manifest_sha256,row,policy):
+    def __init__(self,seal,*,context,observation,manifest_sha256,row,policy,recovery_state):
         if (seal is not _SEAL or type(self) not in (LiveRecoveryCompletion,LaboratoryRecoveryCompletion)
                 or (type(self) is LiveRecoveryCompletion)!=(type(context) is LiveRecoveryContext)):_fail('lease_recovery_completion_required')
         self.context,self.observation,self.policy=context,observation,policy
@@ -333,6 +338,9 @@ class _RecoveryCompletion:
             'current_service_policy_sha256':context.job.policy.sha256,'recovery_policy_sha256':policy.sha256,
             'recovery_operation_id':row[0],'recovery_manifest_sha256':manifest_sha256,'recovery_status':row[2],
             'recovery_observation_sha256':row[3],'fresh_observation':facts,'fresh_observation_sha256':observation.sha256,
+            'recovery_state_etag':recovery_state['etag'],'completion_state_etag':facts['state']['etag'],
+            'etag_changed_since_release':recovery_state['etag']!=facts['state']['etag'],
+            'etag_change_cause':'unestablished' if recovery_state['etag']!=facts['state']['etag'] else 'unchanged',
             'lease_independently_unlocked':True,'lock_metadata_remaining':bool(facts['metadata']),
             'backend_ready_for_new_apply':False,'ownership_release_authorized':False,
             'platform_qualified':False,'production_approved':False}
@@ -372,10 +380,17 @@ def completion(manifest,*,context,policy,output):
             {k:v for k,v in old.items() if k!='policy_sha256'}!={k:v for k,v in context.original.items() if k!='policy_sha256'}):_fail('lease_recovery_completion_original_changed')
     observation=context.observe(output,require_locked=False)
     facts=observation.verified()
-    if facts['state']!=expected.get('state') or facts['identity']!=expected.get('identity') or facts['backend_target']!=expected.get('backend_target'):
+    # Azure metadata writes change the blob ETag even when the state bytes do
+    # not change. Completion is read-only evidence, so bind the newly observed
+    # ETag while retaining every other exact state fact. This does not relax
+    # execute()'s reviewed ETag/If-Match mutation gate or attribute the change.
+    expected_state=expected.get('state')
+    if (type(expected_state) is not dict or
+            {k:v for k,v in facts['state'].items() if k!='etag'}!={k:v for k,v in expected_state.items() if k!='etag'} or
+            facts['identity']!=expected.get('identity') or facts['backend_target']!=expected.get('backend_target')):
         _fail('lease_recovery_completion_state_changed')
     # Either exact preserved metadata or an independently observed empty set
     # after a normal native plan. Foreign/replaced lock metadata is not proof.
     if facts['metadata'] not in ({},expected.get('metadata')):_fail('lease_recovery_completion_metadata_changed')
     cls=LiveRecoveryCompletion if type(context) is LiveRecoveryContext else LaboratoryRecoveryCompletion
-    return cls(_SEAL,context=context,observation=observation,manifest_sha256=digest(manifest),row=row,policy=policy)
+    return cls(_SEAL,context=context,observation=observation,manifest_sha256=digest(manifest),row=row,policy=policy,recovery_state=expected_state)

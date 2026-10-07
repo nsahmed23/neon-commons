@@ -137,6 +137,12 @@ def reference_import(store, path, expected_sha256, source_revision, source_url, 
                      assertion_class='community_reference'):
     _metadata(expected_sha256, source_revision, source_url, license_id, assertion_class)
     raw = _read(path)
+    return _reference_import_bytes(store,raw,expected_sha256,source_revision,source_url,license_id,assertion_class)
+
+
+def _reference_import_bytes(store,raw,expected_sha256,source_revision,source_url,license_id,assertion_class):
+    _metadata(expected_sha256,source_revision,source_url,license_id,assertion_class)
+    if type(raw) is not bytes or len(raw)>MAX_REFERENCE_BYTES:_fail('workbench_reference_limit')
     if hashlib.sha256(raw).hexdigest()!=expected_sha256: _fail('workbench_reference_digest_mismatch')
     body = parse_json(raw)
     if type(body) is not dict or not _text(body.get('name'),512) or not isinstance(body.get('settings'),list): _fail()

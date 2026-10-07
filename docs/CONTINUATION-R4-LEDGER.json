@@ -270,7 +270,19 @@
       "status": "FAIL",
       "description": "Independent reader review found low-level capture exports mark synthetic=false and template Atmos/Tofu versions for laboratory reader captures. Typed reader receipt remains graph_reader_laboratory, source_authenticity_verified=false; no live authority bypass demonstrated. Preserve historical bytes and repair future capture context at typed producer.",
       "owner": "root capture implementation",
-      "evidence": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-contract-01/capture/export.json"
+      "evidence": "evidence/epoch-20261007-r4/independent/recovery-baselines-01/RESULT.json",
+      "repair_evidence": "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+      "historical_status": "FAIL retained; future label repair does not change old captures"
+    },
+    {
+      "id": "R4-CHECKPOINT6-REUSE",
+      "description": "Combined Windows/provenance source exact review and 167 targeted repository tests; independent unchanged provenance13 and partial native recovery22 are separate overlapping scopes, not aggregate suite counts. Reviewer hash-only warning corrected and retained. Native Windows remains blocked.",
+      "evidence": [
+        "windows-readers/SOURCE-RECEIPT-02.json",
+        "independent/reader-provenance-after-03/RESULT.json",
+        "independent/native-partial-recovery-02/RESULT.json",
+        "independent/combined-adapter-correction-01/CORRECTION.json"
+      ]
     }
   ],
   "rows": [
@@ -1379,7 +1391,8 @@
         "evidence/epoch-20261007-r4/independent/runtime-deleted-after/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
@@ -1468,10 +1481,15 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "B04",
@@ -1614,7 +1632,8 @@
         "evidence/epoch-20261007-r4/independent/runtime-deleted-after/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
@@ -1704,10 +1723,15 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "B06",
@@ -1726,7 +1750,8 @@
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual pinned Atmos1.230.1/OpenTofu1.13.1/provider route qualified against local TLS service fixtures. Correct exact-plan arguments are two-token --from-plan --planfile; advertised --from-plan=... replanning failure retained. Native local import/no-change/change/exact-plan/readback/convergence completed; real platform and combined worker integration remain open.",
@@ -1784,6 +1809,10 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
@@ -1792,7 +1821,8 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
-      }
+      },
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "B07",
@@ -1818,7 +1848,8 @@
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
@@ -1912,6 +1943,10 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1921,7 +1956,8 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
-      }
+      },
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "B08",
@@ -1947,7 +1983,8 @@
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Local native fault controls retain partial policy effects, assignment403 failure, cancellation after policy commit and after state persistence, original scope/lease/metadata and outcome_unknown. Explicit signed stranded-lease recovery and same-authority successor transfer remain staged. Native platform qualification is absent.",
@@ -2041,6 +2078,10 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -2050,7 +2091,8 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
-      }
+      },
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "B09",
@@ -2488,7 +2530,8 @@
         "evidence/epoch-20261007-r4/worker-host/qualified-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/worker-host/BOUNDARY-REPAIR-RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source.",
@@ -2545,6 +2588,10 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "native_fault_increment": {
@@ -2552,7 +2599,8 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
-      }
+      },
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "B14",
@@ -2613,7 +2661,9 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -2663,15 +2713,24 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+          "sha256": "5d4ffda4c01727769e96991f2ffdd15cb60b1c0e624d7cb735dac5b3bbbb6c07"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+          "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
         }
-      ]
+      ],
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
     },
     {
       "id": "C02",
       "description": "Implement scheduling adapter independent of TUI lifecycle; local adapter qualification is separate from authorized live credential/schedule activation.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "IMPLEMENTED",
+      "status": "BLOCKED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
       "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
@@ -2680,12 +2739,13 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/observation-native-cron/CAPABILITY-REASSESSMENT-03.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
-      "blocker_owner": null,
+      "limitation": "Actual pinned BusyBox cron attempted: host UID1000 ignored private crontab; isolated namespace UID0 parsed jobs but initgroups returned EPERM. Zero observer processes launched. All daemons stopped/reaped; no added capability or host service activation. Existing durable observer/scheduling adapter and CLI tests have narrower scopes.",
+      "next_action": "On approved disposable Linux host with working user-service manager or authorized scheduler process, run preserved exact observation-native-cron procedure; inspect independent SQLite collection timestamps/PIDs/last-good history and restart. Live credential/schedule activation requires applicable authority.",
+      "blocker_owner": "Operations/host environment owner",
       "depends_on": [
         "C01"
       ],
@@ -2709,7 +2769,7 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "IMPLEMENTED",
+        "laboratory": "BLOCKED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
       },
@@ -2730,8 +2790,13 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/observation-native-cron/CAPABILITY-REASSESSMENT-03.json",
+          "sha256": "4c28fd8b8609e5360ee37f9420325e4c2258c706205d55beba1fa703ff405057"
         }
-      ]
+      ],
+      "implementation_status": "IMPLEMENTED"
     },
     {
       "id": "C03",
@@ -2747,7 +2812,9 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -2797,8 +2864,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+          "sha256": "5d4ffda4c01727769e96991f2ffdd15cb60b1c0e624d7cb735dac5b3bbbb6c07"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+          "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
         }
-      ]
+      ],
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
     },
     {
       "id": "C04",
@@ -2814,7 +2890,9 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -2864,8 +2942,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+          "sha256": "5d4ffda4c01727769e96991f2ffdd15cb60b1c0e624d7cb735dac5b3bbbb6c07"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+          "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
         }
-      ]
+      ],
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
     },
     {
       "id": "C05",
@@ -3200,7 +3287,9 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3254,8 +3343,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/capture-provenance/REPAIR-RECEIPT-01.json",
+          "sha256": "5d4ffda4c01727769e96991f2ffdd15cb60b1c0e624d7cb735dac5b3bbbb6c07"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/reader-provenance-after-02/RESULT.json",
+          "sha256": "5a7ebf5935d3609c794408d1ec153b01ee2e4ed4a36fb80af06594748a72d95c"
         }
-      ]
+      ],
+      "provenance_repair_scope": "Typed laboratory future captures explicitly synthetic; unobserved tool versions removed, low-level legacy default caller-declared. Inert observation mapper shares unchanged field rules; production candidate gate unchanged.100 named tests PASS; historical capture bytes unchanged."
     },
     {
       "id": "C11",
@@ -3271,7 +3369,8 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/windows-reader-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -3321,6 +3420,10 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
           "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/windows-reader-after-01/RESULT.json",
+          "sha256": "0c026366beb1f57d34e1cedb445c1088a53078b76cfd249f0d0ceeeb870864b4"
         }
       ]
     },
@@ -4005,7 +4108,8 @@
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -4093,10 +4197,15 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
           "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "D09",
@@ -8683,7 +8792,8 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-policy-success-assignment-failure",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -8768,6 +8878,10 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "native_fault_increment": {
@@ -8775,7 +8889,8 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
-      }
+      },
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "E-FAULT-11",
@@ -8789,7 +8904,8 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-cancel-acquire-write-receipt",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -8952,6 +9068,10 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+          "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
         }
       ],
       "native_fault_increment": {
@@ -8959,7 +9079,8 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
-      }
+      },
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
     },
     {
       "id": "E-FAULT-12",
@@ -10624,5 +10745,5 @@
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 5
+  "checkpoint_increment": 6
 }

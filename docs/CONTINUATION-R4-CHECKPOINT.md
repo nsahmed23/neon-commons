@@ -447,3 +447,47 @@ Git commit wins, stale patch/product proposal reject, and a freshly based
 proposal still requires review and a fresh plan. Native-success healthCLI also
 retains all endpoint/device unknowns and null denominators (five assertions).
 No live service, device or protected organizational review is inferred.
+
+
+Increment5 committed `e90ac88db3afe6995702ed545832b48f5c110941`.
+`integration/COMMIT-05.json` records exact36files and root actor. Cached diff
+check first rejected a surplus blank EOF; its beforebytes and failure remain
+in `COMMIT-05-ATTEMPT-01.json`. Exact detached checkout passed200 tests in
+12listed changed-scope modules,47.125seconds, trackedtree clean. This is neither
+a complete strict suite nor final package qualification.
+
+Increment6 continues beyond it. Native partial-recovery journey02 passes
+20outcome assertions plus4transfer negatives: separately signed same-authority
+transfer, cancelled prepared successor returns old reservations, fresh final
+transfer/approval, exact native savedplan apply, independent Graph/backend
+readback, reconciliation and secondnochangeplan. Original failure, approval and
+policy binding remain.109new requests are separate from219inherited requests.
+Exact runtime/harness linkage is alongside
+`worker-provider/partial-recovery-journey-02/receipt.json`; a separate literal
+18-check evaluator overlaps that scope and is not added to its count.
+
+C02 is concretely BLOCKED for actual OS scheduler qualification: pinned
+BusyBox cron launched zero observers, first under UID1000 and then in isolated
+unprivileged UID0namespace where initgroups returnedEPERM. Owned daemons are
+reaped and every attempt preserved. No capability was added. Local scheduling
+adapter/finite invocations retain their valid separate scope.
+
+New typed laboratory captures now accurately record synthetic provenance and
+omit unobserved tool versions.100changed-scope tests and13independent assertions
+pass; the production candidate gate and original raw bytes remain unchanged.
+Old mislabeled captures remain a historical finding. Windows reader cleanup
+repairs pass the unchanged5-check independent evaluator, including all-handle
+cleanup and no partial publication. Inactive native integration remains distinct
+from missing Windows qualification. Further concrete interruption cases and
+final packaging remain active work; this checkpoint is not completion.
+
+Checkpoint6 is ready for commit: the combined Windows/provenance adapter passed
+167 targeted repository tests; unchanged independent provenance controls passed
+13/13 on the combined bytes. An incorrect hash-only reviewer warning and its
+exact-diff correction are retained. Independent partial-recovery review passed
+22 assertions over the actual native journey; these overlap the journey scope
+and are not added to it. Windows native qualification remains BLOCKED with zero
+native checks on this Linux host. New committed-state recovery is staged for the
+next increment and has not yet consumed a release approval. Resume from the exact
+commit in `integration/COMMIT-06.json`, then finish that signed recovery and final
+package gates. No production or organizational approval is established.

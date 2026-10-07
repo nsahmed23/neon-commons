@@ -55,12 +55,14 @@ Recovery procedure for the still-unqualified real Azure route:
    retain the original uncertainty, and only then resolve ownership through the
    service recovery route. A fresh correction requires a new exact plan/review.
 
-Step 4 has **no implemented live release command or authorization adapter yet**.
-The HTTP description is a concrete procedure to review, not an executable grant.
-A protected recovery controller and real nonproduction Azure interruption/release
-qualification are still required. Existing `tofu force-unlock`, `az` or arbitrary
-REST tools must not bypass that missing authority path. No production release has
-been performed or authorized here.
+Step 4 now has a separate process-held authorization adapter in
+[`worker_lease_recovery`](WORKER-LEASE-RECOVERY-R4.md), with a new signature domain,
+exact backend observation and one-use consumption in the original service
+authority. The inspection CLI itself remains read-only. The adapter's local TLS
+qualification is distinct from real nonproduction Azure interruption/release
+qualification and an organization's explicit recovery authorization. Existing
+`tofu force-unlock`, `az` or arbitrary REST tools must not bypass that authority
+path. No production release has been performed or authorized here.
 
 Local verification:
 

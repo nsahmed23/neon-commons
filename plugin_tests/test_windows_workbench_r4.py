@@ -91,12 +91,11 @@ class WindowsWorkbenchTests(unittest.TestCase):
         with self.assertRaises(AppError) as caught:subject.WindowsWorkbenchStore._open(self.root,'33333333-3333-4333-8333-333333333333',self.fs)
         self.assertEqual(caught.exception.code,'workbench_wrong_tenant');self.assertEqual(self.database.read_bytes(),before)
 
-    def test_native_model_and_unported_capture_routes_are_explicitly_unsupported(self):
-        for call,code in [(lambda:self.store.collect(object()),'windows_workbench_model_collection_unsupported'),
-            (lambda:self.store.import_capture('not-opened'),'windows_workbench_capture_reader_unsupported'),
-            (lambda:self.store.raw_capture_observation('not-opened'),'windows_workbench_capture_reader_unsupported')]:
-            with self.assertRaises(AppError) as caught:call()
-            self.assertEqual(caught.exception.code,code)
+    def test_native_model_collection_remains_explicitly_unsupported(self):
+        # Capture and raw revalidation now use the bounded native reader;
+        # its actual byte/SQLite controls live in test_windows_capture_r4.
+        with self.assertRaises(AppError) as caught:self.store.collect(object())
+        self.assertEqual(caught.exception.code,'windows_workbench_model_collection_unsupported')
 
     def test_transaction_failure_preserves_atomic_rollback_and_unresolved_intent(self):
         with self.assertRaises(RuntimeError):

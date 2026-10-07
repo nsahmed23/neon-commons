@@ -3218,3 +3218,17 @@ labs/worker-recovery/description-native-fixture/persisted-state.json
 
 # R4 reviewed separately signed exact native lease recovery; no implicit unlock.
 intune_iac/worker_lease_recovery.py
+docs/WORKER-LEASE-RECOVERY-R4.md
+plugin_tests/test_worker_lease_recovery_r4.py
+intune_iac/worker_successor.py
+plugin_tests/test_worker_successor_r4.py
+docs/CAPTURE-PROVENANCE-R4.md
+plugin_tests/test_capture_provenance_r4.py
+
+# R4 inactive native capture/reference readers and bounded qualification-only text route.
+docs/WINDOWS-READERS-R4.md
+intune_iac/windows_capture.py
+plugin_tests/test_windows_capture_r4.py
+plugin_tests/test_windows_cleanup_r4.py
+scripts/intune-windows-inspect.py
+scripts/qualify-windows-readers.py

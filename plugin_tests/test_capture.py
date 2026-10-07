@@ -71,7 +71,9 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(context['tenant_id'], T)
         self.assertEqual(context['selected_policy_id'], P)
         self.assertEqual(context['authorization'], 'emit_only')
-        self.assertEqual(context['provider_version'], '1.0.0')
+        self.assertTrue({'provider_version', 'engine_version', 'atmos_version'}.isdisjoint(context))
+        self.assertEqual(receipt['context_assurance'], 'proposed_emit_only_labels_not_observed_toolchain')
+        self.assertFalse(receipt['toolchain_observed'])
         self.assertEqual(stat.S_IMODE(self.output.stat().st_mode), 0o700)
         for path in self.output.rglob('*'):
             self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700 if path.is_dir() else 0o600)

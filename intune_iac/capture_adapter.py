@@ -145,7 +145,7 @@ def _attempt_chain(receipt, raw_pages, collections, started, finished):
     return exported, {'receipt_schema':schema,'attempt_count':len(attempts),'retry_count':sum(e['retry'] for e in attempts),'cancelled':receipt['cancelled'],'attempts':safe}
 
 
-def load_capture(path,tenant_id):
+def _load_capture(path,tenant_id,directory):
     """Return a validated in-memory batch; retain raw incomplete/mapping evidence.
 
     The current mapping profile remains production.normalize's narrow profile.
@@ -154,10 +154,11 @@ def load_capture(path,tenant_id):
     """
     tenant_id=_uuid(tenant_id)
     try:
-        with _directory(path) as (root,fd):
+        with directory(path) as access:
+            root=access.root
             expected_names={'export.json','context.json','capture-receipt.json','raw'}
-            if set(os.listdir(fd))!=expected_names:_fail('workbench_capture_file_set')
-            raw_documents={name:_read(fd,name) for name in sorted(expected_names-{'raw'})}
+            if set(access.names())!=expected_names:_fail('workbench_capture_file_set')
+            raw_documents={name:access.read(name) for name in sorted(expected_names-{'raw'})}
             if sum(map(len,raw_documents.values()))>MAX_BYTES:_fail('workbench_capture_limit')
             source=parse_json(raw_documents['export.json']);context=parse_json(raw_documents['context.json']);receipt=parse_json(raw_documents['capture-receipt.json'])
             if any(type(v) is not dict for v in (source,context,receipt)):_fail()
@@ -166,12 +167,15 @@ def load_capture(path,tenant_id):
             if any(v.get('cloud')!='public' for v in (source,context,receipt)):_fail('workbench_capture_identity')
             if (source.get('schema_version')!='1.0.0' or context.get('schema_version')!='1.0.0' or receipt.get('schema_version') not in ('1.0.0','1.1.0')
                 or source.get('exporter')!=production.EXPORTER or receipt.get('adapter')!=production.EXPORTER
-                or source.get('synthetic') is not False or context.get('source_is_synthetic') is not False
+                or type(source.get('synthetic')) is not bool or context.get('source_is_synthetic') is not source['synthetic']
                 or context.get('authorization')!='emit_only' or receipt.get('api_version')!='beta'
                 or receipt.get('tenant_assurance')!='caller_asserted'
                 or receipt.get('target_assurance')!='proposed_reference_labels_only'
                 or any(receipt.get(k) is not False for k in ('source_authenticity_verified','provider_qualified','execution_authorized'))):_fail('workbench_capture_assurance')
             if source.get('references')!=[] or source.get('ownership')!=[]:_fail('workbench_capture_assurance')
+            if ('source_is_synthetic' in receipt and receipt['source_is_synthetic'] is not source['synthetic']
+                    or source['synthetic'] and receipt.get('source_is_synthetic') is not True):
+                _fail('workbench_capture_assurance')
             for name,key in (('export.json','export_byte_sha256'),('context.json','context_byte_sha256')):
                 if receipt.get(key)!=_sha(raw_documents[name]):_fail('workbench_capture_digest')
             started=_time(receipt.get('started_at'));observed_at=_time(receipt.get('finished_at'))
@@ -183,14 +187,13 @@ def load_capture(path,tenant_id):
             if type(limits) is not dict or type(attempts) is not int or not len(pages)<=attempts<=10000:_fail()
             if type(limits.get('max_pages')) is not int or not max(1,attempts)<=limits['max_pages']<=10000:_fail()
             if limits.get('max_page_bytes')!=4*1024*1024 or limits.get('max_total_bytes')!=8*1024*1024:_fail('workbench_capture_limit')
-            rawfd=os.open('raw',os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=fd)
-            try:
+            with access.raw() as raw_access:
                 expected_raw={f'page-{index:06d}.json' for index in range(len(pages))}
-                if set(os.listdir(rawfd))!=expected_raw:_fail('workbench_capture_file_set')
+                if set(raw_access.names())!=expected_raw:_fail('workbench_capture_file_set')
                 raw_pages=[];raw_total=0
                 for index,row in enumerate(pages):
                     if type(row) is not dict or row.get('raw_path')!=f'raw/page-{index:06d}.json':_fail('workbench_capture_path')
-                    data=_read(rawfd,f'page-{index:06d}.json',4*1024*1024+1);raw_total+=len(data)
+                    data=raw_access.read(f'page-{index:06d}.json',4*1024*1024+1);raw_total+=len(data)
                     if raw_total>8*1024*1024 or type(row.get('source_bytes')) is not int or len(data)!=row['source_bytes'] or row.get('source_byte_sha256')!=_sha(data):_fail('workbench_capture_digest')
                     if type(row.get('raw_capture_complete')) is not bool:_fail()
                     parsed={}
@@ -201,7 +204,6 @@ def load_capture(path,tenant_id):
                             if type(value) is dict:parsed=value
                         except AppError:pass
                     raw_pages.append((row,parsed))
-            finally:os.close(rawfd)
             artifacts={name:{'path':str(root/name),'bytes':len(data),'sha256':_sha(data)} for name,data in raw_documents.items()}
             artifacts['raw_pages']=[{'path':str(root/r['raw_path']),'bytes':r['source_bytes'],'sha256':r['source_byte_sha256']} for r,_ in raw_pages]
             raw_pages,capture_attempts=_attempt_chain(receipt,raw_pages,collections,started,observed_at)
@@ -253,7 +255,7 @@ def load_capture(path,tenant_id):
             raw_observed={'policy':selected[0] if len(selected)==1 else None,'settings':rows['settings'],'assignments':rows['assignments']}
             configuration=None;blockers=[]
             try:
-                mapped=production.normalize(source,context);configuration=mapped['configuration'];blockers=mapped['blockers']
+                mapped=production.normalize_observation(source,context);configuration=mapped['configuration'];blockers=mapped['blockers']
             except (AppError,KeyError,TypeError,ValueError) as error:
                 blockers=[{'code':getattr(error,'code','capture_mapping_unsupported')}]
             status='complete'
@@ -266,7 +268,29 @@ def load_capture(path,tenant_id):
                     'collections':coverage,'body':configuration,'scope':{'kind':'policy','object_ids':[oid]},
                     'capture_sha256':capture_sha,'source':{'evidence_class':'graph_capture_unverified',
                     'tenant_assurance':'caller_asserted','source_authenticity_verified':False,'provider_qualified':False,
+                    'source_is_synthetic':source['synthetic'],
                     'execution_authorized':False,'adapter':production.EXPORTER,'artifacts':artifacts,
                     'capture_sha256':capture_sha,'capture_attempts':capture_attempts,
                     'mapping_blockers':blockers,'raw_observed':raw_observed}}
     except OSError:_fail('workbench_capture_file')
+
+
+class _PosixCaptureDirectory:
+    def __init__(self,root,fd):self.root=root;self.fd=fd
+    def names(self):return os.listdir(self.fd)
+    def read(self,name,limit=MAX_BYTES):return _read(self.fd,name,limit)
+    @contextmanager
+    def raw(self):
+        descriptor=os.open('raw',os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=self.fd)
+        try:yield _PosixCaptureDirectory(self.root/'raw',descriptor)
+        finally:os.close(descriptor)
+
+
+@contextmanager
+def _posix_capture_directory(path):
+    with _directory(path) as (root,fd):yield _PosixCaptureDirectory(root,fd)
+
+
+def load_capture(path,tenant_id):
+    """The unchanged POSIX reader plus shared complete capture validation."""
+    return _load_capture(path,tenant_id,_posix_capture_directory)

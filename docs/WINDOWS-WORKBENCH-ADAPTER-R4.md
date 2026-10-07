@@ -1,6 +1,6 @@
 # Inactive Windows Workbench storage adapter
 
-`intune_iac/windows_workbench.py` implements the next native persistence seam over the existing engine. It is available only through the explicit `WindowsWorkbenchStore` component API and qualification harness. **The ordinary Windows Workbench CLI remains UNSUPPORTED.** No host capability gate, collector, worker, UI route or credentials are enabled by this change.
+`intune_iac/windows_workbench.py` implements the next native persistence seam over the existing engine. It is available through the explicit `WindowsWorkbenchStore` component API, qualification harness and qualification-only read-only text launcher. **The ordinary Windows Workbench CLI remains UNSUPPORTED.** No host capability gate, collector, worker, UI route or credentials are enabled by this change.
 
 The existing schema and read/query/history/health code are reused. `workbench_schema.py` holds the same schema SQL, signatures and validation; `observation_contract.py` holds the same field set, model URL and eight-object laboratory bound. The original imports remain reexported. The POSIX `WorkbenchStore` class now checks its host profile in its constructor, create, connection and restore entrypoints before filesystem dispatch. Modeled collection imports its POSIX service only inside that guarded route. This permits importing the inactive native component without pretending a POSIX store is portable.
 
@@ -70,4 +70,11 @@ On the current Linux host the native procedure returns BLOCKED with zero native 
 
 ## Remaining required work
 
-The Windows endpoint/runner owner supplies the actual host and independent native evidence. The storage owner must resolve native VFS, sharing, DACL inheritance/sidecar and namespace durability findings. Capture/provenance readers remain unported; `collect`, `import_capture` and raw capture inspection reject explicitly, and the authenticated observation publisher has not admitted this class. Native scheduling/process containment and TUI/terminal restoration remain separate implementations/qualification. After those dependencies, wire the reviewed component to the actual Windows application route and qualify complete init, collection/import, inspection/history, change/recovery and closed-terminal journeys on exact packages. AppSec and accountable organizational pilot approval remain required.
+The Windows endpoint/runner owner supplies the actual host and independent native evidence. The storage owner must resolve native VFS, sharing, DACL inheritance/sidecar and namespace durability findings. Capture/provenance readers now use the inactive native file seam described in [WINDOWS-READERS-R4.md](WINDOWS-READERS-R4.md); `collect` still rejects explicitly and the authenticated observation publisher has not admitted this class. Native packaged dictionary reads remain unported. Native scheduling/process containment and TUI/terminal restoration remain separate implementations/qualification. After those dependencies, wire the reviewed component to the actual Windows application route and qualify complete init, collection/import, inspection/history, change/recovery and closed-terminal journeys on exact packages. AppSec and accountable organizational pilot approval remain required.
+
+
+## Native capture reader extension
+
+The capture import and raw inspection seam is implemented in the inactive
+Windows adapter; see [WINDOWS-READERS-R4.md](WINDOWS-READERS-R4.md) for exact
+local scope, qualification-only text entrypoint and native procedure. The required native host qualification and ordinary host support gate remain open.

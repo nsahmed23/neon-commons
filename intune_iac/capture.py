@@ -216,7 +216,8 @@ def _write(directory_fd, name, data):
 def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
             max_pages=100, transport=None, *, max_attempts_per_page=3,
             max_elapsed_seconds=MAX_ELAPSED_SECONDS,
-            max_retry_delay_seconds=MAX_RETRY_DELAY_SECONDS, progress=None):
+            max_retry_delay_seconds=MAX_RETRY_DELAY_SECONDS, progress=None,
+            source_is_synthetic=False):
     """Persist a caller-asserted capture; optional test transport returns response bytes.
 
     ``max_pages`` retains its total-attempt meaning, including retries across all
@@ -224,6 +225,9 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
     by the remaining monotonic budget. Injected callables are trusted laboratory
     seams, not a supported arbitrary-code timeout boundary. Retry-After beyond
     the delay cap/deadline stops partial; it is never shortened to retry early.
+    Low-level source provenance remains caller-declared. A typed laboratory
+    reader explicitly sets source_is_synthetic=True; a transport callable or
+    caller label alone never establishes authenticated Graph provenance.
     """
     if (os.name != 'posix' or not hasattr(os, 'O_DIRECTORY') or not hasattr(os, 'O_NOFOLLOW')
             or not {os.open, os.mkdir} <= os.supports_dir_fd):
@@ -237,6 +241,8 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
             or progress is not None and not callable(progress)):
         raise AppError('capture_limit_invalid', 'Capture retry, deadline or progress contract is invalid.')
     native = transport is None
+    if type(source_is_synthetic) is not bool:
+        raise AppError('capture_provenance_invalid', 'Capture provenance must be a literal boolean; it grants no authentication or execution authority.')
     if transport is None:
         if not isinstance(token_env, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', token_env):
             raise AppError('capture_token_env_invalid', 'Token environment variable name is invalid.')
@@ -335,15 +341,14 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
                 coverage = 'partial'; reason = 'selected_policy_missing' if not selected_matches else 'duplicate_record_identity'
             collections.append({'kind':kind,'owner_id':owner,'coverage':coverage,
                                 'reason':reason,'pages':pages})
-        export = {'schema_version':'1.0.0','synthetic':False,'tenant_id':tenant_id,
+        export = {'schema_version':'1.0.0','synthetic':source_is_synthetic,'tenant_id':tenant_id,
                   'cloud':'public','captured_at':started,
                   'exporter':{'id':'intune-iac-settings-catalog-graph','version':'1.0.0'},
                   'collections':collections,'references':[],'ownership':[]}
         context = {'schema_version':'1.0.0','tenant_id':tenant_id,'selected_policy_id':policy_id,
                    'cloud':'public','provider_source':'deploymenttheory/microsoft365',
-                   'provider_version':'1.0.0','engine':'tofu','engine_version':'1.10.0',
-                   'atmos_version':'1.199.0','component':'intune-reference','stack':'reference-dev',
-                   'authorization':'emit_only','source_is_synthetic':False}
+                   'engine':'tofu','component':'intune-reference','stack':'reference-dev',
+                   'authorization':'emit_only','source_is_synthetic':source_is_synthetic}
         export_bytes = canonical(export)+b'\n'; context_bytes = canonical(context)+b'\n'
         _write(output_fd, 'export.json', export_bytes)
         _write(output_fd, 'context.json', context_bytes)
@@ -351,6 +356,10 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
                    'tenant_id':tenant_id,'selected_policy_id':policy_id,'cloud':'public','api_version':'beta',
                    'tenant_assurance':'caller_asserted','started_at':started,'finished_at':_stamp(),
                    'target_assurance':'proposed_reference_labels_only',
+                   'source_is_synthetic':source_is_synthetic,
+                   'source_provenance_assurance':'caller_declared',
+                   'context_assurance':'proposed_emit_only_labels_not_observed_toolchain',
+                   'toolchain_observed':False,
                    'limits':{'max_pages':max_pages,'max_page_bytes':MAX_PAGE_BYTES,
                              'max_total_bytes':MAX_TOTAL_BYTES,'request_timeout_seconds':REQUEST_TIMEOUT,
                              'max_elapsed_seconds':max_elapsed_seconds,

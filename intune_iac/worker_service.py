@@ -491,7 +491,9 @@ class ServiceJob:
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE id=?", (self.identifier,))
-            db.execute('DELETE FROM ownership WHERE job=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND dispatches=0)', (self.identifier, self.identifier))
+            from .worker_successor import restore_undispatched_owner
+            if not restore_undispatched_owner(self, db):
+                db.execute('DELETE FROM ownership WHERE job=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND dispatches=0)', (self.identifier, self.identifier))
             self.policy.event(db, self.identifier, 'cancel_requested', {'dispatch_replayed': False}); db.execute('COMMIT')
         return self.status()
     def run(self, signed_receipt, *, runtime):
@@ -644,6 +646,8 @@ class ServiceJob:
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,controller_pid=NULL,controller_start=NULL,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' WHEN status='running' THEN 'outcome_unknown' ELSE status END WHERE id=?", (self.identifier,))
-            db.execute('DELETE FROM ownership WHERE job=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND dispatches=0)', (self.identifier, self.identifier))
+            from .worker_successor import restore_undispatched_owner
+            if not restore_undispatched_owner(self, db):
+                db.execute('DELETE FROM ownership WHERE job=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND dispatches=0)', (self.identifier, self.identifier))
             self.policy.event(db, self.identifier, 'recovery_no_replay', recovered); db.execute('COMMIT')
         return self.status()

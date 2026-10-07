@@ -225,9 +225,9 @@ def _accounting(source, rows, policy_id, policy, settings, assignments, candidat
     walk(source, '')
     return result
 
-def validate_context(source,context):
+def validate_context(source,context,*,source_is_synthetic=False):
     required={'schema_version':'1.0.0','tenant_id':source['tenant_id'],'cloud':'public',
-              'authorization':'emit_only','source_is_synthetic':False}
+              'authorization':'emit_only','source_is_synthetic':source_is_synthetic}
     pins={'provider_source':'deploymenttheory/microsoft365','provider_version':'1.0.0',
           'engine':'tofu','engine_version':'1.10.0','atmos_version':'1.199.0'}
     allowed=set(required)|set(pins)|{'selected_policy_id','component','stack','implementation',
@@ -252,6 +252,27 @@ def normalize(source,context):
     if not accepts(source):raise AppError('invalid_capture','The production mapping requires the exact plugin capture exporter.')
     _source_budget(source)
     validate_context(source,context)
+    return _normalize_records(source,context)
+
+
+def normalize_observation(source,context):
+    """Inert observation mapping preserves explicit laboratory provenance.
+
+    Shares the exact field rules; does not relax the production candidate gate,
+    rewrite raw source labels, establish authenticity or authorize generation.
+    """
+    if (type(source.get('synthetic')) is not bool or source.get('exporter') != EXPORTER
+            or context.get('source_is_synthetic') is not source['synthetic']):
+        raise AppError('invalid_capture','Observation provenance must match the exact Graph capture format.')
+    _source_budget(source)
+    validate_context(source,context,source_is_synthetic=source['synthetic'])
+    result=_normalize_records(source,context)
+    result.update(schema_version='graph-observation-mapping/1',source_mode='graph_capture_observation',
+                  source_is_synthetic=source['synthetic'])
+    return result
+
+
+def _normalize_records(source,context):
     policy_id=context['selected_policy_id']; blockers=[]; mapping_blocked=False
     def block(code,path,mapping=True):
         nonlocal mapping_blocked

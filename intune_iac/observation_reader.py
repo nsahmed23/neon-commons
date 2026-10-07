@@ -201,18 +201,19 @@ class _Reader:
             if type(response) is not ServiceResponse:
                 _fail('reader_response_invalid')
             return response.status, response.body, response.headers
+        live = type(self) is LiveGraphReader
         result = capture_module.capture(self._spec.tenant_id, object_id, output, transport=get,
-            max_elapsed_seconds=remaining, max_pages=100, max_attempts_per_page=3, max_retry_delay_seconds=30)
+            max_elapsed_seconds=remaining, max_pages=100, max_attempts_per_page=3, max_retry_delay_seconds=30,
+            source_is_synthetic=not live)
         batch = load_capture(output, tenant_id=self._spec.tenant_id)
         # Preserve the completed observation even if the token expires just
         # after its last response; its immutable evidence was bound before read.
-        live = type(self) is LiveGraphReader
         source = {'schema_version': VERSION, 'identity': asdict(self._spec),
             'identity_observation_sha256': self._identity,
             'evidence_class': 'graph_authenticated_observation' if live else 'graph_reader_laboratory',
             'tenant_assurance': 'tenant_specific_oauth_and_service_principal_read' if live else 'laboratory_recorded_responses',
             'source_authenticity_verified': live, 'provider_qualified': False,
-            'execution_authorized': False, 'cloud_authority': False,
+            'execution_authorized': False, 'cloud_authority': False, 'source_is_synthetic': not live,
             'read_scope': {'configuration_policy_listing': 'tenant-wide', 'settings_and_assignments': list(self._spec.object_ids)}}
         return CapturedObservation(_CAPTURE, Path(output), batch, source, result['cancelled'])
 

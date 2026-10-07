@@ -422,8 +422,16 @@ class WindowsWorkbenchStore(WorkbenchStore):
         with self._filesystem.connection(str(self.root),write=write) as db:yield db
 
     def collect(self,*args,**kwargs):_fail('windows_workbench_model_collection_unsupported')
-    def import_capture(self,*args,**kwargs):_fail('windows_workbench_capture_reader_unsupported')
-    def raw_capture_observation(self,*args,**kwargs):_fail('windows_workbench_capture_reader_unsupported')
+    def _load_capture(self,path):
+        from .windows_capture import _load
+        return _load(path,self.tenant_id,self._filesystem.api)
+
+    @staticmethod
+    def _capture_parent(path):return PureWindowsPath(path).parent
+
+    def reference_import(self,path,expected_sha256,source_revision,source_url,license_id,assertion_class='community_reference'):
+        from .windows_capture import _reference_import
+        return _reference_import(self,path,expected_sha256,source_revision,source_url,license_id,assertion_class,self._filesystem.api)
 
     def backup(self,destination):
         destination=str(destination);wd._components(destination)

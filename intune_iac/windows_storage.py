@@ -198,10 +198,12 @@ def _owned_handle(api,handle):
     except BaseException as error:primary=error;raise
     finally:
         try:api.close(handle)
-        except Exception:
+        except BaseException as cleanup:
             if primary is not None:
+                primary.native_cleanup_failures=getattr(primary,'native_cleanup_failures',[])+[type(cleanup).__name__]
                 if hasattr(primary,'add_note'):primary.add_note('Native storage handle cleanup failed; preserve the primary failure.')
-            else:_fail('windows_storage_close_failed')
+            elif isinstance(cleanup,Exception):_fail('windows_storage_close_failed')
+            else:raise
 
 
 @contextmanager
@@ -333,10 +335,12 @@ def _lock(root,name,api):
             except BaseException as error:primary=error;raise
             finally:
                 try:api.unlock(handle,overlap)
-                except Exception:
+                except BaseException as cleanup:
                     if primary is not None:
+                        primary.native_cleanup_failures=getattr(primary,'native_cleanup_failures',[])+[type(cleanup).__name__]
                         if hasattr(primary,'add_note'):primary.add_note('Native named-lock release failed; cleanup outcome is uncertain.')
-                    else:_fail('windows_storage_unlock_failed')
+                    elif isinstance(cleanup,Exception):_fail('windows_storage_unlock_failed')
+                    else:raise
 
 
 @contextmanager

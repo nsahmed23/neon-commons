@@ -276,11 +276,19 @@ def _pin(value, api):
         failures=[]
         for handle in reversed(handles):
             try:api.close(handle)
-            except Exception:failures.append('windows_directory_close_failed')
+            except BaseException as cleanup:failures.append(cleanup)
         if failures:
             if primary is not None:
+                primary.native_cleanup_failures=getattr(primary,'native_cleanup_failures',[])+[type(error).__name__ for error in failures]
                 if hasattr(primary,'add_note'):primary.add_note('Native directory handle cleanup failed; retained-handle outcome is uncertain.')
-            else:_fail('windows_directory_close_failed')
+            else:
+                # Finish every remaining owned handle before propagating a
+                # cleanup cancellation. Never retry a possibly closed handle.
+                cancellation=next((error for error in failures if not isinstance(error,Exception)),None)
+                if cancellation is not None:
+                    cancellation.native_cleanup_failures=[type(error).__name__ for error in failures]
+                    raise cancellation
+                _fail('windows_directory_close_failed')
 
 
 @contextmanager
