@@ -1,0 +1,302 @@
+{
+  "status": "GIT_PUSH_COMPLETE_PUBLIC_READBACK_PENDING",
+  "data_commit": "57131e285b87abd11df0b0196866d22db2a615e4",
+  "branch": "intune-r2-snapshot-data-20261007",
+  "parts": 24,
+  "archive_bytes": 2289864715,
+  "archive_sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+  "commands": [
+    {
+      "label": "04-add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part03",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part04"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 10.052682638168335
+    },
+    {
+      "label": "04-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune handoff continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-q",
+        "-m",
+        "Publish unchanged R2 archive byte chunks through part 04 of 24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.006226301193237305
+    },
+    {
+      "label": "04-push",
+      "argv": [
+        "git",
+        "-c",
+        "credential.helper=!gh auth git-credential",
+        "-c",
+        "pack.window=0",
+        "-c",
+        "pack.compression=0",
+        "push",
+        "origin",
+        "intune-r2-snapshot-data-20261007"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.75582504272461
+    },
+    {
+      "label": "08-add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part05",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part06",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part07",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part08"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.511838674545288
+    },
+    {
+      "label": "08-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune handoff continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-q",
+        "-m",
+        "Publish unchanged R2 archive byte chunks through part 08 of 24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005039691925048828
+    },
+    {
+      "label": "08-push",
+      "argv": [
+        "git",
+        "-c",
+        "credential.helper=!gh auth git-credential",
+        "-c",
+        "pack.window=0",
+        "-c",
+        "pack.compression=0",
+        "push",
+        "origin",
+        "intune-r2-snapshot-data-20261007"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.245954990386963
+    },
+    {
+      "label": "12-add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part09",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part10",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part11",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part12"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.70603060722351
+    },
+    {
+      "label": "12-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune handoff continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-q",
+        "-m",
+        "Publish unchanged R2 archive byte chunks through part 12 of 24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005836963653564453
+    },
+    {
+      "label": "12-push",
+      "argv": [
+        "git",
+        "-c",
+        "credential.helper=!gh auth git-credential",
+        "-c",
+        "pack.window=0",
+        "-c",
+        "pack.compression=0",
+        "push",
+        "origin",
+        "intune-r2-snapshot-data-20261007"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 8.28381872177124
+    },
+    {
+      "label": "16-add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part13",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part14",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part15",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part16"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.689282178878784
+    },
+    {
+      "label": "16-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune handoff continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-q",
+        "-m",
+        "Publish unchanged R2 archive byte chunks through part 16 of 24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005868196487426758
+    },
+    {
+      "label": "16-push",
+      "argv": [
+        "git",
+        "-c",
+        "credential.helper=!gh auth git-credential",
+        "-c",
+        "pack.window=0",
+        "-c",
+        "pack.compression=0",
+        "push",
+        "origin",
+        "intune-r2-snapshot-data-20261007"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.199270486831665
+    },
+    {
+      "label": "20-add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part17",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part18",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part19",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part20"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.238049268722534
+    },
+    {
+      "label": "20-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune handoff continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-q",
+        "-m",
+        "Publish unchanged R2 archive byte chunks through part 20 of 24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005403041839599609
+    },
+    {
+      "label": "20-push",
+      "argv": [
+        "git",
+        "-c",
+        "credential.helper=!gh auth git-credential",
+        "-c",
+        "pack.window=0",
+        "-c",
+        "pack.compression=0",
+        "push",
+        "origin",
+        "intune-r2-snapshot-data-20261007"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.767723321914673
+    },
+    {
+      "label": "24-add",
+      "argv": [
+        "git",
+        "add",
+        "--",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part21",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part22",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part23",
+        "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.316416501998901
+    },
+    {
+      "label": "24-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Intune handoff continuation",
+        "-c",
+        "user.email=nsahmed23@users.noreply.github.com",
+        "commit",
+        "-q",
+        "-m",
+        "Publish unchanged R2 archive byte chunks through part 24 of 24"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.005240201950073242
+    },
+    {
+      "label": "24-push",
+      "argv": [
+        "git",
+        "-c",
+        "credential.helper=!gh auth git-credential",
+        "-c",
+        "pack.window=0",
+        "-c",
+        "pack.compression=0",
+        "push",
+        "origin",
+        "intune-r2-snapshot-data-20261007"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 7.390236854553223
+    },
+    {
+      "label": "final-sha",
+      "argv": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.0017821788787841797
+    }
+  ]
+}

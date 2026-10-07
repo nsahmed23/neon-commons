@@ -23,7 +23,9 @@ SHA-256: `7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b`.
 
 [Snapshot receipt](CONTINUATION-SNAPSHOT-R2-RECEIPT.json) describes 52,165 regular files, five literal symlinks and 11,522 directories. All six saved threads, original inputs, source, historical and new evidence are preserved. The historical three unexpected temporary files remain unresolved.
 
-**Transfer status: release-attachment upload pending.** See the recorded [upload blocker](UPLOAD-BLOCKER.json). The configured GitHub connection accepts repository writes but `uploads.github.com` currently returns HTTP 401 even for a small receipt. The existing completed ZIP has not changed. Planned two-part attachment URLs in [the distribution manifest](R2-DISTRIBUTION-MANIFEST.json) are not yet verified public download links. Do not mistake the automatic GitHub Source code ZIP for the complete repository snapshot.
+**Complete snapshot transfer published as 24 exact Git byte chunks.** The dedicated data branch is `intune-r2-snapshot-data-20261007`, pinned data commit `57131e285b87abd11df0b0196866d22db2a615e4`. The [distribution manifest](R2-DISTRIBUTION-MANIFEST.json) lists every immutable public raw URL, byte count and SHA-256. All byte chunks were pushed successfully; fresh anonymous whole-archive reconstruction is being verified. No archive payload was omitted or repackaged.
+
+Release attachment uploads returned HTTP401 through the configured connection; [that failure remains recorded](UPLOAD-BLOCKER.json). Authorized Git publication required no credential provisioning or privilege changes. The original two-part release-asset plan is superseded by this complete 24-chunk transfer. No GitHub automatic Source code ZIP is the complete handoff. Use the manifest and restore helper instead.
 
 [The restore helper](distribution-tooling/restore_r2.py), its [usage and limits](distribution-tooling/README.md), and [extraction precautions](R2-SNAPSHOT-EXTRACTION.md) are provided for the completed transfer. The helper verifies fixed archive/manifest pins and can quarantine the five symbolic links as inert literal text when safely extracting to a fresh directory. It is new distribution tooling; its tests are separate from the preserved 1,141 product tests.
 
@@ -32,3 +34,13 @@ SHA-256: `7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b`.
 The [runtime package](packages/Intune_IaC_Plugin_0.7.0.zip), [source package](packages/Intune_IaC_Plugin_0.7.0_Source.zip) and [archive receipt](packages/Intune_IaC_Plugin_Archive_Receipt.json) are byte-identical copies of the qualified packages. They are product packages, not substitutes for the complete six-thread snapshot.
 
 The restoration helper also passed full extraction of the unchanged R2 ZIP and an independently implemented complete filesystem rehash: [extraction receipt](distribution-tooling/full-extraction-result.json), [independent verification](distribution-tooling/full-extraction-independent-verification.json). This does not alter the original snapshot or its historical extraction-limit prose.
+
+
+## Restore the complete unchanged snapshot
+
+```sh
+curl -fL -o restore_r2.py https://raw.githubusercontent.com/nsahmed23/neon-commons/intune-atmos-wally-r2-20261007/intune-workbench/r2-20261005/distribution-tooling/restore_r2.py
+python3 restore_r2.py --manifest https://raw.githubusercontent.com/nsahmed23/neon-commons/intune-atmos-wally-r2-20261007/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json --output Intune_Atmos_Wally_Continuation_20261005_R2.zip --extract Intune-R2-recovered
+```
+
+Helper SHA-256: `d073a532a5d89bda9fe682269dae64526d1749ded0c9972323c6f4d569919dcb`. Requires Python3.10+ on POSIX/Linux/WSL; no package install or credentials. Use a fresh extraction directory. The public reconstruction receipt will bind an immutable handoff commit and URLs; the branch command above is convenient but the manifest itself pins every chunk to its exact data commit.

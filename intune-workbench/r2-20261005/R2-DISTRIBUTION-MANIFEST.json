@@ -8,15 +8,171 @@
   "parts": [
     {
       "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01",
-      "bytes": 1500000000,
-      "sha256": "cdf6430b1117306ea5a8a53a664b331bd0a65598f709961c10b27ea469f6bc47",
-      "url": "https://github.com/nsahmed23/neon-commons/releases/download/intune-r2-handoff-20261007/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01"
+      "bytes": 96000000,
+      "sha256": "880ca84f1692f3e2094b4fdaa2bf6ed9d3104301673a73ea43349dcea245a5dc",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01"
     },
     {
       "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02",
-      "bytes": 789864715,
-      "sha256": "30cad9a46ec9175cef45904ab2725a2471ea9928bbf323ac9c4dd58a1bc88911",
-      "url": "https://github.com/nsahmed23/neon-commons/releases/download/intune-r2-handoff-20261007/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02"
+      "bytes": 96000000,
+      "sha256": "a9c39329d2a7fb8a5ee07d38a29470943388c3941bc68deed2074bdee9925e4f",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part03",
+      "bytes": 96000000,
+      "sha256": "ddae918e42396f6c800e1b96bc5362d3fa5136a0b5f9db482e05619a80540987",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part03",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part03"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part04",
+      "bytes": 96000000,
+      "sha256": "387d4493c7f7429222af4611d3033524705a7eeb68a89cad4a8d328b58a39ebb",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part04",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part04"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part05",
+      "bytes": 96000000,
+      "sha256": "702724fc4cb6147966d3931b62d6e099ccac118a3b0f49293c350a059e894d6b",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part05",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part05"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part06",
+      "bytes": 96000000,
+      "sha256": "5249a2ca6c5836c0cc4b1a5c23f861d375fb4a1a6375b85e9ca5d41d332195f4",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part06",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part06"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part07",
+      "bytes": 96000000,
+      "sha256": "caa994ee6484004359a8c809298718a61fd1373aaa6811c319aeaacb2b2a8587",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part07",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part07"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part08",
+      "bytes": 96000000,
+      "sha256": "6cd44c19dd8964bb22f87f025bf0afaedc99f1993b28c535d7975cc6e61f2a09",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part08",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part08"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part09",
+      "bytes": 96000000,
+      "sha256": "bb6d85752e768f4c78c1504cc237ec9c09b45573258b5a5195db120d9838a83d",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part09",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part09"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part10",
+      "bytes": 96000000,
+      "sha256": "6eb618e680e13b2e314c8083e13d6a68438b047d567f48753400288345a42aa4",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part10",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part10"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part11",
+      "bytes": 96000000,
+      "sha256": "40e20fdf53b0a3653a50bd738467d4267d8ca5a61c8b21819a2253ed849581e5",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part11",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part11"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part12",
+      "bytes": 96000000,
+      "sha256": "10f600a83e322ffe45c5469b875e64bee9360727d63dffc4b1377dd9b5719101",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part12",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part12"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part13",
+      "bytes": 96000000,
+      "sha256": "1cf44d720bc0bbafcc8faca5d55753175feecaf19a5129ff981137ffadb8f61a",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part13",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part13"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part14",
+      "bytes": 96000000,
+      "sha256": "495143f7d72c322b72cdf3deaf4fa0400ad6c21a1811d61050ee3837170a0037",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part14",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part14"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part15",
+      "bytes": 96000000,
+      "sha256": "405dfe2053a4837e4f7af20761a8dbda11403be10c2bb120cd45474625f8ade4",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part15",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part15"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part16",
+      "bytes": 96000000,
+      "sha256": "13140ba60d6394b329c6837292766eebdf696d56eb4091b3bff127f0323a8b1c",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part16",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part16"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part17",
+      "bytes": 96000000,
+      "sha256": "e7507f07e32a6554246cf36ecc2aba4926e4f9c870a85629a4cb6037a649feac",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part17",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part17"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part18",
+      "bytes": 96000000,
+      "sha256": "e8db09b42a60a0a4f452449a4938c92a4f228cd2db61dc593d6bb2328066f363",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part18",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part18"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part19",
+      "bytes": 96000000,
+      "sha256": "04c9c44e3e98064c6a6f70f1f1f510b4d0d7618b0b32b2bed7a17292f42509b2",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part19",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part19"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part20",
+      "bytes": 96000000,
+      "sha256": "354fde820f1b3401634d25f58fcdf11e5d6824e3e247e5017082c0a4d6ce5ebf",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part20",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part20"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part21",
+      "bytes": 96000000,
+      "sha256": "8a14652638ce7b2e82736ec0e883798a32c9d00459a58cbd25dc4e641b2898c2",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part21",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part21"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part22",
+      "bytes": 96000000,
+      "sha256": "ec1392dbeb87f4fb76140c918c6a6bf161bd696f2e6e14defda8f31135d1c3f1",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part22",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part22"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part23",
+      "bytes": 96000000,
+      "sha256": "b9beb93db206abcb980b3138d5ce01a509910757168a6fda8999de371641c668",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part23",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part23"
+    },
+    {
+      "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part24",
+      "bytes": 81864715,
+      "sha256": "5dfacbf51d6f3ecc0e66f688531dce06b5515520b7f66f4cd1fb8f40d7143508",
+      "repository_path": "intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part24",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/57131e285b87abd11df0b0196866d22db2a615e4/intune-workbench/r2-20261005/archive/Intune_Atmos_Wally_Continuation_20261005_R2.zip.part24"
     }
   ],
   "snapshot": {
@@ -26,5 +182,7 @@
   },
   "product_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
   "release_url": "https://github.com/nsahmed23/neon-commons/releases/tag/intune-r2-handoff-20261007",
-  "split_reason": "The unchanged complete archive exceeds GitHub release per-asset size limit; concatenate both byte parts in listed order. No payload was omitted or repackaged."
+  "split_reason": "Exact complete ZIP published as 24 byte chunks through authorized Git transport. GitHub release upload endpoint returned HTTP401 with existing credentials. Each Git blob is below100MB; no original archive payload omitted/repacked.",
+  "data_commit": "57131e285b87abd11df0b0196866d22db2a615e4",
+  "data_branch": "intune-r2-snapshot-data-20261007"
 }
