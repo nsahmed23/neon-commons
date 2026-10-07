@@ -1,0 +1,271 @@
+{
+  "schema_version": "intune-complete-continuation-layers/1",
+  "status": "preparation",
+  "continuation_from": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "historical_three_unexpected_files_closed": false,
+  "notes": [
+    "UNFINALIZED: current R4 archive/source pins are absent; restoration MUST BLOCK before creating output.",
+    "Original named full repository archive remains unchanged, separately preserved; R2 is the required complete continuation base, not a reduced bundle.",
+    "Stopped provider candidate is preserved solely as unqualified source/evidence; no candidate build, replay or execution is authorized.",
+    "Complete restoration has separate directories for every source/runtime/evidence generation and never overlays the recovered baseline."
+  ],
+  "original_release_provenance": {
+    "name": "Intune_Atmos_Wally_Repository_All_Threads.zip",
+    "bytes": 1156114547,
+    "sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214"
+  },
+  "publication_or_production_authorized": false,
+  "layers": [
+    {
+      "id": "r2-complete",
+      "archive": {
+        "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip",
+        "bytes": 2289864715,
+        "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+        "parts": [
+          {
+            "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part01",
+            "bytes": 1500000000,
+            "sha256": "cdf6430b1117306ea5a8a53a664b331bd0a65598f709961c10b27ea469f6bc47"
+          },
+          {
+            "name": "Intune_Atmos_Wally_Continuation_20261005_R2.zip.part02",
+            "bytes": 789864715,
+            "sha256": "30cad9a46ec9175cef45904ab2725a2471ea9928bbf323ac9c4dd58a1bc88911"
+          }
+        ]
+      },
+      "extract": {
+        "kind": "typed_evidence",
+        "directory": "r2-complete",
+        "snapshot": {
+          "root": "Intune_Atmos_Wally_Continuation_R2",
+          "manifest": "CONTINUATION-SNAPSHOT-R2-MANIFEST.json",
+          "manifest_sha256": "71a06930122bbed74a17b0d49f149b210fb84b5d6a5d5217de9710d0f61c23ef",
+          "schema": "complete-continuation-snapshot/2"
+        }
+      },
+      "source_commit": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "qualification": "recorded_prior_qualification"
+    },
+    {
+      "id": "r3-source",
+      "archive": {
+        "name": "Intune_IaC_Plugin_0.8.0_Source.zip",
+        "bytes": 16627882,
+        "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+        "parts": [
+          {
+            "name": "Intune_IaC_Plugin_0.8.0_Source.zip",
+            "bytes": 16627882,
+            "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+          }
+        ]
+      },
+      "extract": {
+        "kind": "application",
+        "directory": "r3-source"
+      },
+      "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "qualification": "recorded_prior_qualification"
+    },
+    {
+      "id": "r3-runtime",
+      "archive": {
+        "name": "Intune_IaC_Plugin_0.8.0.zip",
+        "bytes": 513895,
+        "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515",
+        "parts": [
+          {
+            "name": "Intune_IaC_Plugin_0.8.0.zip",
+            "bytes": 513895,
+            "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+          }
+        ]
+      },
+      "extract": {
+        "kind": "application",
+        "directory": "r3-runtime"
+      },
+      "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "qualification": "recorded_prior_qualification"
+    },
+    {
+      "id": "r3-evidence",
+      "archive": {
+        "name": "Intune_R3_Evidence_20261007.zip",
+        "bytes": 1013682416,
+        "sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35",
+        "parts": [
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part01",
+            "bytes": 96000000,
+            "sha256": "6f9ed055d52dbb39564f186891a628d65b9f7f1ee3792efa4ad50782defd13ae"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part02",
+            "bytes": 96000000,
+            "sha256": "3e53a223aa720eb615c69d4202b68b8e13ccaae9c7446fe22d483e0d58659827"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part03",
+            "bytes": 96000000,
+            "sha256": "6c4b77602b0374d2b11cc6e78c8afd0a991f7d39701d86a10fcc18a9bc333306"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part04",
+            "bytes": 96000000,
+            "sha256": "a590e887687f3d05d095a4d3ab629679e9e7fe1db49ffa512c393b91a122976c"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part05",
+            "bytes": 96000000,
+            "sha256": "649e53111bab733edfcaaf9f32ebd5fab38f6e8b262bb9788981690aa9c18d5d"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part06",
+            "bytes": 96000000,
+            "sha256": "2d921d81afef53d1e3e917e8519b95d550b9465cc1ccd43a7f8b84f5f131cf0e"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part07",
+            "bytes": 96000000,
+            "sha256": "0f87fde4e8e2caea4fce7569526ef8c349c8d78b11a195f4a2c4b7a471b5ae80"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part08",
+            "bytes": 96000000,
+            "sha256": "1833ddc7dd988e6900f55a6597b1cdf741e31534b9153e2d73856db2a261ea25"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part09",
+            "bytes": 96000000,
+            "sha256": "a1d82f729cfbe2e621d8b5e722ab828ae0b5462f3c1f5a8200c41fcbb354fd65"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part10",
+            "bytes": 96000000,
+            "sha256": "c96200b473132b41395c00bcb15c1d4df4fb431d6de94bb0b665dcbc5b2148db"
+          },
+          {
+            "name": "Intune_R3_Evidence_20261007.zip.part11",
+            "bytes": 53682416,
+            "sha256": "e132f2b9b56ea5a03cf1b12c01c9a9006579b54033e5b4c901ee7343182bf183"
+          }
+        ]
+      },
+      "extract": {
+        "kind": "typed_evidence",
+        "directory": "r3-evidence",
+        "snapshot": {
+          "root": "Intune_R3_Evidence_20261007",
+          "manifest": "R3-EVIDENCE-MANIFEST.json",
+          "manifest_sha256": "afae46ecfa6685d55f7b67bc90187f9673bce3d6ef3fc1bf7a3523b234030593",
+          "schema": "intune-r3-evidence-supplement/1"
+        }
+      },
+      "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "qualification": "recorded_prior_qualification"
+    },
+    {
+      "id": "r4-source",
+      "archive": {
+        "name": "PENDING_R4_SOURCE.zip",
+        "bytes": null,
+        "sha256": null,
+        "parts": [
+          {
+            "name": "PENDING_R4_SOURCE.zip.part01",
+            "bytes": null,
+            "sha256": null
+          }
+        ]
+      },
+      "extract": {
+        "kind": "application",
+        "directory": "r4-source"
+      },
+      "source_commit": null,
+      "qualification": "pending_final_artifact_qualification"
+    },
+    {
+      "id": "r4-runtime",
+      "archive": {
+        "name": "PENDING_R4_RUNTIME.zip",
+        "bytes": null,
+        "sha256": null,
+        "parts": [
+          {
+            "name": "PENDING_R4_RUNTIME.zip.part01",
+            "bytes": null,
+            "sha256": null
+          }
+        ]
+      },
+      "extract": {
+        "kind": "application",
+        "directory": "r4-runtime"
+      },
+      "source_commit": null,
+      "qualification": "pending_final_artifact_qualification"
+    },
+    {
+      "id": "r4-evidence",
+      "archive": {
+        "name": "PENDING_R4_EVIDENCE.zip",
+        "bytes": null,
+        "sha256": null,
+        "parts": [
+          {
+            "name": "PENDING_R4_EVIDENCE.zip.part01",
+            "bytes": null,
+            "sha256": null
+          }
+        ]
+      },
+      "extract": {
+        "kind": "typed_evidence",
+        "directory": "r4-evidence",
+        "snapshot": {
+          "root": "PENDING_R4_LAYER_ROOT",
+          "manifest": "PENDING_R4_MANIFEST.json",
+          "manifest_sha256": null,
+          "schema": "intune-r4-evidence-supplement/1"
+        }
+      },
+      "source_commit": null,
+      "qualification": "pending_final_artifact_qualification"
+    },
+    {
+      "id": "r4-provider-candidate",
+      "archive": {
+        "name": "PENDING_R4_STOPPED_PROVIDER_CANDIDATE.zip",
+        "bytes": null,
+        "sha256": null,
+        "parts": [
+          {
+            "name": "PENDING_R4_STOPPED_PROVIDER_CANDIDATE.zip.part01",
+            "bytes": null,
+            "sha256": null
+          }
+        ]
+      },
+      "extract": {
+        "kind": "typed_evidence",
+        "directory": "r4-provider-candidate",
+        "snapshot": {
+          "root": "PENDING_R4_LAYER_ROOT",
+          "manifest": "PENDING_R4_MANIFEST.json",
+          "manifest_sha256": null,
+          "schema": "intune-r4-evidence-supplement/1"
+        }
+      },
+      "source_commit": null,
+      "qualification": "preserved_unqualified_stopped_candidate"
+    }
+  ],
+  "tooling": {
+    "restore-evidence-layer.py": "d050693c9d84d760315c19c5b5a36af3be8b1eb620ffff63006c551c17fca4da",
+    "verify-release-artifact.py": "9f824268dbaf475e990e6dd09a77ebd2657bfe8f7a55b477bb97b9ee6172aaad"
+  }
+}

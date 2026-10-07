@@ -114,6 +114,27 @@ def runtime_files():
     names.extend('docs/'+name for name in ['JOURNEY.md','PROTECTED-EXECUTION.md','SECURITY-ASSURANCE.md','SYNTHETIC-LABS.md','COMPLETION-ACCEPTANCE.md'])
     names.extend('docs/'+name for name in ['IDENTITY-BINDING.md','SIGNED-APPROVAL.md','PROVIDER-JOURNEY.md','BLOB-LEASE.md','PRODUCTION-COMPLETION-ACCEPTANCE.md'])
     names.extend('docs/'+name for name in ['EPOCH-ACCEPTANCE.md','OPERATIONS-EPOCH.md','TERMINAL-SECURITY-QUALIFICATION.md','POWERSHELL-PREVIEW-QUALIFICATION.md','WORKBENCH.md','CONTINUATION-R3.md','EXTERNAL-QUALIFICATION-R3.md','VENDOR-REFERENCE-LINEAGE.md'])
+    # Operational documentation and explicit host launchers are part of the
+    # delivered application routes. Relay source plus its documented build
+    # recipe are included; compiled tools and private runtime artifacts are not.
+    names.extend('docs/'+name for name in [
+        'ARTIFACT-ARCHIVAL-R4.md','AUTHENTICATED-OBSERVATION-R4.md','AZURE-BACKEND-R4.md',
+        'CONTINUATION-R4-CHECKPOINT.md','CONTINUATION-R4-LEDGER.json',
+        'DICTIONARY-PROVENANCE-R4.md','NATIVE-WINDOWS-R4.md','OPERATING-PROFILE-R4.md',
+        'PROTECTED-WORKER-R4.md','STRICT-CONTINUATION-CONTRACT-R4.md',
+        'VISUAL-WORKSPACE-R4.md','WORKBENCH-QUEUE-R4.md','WORKBENCH-VIEWS-R4.md',
+        'WORKER-BROKER-R4.md','WORKER-HOST-R4.md','WORKER-PROVIDER-R4.md',
+        'HOST-CAPABILITIES-R4.md','WINDOWS-STORAGE-ADAPTER-R4.md',
+        'EXTERNAL-GATES-R4.md','SERVICE-VIEWS-R4.md','WORKER-PRECONDITION-R4.md',
+        'WORKER-RECOVERY-R4.md','WORKER-SERVICE-R4.md','WORKER-STATE-R4.md',
+        'WINDOWS-DIRECTORY-COMPONENT-R4.md','WINDOWS-STORAGE-COMPONENT-R4.md',
+        'COMPLETE-LAYER-RESTORATION-R4.md','EVIDENCE-RESTORATION-R4.md',
+        'CONTINUATION-LAYERS-R4.template.json'])
+    names.extend(['scripts/intune-workbench.sh','scripts/intune-workbench.ps1',
+                  'scripts/qualify-windows-workbench.py','native/worker-relay/relay.c',
+                  'scripts/qualify-windows-directory.py','scripts/qualify-windows-storage.py',
+                  'scripts/restore-evidence-layer.py','scripts/restore-complete-layers.py',
+                  'scripts/verify-release-artifact.py'])
     return sorted(set(names))
 
 
@@ -145,10 +166,13 @@ def write_archive(destination,names,prefix):
 
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--output-dir',required=True)
-    args=parser.parse_args();out=Path(args.output_dir).resolve()
+    parser=argparse.ArgumentParser(description=__doc__)
+    mode=parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--output-dir',help='Create exact runtime/source archives in a new external output directory')
+    mode.add_argument('--check-only',action='store_true',help='Read and validate the complete reviewed source/runtime snapshot without creating archives')
+    args=parser.parse_args();out=None if args.check_only else Path(args.output_dir).resolve()
     root = ROOT.resolve()
-    if root==out or root in out.parents:raise ValueError('Use an output directory outside the source checkout.')
+    if out is not None and (root==out or root in out.parents):raise ValueError('Use an output directory outside the source checkout.')
     runtime=runtime_files()
     for name in runtime:
         safe_name(name)
@@ -161,6 +185,17 @@ def main():
         if not set(runtime).issubset(source):
             raise ValueError('Runtime members must be included in the reviewed source inventory.')
         snapshot = {name: inventory_bytes if name == SOURCE_INVENTORY else read(name) for name in source}
+    if args.check_only:
+        source_hashes={name:hashlib.sha256(data).hexdigest() for name,data in sorted(snapshot.items())}
+        report={'status':'PASS','mode':'inventory_validation_only','version':__version__,
+            'source_files':len(source),'runtime_files':len(runtime),'source_bytes':sum(map(len,snapshot.values())),
+            'source_inventory_sha256':hashlib.sha256(inventory_bytes).hexdigest(),
+            'source_snapshot_sha256':hashlib.sha256(json.dumps(source_hashes,sort_keys=True,separators=(',',':')).encode()).hexdigest(),
+            'runtime_in_reviewed_source':True,'archives_created':False,
+            'qualification':'Selection and bounded no-follow file validation only; no package, security, platform or production acceptance.',
+            'required_follow_up':'Freeze exact source revision, build reproducibly, verify and independently qualify the exact final archives.'}
+        print(json.dumps(report,indent=2))
+        return report
     targets = [out/f'Intune_IaC_Plugin_{__version__}.zip',
                out/f'Intune_IaC_Plugin_{__version__}_Source.zip',
                out/'Intune_IaC_Plugin_Archive_Receipt.json']

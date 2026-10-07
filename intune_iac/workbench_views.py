@@ -22,7 +22,7 @@ from .repository import resolve_component, public_resolution, discover_repositor
 from .workbench_provenance import _read
 from . import workbench_semantics as semantics
 
-COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','views','source-acceptance-propose','field-semantics'})
+COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','views','source-acceptance-propose','field-semantics'})
 SCOPE_FIELDS=frozenset({'repository','stack','component','backend'})
 MAX_OBJECTS=1000
 MAX_ESTATE_ARTIFACTS=10000
@@ -330,9 +330,14 @@ def record_local_deployment(store,operation,intent_id):
 
 
 def _deployment(store,object_id,scope):
-    candidates=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and (scope is None or r['data'].get('scope')==scope)]
+    from . import workbench_service_views as service_views
+    candidates=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and
+        (scope is None or r['data'].get('scope')==scope or r['data'].get('evidence_class')==service_views.KIND)]
     for row in sorted(candidates,key=lambda r:r['sequence'],reverse=True):
         data=row['data']
+        if data.get('evidence_class')==service_views.KIND:
+            try:return service_views.deployment(store,row)
+            except (AppError,OSError,KeyError):continue
         if data.get('evidence_class')!='verified_local_modeled_deployment':continue
         intents=[r for r in _intents(store,object_id) if r['artifact_id']==data.get('intent_id')]
         if len(intents)!=1:continue
@@ -494,6 +499,10 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     except AppError as exc:
         if exc.code!='workbench_object_missing':raise
         observed=_unknown('object_not_collected',object_id=object_id,body=None)
+    # Unsupported mapping must not hide complete literal service observations.
+    # Preserve the mapped last-good body separately from the latest raw attempt.
+    raw_observation=store.raw_capture_observation(object_id)
+    if raw_observation is not None:observed['raw_capture_observation']=raw_observation
     coverage_ok=(observed.get('coverage')=='complete' and observed.get('freshness')=='fresh'
         and observed.get('last_attempt',{}).get('status')=='complete' and _fresh(observed.get('observed_at'),3600,now))
     deployment=_deployment(store,object_id,scope)
@@ -519,12 +528,24 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
                 evidence_class='caller_asserted_provider_refresh',independently_authenticated=False)
         else:comparisons['provider_refresh_vs_state']=_unknown('state_absent_or_refresh_stale_or_missing',baseline=doc['state_revision'])
     if deployment:
-        baseline={'kind':'verified_local_modeled_deployment','artifact_id':deployment['artifact_id'],'operation_id':deployment['proof']['operation_id'],
+        baseline={'kind':deployment.get('baseline_kind','verified_local_modeled_deployment'),'evidence_class':deployment['evidence_class'],'artifact_id':deployment['artifact_id'],'operation_id':deployment['proof']['operation_id'],
                   'recorded_at':deployment['recorded_at'],'plan_sha256':deployment['proof']['plan_sha256']}
-        if intent:comparisons['repository_vs_deployment']=_comparison(deployment['proof']['desired'],repo['desired'],baseline=baseline,classification='pending_repository_change')
-        if coverage_ok:comparisons['observed_vs_deployment']=_comparison(deployment['proof']['desired'],observed['body'],baseline=baseline,
-                classification='difference_since_verified_local_deployment',actor='unknown',live_drift_established=False)
+        mapped=deployment.get('normalized_comparison_available',True)
+        if not mapped:
+            for name in ('repository_vs_deployment','observed_vs_deployment'):
+                comparisons[name]=_unknown('deployment_mapping_unsupported',baseline=baseline,raw_observation_available=True)
+        if intent and mapped:comparisons['repository_vs_deployment']=_comparison(deployment['proof']['desired'],repo['desired'],baseline=baseline,classification='pending_repository_change')
+        if coverage_ok and mapped:comparisons['observed_vs_deployment']=_comparison(deployment['proof']['desired'],observed['body'],baseline=baseline,
+                classification='difference_since_verified_deployment' if deployment.get('baseline_kind') else 'difference_since_verified_local_deployment',actor='unknown',live_drift_established=False)
     proposed=_unknown('operation_not_selected')
+    if operation is None:
+        from . import workbench_service_views as service_views
+        links=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and r['data'].get('evidence_class')==service_views.KIND]
+        if links:
+            selected_link=max(links,key=lambda r:r['sequence'])
+            try:proposed=service_views.proposed(store,selected_link)
+            except (AppError,OSError,KeyError) as exc:
+                proposed=_unknown('linked_service_unavailable_or_changed',error_code=getattr(exc,'code',type(exc).__name__),link_artifact_id=selected_link['artifact_id'])
     if operation is not None:
         from . import maintenance
         root,plan,journal,desired,request=maintenance._load(operation)
@@ -544,6 +565,11 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
         'collections':observed.get('collections',[]),'ownership':own,'management':own['status'],'state_tracked':state_present,
         'discovery_includes_objects_absent_from_state':True,'mapping':'supported_comparison_only' if semantic and not semantic['blockers'] else 'unknown_or_unsupported',
         'mapping_blockers':semantic['blockers'] if semantic else [],'native_provider_lifecycle_qualified':False,'platform_qualified':False}
+    if raw_observation is not None:
+        coverage.update(latest_capture_status=raw_observation['status'],
+            latest_capture_collection_coverage=raw_observation['coverage'],
+            latest_capture_mapping_blockers=raw_observation['source'].get('mapping_blockers',[]),
+            normalized_mapping_refers_to='retained_normalized_snapshot')
     result={'schema_version':'workbench-four-views/1','tenant_id':store.tenant_id,'object_id':object_id,'scope':scope,
         'repository':repo,'observed':observed,'proposed':proposed,'coverage':coverage,'comparisons':comparisons,
         'deployment':deployment or _unknown('verified_deployment_missing'),'field_semantics':semantics.contract(),
@@ -621,6 +647,8 @@ def add_parser(sub):
         p=sub.add_parser(name,help='Record explicitly declared evidence without execution authority');p.add_argument('--root',required=True);p.add_argument('--input',required=True)
     p=sub.add_parser('deployment-record',help='Reconstruct a successful local operation and readback as a scoped baseline')
     for name in ('root','operation','intent'):p.add_argument('--'+name,required=True)
+    p=sub.add_parser('service-link',help='Link a registered protected service operation into persistent views; does not execute')
+    for name in ('root','object','job-root','policy'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('views',help='Repository, observed, proposed and coverage with distinct evidence baselines')
     p.add_argument('--root',required=True);p.add_argument('--object');p.add_argument('--scope');p.add_argument('--operation');p.add_argument('--intent')
     p.add_argument('--limit',type=int,default=100);p.add_argument('--offset',type=int,default=0)
@@ -641,6 +669,9 @@ def command(args):
     if name=='provider-refresh-import':return import_provider_refresh(store,args.input)
     if name=='deployment-import':return import_deployment(store,args.input)
     if name=='deployment-record':return record_local_deployment(store,args.operation,args.intent)
+    if name=='service-link':
+        from .workbench_service_views import link
+        return link(store,args.object,args.job_root,args.policy)
     scope=_load(args.scope)[0] if args.scope else None
     if name=='views':return views(store,args.object,scope=scope,operation=args.operation,intent_id=args.intent,limit=args.limit,offset=args.offset,query=args.query,ownership_filter=args.ownership,coverage_filter=args.coverage,health_filter=args.health)
     if name=='source-acceptance-propose':return propose_source_acceptance(store,args.object,args.field,args.output,scope=scope)

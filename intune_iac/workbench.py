@@ -1,7 +1,8 @@
 """Persistent local workbench presentation over the existing Intune engine.
 
-The supported execution adapter is explicitly synthetic. Neither this terminal
-nor its approval digest confers Graph, provider, or organizational authority.
+Local maintenance execution is explicitly synthetic; protected service routes
+prepare or observe the separate host contract. Neither this terminal nor its
+approval digest confers Graph, provider, or organizational authority.
 All imported strings are rendered as ASCII JSON; original values stay in the
 observation store. The line terminal also works over redirected stdin.
 """
@@ -421,13 +422,18 @@ HELP = {
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
     'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
+    'protected_service': ['service-link JOB_ROOT POLICY_PATH (link selected object to persistent four views)',
+                          'service-review JOB_ROOT POLICY_PATH', 'service-status JOB_ROOT POLICY_PATH',
+                          'service-attach JOB_ROOT POLICY_PATH (read-only; no dispatch or replay)',
+                          'service-cancel JOB_ROOT POLICY_PATH (request only; inspect resulting state)',
+                          'service-recover JOB_ROOT POLICY_PATH (explicit recovery; no mutation replay)'],
     'collection': ['collect (requires --service-root; also runs as a separate headless command)',
                    'import-capture CAPTURE_DIRECTORY', 'collection-history [LIMIT [OFFSET]]', 'collection RUN_ID',
                    'migrate NEW_BACKUP_PATH', 'schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)',
                    'schedule-run JOB_DIR MAX_RUNS MAX_DURATION_SECONDS', 'schedule-status JOB_DIR'],
     'evidence': ['device-evidence-import ENVELOPE_JSON', 'workflow-import ENVELOPE_JSON',
                  'reference-import JSON SHA256 FULL_REVISION HTTPS_SOURCE_URL LICENSE_ID [ASSERTION_CLASS]'],
-    'limits': 'Terminal estate views default to 10 observations per page; totals and continuation are explicit. Imported captures and reports remain unverified local evidence. Collection and execution adapters are synthetic; no deployment or rollout authority.',
+    'limits': 'Terminal estate views default to 10 observations per page; totals and continuation are explicit. Imported captures and reports remain unverified local evidence. Local maintenance is synthetic. Protected service observation grants no execution or rollout authority.',
 }
 
 
@@ -540,6 +546,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 if values and selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 result = views(store, selected, operation=values[0] if values else None, limit=10)
+            elif name == 'service-link' and len(values) == 2:
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from .workbench_service_views import link
+                result = link(store, selected, values[0], values[1])
             elif name == 'views-page' and 2 <= len(values) <= 6:
                 filters = [None if value == '-' else value for value in values[2:]]
                 filters += [None] * (4 - len(filters))
@@ -663,6 +674,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     result = maintenance.execute(values[0], approve_digest=values[1], fault=values[2] if len(values) >= 3 else None,
                                                  visibility_delay_reads=int(values[3]) if len(values) == 4 else 0)
                 else: raise ValueError('invalid command arguments')
+            elif name in ('service-review', 'service-status', 'service-attach', 'service-cancel', 'service-recover') and len(values) == 2:
+                from .service_cli import invoke
+                result = invoke(name.removeprefix('service-'), *values, tenant_id=store.tenant_id, object_id=selected)
             elif name == 'collect' and not values:
                 if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')
                 from .modeled_service import ModeledService

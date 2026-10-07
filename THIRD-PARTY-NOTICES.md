@@ -1,5 +1,17 @@
 # Provenance and redistribution notes
 
+R4 adds original C source for the restricted Unix relay and a synthetic TLS
+qualification client. The application source/runtime packages include source
+and build procedures, not their compiled binaries. The separate complete
+evidence layer retains the exact laboratory binaries and build receipts. Static
+relay builds use the installed GNU C Library and GCC runtime; the synthetic
+TLS client additionally links OpenSSL, zlib and Zstandard. Byte-preserved
+installed copyright/license records and package versions are retained under
+`work/evidence/epoch-20261007-r4/toolchain-notices/`. Read those full records and
+the exact build receipts; an implementation's source license does not replace
+the linked dependencies' terms. Organizational licensing review remains
+required for any intended redistribution. This record is not legal approval.
+
 Original Appendix B reference algorithms, schemas, tests and synthetic fixtures were authored for this handoff. The runtime does not bundle upstream provider/SDK executables, terminal libraries, proprietary binaries or agent-harness implementations. The 0.3.0 source archive now includes selected raw upstream code and licenses for reproducible source qualification, as itemized below. Those files retain their upstream terms; inclusion is not a relicensing grant.
 
 Deployment Theory's pinned LICENSE identifies Mozilla Public License2.0, copyright2025 Deployment Theory. The selected Microsoft Azure skill frontmatter identifies MIT. Other source license fields remain null when not verified; their implementations are reference-only until full file-level terms/notices are acquired. Do not infer the engine's license applies to skills or copied code. Review dependencies and notices before future vendoring/distribution; do not change their license to match a new project.

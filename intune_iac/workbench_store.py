@@ -848,6 +848,71 @@ class WorkbenchStore:
                 result.append(value)
             return result
 
+    def raw_capture_observation(self, object_id, capture_sha256=None):
+        """Read retained literal capture even when management mapping is unsupported.
+
+        This does not publish a normalized snapshot, overwrite last-good values,
+        or turn collection completeness into management qualification.
+        """
+        self._require_v2(); _identity(object_id)
+        if capture_sha256 is not None and (type(capture_sha256) is not str or re.fullmatch('[0-9a-f]{64}',capture_sha256) is None):
+            _fail('workbench_query_invalid')
+        with self._connection() as db, self._query_budget(db):
+            db.execute('BEGIN')
+            row = db.execute('''SELECT r.* FROM run_details d
+                JOIN collection_runs r USING(run_id) JOIN run_scope_objects s USING(run_id)
+                WHERE r.tenant_id=? AND s.object_id=?
+                  AND json_type(d.source_json,'$.raw_observed')='object'
+                  AND (? IS NULL OR json_extract(d.source_json,'$.capture_sha256')=?)
+                ORDER BY r.observed_at DESC,r.run_id DESC LIMIT 1''',
+                (self.tenant_id,object_id,capture_sha256,capture_sha256)).fetchone()
+            if row is None: return None
+            value = self._run(row,db)
+            if len(canonical(value)) > MAX_QUERY_BYTES: _fail('workbench_query_limit')
+        # The persisted digest label alone cannot authenticate the persisted
+        # literal projection. Reopen the type-aware capture and compare exact
+        # committed bytes and projection; retain mismatched local evidence for
+        # inspection, but never expose it as a verified deployment baseline.
+        try:
+            from .capture_adapter import load_capture
+            source = value['source']
+            root = Path(source['artifacts']['capture-receipt.json']['path']).parent
+            captured = load_capture(root, tenant_id=self.tenant_id)
+            if (captured['object_id'] != object_id or captured['capture_sha256'] != source['capture_sha256'] or
+                    canonical(captured['source']['raw_observed']) != canonical(source['raw_observed']) or
+                    canonical(captured['source']['artifacts']) != canonical(source['artifacts'])):
+                _fail('workbench_raw_capture_changed')
+            value['capture_integrity'] = {'status':'verified_local_bytes', 'capture_sha256':captured['capture_sha256'],
+                'service_authentication_reestablished':False}
+        except (AppError,OSError,KeyError,TypeError,ValueError) as error:
+            value['capture_integrity'] = {'status':'unverified_or_changed',
+                'error_code':getattr(error,'code',type(error).__name__), 'service_authentication_reestablished':False}
+        return value
+
+    def observation_for_capture(self, object_id, capture_sha256):
+        """Find the exact published capture, including outside recent pages.
+
+        A missing or unsupported capture cannot be inferred from a newer value.
+        This reads retained local evidence and grants no service authority.
+        """
+        _identity(object_id)
+        if type(capture_sha256) is not str or re.fullmatch('[0-9a-f]{64}', capture_sha256) is None:
+            _fail('workbench_query_invalid')
+        with self._connection() as db, self._query_budget(db):
+            db.execute('BEGIN')
+            row = db.execute('''SELECT o.*,s.body_json FROM observations o
+                JOIN snapshots s USING(snapshot_id) JOIN collection_runs r USING(run_id)
+                WHERE o.tenant_id=? AND o.object_id=? AND r.status='complete'
+                  AND json_extract(o.source_json,'$.capture_sha256')=?
+                ORDER BY o.observed_at DESC,o.observation_id DESC LIMIT 1''',
+                (self.tenant_id,object_id,capture_sha256)).fetchone()
+            if row is None: return None
+            value = self._observation(db,row)
+            if value['snapshot_id'] != digest({'tenant_id':self.tenant_id,'object_id':object_id,'body':value['body']}):
+                _fail('workbench_snapshot_changed')
+            if len(canonical(value)) > MAX_QUERY_BYTES: _fail('workbench_query_limit')
+            return value
+
     def recent_history(self, object_id, *, limit=10, offset=0):
         """A bounded newest-first slice; never materialize the retained history."""
         return self._recent_history(object_id, limit, offset, include_total=False)['history']

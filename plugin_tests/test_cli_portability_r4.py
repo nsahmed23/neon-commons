@@ -17,7 +17,7 @@ sys.meta_path.insert(0,DenyFcntl())
 sys.argv=[sys.argv[1],*sys.argv[2:]]
 runpy.run_path(sys.argv[0],run_name='__main__')
 '''
-        for args in (['--help'], ['workbench', '--help'], ['worker', '--help'], ['artifact', '--help']):
+        for args in (['--help'], ['workbench', '--help'], ['worker', '--help'], ['service', '--help'], ['artifact', '--help']):
             with self.subTest(args=args):
                 result = subprocess.run([sys.executable, '-B', '-c', probe, str(ROOT / 'scripts/intune-iac.py'), *args],
                                         capture_output=True, timeout=10)

@@ -32,3 +32,14 @@ def add_worker_parser(commands):
             route.add_argument('--context', required=True)
         if name == 'run':
             route.add_argument('--receipt', required=True)
+
+
+def add_service_parser(commands):
+    parser = commands.add_parser('service', help='Prepare or observe a protected host service job; no terminal apply route')
+    routes = parser.add_subparsers(dest='service_command', required=True)
+    for name in ('prepare', 'review', 'status', 'attach', 'cancel', 'recover'):
+        route = routes.add_parser(name)
+        route.add_argument('--job-root', required=True)
+        route.add_argument('--policy', required=True)
+        if name == 'prepare':
+            route.add_argument('--manifest', required=True)

@@ -219,6 +219,16 @@ No retry was attempted. See
 `worker-provider/provider-negative/PRESERVATION-STOP-RECEIPT.json`; this remains
 a release blocker, independent of the valid successful local lifecycle.
 
+The exact detached checkout of commit
+`2b0bcb998fbba49a8a232174c1858da162639957` then ran 144 selected tests and
+reported three import errors: native provider tests require `worker_broker`,
+which was intentionally left in the active integration lane. The other 141
+completed without assertion failure; the run as a whole is **FAIL**, not a
+qualified checkpoint. See `integration/INCREMENT3-COMMITTED-CHECK.json` and raw
+logs. Commit the complete broker/service dependency and replay this required
+scope; do not remove the three tests or reuse the working-tree109 result as an
+exact-commit pass. The detached checkout remained clean.
+
 Native Windows is **UNSUPPORTED at implementation level**, not merely waiting
 for a test host. Capability checks now explain missing storage/security
 primitives and reject before creating a store. Native qualification records
@@ -250,3 +260,126 @@ final source-bound journeys, release gates and reproducible layered recovery.
 The CI platform choice remains pending; no tenant or platform change is
 authorized. Laboratory completion remains incomplete, platform qualification
 blocked, and organizational production approval absent.
+
+## Increment 4 — protected service composition and persistent evidence
+
+Continuation parent is `2b0bcb998fbba49a8a232174c1858da162639957` on
+`continuation/r4-20261007`. The next commit receipt in
+`evidence/epoch-20261007-r4/integration/` records its exact resulting commit,
+file list and actor. This is an implementation checkpoint, not a release.
+
+The protected service now has independent exact-manifest signatures, external
+one-use consumption and ownership, fixed native broker routes, fresh sealed
+Graph preconditions, computed native state admission, durable lease recovery
+inputs, independent state/Graph reconciliation and full execution-runtime
+identity. Terminal preparation/observation cannot create execution authority.
+The real controller rechecks its complete reviewed runtime before execution;
+read-only preparation can run from a different terminal process.
+
+Independent `independent/service-native-01/RESULT.json` passed a connected
+Docker/relay/TLS journey with exact signature, wrong-reviewer rejection,
+terminal detach/reattach, literal external-state assertions, cleanup and replay
+denial. Its 23 assertions include six setup assertions; do not add it to suite
+totals or describe it as native provider/live Azure/CI evidence. Broker/state
+focused scope is 46 tests, and the read-only expired-lease inspector has five
+tests. Receipt scopes and source hashes remain separate.
+
+`worker-provider/native-service-prepare-01/receipt.json` preserves actual pinned
+Atmos/OpenTofu/provider Azure-protocol initialization/import, no-change first
+plan and a description-only saved correction: 85 fixture requests and 11
+independent preparation assertions, zero Graph apply writes. The signed native
+composition then exposed a failure: attempt01 lacked the explicit pinned
+libsodium location and was rejected before dispatch. Attempt02 consumed exactly
+one dispatch, returned native exit1, removed its container, and retained
+`outcome_unknown` plus native lease recovery evidence. Its 101 fixture requests
+and failure receipt remain unchanged. Diagnose the concrete error and preserve
+the previous state/lease before any new isolated attempt; a passing simpler
+transport journey does not close this native composition gate.
+
+Workbench `service-link` persists exact tenant/object/manifest navigation.
+`views` exposes the protected proposal and journal, and compares a deployment
+only against its exact independently published capture. Unknown execution stays
+separate. Unsupported mapping exposes literal raw captures, timestamps and
+blockers without replacing normalized last-good values. Development evidence:
+33 related tests plus one newly added unsupported-capture test, not overlapping
+aggregate claims. Missing validator configuration, fixture mistakes and a
+misspelled test-module command are retained in `service-views/attempt01/`;
+corrected commands pass in `attempt02/`.
+
+Inactive native Windows directory/storage components and native harnesses are
+implemented. Their local state-machine tests do not establish native Windows
+behavior. Functional Workbench Windows support remains UNSUPPORTED pending
+store integration and actual Windows/Git Bash/mintty/PowerShell evidence. A
+missing namespace durability barrier retains artifacts and reports uncertainty.
+
+Type-aware evidence extraction and the eight-layer recovery wrapper are being
+qualified with literal negative-test links and control-byte filenames retained
+inertly. All diagnostics must escape them. The outer manifest remains a template
+until final R4 archive pins exist; it must fail before extraction when incomplete.
+No final package, R4 public readback or complete file-set closure is claimed.
+
+The 18 required fault families now have an independent assertion/source map at
+`independent/FAULT-FAMILY-MAP-01.json`. Remaining local composition cases include
+policy success with assignment failure, acquisition/evidence-recording
+cancellation, reviewed restoration as a new operation and final integrated
+workflow/ref controls. Earlier failures, provider SDK nil-dereference finding,
+automatically rejected repair lane and provenance anomalies remain open.
+
+Resume without rebuilding the baseline:
+
+```bash
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+git log -3 --oneline
+/workspace/intune-runtime/bin/python -B scripts/intune-iac.py service --help
+/workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench service-link --help
+/workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench views --help
+```
+
+Next: complete native composition and missing fault controls; commit the whole
+dependency closure and replay the earlier failed exact-checkout scope; then
+qualify the exact final source/runtime packages and full layered recovery.
+Laboratory completion is incomplete, platform qualification is blocked, and
+organizational production approval is absent. Do not retry the separately
+rejected provider repair task or turn a checkpoint into a finish-line claim.
+
+The native attempt02 root cause was subsequently confirmed with a deny-only
+native CONNECT capture: pinned Go clients emit the exact optional
+`User-Agent: Go-http-client/1.1` header. The broker previously rejected it before
+any upstream request. The narrow repair retains surrounding denials and has
+failing-before/passing-after evidence. No policy/provider gate was weakened.
+
+`worker-provider/native-service-journey-03/receipt.json` now passes the complete
+local native composition: exact saved Azure plan, signed protected service,
+network-none Docker/relay/broker, pinned Atmos/OpenTofu/provider, policy and
+assignment writes, fresh Graph preconditions, computed state write and lease
+release, independently authenticated laboratory Graph/backend readback,
+reconciliation, persistent service-linked views, and a no-change second native
+plan. Its 17 assertions and 33 broker requests are one scoped journey. Of 181
+fixture requests, 85 belong to preserved preparation and 96 are new. None are
+live tenant/CI/device evidence. Unsupported mapping of the complete raw capture
+remains explicit; normalized comparisons are not invented.
+
+Independent review then reproduced raw SQLite projection substitution under a
+capture's unchanged digest label. `raw_capture_observation` now validates the
+retained type-aware capture bytes, exact projection and artifact commitments
+before service-baseline use. Independent `service-views-after-03/RESULT.json`
+passes 14 assertions, including tampering, missing/changed pages and restored
+exact bytes; before failures and evaluator errors remain retained. The current
+seven local view tests pass. An additional useful raw-observation test class has
+unresolved original actor attribution; root reviewed and retained it at
+`service-views/ATTRIBUTION-OBSERVATION-01.json`, without claiming attribution
+closure.
+
+Final service component scope is 30/30 at
+`worker-service/qualified-08/QUALIFICATION.json`; its earlier 27/30 failure is
+retained. New inactive Windows SQLite snapshot code has 14 Linux contract
+controls with recorded Win32 boundaries, not native qualification. Packaging
+inventory check05 admits 3,185 source members and 193 runtime members. Recovery
+helper scopes are 22 typed-extraction controls, 11 wrapper controls and six
+inventory controls; independent eight-layer miniature reconstruction passes 12
+assertions. These counts overlap other scopes and are not a release-suite total.
+
+Native fault/restoration exercises are continuing in new fixtures after this
+checkpoint. The old full-suite results remain unchanged; final integrated and
+package gates are still required.

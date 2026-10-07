@@ -78,6 +78,19 @@ class WorkerProviderTests(unittest.TestCase):
         self.assertIn('-out=second.plan', wp.native_command('second'))
         self.assertNotIn('--init-mode=never', wp.native_command('show'))
 
+    def test_fresh_apply_initializes_only_then_consumes_exact_plan(self):
+        payload = adapter().control_files('apply', saved_plan=b'closed-native-plan')
+        script = payload['worker.sh'].decode()
+        commands = [line for line in script.splitlines() if line.startswith('env -i ')]
+        self.assertEqual(len(commands), 2)
+        self.assertIn('/tools/atmos terraform init ', commands[0])
+        self.assertIn('-lockfile=readonly', commands[0])
+        self.assertIn('/tools/atmos terraform apply ', commands[1])
+        self.assertIn('--from-plan --planfile /control/approved.plan', commands[1])
+        self.assertNotIn('/tools/atmos terraform plan ', script)
+        self.assertEqual(json.loads(payload['operation.json'])['commands'],
+                         [list(wp.native_command('init')), list(wp.native_command('apply'))])
+
     def test_plan_binary_exact_bytes_hash_and_no_caller_environment(self):
         with patch.dict(os.environ, {'M365_CLIENT_SECRET': 'real-canary-never-in-payload', 'ATMOS_BASE_PATH': '/wrong'}):
             files = adapter().control_files('apply', saved_plan=b'PK\x00\r\nplan\xff')

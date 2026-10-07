@@ -12,8 +12,8 @@ The complete acceptance text is `STRICT-CONTINUATION-CONTRACT-R4.md`.
 | Pilot write scope | Proposed first qualification: one explicitly named disposable policy, one selected stack/component/backend writer and explicitly named groups, exclusions and filters | Actual IDs, cohort, permitted operation and recovery require the tenant/device owners. A shared policy change can affect every assigned ring. No tenant or object scope is authorized by this document. |
 | Inspection identity | Tenant/cloud plus immutable object ID; cross-stack/component/backend declared scope | Names and OIB markers do not prove ownership. Complete, fresh declared search is required before “no ownership found”; otherwise unknown. |
 | Repository | Exact selected Git revision and effective Atmos inputs, source/inheritance hashes, provider/tool locks | The bounded literal resolver is distinct from native Atmos execution. Repository, snapshot-to-snapshot, provider-state and verified-deployment comparisons have separate baselines. |
-| Operator host | **Native Windows with Git Bash is required**; mintty and the actual organizationally chosen terminal need separate observations | Linux PTY results do not qualify Windows/MSYS path conversion, Unicode width, startup, ACLs/reparse points or process cleanup. Text mode remains available when the optional visual route is unsupported. |
-| PowerShell | Native supported Windows PowerShell route, exact version to be pinned on the provided host | Check every native exit code; preserve the primary failure if cleanup also fails. Linux PowerShell history is preserved and is not native Windows evidence. |
+| Operator host | **Native Windows with Git Bash is required**; mintty and the actual organizationally chosen terminal need separate observations | Linux PTY results do not qualify Windows/MSYS path conversion, Unicode width, startup, ACLs/reparse points or process cleanup. Windows store operations are currently UNSUPPORTED; isolated Win32 components do not activate support. Text/help is retained, with actual functionality gated by host capabilities. |
+| PowerShell | Native **PowerShell 7** route, exact build to be pinned on the provided host; Windows PowerShell 5.1 is unsupported by the supplied launcher | Check every native exit code; preserve the primary failure if cleanup also fails. Linux PowerShell history is preserved and is not native Windows evidence. |
 | Local development host | Existing Linux x86_64 with retained CPython 3.12 environment and pinned wheel lock | This is the available disposable engineering environment. Exact version/host observations belong to new receipts; no inferred cross-platform support. |
 | Runtime | Existing Python engine and dependency lock; complete text CLI remains reference | Visual presentation must share engine, durable events, approvals and worker interfaces. No new UI dependency is organizationally approved by listing candidate libraries. |
 | OpenTofu | Current local pin **1.13.1**, Linux AMD64 SHA-256 `a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a` | `intune_iac/native_pins.py` is the discovered current pin. Historical 1.10.0 remains for explicit reproduction, not silently substituted. Windows binaries need their own verified native pins and evidence. |
@@ -50,3 +50,10 @@ operations/release owner. Their decisions and authorizations are absent here.
 Historical temporary-file/reappearance findings and the c122 commit-command
 attribution gap remain open until attributable evidence or an accountable
 scoped disposition exists. The assistant cannot accept those risks.
+
+R4 native local testing found a malformed-Graph-error SDK nil dereference in
+the unchanged pinned provider. The failure, conformant-error controls and exact
+unchanged state evidence remain under `worker-provider/provider-negative/`.
+Its isolated source repair is untested, no replacement binary exists, and an
+automated agent-execution rejection stopped that repair task. It remains a
+release blocker; successful local lifecycle evidence does not close it.

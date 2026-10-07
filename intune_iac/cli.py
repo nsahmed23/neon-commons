@@ -60,8 +60,9 @@ def parser():
     commands=p.add_subparsers(dest='command',required=True)
     from .workbench import add_parser as add_workbench_parser
     add_workbench_parser(commands)
-    from .workbench_parsers import add_worker_parser
+    from .workbench_parsers import add_worker_parser, add_service_parser
     add_worker_parser(commands)
+    add_service_parser(commands)
     from .artifact_vault import add_parser as add_artifact_parser
     add_artifact_parser(commands)
     commands.add_parser('doctor',help='Report installed prerequisites and capability boundaries')
@@ -135,6 +136,9 @@ def execute(args):
         from .host_capabilities import require_profile
         require_profile('protected_worker')
         from .protected_worker import command
+        return command(args)
+    if args.command=='service':
+        from .service_cli import command
         return command(args)
     if args.command=='artifact':
         from .host_capabilities import require_profile

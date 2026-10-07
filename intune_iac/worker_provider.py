@@ -200,17 +200,21 @@ class WorkerProviderAdapter:
             script += 'printf "%s  %s\\n" ' + _sha(saved_plan) + ' /control/approved.plan | sha256sum -c - >/dev/null\n'
         # Credentials cannot enter this payload. A reviewed host capability is a
         # prerequisite for activating live execution, never a free env map.
-        script += ('env -i HOME=/job/home PATH=/usr/bin:/bin LANG=C.UTF-8 '
+        environment = ('env -i HOME=/job/home PATH=/usr/bin:/bin LANG=C.UTF-8 GOMAXPROCS=2 '
                    'ATMOS_CLI_CONFIG_PATH=/job ATMOS_VERSION_CHECK_ENABLED=false ATMOS_TELEMETRY_ENABLED=false '
                    'CHECKPOINT_DISABLE=1 TF_IN_AUTOMATION=1 TF_INPUT=0 TF_CLI_CONFIG_FILE=/control/tofu.rc '
                    'HTTP_PROXY=http://127.0.0.1:18080 HTTPS_PROXY=http://127.0.0.1:18080 NO_PROXY= '
                    'SSL_CERT_FILE=/control/broker-ca.pem ' +
-                   ''.join(key + '=' + placeholders[key] + ' ' for key in sorted(placeholders)) +
-                   ' '.join(command) + '\n')
+                   ''.join(key + '=' + placeholders[key] + ' ' for key in sorted(placeholders)))
+        # Every host job starts from an isolated source tree. Initialize the
+        # pinned backend/provider before consuming the approved binary plan;
+        # initialization never creates a replacement plan or upgrades locks.
+        commands = [command] if operation == 'init' else [native_command('init'), command]
+        script += ''.join(environment + ' '.join(item) + '\n' for item in commands)
         rc = ('provider_installation { filesystem_mirror { path = "/job/mirror" include = ["' + pe.SOURCE + '"] } }\ndisable_checkpoint = true\n').encode()
         files = {'worker.sh': script.encode(), 'tofu.rc': rc,
                  'operation.json': canonical({'schema_version': VERSION, 'operation': operation,
-                    'argv': list(command), 'binding_sha256': digest(self.binding()),
+                    'argv': list(command), 'commands': [list(item) for item in commands], 'binding_sha256': digest(self.binding()),
                     'saved_plan_sha256': _sha(saved_plan) if saved_plan is not None else None,
                     'execution_authorized': False,
                     'credential_placeholder_binding_sha256': credentials.execution_binding_sha256 if credentials is not None else None})}

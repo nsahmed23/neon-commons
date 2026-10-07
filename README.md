@@ -1,4 +1,31 @@
-# Intune Workbench 0.8.0 continuation candidate
+# Intune Workbench — R4 continuation
+
+This work continues verified **0.8.0** source
+`289ee9477372825aad848f4482cf681c2ff43b02` under the
+[strict acceptance contract](docs/STRICT-CONTINUATION-CONTRACT-R4.md).
+The current [checkpoint](docs/CONTINUATION-R4-CHECKPOINT.md),
+[requirement ledger](docs/CONTINUATION-R4-LEDGER.json),
+[bounded operating profile](docs/OPERATING-PROFILE-R4.md) and
+[external procedures](docs/EXTERNAL-GATES-R4.md) govern new work.
+New views, queue/history, authenticated observation adapters, visual workspace
+and protected native worker components retain their exact local evidence scopes.
+Final R4 artifact qualification is still underway. Laboratory completion is
+incomplete, required platform routes are unqualified, and organizational
+production approval is absent.
+
+Use `python -B scripts/intune-iac.py --help` and `doctor` to discover actual
+routes and host limits. The text interface remains the reference. Protected
+service commands prepare, review and observe durable work; execution authority
+belongs to the separately protected host controller. Native Windows storage
+remains unsupported while its isolated implementation and native qualification
+are completed. Do not infer support from help output or a Linux test pass.
+
+The preserved 1,242-test R3 result and 1,141-test R2 result apply to their
+original source and artifacts. They do not qualify modified R4 bytes. All six
+saved threads, original inputs, contrary evidence and provenance findings remain
+part of complete layered recovery.
+
+# Historical 0.8.0 continuation candidate
 
 This candidate continues the integrity-verified 0.7.0 source at commit `74130d0db99febf2f41cf4f4ebe2920a5d4dffb7`. The preserved 1,141-test result belongs to that exact R2 source and its recorded Linux laboratory scope. New package receipts determine qualification of 0.8.0; an older passing total never qualifies changed bytes.
 

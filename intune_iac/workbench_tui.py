@@ -21,12 +21,36 @@ from .io import AppError, load_json, write_json
 MAX_COMMAND = 16384
 MAX_RENDER_LINES = 200000
 CONTEXT_VERSION = 'intune-workspace-context/1'
+SERVICE_NAVIGATION_VERSION = 'workbench-service-navigation/1'
+SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
+SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'health', 'operations', 'views', 'help'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help')
 ANSI_START = '\x1b[?1049h\x1b[?25l\x1b[?2004h'
 ANSI_END = '\x1b[0m\x1b[?2004l\x1b[?25h\x1b[?1049l'
+
+
+def _service_path(value):
+    return (type(value) is str and 1 <= len(value) <= 4096 and Path(value).is_absolute()
+            and '..' not in Path(value).parts and not any(ord(c) < 32 or ord(c) == 127 for c in value))
+
+
+def _service_command(action, navigation):
+    return 'service-' + action + ' ' + shlex.quote(navigation['job_root']) + ' ' + shlex.quote(navigation['policy_path'])
+
+
+def _service_parts(parts):
+    return (len(parts) == 3 and parts[0] in {'service-' + action for action in SERVICE_READ_ACTIONS}
+            and all(_service_path(value) for value in parts[1:]))
+
+
+def _valid_service_navigation(value):
+    return (type(value) is dict and set(value) == {'schema_version', 'job_root', 'policy_path', 'read_action'}
+            and value['schema_version'] == SERVICE_NAVIGATION_VERSION
+            and type(value['read_action']) is str and value['read_action'] in SERVICE_READ_ACTIONS
+            and _service_path(value['job_root']) and _service_path(value['policy_path']))
 
 
 def safe_text(value):
@@ -210,6 +234,7 @@ class Workspace:
         self.operation_highlight = 0
         self.active_operation = None
         self.execution_result = None
+        self.active_service = None
         self.pending = deque()
         self.size = terminal_size(self.stdout)
         self.key_reader = None
@@ -223,27 +248,36 @@ class Workspace:
             self.view_command = value['view_command']
             self.page_command = value['page_command']
             self.tab = value['tab']
-            # Never replay saved user commands or operation paths.
+            self.active_service = value.get('service_navigation')
+            service_view = _service_parts(shlex.split(self.view_command))
+            # Only validated navigation resumes. Service paths carry no receipt,
+            # signature, runtime capability or permission to dispatch execution.
             self.pending.append(self.page_command)
             if self.selected:
                 self.pending.append('select ' + shlex.quote(self.selected))
-            if self.view_command != self.page_command and (self.selected or self.view_command in ('help', 'health', 'operations', 'views')):
+            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views')):
                 self.pending.append(self.view_command)
             self.context_valid = True
 
     def _validate_context(self, value):
         from .workbench_store import _identity
         required = {'schema_version', 'tenant_id', 'selected', 'view_command', 'page_command', 'tab'}
-        if (not isinstance(value, dict) or set(value) != required or value['schema_version'] != CONTEXT_VERSION
+        if (not isinstance(value, dict) or not required <= set(value) <= required | {'service_navigation'} or value['schema_version'] != CONTEXT_VERSION
                 or value['tenant_id'] != self.store.tenant_id or type(value['tab']) is not int or not 0 <= value['tab'] < len(TABS)):
             raise AppError('workspace_context_invalid', 'Workspace context is invalid; preserve it for inspection before reopening.')
         if value['selected'] is not None: _identity(value['selected'])
+        navigation = value.get('service_navigation')
+        if navigation is not None and not _valid_service_navigation(navigation):
+            raise AppError('workspace_context_invalid', 'Only bounded read-only service navigation may resume.')
         for key in ('view_command', 'page_command'):
             command = value[key]
             if type(command) is not str or len(command) > MAX_COMMAND:
                 raise AppError('workspace_context_invalid', 'Workspace navigation exceeds its bounds.')
-            parts = shlex.split(command)
+            try: parts = shlex.split(command)
+            except ValueError: raise AppError('workspace_context_invalid', 'Workspace navigation is not a complete read-only command.')
             valid = (len(parts) == 1 and parts[0] in READ_VIEWS)
+            if _service_parts(parts):
+                valid = navigation is None or parts[1:] == [navigation['job_root'], navigation['policy_path']]
             if parts and parts[0] == 'history-recent':
                 valid = (value['selected'] is not None and 1 <= len(parts) <= 3 and
                          all(p.isascii() and p.isdigit() for p in parts[1:]) and
@@ -264,7 +298,8 @@ class Workspace:
         if self.context_path.exists() or self.context_path.is_symlink(): _private(self.context_path)
         value = {'schema_version': CONTEXT_VERSION, 'tenant_id': self.store.tenant_id,
                  'selected': self.selected, 'view_command': self.view_command,
-                 'page_command': self.page_command, 'tab': self.tab}
+                 'page_command': self.page_command, 'tab': self.tab,
+                 'service_navigation': self.active_service}
         self._validate_context(value)
         write_json(self.context_path, value)
 
@@ -281,6 +316,7 @@ class Workspace:
             if object_id and self.last_command.startswith('select '):
                 if self.selected != object_id:
                     self.active_operation = None; self.execution_result = None
+                    self.active_service = None
                 self.selected = object_id
                 self.view_command = 'inspect'
             history_page = value.get('pagination', {}).get('scope') == 'history_page'
@@ -311,14 +347,28 @@ class Workspace:
             if isinstance(value.get('operation_root'), str):
                 if self.active_operation != value['operation_root']: self.execution_result = None
                 self.active_operation = value['operation_root']
+                self.active_service = None
             try: parts = shlex.split(self.last_command)
             except ValueError: parts = []
             if len(parts) >= 2 and parts[0] in ('execute', 'reconcile'):
                 self.active_operation = parts[1]
                 self.execution_result = value
+                self.active_service = None
+            action = value.get('interface_action')
+            if (type(action) is str and action in SERVICE_ACTIONS and
+                    type(value.get('service_job_root')) is str and type(value.get('service_policy')) is str):
+                navigation = {'schema_version':SERVICE_NAVIGATION_VERSION,
+                    'job_root':os.path.abspath(value['service_job_root']),
+                    'policy_path':os.path.abspath(value['service_policy']),
+                    'read_action':action if action in SERVICE_READ_ACTIONS else 'attach'}
+                if not _valid_service_navigation(navigation):
+                    raise AppError('workspace_context_invalid', 'Service navigation cannot be saved safely.')
+                self.active_service = navigation
+                self.active_operation = None; self.execution_result = None
+                self.view_command = _service_command(navigation['read_action'], navigation)
             if self.last_command in READ_VIEWS and not history_page: self.view_command = self.last_command
-            # Persist only after successful result. Rendering never stores raw
-            # commands, approvals, paths, captures or credential material.
+            # Persist only after successful result. The explicit service route
+            # saves read-only paths, never approvals, captures or credentials.
             self.save_context()
             self.notice = 'Ready. : opens the complete text command bar; Esc cancels editing.'
         self.draw()
@@ -359,6 +409,34 @@ class Workspace:
                     field('Snapshot', item.get('snapshot_id', 'unknown'))
             if len(value['history']) > 12: rows.append('[SUMMARY] First 12 records; full result follows.')
             rows.append('[EXACT HISTORY]')
+        elif self.tab == 4 and value.get('evidence_class') == 'protected_service_journal':
+            rows.append('[PROTECTED SERVICE REVIEW]')
+            manifest = value.get('manifest', {})
+            for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Objects', 'object_ids'),
+                               ('Manifest SHA-256', 'manifest_sha256'), ('Plan SHA-256', 'saved_plan_sha256'),
+                               ('Profile', 'profile'), ('Expiry', 'expires_at'), ('Approval authority', 'authority')):
+                field(label, value.get(key, manifest.get(key, 'unknown')))
+            for label, key in (('Action', 'action'), ('Backend scope SHA-256', 'backend_scope_sha256'),
+                               ('Execution binding SHA-256', 'execution_binding_sha256'),
+                               ('Run binding SHA-256', 'run_binding_sha256'),
+                               ('Storage binding SHA-256', 'storage_binding_sha256'),
+                               ('Identity binding SHA-256', 'identity_binding_sha256')):
+                field(label, manifest.get(key, 'unknown'))
+            rows.extend(wrap('Review is read-only. This terminal cannot sign or dispatch the protected service operation.', width))
+            rows.append('[EXACT MANIFEST / SIGNATURE DOMAIN / APPROVAL SCOPE] Full engine values follow.')
+        elif self.tab == 5 and value.get('evidence_class') == 'protected_service_journal':
+            rows.append('[PROTECTED SERVICE EXECUTION]')
+            for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Objects', 'object_ids'),
+                               ('Manifest SHA-256', 'manifest_sha256'), ('Plan SHA-256', 'saved_plan_sha256'),
+                               ('Durable status', 'status'), ('Cancellation requested', 'cancel_requested'),
+                               ('Recorded dispatches', 'dispatches'), ('Profile', 'profile'),
+                               ('CI attestation', 'ci_attestation')):
+                field(label, value.get(key, 'unknown'))
+            outcome = value.get('outcome')
+            field('Recorded outcome', outcome if outcome is not None else 'not recorded; outcome unknown')
+            rows.extend(wrap('A cancellation request does not establish termination. Host completion does not establish independent service or device convergence.', width))
+            rows.extend(wrap('Attach reads the durable journal. Recovery is an explicit text command and never replays execution.', width))
+            rows.append('[EXACT JOURNAL / CANCELLATION / OUTCOME] Full engine values follow.')
         elif self.tab == 4 and value.get('operation_id'):
             rows.append('[EXACT PLAN REVIEW]')
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
@@ -495,7 +573,9 @@ class Workspace:
         except (ValueError, IndexError): name = ''
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'compare': 3, 'review': 4,
-                'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7}
+                'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
+                'service-review': 4, 'service-status': 5, 'service-attach': 5,
+                'service-cancel': 5, 'service-recover': 5}
         if name in tabs: self.tab = tabs[name]
         self.last_command = command
         self.scroll = 0
@@ -510,6 +590,8 @@ class Workspace:
     def _tab_command(self, tab):
         self.tab = tab
         command = TAB_COMMANDS[tab]
+        if tab in (4, 5) and self.active_service is not None:
+            return self._send(_service_command('review' if tab == 4 else 'attach', self.active_service))
         if tab == 4 and self.active_operation:
             return self._send('review ' + shlex.quote(self.active_operation))
         if tab == 5 and self.execution_result is not None:
