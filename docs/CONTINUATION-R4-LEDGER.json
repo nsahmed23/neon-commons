@@ -1,6 +1,6 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T20:51:00.087616+00:00",
+  "recorded_at": "2026-10-07T21:08:03.267357+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
@@ -264,6 +264,13 @@
       "recorded_at": "2026-10-07T20:51:00.087616+00:00",
       "finding": "RawUnsupportedViewsTests source actor not established; root reviewed and retained it, original attribution remains open.",
       "evidence": "evidence/epoch-20261007-r4/service-views/ATTRIBUTION-OBSERVATION-01.json"
+    },
+    {
+      "id": "R4-LAB-CAPTURE-CONTEXT",
+      "status": "FAIL",
+      "description": "Independent reader review found low-level capture exports mark synthetic=false and template Atmos/Tofu versions for laboratory reader captures. Typed reader receipt remains graph_reader_laboratory, source_authenticity_verified=false; no live authority bypass demonstrated. Preserve historical bytes and repair future capture context at typed producer.",
+      "owner": "root capture implementation",
+      "evidence": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-contract-01/capture/export.json"
     }
   ],
   "rows": [
@@ -1718,7 +1725,8 @@
         "evidence/epoch-20261007-r4/worker-provider/INDEPENDENT-NATIVE-ASSERTIONS.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual pinned Atmos1.230.1/OpenTofu1.13.1/provider route qualified against local TLS service fixtures. Correct exact-plan arguments are two-token --from-plan --planfile; advertised --from-plan=... replanning failure retained. Native local import/no-change/change/exact-plan/readback/convergence completed; real platform and combined worker integration remain open.",
@@ -1772,9 +1780,19 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
         }
       ],
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "B07",
@@ -1799,7 +1817,8 @@
         "evidence/epoch-20261007-r4/independent/runtime-deleted-after/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
@@ -1889,10 +1908,20 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "B08",
@@ -1917,10 +1946,11 @@
         "evidence/epoch-20261007-r4/independent/runtime-deleted-after/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
+      "limitation": "Local native fault controls retain partial policy effects, assignment403 failure, cancellation after policy commit and after state persistence, original scope/lease/metadata and outcome_unknown. Explicit signed stranded-lease recovery and same-authority successor transfer remain staged. Native platform qualification is absent.",
       "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
       "blocker_owner": null,
       "depends_on": [
@@ -2007,10 +2037,20 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "B09",
@@ -2447,7 +2487,8 @@
         "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
         "evidence/epoch-20261007-r4/worker-host/qualified-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/worker-host/BOUNDARY-REPAIR-RECEIPT.json",
-        "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source.",
@@ -2500,8 +2541,18 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json",
           "sha256": "5835cfed8d6b288cd1c94cd5c2a0ef1baf55b62544de13e24c6fa09aa96fefce"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
         }
-      ]
+      ],
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "B14",
@@ -3080,7 +3131,8 @@
       "test_procedure_id": "R4-C09",
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
-        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json"
+        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/service-views/native-health-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Local independent checks retain targeted/reporting denominators and unknown endpoint effectiveness. Collection success cannot hide missing policy reports. No actual device/service evidence; current per-policy repair also has preserved failing-before and passing-after logs under queue/.",
@@ -3105,7 +3157,7 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
@@ -3126,8 +3178,13 @@
         {
           "path": "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
           "sha256": "57236b8fa23ff941a2d59f0d91f4c24311ecfd9d1f21148c281b10618cc3dc7f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/native-health-01/RESULT.json",
+          "sha256": "6ab6e9d2761c27b0903eb212bf64600ffc17090147e4099aebe7989339298902"
         }
-      ]
+      ],
+      "remaining_local_evidence": "Actual healthCLI on native successfulservice store passes5 independent assertions: endpointhealth/outcome/approval unknown, alldevicedenominators null, norolloutauthority, exactdatabaseunchanged. Releasedartifact linkage pending; enrolleddeviceevidence blocked."
     },
     {
       "id": "C10",
@@ -3321,18 +3378,20 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D01",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -3346,7 +3405,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3354,8 +3425,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c"
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae"
       },
       "evidence_receipts": [
         {
@@ -3369,8 +3440,17 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
-      ]
+      ],
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
     },
     {
       "id": "D02",
@@ -3437,18 +3517,20 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D03",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3464,7 +3546,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3472,8 +3566,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c"
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae"
       },
       "evidence_receipts": [
         {
@@ -3487,8 +3581,17 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
-      ]
+      ],
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
     },
     {
       "id": "D04",
@@ -3497,18 +3600,20 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D04",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3526,7 +3631,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3534,8 +3651,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c"
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae"
       },
       "evidence_receipts": [
         {
@@ -3549,8 +3666,17 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
-      ]
+      ],
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
     },
     {
       "id": "D05",
@@ -3559,18 +3685,20 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D05",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3587,7 +3715,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3595,8 +3735,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c"
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae"
       },
       "evidence_receipts": [
         {
@@ -3610,8 +3750,17 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
-      ]
+      ],
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
     },
     {
       "id": "D06",
@@ -3620,7 +3769,7 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "2b0bcb998fbba49a8a232174c1858da162639957",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D06",
@@ -3633,11 +3782,13 @@
         "evidence/epoch-20261007-r4/service-ui/SOURCE-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3654,7 +3805,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3664,8 +3827,8 @@
       "source_file_sha256": {
         "intune_iac/workbench_store.py": "6889c5b6f2a1f22a56148b72978731ad4f172f9e866d502a2b767d27603562e9",
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c",
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae",
         "intune_iac/workbench_health.py": "020138af9ea56d5b9e81f916553e48d2bdf2114ff8eb014ddd6e2c58a646ca4b",
         "intune_iac/workbench_service_views.py": "52fa1f31bba6de6a72fb43731d89b544567ed06477cdd8df86c526e519e46416",
         "intune_iac/service_cli.py": "2da766e6cfd2b42c07e00cd283c8d49954ae61eb9ffd95fcef90cbd9c391f879"
@@ -3694,9 +3857,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
       ],
-      "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
     },
     {
@@ -3706,7 +3877,7 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "2b0bcb998fbba49a8a232174c1858da162639957",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D07",
@@ -3718,11 +3889,13 @@
         "evidence/epoch-20261007-r4/service-ui/SOURCE-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3739,7 +3912,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3747,8 +3932,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c",
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae",
         "intune_iac/workbench_service_views.py": "52fa1f31bba6de6a72fb43731d89b544567ed06477cdd8df86c526e519e46416",
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
         "intune_iac/workbench_store.py": "6889c5b6f2a1f22a56148b72978731ad4f172f9e866d502a2b767d27603562e9",
@@ -3786,9 +3971,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
       ],
-      "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
     },
     {
@@ -3798,7 +3991,7 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "2b0bcb998fbba49a8a232174c1858da162639957",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D08",
@@ -3810,11 +4003,13 @@
         "evidence/epoch-20261007-r4/service-ui/SOURCE-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -3831,7 +4026,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3839,8 +4046,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c",
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae",
         "intune_iac/workbench_service_views.py": "52fa1f31bba6de6a72fb43731d89b544567ed06477cdd8df86c526e519e46416",
         "intune_iac/workbench_views.py": "777645fbb9aebc19b82312907c5ed9cb311d92841c430e3b96ed5a22957be889",
         "intune_iac/workbench_store.py": "6889c5b6f2a1f22a56148b72978731ad4f172f9e866d502a2b767d27603562e9",
@@ -3878,9 +4085,17 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
           "sha256": "770052fa598dcf8ee872a0c0b16652f0002519259f3b68b157eddfcdedbcc48e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
       ],
-      "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
     },
     {
@@ -3890,18 +4105,20 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D09",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D01"
@@ -3915,7 +4132,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -3923,8 +4152,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c"
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae"
       },
       "evidence_receipts": [
         {
@@ -3938,8 +4167,17 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
-      ]
+      ],
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
     },
     {
       "id": "D10",
@@ -4006,18 +4244,20 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
+      "observed_source_revision": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D11",
       "evidence_path": [
         "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
-        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
         "D03",
@@ -4038,7 +4278,19 @@
         "workbench terminal"
       ],
       "new_entrypoints_verified": true,
-      "new_verification_commands": [],
+      "new_verification_commands": [
+        [
+          "/workspace/intune-runtime/bin/python",
+          "-B",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/visual_native_followup.py",
+          "--source",
+          "/workspace/intune-continuation/work/projects/intune",
+          "--native-evidence",
+          "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native-service-journey-03",
+          "--output",
+          "NEW_DIRECTORY"
+        ]
+      ],
       "evidence_reuse": [],
       "outcomes": {
         "laboratory": "IMPLEMENTED",
@@ -4046,8 +4298,8 @@
         "organizational_production_approval": "BLOCKED"
       },
       "source_file_sha256": {
-        "intune_iac/workbench.py": "32f0f680372a5718e84024d25fb03d97254e4602093870c1dd8dde5808db024c",
-        "intune_iac/workbench_tui.py": "4712792c1fc80179d47b92e7c78f83eb5946650b8b06ddc9283d0a341ec69e8c"
+        "intune_iac/workbench.py": "9698ed0df70a29a755c08636d097988a76472a9f992836c533e98685b2c6ac25",
+        "intune_iac/workbench_tui.py": "9ef2449638787e14b7ea45f3780240feb23f5c32260ac790e9a0e6972ac556ae"
       },
       "evidence_receipts": [
         {
@@ -4061,8 +4313,17 @@
         {
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
+          "sha256": "2c967116ac68ea9a81925eedf43937cab523b38f612600ab87f5eae7c7933d71"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
+          "sha256": "99b817f69d14b59b3582f84e2448bf676f6a63f031bff9905a3406d99f7a185b"
         }
-      ]
+      ],
+      "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending"
     },
     {
       "id": "D12",
@@ -8028,7 +8289,9 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-possible-commit-timeout",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
@@ -8394,7 +8657,19 @@
         "entry": "FAULT-09"
       },
       "remaining_local_evidence": "Current service/broker native path needs timeout-after-possible-commit and sealed reconcile under final bytes.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        }
+      ],
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "E-FAULT-10",
@@ -8407,7 +8682,9 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-policy-success-assignment-failure",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
@@ -8485,8 +8762,20 @@
         "sha256": "1edd0abf2e82e80f7549f6952b505c2e07f176c6de7903c09571d38a9f035b07",
         "entry": "FAULT-10"
       },
-      "remaining_local_evidence": "R4 composed worker policy-success/assignment-failure journey NOT FOUND. Existing plugin_tests.test_maintenance.MaintenanceTests.test_policy_success_assignment_failure_remains_diverged is historical modeled route; do not promote to changed native service PASS.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "remaining_local_evidence": "Actual native policyPUT204 followed by conformant assignmentPOST403 is preserved at native-assignment-failure-01; expected partial Graph effect, unchanged state, retained lease/ownership and outcome_unknown pass16 scoped producerassertions. New explicit recovery currently in progress; exact final artifact linkage remains.",
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        }
+      ],
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "E-FAULT-11",
@@ -8499,7 +8788,9 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-cancel-acquire-write-receipt",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
@@ -8655,8 +8946,20 @@
         "sha256": "1edd0abf2e82e80f7549f6952b505c2e07f176c6de7903c09571d38a9f035b07",
         "entry": "FAULT-11"
       },
-      "remaining_local_evidence": "Explicit cancellation during native lease acquisition and during durable evidence recording NOT FOUND as distinct service assertions. Active-controller recovery owner race test exists newer; bind final receipt.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "remaining_local_evidence": "Actual native acquisition cancellation passes14 assertions in broker/native-cancel-acquire-01; policycommit and state-evidence cancellation each pass15 assertions. All use actual cancellationCLI, retain uncertain result/lease/ownership and stoppedhost. Finalchangeddependency verification pending.",
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        }
+      ],
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "E-FAULT-12",
@@ -8784,7 +9087,9 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-historical-restoration",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
@@ -8821,7 +9126,7 @@
         "workbench health",
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [
         {
@@ -8857,8 +9162,20 @@
         "sha256": "1edd0abf2e82e80f7549f6952b505c2e07f176c6de7903c09571d38a9f035b07",
         "entry": "FAULT-13"
       },
-      "remaining_local_evidence": "Restoring historical policy as new approved mutation is DIFFERENT from store backup restoration. R4 changed service version of test_restore_is_fresh_reviewed_operation_not_original_replay NOT FOUND; historical maintenance test preserves valid narrower evidence.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "remaining_local_evidence": "Fresh native historical restoration now passed17producer assertions with new exact plan/operation/approval, independent readback, serial14-to15 and no-change second plan. Original failed partial-write recovery is separate and still being implemented/qualified; independent final artifact verification pending.",
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+          "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        }
+      ],
+      "native_fault_increment": {
+        "observed_parent": "beb9daf7424e42f30c2d58c02014b7568289a3ae",
+        "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
+        "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
+        "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      }
     },
     {
       "id": "E-FAULT-14",
@@ -9750,7 +10067,7 @@
         "sha256": "1edd0abf2e82e80f7549f6952b505c2e07f176c6de7903c09571d38a9f035b07",
         "entry": "FAULT-16"
       },
-      "remaining_local_evidence": "Early R4 pass has older workbench/store hashes. Current full inventory and richer TUI duplicate-name immutable selection should receive targeted final smoke; do not count mere duplicate fixture names as assertion.",
+      "remaining_local_evidence": "Independent visual-native-after-02 verifies two separately captured same-name objects and actual PTY up/down/Enter immutableID selection, against exactUI hashes. Finalpackage linkage pending.",
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     },
     {
@@ -9764,7 +10081,9 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-conflicting-reference-updates",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/source-acceptance/conflict-01/RESULT.json"
+      ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
@@ -9801,7 +10120,7 @@
         "workbench health",
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [
         {
@@ -9890,8 +10209,14 @@
         "sha256": "1edd0abf2e82e80f7549f6952b505c2e07f176c6de7903c09571d38a9f035b07",
         "entry": "FAULT-17"
       },
-      "remaining_local_evidence": "Clarify scope: queue CAS and ownership conflict covered; two reviewed source/reference edits racing same authoritative Git/Atmos source not evidenced as fresh final journey.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "remaining_local_evidence": "Actual22-command CLI/Git journey passes11 independent assertions: two conflicting proposals against same authoritative inheritance source, first reviewedcommit wins, stale Gitpatch/productproposal rejected, reimportednewrevision creates bounded newproposal still requiringreview/freshplan. No remote branchprotection or platform approval established.",
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/source-acceptance/conflict-01/RESULT.json",
+          "sha256": "16a7ef329241d396ae8c05540f6dbe5ad3870fac63cb6fc9e03921fd0acf86f0"
+        }
+      ]
     },
     {
       "id": "E-FAULT-18",
@@ -9906,7 +10231,8 @@
       "test_procedure_id": "R4-FAULT-acceptance-without-endpoint",
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/estate-filters-02/RESULT.json",
-        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json"
+        "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/service-views/native-health-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -9944,7 +10270,7 @@
         "workbench health",
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [
         {
@@ -10283,6 +10609,10 @@
         {
           "path": "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
           "sha256": "57236b8fa23ff941a2d59f0d91f4c24311ecfd9d1f21148c281b10618cc3dc7f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/service-views/native-health-01/RESULT.json",
+          "sha256": "6ab6e9d2761c27b0903eb212bf64600ffc17090147e4099aebe7989339298902"
         }
       ],
       "fault_evidence_map": {
@@ -10290,9 +10620,9 @@
         "sha256": "1edd0abf2e82e80f7549f6952b505c2e07f176c6de7903c09571d38a9f035b07",
         "entry": "FAULT-18"
       },
-      "remaining_local_evidence": "Authenticated Graph completion currently being composed; ensure released UI/receipt explicitly retains device/endpoint unknown after service success.",
+      "remaining_local_evidence": "Actual healthCLI on native successfulservice store passes5 independent assertions: endpointhealth/outcome/approval unknown, alldevicedenominators null, norolloutauthority, exactdatabaseunchanged. Releasedartifact linkage pending; enrolleddeviceevidence blocked.",
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 4
+  "checkpoint_increment": 5
 }

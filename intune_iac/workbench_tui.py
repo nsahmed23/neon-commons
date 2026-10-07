@@ -327,7 +327,13 @@ class Workspace:
                 self.selected = value['object_id']
                 self.view_command = 'history-recent %d %d' % (value['pagination']['limit'], value['pagination']['offset'])
             if 'objects' in value and isinstance(value['objects'], list):
-                self.rows = [row for row in value['objects'] if isinstance(row, dict) and isinstance(row.get('object_id'), str)]
+                # The engine paginates mapped and pending identities together.
+                # Unsupported/denied observations remain selectable evidence,
+                # never silently disappear because no mapped snapshot exists.
+                pending = value.get('pending_observations', [])
+                candidates = value['objects'] + (pending if isinstance(pending, list) else [])
+                self.rows = sorted([row for row in candidates if isinstance(row, dict) and isinstance(row.get('object_id'), str)],
+                                   key=lambda row: row['object_id'])
                 self.highlight = min(self.highlight, max(0, len(self.rows) - 1))
                 page = value.get('pagination', {})
                 limit = page.get('limit', 10)
@@ -387,7 +393,20 @@ class Workspace:
             body = value.get('body', value)
             for key in ('settings', 'assignments'):
                 items = body.get(key) if isinstance(body, dict) else None
-                field(key.capitalize() + ' in this result', len(items) if isinstance(items, list) else 'unknown')
+                label = 'Normalized ' + key if isinstance(value.get('raw_capture_observation'), dict) else key.capitalize()
+                field(label + ' in this result', len(items) if isinstance(items, list) else 'unknown')
+            capture = value.get('raw_capture_observation')
+            if isinstance(capture, dict):
+                field('Literal capture status', capture.get('status', 'unknown'))
+                field('Literal collection coverage', capture.get('coverage', 'unknown'))
+                integrity = capture.get('capture_integrity', {}).get('status', 'unknown')
+                field('Literal byte integrity', integrity)
+                if integrity == 'verified_local_bytes':
+                    raw = capture.get('source', {}).get('raw_observed', {})
+                    for key in ('settings', 'assignments'):
+                        items = raw.get(key)
+                        field('Captured ' + key + ' records', len(items) if isinstance(items, list) else 'unknown')
+                rows.extend(wrap('Literal collected values are separate from normalized mapping; incomplete collection does not establish empty intent.', width))
             rows.append('[EXACT VALUES AND TARGETING] Full typed evidence follows.')
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
             rows.append('[TYPED RELATIONSHIPS]')
@@ -397,6 +416,12 @@ class Workspace:
                     field('  Evidence class', edge.get('assertion_class', 'See exact edge details; not independently authenticated'))
             if len(value['relationships']) > 20: rows.append('[SUMMARY] First 20 edges; complete edge records follow.')
             rows.append('[EDGE EVIDENCE AND UNCERTAINTY]')
+            if 'raw_observed_assignments' in value:
+                field('Literal capture status', value.get('raw_mapping_status', 'unknown'))
+                field('Literal byte integrity', value.get('raw_evidence_integrity', {}).get('status', 'unknown'))
+                assignments = value['raw_observed_assignments']
+                field('Captured assignment records', len(assignments) if isinstance(assignments, list) else 'unknown')
+                rows.append('[LITERAL TARGETING] Exact includes, exclusions, filters and mapping limitations follow.')
         elif self.tab == 3 and isinstance(value.get('history'), list):
             rows.append('[OBSERVATION HISTORY]')
             if value.get('order') == 'observed_at_desc_observation_id_desc':
@@ -504,6 +529,9 @@ class Workspace:
                 lines.extend(wrap('  %s | owner=%s | coverage=%s | health=%s | freshness=%s' %
                                   (row.get('name', 'unknown'), owner, coverage,
                                    health.get('status', 'unknown') if isinstance(health, dict) else 'unknown', row.get('freshness', 'unknown')), width))
+                if row.get('pending_observation'):
+                    lines.extend(wrap('  [PENDING OBSERVATION] ' + str(row.get('last_attempt', {}).get('status', 'unknown')) +
+                                      '; select for literal evidence and mapping limitations.', width))
             lines.append('')
             lines.append('[EVIDENCE] Page metadata and exact result follow below')
         elif self.tab in (4, 5) and self.operation_rows and isinstance(self.value.get('operations'), list):

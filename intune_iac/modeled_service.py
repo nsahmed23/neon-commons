@@ -19,11 +19,10 @@ from uuid import UUID
 
 from .io import AppError, canonical, digest, load_json, write_json, sync_directory
 
+from .observation_contract import BASE, FIELDS, MAX_OBJECTS
+
 VERSION = 'intune-stateful-model/1.0'
-BASE = 'https://intune-model.invalid/policies'
 GRAPH = 'https://graph.microsoft.com/beta/deviceManagement/configurationPolicies'
-FIELDS = frozenset({'name', 'description', 'platforms', 'technologies', 'role_scope_tag_ids', 'settings', 'assignments'})
-MAX_OBJECTS = 8
 MAX_REQUESTS = 4096
 MAX_VISIBILITY_DELAY_READS = 16
 MAX_STATE_BYTES = 8 * 1024 * 1024

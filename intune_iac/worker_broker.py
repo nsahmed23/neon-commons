@@ -28,6 +28,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit
 from . import identity_binding as ib
 from .azure_backend import NativeStateWriteContract
 from .worker_state import ComputedNativeStateWriteContract
+from .worker_state_recovery import DescriptionRecoveryStateWriteContract
 from . import worker_precondition as wp
 from .io import AppError, canonical, digest, parse_json
 from .provider_journey import _private
@@ -339,7 +340,7 @@ class EgressBroker:
         if set(self.state_contracts) != set(state_routes): _fail('broker_state_contract_invalid')
         for identifier, contract in self.state_contracts.items():
             route = state_routes[identifier]
-            if (type(contract) not in (NativeStateWriteContract, ComputedNativeStateWriteContract) or digest(contract.binding()) != route['state_contract_sha256'] or
+            if (type(contract) not in (NativeStateWriteContract, ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract) or digest(contract.binding()) != route['state_contract_sha256'] or
                     contract.binding().get('expected_semantic_sha256', contract.binding().get('admission_template_sha256')) != route['body_sha256']):
                 _fail('broker_state_contract_invalid')
         if credentials is not None and type(credentials) is not BrokerCredentials: _fail('broker_credential_binding')
@@ -366,7 +367,7 @@ class EgressBroker:
                         route['body_sha256'] != binding['approved_body_sha256'][targets[(route['method'], route['path'])]]):
                     _fail('broker_precondition_binding')
         for contract in self.state_contracts.values():
-            if type(contract) is ComputedNativeStateWriteContract:
+            if type(contract) in (ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract):
                 if precondition is None or contract.binding()['precondition_binding_sha256'] != digest(precondition.binding()):
                     _fail('broker_state_contract_invalid')
         self.guard, self.upstream = guard, upstream
@@ -530,7 +531,7 @@ class EgressBroker:
                     self.check(); self._check_dynamic(route, headers)
                 if route['effect'] == 'state_write':
                     contract = self.state_contracts[route['id']]
-                    if type(contract) is ComputedNativeStateWriteContract:
+                    if type(contract) in (ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract):
                         if self.graph_completion is None: self.graph_completion = self.precondition.completion()
                         admitted = contract.admit(body, completion=self.graph_completion)
                     else: admitted = contract.admit(body)

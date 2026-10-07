@@ -128,11 +128,15 @@ def runtime_files():
         'EXTERNAL-GATES-R4.md','SERVICE-VIEWS-R4.md','WORKER-PRECONDITION-R4.md',
         'WORKER-RECOVERY-R4.md','WORKER-SERVICE-R4.md','WORKER-STATE-R4.md',
         'WINDOWS-DIRECTORY-COMPONENT-R4.md','WINDOWS-STORAGE-COMPONENT-R4.md',
+        'WINDOWS-SQLITE-COMPONENT-R4.md','WINDOWS-WORKBENCH-ADAPTER-R4.md',
+        'DESCRIPTION-RECOVERY-R4.md',
+        'PACKAGE-QUALIFICATION-R4.md',
         'COMPLETE-LAYER-RESTORATION-R4.md','EVIDENCE-RESTORATION-R4.md',
         'CONTINUATION-LAYERS-R4.template.json'])
     names.extend(['scripts/intune-workbench.sh','scripts/intune-workbench.ps1',
                   'scripts/qualify-windows-workbench.py','native/worker-relay/relay.c',
                   'scripts/qualify-windows-directory.py','scripts/qualify-windows-storage.py',
+                  'scripts/qualify-windows-sqlite.py','scripts/qualify-windows-store.py',
                   'scripts/restore-evidence-layer.py','scripts/restore-complete-layers.py',
                   'scripts/verify-release-artifact.py'])
     return sorted(set(names))

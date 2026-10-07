@@ -267,10 +267,12 @@ def _inspection(store, object_id):
     """
     from .workbench_views import _intents, _latest, ownership
     value = store.inspect(object_id)
+    raw_capture = store.raw_capture_observation(object_id)
     intent = _latest(_intents(store, object_id, None))
     scope = intent['data']['scope'] if intent else None
     writer = ownership(store, object_id, scope)
-    return {**value, 'ownership': writer['status'], 'ownership_evidence': writer,
+    return {**value, 'raw_capture_observation': raw_capture,
+            'ownership': writer['status'], 'ownership_evidence': writer,
             'selected_repository': None if intent is None else {
                 'artifact_id': intent['artifact_id'], 'scope': scope,
                 'source_revision': intent['data'].get('source_revision'),
@@ -283,8 +285,18 @@ def _inspection(store, object_id):
 def _facet(store, object_id, facet):
     value = _inspection(store, object_id)
     body = value.get('body') or {}
+    capture = value.get('raw_capture_observation')
+    integrity = capture.get('capture_integrity', {}) if capture else {}
+    raw = capture['source'].get('raw_observed', {}) if capture and integrity.get('status') == 'verified_local_bytes' else {}
+    raw_scope = {'raw_capture_observation': capture, 'raw_evidence_integrity': integrity,
+        'name': value.get('name'), 'observed_at': value.get('observed_at'),
+        'raw_mapping_status': capture['status'] if capture else 'unknown',
+        'raw_collection_coverage': capture['collections'] if capture else [],
+        'raw_mapping_blockers': capture['source'].get('mapping_blockers', []) if capture else [],
+        'normalized_value_scope': 'retained_mapped_snapshot' if value.get('snapshot_id') else 'unavailable'}
     if facet == 'settings':
-        return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
+        return {**raw_scope, 'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
+                'raw_observed_settings': raw.get('settings'),
                 'settings': body.get('settings'), 'source': value.get('source'), 'coverage': value.get('coverage'),
                 'ownership': value['ownership'], 'ownership_evidence': value['ownership_evidence'],
                 'dictionary': _dictionary(store, object_id=object_id)}
@@ -295,7 +307,8 @@ def _facet(store, object_id, facet):
     adoption_edges = [{'relation': 'generated_from', 'target_id': row['data']['binding']['generated'][object_id]['path'],
                        'details': {'binding_sha256': row['data']['binding_sha256'], 'artifact_id': row['artifact_id']},
                        'assertion_class': 'historical_local_adoption'} for row in adoptions['adoptions']]
-    return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
+    return {**raw_scope, 'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
+            'raw_observed_assignments': raw.get('assignments'),
             'relationships': value.get('relationships', []) + adoption_edges + [edge for row in lineage['runs'] for edge in row['data'].get('relationships', [])],
             'source': value.get('source'), 'workflows': lineage, 'coverage': value.get('coverage'),
             'adoption_lineage': adoptions,

@@ -67,3 +67,33 @@ INTUNE_TEST_VALIDATOR_LIBRARY=/workspace/intune-continuation/work/evidence/epoch
 ```
 
 The runner must use a stable reviewed runtime inventory while preparing and executing its signed manifest. Every failed attempt remains retained; a successful isolated retry does not rewrite prior operation outcomes or close historical provenance/provider findings. These procedures perform only authorized local synthetic-fixture work and cannot establish platform qualification or production approval.
+
+## Qualified local protected native journey and fault controls
+
+`native-service-journey-03` completed the signed protected native path with the prepared Azure-backed binary plan. The broker admitted 33 requests, including exact policy PUT and assignment POST, fresh independently authenticated-interface reads before both writes, observation-bound computed state admission, native state persistence, metadata clearing and lease release. Independent Graph/backend readback released the operation reservation through `ServiceJob.reconcile`. The real text application reopened the same operation through `service attach` and `workbench service-link/views`; the exact raw unsupported observation remains navigable. A separately created native second plan was no-change and preserved state bytes. Its 17 assertions passed; its 181 fixture requests include 85 inherited preparation requests, so only 96 are new. None is real Graph/Azure/CI/device qualification.
+
+The successful receipt is SHA-256 `e10ed6da4841e210b6d8736f34e4c8c4ce084a43a7d03dcfbb8c5aeb9ae614af`. `TESTED-SOURCE-LINKAGE.json` preserves all 67 runtime package files matching the signed manifest and the four local integration harnesses (71 files), SHA-256 `6ace3c9a78616172addccb5c4f14c5b3f88a1b389b7fc1f2a3dc8a17d34dc9de`. This records exact tested working-tree bytes separately from the declared source revision; it does not retroactively assert that uncommitted changes were committed before execution.
+
+The second correction was an explicitly new restoration operation. `prepare_native_restoration.py` reused the prior independently checked state-14/no-change-plan evidence by exact state bytes, then generated a fresh restoration plan that reversed only the reviewed description. No import or prior lifecycle was repeated. `native_restoration_journey.py` signed and applied the new binary plan `62b5ce1f4483c7d8673a659ed9f45d0427cf0914b8baa332a7ceb152d9b7e3f7`, independently read it back, persisted state 15 and generated a no-change second plan. `native-restoration-journey-01/receipt.json` has SHA-256 `4e1335c982fe3f3c9dae44e3755c2e976055ebc5f5b5bfd723b4f54c709c5b44`. This is a new approval and operation, not replay or resumption of the old mutation.
+
+The following controls each use a separate copied synthetic fixture and a newly signed operation. Their expected operation result is failure/uncertainty; PASS below refers only to the independent negative-control assertions. They do not establish successful deployment, automatic cleanup authority, device effectiveness or host power-loss behavior.
+
+|Retained control|Demonstrated outcome|Receipt SHA-256|
+|---|---|---|
+|`native-assignment-failure-01` (16 assertions)|Policy PUT accepted, conformant assignment POST denied; policy effect retained, assignment/settings identity preserved, original state bytes retained, lease/metadata and operation reservation retained, no later write or false convergence.|`25d4c51fd49a6faa21d98edad2d126f8cbe6434ebba7f9b280d61da1fcce8537`|
+|`worker-broker/native-cancel-acquire-01` (14 assertions)|Actual cancel CLI after native lease acquisition; state and Graph unchanged, uncertain lease result retained, host stopped/removed; recovery inspector grants no release authority.|`f17166cb16fc383195f72e6342b608c655ecaa2bdc67e305079c3057ace947c8`|
+|`native-cancel-policy-01` (15 assertions)|Actual cancel CLI after policy commit but before the broker confirms its response; partial policy effect and unchanged backend state remain explicit; no replay/unlock.|`d0e0bbf4ad6a26a2f78f90836cacbc81b7868a954f233027aea10e3552ad2722`|
+|`native-cancel-state-evidence-01` (15 assertions)|Actual cancel CLI after state PUT persisted but before broker response evidence; state advances but outcome stays unknown, lock/metadata and reservation remain, no false reconciliation.|`130cd5cd202d7b3c75b1a2db39e9b26827ead6a84675ca6a464290f0b4630308`|
+
+The restoration exercise uses the successful known state; it does not erase or restore the separate partial-failure fixtures. Explicit recovery of their retained native leases and refreshed partial-state baselines requires its own reviewed operation. The existing computed-state profile rejects unreviewed provider refresh drift, so partial-state recovery cannot silently push an errored state file, weaken that gate, or turn refresh-only state adoption into accepted repository intent.
+
+Additional exact local replay entrypoints, using the same explicit validator-library environment as above:
+
+```sh
+PYTHONPATH=. python /workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native_assignment_failure.py NEW_PRIVATE_ATTEMPT_DIRECTORY
+PYTHONPATH=. python /workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native_cancel_write.py NEW_PRIVATE_ATTEMPT_DIRECTORY policy
+PYTHONPATH=. python /workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native_cancel_write.py NEW_PRIVATE_ATTEMPT_DIRECTORY state-evidence
+PYTHONPATH=. python /workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/native_restoration_journey.py NEW_PRIVATE_ATTEMPT_DIRECTORY
+```
+
+Counts above describe separate workloads and overlapping assertions, not an additive replacement for the historical 1,242/1,141 suites. The provider malformed-error finding and stopped untested repair remain unresolved; these conformant native paths do not qualify that failure mode or authorize retrying the rejected repair lane.

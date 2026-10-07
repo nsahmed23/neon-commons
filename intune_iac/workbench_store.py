@@ -8,7 +8,6 @@ or a power-loss qualification. No cloud authentication is implemented here.
 from __future__ import annotations
 
 from contextlib import contextmanager
-from functools import lru_cache
 from datetime import datetime, timezone
 import math
 import hashlib
@@ -23,10 +22,9 @@ from uuid import UUID
 
 from .io import AppError, canonical, digest, parse_json, sync_directory
 from .host_capabilities import require_profile
-require_profile('workbench_store')
-from .modeled_service import BASE, FIELDS, MAX_OBJECTS, ModeledService
+from .observation_contract import BASE, FIELDS, MAX_OBJECTS
+from .workbench_schema import SCHEMA_VERSION, _SCHEMA_SQL_V1, _MIGRATION_STATEMENTS, _SCHEMA_SQL, _schema_signature, _expected_schema, _validate_schema
 
-SCHEMA_VERSION = 2
 MAX_DOCUMENT = 2 * 1024 * 1024
 MAX_QUERY_ROWS = 1000
 MAX_QUERY_BYTES = 16 * 1024 * 1024
@@ -34,41 +32,6 @@ MAX_QUERY_STEPS = 10000000
 MAX_QUERY_SCAN_BYTES = 128 * 1024 * 1024
 _SECRET_KEYS = frozenset({'access_token', 'refresh_token', 'client_secret', 'password', 'authorization', 'private_key', 'api_key'})
 
-_SCHEMA_SQL_V1 = '''
-                BEGIN IMMEDIATE;
-                CREATE TABLE metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL);
-                CREATE TABLE collection_runs(run_id INTEGER PRIMARY KEY, tenant_id TEXT NOT NULL,
-                    started_at REAL NOT NULL, observed_at REAL NOT NULL, completed_at REAL,
-                    status TEXT NOT NULL, coverage TEXT NOT NULL, error_code TEXT, object_count INTEGER NOT NULL DEFAULT 0);
-                CREATE TABLE snapshots(snapshot_id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL,
-                    object_id TEXT NOT NULL, body_json TEXT NOT NULL);
-                CREATE TABLE observations(observation_id INTEGER PRIMARY KEY,
-                    run_id INTEGER NOT NULL REFERENCES collection_runs(run_id),
-                    snapshot_id TEXT NOT NULL REFERENCES snapshots(snapshot_id),
-                    tenant_id TEXT NOT NULL, object_id TEXT NOT NULL, observed_at REAL NOT NULL, source_json TEXT NOT NULL,
-                    UNIQUE(run_id, object_id));
-                CREATE INDEX observation_history ON observations(tenant_id,object_id,observed_at);
-                CREATE TABLE relationships(snapshot_id TEXT NOT NULL REFERENCES snapshots(snapshot_id),
-                    relation TEXT NOT NULL,target_id TEXT NOT NULL,details_json TEXT NOT NULL,
-                    PRIMARY KEY(snapshot_id,relation,target_id,details_json));
-                CREATE TABLE deployments(run_id INTEGER PRIMARY KEY REFERENCES collection_runs(run_id), data_json TEXT NOT NULL);
-                CREATE TABLE operations(sequence INTEGER PRIMARY KEY, operation_id TEXT NOT NULL,
-                    object_id TEXT, data_json TEXT NOT NULL, recorded_at REAL NOT NULL);
-                PRAGMA user_version=1;
-                COMMIT;
-            '''
-
-
-_MIGRATION_STATEMENTS = (
-    "CREATE TABLE run_details(run_id INTEGER PRIMARY KEY REFERENCES collection_runs(run_id), scope_json TEXT NOT NULL, source_json TEXT NOT NULL, evidence_class TEXT NOT NULL, domain TEXT NOT NULL)",
-    "CREATE TABLE run_scope_objects(run_id INTEGER NOT NULL REFERENCES collection_runs(run_id), object_id TEXT NOT NULL, PRIMARY KEY(run_id,object_id))",
-    "CREATE INDEX scoped_runs ON run_scope_objects(object_id,run_id)",
-    "CREATE TABLE collection_coverage(run_id INTEGER NOT NULL REFERENCES collection_runs(run_id), kind TEXT NOT NULL, owner_id TEXT NOT NULL, coverage TEXT NOT NULL, reason TEXT, page_count INTEGER NOT NULL, PRIMARY KEY(run_id,kind,owner_id))",
-    "CREATE TABLE object_heads(object_id TEXT PRIMARY KEY, run_id INTEGER NOT NULL REFERENCES collection_runs(run_id), observation_id INTEGER REFERENCES observations(observation_id), observed_at REAL NOT NULL, present INTEGER NOT NULL CHECK(present IN (0,1)), domain TEXT NOT NULL)",
-    "CREATE TABLE artifacts(sequence INTEGER PRIMARY KEY, artifact_id TEXT NOT NULL UNIQUE, tenant_id TEXT NOT NULL, kind TEXT NOT NULL, object_id TEXT, data_json TEXT NOT NULL, recorded_at REAL NOT NULL)",
-    "CREATE INDEX artifact_lookup ON artifacts(kind,object_id,sequence)",
-)
-_SCHEMA_SQL = _SCHEMA_SQL_V1 + '\nBEGIN IMMEDIATE;\n' + ';\n'.join(_MIGRATION_STATEMENTS) + ';\nPRAGMA user_version=2;\nCOMMIT;\n'
 _ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule','adoption',
     'repository_intent','ownership_index','provider_refresh','deployment_receipt','queue_review'})
 _UNSPECIFIED_PRIOR = object()
@@ -202,26 +165,6 @@ def _page(limit, offset):
     return limit, offset, False
 
 
-def _schema_signature(db):
-    return [tuple(row) for row in db.execute('SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY type,name')]
-
-
-@lru_cache(maxsize=2)
-def _expected_schema(version=SCHEMA_VERSION):
-    db = sqlite3.connect(':memory:')
-    try:
-        db.executescript(_SCHEMA_SQL_V1 if version == 1 else _SCHEMA_SQL)
-        return _schema_signature(db)
-    finally: db.close()
-
-
-def _validate_schema(db):
-    version = db.execute('PRAGMA user_version').fetchone()[0]
-    if version not in (1,SCHEMA_VERSION): _fail('workbench_schema_unsupported')
-    if _schema_signature(db) != _expected_schema(version): _fail('workbench_schema_invalid')
-    return version
-
-
 def _edges(body):
     edges = []
     for assignment in body['assignments']:
@@ -248,6 +191,7 @@ def _edges(body):
 class WorkbenchStore:
     """Versioned bounded synthetic observations; queries have no service effects."""
     def __init__(self, root, tenant_id=None):
+        require_profile('workbench_store')
         self.root = _private(root, True)
         self.path = _private(self.root / 'observations.sqlite3')
         # SQLite may roll back an interrupted write journal here. This is engine
@@ -261,6 +205,7 @@ class WorkbenchStore:
 
     @classmethod
     def create(cls, root, tenant_id):
+        require_profile('workbench_store')
         tenant_id = _identity(tenant_id)
         root = _path(root)
         if not root.parent.is_dir(): _fail('workbench_parent_required')
@@ -281,6 +226,7 @@ class WorkbenchStore:
 
     @contextmanager
     def _connection(self, write=False, recovery=False):
+        require_profile('workbench_store')
         _private(self.root, True); _private(self.path)
         for suffix in ('-journal', '-wal', '-shm'):
             candidate = Path(str(self.path) + suffix)
@@ -372,6 +318,8 @@ class WorkbenchStore:
                 self._store_coverage(db,run_id,[{'kind':'policies','owner_id':None,'coverage':status if status in ('denied','partial') else 'unknown','reason':code,'page_count':0}])
 
     def _read(self, service, fault):
+        require_profile('workbench_store')
+        from .modeled_service import ModeledService
         if type(service) is not ModeledService: _fail('workbench_modeled_service_required')
         manifest = service.snapshot()
         if manifest['current']['tenant_id'] != self.tenant_id: _fail('workbench_wrong_tenant')
@@ -410,6 +358,8 @@ class WorkbenchStore:
         return objects, revision
 
     def collect(self, service, *, observed_at=None, fault=None, deployment=None, source=None):
+        require_profile('workbench_store')
+        from .modeled_service import ModeledService
         self._require_v2()
         observed_at = _timestamp(observed_at)
         if fault not in (None,'deny','throttle','cross-origin','loop','partial','after-first-object','missing-coverage','before-publish'):
@@ -1117,6 +1067,7 @@ class WorkbenchStore:
         Backup origin/integrity must be checked against an independently retained
         receipt by the caller. SQLite consistency alone does not prove provenance.
         """
+        require_profile('workbench_store')
         backup = _private(backup)
         try:
             source = sqlite3.connect(backup.as_uri() + '?mode=ro', uri=True)

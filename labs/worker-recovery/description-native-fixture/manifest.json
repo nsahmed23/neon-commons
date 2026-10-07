@@ -1,0 +1,17 @@
+{
+  "literal_files": {
+    "approved-assignments.json": "099cb5412fa0cb8c4b1670ef279321f978b59285d4029c5dbf25308594dc1d8e",
+    "approved-policy.json": "6db2ae619a788889a6a0cfd6e87200f1bf82adb7bd18a110af222830d8979b8c",
+    "native-plan.json": "55ee4a302fd91524374ba544dd061bc5ca7375e642e584aff8892a4d0fb5dec3",
+    "observed-graph.json": "35a07a1989205de4f11b70b6c960fce65838f3bbf99c7a4426381a62f2f80623",
+    "persisted-state.json": "64589b745c85615f67d689cc918765f7aca6254dd7965c5067bb824824304aa8"
+  },
+  "native_prepare_receipt_sha256": "96c9d27d86bee987dc0fd0b87eb150f0f870c0ff6042a99c1de8f83c2d338625",
+  "platform_evidence": false,
+  "private_saved_plan_included": false,
+  "profile": "nonforwarding_synthetic_native_fixture_only",
+  "real_credentials": false,
+  "real_tenant_data": false,
+  "saved_plan_sha256": "e146310ff3b255c14fd4623a09ca40b0168fa37c2ab476b1fe90d70278674f8c",
+  "source_commit_observed": "beb9daf7424e42f30c2d58c02014b7568289a3ae"
+}

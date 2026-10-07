@@ -18,6 +18,7 @@ from .io import AppError, canonical, digest, parse_json
 from .provider_journey import _private
 from .worker_precondition import LiveGraphCompletion, LaboratoryGraphCompletion
 from .worker_state import ComputedNativeStateWriteContract
+from .worker_state_recovery import DescriptionRecoveryStateWriteContract
 
 _SEAL = object()
 MAX_BYTES = 16 * 1024 * 1024
@@ -89,7 +90,7 @@ def _collect(manifest, *, binding, backend_credential, completion, state_contrac
     if (type(backend) is not dict or backend.get('identity') != asdict(identity)
             or backend.get('backend') != asdict(target) or digest(backend) != manifest['backend_scope_sha256']):
         _fail('service_readback_backend_binding')
-    if type(state_contract) not in (NativeStateWriteContract, ComputedNativeStateWriteContract):
+    if type(state_contract) not in (NativeStateWriteContract, ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract):
         _fail('service_readback_state_contract')
     contract = state_contract.binding()
     if (len(manifest['state_contracts']) != 1 or contract not in manifest['state_contracts'].values()
@@ -132,7 +133,7 @@ def _collect(manifest, *, binding, backend_credential, completion, state_contrac
                 or headers.get('content-length') != str(len(response.body))):
             _fail('service_readback_state_unavailable_or_locked')
         revision = StateRevision.observe(response.body, etag=headers.get('etag'))
-        if isinstance(state_contract, ComputedNativeStateWriteContract):
+        if type(state_contract) in (ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract):
             admission = state_contract.admit(response.body, completion=completion)
         else:
             admission = state_contract.admit(response.body)

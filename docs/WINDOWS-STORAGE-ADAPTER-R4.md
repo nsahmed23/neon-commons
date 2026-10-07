@@ -2,6 +2,10 @@
 
 The current native Windows private Workbench store is **UNSUPPORTED**. This is an implementation gap, independently of missing host qualification. The first useful native implementation can be a private inspection/history client over the existing SQLite store. It need not port the Linux protected execution worker or weaken that worker's network boundary. This document is a code-derived implementation recommendation, not approval of a native profile or proof that an adapter exists.
 
+R4 continuation now includes an inactive [read-only SQLite snapshot component](WINDOWS-SQLITE-COMPONENT-R4.md) over pinned native directory/file handles. It does not enable this Workbench client or implement the write, sidecar-creation, recovery, backup or migration seam below. Its local contracts and executable native procedure are separate from absent Windows host qualification.
+
+The later [inactive Workbench storage adapter](WINDOWS-WORKBENCH-ADAPTER-R4.md) implements that storage seam and portable schema/query reuse for component qualification. The application host gate stays unsupported while native evidence, readers and terminal dependencies remain incomplete. The implementation map below records the original gap; the linked continuation describes its bounded implementation and unresolved native gates.
+
 ## Actual import and persistence dependencies
 
 | Discovered entrypoint | Current dependency | Consequence and bounded change |

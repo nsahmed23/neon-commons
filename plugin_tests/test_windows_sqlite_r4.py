@@ -1,7 +1,11 @@
 """Real local SQLite plus recorded Win32 calls; no native Windows evidence."""
 import hashlib
+import importlib.util
+import json
 from pathlib import Path
 import sqlite3
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -145,6 +149,47 @@ class WindowsSQLiteContractTests(unittest.TestCase):
         with self.assertRaises(AppError) as caught:
             with subject.read_snapshot(ROOT):pass
         self.assertEqual(caught.exception.code,'windows_directory_platform_unsupported')
+
+
+class WindowsSQLiteProcedureTests(unittest.TestCase):
+    def setUp(self):
+        self.script=Path(__file__).resolve().parents[1]/'scripts/qualify-windows-sqlite.py'
+        spec=importlib.util.spec_from_file_location('native_sqlite_procedure',self.script)
+        self.module=importlib.util.module_from_spec(spec);spec.loader.exec_module(self.module)
+
+    def test_independent_acl_oracle_rejects_bad_scope_owner_inherited_and_broad_entries(self):
+        import copy
+        sid='S-1-5-21-111-222-333-1001'
+        value={'schema':'independent-windows-sqlite-acl/1','current_sid':sid,'powershell_major':7,
+            'entries':[{'case':case,'kind':kind,'owner_sid':sid,'protected':True,
+                'aces':[{'sid':sid,'type':'Allow','inherited':False}]}
+                for case in ('clean','hot_journal','wal','hardlink') for kind in ('root','database')]}
+        self.assertTrue(self.module.independent_acl(value))
+        for key,bad in [('owner_sid','S-1-0-0'),('protected',False),('case','invented')]:
+            candidate=copy.deepcopy(value);candidate['entries'][0][key]=bad
+            self.assertFalse(self.module.independent_acl(candidate))
+        for key,bad in [('sid','S-1-1-0'),('type','Deny'),('inherited',True)]:
+            candidate=copy.deepcopy(value);candidate['entries'][0]['aces'][0][key]=bad
+            self.assertFalse(self.module.independent_acl(candidate))
+
+    def test_actual_linux_harness_is_blocked_before_fixture_or_native_commands(self):
+        if sys.platform=='win32':return
+        with tempfile.TemporaryDirectory() as temporary:
+            output=Path(temporary)/'evidence'
+            child=subprocess.run([sys.executable,'-B',str(self.script),'--fixtures','ABSENT_MUST_NOT_BE_READ',
+                '--output',str(output)],capture_output=True,timeout=10)
+            self.assertEqual(child.returncode,3,child.stderr)
+            receipt=json.loads((output/'RESULT.json').read_bytes())
+            self.assertEqual(receipt['status'],'BLOCKED');self.assertEqual(receipt['checks'],[])
+            self.assertEqual(receipt['commands'],[]);self.assertTrue(receipt['source_stable'])
+            self.assertFalse(receipt['workbench_profile_enabled'])
+
+    def test_actual_help_exposes_exact_native_procedure(self):
+        child=subprocess.run([sys.executable,'-B',str(self.script),'--help'],capture_output=True,timeout=10)
+        self.assertEqual(child.returncode,0,child.stderr)
+        for argument in (b'--fixtures',b'--output',b'--module-sha256',b'--powershell-sha256',b'--source-commit'):
+            self.assertIn(argument,child.stdout)
+        self.assertNotIn(b'--_hold-writer',child.stdout)
 
 
 if __name__=='__main__':unittest.main()

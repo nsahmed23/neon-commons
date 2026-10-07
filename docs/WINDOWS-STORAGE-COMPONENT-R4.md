@@ -4,6 +4,8 @@
 
 The implementation uses only actual native system APIs when invoked on native Windows. Other platforms fail before filesystem dispatch; there is no `fcntl` shim, POSIX-permission fallback, replacement of failed durability barriers or new worker/network authority. The existing Linux engine and persistence remain unchanged.
 
+The subsequent [inactive SQLite snapshot component](WINDOWS-SQLITE-COMPONENT-R4.md) reuses native metadata/read helpers for a separate read-only path. It does not bypass these namespace barriers, select a Workbench profile or make SQLite write/sidecar/recovery behavior qualified.
+
 ## Minimal integration seam
 
 Actual store callsites are `WorkbenchStore._private/create/_connection/backup/restore/migrate` and `io.sync_directory/write_json/mkdir_durable`. A future store-filesystem dependency should supply validated/pinned roots and regular files, exclusive creation, namespace persistence and exclusive backup publication. Keep the existing SQLite schema, transactions, query limits and independent assertions intact.

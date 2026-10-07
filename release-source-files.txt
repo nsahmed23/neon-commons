@@ -3192,3 +3192,29 @@ scripts/restore-complete-layers.py
 scripts/restore-evidence-layer.py
 intune_iac/windows_sqlite.py
 plugin_tests/test_windows_sqlite_r4.py
+
+# R4 reviewed inactive Windows persistence components and native qualification procedures.
+docs/WINDOWS-SQLITE-COMPONENT-R4.md
+docs/WINDOWS-WORKBENCH-ADAPTER-R4.md
+intune_iac/observation_contract.py
+intune_iac/workbench_schema.py
+intune_iac/windows_workbench.py
+plugin_tests/test_windows_workbench_r4.py
+scripts/qualify-windows-sqlite.py
+scripts/qualify-windows-store.py
+
+# R4 bounded description-only recovery contract and explicitly synthetic native fixtures.
+docs/DESCRIPTION-RECOVERY-R4.md
+docs/PACKAGE-QUALIFICATION-R4.md
+intune_iac/worker_state_recovery.py
+plugin_tests/test_worker_state_recovery_r4.py
+labs/worker-recovery/description-native-fixture/README.md
+labs/worker-recovery/description-native-fixture/approved-assignments.json
+labs/worker-recovery/description-native-fixture/approved-policy.json
+labs/worker-recovery/description-native-fixture/manifest.json
+labs/worker-recovery/description-native-fixture/native-plan.json
+labs/worker-recovery/description-native-fixture/observed-graph.json
+labs/worker-recovery/description-native-fixture/persisted-state.json
+
+# R4 reviewed separately signed exact native lease recovery; no implicit unlock.
+intune_iac/worker_lease_recovery.py

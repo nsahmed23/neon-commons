@@ -71,3 +71,16 @@ python3 -B -m unittest plugin_tests.test_worker_recovery_r4 -v
 The five checks cover the real module CLI/private exclusive output, expired
 inspection without byte changes, substituted policy/target rejection and retained
 hot-journal blocking. SQLite fixtures do not qualify an Azure lease release.
+
+The actual signed native worker cancellation control subsequently passed14
+independent assertions at
+`worker-broker/native-cancel-acquire-01/qualification-receipt.json` (SHA256
+`f17166cb16fc383195f72e6342b608c655ecaa2bdc67e305079c3057ace947c8`). A
+nonforwarding fixture triggered the real service cancel CLI only after the pinned
+native backend acquired its lease. The broker retained `outcome_unknown`, the
+exact proposal was recoverable from the journal, state/Graph bytes stayed
+unchanged, no provider writes or implicit unlock occurred, ownership remained
+reserved, and Docker confirmed stopped/removed cleanup. The synthetic remote
+lease remains preserved for investigation. The happy-journey runner's expected
+failure is retained separately from this negative-control acceptance receipt.
+This does not qualify live Azure recovery or authorize lease release.

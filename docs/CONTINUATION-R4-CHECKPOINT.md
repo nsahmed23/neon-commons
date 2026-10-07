@@ -383,3 +383,67 @@ assertions. These counts overlap other scopes and are not a release-suite total.
 Native fault/restoration exercises are continuing in new fixtures after this
 checkpoint. The old full-suite results remain unchanged; final integrated and
 package gates are still required.
+
+Increment4 committed as `beb9daf7424e42f30c2d58c02014b7568289a3ae` with
+explicit actor, staged-byte and file-list receipt `integration/COMMIT-04.json`.
+An exact detached checkout passed 221 tests in 16 listed changed-scope modules;
+the tracked tree remained clean. This includes all three previously failing
+missing-broker cases. It is not a replay of the complete older 144-test selection
+or either historical strict suite. See
+`integration/INCREMENT4-COMMITTED-CHECK-ADDENDUM.json` for the exact command and
+scope. Further native fault controls, explicit exceptional recovery and inactive
+Windows store integration continue beyond this checkpoint.
+
+
+## Increment 5 in progress — visual evidence and bounded Windows persistence
+
+The actual native journey was independently navigated through three Linux PTY
+sessions and the complete no-TTY route. Seventeen assertions pass, including
+selection of unsupported raw captures, exact setting ID 37 and targeting,
+protected-plan review, same-operation reattach, duplicate-name immutable identity
+and no journal mutation. Earlier missing selection/raw-value failures remain in
+`independent/visual-native-before-*`; root repair/source/replay receipt is
+`service-views/VISUAL-REPAIR-RECEIPT-03.json`. Unsupported mapping remains visible.
+
+The reviewed inactive Windows store reuses the exact schema and query engine,
+with native handle-bound persistence, intent/outcome receipts, bounded backup,
+pinned restore and recovery only into a new copy. Independent fault injection
+found primary errors masked by close failures, premature completed receipts and
+a missing early restore host guard; failing-before and passing-after receipts
+remain under `independent/windows-store-*`. Ordinary Windows support is still
+UNSUPPORTED pending native implementation integration and real host evidence.
+The Linux/recorded-Win32 component tests are not native Windows qualification.
+
+Native signed historical restoration completed with a new plan and operation,
+independent readback, state serial14-to15 and a second no-change plan. Native
+assignment403 and cancellation during acquisition, policy write and state
+evidence recording preserve uncertain/partial results, leases and ownership.
+See `worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json` and the separate broker
+acquisition receipt; counts remain separate and overlapping. Explicit signed
+lease recovery, narrow description-drift state admission and same-authority
+successor transfer are being implemented and qualified separately. No original
+approval or failed plan grants new execution authority.
+
+Current durable parent remains `beb9daf7424e42f30c2d58c02014b7568289a3ae`.
+The working tree contains this increment; the next commit receipt will record
+its exact paths and actor. Resume with `git status --short`, this checkpoint,
+and the latest `integration/COMMIT-*.json`, then continue the pending integrated
+recovery journey and exact-package gates. Laboratory completion remains
+incomplete; platform qualification and organizational approval remain blocked.
+
+The narrow description-recovery state contract is now integrated with exact-type
+broker/readback branches; ordinary drift rejection is unchanged. The one-shot
+lease recovery module is also preserved in this checkpoint; concurrency and
+actual TLS evidence is scoped to its recorded source. Successor transfer and
+its cancellation ownership repair remain staged outside runtime pending review.
+A new independent finding identifies laboratory capture export/context labels
+as non-synthetic and template tool versions despite correctly limited typed
+reader receipts. Historical captures remain unchanged; root is repairing future
+labels without minting live authority from caller-supplied context.
+
+An additional actual22-command source conflict journey passed11 independent
+assertions: competing proposals bind the same inherited source, first reviewed
+Git commit wins, stale patch/product proposal reject, and a freshly based
+proposal still requires review and a fresh plan. Native-success healthCLI also
+retains all endpoint/device unknowns and null denominators (five assertions).
+No live service, device or protected organizational review is inferred.
