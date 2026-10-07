@@ -1,0 +1,99 @@
+{
+  "status": "PASS_SCOPED_LOCAL_QUALIFICATION_AND_COMPLETE_LAYERED_DELIVERY",
+  "recorded_at": "2026-10-07T04:35:33.411384+00:00",
+  "source_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "immutable_handoff_tested_commit": "99a850d27178f02931a278396147068ca4116a2c",
+  "data_commit": "4b7f007542a0389259df5c0ba2635550e97dde1b",
+  "strict_tests": {
+    "tests": 1242,
+    "passed": 1242,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "scope": "exact extracted final03 source; runtime reuse separately established"
+  },
+  "public_handoff_files_verified": 134,
+  "complete_r3_evidence_archive": {
+    "path": "/workspace/intune-publication/r3-public-download/Intune_R3_Evidence_20261007.zip",
+    "bytes": 1013682416,
+    "sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35"
+  },
+  "r2_base_required": true,
+  "r2_zip_sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+  "complete_r3_replacement_repository_zip": false,
+  "laboratory_qualification": "Recorded exact package scopes passed",
+  "platform_qualification": "Partial; actual Linux native schema and Codex installation scopes only",
+  "organizational_production_approval": "Not granted",
+  "remaining_implementation": "Live worker and integrated Azure backend require reviewed boundaries; authenticated installed fleet collection and broader mappings remain unsupported",
+  "historical_and_actor_provenance_gaps": "Open; neither clean replay nor verified source bytes establish full workspace provenance closure",
+  "remote_refs": {
+    "refs/heads/intune-atmos-wally-handoff-20261004": "c923df585d9debf89b44880bd42eee5e65b45a4e",
+    "refs/heads/intune-atmos-wally-r3-20261007": "99a850d27178f02931a278396147068ca4116a2c",
+    "refs/heads/intune-r3-evidence-data-20261007": "4b7f007542a0389259df5c0ba2635550e97dde1b",
+    "refs/heads/intune-workbench-source-0.8.0": "289ee9477372825aad848f4482cf681c2ff43b02",
+    "refs/heads/main": "4ba077d93fecbf5f893ee13ef972c839cf13883d"
+  },
+  "preserved_delivery_evidence": [
+    {
+      "path": "delivery-evidence/PUBLIC-HANDOFF-READBACK.json",
+      "bytes": 110764,
+      "sha256": "f10592d27546c7d6badd764e4aac86b0a9680349a01b51289cbe70678f69dea0"
+    },
+    {
+      "path": "delivery-evidence/PUBLIC-R3-DOWNLOAD-RECEIPT.json",
+      "bytes": 1902,
+      "sha256": "84040f511447314e2ef0cfb41b0f2bfe34b48427831817e13f41401d41d67ba8"
+    },
+    {
+      "path": "delivery-evidence/PUBLIC-R3-RESTORE-COMMAND.json",
+      "bytes": 631,
+      "sha256": "bb763482ae8af3daf0ce29205800dd784cb86468cb3d99b648f35ba2096475f4"
+    },
+    {
+      "path": "delivery-evidence/PUBLIC-R3-RESTORE-STDOUT.json",
+      "bytes": 376,
+      "sha256": "6b83140b14561b15d9b2bf1f3059b608429c989ef97025a508dd4bc5cf09945e"
+    },
+    {
+      "path": "delivery-evidence/PUBLIC-R3-RESTORE-STDERR.log",
+      "bytes": 794,
+      "sha256": "01bda9dbc33764905126eaba674db96617685cb4a0b60a32bc8585d6a632d75f"
+    },
+    {
+      "path": "delivery-evidence/DATA-PUBLICATION-RECEIPT.json",
+      "bytes": 561,
+      "sha256": "6d9f0a0ed63aae398d55cda031cf2f1368da3b38a10e4b9cf0024d495dd4a565"
+    },
+    {
+      "path": "delivery-evidence/STAGED-AUDIT-FINAL.json",
+      "bytes": 33424,
+      "sha256": "93d11f610f9d191d9d14f1af787f8600ac5d2617cae1d38af3aed98d553c69aa"
+    },
+    {
+      "path": "delivery-evidence/GIT-INDEX-BYTE-VERIFICATION.json",
+      "bytes": 14484,
+      "sha256": "eba80de75baef6be8aac6f33d41ff78b7fdf2a7a4d4f4e3e184994b4d37a2189"
+    },
+    {
+      "path": "delivery-evidence/verify_public_handoff.py",
+      "bytes": 4411,
+      "sha256": "58ad74d9939d73167bbba8b1f22fe3a1df5495d58a3f4fa4c80f3fa6f20fb001"
+    },
+    {
+      "path": "delivery-evidence/verify_public_direct_v1.py",
+      "bytes": 4438,
+      "sha256": "4da793c5a90dadd00da09e38c18369eb88614565153f897c8ea7b5763f322cc1"
+    },
+    {
+      "path": "delivery-evidence/PUBLIC-READBACK-INITIAL-INTERRUPTED.json",
+      "bytes": 543,
+      "sha256": "88db29588ae782755f699f2a57a0e9cf474531b0aa729146dc0e59596ce536bc"
+    },
+    {
+      "path": "delivery-evidence/PUBLIC-READBACK-INITIAL-EXPECTED-FILES.json",
+      "bytes": 26139,
+      "sha256": "944b736c2f00104dc42b89df62e342fcef2a5e87188649387517bf0416f7acfa"
+    }
+  ],
+  "no_post_freeze_epoch_writes": true
+}

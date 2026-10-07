@@ -1,0 +1,9 @@
+{
+  "status": "INTERRUPTED_TRANSPORT_SETUP_PRESERVED",
+  "recorded_at": "2026-10-07T04:34:59.839898+00:00",
+  "reason": "Initial verifier disabled required execution-network HTTPS proxy; zero files completed. Independent one-file anonymous request through existing environment proxy returned HTTP200 and exact manifest9835 bytes in0.081seconds. Stop queued direct-network requests; use existing network route without origin Authorization/cookies.",
+  "terminated_process_ids": [
+    22282
+  ],
+  "source_publication_not_judged_failed": true
+}

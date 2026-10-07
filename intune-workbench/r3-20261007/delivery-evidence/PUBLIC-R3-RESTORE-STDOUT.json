@@ -1,0 +1,9 @@
+{
+  "archive": "/workspace/intune-publication/r3-public-download/Intune_R3_Evidence_20261007.zip",
+  "bytes": 1013682416,
+  "sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35",
+  "status": "PASS",
+  "extraction_performed": false,
+  "complete_repository": false,
+  "scope": "Exact R3 evidence supplement ZIP; complete R2 base is separately required"
+}

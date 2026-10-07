@@ -1,0 +1,950 @@
+{
+  "recorded_at": "2026-10-07T04:33:51.038464+00:00",
+  "status": "PASS_STAGED",
+  "checks": [
+    {
+      "name": "unique_browser_paths",
+      "passed": true
+    },
+    {
+      "name": "browser:work/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/docs/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/docs/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/attributed-working-caches/RECEIPT.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/attributed-working-caches/RECEIPT.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/capture-retry/qualify_capture_retry.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/capture-retry/qualify_capture_retry.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/change-security-review/final-289ee94/ACCOUNTING-CLOSURE.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/change-security-review/final-289ee94/ACCOUNTING-CLOSURE.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/change-security-review/final-289ee94/SECURITY-REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/change-security-review/final-289ee94/SECURITY-REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/commit-transition-provenance/RECEIPT.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/commit-transition-provenance/RECEIPT.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final-ledger-review/FAILED-FINAL01-LEDGER-SPOTCHECK.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final-ledger-review/FAILED-FINAL01-LEDGER-SPOTCHECK.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final-ledger-review/POST-COMPLETION-REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final-ledger-review/POST-COMPLETION-REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final-ledger-review/README.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final-ledger-review/README.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final-ledger-review/audit_ledger.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final-ledger-review/audit_ledger.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-commit-command/RECEIPT.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-commit-command/RECEIPT.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/independent-artifact-reuse-final03/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/independent-artifact-reuse-final03/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final01/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final01/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final01/strict-suite/result.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final01/strict-suite/result.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final01/strict-suite/test-log.txt",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final01/strict-suite/test-log.txt",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/CAPACITY-QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/CAPACITY-QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/preregistration.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/preregistration.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/preregistration.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/preregistration.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capacity-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/capture-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/connected-runtime/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/journey/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native-smoke.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/native.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/strict-suite/result.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/strict-suite/result.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/strict-suite/test-log.txt",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final02/strict-suite/test-log.txt",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/QUALIFICATION.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/REUSED-QUALIFICATION-EVIDENCE.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/REUSED-QUALIFICATION-EVIDENCE.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/artifact-binding.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/artifact-binding.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.stderr",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.stderr",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.stdout",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/build.stdout",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stderr",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stderr",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stdout",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source.stdout",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.stderr",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.stderr",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.stdout",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract-runtime.stdout",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.stderr",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.stderr",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.stdout",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/extract.stdout",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/independent-rebuild/Intune_IaC_Plugin_Archive_Receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/independent-rebuild/Intune_IaC_Plugin_Archive_Receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.stderr",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.stderr",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.stdout",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/rebuild.stdout",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/reproducibility.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/reproducibility.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite/result.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite/result.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite/test-log.txt",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite/test-log.txt",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.command.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.command.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stderr",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stderr",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stdout",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict.stdout",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/EVIDENCE-HASHES-FINAL02.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/EVIDENCE-HASHES-FINAL02.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/FINAL02-COMMANDS.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/FINAL02-COMMANDS.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/INDEPENDENT-SPOTCHECK-FINAL02.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/INDEPENDENT-SPOTCHECK-FINAL02.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/RESULT-FINAL02.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/RESULT-FINAL02.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/assertions.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/assertions.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/final-runtime-02/receipt.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/native-codex-container/independent-spotcheck-final02.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/native-codex-container/independent-spotcheck-final02.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/qualify_milestone_080.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/qualify_milestone_080.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/qualify_milestone_080_final03.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/qualify_milestone_080_final03.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/reconciliation/RECONCILIATION.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/reconciliation/RECONCILIATION.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/reconciliation/cleanup-evidence-linkage.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/reconciliation/cleanup-evidence-linkage.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/reconciliation/r2-evidence-linkage.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/reconciliation/r2-evidence-linkage.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-capture-independent-review/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-capture-independent-review/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-capture-independent-review/REVIEW.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-capture-independent-review/REVIEW.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-native-observation-independent-review/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-native-observation-independent-review/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-native-observation-independent-review/UNCHANGED-RUNTIME-AND-NATIVE-EVIDENCE.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-native-observation-independent-review/UNCHANGED-RUNTIME-AND-NATIVE-EVIDENCE.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-native-observation-repair/README.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-native-observation-repair/README.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-native-observation-repair/after-02.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-native-observation-repair/after-02.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-native-observation-repair/after.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-native-observation-repair/after.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-native-observation-repair/before.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-native-observation-repair/before.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-scheduler-independent-review/README.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-scheduler-independent-review/README.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-scheduler-independent-review/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-scheduler-independent-review/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/strict-scheduler-repair/README.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/strict-scheduler-repair/README.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/README.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/README.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/REVIEWER-COUNT-ADJUDICATION.txt",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-01/REVIEWER-COUNT-ADJUDICATION.txt",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/WORK-COPY-FOLLOWUP.txt",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-02/WORK-COPY-FOLLOWUP.txt",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/final-03/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/CHECKPOINT-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/EVIDENCE-INDEX.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/EXECUTION-SEQUENCE-20261007-R3.md",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/provisional-01/REVIEW.json",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/review_draft.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/review_draft.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/final03-ledger-review/review_final.py",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/final03-ledger-review/review_final.py",
+      "passed": true
+    },
+    {
+      "name": "browser:work/evidence/epoch-20261007-r3/EPOCH-FREEZE.json",
+      "passed": true
+    },
+    {
+      "name": "preserved_original:work/evidence/epoch-20261007-r3/EPOCH-FREEZE.json",
+      "passed": true
+    },
+    {
+      "name": "package:Intune_IaC_Plugin_0.8.0_Source.zip",
+      "passed": true
+    },
+    {
+      "name": "package:Intune_IaC_Plugin_0.8.0.zip",
+      "passed": true
+    },
+    {
+      "name": "preserved_package_guide:VENDOR-REFERENCE-LINEAGE.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_package_guide:HOSTS.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_package_guide:EXTERNAL-QUALIFICATION-R3.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_package_guide:WORKBENCH.md",
+      "passed": true
+    },
+    {
+      "name": "preserved_package_guide:CONTINUATION-R3.md",
+      "passed": true
+    },
+    {
+      "name": "ledger_current_source_revision",
+      "passed": true
+    },
+    {
+      "name": "ledger_keeps_full_R2",
+      "passed": true
+    },
+    {
+      "name": "readme_current_identity",
+      "passed": true
+    },
+    {
+      "name": "strict_actual_final03_pass",
+      "passed": true
+    },
+    {
+      "name": "distribution_manifest_exact",
+      "passed": true
+    },
+    {
+      "name": "helper_exact_reviewed_bytes",
+      "passed": true
+    },
+    {
+      "name": "manifest_complete_supplement_pin",
+      "passed": true
+    },
+    {
+      "name": "manifest_parts_exact_count_size_and_pinned_commit",
+      "passed": true
+    },
+    {
+      "name": "manifest_current_identity_and_separate_base",
+      "passed": true
+    },
+    {
+      "name": "build_receipt_binding",
+      "passed": true
+    },
+    {
+      "name": "freeze_pin",
+      "passed": true
+    },
+    {
+      "name": "historical_guides_clarified",
+      "passed": true
+    }
+  ],
+  "browser_files": 106,
+  "browser_bytes": 3343951,
+  "pending_readme_links": [],
+  "reviewed_index_sha256": "af44a0df854247963bf67c34109828245bba3aa768f65fb275869f40381d801d",
+  "readme_sha256": "01ad1b22c63594f4cb4ba5ecada3788a690ff237736208fc1d004afe8b3df477",
+  "concrete_credential_pattern_scan": {
+    "text_files": 128,
+    "bytes": 3525523,
+    "hits": [],
+    "scope": "High-confidence literal patterns in staged metadata/log/source text only; zero matches does not prove universal secret absence."
+  },
+  "identity_review": "Current README/checkpoint/ledger correctly use final03. c122/e8 identities remain historically scoped. guides/HOSTS.md preserves original package historical prose; current README explicitly directs newer Linux Codex scope to the current checkpoint/RESULT-FINAL02.",
+  "limitations": [
+    "Immutable anonymous public readback and separate full-supplement reconstruction remain pending.",
+    "No GitHub mutation, product tests or frozen epoch writes."
+  ]
+}

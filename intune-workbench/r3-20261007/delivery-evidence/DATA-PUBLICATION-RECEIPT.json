@@ -1,0 +1,12 @@
+{
+  "status": "PUBLISHED",
+  "data_commit": "4b7f007542a0389259df5c0ba2635550e97dde1b",
+  "branch": "intune-r3-evidence-data-20261007",
+  "part_count": 11,
+  "archive_bytes": 1013682416,
+  "archive_sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35",
+  "manifest": "/workspace/intune-publication/r3-assets/R3-EVIDENCE-DISTRIBUTION-MANIFEST.json",
+  "bare_repository": "/workspace/intune-publication/r3-evidence-data.git",
+  "duplicate_chunk_worktree_files_created": false,
+  "remote_commit": "4b7f007542a0389259df5c0ba2635550e97dde1b"
+}
