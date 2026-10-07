@@ -10,7 +10,9 @@ from __future__ import annotations
 import json
 import shlex
 import shutil
+import signal
 import textwrap
+import threading
 
 from .io import AppError, load_json
 
@@ -18,6 +20,17 @@ from .io import AppError, load_json
 def add_parser(commands):
     group = commands.add_parser('workbench', help='Persistent inspection, collection, history and explicitly synthetic maintenance')
     sub = group.add_subparsers(dest='workbench_command', required=True)
+    from .observation_jobs import add_parser as add_observer_parser
+    add_observer_parser(sub)
+    from .workbench_views import add_parser as add_views_parser
+    add_views_parser(sub)
+    workspace = sub.add_parser('workspace', help='Visual workspace over the complete text command engine; text fallback without a supported TTY')
+    workspace.add_argument('--root', required=True)
+    workspace.add_argument('--service-root')
+    workspace.add_argument('--theme', choices=('dark', 'light'), default='dark')
+    workspace.add_argument('--no-color', action='store_true')
+    workspace.add_argument('--reduced-motion', action='store_true', default=True,
+                           help='Keep all information without animation; also the default')
     init = sub.add_parser('init', help='Create a private tenant-scoped observation store; no IaC required')
     init.add_argument('--root', required=True)
     init.add_argument('--tenant', required=True)
@@ -219,6 +232,16 @@ def _facet(store, object_id, facet):
 
 def command(args):
     name = args.workbench_command
+    from . import observation_jobs
+    if name in observation_jobs.COMMANDS:
+        return observation_jobs.command(args)
+    from . import workbench_views
+    if name in workbench_views.COMMANDS:
+        return workbench_views.command(args)
+    if name == 'workspace':
+        from .workbench_tui import run_workspace
+        return run_workspace(args.root, service_root=args.service_root, theme=args.theme,
+                             no_color=args.no_color, reduced_motion=args.reduced_motion)
     if name == 'init':
         from .workbench_store import WorkbenchStore
         store = WorkbenchStore.create(args.root, args.tenant)
@@ -308,7 +331,9 @@ HELP = {
     'navigation': ['overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
-                   'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]', 'back', 'cancel', 'quit'],
+                   'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
+                   'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
+                   'field-semantics', 'back', 'cancel', 'quit'],
     'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
@@ -332,7 +357,49 @@ def _render(value, output_fn):
             output_fn(part)
 
 
-def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
+def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None):
+    """Retain interrupt intent even when a native callback translates its exception.
+
+    SQLite can turn KeyboardInterrupt from a progress callback into OperationalError.
+    A pending signal must therefore be checked outside that callback before rendering
+    a recoverable error or accepting another command. Native execution may install
+    its own cleanup handler temporarily; the existing handler is always delegated to
+    and restored. No signal handler is installed from non-main threads.
+    """
+    pending = False
+    installed = threading.current_thread() is threading.main_thread()
+    previous = signal.getsignal(signal.SIGINT) if installed else None
+
+    def receive_interrupt(signum, frame):
+        nonlocal pending
+        pending = True
+        if callable(previous):
+            previous(signum, frame)
+        elif previous != signal.SIG_IGN:
+            raise KeyboardInterrupt
+
+    def check_interrupt():
+        if pending:
+            raise KeyboardInterrupt
+
+    if installed:
+        signal.signal(signal.SIGINT, receive_interrupt)
+    try:
+        return _run_terminal(root, service_root=service_root, input_fn=input_fn,
+                             output_fn=output_fn, result_fn=result_fn, interrupt_check=check_interrupt)
+    except KeyboardInterrupt:
+        value = {'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'}
+        if result_fn is None:
+            _render(value, print if output_fn is None else output_fn)
+        else:
+            result_fn(value)
+        return {'status': 'interrupted', 'evidence_class': 'local_interface_result'}
+    finally:
+        if installed:
+            signal.signal(signal.SIGINT, previous)
+
+
+def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None):
     """Accessible line terminal; no shell invocation, animation, or hidden approval.
 
     The store, not the process, owns history. Closing this interface never stops
@@ -340,11 +407,24 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
     """
     input_fn = input if input_fn is None else input_fn
     output_fn = print if output_fn is None else output_fn
+    # A presentation adapter receives the same typed results and returns ordinary
+    # command input. It never owns another approval or execution implementation.
+    def present(value):
+        interrupt_check()
+        if result_fn is None:
+            _render(value, output_fn)
+        else:
+            result_fn(value)
     store = _store(root)
     selected = None
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
     def show_page(specification=None):
         target = page if specification is None else specification
+        if target['kind'] == 'views':
+            from .workbench_views import views
+            return views(store, limit=target['limit'], offset=target['offset'], query=target['query'],
+                         ownership_filter=target.get('ownership'), coverage_filter=target.get('coverage'),
+                         health_filter=target.get('health'))
         if target['kind'] == 'search': return _search(store, target['query'], limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'dictionary': return _dictionary(store, target['query'], limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'health': return _health(store, limit=target['limit'], offset=target['offset'])
@@ -356,11 +436,13 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
         page.update(candidate)
         return result
     initial_overview = show_page()
-    _render({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP}, output_fn)
-    _render(initial_overview, output_fn)
+    present({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP})
+    present(initial_overview)
     while True:
         try:
+            interrupt_check()
             line = input_fn('workbench> ')
+            interrupt_check()
             if len(line) > 16384: raise ValueError('command too long')
             parts = shlex.split(line)
             if not parts: continue
@@ -368,6 +450,24 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             if name in ('quit', 'exit') and not values:
                 return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
             if name == 'help' and not values: result = HELP
+            elif name == 'views' and len(values) <= 1:
+                from .workbench_views import views
+                if values and selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                result = views(store, selected, operation=values[0] if values else None, limit=10)
+            elif name == 'views-page' and 2 <= len(values) <= 6:
+                filters = [None if value == '-' else value for value in values[2:]]
+                filters += [None] * (4 - len(filters))
+                candidate = {'kind': 'views', 'limit': int(values[0]), 'offset': int(values[1]),
+                             'query': filters[0] or '', 'ownership': filters[1],
+                             'coverage': filters[2], 'health': filters[3]}
+                result = show_page(candidate)
+                page.clear()
+                page.update(candidate)
+                selected = None
+            elif name == 'field-semantics' and not values:
+                from .workbench_semantics import contract
+                result = contract()
             elif name in ('back', 'cancel') and not values:
                 selected = None
                 result = {'status': 'selection_cleared', 'mutation_dispatched': False}
@@ -379,7 +479,7 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
                     current = show_page()
                     pagination = current.get('pagination', current.get('observation_scope', {}).get('pagination', {}))
                     if pagination.get('next_offset') is None:
-                        _render({'status': 'end_of_observation_pages', 'pagination': pagination}, output_fn)
+                        present({'status': 'end_of_observation_pages', 'pagination': pagination})
                         continue
                     page['offset'] = pagination['next_offset']
                 selected = None
@@ -475,14 +575,14 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
                 from .modeled_service import ModeledService
                 result = store.collect(ModeledService(service_root))
             else: raise ValueError('unknown command')
-            _render(result, output_fn)
+            present(result)
         except EOFError:
             return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
         except KeyboardInterrupt:
-            _render({'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'}, output_fn)
+            present({'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'})
             return {'status': 'interrupted', 'evidence_class': 'local_interface_result'}
         except AppError as error:
-            _render({'status': 'error', 'error': {'code': error.code, 'message': error.message}}, output_fn)
+            present({'status': 'error', 'error': {'code': error.code, 'message': error.message}})
         except (ValueError, TypeError, KeyError, OSError):
-            _render({'status': 'error', 'error': {'code': 'invalid_workbench_request',
-                     'message': 'Command or local input is invalid. Enter help for exact syntax.'}}, output_fn)
+            present({'status': 'error', 'error': {'code': 'invalid_workbench_request',
+                     'message': 'Command or local input is invalid. Enter help for exact syntax.'}})

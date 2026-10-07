@@ -1,0 +1,243 @@
+# Repository, observed, proposed and coverage views
+
+`workbench views` joins the existing private observation store, literal Atmos
+resolver and exact-plan maintenance engine. It does not grant provider, Graph,
+backend or organizational authority. The text terminal exposes `views
+[OPERATION_DIRECTORY]` for the selected identity; `field-semantics` displays the
+versioned comparison rules. All commands below use `scripts/intune-iac.py`.
+
+## Capture actual repository intent
+
+```bash
+python3 -B scripts/intune-iac.py workbench repository-import \
+  --root PRIVATE_STORE --repo REPOSITORY --stack PHYSICAL_STACK --component COMPONENT \
+  --object OBJECT_UUID --pointer /vars/policies/OBJECT_UUID \
+  --revision FULL_COMMIT_SHA --backend DECLARED_BACKEND --resource-address RESOURCE_ADDRESS
+python3 -B scripts/intune-iac.py workbench views --root PRIVATE_STORE --object OBJECT_UUID
+```
+
+The policy is read from the actual selected literal effective inputs, not from a
+caller-supplied desired body. Every resolver source is reread and hash-checked.
+The narrow adapter accepts a policy under an explicitly selected effective JSON
+pointer. Unsupported dynamic Atmos layers remain blocked by the existing
+resolver. No Git hook, provider, repository script or Atmos command executes in
+this default inspection route. The supplied revision remains an explicit claim.
+
+For exact commit-object and selected-source verification, add both
+`--git-executable ABSOLUTE_PINNED_GIT` and `--git-sha256 EXPECTED_BINARY_SHA256`.
+This Linux route uses the existing IP-network-denied, deadline/output-bounded
+supervisor and a descriptor-pinned executable. It reads immutable commit, tree
+and blob objects and independently recomputes their Git object hashes. Each
+resolved working file is compared byte-for-byte with its blob in the selected
+commit. `revision_content_verified` is true only when all match. A dirty working
+source remains visible as current intent with explicit mismatch records; it is
+not mislabeled as the selected committed revision. Publisher authenticity,
+branch protection and organizational approval are not established.
+
+Git inspection rejects config includes, extensions/worktree routing, shallow
+stores, alternates, promisor objects, symlink/hardlink object paths and unbounded
+object walks. It disables replacement objects, optional locks, hooks, fsmonitor,
+pagers, inherited environment/system/global configuration and lazy fetch. The
+selected literal source set is its scope; it does not certify every Terraform,
+provider, state or unrelated repository file. Other native hosts need separate
+qualification. Git submodules and linked worktree `.git` files are unsupported
+in this initial bounded reader.
+
+Repository intents are immutable global artifacts containing
+`target_object_id`; the artifact row's `object_id` is null. This permits
+repository-only identities that have never been collected without relaxing the
+store's existing observed-object invariant. `views --intent ARTIFACT_ID` selects
+a historical captured intent. Without it, the latest matching recorded intent
+is selected; `--scope SCOPE_JSON` selects a precise repository/stack/component/
+backend. An overview also includes collected objects absent from repository or
+provider state. It is explicitly paged (`--limit` 1–100, `--offset`).
+
+## Global estate filters
+
+```bash
+python3 -B scripts/intune-iac.py workbench views --root PRIVATE_STORE \
+  --query POLICY_NAME_OR_ID --ownership unknown --coverage stale_or_incomplete \
+  --health reporting_incomplete --limit 10 --offset 0
+```
+
+Filters combine with AND across the **entire bounded stored inventory before
+pagination**. Query is a literal Unicode case-insensitive substring of immutable
+object IDs, observed/repository policy names and setting-definition IDs only;
+descriptions and arbitrary setting values cannot match. Repository-only and
+pending observation identities remain visible. One SQLite read snapshot binds
+observations, repository intents, ownership and imported device evidence during
+evaluation, avoiding cross-page collector races. `snapshot_sha256` identifies the
+selected local input records; it is not an authenticated external audit anchor.
+
+`total_inventory_objects` is the full inventory denominator;
+`pagination.total_objects` is the number matching all filters. Returned count,
+next offset, completeness, the full filter set, selected scopes and evaluation
+time are explicit. Bounds are 1,000 inventory identities, 10,000 relevant artifact
+records, 128 MiB decoded input and 16 MiB output. Exceeding a bound fails the query
+rather than silently returning a partial fleet search. Inventory includes current
+or pending observations plus repository intents matching the optional selected
+scope. No result proves discovery outside that declared local inventory.
+
+Ownership filters use the five exact statuses documented below. Coverage filters
+are `complete_fresh`, `stale_or_incomplete` and `unknown`, evaluated per object;
+a failed latest collection cannot be hidden by its retained last-good body.
+Health filters are `fresh_failure`, `fresh_success`, `reporting_incomplete` and
+`unknown`. These classify **policy-bound imported execution-stage reports only**.
+A fresh failure remains discoverable when other devices have no report. Fresh
+success requires every targeted device to report fresh success with complete
+capture and valid membership: 8 successful reporters out of 100 targets is
+`reporting_incomplete`, never `fresh_success`. Missing policy-bound evidence is
+`unknown`. Stage denominators, report/target success percentages, stale/partial/
+conflicting counts and evidence class remain visible. Endpoint effectiveness,
+outcomes, authenticated execution and rollout approval remain unknown.
+
+Estate rows are compact and defer full deployment/baseline reconstruction to
+`views --object OBJECT_UUID`. Text/visual terminal users can use
+`views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]]`; `-` means no
+filter in a positional field. Page metadata preserves the active filter set.
+
+## Declared ownership and state-refresh evidence
+
+`workbench ownership-import --root STORE --input FILE` accepts this strict JSON
+shape (the values below are explanatory placeholders):
+
+```json
+{
+  "schema_version": "workbench-ownership-index/1",
+  "tenant_id": "TENANT_UUID",
+  "max_age_seconds": 3600,
+  "declared_scopes": [{"repository":"ABSOLUTE_REPOSITORY","stack":"STACK","component":"COMPONENT","backend":"BACKEND"}],
+  "sources": [{
+    "scope":{"repository":"ABSOLUTE_REPOSITORY","stack":"STACK","component":"COMPONENT","backend":"BACKEND"},
+    "coverage":"complete",
+    "observed_at": 1791331200,
+    "claims":[{"object_id":"OBJECT_UUID","resource_address":"RESOURCE_ADDRESS","parts":["object","assignments"]}]
+  }]
+}
+```
+
+Every declared scope must have exactly one complete, fresh source before absence
+is meaningful. Denied/missing/stale/partial scopes produce `unknown`. Claims are
+compared by immutable object ID and independently for object and assignment
+writers. The results are `owned_here`, `owned_elsewhere`, `conflicting_claims`,
+`no_ownership_found_in_declared_scope` or `unknown`. A missing assignment writer
+cannot be hidden by object ownership. Duplicate claims/scopes and wrong tenants
+are rejected. The imported index remains **declared**, not independently
+verified external ownership, and never permits execution.
+
+`workbench provider-refresh-import` accepts schema
+`workbench-provider-refresh/1` with exact fields `tenant_id`, `object_id`,
+`scope`, `observed_at`, `max_age_seconds`, `state_revision` (`lineage`, integer
+`serial`, SHA-256 `sha256`), `state_body` and `refreshed_body`. A null body means
+absent/missing rather than an empty policy. This route is an explicitly
+caller-asserted import; no boolean can upgrade it to native qualification.
+
+For a directly observed local state index, use `workbench ownership-scan --root
+STORE --input MANIFEST`. Its manifest is `workbench-ownership-scan/1` with
+`tenant_id`, `max_age_seconds` and `sources`, each containing exact `scope` and
+absolute `state_path`. The scan reads every declared bounded OpenTofu state v4
+file, records actual lineage/serial/file SHA-256, and extracts immutable IDs and
+resource/module/index addresses for the existing Settings Catalog JSON resource.
+That qualified resource owns its object and assignment collection. Missing,
+unreadable, malformed, unknown writer resources, duplicate addresses and deposed
+instances make scope incomplete/unknown rather than proving absence. Data
+resources are not assigned writer ownership. Two state addresses claiming one
+object/assignment collection are conflicting even across backends. Scanned
+state-file content is real local evidence; tenant/backend association remains
+explicitly declared, and remote freshness/authentication is not inferred from a
+file read. No raw state attribute values or secrets are copied into the index.
+
+## Distinct comparisons
+
+- `collector_snapshot_delta`: two independently collected store observations,
+  with actual observation timestamps and snapshot IDs. The actor and actual
+  change time remain unknown.
+- `provider_refresh_vs_state`: refresh evidence versus the exact supplied
+  persisted state lineage/serial/digest, never universally “since last apply.”
+- `repository_vs_observed`: desired-versus-observed difference, explicitly not
+  a declaration of drift. Denied, incomplete or stale collection gives unknown.
+- `repository_vs_deployment`: pending source difference from a verified local
+  deployed desired configuration.
+- `observed_vs_deployment`: observation difference from that same explicitly
+  identified local deployment receipt, never a live drift claim.
+
+The proposed view (`views --operation OPERATION_DIRECTORY`) reconstructs the
+existing maintenance plan, journal and request and uses the engine's existing
+exact-byte review validation. It displays exact saved-plan SHA, complete desired
+values, target, scope, expiry, approval digest, journal status and unresolved
+local-profile risks. A model plan is identified as such. Selecting a proposal
+does not execute it or issue approval.
+
+## Deployment receipt admission
+
+`workbench deployment-import --root STORE --input FILE` retains schema
+`workbench-deployment-claim/1` with tenant/object IDs and imported claims. Even
+`verified: true`, `status: success`, a CI URL or a caller-supplied readback never
+advances a deployment baseline.
+
+For the existing local modeled journey, first capture repository intent and put
+its artifact ID and exact scope into the maintenance context:
+
+```json
+{
+  "tenant_id":"TENANT_UUID",
+  "cloud":"public",
+  "repository_intent_id":"EXACT_REPOSITORY_INTENT_ARTIFACT_ID",
+  "scope":{"repository":"ABSOLUTE_REPOSITORY","stack":"STACK","component":"COMPONENT","backend":"BACKEND"}
+}
+```
+
+Prepare maintenance with the existing `workbench propose --context FILE`, review
+and execute under its explicitly local approval contract. Then run:
+
+```bash
+python3 -B scripts/intune-iac.py workbench deployment-record \
+  --root PRIVATE_STORE --operation OPERATION_DIRECTORY --intent REPOSITORY_INTENT_ARTIFACT_ID
+```
+
+Admission reconstructs the actual operation, exact context binding, protected
+five-event engine receipt, successful maintenance journal and exact verified
+independent modeled-service readback/no-change second comparison. It verifies
+desired identity/equality and retains plan/request/receipt/journal/readback
+hashes. It cannot admit merely prepared, failed or uncertain operations. Later
+read-only reconciliation does not erase an existing success. Proof bytes must
+remain available; missing or changed evidence makes baseline unavailable. This
+is `verified_local_modeled_deployment`, with `platform_qualified: false`.
+Same-user writable evidence is not a protected audit boundary. A future external
+worker baseline requires independently validated worker authority and receipts;
+this module intentionally provides no caller-boolean shortcut.
+
+## Accepting an observed change into source
+
+```bash
+python3 -B scripts/intune-iac.py workbench source-acceptance-propose \
+  --root PRIVATE_STORE --object OBJECT_UUID --field /description --output NEW_PRIVATE_DIRECTORY
+```
+
+Choose one complete top-level policy field. The command verifies current source
+hashes and complete/fresh observation, locates the actual winning Atmos source
+path and pointer, confirms that source value equals the recorded effective
+value, and emits `source.before.yaml`, `source.after.yaml`, `change.patch` and
+`proposal.json`. It does not modify the repository, run refresh/apply or claim a
+no-change plan. Every selected repository stack/component is resolved to expose
+shared inheritance dependencies. Unsupported/ambiguous merged origins block the
+proposal rather than editing a guessed file. YAML rendering may alter
+formatting/comments; the complete diff must be reviewed. Normal source review
+and a **fresh actual plan** remain required.
+
+## Field semantics and qualification limits
+
+`workbench field-semantics` exposes `workbench-field-semantics/1`:
+assignment tuples, technologies and scope tags are duplicate-free sets; setting
+records are keyed by retained service setting ID; child instances are keyed by
+retained definition ID; supported simple-setting collection values are ordered
+sequences (including significant repetition). Types, null/absent/empty,
+exclusions, filter identities/modes and all raw ordering remain preserved.
+Unknown fields/types or ambiguous duplicate keys produce unknown comparison and
+retain raw input; no dropped-field equality is permitted. This comparison
+adapter does not expand provider mapping support.
+
+The narrow native worker, authenticated Graph and actual provider state routes,
+Windows/Git Bash, real CI/backend/device evidence and accountable production
+approval remain separately qualified gates. These views do not turn imported
+claims or laboratory receipts into those results.

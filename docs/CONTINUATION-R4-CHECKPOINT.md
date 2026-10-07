@@ -105,3 +105,70 @@ Resume this repair with:
 ```
 
 Continue integrating the pending A/B/C/D lanes and independent acceptance. This checkpoint does not close the milestone, service, native Windows or production gates.
+
+## Increment 2 — integrated local implementation, native boundary still in progress
+
+Parent commit is `984b8d491d54a4805d1fb2d925b684131ded0373`. This increment
+records the four views and real local state ownership scan; pinned Git object
+verification; versioned field semantics and source patch preparation; common
+protected worker and Azure state contracts; authentic-reader implementation
+and independently invocable scheduler adapter; visual shared-engine workspace;
+native Windows qualification preparation; and private encrypted archival.
+`CONTINUATION-R4-LEDGER.json` now records implemented scope, exact file hashes
+and receipt hashes. Its null final-applicability fields are intentional until
+committed/package qualification establishes them. This is not a release.
+
+New actual application routes include `workbench views`, `repository-import`,
+`ownership-scan`, `source-acceptance-propose`, `observer-create/run/status`,
+`observer-scheduler`, `workspace`, `worker prepare/review/run/status/attach/
+cancel/reconcile`, and `artifact seal/inspect/restore`. Inspect each route's
+`--help`; argument schemas in the corresponding R4 guides are authoritative.
+The text workspace also supports `views-page` with retained global filters.
+
+Scoped evidence lives under `work/evidence/epoch-20261007-r4/`: `views/`,
+`observation/`, `visual/`, `protected-worker/`, `azure-backend/`,
+`native-host-preparation/`, `artifact-vault/`, `terminal-interrupt/`, and
+`independent/`. Independent candidate checks demonstrated distinct comparisons,
+ownership/field negative controls, closed-terminal observation and capture
+restore, exact local worker approval/state effects, and the visual intentional
+change/lost-response/reopen/reconcile journey. These independent grouped
+assertions and overlapping developer suites are not one combined test total.
+Receipts identify which exact candidate each result applies to.
+
+The original duplicate-capture repair also passed 37 checks from an exact clean
+checkout of `984b8d4`; see `capture-reimport/committed-01.json`.
+A new real SIGINT-inside-SQLite-callback reproducer failed before repair:
+SQLite translated KeyboardInterrupt to a database error and the terminal read
+another command. The terminal now retains interrupt intent outside the callback
+and restores the original signal handler. `terminal-interrupt/before.stderr`
+and `after-01.stderr` preserve the counterexample and passing changed-scope run.
+Independent active-callback replay is recorded separately; idle SIGINT is not
+substituted for it. The earlier visual timeout remains preserved.
+
+Active working-tree lanes excluded from this checkpoint include the Unix/TLS
+broker, Docker host, native provider/Atmos integration, and persistent queue
+review metadata. Preserve their files and evidence. The broker's Graph-PUT
+mislabeled-as-lease negative was independently found and repaired, with original
+and passing counterexamples retained. Actual Atmos 1.230.1 probing found an
+advertised `--from-plan=...` form that attempted a fresh plan and stopped at EOF;
+no mutation occurred. An exact saved-plan route must be proven before admission.
+The existing restricted laboratory network boundary remains intact.
+
+Resume the integrated local changed scope with the retained Linux interpreter:
+
+```bash
+git status --short
+git log -3 --oneline
+INTUNE_TEST_VALIDATOR_LIBRARY=/workspace/intune-continuation/work/evidence/epoch-20261005/approval-prerequisite/libsodium.so.23.3.0 /workspace/intune-runtime/bin/python -B -m unittest plugin_tests.test_workbench_views_r4 plugin_tests.test_observation_reader_r4 plugin_tests.test_observation_jobs_r4 plugin_tests.test_workbench_tui_r4 plugin_tests.test_terminal_interrupt_r4 plugin_tests.test_protected_worker_r4 plugin_tests.test_azure_backend_r4 plugin_tests.test_native_host_contract_r4 plugin_tests.test_artifact_vault_r4 plugin_tests.test_capture_reimport_r4
+```
+
+Continue native host/broker/provider integration, persistent queue metadata,
+independent review and exact final-byte journeys. Then run required release
+gates, reproducible packaging and public/saved readback. Do not rerun the entire
+old strict suite simply to increase a count. Required external evidence still
+includes native Windows/Git Bash and PowerShell; chosen CI controls; authorized
+disposable Intune lifecycle and independent tenant/principal readback; real
+Azure identity/state; enrolled pilot devices; approved hostile/crash host tests;
+and AppSec/operations/risk approval. No real tenant or platform write was
+authorized or executed by this increment. Laboratory completion remains
+incomplete, platform qualification blocked, organizational approval absent.

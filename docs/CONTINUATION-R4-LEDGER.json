@@ -1,6 +1,6 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T18:39:34.866506+00:00",
+  "recorded_at": "2026-10-07T19:02:37Z",
   "purpose": "Initial dependency-ordered R4 acceptance map, not evidence that new behavior has passed.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
@@ -33,8 +33,8 @@
   },
   "outcomes": {
     "laboratory": {
-      "status": "NOT_STARTED",
-      "scope": "New strict contract implementation and independent application qualification."
+      "status": "IMPLEMENTED",
+      "scope": "Partial R4 implementation with scoped local and independent candidate evidence; not laboratory complete."
     },
     "platform": {
       "status": "BLOCKED",
@@ -307,16 +307,19 @@
       "description": "Repository view binds selected revision and resolved stack/component inputs, with recorded successful deployment configuration when present.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A01",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Repository view binds selected revision and resolved stack/component inputs, with recorded successful deployment configuration when present.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -335,30 +338,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A02",
       "description": "Observed view shows independently collected snapshots, original timestamps, freshness, completeness and changes.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A02",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Observed view shows independently collected snapshots, original timestamps, freshness, completeness and changes.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -377,30 +398,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A03",
       "description": "Proposed view binds exact saved-plan operations, target, identities, provenance, approval and unresolved risks.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A03",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Proposed view binds exact saved-plan operations, target, identities, provenance, approval and unresolved risks.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -419,30 +458,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A04",
       "description": "Coverage view exposes supported discovery, management, mapping and qualification plus unknown, denied, unsupported and unmanaged objects.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A04",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Coverage view exposes supported discovery, management, mapping and qualification plus unknown, denied, unsupported and unmanaged objects.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -461,30 +518,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A05",
       "description": "Collector drift compares current to prior snapshot with actual baseline identity and time.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A05",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Collector drift compares current to prior snapshot with actual baseline identity and time.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A02"
@@ -503,30 +578,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A06",
       "description": "Provider drift compares refresh to the persisted state lineage/serial actually used; does not label all drift since last apply.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A06",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Provider drift compares refresh to the persisted state lineage/serial actually used; does not label all drift since last apply.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A01"
@@ -545,30 +638,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A07",
       "description": "Deployment drift compares only to a successful verified deployment receipt and readback, or explicitly says absent.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A07",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Deployment drift compares only to a successful verified deployment receipt and readback, or explicitly says absent.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -588,30 +699,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A08",
       "description": "Discovery includes supported objects absent from configured/state-tracked resources and preserves immutable tenant/object identity.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A08",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Discovery includes supported objects absent from configured/state-tracked resources and preserves immutable tenant/object identity.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A02",
@@ -631,30 +760,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A09",
       "description": "Ownership index covers declared stacks/components/backends, timestamp and completeness; distinguishes here, elsewhere, conflict, completely searched no owner, and unknown.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A09",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Ownership index covers declared stacks/components/backends, timestamp and completeness; distinguishes here, elsewhere, conflict, completely searched no owner, and unknown.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -673,30 +820,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A10",
       "description": "One declared writer per object and assignment collection; display names, one state and OIB markers are insufficient ownership proof.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A10",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise One declared writer per object and assignment collection; display names, one state and OIB markers are insufficient ownership proof.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A09"
@@ -715,30 +880,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A11",
       "description": "Actor/run attribution requires supporting audit evidence; pipeline principal alone does not prove approved run.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A11",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Actor/run attribution requires supporting audit evidence; pipeline principal alone does not prove approved run.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A07"
@@ -757,30 +940,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A12",
       "description": "Versioned inspectable per-field ordered, set and keyed collection semantics define duplicate handling and preserve raw bytes/order, type, null, absent, empty, unknown fields and targeting.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A12",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Versioned inspectable per-field ordered, set and keyed collection semantics define duplicate handling and preserve raw bytes/order, type, null, absent, empty, unknown fields and targeting.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -799,30 +1000,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A13",
       "description": "Accept observed change by bounded authoritative repository edit with shared inheritance impact, ordinary review and fresh plan; no refresh-only acceptance or promised no-change.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A13",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Accept observed change by bounded authoritative repository edit with shared inheritance impact, ordinary review and fresh plan; no refresh-only acceptance or promised no-change.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -843,30 +1062,48 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "A14",
       "description": "Independent actual-application fixtures distinguish desired-only, observed-only, simultaneous, state-absent, conflict, stale ownership and incomplete collection; known-bad identity/target/type/array controls reject.",
       "milestone": "A",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A14",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
-      "next_action": "Implement and independently exercise Independent actual-application fixtures distinguish desired-only, observed-only, simultaneous, state-absent, conflict, stale ownership and incomplete collection; known-bad identity/target/type/array controls reject.",
+      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -897,30 +1134,49 @@
         "workbench review",
         "workbench lineage"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench_views.py": "468212e320493d5c9d936cbc191a8aa19361b3d1a156df3fd86cb0afaa99bcf5",
+        "intune_iac/workbench_semantics.py": "21eaf4dfb6bc15c1d88c1bcdd5762b62f939f8e76f5b840569b1c517b074d407",
+        "intune_iac/workbench_revision.py": "816de87659c5ca79610cc73f6fe991bbfbbe2bc4eaa4d99bf3b8e9e4465b667a"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
+          "sha256": "ef925dd312a4a78ebe84a016f61cdbeba598d2979d8684b6e217f869150b46a3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+          "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        }
+      ]
     },
     {
       "id": "B01",
       "description": "Reviewed common protected execution architecture keeps restricted laboratory and live service routes distinct.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B01",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Reviewed common protected execution architecture keeps restricted laboratory and live service routes distinct.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -938,14 +1194,32 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B02",
@@ -993,16 +1267,20 @@
       "description": "Implement durable worker interface with terminal detach and same-operation reattach; closing terminal never cancels, duplicates or requeues mutation.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B03",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Implement durable worker interface with terminal detach and same-operation reattach; closing terminal never cancels, duplicates or requeues mutation.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -1020,30 +1298,52 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B04",
       "description": "Bind repository/revision, workflow/verifier revision, run/attempt, tenant/cloud, stack/component, inputs, locks, provider/backend principals, Azure target, state lineage/serial and exact binary plan.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B04",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Bind repository/revision, workflow/verifier revision, run/attempt, tenant/cloud, stack/component, inputs, locks, provider/backend principals, Azure target, state lineage/serial and exact binary plan.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -1062,30 +1362,52 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B05",
       "description": "Bind approval to manifest/operation/expiry, verify immediately before dispatch, durably journal before mutation, record partial/unknown outcomes; no silent replacement plan.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B05",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Bind approval to manifest/operation/expiry, verify immediately before dispatch, durably journal before mutation, record partial/unknown outcomes; no silent replacement plan.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -1104,14 +1426,32 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B06",
@@ -1159,16 +1499,20 @@
       "description": "Integrate native Azure backend identity, actual backend selection, lease/locking, concurrency and state-revision handling.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B07",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Integrate native Azure backend identity, actual backend selection, lease/locking, concurrency and state-revision handling.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -1187,30 +1531,52 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B08",
       "description": "Reject wrong target, advanced state and lock contention; handle lease loss, interruption and uncertain write recovery without blind replay.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B08",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Reject wrong target, advanced state and lock contention; handle lease loss, interruption and uncertain write recovery without blind replay.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B05",
@@ -1229,30 +1595,52 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B09",
       "description": "Assess live service/external-input preconditions and document unavoidable residual races independently of saved-plan state checks.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B09",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Assess live service/external-input preconditions and document unavoidable residual races independently of saved-plan state checks.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B04",
@@ -1271,30 +1659,52 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B10",
       "description": "Protect workflow/verifier/artifacts/write identities from untrusted refs and PR content; reject artifact substitution, unauthorized ref, rerun and approval mismatch.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B10",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Protect workflow/verifier/artifacts/write identities from untrusted refs and PR content; reject artifact substitution, unauthorized ref, rerun and approval mismatch.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B04",
@@ -1313,30 +1723,52 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B11",
       "description": "Separate collector, provider/plan and backend/write authority as tools permit; record that shared policy updates affect every assigned ring.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B11",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Separate collector, provider/plan and backend/write authority as tools permit; record that shared policy updates affect every assigned ring.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -1354,30 +1786,50 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B12",
       "description": "Keep secrets out of argv/logs/prompts/UI; protect state, plans, plan JSON, captures and receipts with reviewed encryption/access/retention/key recovery.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "local-encrypted-archive-partial-requirement",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B12",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/artifact-vault/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Keep secrets out of argv/logs/prompts/UI; protect state, plans, plan JSON, captures and receipts with reviewed encryption/access/retention/key recovery.",
+      "limitation": "Six-kind exact-byte encrypted archive and key-backup recovery implemented;7local tests including12actualCLI calls. Independent review pending. Plaintext processing/store, host encrypted volumes, retention enforcement and organizational key custody not qualified.",
+      "next_action": "Independent archive boundary review; integrate reviewed archival lifecycle and qualify host encrypted storage/key custody.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -1402,6 +1854,9 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "source_file_sha256": {
+        "intune_iac/artifact_vault.py": "fecc1b99925d0c05a49d02a858410979194e0cea378a095d347eed2572d2078c"
       }
     },
     {
@@ -1409,16 +1864,20 @@
       "description": "Pin and locally qualify worker image/tool cleanup and isolation assumptions, including cancellation/concurrency fault interfaces.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B13",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+        "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
-      "next_action": "Implement and independently exercise Pin and locally qualify worker image/tool cleanup and isolation assumptions, including cancellation/concurrency fault interfaces.",
+      "limitation": "Common protected worker and native backend/state contracts implemented and locally exercised. Actual native output-only plan execution is narrower than provider/Azure/CI integration. Broker/container/provider integration and live receipts remain incomplete; do not promote modeled or local results.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -1443,14 +1902,32 @@
         "workbench execute",
         "workbench reconcile"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/protected_worker.py": "8ef7257995cc2b33b8d9c93e1dd9973e53be4e969010bbe125419d96038f0039",
+        "intune_iac/azure_backend.py": "83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/protected-worker/native-03/receipt.json",
+          "sha256": "d46b059c674f98bf76ff8e5fedfc53f37274f29309cf60e637b8733cccad169c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/worker-cli-01/RESULT.json",
+          "sha256": "c58db8a1e09d31f346fb0374ea5650eef3aefcedddca8e4e09045904b331178f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
+          "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
+        }
+      ]
     },
     {
       "id": "B14",
@@ -1502,16 +1979,20 @@
       "description": "Connect supported authenticated Graph reader to persistent store/history without relabeling caller supplied capture claims as authenticity.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C01",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Connect supported authenticated Graph reader to persistent store/history without relabeling caller supplied capture claims as authenticity.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A02"
@@ -1532,30 +2013,53 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C02",
       "description": "Implement scheduling adapter independent of TUI lifecycle; local adapter qualification is separate from authorized live credential/schedule activation.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C02",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Implement scheduling adapter independent of TUI lifecycle; local adapter qualification is separate from authorized live credential/schedule activation.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "C01"
@@ -1576,30 +2080,53 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C03",
       "description": "Stage and publish observation batches atomically; preserve every attempt and last good values for denied/partial/stale/interrupted capture.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C03",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Stage and publish observation batches atomically; preserve every attempt and last good values for denied/partial/stale/interrupted capture.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "C01"
@@ -1620,30 +2147,53 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C04",
       "description": "Validate pagination destinations before requests, bounded retries and correct delay/exhaustion, secure raw responses with timestamps and coverage.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C04",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Validate pagination destinations before requests, bounded retries and correct delay/exhaustion, secure raw responses with timestamps and coverage.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -1664,14 +2214,33 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C05",
@@ -1679,18 +2248,19 @@
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
-      "evidence_class": "scoped-local-capture-import-repair",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-CAPTURE-REIMPORT-01",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/capture-reimport/before.json",
-        "evidence/epoch-20261007-r4/capture-reimport/after-01.json"
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Exact-capture duplicate import repair passed its developer real-CLI and concurrency checks (37 changed-scope cases including overlap); authenticated observation batch qualification and independent review are still in progress. No milestone completion or real service claim.",
-      "next_action": "Independently verify duplicate/older captures across both inert import and authenticated collection; bind passing scope to committed candidate.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "C03"
@@ -1720,23 +2290,46 @@
         "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C06",
       "description": "Expose last attempted/successful collection, missing scopes, freshness and next action.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C06",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Expose last attempted/successful collection, missing scopes, freshness and next action.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "C03",
@@ -1758,14 +2351,33 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C07",
@@ -1905,16 +2517,20 @@
       "description": "Independent local entrypoint assertions cover closed terminal, restart, denied/missing pages, throttle exhaustion, concurrency, partial publication, duplicate/out-of-order and freshness expiry.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C10",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Independent local entrypoint assertions cover closed terminal, restart, denied/missing pages, throttle exhaustion, concurrency, partial publication, duplicate/out-of-order and freshness expiry.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "C02",
@@ -1939,30 +2555,53 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C11",
       "description": "Backup, schema migration and restore preserve history/identity/last-good values with independent assertions and recovery procedures.",
       "milestone": "C",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C11",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
-      "next_action": "Implement and independently exercise Backup, schema migration and restore preserve history/identity/last-good values with independent assertions and recovery procedures.",
+      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "C03"
@@ -1983,14 +2622,33 @@
         "workbench schedule-status",
         "workbench health"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/observation_reader.py": "7195955f52835ca359da67e628ebac323c11d92ed0f30678d3619aadec8d68e3",
+        "intune_iac/observation_jobs.py": "5d0f85c0854b1829da16b63119e012fdfdc7635cbb4aaebad77017532f6e10d4",
+        "intune_iac/workbench_store.py": "a364401e12ff5abbf99de585f62761d9da3f400f311f53ca84c4fc755368511b"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
+          "sha256": "0f47b3aedb3bcc4464438a97c5b569db7edca41765ba049ef479eed959a3739d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
+          "sha256": "eacc6eed8f58bae20c1ad8d06243375a7833975dbc82a4c347318c7f00b08d6f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
+          "sha256": "e3b8d1019822ff6153096eb0bdc6a55acc42ca68f3a4d9eafe23fe8ac458ce50"
+        }
+      ]
     },
     {
       "id": "C12",
@@ -2044,16 +2702,20 @@
       "description": "Visual TUI uses existing engine, typed results, durable events and same approval/execution contract; complete text interface remains reference.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D01",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Visual TUI uses existing engine, typed results, durable events and same approval/execution contract; complete text interface remains reference.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -2066,30 +2728,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D02",
       "description": "Provide navy/charcoal outlined monospaced workspace, restrained cyan/blue, labeled statuses and optional warm-light theme after dependency review.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D02",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Provide navy/charcoal outlined monospaced workspace, restrained cyan/blue, labeled statuses and optional warm-light theme after dependency review.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01"
@@ -2102,30 +2786,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D03",
       "description": "Estate supports policy/setting search, ownership/coverage/health filters, bounded pages and immutable selection.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D03",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Estate supports policy/setting search, ownership/coverage/health filters, bounded pages and immutable selection.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -2140,30 +2846,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D04",
       "description": "Inspector exposes exact settings, includes/exclusions/filters, provenance, coverage, ownership and freshness.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D04",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Inspector exposes exact settings, includes/exclusions/filters, provenance, coverage, ownership and freshness.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -2180,30 +2908,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D05",
       "description": "Typed lineage edges connect settings/targeting/source/Atmos inheritance/deployments, show evidence and uncertainty, and have table/text equivalents.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D05",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Typed lineage edges connect settings/targeting/source/Atmos inheritance/deployments, show evidence and uncertainty, and have table/text equivalents.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -2219,30 +2969,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D06",
       "description": "History/comparison surfaces distinct collector, provider-state and verified-deployment baselines with exact values/times.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D06",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise History/comparison surfaces distinct collector, provider-state and verified-deployment baselines with exact values/times.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -2258,30 +3030,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D07",
       "description": "Dedicated exact-plan review displays operations/target/assignments/affected scope/provenance and approval identity.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D07",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Dedicated exact-plan review displays operations/target/assignments/affected scope/provenance and approval identity.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -2297,30 +3091,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D08",
       "description": "Execution/recovery displays active stage, completed/failed/unknown checks, required input, journal, uncertainty and allowed recovery.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D08",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Execution/recovery displays active stage, completed/failed/unknown checks, required input, journal, uncertainty and allowed recovery.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -2336,30 +3152,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D09",
       "description": "Status/help preserves investigation and selection context across views/recovery and shows environment, shortcuts, operation and meaningful next action.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D09",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Status/help preserves investigation and selection context across views/recovery and shows environment, shortcuts, operation and meaningful next action.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01"
@@ -2372,30 +3210,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D10",
       "description": "Progress uses defined denominators, measured ETAs only and gaps; reduced motion keeps information; pause only when safe; cancellation requested/stopped/uncertain distinct.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D10",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Progress uses defined denominators, measured ETAs only and gaps; reduced motion keeps information; pause only when safe; cancellation requested/stopped/uncertain distinct.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D01"
@@ -2408,30 +3268,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D11",
       "description": "Independent PTY key/input journey covers investigation/change/recovery/back/edit/cancel/resume with state assertions and captures.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D11",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Independent PTY key/input journey covers investigation/change/recovery/back/edit/cancel/resume with state assertions and captures.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D03",
@@ -2451,30 +3333,52 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "D12",
       "description": "Qualify narrow/resize/Unicode width/non-color/reduced-motion/no-TTY/untrusted controls/terminal restoration and preregistered workload-specific performance.",
       "milestone": "D",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D12",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+        "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
-      "next_action": "Implement and independently exercise Qualify narrow/resize/Unicode width/non-color/reduced-motion/no-TTY/untrusted controls/terminal restoration and preregistered workload-specific performance.",
+      "limitation": "Visual shared-engine workspace and complete text route implemented, including filter paging and context. Earlier15independent grouped assertions cover prior candidate; latest15developer tests cover current presentation. Actual SQLite SIGINT failure is retained and repaired; final independent active-callback replay and exact-byte integrated/performance gates pending. Native Windows visual route unsupported until qualified.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "D02",
@@ -2488,30 +3392,50 @@
       "existing_entrypoints": [
         "workbench terminal"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "intune_iac/workbench.py": "25f4c67ab42eb96cc5e2e66d7d6d0d251d696de8a09426b95f324c1f753b6063",
+        "intune_iac/workbench_tui.py": "17d9c4eecc88507ddd2557913bde4e16b5a11e184d9d029d7af31046af1120ce"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/visual/DEVELOPER-RECEIPT-02.json",
+          "sha256": "a100d50d4f20487082108c73afcf5324bc6033eddd365bacc03c684b9d1b1a20"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/visual-cli-03/RESULT.json",
+          "sha256": "95eaa2747d578c7c574c3f3574988cb22c6bed1acdd6b16dfacdd6768095bae9"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
+          "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
+        }
+      ]
     },
     {
       "id": "E01",
       "description": "Declare bounded policy/mapping/host/shell/terminal/runtime/engine/provider/CI/identity/backend/scale profile; do not silently drop required Windows/Git Bash.",
       "milestone": "E",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E01",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
-      "next_action": "Implement and independently exercise Declare bounded policy/mapping/host/shell/terminal/runtime/engine/provider/CI/identity/backend/scale profile; do not silently drop required Windows/Git Bash.",
+      "limitation": "Bounded profile and executable native host procedures prepared;11local tests exercise Bash/argv only. Windows qualifier correctly returnsBLOCKED on Linux withzero nativeWindowscommands. Windows/Git Bash/mintty/PowerShell actual qualification remains required.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -2526,30 +3450,43 @@
         "provider",
         "capture"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "scripts/intune-workbench.sh": "9fd24595c7c3ca6772c48dbd970c06c55fb7efd61ce9663e8e869db4e435e7a8",
+        "scripts/intune-workbench.ps1": "18d780cb3d276f6c7e41c92ac26b1973f87ce8b8c7468365963b7b24db93c7b5",
+        "scripts/qualify-windows-workbench.py": "8e887f275b3a6f469f7c4036d6b6d45d9faa14f11256fad911df3d0bc2394b6c"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
+          "sha256": "f930f5421a7910c072452519238ac6d1452b67ab8d2463b0eb09979b2cce9536"
+        }
+      ]
     },
     {
       "id": "E02",
       "description": "Prepare native Windows Git Bash/mintty and chosen terminal procedures with per-invocation MSYS prefix exclusions; no global conversion disable.",
       "milestone": "E",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
-      "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-implementation-and-candidate-qualification",
+      "observed_source_revision": "984b8d491d54a4805d1fb2d925b684131ded0373",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E02",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
-      "next_action": "Implement and independently exercise Prepare native Windows Git Bash/mintty and chosen terminal procedures with per-invocation MSYS prefix exclusions; no global conversion disable.",
+      "limitation": "Bounded profile and executable native host procedures prepared;11local tests exercise Bash/argv only. Windows qualifier correctly returnsBLOCKED on Linux withzero nativeWindowscommands. Windows/Git Bash/mintty/PowerShell actual qualification remains required.",
+      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
       "blocker_owner": null,
       "depends_on": [
         "E01"
@@ -2564,14 +3501,25 @@
         "provider",
         "capture"
       ],
-      "new_entrypoints_verified": false,
+      "new_entrypoints_verified": true,
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "NOT_STARTED",
+        "laboratory": "IMPLEMENTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
-      }
+      },
+      "source_file_sha256": {
+        "scripts/intune-workbench.sh": "9fd24595c7c3ca6772c48dbd970c06c55fb7efd61ce9663e8e869db4e435e7a8",
+        "scripts/intune-workbench.ps1": "18d780cb3d276f6c7e41c92ac26b1973f87ce8b8c7468365963b7b24db93c7b5",
+        "scripts/qualify-windows-workbench.py": "8e887f275b3a6f469f7c4036d6b6d45d9faa14f11256fad911df3d0bc2394b6c"
+      },
+      "evidence_receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/native-host-preparation/LOCAL-RECEIPT.json",
+          "sha256": "f930f5421a7910c072452519238ac6d1452b67ab8d2463b0eb09979b2cce9536"
+        }
+      ]
     },
     {
       "id": "E03",
@@ -4307,5 +5255,6 @@
         "organizational_production_approval": "BLOCKED"
       }
     }
-  ]
+  ],
+  "checkpoint_increment": 2
 }

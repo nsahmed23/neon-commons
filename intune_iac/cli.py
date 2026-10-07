@@ -56,6 +56,10 @@ def parser():
     commands=p.add_subparsers(dest='command',required=True)
     from .workbench import add_parser as add_workbench_parser
     add_workbench_parser(commands)
+    from .protected_worker import add_parser as add_worker_parser
+    add_worker_parser(commands)
+    from .artifact_vault import add_parser as add_artifact_parser
+    add_artifact_parser(commands)
     commands.add_parser('doctor',help='Report installed prerequisites and capability boundaries')
     _paths(commands.add_parser('inspect',help='Inspect one policy without writing output'))
     _paths(commands.add_parser('verify',help='Recheck an existing project against source-derived expectations'),True)
@@ -122,6 +126,12 @@ def parser():
 def execute(args):
     if args.command=='workbench':
         from .workbench import command
+        return command(args)
+    if args.command=='worker':
+        from .protected_worker import command
+        return command(args)
+    if args.command=='artifact':
+        from .artifact_vault import command
         return command(args)
     if args.command=='doctor':return doctor()
     if args.command=='inspect':
