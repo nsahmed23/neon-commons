@@ -1,0 +1,4311 @@
+{
+  "schema_version": "intune-continuation-requirements/1.0",
+  "recorded_at": "2026-10-07T18:39:34.866506+00:00",
+  "purpose": "Initial dependency-ordered R4 acceptance map, not evidence that new behavior has passed.",
+  "source_authority": {
+    "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
+    "branch": "continuation/r4-20261007",
+    "current_candidate_commit": null,
+    "new_artifacts": []
+  },
+  "contract": {
+    "path": "docs/INTUNE-WORKBENCH-STRICT-CONTRACT-20261007.md",
+    "bytes": 26294,
+    "sha256": "88192ac7e2627368fedcbc01e8f1faeb0f26120983f70bcdbb89e87bbdcb2c5a"
+  },
+  "allowed_statuses": [
+    "NOT_STARTED",
+    "IMPLEMENTED",
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "UNSUPPORTED",
+    "NOT_APPLICABLE"
+  ],
+  "status_policy": {
+    "PASS": "Precise required scope has independent actual evidence linked to exact applicable source and artifacts.",
+    "IMPLEMENTED": "Code exists; required independent qualification remains incomplete.",
+    "BLOCKED": "Concrete external dependency prevents the stated scope, not unrelated local work.",
+    "NOT_STARTED": "New requirement not yet qualified in this continuation; does not erase inherited implementation.",
+    "UNSUPPORTED": "Explicit unsupported required route remains a release blocker.",
+    "historical_statuses": "Retain verbatim in immutable original records; never normalize or rewrite historical ledgers.",
+    "null_identity": "No new candidate/artifact identity exists yet; never fill with baseline hash to imply new qualification."
+  },
+  "outcomes": {
+    "laboratory": {
+      "status": "NOT_STARTED",
+      "scope": "New strict contract implementation and independent application qualification."
+    },
+    "platform": {
+      "status": "BLOCKED",
+      "scope": "Required Windows/Git Bash, live native provider/service, Azure backend, chosen CI and enrolled devices."
+    },
+    "organizational_production_approval": {
+      "status": "BLOCKED",
+      "scope": "Accountable AppSec, pilot, operations, risk and release decision; absent."
+    }
+  },
+  "historical_ledger": {
+    "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
+    "bytes": 310833,
+    "sha256": "7c1e5839c1c470199fd31f849b67730f7236c2a61e7375b1a6075e0e99f8b6a7",
+    "immutable": true,
+    "original_statuses_preserved": true
+  },
+  "historical_evidence_reuse": [
+    {
+      "id": "R3-STRICT",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "artifact_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+      "evidence": {
+        "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/strict-suite/result.json",
+        "bytes": 759,
+        "sha256": "4fd265797b091fd7fd6acf208293e3cf0c3c3698191991b6370442e7800ed533"
+      },
+      "tests": 1242,
+      "passed": 1242,
+      "scope": "Original exact-source local/Linux runtime, repository semantics, negative contracts, synthetic/API-shaped capture and HTTP fixtures; no new run.",
+      "reuse_for_r4": "Reassess per changed dependency; baseline total is not a new candidate pass."
+    },
+    {
+      "id": "R3-CONNECTED",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "artifact_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+      "evidence": {
+        "path": "evidence/epoch-20261007-r3/milestone-0.8.0-final03/connected-source/receipt.json",
+        "bytes": 82486,
+        "sha256": "2b2eba853cbc8dcff5c1a46990392aa300a6273d46e02f19531efe2089fcffea"
+      },
+      "checks": 64,
+      "commands": 34,
+      "linux_pty_sessions": 10,
+      "scope": "Original connected laboratory maintenance, modeled service and Linux terminal; overlap is not added to strict total.",
+      "reuse_for_r4": "New views, worker, authentic scheduling and visual presentation require their own changed-scope evidence."
+    },
+    {
+      "id": "R2-STRICT",
+      "observed_source_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "applicable_revision": "74130d0db99febf2f41cf4f4ebe2920a5d4dffb7",
+      "artifact_sha256": "832b9e83fefeb9883b75abe323b1ab3238476f38ac2372ce79d987a62433867a",
+      "evidence": {
+        "path": "docs/CONTINUATION-ACCEPTANCE-20261005-R2.json",
+        "bytes": 41029,
+        "sha256": "96e49529c7ae682f88f2f2c3d6af8b725bab8426eb592b51db861abcb7eeab4c"
+      },
+      "tests": 1141,
+      "passed": 1141,
+      "scope": "Original R2 local/Linux qualification only; suite not repeated."
+    }
+  ],
+  "recovery_layers": [
+    {
+      "name": "complete-R2-repository",
+      "bytes": 2289864715,
+      "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b"
+    },
+    {
+      "name": "exact-0.8.0-source",
+      "bytes": 16627882,
+      "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+    },
+    {
+      "name": "exact-0.8.0-runtime",
+      "bytes": 513895,
+      "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+    },
+    {
+      "name": "entire-R3-evidence-supplement",
+      "bytes": 1013682416,
+      "sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35"
+    }
+  ],
+  "plan": [
+    {
+      "order": 1,
+      "ids": [
+        "R00"
+      ],
+      "action": "Reconcile exact source/recovery/evidence and persist user contract."
+    },
+    {
+      "order": 2,
+      "ids": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14"
+      ],
+      "action": "Implement accurate comparisons/ownership through existing application; independently qualify known-good and known-bad distinctions."
+    },
+    {
+      "order": 3,
+      "ids": [
+        "B01",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "B11",
+        "B12",
+        "B13"
+      ],
+      "action": "Implement common protected worker/backend and exact-operation durable contract, with real-interface local fault qualification; retain B02/B14 external gates."
+    },
+    {
+      "order": 4,
+      "ids": [
+        "C01",
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06",
+        "C07",
+        "C08",
+        "C09",
+        "C10",
+        "C11",
+        "C12"
+      ],
+      "action": "Connect authenticated reader interface, atomic persistent observation and independent scheduling; qualify all local faults/restoration before live activation."
+    },
+    {
+      "order": 5,
+      "ids": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10",
+        "D11",
+        "D12"
+      ],
+      "action": "Build visual workspace over shared engine and prove actual PTY journey, independent state and presentation/restore controls."
+    },
+    {
+      "order": 6,
+      "ids": [
+        "E01",
+        "E02",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "E08",
+        "E09",
+        "E10",
+        "E-FAULT-01",
+        "E-FAULT-02",
+        "E-FAULT-03",
+        "E-FAULT-04",
+        "E-FAULT-05",
+        "E-FAULT-06",
+        "E-FAULT-07",
+        "E-FAULT-08",
+        "E-FAULT-09",
+        "E-FAULT-10",
+        "E-FAULT-11",
+        "E-FAULT-12",
+        "E-FAULT-13",
+        "E-FAULT-14",
+        "E-FAULT-15",
+        "E-FAULT-16",
+        "E-FAULT-17",
+        "E-FAULT-18"
+      ],
+      "action": "Execute authorized native routes; prepare exact external target/recovery/run procedures for unavailable profiles. Never relabel local fixtures as external evidence."
+    },
+    {
+      "order": 7,
+      "ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "F10"
+      ],
+      "action": "Independently review, qualify exact changed artifacts, reproduce/package/verify delivery, and request accountable production decision only with reviewable evidence."
+    }
+  ],
+  "preserved_open_findings": [
+    "Original three unexpected ZIP-absent temporary files and SEC-GAP-WORKSPACE-RESTART/reappearance/stale-lock findings remain unresolved.",
+    "c122e38 commit-command actor attribution remains unresolved despite verified commit/content/parent/package linkage.",
+    "All failed final01/final02 candidates and SIGINT cleanup/acquisition intermediate negatives remain immutable.",
+    "Wally remains optional/read-only: 87 completed reviews, nine timeouts, no demonstrated benefit; no positive result prerequisite."
+  ],
+  "discovery_notes": [
+    "Applicable packaging AGENTS.md is /workspace/intune-continuation/AGENTS.md; no project-local AGENTS.md was discovered outside acquired third-party research subtrees.",
+    "Actual launcher is scripts/intune-iac.py; root HOSTS.md, ARCHITECTURE.md, pyproject.toml and intune_iac/__main__.py were not present. docs/HOSTS.md is the discovered host guide.",
+    "Current native_pins.py admits OpenTofu 1.13.1 and Atmos 1.230.1 as current local pins. Older 1.10.0/1.199.0 docs/fixtures retain historical reproduction scope; current live Atmos/provider route still requires explicit qualification.",
+    "Prior directive to rerun baseline is superseded by the current user instruction to preserve valid completed evidence and run changed/required gates only.",
+    "Prior directive making Wally experiments mandatory is superseded by current optional read-only Wally role."
+  ],
+  "rows": [
+    {
+      "id": "R00",
+      "description": "Record clean verified 0.8.0 continuation branch, preserve recovery layers and inherited evidence without rerunning baseline tests.",
+      "milestone": "reconciliation",
+      "required_profile": "local-recovery",
+      "status": "PASS",
+      "evidence_class": "baseline-integrity-and-preservation-record",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "artifact_sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590",
+      "test_procedure_id": "R4-BASELINE",
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/BASELINE.json"
+      ],
+      "environment": "Existing complete recovered Linux workspace; dedicated continuation/r4-20261007 branch",
+      "limitation": "This row records baseline continuation linkage only. It neither qualifies R4 changes nor resolves historical provenance or external platform gates.",
+      "next_action": "Preserve immutable R3 evidence and qualify each changed scope as implementation proceeds.",
+      "blocker_owner": null,
+      "depends_on": [],
+      "existing_code": [],
+      "existing_entrypoints": [],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [
+        "R3-STRICT",
+        "R3-CONNECTED",
+        "R2-STRICT"
+      ],
+      "outcomes": {
+        "laboratory": "PASS",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A01",
+      "description": "Repository view binds selected revision and resolved stack/component inputs, with recorded successful deployment configuration when present.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A01",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Repository view binds selected revision and resolved stack/component inputs, with recorded successful deployment configuration when present.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A02",
+      "description": "Observed view shows independently collected snapshots, original timestamps, freshness, completeness and changes.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A02",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Observed view shows independently collected snapshots, original timestamps, freshness, completeness and changes.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A03",
+      "description": "Proposed view binds exact saved-plan operations, target, identities, provenance, approval and unresolved risks.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A03",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Proposed view binds exact saved-plan operations, target, identities, provenance, approval and unresolved risks.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A04",
+      "description": "Coverage view exposes supported discovery, management, mapping and qualification plus unknown, denied, unsupported and unmanaged objects.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A04",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Coverage view exposes supported discovery, management, mapping and qualification plus unknown, denied, unsupported and unmanaged objects.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A05",
+      "description": "Collector drift compares current to prior snapshot with actual baseline identity and time.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A05",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Collector drift compares current to prior snapshot with actual baseline identity and time.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A02"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A06",
+      "description": "Provider drift compares refresh to the persisted state lineage/serial actually used; does not label all drift since last apply.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A06",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Provider drift compares refresh to the persisted state lineage/serial actually used; does not label all drift since last apply.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A01"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A07",
+      "description": "Deployment drift compares only to a successful verified deployment receipt and readback, or explicitly says absent.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A07",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Deployment drift compares only to a successful verified deployment receipt and readback, or explicitly says absent.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A01",
+        "A02"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A08",
+      "description": "Discovery includes supported objects absent from configured/state-tracked resources and preserves immutable tenant/object identity.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A08",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Discovery includes supported objects absent from configured/state-tracked resources and preserves immutable tenant/object identity.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A02",
+        "A04"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A09",
+      "description": "Ownership index covers declared stacks/components/backends, timestamp and completeness; distinguishes here, elsewhere, conflict, completely searched no owner, and unknown.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A09",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Ownership index covers declared stacks/components/backends, timestamp and completeness; distinguishes here, elsewhere, conflict, completely searched no owner, and unknown.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A10",
+      "description": "One declared writer per object and assignment collection; display names, one state and OIB markers are insufficient ownership proof.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A10",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise One declared writer per object and assignment collection; display names, one state and OIB markers are insufficient ownership proof.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A09"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A11",
+      "description": "Actor/run attribution requires supporting audit evidence; pipeline principal alone does not prove approved run.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A11",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Actor/run attribution requires supporting audit evidence; pipeline principal alone does not prove approved run.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A07"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A12",
+      "description": "Versioned inspectable per-field ordered, set and keyed collection semantics define duplicate handling and preserve raw bytes/order, type, null, absent, empty, unknown fields and targeting.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A12",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Versioned inspectable per-field ordered, set and keyed collection semantics define duplicate handling and preserve raw bytes/order, type, null, absent, empty, unknown fields and targeting.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A13",
+      "description": "Accept observed change by bounded authoritative repository edit with shared inheritance impact, ordinary review and fresh plan; no refresh-only acceptance or promised no-change.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A13",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Accept observed change by bounded authoritative repository edit with shared inheritance impact, ordinary review and fresh plan; no refresh-only acceptance or promised no-change.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A01",
+        "A03",
+        "A12"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "A14",
+      "description": "Independent actual-application fixtures distinguish desired-only, observed-only, simultaneous, state-absent, conflict, stale ownership and incomplete collection; known-bad identity/target/type/array controls reject.",
+      "milestone": "A",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-A14",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 bounded views do not yet establish all four independently based views or complete declared cross-stack ownership. Extend existing store/results and independently qualify the stated distinction.",
+      "next_action": "Implement and independently exercise Independent actual-application fixtures distinguish desired-only, observed-only, simultaneous, state-absent, conflict, stale ownership and incomplete collection; known-bad identity/target/type/array controls reject.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_provenance.py",
+        "intune_iac/repository.py",
+        "intune_iac/provider_execution.py"
+      ],
+      "existing_entrypoints": [
+        "workbench overview",
+        "workbench inspect",
+        "workbench history",
+        "workbench review",
+        "workbench lineage"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B01",
+      "description": "Reviewed common protected execution architecture keeps restricted laboratory and live service routes distinct.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B01",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Reviewed common protected execution architecture keeps restricted laboratory and live service routes distinct.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B02",
+      "description": "Record organizational CI platform decision before platform-specific deployment; existing GitHub route is a candidate and Azure DevOps is unconfirmed.",
+      "milestone": "B",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B02",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Organizational execution-service owner: choose GitHub Actions or Azure DevOps before deployment.",
+      "blocker_owner": "Organizational execution-service owner: choose GitHub Actions or Azure DevOps before deployment.",
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B03",
+      "description": "Implement durable worker interface with terminal detach and same-operation reattach; closing terminal never cancels, duplicates or requeues mutation.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B03",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Implement durable worker interface with terminal detach and same-operation reattach; closing terminal never cancels, duplicates or requeues mutation.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B04",
+      "description": "Bind repository/revision, workflow/verifier revision, run/attempt, tenant/cloud, stack/component, inputs, locks, provider/backend principals, Azure target, state lineage/serial and exact binary plan.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B04",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Bind repository/revision, workflow/verifier revision, run/attempt, tenant/cloud, stack/component, inputs, locks, provider/backend principals, Azure target, state lineage/serial and exact binary plan.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01",
+        "A03"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B05",
+      "description": "Bind approval to manifest/operation/expiry, verify immediately before dispatch, durably journal before mutation, record partial/unknown outcomes; no silent replacement plan.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B05",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Bind approval to manifest/operation/expiry, verify immediately before dispatch, durably journal before mutation, record partial/unknown outcomes; no silent replacement plan.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B03",
+        "B04"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B06",
+      "description": "Qualify pinned Atmos route with actual engine/provider and supported arguments; never silently bypass Atmos.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B06",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Qualify pinned Atmos route with actual engine/provider and supported arguments; never silently bypass Atmos.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B07",
+      "description": "Integrate native Azure backend identity, actual backend selection, lease/locking, concurrency and state-revision handling.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B07",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Integrate native Azure backend identity, actual backend selection, lease/locking, concurrency and state-revision handling.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01",
+        "B04"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B08",
+      "description": "Reject wrong target, advanced state and lock contention; handle lease loss, interruption and uncertain write recovery without blind replay.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B08",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Reject wrong target, advanced state and lock contention; handle lease loss, interruption and uncertain write recovery without blind replay.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B05",
+        "B07"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B09",
+      "description": "Assess live service/external-input preconditions and document unavoidable residual races independently of saved-plan state checks.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B09",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Assess live service/external-input preconditions and document unavoidable residual races independently of saved-plan state checks.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B04",
+        "B07"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B10",
+      "description": "Protect workflow/verifier/artifacts/write identities from untrusted refs and PR content; reject artifact substitution, unauthorized ref, rerun and approval mismatch.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B10",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Protect workflow/verifier/artifacts/write identities from untrusted refs and PR content; reject artifact substitution, unauthorized ref, rerun and approval mismatch.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B04",
+        "B05"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B11",
+      "description": "Separate collector, provider/plan and backend/write authority as tools permit; record that shared policy updates affect every assigned ring.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B11",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Separate collector, provider/plan and backend/write authority as tools permit; record that shared policy updates affect every assigned ring.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B12",
+      "description": "Keep secrets out of argv/logs/prompts/UI; protect state, plans, plan JSON, captures and receipts with reviewed encryption/access/retention/key recovery.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B12",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Keep secrets out of argv/logs/prompts/UI; protect state, plans, plan JSON, captures and receipts with reviewed encryption/access/retention/key recovery.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B13",
+      "description": "Pin and locally qualify worker image/tool cleanup and isolation assumptions, including cancellation/concurrency fault interfaces.",
+      "milestone": "B",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B13",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Implement and independently exercise Pin and locally qualify worker image/tool cleanup and isolation assumptions, including cancellation/concurrency fault interfaces.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B03",
+        "B04",
+        "B05",
+        "B07",
+        "B08",
+        "B10",
+        "B11",
+        "B12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "B14",
+      "description": "Real authorized protected run uses exact approved plan, pinned native tools, authenticated independent readback, second no-change plan and complete receipt.",
+      "milestone": "B",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-B14",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Tenant, execution-service, identity and backend owners: authorize exact disposable scope and protected native run.",
+      "blocker_owner": "Tenant, execution-service, identity and backend owners: authorize exact disposable scope and protected native run.",
+      "depends_on": [
+        "B02",
+        "B06",
+        "B09",
+        "B13",
+        "A10"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C01",
+      "description": "Connect supported authenticated Graph reader to persistent store/history without relabeling caller supplied capture claims as authenticity.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C01",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Connect supported authenticated Graph reader to persistent store/history without relabeling caller supplied capture claims as authenticity.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A02"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C02",
+      "description": "Implement scheduling adapter independent of TUI lifecycle; local adapter qualification is separate from authorized live credential/schedule activation.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C02",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Implement scheduling adapter independent of TUI lifecycle; local adapter qualification is separate from authorized live credential/schedule activation.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C01"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C03",
+      "description": "Stage and publish observation batches atomically; preserve every attempt and last good values for denied/partial/stale/interrupted capture.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C03",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Stage and publish observation batches atomically; preserve every attempt and last good values for denied/partial/stale/interrupted capture.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C01"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C04",
+      "description": "Validate pagination destinations before requests, bounded retries and correct delay/exhaustion, secure raw responses with timestamps and coverage.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C04",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Validate pagination destinations before requests, bounded retries and correct delay/exhaustion, secure raw responses with timestamps and coverage.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C05",
+      "description": "Reject or explicitly retain duplicate/out-of-order captures without invented history or silent replacement of newer data.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "IMPLEMENTED",
+      "evidence_class": "scoped-local-capture-import-repair",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-CAPTURE-REIMPORT-01",
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/capture-reimport/before.json",
+        "evidence/epoch-20261007-r4/capture-reimport/after-01.json"
+      ],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "Exact-capture duplicate import repair passed its developer real-CLI and concurrency checks (37 changed-scope cases including overlap); authenticated observation batch qualification and independent review are still in progress. No milestone completion or real service claim.",
+      "next_action": "Independently verify duplicate/older captures across both inert import and authenticated collection; bind passing scope to committed candidate.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C03"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": true,
+      "new_verification_commands": [
+        "/workspace/intune-runtime/bin/python -B -m unittest plugin_tests.test_capture_reimport_r4 plugin_tests.test_capture_adapter plugin_tests.test_workbench_capture_store plugin_tests.test_workbench_paging"
+      ],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "IMPLEMENTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C06",
+      "description": "Expose last attempted/successful collection, missing scopes, freshness and next action.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C06",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Expose last attempted/successful collection, missing scopes, freshness and next action.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C03",
+        "C05"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C07",
+      "description": "Persist typed relationships, versioned history/workflow receipts, and maintenance queue owner/rationale/review/expiry/linked proposals.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C07",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Persist typed relationships, versioned history/workflow receipts, and maintenance queue owner/rationale/review/expiry/linked proposals.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A09",
+        "C03"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C08",
+      "description": "Dictionary separates vendor docs, community advice, observation, company annotation and AI interpretation with versioned provenance.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C08",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Dictionary separates vendor docs, community advice, observation, company annotation and AI interpretation with versioned provenance.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C09",
+      "description": "Health separates parity, service acceptance, device report, processing, effective state and outcome; reporting and targeted denominators remain distinct, no automatic writes.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C09",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Health separates parity, service acceptance, device report, processing, effective state and outcome; reporting and targeted denominators remain distinct, no automatic writes.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C01"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C10",
+      "description": "Independent local entrypoint assertions cover closed terminal, restart, denied/missing pages, throttle exhaustion, concurrency, partial publication, duplicate/out-of-order and freshness expiry.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C10",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Independent local entrypoint assertions cover closed terminal, restart, denied/missing pages, throttle exhaustion, concurrency, partial publication, duplicate/out-of-order and freshness expiry.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C02",
+        "C03",
+        "C04",
+        "C05",
+        "C06"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C11",
+      "description": "Backup, schema migration and restore preserve history/identity/last-good values with independent assertions and recovery procedures.",
+      "milestone": "C",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C11",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Implement and independently exercise Backup, schema migration and restore preserve history/identity/last-good values with independent assertions and recovery procedures.",
+      "blocker_owner": null,
+      "depends_on": [
+        "C03"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "C12",
+      "description": "Authenticated service and actual device evidence is retained separately from local observation fixture results.",
+      "milestone": "C",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-C12",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "R3 captures can be imported, and a finite modeled scheduler exists. Connect authenticated reader and independently scheduled adapter; do not treat caller claims or timer fixtures as live evidence.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Tenant/device owners: approved reader context and enrolled representative devices.",
+      "blocker_owner": "Tenant/device owners: approved reader context and enrolled representative devices.",
+      "depends_on": [
+        "C01",
+        "C09",
+        "C10",
+        "C11"
+      ],
+      "existing_code": [
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D01",
+      "description": "Visual TUI uses existing engine, typed results, durable events and same approval/execution contract; complete text interface remains reference.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D01",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Visual TUI uses existing engine, typed results, durable events and same approval/execution contract; complete text interface remains reference.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D02",
+      "description": "Provide navy/charcoal outlined monospaced workspace, restrained cyan/blue, labeled statuses and optional warm-light theme after dependency review.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D02",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Provide navy/charcoal outlined monospaced workspace, restrained cyan/blue, labeled statuses and optional warm-light theme after dependency review.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D03",
+      "description": "Estate supports policy/setting search, ownership/coverage/health filters, bounded pages and immutable selection.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D03",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Estate supports policy/setting search, ownership/coverage/health filters, bounded pages and immutable selection.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01",
+        "A04",
+        "A09"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D04",
+      "description": "Inspector exposes exact settings, includes/exclusions/filters, provenance, coverage, ownership and freshness.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D04",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Inspector exposes exact settings, includes/exclusions/filters, provenance, coverage, ownership and freshness.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01",
+        "A02",
+        "A04",
+        "A09",
+        "A12"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D05",
+      "description": "Typed lineage edges connect settings/targeting/source/Atmos inheritance/deployments, show evidence and uncertainty, and have table/text equivalents.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D05",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Typed lineage edges connect settings/targeting/source/Atmos inheritance/deployments, show evidence and uncertainty, and have table/text equivalents.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01",
+        "A01",
+        "A07",
+        "C07"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D06",
+      "description": "History/comparison surfaces distinct collector, provider-state and verified-deployment baselines with exact values/times.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D06",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise History/comparison surfaces distinct collector, provider-state and verified-deployment baselines with exact values/times.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01",
+        "A05",
+        "A06",
+        "A07"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D07",
+      "description": "Dedicated exact-plan review displays operations/target/assignments/affected scope/provenance and approval identity.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D07",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Dedicated exact-plan review displays operations/target/assignments/affected scope/provenance and approval identity.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01",
+        "A03",
+        "B04",
+        "B05"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D08",
+      "description": "Execution/recovery displays active stage, completed/failed/unknown checks, required input, journal, uncertainty and allowed recovery.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D08",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Execution/recovery displays active stage, completed/failed/unknown checks, required input, journal, uncertainty and allowed recovery.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01",
+        "B03",
+        "B05",
+        "B08"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D09",
+      "description": "Status/help preserves investigation and selection context across views/recovery and shows environment, shortcuts, operation and meaningful next action.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D09",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Status/help preserves investigation and selection context across views/recovery and shows environment, shortcuts, operation and meaningful next action.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D10",
+      "description": "Progress uses defined denominators, measured ETAs only and gaps; reduced motion keeps information; pause only when safe; cancellation requested/stopped/uncertain distinct.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D10",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Progress uses defined denominators, measured ETAs only and gaps; reduced motion keeps information; pause only when safe; cancellation requested/stopped/uncertain distinct.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D01"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D11",
+      "description": "Independent PTY key/input journey covers investigation/change/recovery/back/edit/cancel/resume with state assertions and captures.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D11",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Independent PTY key/input journey covers investigation/change/recovery/back/edit/cancel/resume with state assertions and captures.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "D12",
+      "description": "Qualify narrow/resize/Unicode width/non-color/reduced-motion/no-TTY/untrusted controls/terminal restoration and preregistered workload-specific performance.",
+      "milestone": "D",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-D12",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The complete text interface exists; requested visual workspace and its independent interaction/host evidence are not established.",
+      "next_action": "Implement and independently exercise Qualify narrow/resize/Unicode width/non-color/reduced-motion/no-TTY/untrusted controls/terminal restoration and preregistered workload-specific performance.",
+      "blocker_owner": null,
+      "depends_on": [
+        "D02",
+        "D11"
+      ],
+      "existing_code": [
+        "intune_iac/workbench.py",
+        "intune_iac/cli.py",
+        "intune_iac/provider_journey.py"
+      ],
+      "existing_entrypoints": [
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E01",
+      "description": "Declare bounded policy/mapping/host/shell/terminal/runtime/engine/provider/CI/identity/backend/scale profile; do not silently drop required Windows/Git Bash.",
+      "milestone": "E",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E01",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Implement and independently exercise Declare bounded policy/mapping/host/shell/terminal/runtime/engine/provider/CI/identity/backend/scale profile; do not silently drop required Windows/Git Bash.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E02",
+      "description": "Prepare native Windows Git Bash/mintty and chosen terminal procedures with per-invocation MSYS prefix exclusions; no global conversion disable.",
+      "milestone": "E",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E02",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Implement and independently exercise Prepare native Windows Git Bash/mintty and chosen terminal procedures with per-invocation MSYS prefix exclusions; no global conversion disable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "E01"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E03",
+      "description": "Qualify actual Windows paths/Graph slash paths/spaces/hyphens/Unicode/quotes/CRLF; binary plans/captures remain exact.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E03",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Windows host owner: actual Windows/Git Bash/mintty and chosen terminal.",
+      "blocker_owner": "Windows host owner: actual Windows/Git Bash/mintty and chosen terminal.",
+      "depends_on": [
+        "E02",
+        "D12"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E04",
+      "description": "Native PowerShell checks native exit codes and preserves primary failure when cleanup also fails.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E04",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Windows host owner: actual supported native PowerShell environment.",
+      "blocker_owner": "Windows host owner: actual supported native PowerShell environment.",
+      "depends_on": [
+        "E02"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E05",
+      "description": "Authorized disposable native lifecycle proves capture, identity-preserving import/adoption, no unintended first plan, bounded change, independent policy/assignment readback and convergence/recovery.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E05",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Tenant owner: disposable object/group/filter scope, exact approved operations and recovery.",
+      "blocker_owner": "Tenant owner: disposable object/group/filter scope, exact approved operations and recovery.",
+      "depends_on": [
+        "A14",
+        "B14",
+        "C12"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E06",
+      "description": "Receiving service independently establishes tenant/principal context; caller labels and decoded tokens alone do not authenticate it.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E06",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Identity/tenant owner: approved authentic receiving-service context.",
+      "blocker_owner": "Identity/tenant owner: approved authentic receiving-service context.",
+      "depends_on": [
+        "C01",
+        "B11"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E07",
+      "description": "Representative enrolled device pilot defines cohort, reporting denominator, monitoring, stop conditions and authorized recovery/cleanup; endpoint effect is separate.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E07",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Device/pilot owner: enrolled cohort, observation period and authorized recovery.",
+      "blocker_owner": "Device/pilot owner: enrolled cohort, observation period and authorized recovery.",
+      "depends_on": [
+        "C09",
+        "E05",
+        "E06"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E08",
+      "description": "Actual chosen CI controls and permissions/approval/federation are exercised and bound to source/artifacts.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E08",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Execution-service owner: chosen CI disposable repository/runner/control authorization.",
+      "blocker_owner": "Execution-service owner: chosen CI disposable repository/runner/control authorization.",
+      "depends_on": [
+        "B02",
+        "B10",
+        "B13"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E09",
+      "description": "Actual Azure backend identity/state/lease behavior is qualified independently of local emulation.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E09",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Azure/backend owner: named subscription/account/container/key identities and authorized state scope.",
+      "blocker_owner": "Azure/backend owner: named subscription/account/container/key identities and authorized state scope.",
+      "depends_on": [
+        "B07",
+        "B08"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E10",
+      "description": "Controlled host crash/power-loss and hostile-process containment are qualified in approved environments; cooperative restart is narrower.",
+      "milestone": "E",
+      "required_profile": "required-native-platform",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-E10",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Host/security owner: controlled crash/power-loss environment and protected independent oracle.",
+      "blocker_owner": "Host/security owner: controlled crash/power-loss environment and protected independent oracle.",
+      "depends_on": [
+        "B13",
+        "C11"
+      ],
+      "existing_code": [
+        "docs/HOSTS.md",
+        "docs/EXTERNAL-QUALIFICATION-R3.md",
+        "intune_iac/native_pins.py"
+      ],
+      "existing_entrypoints": [
+        "doctor",
+        "provider",
+        "capture"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F01",
+      "description": "Release source equals reviewed source; changed-scope and required final gates retain exact source/artifact identity without duplicated counts.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F01",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Release source equals reviewed source; changed-scope and required final gates retain exact source/artifact identity without duplicated counts.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "C11",
+        "D12"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F02",
+      "description": "Independent complete application journeys and negative controls qualify exact source/runtime packages.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F02",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Independent complete application journeys and negative controls qualify exact source/runtime packages.",
+      "blocker_owner": null,
+      "depends_on": [
+        "F01"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F03",
+      "description": "Reproducible builds, type-aware extraction, complete recovery manifests and independent public/saved readback preserve exact bytes/hashes.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F03",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Reproducible builds, type-aware extraction, complete recovery manifests and independent public/saved readback preserve exact bytes/hashes.",
+      "blocker_owner": null,
+      "depends_on": [
+        "F01",
+        "F02",
+        "F08"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F04",
+      "description": "Dependency/toolchain/license inventory and source-to-binary linkage are retained with explicit scopes.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F04",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Dependency/toolchain/license inventory and source-to-binary linkage are retained with explicit scopes.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F05",
+      "description": "Independent security review covers reachable implementation/execution boundaries; unresolved critical/high and credible unverified high-impact paths remain release blockers.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F05",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Independent security review covers reachable implementation/execution boundaries; unresolved critical/high and credible unverified high-impact paths remain release blockers.",
+      "blocker_owner": null,
+      "depends_on": [
+        "B01"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F06",
+      "description": "Accountable organizational security/risk owners disposition residual findings and historical provenance anomalies; no assistant risk approval.",
+      "milestone": "F",
+      "required_profile": "organizational-production-decision",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F06",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain AppSec/risk owners: accountable disposition of reviewed candidate and open findings.",
+      "blocker_owner": "AppSec/risk owners: accountable disposition of reviewed candidate and open findings.",
+      "depends_on": [
+        "F05"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F07",
+      "description": "Deliver support matrix, executable external procedures, migration/restore, operational retention/rotation/revocation/incident/recovery, pilot results and continuation commands.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F07",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Deliver support matrix, executable external procedures, migration/restore, operational retention/rotation/revocation/incident/recovery, pilot results and continuation commands.",
+      "blocker_owner": null,
+      "depends_on": [
+        "E01"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F08",
+      "description": "Public delivery excludes raw tenant captures/credentials/state/saved plans/restricted evidence, records omissions and does not claim complete private corpus.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F08",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Public delivery excludes raw tenant captures/credentials/state/saved plans/restricted evidence, records omissions and does not claim complete private corpus.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F09",
+      "description": "Preserve original full corpus, all six threads, valid evidence, failures/skips/unresolved findings and optional read-only Wally negatives.",
+      "milestone": "F",
+      "required_profile": "local-implementation-and-independent-qualification",
+      "status": "NOT_STARTED",
+      "evidence_class": "new-local-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F09",
+      "evidence_path": [],
+      "environment": "Linux local disposable fixtures; no production credentials",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Implement and independently exercise Preserve original full corpus, all six threads, valid evidence, failures/skips/unresolved findings and optional read-only Wally negatives.",
+      "blocker_owner": null,
+      "depends_on": [
+        "R00"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "F10",
+      "description": "Accountable production decision requires real profile qualification, AppSec/risk and operations/support/recovery/pilot owner approval; passing tests alone insufficient.",
+      "milestone": "F",
+      "required_profile": "organizational-production-decision",
+      "status": "BLOCKED",
+      "evidence_class": "external-evidence-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-F10",
+      "evidence_path": [],
+      "environment": "Required approved external profile; not established by this record",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Release/pilot owners: accountable production-use decision after all required evidence.",
+      "blocker_owner": "Release/pilot owners: accountable production-use decision after all required evidence.",
+      "depends_on": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "B14",
+        "C12",
+        "E03",
+        "E04",
+        "E05",
+        "E06",
+        "E07",
+        "E08",
+        "E09",
+        "E10"
+      ],
+      "existing_code": [
+        "release-source-files.txt",
+        "scripts/verify-plugin.py",
+        "docs/EXTERNAL-QUALIFICATION-R3.md"
+      ],
+      "existing_entrypoints": [
+        "scripts/verify-plugin.py",
+        "scripts/qualify-workbench-connected.py"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-01",
+      "description": "Wrong target or identity rejected",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-wrong-target-identity",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-02",
+      "description": "Changed source or provider/toolchain locks after approval rejected",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-changed-source-locks",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-03",
+      "description": "Plan substitution, approval replay and expiry rejected",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-plan-substitution-replay-expiry",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-04",
+      "description": "Advanced state revision rejected",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-advanced-state",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-05",
+      "description": "Concurrent writers and lease loss controlled",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-concurrent-writer-lease-loss",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-06",
+      "description": "Denied or incomplete assignments never become empty intent",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-denied-incomplete-assignments",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-07",
+      "description": "Cross-origin or otherwise invalid pagination rejected before request",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-pagination-escape",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-08",
+      "description": "Bounded throttling and retry exhaustion preserve partial evidence",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-throttling",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-09",
+      "description": "Timeout after possible commit stays uncertain until independent readback; no replay",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-possible-commit-timeout",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-10",
+      "description": "Policy success with assignment failure remains partial/diverged",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-policy-success-assignment-failure",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-11",
+      "description": "Cancellation during acquisition, write or evidence recording preserves ownership and honest outcomes",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-cancel-acquire-write-receipt",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-12",
+      "description": "Missing device reports remain unknown with targeted denominator",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-missing-device-reports",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-13",
+      "description": "Historical restoration creates reviewed fresh operation and preserves history",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-historical-restoration",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-14",
+      "description": "Untrusted workflow input cannot gain privileged execution",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-untrusted-workflow-input",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-15",
+      "description": "Terminal and shell injection remains inert with literal legitimate unusual input",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-terminal-shell-injection",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-16",
+      "description": "Duplicate names never replace immutable identity",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-duplicate-names",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-17",
+      "description": "Conflicting reference updates preserve disagreement and require explicit resolution",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-conflicting-reference-updates",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    },
+    {
+      "id": "E-FAULT-18",
+      "description": "Graph acceptance without endpoint evidence never reports effective endpoint success",
+      "milestone": "E",
+      "required_profile": "local-negative-control-and-required-native-route",
+      "status": "NOT_STARTED",
+      "evidence_class": "independent-negative-control-required",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "applicable_revision": null,
+      "artifact_sha256": null,
+      "test_procedure_id": "R4-FAULT-acceptance-without-endpoint",
+      "evidence_path": [],
+      "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
+      "limitation": "Historical R2/R3 cases may overlap but do not automatically qualify changed R4 worker, scheduler or TUI. Count cases once and preserve each original scope.",
+      "next_action": "Map existing assertion and source dependencies, implement missing control, preserve failing-before and passing-after evidence through actual applicable entrypoint; then retain native gate if unavailable.",
+      "blocker_owner": null,
+      "depends_on": [
+        "A14",
+        "B13",
+        "C10",
+        "D12"
+      ],
+      "existing_code": [
+        "intune_iac/approval_authority.py",
+        "intune_iac/identity_binding.py",
+        "intune_iac/blob_lease.py",
+        "intune_iac/provider_execution.py",
+        "intune_iac/protected.py",
+        "intune_iac/capture.py",
+        "intune_iac/capture_adapter.py",
+        "intune_iac/workbench_store.py",
+        "intune_iac/workbench_scheduler.py",
+        "intune_iac/workbench_health.py"
+      ],
+      "existing_entrypoints": [
+        "provider",
+        "target authenticate",
+        "workbench execute",
+        "workbench reconcile",
+        "capture",
+        "workbench import-capture",
+        "workbench collection-history",
+        "workbench schedule-create",
+        "workbench schedule-run",
+        "workbench schedule-status",
+        "workbench health",
+        "workbench terminal"
+      ],
+      "new_entrypoints_verified": false,
+      "new_verification_commands": [],
+      "evidence_reuse": [],
+      "outcomes": {
+        "laboratory": "NOT_STARTED",
+        "platform": "BLOCKED",
+        "organizational_production_approval": "BLOCKED"
+      }
+    }
+  ]
+}

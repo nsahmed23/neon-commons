@@ -67,7 +67,8 @@ _MIGRATION_STATEMENTS = (
     "CREATE INDEX artifact_lookup ON artifacts(kind,object_id,sequence)",
 )
 _SCHEMA_SQL = _SCHEMA_SQL_V1 + '\nBEGIN IMMEDIATE;\n' + ';\n'.join(_MIGRATION_STATEMENTS) + ';\nPRAGMA user_version=2;\nCOMMIT;\n'
-_ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule','adoption'})
+_ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule','adoption',
+    'repository_intent','ownership_index','provider_refresh','deployment_receipt'})
 
 
 def _migrate_v1_to_v2(db):
@@ -482,11 +483,33 @@ class WorkbenchStore:
         run_id = self._begin_run(observed_at,scope,source,'graph_capture_unverified','capture:'+oid)
         try:
             with self._connection(True) as db, db:
+                # Every import is an attempt; replay of exact capture bytes is
+                # not a second service observation. Serialize deduplication and
+                # publication together so concurrent importers cannot invent it.
+                db.execute('BEGIN IMMEDIATE')
+                duplicate = None
+                if status == 'complete':
+                    snapshot_id = digest({'tenant_id':self.tenant_id,'object_id':oid,'body':body})
+                    with self._query_budget(db) as charge:
+                        rows = db.execute("""SELECT r.run_id,d.source_json FROM collection_runs r
+                            JOIN run_details d USING(run_id) JOIN observations o USING(run_id)
+                            WHERE r.status='complete' AND d.evidence_class='graph_capture_unverified'
+                                AND o.tenant_id=? AND o.object_id=? AND o.observed_at=? AND o.snapshot_id=?
+                            ORDER BY r.run_id""",(self.tenant_id,oid,observed_at,snapshot_id))
+                        for previous in rows:
+                            if parse_json(charge(previous['source_json'])).get('capture_sha256') == capture_sha:
+                                duplicate = previous['run_id']
+                                break
+                    if duplicate is not None:
+                        source = {**source,'duplicate_of_run_id':duplicate,
+                                  'publication_disposition':'reused_exact_capture_observation'}
+                        db.execute('UPDATE run_details SET source_json=? WHERE run_id=?',(_json(source),run_id))
                 self._store_coverage(db,run_id,collections)
-                if status=='complete': self._store_objects(db,run_id,{oid:body},observed_at,source)
+                if status=='complete' and duplicate is None:
+                    self._store_objects(db,run_id,{oid:body},observed_at,source)
                 db.execute('UPDATE collection_runs SET completed_at=?,status=?,coverage=?,error_code=?,object_count=? WHERE run_id=?',
                     (time.time(),status,'complete' if all_complete else 'denied' if status=='denied' else 'partial',
-                     None if status=='complete' else 'capture_'+status,1 if status=='complete' else 0,run_id))
+                     None if status=='complete' else 'capture_'+status,1 if status=='complete' and duplicate is None else 0,run_id))
         except (AppError,OSError) as error: self._terminal_failure(run_id,error)
         return self.collection_detail(run_id)
 
@@ -596,7 +619,7 @@ class WorkbenchStore:
             'run_id':attempt['run_id'],'observed_at':_iso(attempt['observed_at']),'coverage':attempt['coverage'],
             'body':None,'source':source,'relationships':[],'dictionary':[],'ownership':'unknown',
             'field_accounting':{field:'unknown' for field in sorted(FIELDS)},'changed_at':None,'attribution':'unknown',
-            'evidence_class':'graph_capture_unverified','cloud_authority':False,'execution_authorized':False,
+            'evidence_class':run.get('evidence_class','unknown'),'cloud_authority':False,'execution_authorized':False,
             'pending_observation':True,'freshness':'unknown','last_attempt':run,'last_success':None,
             'collections':run.get('collections',[]),'health':self._health(None,time.time(),3600)}
 
@@ -696,15 +719,18 @@ class WorkbenchStore:
                 SELECT DISTINCT s.object_id,MAX(COALESCE(latest.run_id,0),f.run_id) AS attempt_id
                 FROM run_scope_objects s JOIN run_details d USING(run_id)
                 LEFT JOIN scoped latest ON latest.object_id=s.object_id CROSS JOIN fallback f
-                WHERE d.evidence_class='graph_capture_unverified' AND NOT EXISTS(
+                WHERE d.evidence_class IN ('graph_capture_unverified','graph_authenticated_observation',
+                    'graph_reader_laboratory','graph_reader_attempt') AND NOT EXISTS(
                     SELECT 1 FROM object_heads h WHERE h.object_id=s.object_id AND h.present=1)),
             inventory AS (
                 SELECT h.object_id,h.observation_id,h.snapshot_id,h.observed_at,0 AS pending,
                     h.attempt_id,r.status AS attempt_status,h.evidence_class
                 FROM heads h LEFT JOIN collection_runs r ON r.run_id=h.attempt_id
                 UNION ALL
-                SELECT c.object_id,NULL,NULL,r.observed_at,1,c.attempt_id,r.status,'graph_capture_unverified'
-                FROM candidates c JOIN collection_runs r ON r.run_id=c.attempt_id WHERE r.status!='complete')
+                SELECT c.object_id,NULL,NULL,r.observed_at,1,c.attempt_id,r.status,
+                    COALESCE(ad.evidence_class,'unknown')
+                FROM candidates c JOIN collection_runs r ON r.run_id=c.attempt_id
+                LEFT JOIN run_details ad ON ad.run_id=r.run_id WHERE r.status!='complete')
                 """, {}
 
     def overview(self, *, now=None, max_age_seconds=3600, limit=None, offset=0, query=None):
@@ -794,7 +820,8 @@ class WorkbenchStore:
                 health = self._collection_health(db,success,now,3600)
                 value = self._current_observation(db,row,attempt,health,now,3600)
             elif self.schema_version==2 and db.execute("""SELECT 1 FROM run_scope_objects s JOIN run_details d USING(run_id)
-                    WHERE s.object_id=? AND d.evidence_class='graph_capture_unverified' LIMIT 1""",(object_id,)).fetchone():
+                    WHERE s.object_id=? AND d.evidence_class IN ('graph_capture_unverified',
+                    'graph_authenticated_observation','graph_reader_laboratory','graph_reader_attempt') LIMIT 1""",(object_id,)).fetchone():
                 latest = self._object_attempt(db,object_id)
                 if latest is None or latest['status']=='complete': _fail('workbench_object_missing')
                 value = self._pending(db,object_id,latest)
