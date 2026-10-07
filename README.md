@@ -1,4 +1,4 @@
-# Intune Workbench — R4 continuation
+# Intune Workbench — 0.9.0 engineering candidate
 
 This work continues verified **0.8.0** source
 `289ee9477372825aad848f4482cf681c2ff43b02` under the

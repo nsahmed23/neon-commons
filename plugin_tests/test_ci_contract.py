@@ -23,7 +23,7 @@ PINS = {
     'python': 'actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97',
     'evidence': 'actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f',
 }
-ORDER = ['checkout', 'python', 'platform', 'dependencies', 'verify', 'smoke', 'release', 'extract', 'extracted', 'evidence']
+ORDER = ['workspace', 'checkout', 'python', 'platform', 'dependencies', 'verify', 'smoke', 'release', 'extract', 'extracted', 'evidence']
 
 
 def contract_issues(document):
@@ -39,6 +39,7 @@ def contract_issues(document):
     if job.get('runs-on') != 'ubuntu-24.04': issues.append('runner')
     if any(k in job for k in ('permissions', 'environment', 'secrets', 'uses', 'container', 'services', 'if', 'continue-on-error')): issues.append('job_scope')
     if type(job.get('timeout-minutes')) is not int or not 1 <= job['timeout-minutes'] <= 30: issues.append('timeout')
+    if job.get('env') != {'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONHASHSEED': '0'}: issues.append('job_environment_context')
     steps = job.get('steps', [])
     if [step.get('id') for step in steps] != ORDER: return issues + ['step_order']
     indexed = {step['id']: step for step in steps}
@@ -83,17 +84,19 @@ class CIContractTests(unittest.TestCase):
 
     def test_dangerous_workflow_mutations_are_rejected(self):
         original = self.workflow()
+        def step(document, name):
+            return next(s for s in document['jobs']['validate']['steps'] if s['id'] == name)
         mutations = [lambda x: x.update(permissions={'contents': 'write'}),
             lambda x: x['on'].update(pull_request_target={}),
             lambda x: x['jobs']['validate'].update(**{'runs-on': 'self-hosted'}),
             lambda x: x['jobs']['validate'].update(**{'continue-on-error': True}),
-            lambda x: x['jobs']['validate']['steps'][0]['with'].update(**{'persist-credentials': True}),
-            lambda x: x['jobs']['validate']['steps'][0].update(uses='actions/checkout@v6'),
-            lambda x: x['jobs']['validate']['steps'][4].update(**{'if': '${{ false }}'}),
-            lambda x: x['jobs']['validate']['steps'][4].update(run='python scripts/verify-plugin.py --include-core || true'),
+            lambda x: step(x, 'checkout')['with'].update(**{'persist-credentials': True}),
+            lambda x: step(x, 'checkout').update(uses='actions/checkout@v6'),
+            lambda x: step(x, 'verify').update(**{'if': '${{ false }}'}),
+            lambda x: step(x, 'verify').update(run='python scripts/verify-plugin.py --include-core || true'),
             lambda x: x['jobs']['validate'].update(env={'TOKEN': '${{ secrets.AZURE_TOKEN }}'}),
-            lambda x: x['jobs']['validate']['steps'][3].update(run='python -m pip install -r requirements-runtime.txt'),
-            lambda x: x['jobs']['validate']['steps'][6].update(run='tofu apply -auto-approve'),
+            lambda x: step(x, 'dependencies').update(run='python -m pip install -r requirements-runtime.txt'),
+            lambda x: step(x, 'release').update(run='tofu apply -auto-approve'),
             lambda x: x['jobs']['validate']['steps'][-1]['with'].update(**{'include-hidden-files': True})]
         for mutate in mutations:
             document = copy.deepcopy(original); mutate(document)
@@ -120,6 +123,23 @@ os.execv(sys.executable,[sys.executable,*sys.argv[1:]])
                 env = dict(os.environ, PATH=str(bin_path) + os.pathsep + os.environ['PATH'], CI_ROOT=str(root / mode), CI_CASE=mode)
                 result = subprocess.run(['bash', '--noprofile', '--norc', '-euo', 'pipefail', '-c', script], env=env, cwd=ROOT, capture_output=True, timeout=15)
                 self.assertEqual(result.returncode == 0, mode == 'pass', (mode, result.stderr.decode()))
+
+    def test_runner_context_is_not_accepted_in_job_environment(self):
+        workflow = self.workflow()
+        workflow['jobs']['validate']['env']['CI_ROOT'] = '${{ runner.temp }}/intune-ci'
+        self.assertIn('job_environment_context', contract_issues(workflow))
+
+    def test_workspace_step_uses_actual_runner_path_and_rejects_line_injection(self):
+        script = next(s['run'] for s in self.workflow()['jobs']['validate']['steps'] if s['id'] == 'workspace')
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            for index, value in enumerate((str(root/'spaces and 雪'), '', 'relative', '/tmp/a\nTOKEN=injected', '/tmp/a\rTOKEN=injected')):
+                output = root/('env-'+str(index)); output.write_bytes(b'EXISTING=preserved\n')
+                env = dict(os.environ, RUNNER_TEMP=value, GITHUB_ENV=str(output))
+                result = subprocess.run(['bash','--noprofile','--norc','-euo','pipefail','-c',script],env=env,capture_output=True,timeout=10)
+                self.assertEqual(result.returncode == 0, index == 0)
+                expected = b'EXISTING=preserved\n' + (('CI_ROOT='+value+'/intune-ci\n').encode() if index == 0 else b'')
+                self.assertEqual(output.read_bytes(), expected)
 
     def test_shell_scripts_are_syntactically_valid(self):
         for step in self.workflow()['jobs']['validate']['steps']:

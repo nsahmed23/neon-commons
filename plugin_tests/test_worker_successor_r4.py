@@ -56,7 +56,7 @@ class WorkerSuccessorR4Tests(unittest.TestCase):
             self.addCleanup(preserve)
 
     def _signature(self, transfer, *, domain=successor.SIGNATURE_DOMAIN, **changes):
-        payload = {'schema_version': 'signed-worker-service-successor/1', 'issuer': 'fixture', 'key_id': 'key',
+        payload = {'schema_version': 'signed-worker-service-successor/2', 'issuer': 'fixture', 'key_id': 'key',
                    'approver_id': 'independent-lab-reviewer', 'transfer_id': transfer['transfer_id'],
                    'transfer_manifest_sha256': digest(transfer), 'issued_at': int(time.time()),
                    'expires_at': transfer['expires_at'], 'nonce': uuid.uuid4().hex}

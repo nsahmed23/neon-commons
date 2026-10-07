@@ -245,6 +245,7 @@ def build(epoch, output, provenance, *, provenance_sha256=None, omissions=None, 
             entries, links, hardlinks, omitted_metadata = [], [], {}, []
             prefix = 'work/evidence/' + epoch.name
             for name in ('work', 'work/evidence', prefix):
+                safe(ARCHIVE_ROOT + '/' + name)
                 entries.append({'path': name, 'type': 'directory', 'mode': 0o700, 'bytes': 0,
                                 'sha256': sha(b''), 'structural_parent': True})
             with zipfile.ZipFile(destination, 'w', allowZip64=True, compression=zipfile.ZIP_DEFLATED, compresslevel=1) as archive:
@@ -253,6 +254,10 @@ def build(epoch, output, provenance, *, provenance_sha256=None, omissions=None, 
                 for relative, expected in before.items():
                     mode = expected[2]
                     name = prefix + '/' + relative
+                    # The extractor checks complete archive member names, not
+                    # only paths relative to the source epoch. Include every
+                    # structural prefix in the length/depth admission check.
+                    safe(ARCHIVE_ROOT + '/' + name)
                     item = {'path': name, 'mode': stat.S_IMODE(mode), 'mtime_ns': expected[4]}
                     parts = safe(relative)
                     with descend(rootfd, parts[:-1]) as held:
@@ -303,6 +308,8 @@ def build(epoch, output, provenance, *, provenance_sha256=None, omissions=None, 
                     'manifest_excluded_from_own_inventory': True,
                     'extraction_policy': 'Pinned no-follow POSIX helper; verify exact regular bytes first, create literal links last; never execute nested repositories or recreate IPC endpoints.',
                     'public_suitability_approved': False, 'historical_R2_three_file_discrepancy_closed': False}
+                require(sum(item['bytes'] for item in entries) <= MAX_TOTAL,
+                        'Total typed payload including literal link targets exceeds restore bound')
                 raw_manifest = canonical(manifest)
                 require(len(raw_manifest) <= MAX_JSON, 'Manifest exceeds restore bound')
                 archive.writestr(info_for(ARCHIVE_ROOT + '/' + MANIFEST, stat.S_IFREG | 0o600), raw_manifest)

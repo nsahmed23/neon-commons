@@ -4,8 +4,10 @@ Use the [R4 ledger](docs/CONTINUATION-R4-LEDGER.json) and
 [checkpoint](docs/CONTINUATION-R4-CHECKPOINT.md) for current source, failed
 attempts and scoped independent evidence. No final R4 source/runtime package
 qualification or production approval is asserted here. Exact-commit increment3
-qualification retained three missing active-broker import errors; those gates
-remain required until the complete integrated candidate is tested. Historical
+qualification retained three missing active-broker import errors. The exact
+checkpoint4 changed-scope gate later covered and passed those three cases;
+that repair does not erase the failed checkpoint3 result or qualify final
+packages. Exact checkpoint5/6/7 gates likewise retain separate scopes. Historical
 passing totals below retain their original applicability.
 
 # Preserved 0.8.0 qualification authority

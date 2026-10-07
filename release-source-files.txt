@@ -3238,6 +3238,10 @@ docs/WORKER-COMMITTED-STATE-RECOVERY-R4.md
 intune_iac/worker_committed_state.py
 intune_iac/worker_committed_recovery.py
 intune_iac/worker_committed_readback.py
+intune_iac/worker_committed_description.py
+plugin_tests/test_worker_committed_description_r4.py
+intune_iac/worker_partial_recovery.py
+docs/WORKER-PARTIAL-RECOVERY-R4.md
 plugin_tests/test_worker_committed_recovery_r4.py
 docs/WINDOWS-READONLY-CONTINUATION-R4.md
 plugin_tests/test_windows_dictionary_r4.py

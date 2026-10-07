@@ -17,8 +17,8 @@ from . import approval_authority as aa, observation_reader as reader_api, protec
 from . import worker_service as service
 from .io import AppError, canonical, digest, parse_json
 
-VERSION = 'worker-service-successor-transfer/1'
-SIGNATURE_DOMAIN = b'intune-workbench:worker-service-successor-transfer:v1\x00'
+VERSION = 'worker-service-successor-transfer/2'
+SIGNATURE_DOMAIN = b'intune-workbench:worker-service-successor-transfer:v2\x00'
 
 
 def _fail(code):
@@ -78,7 +78,7 @@ def _service_preimage(captured, manifest):
             'identity_observation_sha256': source['identity_observation_sha256'], 'evidence_class': expected_class}
 
 
-def _completion(value, job, manifest):
+def _released_completion(value, job, manifest):
     from . import worker_lease_recovery as recovery
     expected = recovery.LiveRecoveryCompletion if manifest['profile'] == 'azure_public_pilot' else recovery.LaboratoryRecoveryCompletion
     if type(value) is not expected:
@@ -108,6 +108,62 @@ def _completion(value, job, manifest):
     return facts
 
 
+def _recovery_kind(value, manifest):
+    from . import worker_lease_recovery as released, worker_partial_recovery as observed
+    live = manifest['profile'] == 'azure_public_pilot'
+    if type(value) is (released.LiveRecoveryCompletion if live else released.LaboratoryRecoveryCompletion):
+        return 'explicit_original_state_lease_release'
+    if type(value) is (observed.LivePartialRecoveryAttestation if live else observed.LaboratoryPartialRecoveryAttestation):
+        return 'already_unlocked_original_state_observed'
+    _fail('successor_recovery_completion_required')
+
+
+def _completion(value, job, manifest):
+    kind = _recovery_kind(value, manifest)
+    if kind == 'explicit_original_state_lease_release':
+        return _released_completion(value, job, manifest)
+    facts = value.verified()
+    if (facts.get('schema_version') != 'unlocked-original-state-attestation/1'
+            or facts.get('recovery_kind') != kind
+            or facts.get('original', {}).get('operation_id') != job.identifier
+            or facts.get('original', {}).get('manifest_sha256') != job.sha256
+            or facts.get('service_authority_root') != str(job.policy.root)
+            or facts.get('current_service_policy_sha256') != job.policy.sha256
+            or facts.get('lease_release_performed') is not False
+            or facts.get('metadata_mutation_performed') is not False
+            or facts.get('scope_released') is not False):
+        _fail('successor_partial_attestation_binding')
+    observation = facts['backend_observation']
+    backend = manifest['provider_binding']['backend']
+    target, state = backend['backend'], observation['state']
+    preimage = manifest['precondition_binding']
+    if (observation.get('locked') is not False or backend['identity'] != observation.get('identity')
+            or any(target.get(key) != observation.get('backend_target', {}).get(key) for key in
+                   ('subscription_id', 'storage_account_resource_id', 'blob_endpoint', 'container', 'key', 'workspace'))
+            or any(target.get(key) != state.get(other) for key, other in
+                   [('state_lineage', 'lineage'), ('state_serial', 'serial'), ('state_sha256', 'sha256')])
+            or facts['service_preimage']['capture_sha256'] != preimage['preimage_capture_sha256']
+            or facts['service_preimage']['raw_sha256'] != preimage['preimage_raw_sha256']
+            or canonical(facts['service_preimage']['reader_identity']) != canonical(preimage['identity'])
+            or facts['service_preimage']['identity_observation_sha256'] != preimage['identity_observation_sha256']):
+        _fail('successor_partial_preimage_binding')
+    return facts
+
+
+def _recovery_record_matches(db, original_job, transfer):
+    evidence = transfer['recovery_completion']
+    if transfer['recovery_kind'] == 'explicit_original_state_lease_release':
+        recorded = db.execute('SELECT recovery_operation,manifest_sha256,status,observed_sha256 '
+                              'FROM native_lease_recoveries WHERE original_operation=?', (original_job.identifier,)).fetchone()
+        return recorded == (evidence['recovery_operation_id'], evidence['recovery_manifest_sha256'],
+                            evidence['recovery_status'], evidence['recovery_observation_sha256'])
+    if transfer['recovery_kind'] == 'already_unlocked_original_state_observed':
+        recorded = db.execute('SELECT original_operation,original_manifest_sha256,facts_sha256 '
+                              'FROM partial_recovery_observations WHERE observation_id=?', (evidence['observation_id'],)).fetchone()
+        return recorded == (original_job.identifier, original_job.sha256, digest(evidence))
+    return False
+
+
 def prepare_transfer(*, original_job, successor_manifest, successor_job_root, recovery_completion,
                      service_preimage, transfer_id, expires_at):
     if type(original_job) is not service.ServiceJob:
@@ -131,7 +187,8 @@ def prepare_transfer(*, original_job, successor_manifest, successor_job_root, re
     return {'schema_version': VERSION, 'transfer_id': transfer_id, 'prepared_at': now, 'expires_at': expires_at,
             'authority': _authority(original_job.policy), 'original': original,
             'successor': {'operation_id': manifest['operation_id'], 'manifest_sha256': digest(manifest), 'job_root': str(root)},
-            'recovery_completion': completion, 'service_preimage': preimage,
+            'recovery_completion': completion, 'recovery_kind': _recovery_kind(recovery_completion, manifest),
+            'service_preimage': preimage,
             'implementation_sha256': protected._sha(Path(__file__)), 'operation_dispatch_authorized': False}
 
 
@@ -142,7 +199,7 @@ def _verify(transfer, signed, policy, manifest):
     payload = signed['payload']
     fields = {'schema_version', 'issuer', 'key_id', 'approver_id', 'transfer_id', 'transfer_manifest_sha256',
               'issued_at', 'expires_at', 'nonce'}
-    if (type(payload) is not dict or set(payload) != fields or payload['schema_version'] != 'signed-worker-service-successor/1'
+    if (type(payload) is not dict or set(payload) != fields or payload['schema_version'] != 'signed-worker-service-successor/2'
             or payload['transfer_id'] != transfer['transfer_id'] or payload['transfer_manifest_sha256'] != digest(transfer)
             or type(payload['nonce']) is not str or not re.fullmatch(r'[0-9a-f]{32}', payload['nonce'])):
         _fail('successor_signature_binding')
@@ -218,11 +275,7 @@ def execute_transfer(transfer, signed, *, original_job, successor_manifest, reco
         db.execute('BEGIN IMMEDIATE')
         if _original(original_job, db) != transfer['original']:
             _fail('successor_original_changed')
-        completion = transfer['recovery_completion']
-        recorded = db.execute('SELECT recovery_operation,manifest_sha256,status,observed_sha256 '
-                              'FROM native_lease_recoveries WHERE original_operation=?', (original_job.identifier,)).fetchone()
-        if recorded != (completion['recovery_operation_id'], completion['recovery_manifest_sha256'],
-                         completion['recovery_status'], completion['recovery_observation_sha256']):
+        if not _recovery_record_matches(db, original_job, transfer):
             _fail('successor_recovery_record_changed')
         if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (payload['issuer'], payload['key_id'])).fetchone():
             _fail('successor_signer_revoked')
@@ -248,7 +301,10 @@ def execute_transfer(transfer, signed, *, original_job, successor_manifest, reco
                  'original_operation_id': original_job.identifier, 'successor_operation_id': manifest['operation_id'],
                  'successor_manifest_sha256': digest(manifest), 'recovery_completion_sha256': digest(transfer['recovery_completion']),
                  'original_manifest_sha256': original_job.sha256,
-                 'recovery_operation_id': transfer['recovery_completion']['recovery_operation_id'],
+                 'recovery_operation_id': (transfer['recovery_completion']['recovery_operation_id'] if
+                     transfer['recovery_kind'] == 'explicit_original_state_lease_release' else
+                     transfer['recovery_completion']['observation_id']),
+                 'recovery_kind': transfer['recovery_kind'],
                  'transfer_artifact': str(root / 'successor-transfer.json'),
                  'transfer_approval_artifact': str(root / 'successor-transfer-approval.json'),
                  'old_failure_preserved': True, 'mutation_replayed': False, 'new_apply_approval_required': True}

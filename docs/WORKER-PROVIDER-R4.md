@@ -187,3 +187,48 @@ native Windows support, enrolled-device effectiveness, provider malformed-error
 repair, or organizational production approval. The newly added description-only
 recovery contract requires its own committed-state interruption qualification;
 the ordinary computed-state result does not cover that distinct schema.
+
+## Description-recovery committed interruption (0.9.0 engineering candidate)
+
+The second contract schema now has its own actual native interruption/recovery
+qualification. `native-description-cancel-state-01` is a **new disposable
+laboratory operation and authority**, seeded from the explicitly copied retained
+state13/description-drift fixture and exact saved plan
+`bf65ab9c1876dc6054389ed7c59eb5b98945d9c59e67debdfb8b2bfe61568828`.
+Its new ordinary exact-plan approval dispatched the real protected
+Atmos/OpenTofu/provider worker. The actual service cancel command ran after the
+native state14 effect and before broker response evidence. Fifteen cancellation
+assertions preserve its unknown outcome, held lease/metadata/ownership and
+confirmed native container cleanup. No old apply or recovery approval was reused.
+
+`description-committed-observer-01` has 27 read-only checks, including literal
+state/Graph negatives and proof that the exact description contract branch ran.
+`description-committed-recovery-journey-01` separately signed the committed-state
+lease release, ran an actual native no-change plan, authenticated a fresh binding
+after metadata changed the ETag, and reconciled the original uncertain operation
+using the distinct sealed readback. Its 21 named checks and ten negative-code
+records overlap; the separate 30-check raw JSON/SQLite/byte evaluator also
+intentionally overlaps. Do not add these counts to any suite total. Its 412
+fixture requests include 273 inherited requests, leaving 139 new requests.
+
+The original operation remains `service_state_converged_execution_unknown` with
+one dispatch and its prior failed outcome preserved. The exact state14 SHA-256
+`43525e2e6d674c9805d75927a2a9f6d624a0a2915faa4aca1091b93f2794ceaa`
+and all Graph values remain unchanged throughout release/observation; no apply,
+state write or Graph mutation was replayed. The sealed proof includes exact
+original inner/outer description-contract digests. Wrong approval domains,
+boolean approval, consumed release replay, ordinary state13 recovery, retained
+metadata, JSON capabilities, changed saved-plan identity and copied-artifact
+substitution fail closed. Original fixtures and the constructed-seed distinction
+remain explicit.
+
+The final receipt SHA-256 is
+`cef51f414780f6534552f5c5dbaf364150bec6875967f5b7eb09ca87d7549674`;
+`INDEPENDENT-ASSERTIONS.json` is
+`e3904efe0c15751d3d65a9b55ab8f78464be3c818e6bd28f0efba4b0cf862beb`.
+`TESTED-SOURCE-LINKAGE.json` is
+`e87c20d7571ff0c4a333fc6607458935011b51bcbbd35259a3c0efc91df6f56f`:
+79 package files match both original-apply and release signed inventories, and
+eight harnesses are archived separately. This qualifies those exact working
+source bytes, not later package revisions. Real platform/device evidence and
+accountable organizational approval remain open.

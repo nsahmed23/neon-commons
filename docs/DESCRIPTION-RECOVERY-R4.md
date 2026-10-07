@@ -34,3 +34,15 @@ The source test route is `python -B -m unittest -v plugin_tests.test_worker_stat
 `work/evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02` completed actual pinned Atmos/OpenTofu/provider execution of the new approved recovery plan through the protected worker, using the original authority and an explicitly signed successor transfer. An undispatched temporary successor was cancelled through the actual CLI and returned scope ownership before the final transfer. Independent service/state readback and a no-change second native plan passed; the original failed outcome remains. The main receipt has SHA-256 `32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4`; a separate no-product-import evaluator matched the entire final state and raw settings/targeting metadata, receipt `2ca532ee97d5214ad1c1c2bec649b6fef215c2407de379d6c2656a105307af16`.
 
 This is local native protocol qualification against a nonforwarding TLS fixture. Existing management mapping blockers and endpoint evidence gaps remain. Advanced-state recovery after a state write was committed but its outcome became uncertain is a separate unsupported recovery gate; the original-state lease release contract must not be relaxed to admit it implicitly.
+
+The committed-state interruption gap noted above is locally closed for the exact
+0.9.0 candidate bytes in `worker-provider/description-committed-recovery-journey-01`.
+A NEW seeded authority and actual protected description apply were cancelled
+after native state persistence. The new closed committed-description proof
+re-derived the original three baselines and inner binding, then a distinct
+signed lease release, native no-change plan, fresh authenticated-interface
+readback and sealed reconciliation preserved the original unknown execution.
+Receipt `cef51f414780f6534552f5c5dbaf364150bec6875967f5b7eb09ca87d7549674`
+and source linkage `e87c20d7571ff0c4a333fc6607458935011b51bcbbd35259a3c0efc91df6f56f`
+record the exact scope. The actual receiving service remained a nonforwarding
+synthetic TLS fixture; this does not qualify Azure, Graph, devices or production.

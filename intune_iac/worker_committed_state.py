@@ -13,6 +13,7 @@ from intune_iac.io import AppError,canonical,digest,parse_json
 from intune_iac.azure_backend import StateRevision
 from intune_iac import worker_service as service,worker_lease_recovery as lease
 from intune_iac.worker_recovery import inspect_native_recovery
+from . import worker_committed_description as description_proof
 
 _SEAL=object()
 _FIELDS={'schema_version','profile','execution_binding_sha256','baseline_sha256','plan_json_sha256','saved_plan_sha256','admission_template_sha256','resource_address','tenant_id','object_id','reader_identity_sha256','preimage_capture_sha256','precondition_binding_sha256','computed_attributes','source_evidence_class','management_mapping_status','management_mapping_blockers','execution_authorized','service_freshness_atomic'}
@@ -30,8 +31,11 @@ class _CommittedObserver:
         original=lease._original(job);manifest=job.manifest;contracts=manifest.get('state_contracts')
         if type(contracts) is not dict or set(contracts)!={'state-write'}:_fail('committed_state_contract_unsupported')
         contract=contracts['state-write'];gate=manifest['precondition_binding']
-        if (type(contract) is not dict or set(contract)!=_FIELDS or contract['schema_version']!='computed-native-state-write-contract/1.0'
-                or contract['profile']!='pinned_settings_catalog_update_with_two_independent_computed_fields'
+        if type(contract) is not dict:_fail('committed_state_contract_unsupported')
+        description=contract.get('schema_version')=='description-recovery-native-state-contract/1'
+        if (set(contract)!=(_FIELDS|description_proof.EXTENSION_FIELDS if description else _FIELDS)
+                or contract.get('schema_version') not in ('computed-native-state-write-contract/1.0','description-recovery-native-state-contract/1')
+                or contract['profile']!=('settings-catalog-description-recovery/1' if description else 'pinned_settings_catalog_update_with_two_independent_computed_fields')
                 or contract['computed_attributes']!=sorted(ws.COMPUTED) or contract['execution_binding_sha256']!=manifest['execution_binding_sha256']
                 or contract['precondition_binding_sha256']!=digest(gate) or contract['tenant_id']!=manifest['tenant_id']
                 or [contract['object_id']]!=manifest['object_ids'] or contract['execution_authorized'] is not False):_fail('committed_state_contract_unsupported')
@@ -50,6 +54,8 @@ class _CommittedObserver:
                 or digest({'policy':policy,'assignments':assignments})!=gate['approved_projection_sha256']
                 or plan.get('format_version')!='1.2' or plan.get('terraform_version')!='1.13.1' or plan.get('errored') is not False):_fail('committed_state_original_binding')
         StateRevision.observe(baseline_raw,etag='"historical-content-only"')
+        self._description_linkage=description_proof.validate_description_linkage(contract=contract,baseline_raw=baseline_raw,plan_json_raw=plan_json_raw,preimage_raw=preimage_raw,gate=gate) if description else None
+        self._description_digest=digest(self._description_linkage)
         identity=reader.evidence()
         if (canonical(identity['identity'])!=canonical(gate['identity']) or digest(gate['identity'])!=contract['reader_identity_sha256']
                 or contract['source_evidence_class']!=('graph_authenticated_observation' if live else 'graph_reader_laboratory')):_fail('committed_state_reader_binding')
@@ -63,6 +69,7 @@ class _CommittedObserver:
     def __repr__(self):return '<'+type(self).__name__+' redacted>'
     def __reduce_ex__(self,protocol):raise TypeError('Committed-state reader authority cannot be serialized.')
     def check(self):
+        if digest(self._description_linkage)!=self._description_digest:_fail('committed_state_description_proof_changed')
         if (self.pid!=os.getpid() or lease._original(self.job)!=self.original or self._binding!=digest({'original':self.original,'contract':self.contract,'gate':self.gate,'prior':self.prior,'policy':self.policy,'assignments':self.assignments,'baseline':self.baseline})
                 or canonical(self.reader.evidence()['identity'])!=canonical(self.gate['identity'])):_fail('committed_state_observer_changed')
     def observe(self,candidate_raw,output):
@@ -103,6 +110,7 @@ class _CommittedObserver:
             'computed_values':{'settings_count':len(settings),'last_modified_date_time':rendered},'source_evidence_class':source['evidence_class'],
             'management_mapping_status':batch['status'],'management_mapping_blockers':batch['source'].get('mapping_blockers',[]),
             'actor_attribution':'unestablished','execution_authorized':False,'platform_qualified':False}
+        if self._description_linkage is not None:facts['description_contract_linkage']=_copy(self._description_linkage)
         return facts,captured
 
 class LiveCommittedStateObserver(_CommittedObserver):pass

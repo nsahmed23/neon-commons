@@ -1,6 +1,6 @@
 # Validation CI and operational handoff
 
-`.github/workflows/validate.yml` is an implemented validation-only workflow for an engineering candidate. It has been parsed and exercised locally at its contract and shell boundaries. It has not been published, enabled or run on GitHub. A green validation job does not approve production use.
+`.github/workflows/validate.yml` is an implemented validation-only workflow for an engineering candidate. It has been parsed and exercised locally at its contract and shell boundaries. The published 0.8.0 source has two failed GitHub runs with zero jobs; the R4 read-only reassessment below preserves that contrary platform evidence. The repaired R4 definition has not yet passed a GitHub-hosted run. A green validation job does not approve production use.
 
 ## Declared CI support
 
@@ -57,3 +57,26 @@ Review exact upstream changes before replacing a pin. Confirm the commit belongs
 Do not add cloud access to this validation job. A future deployment pipeline needs its own reviewed identity/target binding, protected approval, exact binary-plan provenance, native state and distributed operation locks, durable effect receipts and recovery evidence. Enterprise goal gates E03–E05, E08–E10 remain open until their own evidence exists.
 
 Local evidence and source identities: `research/enterprise-ci/README.md` and `source-ledger.json`.
+
+## R4 observed workflow admission failure and local repair
+
+Read-only GitHub evidence on2026-10-07 identified runs37572241575 and37570928891
+for exact source289ee9477372825aad848f4482cf681c2ff43b02. Both completed with
+`failure`, zerojobs and zerocheckruns. The public run annotation states
+`(Line:27,Col:16): Unrecognized named-value: runner ... runner.temp`. The old
+job-level `env` used a runner context before it was available. Earlier local
+YAML parsing and contract tests did not establish GitHub workflow admission.
+
+The local repair moves CI_ROOT initialization into the first runner-executed
+Bash step via GITHUB_ENV. It requires an absolute RUNNER_TEMP and rejects CR/LF
+before appending a line. Existing read-only permissions, fixed action pins,
+strict verification gates, artifact scope and failure propagation remain.
+Name-driven test mutations preserve their original gate targets after the new
+step; a new negative rejects the previously invalid job-level context.
+
+Raw APIresponses, public annotationHTML, exact beforebytes, test commands and
+repair receipts are in `work/evidence/epoch-20261007-r4/external-gates/`. This
+repairs source locally; actual admission and runner execution of final bytes
+remain a required GitHub gate. Source and handoff branches were observed
+unprotected; read permissions reported by a connector do not authorize changing
+branch controls, deployments, protected environments or production identities.

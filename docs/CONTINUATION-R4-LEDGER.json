@@ -1,6 +1,6 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T21:08:03.267357+00:00",
+  "recorded_at": "2026-10-07T21:54:34.009263+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
@@ -291,6 +291,36 @@
       "evidence": [
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json"
+      ]
+    },
+    {
+      "id": "R4-GITHUB-WORKFLOW-CONTEXT",
+      "status": "FAIL",
+      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
+      "description": "Two actual GitHub runs failed before any job: runner context unavailable in job-level env. Historical failures and zerojobs retained. LocalfirststepGITHUB_ENV repair implemented and independently linted; final realCIgate remains.",
+      "evidence": [
+        "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json"
+      ],
+      "blocker_owner": "Execution-service/repository owner: choose platform and authorize exact final validation route/control qualification."
+    },
+    {
+      "id": "R4-DESCRIPTION-STATE14-RECOVERY",
+      "status": "PASS",
+      "description": "Exact local native second-schema interruption/recovery verified; independent raw27 and separate raw30 scopes overlap native checks. Old unknown and evaluator01 column mistake retained. No real platform claim.",
+      "receipts": [
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+          "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+          "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+          "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+        }
       ]
     }
   ],
@@ -1347,9 +1377,15 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B02",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CAPABILITY-01.json",
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
+        "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
+      ],
       "environment": "Required approved external profile; not established by this record",
-      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate.",
+      "limitation": "R3 has modeled execution and separate backend controls, not an integrated live worker. Implement common protected worker/backend boundary locally before requesting its deployment; native live acceptance remains separate. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
       "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Organizational execution-service owner: choose GitHub Actions or Azure DevOps before deployment.",
       "blocker_owner": "Organizational execution-service owner: choose GitHub Actions or Azure DevOps before deployment.",
       "depends_on": [
@@ -1530,7 +1566,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -1619,7 +1655,31 @@
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "B05",
@@ -1652,7 +1712,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -1746,7 +1806,31 @@
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "B06",
@@ -1770,7 +1854,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual pinned Atmos1.230.1/OpenTofu1.13.1/provider route qualified against local TLS service fixtures. Correct exact-plan arguments are two-token --from-plan --planfile; advertised --from-plan=... replanning failure retained. Native local import/no-change/change/exact-plan/readback/convergence completed; real platform and combined worker integration remain open.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -1837,7 +1921,31 @@
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
       },
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "B07",
@@ -1871,7 +1979,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -1975,7 +2083,31 @@
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
       },
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "B08",
@@ -2008,8 +2140,8 @@
         "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Local native fault controls retain partial policy effects, assignment403 failure, cancellation after policy commit and after state persistence, original scope/lease/metadata and outcome_unknown. Explicit signed stranded-lease recovery and same-authority successor transfer remain staged. Native platform qualification is absent. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "limitation": "Both original-computed and exact description-recovery committed-state schemas now have local signed recovery evidence. Original uncertain execution stays unknown after converged service/state readback. No blind apply replay. Constructed already-unlocked transfer evidence is separate from native fault creation. Real Azure/Graph/CI/Windows/device and hostile-host qualification are absent.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B05",
@@ -2113,7 +2245,31 @@
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
       },
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "B09",
@@ -2142,7 +2298,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B04",
@@ -2231,7 +2387,31 @@
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "B10",
@@ -2256,10 +2436,15 @@
         "evidence/epoch-20261007-r4/independent/runtime-deleted-after/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
-        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CAPABILITY-01.json",
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
+        "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
+      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
       "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
       "blocker_owner": null,
       "depends_on": [
@@ -4865,9 +5050,15 @@
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-E08",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CAPABILITY-01.json",
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
+        "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
+      ],
       "environment": "Required approved external profile; not established by this record",
-      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS.",
+      "limitation": "Required native host/service/CI/backend/device evidence is incomplete. Finish runnable procedures and local implementations; use actual approved external environments for platform PASS. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
       "next_action": "Prepare exact procedure/target manifest/recovery locally, then obtain Execution-service owner: chosen CI disposable repository/runner/control authorization.",
       "blocker_owner": "Execution-service owner: chosen CI disposable repository/runner/control authorization.",
       "depends_on": [
@@ -4984,10 +5175,15 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-F01",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CAPABILITY-01.json",
+        "evidence/epoch-20261007-r4/external-gates/GITHUB-READONLY-CI-DETAIL-01.json",
+        "evidence/epoch-20261007-r4/external-gates/github-run-html-01/receipt.json",
+        "evidence/epoch-20261007-r4/external-gates/ci-repair-01/REPAIR-RECEIPT.json",
+        "evidence/epoch-20261007-r4/independent/github-context-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
+      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
       "next_action": "Qualify exact final committed selected source and extracted runtime/source packages, including whole-inventory raw Git-object identity. Current11 local linkage controls are preparation, not final release qualification.",
       "blocker_owner": null,
       "depends_on": [
@@ -5109,7 +5305,15 @@
           "path": "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
           "sha256": "44c17309100062e9cbe586d93f2cf64fc0af80a7b2b4531d92cabc1c16d5ab3f"
         }
-      ]
+      ],
+      "evidence_producer_increment8": {
+        "status": "PASS",
+        "scope": "Repaired prefixed path-depth and literal-link aggregate bounds; independently exercised actual producer/restorer. Preserved earlier substitution/primary-error failures. Not final corpus packaging or full eight-layer reconstruction.",
+        "receipt": {
+          "path": "evidence/epoch-20261007-r4/packaging/evidence-producer-05/RECEIPT.json",
+          "sha256": "d0bf373e06ae0acef993c8907ec7b8033aea3890689b77774d6e29f8f73c4ff9"
+        }
+      }
     },
     {
       "id": "F04",
@@ -8126,7 +8330,7 @@
       "evidence_path": [],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
-      "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -8421,7 +8625,31 @@
         "entry": "FAULT-08"
       },
       "remaining_local_evidence": "Final native read/worker write scopes must retain their different retry rules; no real Graph retry-delay qualification.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "E-FAULT-09",
@@ -8951,7 +9179,7 @@
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -9122,7 +9350,31 @@
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
       },
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "E-FAULT-12",
@@ -9141,7 +9393,7 @@
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
-      "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
+      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
       "blocker_owner": "root/endpoint pilot owner",
       "depends_on": [
         "A14",
@@ -9237,7 +9489,31 @@
         "entry": "FAULT-12"
       },
       "remaining_local_evidence": "Later policy-bound reporting repair must retain separate per-policy denominator assertions; enrolled devices unavailable.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "recovery_increment8": {
+        "status": "PASS",
+        "scope": "Local pinned native tools, protected exact-plan worker and nonforwarding TLS Graph/Azure protocol fixtures. Description-recovery state-write interruption, original unknown retained, separately signed exact lease release, native no-change plan and sealed fresh readback. Independently inspected without product imports. Counts overlap; no aggregate. Already-unlocked transfer premise is explicitly constructed and distinct.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json",
+            "sha256": "8a9dfcd03e50d70326448673acc6f7f099ddb742f7503c7761f385f1a5d1411d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/DESCRIPTION-COMMITTED-DELIVERY-02.json",
+            "sha256": "38c01f336b6c4691f278a5aca5aae86803e719cb9b23ab976fbdfa113978c16d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/description-recovery-evidence-02/RESULT.json",
+            "sha256": "7146ec535da111dd61e75ea706071f92c7a5b739cec3d4cd2c893c05b6890955"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/already-unlocked-staging/INTEGRATION.json",
+            "sha256": "c02023478b498db9ab306050d0ca91cf4847abf2dc33a197c8dbcc2082b5ffa7"
+          }
+        ],
+        "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
+        "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      }
     },
     {
       "id": "E-FAULT-13",
@@ -10787,5 +11063,5 @@
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 7
+  "checkpoint_increment": 8
 }

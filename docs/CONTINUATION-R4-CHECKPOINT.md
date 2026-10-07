@@ -516,3 +516,41 @@ unqualified and disabled. Native authenticated capture/publisher and terminal
 adapters remain implementation dependencies. The complete source-linkage gate
 now has an actual replayable Git-object verifier with11 passing local controls;
 final source/runtime artifacts and strict packaged gate remain outstanding.
+
+Increment7 committed `5388c7adc138e1ea8ef88db36e4fba61812e6760`;
+`integration/COMMIT-07.json` records actor and26paths. Its exact detached source
+passed165 tests in13 named modules with clean trackedtree. This scoped gate
+does not cover two separately discovered producer input-bound counterexamples
+now being repaired or finalpackage qualification.
+
+Actual read-only GitHub reassessment found two baseline289 workflow failures
+with zerojobs. Public annotation proves job-level `runner.temp` was invalid.
+The local repair moves CI_ROOT to a guarded runner step; ninelocaltests,
+unchanged checksum-pinned actionlint and seven independent shellcontrols pass.
+Original remote failures and beforebytes remain. Source/handoffbranches were
+observed unprotected; connector permissions do not grant control-administration
+authorization. FinalhostedCIqualification remains open.
+
+Increment8 prepares the 0.9.0 engineering candidate. Exact description-recovery
+state-write interruption now has actual protected native evidence: one failed
+state-write operation, separately signed original lease release, native no-change
+plan, fresh identity and sealed readback. The original operation remains
+`service_state_converged_execution_unknown`, with one dispatch and its original
+failure preserved. Native15/observer27/recovery21 and independent30/27 checks
+are overlapping scopes, never an aggregate. The exact79 runtime files and eight
+harnesses are linked in `worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-04.json`.
+
+Already-unlocked partial recovery now uses its own sealed read-only attestation
+and explicitly discriminated successor approval v2. A constructed unlocked
+premise is labeled; it does not claim a native fault reproduced that premise.
+Secondary failure-recording errors no longer mask the original failure, including
+a post-commit uncertainty. Ordinary execution approval remains v1. Producer
+path-depth and literal-link byte-bound counterexamples are repaired and retained.
+
+Current parent is5388c7adc138e1ea8ef88db36e4fba61812e6760. Resume command:
+`git status --short`; then read the latest `integration/COMMIT-*.json`, this
+checkpoint and `docs/CONTINUATION-R4-LEDGER.json`. Next: finish reviewed native
+Windows capture/publication, shared terminal/context and inactive scheduled-job
+integration, qualify exact final packages and verify suitable delivery. Windows
+local components do not imply native-host qualification. Laboratory completion
+is still incomplete, platform qualification blocked, production approval absent.

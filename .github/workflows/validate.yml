@@ -24,10 +24,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      CI_ROOT: ${{ runner.temp }}/intune-ci
       PYTHONDONTWRITEBYTECODE: '1'
       PYTHONHASHSEED: '0'
     steps:
+      - id: workspace
+        name: Bind the runner temporary directory after runner initialization
+        run: |
+          ci_temp="${RUNNER_TEMP-}"
+          case "$ci_temp" in /*) ;; *) exit 2 ;; esac
+          case "$ci_temp" in *$'\r'*|*$'\n'*) exit 2 ;; esac
+          printf 'CI_ROOT=%s/intune-ci\n' "$ci_temp" >> "$GITHUB_ENV"
+
       - id: checkout
         name: Check out the triggering revision without retained credentials
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
