@@ -22,8 +22,11 @@ from intune_iac.io import AppError, canonical, digest, load_json, write_json
 from plugin_tests.signing_fixture import verifier_pin
 from plugin_tests import test_worker_broker_r4 as broker_tests
 
+from scripts.qualification_tools import PINNED as QUALIFICATION_PINS, reference as qualification_tool
+
 PROJECT = Path(__file__).resolve().parents[1]
-RELAY = Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-broker/relay/intune-worker-relay-v3')
+DOCKER = qualification_tool('docker')
+RELAY = qualification_tool('relay_v3')
 
 
 class WorkerServiceR4Tests(unittest.TestCase):
@@ -72,10 +75,10 @@ while [ ! -f /job/relay.ready ]; do
 done
 /source/tls-probe
 ''')
-        self.spec = host.HostSpec('/usr/local/bin/docker', str(self.root / 'source'),
+        self.spec = host.HostSpec(str(DOCKER), str(self.root / 'source'),
             host.directory_binding(self.root / 'source')['sha256'], str(self.root / 'control'),
             host.directory_binding(self.root / 'control')['sha256'], str(self.root / 'job'),
-            tools=(host.PinnedTool('relay', str(RELAY), hashlib.sha256(RELAY.read_bytes()).hexdigest()),),
+            tools=(host.PinnedTool('relay', str(RELAY), QUALIFICATION_PINS['relay_v3']['sha256']),),
             broker_root=str(self.root / 'broker'), broker_ca_sha256=hashlib.sha256(self.fixture.cert.read_bytes()).hexdigest())
         self.active = True
         def check():

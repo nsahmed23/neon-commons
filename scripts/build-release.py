@@ -137,6 +137,8 @@ def runtime_files():
         'NATIVE-WINDOWS-CONSOLE-R4.md',
         'WINDOWS-OBSERVER-JOB-R4.md',
         'WINDOWS-FOUR-VIEWS-R4.md',
+        'QUALIFICATION-TOOLS-R4.md',
+        'WINDOWS-REPOSITORY-R4.md',
         'EXECUTION-SEQUENCE-R4.md',
         'WINDOWS-READONLY-CONTINUATION-R4.md','WORKER-COMMITTED-STATE-RECOVERY-R4.md',
         'WORKER-PARTIAL-RECOVERY-R4.md',
@@ -155,6 +157,9 @@ def runtime_files():
                   'scripts/intune-windows-observer.py','scripts/qualify-windows-observer-job.py',
                   'scripts/prepare-ci-validator.py',
                   'scripts/download-complete-layers.py','scripts/stage-release-git.py',
+                  'scripts/qualification_tools.py','scripts/prepare-qualification-tools.py',
+                  'native/worker-relay/relay-v2.c',
+                  'scripts/qualify-windows-repository.py',
                   'scripts/restore-evidence-layer.py','scripts/restore-complete-layers.py',
                   'scripts/build-evidence-layer.py','scripts/verify-source-linkage.py',
                   'scripts/verify-release-artifact.py'])

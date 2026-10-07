@@ -25,15 +25,18 @@ class _NativeViewReader:
                 'unresolved_risks':['Required execution journal must be read on its qualified execution host; a stored link or caller label is insufficient.']}
     def decorate(self,result):
         result['native_evidence_access']={'profile':'inactive_native_store_inspection',
-            'stored_repository_snapshot':'available_without_current_source_revalidation',
+            'stored_repository_snapshot':'preserved_with_separate_current_source_readback',
             'stored_ownership_and_refresh':'caller_assertions_with_original_scope',
             'observation':'guarded_native_store_and_capture_readback',
             'execution_journals':'unsupported','issues':self.issues,
-            'current_repository_resolution_implemented':False,'platform_qualified':False,'workbench_profile_enabled':False}
+            'current_repository_resolution_implemented':True,'platform_qualified':False,'workbench_profile_enabled':False}
         if result.get('repository',{}).get('status')=='recorded':
-            result['repository']['current_working_source_readback']={'status':'unknown',
-                'reason':'native_repository_source_reader_unimplemented',
-                'recorded_revision_and_source_hashes_preserved':True}
+            from .windows_repository import readback_windows_repository
+            try:readback=readback_windows_repository(result['repository'])
+            except AppError as error:
+                readback={'status':'unknown','reason':error.code,
+                    'recorded_revision_and_source_hashes_preserved':True,'git_revision_verified':False}
+            result['repository']['current_working_source_readback']=readback
         if self.issues and result.get('deployment',{}).get('reason')=='verified_deployment_missing':
             result['deployment']['reason']='required_deployment_evidence_unsupported_or_unverified'
         if len(canonical(result))>16*1024*1024:

@@ -52,6 +52,16 @@ The builder uses fixed ZIP timestamps and a single anchored source snapshot for 
 
 ## Qualify the extracted entrypoints
 
+The strict suite also discovers real Docker host and protected-service tests.
+Prepare the unchanged fixed Docker/OpenTofu/relay-v2/relay-v3 inputs through
+[the qualification-tool procedure](QUALIFICATION-TOOLS-R4.md), then supply its
+four reviewed `INTUNE_QUALIFICATION_*` path values to the verifier environment.
+The preparation command reads and hashes existing tools; it does not configure
+a daemon, pull an image, provision credentials or approve a different host.
+Legacy workspace paths remain defaults for historical replay, not a portable
+installation contract. A generic hosted CI runner still requires the exact
+declared native profile and its real evidence; relocation cannot waive that gate.
+
 Record source/runtime archive hashes with every command, not just the mutable checkout path. The required verifier has no `--strict` flag: its normal successful result already requires all planned tests to complete with no failures, errors, skips, expected failures or unexpected successes. `--include-core` adds the retained repaired-core scope. Run this required exact final-source gate once; do not rerun the historical 1,141-test R2 or 1,242-test R3 suites merely to increase counts.
 
 ```text

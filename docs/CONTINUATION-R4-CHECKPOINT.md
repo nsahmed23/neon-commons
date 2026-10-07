@@ -654,3 +654,32 @@ pass with explicit overlapping scope. Raw targeting/unsupported IDs, distinct
 drift baselines and unchanged SQLite bytes are independently checked. Native
 source revalidation is still a separate staged implementation; unsupported
 worker journals are never opened or promoted into verified baselines.
+
+Increment10 committed `b7eae48ed943e14fa2aac2e17d2c337999aa671a`; its
+exact detached four new changed modules passed82 tests, with clean tracked
+source. Receipt `integration/checkpoint10-changed-01/RECEIPT.json` preserves
+the exact log and scope. Discovery of1912 unique IDs executed no tests and
+is not a release result. Historical1242/1141 results remain separate.
+
+Increment11 integrates the reviewed native current-source reader through
+the existing literal resolver and shared terminal.73 selected tests and12
+independent controls pass with overlapping local/recorded-Win32 scopes.
+Current source bytes/resolved values remain separate from the recorded Git
+revision assertion. Native Windows, Git authentication and native source
+intent import/reviewed editing are not established by this reader.
+
+Relocatable qualification prerequisites now accept only the same fixed
+Docker/ToFu/relay bytes, including exact reproducible relay source. Missing
+or changed tools fail rather than skip. Inventory29 contains3271 source
+and250 runtime files; no final archive has been produced.
+
+Independent signed-adoption integration reproduced an omitted state-contract
+mapping before host dispatch. One approval consumption and all reservations
+were retained; the corrected mapping passes the unchanged eight controls.
+Both before and after are preserved. Final intended-writer/history binding,
+actual native adoption/change and fresh-process recovery are still staged.
+
+Resume from `integration/COMMIT-11.json` after this checkpoint: inspect
+`git status --short`, read this ledger and the frozen proposed integrations,
+then finish review before whole-runtime signing. Do not rerun historical
+full suites. No platform or organizational production approval is claimed.

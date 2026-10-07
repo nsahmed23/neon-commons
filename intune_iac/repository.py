@@ -111,8 +111,9 @@ def _glob_regex(pattern):
 
 
 class _Repository:
-    def __init__(self, root):
-        self.root = Path(root).absolute()
+    def __init__(self, root, *, _access=None):
+        self._access = _access
+        self.root = Path(root).absolute() if _access is None else _access.root
         self.sources = {}
         self.data = {}
         self.parsed = {}
@@ -135,6 +136,7 @@ class _Repository:
             self.blockers.append({'code': 'repository_unreadable', 'status': 'unknown'})
 
     def _contained(self, path):
+        if self._access is not None: return self._access.contained(path)
         if not path.is_relative_to(self.root):
             raise _Blocked('unsafe_path')
         # Reject symlinks in every existing path component, including the selected root.
@@ -151,18 +153,21 @@ class _Repository:
             return self.data[relative]
         if len(self.sources) >= MAX_FILES:
             raise _Blocked('repository_limit', relative)
-        flags = os.O_RDONLY | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0)
-        try:
-            fd = os.open(path, flags)
-            with os.fdopen(fd, 'rb') as stream:
-                info = os.fstat(stream.fileno())
-                if not stat.S_ISREG(info.st_mode):
-                    raise _Blocked('nonregular_source', relative)
-                if info.st_nlink != 1:
-                    raise _Blocked('unsafe_hardlink', relative)
-                data = stream.read(MAX_FILE_BYTES + 1)
-        except OSError:
-            raise _Blocked('source_unreadable', relative) from None
+        if self._access is not None:
+            data = self._access.read(path, MAX_FILE_BYTES)
+        else:
+            flags = os.O_RDONLY | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0)
+            try:
+                fd = os.open(path, flags)
+                with os.fdopen(fd, 'rb') as stream:
+                    info = os.fstat(stream.fileno())
+                    if not stat.S_ISREG(info.st_mode):
+                        raise _Blocked('nonregular_source', relative)
+                    if info.st_nlink != 1:
+                        raise _Blocked('unsafe_hardlink', relative)
+                    data = stream.read(MAX_FILE_BYTES + 1)
+            except OSError:
+                raise _Blocked('source_unreadable', relative) from None
         if len(data) > MAX_FILE_BYTES or self.total + len(data) > MAX_TOTAL_BYTES:
             raise _Blocked('repository_limit', relative)
         self.total += len(data)
@@ -172,6 +177,9 @@ class _Repository:
 
     def _scan(self, base, source_kind):
         self._contained(base)
+        if self._access is not None:
+            for path in self._access.scan(base, source_kind): self._read(path)
+            return
         if not base.exists():
             return
         if not base.is_dir():
@@ -269,11 +277,20 @@ class _Repository:
             _fail('unsafe_path', value)
         return self._contained(parent / name)
 
+    def _path(self, value):
+        return Path(value) if self._access is None else self._access.path(value)
+
+    def _is_dir(self, path):
+        return path.is_dir() if self._access is None else self._access.is_dir(path)
+
+    def _exists(self, path):
+        return path.exists() if self._access is None else self._access.exists(path)
+
     def _initialize(self):
         self._contained(self.root)
-        if not self.root.is_dir():
+        if not self._is_dir(self.root):
             raise _Blocked('invalid_repository_root')
-        if not (self.root/'atmos.yaml').exists():
+        if not self._exists(self.root/'atmos.yaml'):
             raise _Blocked('missing_atmos_config', 'atmos.yaml')
         self.config = self._parse(self.root/'atmos.yaml')
         _check_keys(self.config, {'base_path', 'stacks', 'components', 'settings'}, 'unsupported_cli_config')
@@ -351,10 +368,10 @@ class _Repository:
         base = importer.parent if value.startswith('./') else self.stack_base
         candidate = self._contained(base/value)
         if candidate.suffix == '':
-            choices = [Path(str(candidate)+suffix) for suffix in ('.yaml', '.yml', '.yaml.tmpl', '.yml.tmpl')]
+            choices = [self._path(str(candidate)+suffix) for suffix in ('.yaml', '.yml', '.yaml.tmpl', '.yml.tmpl')]
             candidate = next((p for p in choices if p.relative_to(self.root).as_posix() in self.data), choices[0])
         elif candidate.suffix in ('.yaml', '.yml'):
-            template = Path(str(candidate)+'.tmpl')
+            template = self._path(str(candidate)+'.tmpl')
             if template.relative_to(self.root).as_posix() in self.data:
                 candidate = template
         else:
@@ -453,7 +470,7 @@ class _Repository:
             result['implementation'] = implementation
             physical = self._contained(self.component_bases[kind]/implementation)
             result['implementation_path'] = physical.relative_to(self.root).as_posix()
-            result['implementation_exists'] = physical.is_dir()
+            result['implementation_exists'] = self._is_dir(physical)
             scope = doc.value.get(kind, _empty())
             allowed_scope = {'vars', 'env', 'settings', 'command'} | ({'providers'} if kind == 'terraform' else set())
             _check_keys(scope, allowed_scope, 'unsupported_type_global_field')

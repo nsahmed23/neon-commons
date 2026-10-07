@@ -3291,3 +3291,16 @@ intune_iac/windows_views.py
 plugin_tests/test_windows_views_r4.py
 docs/WINDOWS-FOUR-VIEWS-R4.md
 plugin_tests/test_worker_service_shutdown_r4.py
+
+# R4 relocatable fixed qualification inputs and exact historical/current relay source builds.
+scripts/qualification_tools.py
+scripts/prepare-qualification-tools.py
+plugin_tests/test_qualification_tools_r4.py
+native/worker-relay/relay-v2.c
+docs/QUALIFICATION-TOOLS-R4.md
+
+# R4 inactive native source reader using the existing literal repository resolver.
+intune_iac/windows_repository.py
+plugin_tests/test_windows_repository_r4.py
+scripts/qualify-windows-repository.py
+docs/WINDOWS-REPOSITORY-R4.md

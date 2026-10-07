@@ -2,6 +2,8 @@
 
 This extends the existing Workbench Workspace and complete command engine. It is not a second terminal product, an execution implementation, or activation of a native Windows host profile. The existing POSIX terminal and no-TTY text routes remain unchanged until a reviewed integration qualifies equivalent storage and native behavior.
 
+The reviewed shared Workspace/command-engine seam is now integrated and was committed in checkpoint 9, `f58bbad`. Its actual-repository changed scope passed 45 tests; the earlier staged 16-test POSIX receipt remains historical overlapping evidence. The native adapter remains inactive and native Windows behavior remains unqualified. The integration adds no ordinary host-profile activation or native execution permission. Historical staging notes below describe the preserved pre-integration work.
+
 ## Native console capability
 
 `windows_terminal.NativeConsole` acquires the actual input/output console handles through `GetStdHandle` and validates both with `GetConsoleMode`. It uses actual `SetConsoleMode`, `WaitForSingleObject`, `ReadConsoleInputW`, `GetConsoleScreenBufferInfo` and `WriteConsoleW`, with explicit ctypes layouts/prototypes. Native construction on another host fails before a Win32 call. A console mode failure identifies redirected input/mintty as unsupported for this visual adapter; it does not make the private store portable.
@@ -14,7 +16,7 @@ The key-reader emits existing Workspace navigation and text events. Resize event
 
 ## Existing Workspace/engine integration seam
 
-The proposed bounded integration adds explicit `store`, `context_backend`, `key_reader`, `size_reader` and `submission_key` dependencies to Workspace. Defaults preserve current behavior. A dedicated inactive composition factory accepts only an exact WindowsWorkbenchStore, exact WindowsWorkspaceContext and exact NativeConsole. The root command engine gets the same exact admitted store through an internal store-capability parameter, not a user JSON flag, environment variable, changed host gate or arbitrary store factory. The factory calls the existing run_terminal/Workspace receive/input methods. No new parser route selects it yet.
+The integrated bounded seam adds an exact private native binding to Workspace. Defaults preserve current behavior. Its inactive composition factory accepts only an exact WindowsWorkbenchStore, exact WindowsWorkspaceContext and exact NativeConsole. The root command engine gets the same exact admitted store through an internal store-capability parameter, not a user JSON flag, environment variable, changed host gate or arbitrary store factory. The factory calls the existing run_terminal/Workspace receive/input methods. No ordinary parser route selects it.
 
 Native context persistence reuses the current exact Workspace navigation validator and tenant binding. It contains only readonly selection/page/history/service review/status/attach navigation, never pending edits, command queues, signatures or operation approval. It uses the existing pinned native private-directory capability and cooperative native file lock. New generations are exclusively published and chained by sequence/predecessor/hash; no mutable latest pointer or unchecked Path.write_text/chmod fallback exists. Conflicting, gapped, wrong-tenant, changed or saturated histories fail explicitly and remain available for inspection. Bounded size/count and no-op saves limit churn. Native durability limitations remain those of the reviewed filesystem adapter.
 
@@ -25,7 +27,7 @@ Native context persistence reuses the current exact Workspace navigation validat
 3. On an authorized Windows host: actual handles/modes before, during and after; navigation/inspection; exact context close/reopen; Ctrl+Enter intentional submission; multi-line clipboard paste produces zero command dispatch until explicit submit; Unicode/IME/resize; EOF/interrupt and primary-plus-cleanup failure; redirected handles and mintty fail visual admission.
 4. Use the same existing engine with the independently qualified native store/reader; collect real PowerShell/Git Bash/Windows Terminal and conhost evidence. No live Graph/backend/device/CI gate is replaced by these console results.
 
-Source remains staged outside `intune_iac` until review. Native Windows behavior is unqualified on the current Linux host, and organizational production approval is absent.
+Source was staged outside `intune_iac` for review before checkpoint 9 integration. Native Windows behavior is unqualified on the current Linux host, and organizational production approval is absent.
 
 ## Staged implementation and bounded evidence
 
@@ -33,13 +35,13 @@ Source remains staged outside `intune_iac` until review. Native Windows behavior
 
 The context history cap is 256 immutable generations, with a 128 KiB per-generation bound verified before and after native handle reads. Identical navigation is a no-op. Saturation fails and retains the entire history; automatic deletion/compaction is not implemented. Native Alt/AltGr key combinations are presently rejected; international layout/IME support remains explicit implementation/qualification work before a broader native console profile is admitted.
 
-`qualify_native_console.py` is an executable manual harness for an authorized Windows host. It exercises actual mode setup/readback/restoration, navigation, explicit Ctrl+Enter, bounded fixed multiline paste and resize. It records no arbitrary typed text, never dispatches a Workbench command and cannot establish native application/platform approval. The operator must independently attest paste provenance; a programmatic event trace alone cannot prove clipboard origin. Run it in a NEW evidence directory with the full reviewed project:
+`scripts/qualify-native-console.py` is an executable manual harness for an authorized Windows host. It exercises actual mode setup/readback/restoration, navigation, explicit Ctrl+Enter, bounded fixed multiline paste and resize. It records no arbitrary typed text, never dispatches a Workbench command and cannot establish native application/platform approval. The operator must independently attest paste provenance; a programmatic event trace alone cannot prove clipboard origin. Run it in a NEW evidence directory with the full reviewed project:
 
 ```powershell
-python -B .\qualify_native_console.py --project C:\reviewed\intune --output C:\evidence\console-NEW
+python -B scripts/qualify-native-console.py --project C:\reviewed\intune --output C:\evidence\console-NEW
 ```
 
-No Workspace or command-engine source seam has yet been inserted. Reusing the native store must be explicit in both Workspace and `run_terminal`; injection into only the presentation would leave the engine opening its POSIX store. Unsupported native service/worker/mutation routes must reject before dispatch until their own capabilities exist.
+The integrated Workspace and `run_terminal` both receive the exact native store. Unsupported native service/worker/mutation routes reject before dispatch until their own capabilities exist.
 
 ## Concrete shared engine proposal
 
@@ -47,7 +49,7 @@ The staged `workbench_tui.py.proposed.patch` adds an exact native binding to Wor
 
 Six local seam checks passed: ordinary Enter and modeled multiline paste do not submit edits, explicit submit does, default POSIX Enter stays functional, forged native binding/store is rejected, and actual shared dispatch denies unsupported native commands before action. The first test attempt incorrectly patched a nonexistent module-level collect; that setup error is retained, then corrected to observe the actual store.collect method.
 
-All 16 existing Linux Workspace regressions passed through the staged shared modules and an actual staged CLI bootstrap, including real PTY, no-TTY fallback, resize, hostile text, bracketed paste, interruption and context reopen. The before/after source inventory was unchanged. These tests overlap prior UI evidence and do not establish any Win32 behavior. The shared product files remain untouched pending review.
+All 16 existing Linux Workspace regressions passed through the staged shared modules and an actual staged CLI bootstrap, including real PTY, no-TTY fallback, resize, hostile text, bracketed paste, interruption and context reopen. The before/after source inventory was unchanged. These tests overlap prior UI evidence and do not establish any Win32 behavior. This receipt predates the reviewed shared-file integration recorded above.
 
 ## Reviewed route audit and final scoped replay
 

@@ -4,13 +4,15 @@ Start from the latest `integration/COMMIT-*.json` and this branch's
 `CONTINUATION-R4-CHECKPOINT.md`, then reconcile `CONTINUATION-R4-LEDGER.json`.
 The recovered 0.8.0 baseline is commit
 `289ee9477372825aad848f4482cf681c2ff43b02`; newer valid work must be retained.
-Checkpoint9 is `f58bbadf9672cc0d52b5997366ac0611ead76634`. Its detached
-162-test changed scope and3248-file Git-object linkage are separate from
-earlier checkpoint8's98tests and the historical1,242/1,141-test results.
+Checkpoint10 is `b7eae48ed943e14fa2aac2e17d2c337999aa671a`; its82-test
+detached changed scope is separate from checkpoint9's162 tests and3248-file
+Git-object linkage, checkpoint8's98 tests and historical1,242/1,141 results.
+Checkpoint11 adds native current-source reading and fixed-byte relocatable
+qualification tools; its exact commit is recorded in `integration/COMMIT-11.json`.
 
 | Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
 | --- | --- | --- |
-| 1 | `workbench views`, `workbench workspace` and the same text engine expose repository, observed, proposed and coverage evidence. Finish native Windows object-view readers without opening unsupported POSIX journals. | Retain actual Linux CLI/PTY evidence and recorded-Win32 controls. Real Windows/Git Bash/mintty remains a host-owner gate. |
+| 1 | `workbench views`, `workbench workspace` and the same text engine expose repository, observed, proposed and coverage evidence. Native object/current-source readers are integrated; finish native intent import, bounded source editing/recovery and authenticated portable worker evidence without opening unsupported POSIX journals. | Retain actual Linux CLI/PTY evidence and recorded-Win32 controls. Real Windows/Git Bash/mintty remains a host-owner gate. |
 | 2 | `service prepare`, `service review`, `service status`, `service attach`, `service cancel`, `service recover`; execution is `ServiceJob.run` in the trusted controller, not a terminal `service run` command. Implement the separate durable protected import/adoption route: native import currently has harness evidence, while `provider prepare` is the legacy network-denied route. | Separate import approval/state mutation/recovery from exact saved-plan apply. Exercise native import, first no-change plan, bounded change, readback, convergence and interruption. Existing signed apply and both committed-state recovery scopes remain valid at their exact bytes. |
 | 3 | `workbench observer-create`, `observer-run`, `observer-status`, `observer-scheduler` connect the typed reader and durable store. Inactive native Windows components use `scripts/intune-windows-observer.py create/run/status/prepare-task`. | Preserve denied/partial/duplicate/out-of-order and atomic-publication evidence. Actual Linux cron attempts did not start observers; Windows tasks remain unregistered. Native host and existing authorized collector identity are required for closed-terminal platform qualification. |
 | 4 | Complete the shared visual workspace, navigation context and native command coverage. Preserve the complete reference text interface. | Actual input/state assertions accompany captures. Unsupported journal or mutation routes must remain explicit; screenshots or recorded Win32 effects do not establish native host support. |

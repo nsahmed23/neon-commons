@@ -18,9 +18,12 @@ import unittest
 from intune_iac.io import AppError, load_json
 from intune_iac import worker_host as host
 
+from scripts.qualification_tools import PINNED as QUALIFICATION_PINS, reference as qualification_tool
+
 PROJECT = Path(__file__).resolve().parents[1]
-TOFU = Path('/workspace/intune-recovery/native-reprobe/tools/tofu')
-RELAY = Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-broker/relay/intune-worker-relay-v2')
+DOCKER = qualification_tool('docker')
+TOFU = qualification_tool('tofu')
+RELAY = qualification_tool('relay_v2')
 
 
 class WorkerHostR4Tests(unittest.TestCase):
@@ -52,7 +55,7 @@ class WorkerHostR4Tests(unittest.TestCase):
 
     def spec(self, script, **kwargs):
         (self.root / 'control/worker.sh').write_text(script)
-        return host.HostSpec('/usr/local/bin/docker', str(self.root / 'source'),
+        return host.HostSpec(str(DOCKER), str(self.root / 'source'),
             host.directory_binding(self.root / 'source')['sha256'], str(self.root / 'control'),
             host.directory_binding(self.root / 'control')['sha256'], str(self.root / 'job'), **kwargs)
 
@@ -227,7 +230,7 @@ launch(HostSpec(**value),sys.argv[3])
         renamed = self.root / 'source space,quote"-é'
         (self.root / 'source').rename(renamed)
         (self.root / 'control/worker.sh').write_text('cat /source/input.txt > /job/read\n')
-        spec = host.HostSpec('/usr/local/bin/docker', str(renamed), host.directory_binding(renamed)['sha256'],
+        spec = host.HostSpec(str(DOCKER), str(renamed), host.directory_binding(renamed)['sha256'],
             str(self.root / 'control'), host.directory_binding(self.root / 'control')['sha256'], str(self.root / 'job'))
         result = self.receipt(spec)
         self.assertEqual(result['status'], 'complete', result)
@@ -254,7 +257,7 @@ launch(HostSpec(**value),sys.argv[3])
         thread.start()
         (self.root / 'control/broker-ca.pem').write_bytes(b'Explicit synthetic placeholder; no TLS claim in this socket-only probe.\n')
         ca = hashlib.sha256((self.root / 'control/broker-ca.pem').read_bytes()).hexdigest()
-        relay = host.PinnedTool('relay', str(RELAY), hashlib.sha256(RELAY.read_bytes()).hexdigest())
+        relay = host.PinnedTool('relay', str(RELAY), QUALIFICATION_PINS['relay_v2']['sha256'])
         spec = self.spec('''set -eu
 /tools/relay &
 relay_pid=$!
