@@ -192,21 +192,26 @@ def _references(store):
     return rows
 
 
-def _mapping():
-    path = Path(__file__).resolve().parents[1]/'corrections/contracts/capability-map.json'
-    raw = _read(path); value = parse_json(raw)
+def _mapping(read_package=None):
+    if read_package is None:
+        path = Path(__file__).resolve().parents[1]/'corrections/contracts/capability-map.json'
+        raw = _read(path)
+    else:raw = read_package('capability-map.json')
+    value = parse_json(raw)
     if value.get('schema_version')!='1.0.0' or not isinstance(value.get('entries'),list): _fail('workbench_mapping_invalid')
     return value, hashlib.sha256(raw).hexdigest()
 
 
-def _vendor_documentation():
+def _vendor_documentation(read_package=None):
     """Only release-pinned factual summaries qualify as vendor documentation.
 
     This does not consume caller references or infer Graph choice values from
     CSP integers. Updating facts requires a reviewed source/pin change.
     """
-    path = Path(__file__).resolve().parents[1]/'corrections/contracts/vendor-documentation.json'
-    raw = _read(path)
+    if read_package is None:
+        path = Path(__file__).resolve().parents[1]/'corrections/contracts/vendor-documentation.json'
+        raw = _read(path)
+    else:raw = read_package('vendor-documentation.json')
     if hashlib.sha256(raw).hexdigest() != VENDOR_DOCUMENTATION_SHA256:
         _fail('workbench_vendor_documentation_changed')
     value = parse_json(raw)
@@ -406,7 +411,7 @@ def _fact_provenance(row):
         'pointer_scope': 'this_dictionary_entry', 'cross_category_promotion': False}
 
 
-def dictionary(store, query='', *, object_id=None, limit=None, offset=0):
+def dictionary(store, query='', *, object_id=None, limit=None, offset=0, _package_reader=None):
     if type(query) is not str or len(query)>512: _fail()
     entries = {}
     def entry(identifier):
@@ -445,14 +450,14 @@ def dictionary(store, query='', *, object_id=None, limit=None, offset=0):
             entry(setting['identifier'])['references'].append({**setting,'reference_id':reference['artifact_id'],
                 **{key:data[key] for key in ('source_revision','source_url','license_id','assertion_class','source_sha256','upstream_oib_id','upstream_export_id')},
                 'source_authenticity_verified':False,'native_adoption_support':'UNSUPPORTED'})
-    mapping, mapping_sha = _mapping()
+    mapping, mapping_sha = _mapping(_package_reader)
     for row in mapping['entries']:
         identifier = row.get('setting_definition_id')
         if identifier in entries:
             entry(identifier)['local_mapping'].append({'qualification':mapping['qualification'],
                 'mapping_sha256':mapping_sha, 'assertion_class':'local_mapping', 'entry':copy.deepcopy(row),
                 'service_definition_qualified':False})
-    for facts in _vendor_documentation():
+    for facts in _vendor_documentation(_package_reader):
         identifier = facts['setting_definition_id']
         if identifier in entries:
             entry(identifier)['vendor_documentation'].append(copy.deepcopy(facts))

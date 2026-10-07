@@ -9,6 +9,19 @@ This is executable preparation for the release engineer and independent artifact
 3. Independently build a table of `relative path, Git blob object ID, committed byte count, committed SHA-256, tested byte count, tested SHA-256` for **every** inventory entry. Read raw Git blob bytes, without checkout, filters, replacement objects, hooks, external diffs, credential helpers or network. Bind the full commit/tree and pinned Git executable; verify Git object digests, not only a caller-provided revision label. Refuse unexpected symlink, submodule, hardlink, missing or duplicate entries. Compare the inventory's own committed bytes too. The existing `workbench_revision` resolver verifies only its bounded selected sources and must not be relabeled as whole-package proof.
 4. Record source hashes before and after the final gates. Tests that load helpers or binaries outside the source archive need those exact dependencies in their receipt. Preserve the current stopped provider candidate as unqualified evidence; it must not replace the pinned provider. An implementation inventory mismatch invalidates service approval and needs a fresh reviewed service manifest, not a relaxed check.
 
+The whole-inventory linkage procedure now has an actual release entrypoint. Run
+its `--help` first; the repository argument requires a direct `.git` directory
+(no worktree/gitdir indirection), while `--source` can be the final extracted
+source package. Supply the independently observed pinned Git executable digest.
+It rejects selected links, hardlinks, replaced source bytes, uncommitted inventory
+changes, config includes/alternates/promisors and replacement-object substitution.
+It rehashes every selected raw commit/tree/blob and the source before and after;
+unselected files remain outside its explicitly recorded scope.
+
+```text
+PINNED_PYTHON -B TRUSTED_SOURCE/scripts/verify-source-linkage.py --repository DIRECT_LOCAL_REPOSITORY --source EXACT_EXTRACTED_SOURCE --commit FULL_COMMIT --git-executable PINNED_GIT --git-sha256 GIT_SHA256 --output NEW_LINKAGE_RECEIPT
+```
+
 The inventory check reads a single bounded no-follow source snapshot and ensures runtime selection is a subset. It does not prove clean Git linkage, absence of secrets, package reproducibility or production readiness:
 
 ```text

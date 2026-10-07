@@ -31,8 +31,9 @@ are `overview`, `inspect OBJECT`, `history OBJECT`, `raw OBJECT`, `collections`,
 `operations`, `artifacts`, and `storage-status`. `--limit` and `--offset` precede
 the command. It prints escaped bounded JSON and never calls a write operation.
 The supported ordinary `intune-iac.py` interface and host gate are unchanged.
-Mapping/vendor dictionary files still use the POSIX package reader; that
-native route is not claimed or exposed here. Git Bash argument conversion,
+Fixed mapping/vendor package assets now have an inactive native reader; see
+[WINDOWS-READONLY-CONTINUATION-R4.md](WINDOWS-READONLY-CONTINUATION-R4.md).
+The package asset directory must satisfy the same native private boundary. Git Bash argument conversion,
 mintty, terminal restoration, live observation and scheduled native collection
 remain separate qualification requirements.
 

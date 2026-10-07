@@ -491,3 +491,28 @@ native checks on this Linux host. New committed-state recovery is staged for the
 next increment and has not yet consumed a release approval. Resume from the exact
 commit in `integration/COMMIT-06.json`, then finish that signed recovery and final
 package gates. No production or organizational approval is established.
+
+Increment6 committed `449d18056590419261cf4955463808a97992eaef`; explicit
+actor/34-path receipt is `integration/COMMIT-06.json`. Exact detached source
+passed215 tests in15 named changed-scope modules; trackedtree stayed clean.
+Attempt01 only prechecked two incorrect module names and executed zero tests;
+that discovery failure is preserved separately from the corrected test run.
+
+Increment7 adds a distinct original-committed-state recovery capability. The
+actual interrupted state14 operation used a new signed exact lease release and
+an actual native second no-change plan. Its first completion rejected a stale
+identity binding after native plan metadata changed the ETag. Only fresh
+read-only identity/context completion resumed the same spent recovery. The old
+failed outcome and dispatch count1 remain; state/Graph/apply were not replayed.
+Ownership was released only after sealed readback, with final outcome explicitly
+`service_state_converged_execution_unknown`. See the original failure and
+`worker-provider/committed-state-recovery-resume-01/receipt.json`. Advanced-state
+interruption of the separate description-recovery schema is still local work.
+
+Native dictionary/read-only lineage integration passed66 scoped cases plus
+seven unchanged independent controls after reproduced missing-API failures.
+This is recorded-Win32/actualSQLite local evidence; nativeWindows remains
+unqualified and disabled. Native authenticated capture/publisher and terminal
+adapters remain implementation dependencies. The complete source-linkage gate
+now has an actual replayable Git-object verifier with11 passing local controls;
+final source/runtime artifacts and strict packaged gate remain outstanding.

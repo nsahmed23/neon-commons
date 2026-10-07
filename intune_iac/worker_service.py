@@ -593,8 +593,10 @@ class ServiceJob:
         """
         from .worker_service_readback import LiveServiceReadback, LaboratoryServiceReadback
         self._check(expiry=False)
-        expected = LiveServiceReadback if self.manifest['profile'] == 'azure_public_pilot' else LaboratoryServiceReadback
-        if type(readback) is not expected: _fail('service_readback_capability_required')
+        from .worker_committed_readback import LiveCommittedServiceReadback, LaboratoryCommittedServiceReadback
+        expected = ((LiveServiceReadback, LiveCommittedServiceReadback) if self.manifest['profile'] == 'azure_public_pilot' else
+                    (LaboratoryServiceReadback, LaboratoryCommittedServiceReadback))
+        if type(readback) not in expected: _fail('service_readback_capability_required')
         facts = readback.verified(self.manifest)
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')

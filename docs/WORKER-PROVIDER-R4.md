@@ -120,3 +120,70 @@ INTUNE_TEST_VALIDATOR_LIBRARY=/workspace/intune-continuation/work/evidence/epoch
 ```
 
 The explicit path-parameter adapter was added after the retained successful run; its syntax was checked, while the tested original runner bytes remain archived. No second full recovery was run merely to inflate counts. The independent result evaluator replays against the retained qualified directory with `python -B .../assert_partial_recovery_result.py .../partial-recovery-journey-02`.
+
+## Committed-state interruption recovery (R4 local native continuation)
+
+The original native worker's state-write cancellation case is now reconciled by
+fresh evidence without replaying its apply. The receiving fixture retained the
+exact original state14 bytes (`5a2360a5e42fe17145e86080f67ca7aae571d6590b1890244948b6047ec45745`),
+original Graph values, failed execution outcome, one consumed apply and one
+original dispatch. A separately signed committed-state lease release verified
+the original saved plan/template plus fresh independent Graph observations.
+The subsequent actual pinned Atmos/OpenTofu/provider no-change plan performed
+its ordinary acquire/metadata-clear/release lifecycle; no Graph or state write
+was repeated. The original operation now has
+`service_state_converged_execution_unknown`: service/state convergence is known,
+while original execution provenance and endpoint effectiveness remain unresolved.
+
+`worker-provider/committed-state-recovery-journey-01` deliberately remains a
+failed attempt. Its release and native no-change plan completed, but reuse of
+the pre-plan identity binding correctly failed `identity_observation_changed`
+after normal metadata operations changed the blob ETag. No gate was weakened.
+`committed-state-recovery-resume-01` authenticated a fresh exact state14 binding
+and reader, reused the consumed recovery record, and performed only read-only
+completion/reconciliation. It made 29 additional local TLS requests. The original
+receiving fixture and failed attempt evidence remain unchanged; the resumed
+receiving fixture is explicitly separate synthetic laboratory evidence.
+
+The resume receipt has 18 named checks and one additional top-level no-write
+assertion. Its five recorded rejection codes partly overlap those checks. The
+plain JSON/SQLite/raw-byte evaluator has 28 overlapping assertions; these counts
+must not be added. Negative controls reject the ordinary state13 release gate,
+JSON completion/readback, altered approved-plan identity, and a modified copied
+state artifact while ownership remains held. The first attempt also exercised
+rejection of a sealed completion with preserved lock metadata before the normal
+native plan. A modified artifact is retained in `tampered-readback`; a new clean
+readback directory was used for successful reconciliation.
+
+Exact evidence under `work/evidence/epoch-20261007-r4/`:
+
+- `worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX-03.json`, SHA-256
+  `879206f907fe8e31f527018207a61c06e4192d0600b5062e7cc05718d1cbdf34`.
+- `worker-provider/committed-state-recovery-resume-01/receipt.json`, SHA-256
+  `daa12f4593eb7eb7894a9cbbc4ca0cf2bca97b035a13daefd14037c6e259ef3e`.
+- `worker-provider/committed-state-recovery-resume-01/INDEPENDENT-ASSERTIONS.json`,
+  SHA-256 `418c44228198db151555036e836707de3cfecebbcdd16c8add7693d487ea5317`.
+- `worker-provider/committed-state-recovery-resume-01/TESTED-SOURCE-LINKAGE.json`,
+  SHA-256 `f98350ade89be360437c88de92508583c70d9c017ae62e8d59e693725e1aedd6`:
+  77 package files match the signed release runtime inventory; five harnesses
+  are retained separately. The observed commit is not substituted for exact
+  working-source hashes.
+- `worker-provider/committed-state-recovery-resume-01/COUNT-SCOPE-ADDENDUM.json`,
+  SHA-256 `487e232720b1d298b732a46f31188356e20461e0d266be7a3c1df544abd73c97`.
+
+Read-only replay of the independent evaluator:
+
+```sh
+python -B work/evidence/epoch-20261007-r4/worker-provider/assert_committed_recovery_result.py \
+  work/evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01
+```
+
+Run that command from the recovered repository root. Do not rerun the consumed
+signed release or native composition against its historical authority. A new
+qualification needs a new deliberately interrupted job and receiving fixture,
+a new recovery manifest/approval, and current exact runtime bindings. This
+qualification does not establish real Azure/Graph identity or state behavior,
+native Windows support, enrolled-device effectiveness, provider malformed-error
+repair, or organizational production approval. The newly added description-only
+recovery contract requires its own committed-state interruption qualification;
+the ordinary computed-state result does not cover that distinct schema.

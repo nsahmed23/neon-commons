@@ -433,6 +433,20 @@ class WindowsWorkbenchStore(WorkbenchStore):
         from .windows_capture import _reference_import
         return _reference_import(self,path,expected_sha256,source_revision,source_url,license_id,assertion_class,self._filesystem.api)
 
+    def _package_directory(self):
+        return PureWindowsPath(__file__).parents[1]/'corrections'/'contracts'
+
+    def _read_package_asset(self,name):
+        if name not in ('capability-map.json','vendor-documentation.json'):
+            _fail('windows_workbench_package_asset_unsupported')
+        from .windows_capture import _reference_bytes
+        return _reference_bytes(self._package_directory()/name,self._filesystem.api,512*1024)
+
+    def dictionary(self,query='',*,object_id=None,limit=None,offset=0):
+        from .workbench_provenance import dictionary
+        return dictionary(self,query,object_id=object_id,limit=limit,offset=offset,
+            _package_reader=self._read_package_asset)
+
     def backup(self,destination):
         destination=str(destination);wd._components(destination)
         with self._connection() as db:data=_image(db)

@@ -3232,3 +3232,19 @@ plugin_tests/test_windows_capture_r4.py
 plugin_tests/test_windows_cleanup_r4.py
 scripts/intune-windows-inspect.py
 scripts/qualify-windows-readers.py
+
+# R4 reviewed bounded committed-state recovery and inactive native dictionary.
+docs/WORKER-COMMITTED-STATE-RECOVERY-R4.md
+intune_iac/worker_committed_state.py
+intune_iac/worker_committed_recovery.py
+intune_iac/worker_committed_readback.py
+plugin_tests/test_worker_committed_recovery_r4.py
+docs/WINDOWS-READONLY-CONTINUATION-R4.md
+plugin_tests/test_windows_dictionary_r4.py
+
+# R4 explicit evidence production and whole-inventory raw Git linkage tools.
+docs/EVIDENCE-PRODUCTION-R4.md
+scripts/build-evidence-layer.py
+plugin_tests/test_build_evidence_layer_r4.py
+scripts/verify-source-linkage.py
+plugin_tests/test_source_linkage_r4.py

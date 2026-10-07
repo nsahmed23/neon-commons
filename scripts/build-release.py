@@ -133,6 +133,8 @@ def runtime_files():
         'WORKER-LEASE-RECOVERY-R4.md',
         'CAPTURE-PROVENANCE-R4.md',
         'WINDOWS-READERS-R4.md',
+        'WINDOWS-READONLY-CONTINUATION-R4.md','WORKER-COMMITTED-STATE-RECOVERY-R4.md',
+        'EVIDENCE-PRODUCTION-R4.md',
         'PACKAGE-QUALIFICATION-R4.md',
         'COMPLETE-LAYER-RESTORATION-R4.md','EVIDENCE-RESTORATION-R4.md',
         'CONTINUATION-LAYERS-R4.template.json'])
@@ -142,6 +144,7 @@ def runtime_files():
                   'scripts/qualify-windows-sqlite.py','scripts/qualify-windows-store.py',
                   'scripts/intune-windows-inspect.py','scripts/qualify-windows-readers.py',
                   'scripts/restore-evidence-layer.py','scripts/restore-complete-layers.py',
+                  'scripts/build-evidence-layer.py','scripts/verify-source-linkage.py',
                   'scripts/verify-release-artifact.py'])
     return sorted(set(names))
 

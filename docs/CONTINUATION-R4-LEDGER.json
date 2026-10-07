@@ -283,6 +283,15 @@
         "independent/native-partial-recovery-02/RESULT.json",
         "independent/combined-adapter-correction-01/CORRECTION.json"
       ]
+    },
+    {
+      "id": "R4-STATE14-COMPLETION-ETAG",
+      "status": "FAIL",
+      "description": "First ordinary committed-state recovery released exact original lease and actual native nochange plan, then stale identity binding correctly rejected changed metadata ETag. Preserved failing attempt followed only by fresh read-only identity/context completion; no release/apply replay.",
+      "evidence": [
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json"
+      ]
     }
   ],
   "rows": [
@@ -1392,10 +1401,13 @@
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
+      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
       "blocker_owner": null,
       "depends_on": [
@@ -1633,10 +1645,13 @@
         "evidence/epoch-20261007-r4/worker-provider/native-service-journey-03/receipt.json",
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
+      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
       "blocker_owner": null,
       "depends_on": [
@@ -1849,10 +1864,13 @@
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
+      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
       "blocker_owner": null,
       "depends_on": [
@@ -1984,10 +2002,13 @@
         "evidence/epoch-20261007-r4/worker-service/qualified-08/QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Local native fault controls retain partial policy effects, assignment403 failure, cancellation after policy commit and after state persistence, original scope/lease/metadata and outcome_unknown. Explicit signed stranded-lease recovery and same-authority successor transfer remain staged. Native platform qualification is absent.",
+      "limitation": "Local native fault controls retain partial policy effects, assignment403 failure, cancellation after policy commit and after state persistence, original scope/lease/metadata and outcome_unknown. Explicit signed stranded-lease recovery and same-authority successor transfer remain staged. Native platform qualification is absent. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
       "blocker_owner": null,
       "depends_on": [
@@ -2531,10 +2552,13 @@
         "evidence/epoch-20261007-r4/worker-host/BOUNDARY-REPAIR-RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/host-boundary-after-02/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source.",
+      "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
       "blocker_owner": null,
       "depends_on": [
@@ -3161,7 +3185,9 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-C08",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/dictionary-taxonomy/raw-cli-01/RESULT.json"
+        "evidence/epoch-20261007-r4/dictionary-taxonomy/raw-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-dictionary/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Versioned dictionary provenance separates vendor documentation, community advice, observation, company annotation and AI interpretation. AI facts explicitly absent and ingestion unsupported; no model claim. Original vendor input bytes preserved. Nine actual commands/eight assertions overlap 46 focused tests; not a combined count.",
@@ -3370,7 +3396,9 @@
         "evidence/epoch-20261007-r4/observation/qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/observer-cli-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/capture-dedupe-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/windows-reader-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-reader-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/windows-dictionary/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
@@ -4109,10 +4137,13 @@
         "evidence/epoch-20261007-r4/independent/service-views-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/service-views/VISUAL-REPAIR-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/independent/visual-native-after-02/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
+      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
       "blocker_owner": null,
       "depends_on": [
@@ -4619,7 +4650,9 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-E03",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json"
+        "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/windows-dictionary/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/windows-dictionary-after-01/RESULT.json"
       ],
       "environment": "Required approved external profile; not established by this record",
       "limitation": "Native Windows client storage implementation and real Windows/Git Bash/mintty qualification are both incomplete. Linux negative routing is not a substitute.",
@@ -4944,16 +4977,18 @@
       "description": "Release source equals reviewed source; changed-scope and required final gates retain exact source/artifact identity without duplicated counts.",
       "milestone": "F",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED",
       "evidence_class": "new-local-evidence-required",
       "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-F01",
-      "evidence_path": [],
+      "evidence_path": [
+        "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
-      "next_action": "Implement and independently exercise Release source equals reviewed source; changed-scope and required final gates retain exact source/artifact identity without duplicated counts.",
+      "next_action": "Qualify exact final committed selected source and extracted runtime/source packages, including whole-inventory raw Git-object identity. Current11 local linkage controls are preparation, not final release qualification.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -5090,11 +5125,12 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/independent/REVIEW-CHECKPOINT.json",
         "evidence/epoch-20261007-r4/packaging/DEVELOPMENT-RECEIPT-02.json",
-        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json"
+        "evidence/epoch-20261007-r4/toolchain-notices/RECEIPT.json",
+        "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
-      "next_action": "Freeze integrated candidate, close required local failures, qualify exact reproducible source/runtime packages and complete verified layered recovery.",
+      "next_action": "Qualify exact final committed selected source and extracted runtime/source packages, including whole-inventory raw Git-object identity. Current11 local linkage controls are preparation, not final release qualification.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -8399,10 +8435,13 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-possible-commit-timeout",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
+      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
       "blocker_owner": "root/service integration",
       "depends_on": [
@@ -8905,10 +8944,13 @@
       "test_procedure_id": "R4-FAULT-cancel-acquire-write-receipt",
       "evidence_path": [
         "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
+      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
       "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
       "blocker_owner": "root/service integration",
       "depends_on": [
@@ -10745,5 +10787,5 @@
       "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
     }
   ],
-  "checkpoint_increment": 6
+  "checkpoint_increment": 7
 }

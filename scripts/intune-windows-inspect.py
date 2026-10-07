@@ -28,6 +28,9 @@ def main(argv=None):
         commands.add_parser(name).add_argument('object_id')
     for name in ('collections','operations','artifacts'):
         commands.add_parser(name).add_argument('--object-id')
+    dictionary=commands.add_parser('dictionary');dictionary.add_argument('--query',default='');dictionary.add_argument('--object-id')
+    lineage=commands.add_parser('lineage');lineage.add_argument('object_id');lineage.add_argument('--pointer')
+    comparison=commands.add_parser('reference-compare');comparison.add_argument('object_id');comparison.add_argument('reference_id')
     commands.add_parser('storage-status')
     args=parser.parse_args(argv)
     try:
@@ -42,6 +45,14 @@ def main(argv=None):
         elif args.command=='collections':value=store.collection_history(args.object_id,**page)
         elif args.command=='operations':value=store.operations(args.object_id,**page)
         elif args.command=='artifacts':value=store.artifacts(object_id=args.object_id,**page)
+        elif args.command=='dictionary':
+            value=store.dictionary(args.query,object_id=args.object_id,**(page if args.object_id is None else {}))
+        elif args.command=='lineage':
+            from intune_iac.workbench_provenance import repository_lineage
+            value=repository_lineage(store,args.object_id,args.pointer)
+        elif args.command=='reference-compare':
+            from intune_iac.workbench_provenance import compare_reference
+            value=compare_reference(store,args.object_id,args.reference_id)
         else:value=store.storage_status()
         result={'schema_version':'intune-windows-inspection/1','evidence_class':'local_readonly_inspection',
             'qualification_only':True,'workbench_profile_enabled':False,'platform_qualified':False,
