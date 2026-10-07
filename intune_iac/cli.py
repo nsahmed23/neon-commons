@@ -89,6 +89,9 @@ def parser():
     judge.add_argument('--config',required=True);judge.add_argument('--claim',required=True);judge.add_argument('--evidence',required=True)
     cap=commands.add_parser('capture',help='Capture public Graph beta pages using an explicitly supplied read token')
     cap.add_argument('--tenant',required=True);cap.add_argument('--policy',required=True);cap.add_argument('--output',required=True);cap.add_argument('--token-env',default='INTUNE_GRAPH_TOKEN');cap.add_argument('--max-pages',type=int,default=100)
+    cap.add_argument('--max-attempts-per-page',type=int,default=3,help='Bounded GET attempts per page, including the first (1 through 10)')
+    cap.add_argument('--max-elapsed-seconds',type=float,default=120,help='Total network and retry budget, greater than zero and at most 120 seconds')
+    cap.add_argument('--max-retry-delay-seconds',type=float,default=30,help='Maximum admitted Retry-After/backoff; a larger delay stops partial instead of retrying early')
     target=commands.add_parser('target',help='Inspect target evidence or explicitly collect partial service observations').add_subparsers(dest='target_command',required=True)
     ti=target.add_parser('inspect');ti.add_argument('--input',required=True)
     tc=target.add_parser('compare');tc.add_argument('--expected',required=True);tc.add_argument('--observed',required=True)
@@ -173,7 +176,11 @@ def execute(args):
         return assess(args.config,args.claim,load_json(args.evidence))
     if args.command=='capture':
         from .capture import capture
-        return capture(args.tenant,args.policy,args.output,token_env=args.token_env,max_pages=args.max_pages)
+        def progress(event):
+            print(json.dumps(event,ensure_ascii=True,sort_keys=True,allow_nan=False),file=sys.stderr,flush=True)
+        return capture(args.tenant,args.policy,args.output,token_env=args.token_env,max_pages=args.max_pages,
+                       max_attempts_per_page=args.max_attempts_per_page,max_elapsed_seconds=args.max_elapsed_seconds,
+                       max_retry_delay_seconds=args.max_retry_delay_seconds,progress=progress)
     if args.command=='target':return _target_command(args)
     if args.command=='provider':
         if sys.platform != 'linux' or platform.machine() != 'x86_64':
@@ -243,6 +250,7 @@ def main(argv=None):
             return serve(authority=FilesystemAuthority(args.read_root,args.write_root) if args.read_root or args.write_root else None)
         result=execute(args)
         print(json.dumps(result,ensure_ascii=True,sort_keys=True,allow_nan=False))
+        if args.command=='capture' and result.get('cancelled') is True:return 130
         return exit_code(result)
     except AppError as error:
         print(json.dumps({'status':'error','error':{'code':error.code,'message':error.message}}),file=sys.stderr)

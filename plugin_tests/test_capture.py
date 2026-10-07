@@ -175,32 +175,50 @@ class CaptureTests(unittest.TestCase):
 
     def test_real_transport_uses_explicit_env_token_and_get_without_redirect_following(self):
         from intune_iac.capture import capture
+        from intune_iac import identity_binding as identity
         requests = []
+        timeouts = []
         class Response:
-            code = 200
-            def __enter__(self): return self
-            def __exit__(self, *args): pass
+            status = 200
+            def getheaders(self): return []
+            def close(self): pass
             def read(self, limit):
                 self.limit = limit
                 return b'{"value":[{"id":"' + P.encode() + b'"}]}' if len(requests)==1 else b'{"value":[]}'
-        class Opener:
-            def open(self, request, timeout):
-                requests.append(request)
-                self.timeout = timeout
-                return Response()
-        opener = Opener()
+        class Connection:
+            sock = None
+            def __init__(self,host,*,port,timeout,context):
+                self.host=host; timeouts.append(timeout)
+                self.assert_port=port
+            def connect(self): pass
+            def request(self,method,path,*,body,headers): requests.append((method,self.host,path,headers))
+            def getresponse(self): return Response()
+            def close(self): pass
         with patch.dict(os.environ, {'ONLY_THIS_TOKEN':'SECRET-CANARY'}, clear=True), \
-                patch('intune_iac.capture.build_opener', return_value=opener) as builder:
+                patch.object(identity.http.client,'HTTPSConnection',Connection), \
+                patch.object(identity,'_system_tls_context',return_value=None):
             result = capture(T,P,self.output,token_env='ONLY_THIS_TOKEN')
-        self.assertEqual([r.get_method() for r in requests], ['GET','GET','GET'])
-        self.assertEqual([r.full_url for r in requests], [ROOT,SETTINGS,ASSIGNMENTS])
-        self.assertEqual(requests[0].get_header('Authorization'), 'Bearer SECRET-CANARY')
-        handler = next(value for value in builder.call_args.args if hasattr(value, 'redirect_request'))
-        self.assertIsNone(handler.redirect_request(requests[0],None,302,'Found',{},'https://evil.invalid'))
-        self.assertLessEqual(opener.timeout, 20)
+        self.assertEqual([r[0] for r in requests], ['GET','GET','GET'])
+        self.assertEqual(['https://'+r[1]+r[2] for r in requests], [ROOT,SETTINGS,ASSIGNMENTS])
+        self.assertEqual(requests[0][3]['Authorization'], 'Bearer SECRET-CANARY')
+        self.assertTrue(all(timeout<=20 for timeout in timeouts))
         self.assertNotIn('SECRET-CANARY', json.dumps(result))
         for path in self.output.rglob('*.json'):
             self.assertNotIn('SECRET-CANARY', path.read_text())
+
+        # The new bounded native transport returns a redirect response as data;
+        # no Location request or credential forwarding is possible.
+        requests.clear();self.output=self.folder/'redirect'
+        class Redirect(Response):
+            status=302
+            def getheaders(self):return [('Location','https://evil.invalid/')]
+        with patch.dict(os.environ, {'ONLY_THIS_TOKEN':'SECRET-CANARY'}, clear=True), \
+                patch.object(identity.http.client,'HTTPSConnection',Connection), \
+                patch.object(identity,'_system_tls_context',return_value=None), \
+                patch.object(Connection,'getresponse',return_value=Redirect()):
+            result=capture(T,P,self.output,token_env='ONLY_THIS_TOKEN')
+        self.assertEqual(result['status'],'partial')
+        self.assertEqual(['https://'+r[1]+r[2] for r in requests],[ROOT,SETTINGS,ASSIGNMENTS])
 
     def test_existing_directory_and_symlink_ancestor_fail_before_transport(self):
         from intune_iac.capture import capture

@@ -7,6 +7,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from datetime import datetime
 import hashlib
+import math
 import os
 from pathlib import Path
 import re
@@ -70,6 +71,80 @@ def _read(fd,name,limit=MAX_BYTES):
 def _sha(data):return hashlib.sha256(data).hexdigest()
 
 
+def _attempt_chain(receipt, raw_pages, collections, started, finished):
+    """Validate retry evidence independently of successful collection pages.
+
+    A skipped raw response is not permission to omit an arbitrary response from
+    coverage. Only a bounded declared transient retry can be excluded, and its
+    successor must be the same admitted GET, with a completed wait.
+    """
+    schema = receipt['schema_version']
+    if schema == '1.0.0':
+        if 'attempts' in receipt or 'cancelled' in receipt or any('attempt_number' in row or 'export_page' in row for row,_ in raw_pages):
+            _fail('workbench_capture_retry_binding')
+        return raw_pages, {'receipt_schema':schema,'attempt_count':receipt['attempt_count'],'retry_count':None,'attempts':[]}
+    limits=receipt['limits']; attempts=receipt.get('attempts')
+    def number(value, low, high):
+        return type(value) in (int,float) and low <= value <= high and math.isfinite(value)
+    if (type(attempts) is not list or len(attempts)!=receipt['attempt_count']
+            or type(receipt.get('cancelled')) is not bool
+            or type(limits.get('max_attempts_per_page')) is not int or not 1<=limits['max_attempts_per_page']<=10
+            or not number(limits.get('max_retry_delay_seconds'),0,30)
+            or not number(limits.get('max_elapsed_seconds'),0,120) or limits['max_elapsed_seconds']==0
+            or limits.get('request_timeout_seconds')!=20):_fail('workbench_capture_retry_binding')
+    keys={'number','kind','owner_id','request_url','method','attempt_in_page','captured_at','http_status','raw_path','error','retry','retry_delay_seconds','retry_delay_source','wait_completed'}
+    raw_offset=0; exported=[]; safe=[]; previous={}; expected={}; last_kind=-1; total_delay=0
+    for collection,kind in zip(collections,KINDS):
+        if kind!='policies':_uuid(collection.get('owner_id'))
+        expected[kind]=production.ROOT + ('/'+collection['owner_id']+'/'+kind if kind!='policies' else '')
+    for index,event in enumerate(attempts,1):
+        if type(event) is not dict or set(event)!=keys or type(event['number']) is not int or event['number']!=index:_fail('workbench_capture_retry_binding')
+        kind=event['kind']
+        if kind not in KINDS or KINDS.index(kind)<last_kind:_fail('workbench_capture_retry_binding')
+        last_kind=KINDS.index(kind);collection=collections[last_kind]
+        owner=collection['owner_id'];root=production.ROOT+('/'+owner+'/'+kind if kind!='policies' else '')
+        if event['owner_id']!=owner or event['method']!='GET' or not production._trusted(event['request_url'],root):_fail('workbench_capture_retry_binding')
+        if not started<=_time(event['captured_at'])<=finished:_fail('workbench_capture_timestamp')
+        prior=previous.get(kind)
+        if prior and prior['retry']:
+            if prior['wait_completed'] is not True or event['request_url']!=prior['request_url'] or event['attempt_in_page']!=prior['attempt_in_page']+1:_fail('workbench_capture_retry_binding')
+        elif event['request_url']!=expected[kind] or event['attempt_in_page']!=1:_fail('workbench_capture_retry_binding')
+        if type(event['attempt_in_page']) is not int or not 1<=event['attempt_in_page']<=limits['max_attempts_per_page']:_fail('workbench_capture_retry_binding')
+        if type(event['retry']) is not bool or type(event['wait_completed']) is not bool:_fail('workbench_capture_retry_binding')
+        rec=None;parsed={}
+        if event['error'] is None:
+            if raw_offset>=len(raw_pages):_fail('workbench_capture_retry_binding')
+            rec,parsed=raw_pages[raw_offset];raw_offset+=1
+            if (type(event['http_status']) is not int or not 100<=event['http_status']<=599
+                    or any(event[k]!=rec.get(k) for k in ('kind','owner_id','request_url','method','captured_at','http_status','raw_path'))
+                    or rec.get('attempt_number')!=index or type(rec.get('attempt_number')) is not int
+                    or type(rec.get('export_page')) is not bool or rec['export_page']==event['retry']):_fail('workbench_capture_retry_binding')
+        elif event['error'] not in ('transport_failed','invalid_transport_response','cancelled') or event['http_status'] is not None or event['raw_path'] is not None:
+            _fail('workbench_capture_retry_binding')
+        if event['retry']:
+            if (event['http_status'] not in (429,502,503,504) and event['error']!='transport_failed'
+                    or rec is not None and rec['raw_capture_complete'] is not True
+                    or event['attempt_in_page']>=limits['max_attempts_per_page']
+                    or not number(event['retry_delay_seconds'],0,limits['max_retry_delay_seconds'])
+                    or event['retry_delay_source'] not in ('retry_after_seconds','retry_after_date','backoff')):_fail('workbench_capture_retry_binding')
+            total_delay+=event['retry_delay_seconds']
+            if total_delay>=limits['max_elapsed_seconds'] or event['error'] is not None and event['retry_delay_source']!='backoff':_fail('workbench_capture_retry_binding')
+            if not event['wait_completed'] and collection.get('reason') not in ('cancelled','progress_failed'):_fail('workbench_capture_retry_binding')
+        else:
+            if event['retry_delay_seconds'] is not None or event['retry_delay_source'] is not None or event['wait_completed'] is not False:_fail('workbench_capture_retry_binding')
+            expected[kind]=parsed.get('@odata.nextLink') if event['http_status']==200 else None
+            if rec is not None:exported.append((rec,parsed))
+        previous[kind]=event
+        safe.append({k:event[k] for k in ('number','kind','attempt_in_page','http_status','error','retry','retry_delay_seconds','retry_delay_source','wait_completed')})
+    if raw_offset!=len(raw_pages):_fail('workbench_capture_retry_binding')
+    for kind,event in previous.items():
+        collection=collections[KINDS.index(kind)]
+        if event['retry'] and collection.get('coverage')=='complete':_fail('workbench_capture_false_complete')
+    cancelled=any(c.get('reason')=='cancelled' for c in collections) or any(e['error']=='cancelled' for e in attempts)
+    if receipt['cancelled']!=cancelled or cancelled and not any(c.get('reason')=='cancelled' and c.get('coverage')=='partial' for c in collections):_fail('workbench_capture_retry_binding')
+    return exported, {'receipt_schema':schema,'attempt_count':len(attempts),'retry_count':sum(e['retry'] for e in attempts),'cancelled':receipt['cancelled'],'attempts':safe}
+
+
 def load_capture(path,tenant_id):
     """Return a validated in-memory batch; retain raw incomplete/mapping evidence.
 
@@ -89,7 +164,7 @@ def load_capture(path,tenant_id):
             oid=_uuid(receipt.get('selected_policy_id'))
             if any(_uuid(v.get('tenant_id'))!=tenant_id for v in (source,context,receipt)) or _uuid(context.get('selected_policy_id'))!=oid:_fail('workbench_capture_identity')
             if any(v.get('cloud')!='public' for v in (source,context,receipt)):_fail('workbench_capture_identity')
-            if (source.get('schema_version')!='1.0.0' or context.get('schema_version')!='1.0.0' or receipt.get('schema_version')!='1.0.0'
+            if (source.get('schema_version')!='1.0.0' or context.get('schema_version')!='1.0.0' or receipt.get('schema_version') not in ('1.0.0','1.1.0')
                 or source.get('exporter')!=production.EXPORTER or receipt.get('adapter')!=production.EXPORTER
                 or source.get('synthetic') is not False or context.get('source_is_synthetic') is not False
                 or context.get('authorization')!='emit_only' or receipt.get('api_version')!='beta'
@@ -129,6 +204,7 @@ def load_capture(path,tenant_id):
             finally:os.close(rawfd)
             artifacts={name:{'path':str(root/name),'bytes':len(data),'sha256':_sha(data)} for name,data in raw_documents.items()}
             artifacts['raw_pages']=[{'path':str(root/r['raw_path']),'bytes':r['source_bytes'],'sha256':r['source_byte_sha256']} for r,_ in raw_pages]
+            raw_pages,capture_attempts=_attempt_chain(receipt,raw_pages,collections,started,observed_at)
             rows={};coverage=[];offset=0
             for collection,kind in zip(collections,KINDS):
                 owner=None if kind=='policies' else oid
@@ -191,5 +267,6 @@ def load_capture(path,tenant_id):
                     'capture_sha256':capture_sha,'source':{'evidence_class':'graph_capture_unverified',
                     'tenant_assurance':'caller_asserted','source_authenticity_verified':False,'provider_qualified':False,
                     'execution_authorized':False,'adapter':production.EXPORTER,'artifacts':artifacts,
-                    'capture_sha256':capture_sha,'mapping_blockers':blockers,'raw_observed':raw_observed}}
+                    'capture_sha256':capture_sha,'capture_attempts':capture_attempts,
+                    'mapping_blockers':blockers,'raw_observed':raw_observed}}
     except OSError:_fail('workbench_capture_file')

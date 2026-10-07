@@ -18,7 +18,7 @@ from uuid import UUID, uuid4
 
 from . import protected
 from .io import AppError, digest, file_sha, load_json, read_bytes, parse_json, write_json, sync_directory
-from .modeled_service import BASE, FIELDS, VERSION as SERVICE_VERSION, ModeledService, compare_semantics
+from .modeled_service import BASE, FIELDS, VERSION as SERVICE_VERSION, MAX_VISIBILITY_DELAY_READS, ModeledService, compare_semantics
 
 VERSION = 'intune-maintenance/1.0'
 EVIDENCE = 'synthetic_local_process_and_modeled_service_only'
@@ -246,13 +246,15 @@ def _readback(root, plan, *, kind):
     service = ModeledService(plan['service_root'])
     if service.snapshot()['source_sha256'] != plan['service_source_sha256']:
         _fail('maintenance_service_changed')
-    observed = service.readback(tenant_id=plan['tenant_id'])
+    observation = service.readback_observation(tenant_id=plan['tenant_id'])
+    observed = observation['estate']
     desired_mismatches = compare_semantics(plan['desired_estate'], observed)
     before_mismatches = compare_semantics(plan['before_estate'], observed)
     classification = 'desired_state_observed' if not desired_mismatches else 'matches_precondition' if not before_mismatches else 'diverged'
     result = {'operation_id': plan['operation_id'], 'classification': classification,
-        'observed_estate': observed, 'mismatches': desired_mismatches,
-        'second_plan': {'status': 'no_change' if not desired_mismatches else 'changes_require_review',
+        'observed_estate': observed, 'mismatches': desired_mismatches, 'visibility': observation['visibility'],
+        'second_plan': {'status': 'visibility_pending' if observation['visibility']['pending'] else
+                        'no_change' if not desired_mismatches else 'changes_require_review',
                         'changes': desired_mismatches, 'evidence_class': 'modeled_semantic_comparison_only'},
         'evidence_class': EVIDENCE, 'replay_authorized': False, 'cloud_authority': False,
         'native_provider_qualified': False}
@@ -262,10 +264,12 @@ def _readback(root, plan, *, kind):
     return result
 
 
-def execute(operation_root, *, approve_digest, fault=None):
+def execute(operation_root, *, approve_digest, fault=None, visibility_delay_reads=0):
     root, plan, journal, desired, request = _load(operation_root)
     if fault not in (None, 'lost-response', 'after-policy', 'deny', 'throttle'):
         _fail('maintenance_fault_invalid')
+    if type(visibility_delay_reads) is not int or not 0 <= visibility_delay_reads <= MAX_VISIBILITY_DELAY_READS:
+        _fail('maintenance_visibility_delay_invalid')
     if type(approve_digest) is not str or approve_digest != digest(plan):
         _fail('maintenance_approval_required')
     with _lock(plan['service_root']):
@@ -298,13 +302,16 @@ def execute(operation_root, *, approve_digest, fault=None):
                 _fail('maintenance_engine_incomplete')
             if plan['changes']:
                 response = service.request('PATCH', BASE + '/' + plan['object_id'], tenant_id=plan['tenant_id'],
-                    body=desired, if_match=str(plan['before_revision']), fault=fault)
+                    body=desired, if_match=str(plan['before_revision']), fault=fault,
+                    visibility_delay_reads=visibility_delay_reads)
                 _event(root, journal, 'service_response', response=response)
                 if response['status'] != 200:
                     _fail('maintenance_service_incomplete')
             else:
                 _event(root, journal, 'service_no_change', mutation_dispatched=False)
             readback = _readback(root, plan, kind='readback')
+            if readback['visibility']['pending']:
+                _fail('maintenance_visibility_pending')
             if readback['classification'] != 'desired_state_observed':
                 _fail('maintenance_readback_mismatch')
             journal['status'] = 'succeeded_verified'
@@ -330,9 +337,10 @@ def reconcile(operation_root):
         result['previous_status'] = previous_status
         # Readback resolves observable state, never proves a lost response was
         # delivered or grants permission to replay the consumed operation.
-        if previous_status != 'prepared':
+        if previous_status != 'prepared' and not result['visibility']['pending']:
             journal['status'] = 'reconciled'
-        _event(root, journal, 'reconciled', classification=result['classification'], previous_status=previous_status)
+        _event(root, journal, 'reconciled', classification=result['classification'], previous_status=previous_status,
+               visibility=result['visibility'])
         _register(root, plan, journal)
         return result
 

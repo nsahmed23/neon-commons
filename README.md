@@ -1,4 +1,10 @@
-# Intune Workbench — 0.7.0 connected observation candidate
+# Intune Workbench 0.8.0 continuation candidate
+
+This candidate continues the integrity-verified 0.7.0 source at commit `74130d0db99febf2f41cf4f4ebe2920a5d4dffb7`. The preserved 1,141-test result belongs to that exact R2 source and its recorded Linux laboratory scope. New package receipts determine qualification of 0.8.0; an older passing total never qualifies changed bytes.
+
+The existing wizard, persistent workbench and protected local executor now share an explicit adoption handoff. Bounded GET retry, separately visible modeled state, source-backed setting meanings and independent connected-journey qualification extend the existing engine. Read [the continuation checkpoint](docs/CONTINUATION-R3.md), [Workbench commands](docs/WORKBENCH.md), and [external qualification requirements](docs/EXTERNAL-QUALIFICATION-R3.md). Laboratory completion, actual platform qualification and organizational production approval are separate outcomes.
+
+# Historical 0.7.0 connected observation candidate
 
 This candidate connects captured policy observations, persistent per-collection history, typed reference comparisons, policy-specific device/workflow evidence, and a bounded local collection scheduler. It includes the independently qualified process-cleanup repair from 0.6.2 and the separately tested terminal-checker correction. See [commands, evidence meanings and remaining limits](docs/WORKBENCH.md). Exact artifact receipts determine qualification; older totals below remain historical. Production execution and organizational approval remain blocked.
 

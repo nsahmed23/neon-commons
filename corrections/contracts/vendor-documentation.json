@@ -1,0 +1,63 @@
+{
+  "schema_version": "workbench-vendor-documentation/1",
+  "scope": "Pinned documentation facts; not live Graph definition discovery or device applicability",
+  "entries": [
+    {
+      "setting_definition_id": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+      "name": "Let Windows apps access location",
+      "aliases": [
+        "LetAppsAccessLocation",
+        "Privacy/LetAppsAccessLocation"
+      ],
+      "meaning": "Controls whether Windows apps may access location. Per-app policy takes precedence over the default.",
+      "assertion_class": "vendor_documentation",
+      "association_basis": "Explicit local cross-reference to the similarly named CSP; no Graph definition or enum translation attestation",
+      "csp_uri": "./Device/Vendor/MSFT/Policy/Config/Privacy/LetAppsAccessLocation",
+      "data_type": "int",
+      "default_value": 0,
+      "allowed_values": [
+        {
+          "value": 0,
+          "meaning": "User in control"
+        },
+        {
+          "value": 1,
+          "meaning": "Force allow"
+        },
+        {
+          "value": 2,
+          "meaning": "Force deny"
+        }
+      ],
+      "applicability": {
+        "scope": "device",
+        "user_scope": false,
+        "editions": [
+          "Pro",
+          "Enterprise",
+          "Education",
+          "IoT Enterprise",
+          "IoT Enterprise LTSC"
+        ],
+        "minimum_windows_release": "Windows 10, version 1607",
+        "minimum_windows_version": "10.0.14393"
+      },
+      "documentation": {
+        "url": "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#letappsaccesslocation",
+        "publisher": "Microsoft Learn",
+        "locale": "en-us",
+        "source_date": "2026-09-10",
+        "published_update_at": "2026-09-23T17:34:00Z",
+        "retrieved_at": "2026-10-07T03:21:49.096637+00:00",
+        "page_sha256": "b6c9c2e074b68403f400c8e2c610f41ed5b6907fb023b0e5d76ae023b703b351",
+        "section_sha256": "5ef25f34c675bd5bf4d8971ba1681fcf4d2086e591f1a04a6885a8805b6d13ed",
+        "advertised_revision": "65e6c8ea9044ee218340ea399c918edaef788782",
+        "revision_binding": "Publisher page gitcommit metadata; repository membership not independently verified",
+        "license_disposition": "Original factual summary and citation; no copied policy export or upstream code bundled"
+      },
+      "graph_value_translation_verified": false,
+      "applies_to_observed_device_verified": false,
+      "execution_authorized": false
+    }
+  ]
+}

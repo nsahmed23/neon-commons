@@ -31,6 +31,11 @@ def add_parser(commands):
     migrate = sub.add_parser('migrate', help='Back up and explicitly migrate the observation schema')
     migrate.add_argument('--root', required=True)
     migrate.add_argument('--backup', required=True)
+    for name in ('adoption-preview', 'adopt'):
+        item = sub.add_parser(name, help='Reconstruct a completed local wizard and connect a separate synthetic maintenance model')
+        item.add_argument('--root', required=True)
+        item.add_argument('--session', required=True)
+        if name == 'adopt': item.add_argument('--output', required=True, help='New private handoff directory; partial state is preserved for explicit resume')
     capture = sub.add_parser('import-capture', help='Import an existing Graph capture directory and its raw-page receipts without network access')
     capture.add_argument('--root', required=True)
     capture.add_argument('--capture', required=True)
@@ -70,10 +75,10 @@ def add_parser(commands):
     collect.add_argument('--stack', help='Physical manifest selector for --repo')
     collect.add_argument('--component', help='Component selector for --repo')
     collect.add_argument('--fault', choices=['deny', 'throttle', 'cross-origin', 'loop'])
-    for name in ('overview', 'health', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'history', 'compare', 'operations', 'terminal'):
+    for name in ('overview', 'health', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'operations', 'terminal'):
         item = sub.add_parser(name)
         item.add_argument('--root', required=True)
-        if name in ('inspect', 'settings', 'relationships', 'history', 'compare', 'workflows'):
+        if name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'workflows'):
             item.add_argument('--object', required=True, help='Exact immutable object ID, never a display name')
         if name in ('search', 'dictionary'): item.add_argument('--query', default='')
         if name in ('operations', 'health', 'collection-history'): item.add_argument('--object')
@@ -84,6 +89,7 @@ def add_parser(commands):
             item.add_argument('--before', required=True)
             item.add_argument('--after', required=True)
         if name == 'collection': item.add_argument('--run', type=int, required=True)
+        if name == 'lineage': item.add_argument('--pointer', help='Exact literal JSON pointer for a repository value')
         if name == 'terminal': item.add_argument('--service-root')
     propose = sub.add_parser('propose', help='Prepare a bounded correction with existing engine evidence; synthetic service only')
     for name in ('root', 'service-root', 'object', 'desired', 'output'):
@@ -98,6 +104,7 @@ def add_parser(commands):
         if name == 'execute':
             item.add_argument('--approve-digest', required=True, help='Explicit digest from fresh review; local synthetic approval only')
             item.add_argument('--fault', choices=['lost-response', 'after-policy', 'deny', 'throttle'])
+            item.add_argument('--visibility-delay-reads', type=int, default=0, help='Local model only: 0 through 16 public GETs serving the previous committed estate')
 
 
 def _store(root):
@@ -194,9 +201,15 @@ def _facet(store, object_id, facet):
                 'dictionary': _dictionary(store)}
     from .workbench_health import workflow_lineage
     lineage = workflow_lineage(store, object_id)
+    from .workbench_adoption import lineage as adoption_lineage
+    adoptions = adoption_lineage(store, object_id)
+    adoption_edges = [{'relation': 'generated_from', 'target_id': row['data']['binding']['generated'][object_id]['path'],
+                       'details': {'binding_sha256': row['data']['binding_sha256'], 'artifact_id': row['artifact_id']},
+                       'assertion_class': 'historical_local_adoption'} for row in adoptions['adoptions']]
     return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
-            'relationships': value.get('relationships', []) + [edge for row in lineage['runs'] for edge in row['data'].get('relationships', [])],
+            'relationships': value.get('relationships', []) + adoption_edges + [edge for row in lineage['runs'] for edge in row['data'].get('relationships', [])],
             'source': value.get('source'), 'workflows': lineage, 'coverage': value.get('coverage'),
+            'adoption_lineage': adoptions,
             'assignments': body.get('assignments'),
             'ownership': 'Source-declared only; an observation does not establish managed ownership.'}
 
@@ -212,6 +225,11 @@ def command(args):
         return dict(_store(args.root).backup(args.output),
                     integrity_limit='Retain and compare the backup receipt independently; a self-supplied digest does not authenticate provenance.')
     if name == 'migrate': return _store(args.root).migrate(args.backup)
+    if name in ('adoption-preview', 'adopt'):
+        from . import workbench_adoption
+        store = _store(args.root)
+        if name == 'adoption-preview': return workbench_adoption.preview(store, args.session)
+        return workbench_adoption.adopt(store, args.session, args.output)
     if name in ('schedule-create', 'schedule-run', 'schedule-status'):
         from . import workbench_scheduler as scheduler
         if name == 'schedule-create': return scheduler.create_schedule(_store(args.root), args.service_root, args.interval_seconds, args.output)
@@ -232,7 +250,8 @@ def command(args):
         from . import maintenance
         if name == 'restore-propose': return maintenance.propose_restore(args.operation, args.output)
         if name == 'review': return maintenance.review(args.operation)
-        if name == 'execute': return maintenance.execute(args.operation, approve_digest=args.approve_digest, fault=args.fault)
+        if name == 'execute': return maintenance.execute(args.operation, approve_digest=args.approve_digest, fault=args.fault,
+                                                          visibility_delay_reads=args.visibility_delay_reads)
         if name == 'reconcile': return maintenance.reconcile(args.operation)
         return maintenance.propose(args.root, args.service_root, args.object, args.desired, args.output, context_path=args.context)
     if name == 'terminal': return run_terminal(args.root, service_root=args.service_root)
@@ -267,6 +286,12 @@ def command(args):
     if name == 'dictionary': return _dictionary(store, args.query)
     if name == 'search': return _search(store, args.query)
     if name == 'inspect': return store.inspect(args.object)
+    if name == 'adoption-lineage':
+        from .workbench_adoption import lineage
+        return lineage(store, args.object)
+    if name == 'lineage':
+        from .workbench_provenance import repository_lineage
+        return repository_lineage(store, args.object, args.pointer)
     if name in ('settings', 'relationships'): return _facet(store, args.object, name)
     if name == 'history': return {'object_id': args.object, 'history': store.history(args.object, limit=args.limit, offset=args.offset),
                                   'limit': args.limit, 'offset': args.offset}
@@ -278,11 +303,12 @@ def command(args):
 
 HELP = {
     'navigation': ['overview', 'search TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
-                   'relationships', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
+                   'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'workflows', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT', 'health', 'queue', 'operations [LIMIT [OFFSET]]', 'back', 'cancel', 'quit'],
     'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
-                    'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT]', 'reconcile OPERATION_DIR',
+                    'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
+    'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
     'collection': ['collect (requires --service-root; also runs as a separate headless command)',
                    'import-capture CAPTURE_DIRECTORY', 'collection-history [LIMIT [OFFSET]]', 'collection RUN_ID',
                    'migrate NEW_BACKUP_PATH', 'schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)',
@@ -343,6 +369,14 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             elif name == 'collection' and len(values) == 1: result = store.collection_detail(int(values[0]))
             elif name == 'import-capture' and len(values) == 1: result = store.import_capture(values[0])
             elif name == 'migrate' and len(values) == 1: result = store.migrate(values[0])
+            elif name == 'adoption-preview' and len(values) == 1:
+                from .workbench_adoption import preview
+                result = preview(store, values[0])
+            elif name == 'adopt' and len(values) == 2:
+                from .workbench_adoption import adopt
+                result = adopt(store, *values)
+                service_root = result['service_root']
+                selected = None
             elif name == 'device-evidence-import' and len(values) == 1:
                 from .workbench_health import import_device_evidence
                 result = import_device_evidence(store, values[0])
@@ -364,10 +398,16 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             elif name == 'operations' and len(values) <= 2:
                 result = {'operations': store.operations(object_id=selected, limit=int(values[0]) if values else None,
                           offset=int(values[1]) if len(values) == 2 else 0)}
-            elif name in ('inspect', 'settings', 'relationships', 'history', 'compare', 'propose', 'workflows', 'reference-compare'):
+            elif name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'propose', 'workflows', 'reference-compare'):
                 if selected is None: raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 if name == 'inspect' and not values: result = store.inspect(selected)
                 elif name in ('settings', 'relationships') and not values: result = _facet(store, selected, name)
+                elif name == 'adoption-lineage' and not values:
+                    from .workbench_adoption import lineage
+                    result = lineage(store, selected)
+                elif name == 'lineage' and len(values) <= 1:
+                    from .workbench_provenance import repository_lineage
+                    result = repository_lineage(store, selected, values[0] if values else None)
                 elif name == 'workflows' and not values:
                     from .workbench_health import workflow_lineage
                     result = workflow_lineage(store, selected)
@@ -388,8 +428,9 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
                 if name == 'review' and len(values) == 1: result = maintenance.review(values[0])
                 elif name == 'reconcile' and len(values) == 1: result = maintenance.reconcile(values[0])
                 elif name == 'restore-propose' and len(values) == 2: result = maintenance.propose_restore(*values)
-                elif name == 'execute' and len(values) in (2, 3):
-                    result = maintenance.execute(values[0], approve_digest=values[1], fault=values[2] if len(values) == 3 else None)
+                elif name == 'execute' and len(values) in (2, 3, 4):
+                    result = maintenance.execute(values[0], approve_digest=values[1], fault=values[2] if len(values) >= 3 else None,
+                                                 visibility_delay_reads=int(values[3]) if len(values) == 4 else 0)
                 else: raise ValueError('invalid command arguments')
             elif name == 'collect' and not values:
                 if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')

@@ -65,7 +65,7 @@ _MIGRATION_STATEMENTS = (
     "CREATE INDEX artifact_lookup ON artifacts(kind,object_id,sequence)",
 )
 _SCHEMA_SQL = _SCHEMA_SQL_V1 + '\nBEGIN IMMEDIATE;\n' + ';\n'.join(_MIGRATION_STATEMENTS) + ';\nPRAGMA user_version=2;\nCOMMIT;\n'
-_ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule'})
+_ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule','adoption'})
 
 
 def _migrate_v1_to_v2(db):

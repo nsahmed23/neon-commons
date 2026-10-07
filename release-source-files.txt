@@ -3071,3 +3071,16 @@ wizard/transition-cases.yaml
 wizard/wizard-questions.yaml
 wizard/wizard-state-machine.yaml
 workflowdocs/LOCAL-WORKFLOW.md
+
+corrections/contracts/vendor-documentation.json
+docs/CONTINUATION-R3.md
+docs/EXTERNAL-QUALIFICATION-R3.md
+docs/VENDOR-REFERENCE-LINEAGE.md
+intune_iac/workbench_adoption.py
+plugin_tests/test_capture_retry.py
+plugin_tests/test_visibility_recovery.py
+plugin_tests/test_workbench_adoption.py
+plugin_tests/test_workbench_vendor_lineage.py
+plugin_tests/test_workbench_retry_review.py
+scripts/qualify-workbench-connected.py
+scripts/qualify-workbench-performance.py

@@ -9,7 +9,7 @@ import base64
 import copy
 import hashlib
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import stat
 from urllib.parse import urlsplit
@@ -19,6 +19,9 @@ from .io import AppError, canonical, parse_json
 
 MAX_REFERENCE_BYTES = 512 * 1024
 MAX_SETTINGS = 1000
+MAX_LINEAGE_FIELDS = 4096
+MAX_LINEAGE_ORIGINS = 8192
+VENDOR_DOCUMENTATION_SHA256 = 'c758641e932f85014e5ec3451073828ad0f04a20fb850196ae6bb1b0f699bcd8'
 SCHEMA = 'workbench-source-reference/1.0'
 _HASH = re.compile(r'[0-9a-f]{64}\Z')
 _REVISION = re.compile(r'[0-9a-f]{40}\Z')
@@ -188,12 +191,166 @@ def _mapping():
     return value, hashlib.sha256(raw).hexdigest()
 
 
+def _vendor_documentation():
+    """Only release-pinned factual summaries qualify as vendor documentation.
+
+    This does not consume caller references or infer Graph choice values from
+    CSP integers. Updating facts requires a reviewed source/pin change.
+    """
+    path = Path(__file__).resolve().parents[1]/'corrections/contracts/vendor-documentation.json'
+    raw = _read(path)
+    if hashlib.sha256(raw).hexdigest() != VENDOR_DOCUMENTATION_SHA256:
+        _fail('workbench_vendor_documentation_changed')
+    value = parse_json(raw)
+    if (type(value) is not dict or value.get('schema_version') != 'workbench-vendor-documentation/1'
+            or type(value.get('entries')) is not list):
+        _fail('workbench_vendor_documentation_invalid')
+    return value['entries']
+
+
+def _lineage_pointer(value, *, allow_empty=False):
+    return (type(value) is str and ((allow_empty and value == '') or value.startswith('/'))
+            and len(value) <= 1024 and not any(ord(c)<32 or 127<=ord(c)<160 for c in value)
+            and re.search(r'~(?![01])', value) is None)
+
+
+def _lineage_path(value):
+    return (_text(value, 1024) and not value.startswith('/') and '\\' not in value
+            and ':' not in value and all(part not in ('', '.', '..') for part in value.split('/'))
+            and not PurePosixPath(value).is_absolute())
+
+
+def repository_lineage(store, object_id, pointer=None):
+    """Navigate a captured value-free literal resolution, never reread/execute it.
+
+    File hashes bind the recorded locations, not their current disk contents or
+    publisher authority. Earlier container origins express merge precedence,
+    not proof every nested value was overridden. Values remain undisclosed.
+    """
+    if pointer is not None and not _lineage_pointer(pointer):
+        _fail('workbench_lineage_pointer_invalid')
+    observed = store.inspect(object_id)
+    result = {'tenant_id': store.tenant_id, 'object_id': object_id,
+        'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
+        'freshness': observed.get('freshness', 'unknown'), 'status': 'unknown',
+        'repository': None, 'sources': [], 'fields': [], 'edges': [], 'blockers': [],
+        'provenance_origin': {'kind': 'current_observation', 'snapshot_id': observed.get('snapshot_id')},
+        'assertion_class': 'captured_local_literal_resolution', 'source_authenticity_verified': False,
+        'native_atmos_qualified': False, 'effective_values_included': False,
+        'execution_authorized': False, 'cloud_authority': False,
+        'qualification': 'Captured literal source locations and precedence only; current files, native Atmos, tenant authority and Graph-to-variable mapping are not verified.'}
+    source = observed.get('source') or {}
+    if type(source) is not dict: _fail('workbench_lineage_invalid')
+    report = source.get('repository_resolution')
+    if report is None:
+        adoptions = store.artifacts(kind='adoption', object_id=object_id)
+        if adoptions:
+            # Store order is immutable local sequence. A later unassociated
+            # adoption must not silently inherit an older repository claim.
+            latest = adoptions[-1]
+            if type(latest) is not dict or type(latest.get('data')) is not dict:
+                _fail('workbench_lineage_adoption_invalid')
+            data = latest['data']; binding = data.get('binding')
+            if (latest.get('tenant_id') != store.tenant_id or latest.get('object_id') != object_id
+                    or data.get('schema_version') != 'workbench-adoption/1'
+                    or data.get('tenant_id') != store.tenant_id or data.get('object_id') != object_id
+                    or data.get('execution_authorized') is not False or data.get('cloud_authority') is not False
+                    or type(binding) is not dict or binding.get('schema_version') != 'workbench-adoption/1'
+                    or binding.get('tenant_id') != store.tenant_id or type(binding.get('object_ids')) is not list
+                    or object_id not in binding['object_ids'] or binding.get('execution_authorized') is not False
+                    or data.get('binding_sha256') != hashlib.sha256(canonical(binding)).hexdigest()):
+                _fail('workbench_lineage_adoption_invalid')
+            report = binding.get('repository')
+            if report is not None:
+                result['provenance_origin'] = {'kind': 'historical_adoption', 'artifact_id': latest['artifact_id'],
+                    'recorded_at': latest.get('recorded_at'), 'binding_sha256': data['binding_sha256']}
+                result['observation_freshness'] = result['freshness']
+                result['freshness'] = 'historical_not_revalidated'
+                result['assertion_class'] = 'historical_local_adoption_resolution'
+                source = {}  # Historical repository differs legitimately from later observation metadata.
+    if report is None:
+        result['reason'] = 'repository_resolution_not_collected'
+        return result
+    if (type(report) is not dict or report.get('schema_version') != '1.0'
+            or report.get('adapter') != 'atmos-literal/1.0'
+            or report.get('evaluation_scope') != 'repository_local_literal_configuration'
+            or report.get('execution_authorized') is not False or 'effective' in report
+            or report.get('status') not in ('resolved', 'blocked')):
+        _fail('workbench_lineage_invalid')
+    for key in ('root', 'stack', 'component'):
+        if not _text(report.get(key), 2048): _fail('workbench_lineage_invalid')
+    for source_key, report_key in (('repository_path', 'root'), ('atmos_stack', 'stack'), ('component', 'component')):
+        if source_key in source and source[source_key] != report[report_key]: _fail('workbench_lineage_invalid')
+    sources = report.get('sources')
+    if type(sources) is not list or len(sources) > 512: _fail('workbench_lineage_limit')
+    source_hashes = {}
+    for row in sources:
+        if (type(row) is not dict or set(row) != {'path', 'sha256'} or not _lineage_path(row.get('path'))
+                or row['path'] in source_hashes or type(row.get('sha256')) is not str or not _HASH.fullmatch(row['sha256'])):
+            _fail('workbench_lineage_invalid')
+        source_hashes[row['path']] = row['sha256']
+    fingerprint = hashlib.sha256(canonical({'adapter': report['adapter'], 'sources': sources})).hexdigest()
+    if report.get('source_fingerprint') != fingerprint: _fail('workbench_lineage_invalid')
+    result['sources'] = copy.deepcopy(sources)
+    result['repository'] = {'path': report['root'], 'stack': report['stack'], 'component': report['component'],
+        'source_fingerprint': fingerprint, 'configuration_sha256': None,
+        'observation_only': True, 'current_source_bytes_verified': False}
+    blockers = report.get('blockers')
+    if type(blockers) is not list or len(blockers) > 128: _fail('workbench_lineage_limit')
+    for blocker in blockers:
+        if type(blocker) is not dict or not _text(blocker.get('code'), 128): _fail('workbench_lineage_invalid')
+        result['blockers'].append({'code': blocker['code'], 'status': 'unknown'})
+    if report['status'] == 'blocked':
+        result['status'] = 'blocked'
+        return result
+    if blockers or type(report.get('configuration_sha256')) is not str or not _HASH.fullmatch(report['configuration_sha256']):
+        _fail('workbench_lineage_invalid')
+    result['repository']['configuration_sha256'] = report['configuration_sha256']
+    provenance = report.get('provenance')
+    if type(provenance) is not dict: _fail('workbench_lineage_invalid')
+    if len(provenance) > MAX_LINEAGE_FIELDS: _fail('workbench_lineage_limit')
+    if report.get('effective_fields') != sorted(provenance): _fail('workbench_lineage_invalid')
+    if pointer is not None and pointer not in provenance: _fail('workbench_lineage_field_unknown')
+    total_origins = 0
+    def origin(value):
+        if (type(value) is not dict or set(value) != {'path', 'pointer', 'line', 'column'}
+                or not _lineage_pointer(value['pointer'], allow_empty=True)
+                or any(type(value[k]) is not int or not 0 <= value[k] <= 2147483647 for k in ('line', 'column'))):
+            _fail('workbench_lineage_invalid')
+        path = value['path']
+        if path == 'atmos-literal/1.0' and value['pointer'] == '/defaults/command' and value['line'] == value['column'] == 0:
+            return {**value, 'sha256': None, 'source_kind': 'resolver_default'}
+        if (not _lineage_path(path) or path not in source_hashes or value['line'] < 1 or value['column'] < 1):
+            _fail('workbench_lineage_invalid')
+        return {**value, 'sha256': source_hashes[path], 'source_kind': 'captured_repository_file'}
+    for field in sorted(provenance):
+        row = provenance[field]
+        if (not _lineage_pointer(field) or type(row) is not dict or set(row) != {'winner', 'history'}
+                or type(row['history']) is not list or not row['history']):
+            _fail('workbench_lineage_invalid')
+        total_origins += len(row['history'])
+        if total_origins > MAX_LINEAGE_ORIGINS: _fail('workbench_lineage_limit')
+        history = [origin(value) for value in row['history']]
+        winner = origin(row['winner'])
+        if canonical(winner) != canonical(history[-1]): _fail('workbench_lineage_invalid')
+        if pointer is not None and field != pointer: continue
+        result['fields'].append({'effective_pointer': field, 'winner': winner, 'history': history,
+                                 'earlier_origins': history[:-1]})
+        result['edges'].append({'relation': 'defined_in', 'effective_pointer': field, 'origin': winner})
+        for earlier, later in zip(history, history[1:]):
+            result['edges'].append({'relation': 'precedence_before', 'effective_pointer': field,
+                                    'earlier': earlier, 'later': later})
+    result['status'] = 'available'
+    return result
+
+
 def dictionary(store, query=''):
     if type(query) is not str or len(query)>512: _fail()
     entries = {}
     def entry(identifier):
         return entries.setdefault(identifier,{'identifier':identifier,'name':None,'aliases':[],
-            'meaning':'unknown','vendor_dictionary':'unresolved','actual_uses':[],'local_mapping':[],'references':[]})
+            'meaning':'unknown','vendor_dictionary':'unresolved','actual_uses':[],'local_mapping':[],
+            'references':[],'vendor_documentation':[]})
     overview = store.overview()
     for observed in overview.get('objects',[]):
         settings, blockers = _settings(observed.get('body'))
@@ -202,6 +359,10 @@ def dictionary(store, query=''):
                 'value':copy.deepcopy(setting['instance']),
                 'name':observed.get('name', (observed.get('body') or {}).get('name')),
                 'source':copy.deepcopy(observed.get('source')), 'ownership':'unknown',
+                'repository_lineage': {'object_id': observed['object_id'], 'command': 'lineage',
+                    'navigation_supported': True,
+                    'current_resolution_recorded': type((observed.get('source') or {}).get('repository_resolution')) is dict,
+                    'historical_resolution_status': 'query_required'},
                 'snapshot_id':observed.get('snapshot_id'),'observed_at':observed.get('observed_at'),
                 'evidence_class':observed.get('evidence_class','unknown'),'coverage':observed.get('coverage','unknown'),
                 'freshness':observed.get('freshness','unknown'),'blockers':blockers})
@@ -218,9 +379,18 @@ def dictionary(store, query=''):
             entry(identifier)['local_mapping'].append({'qualification':mapping['qualification'],
                 'mapping_sha256':mapping_sha, 'assertion_class':'local_mapping', 'entry':copy.deepcopy(row),
                 'service_definition_qualified':False})
-    return {'query':query, 'entries':[entries[key] for key in sorted(entries) if query.casefold() in key.casefold()],
+    for facts in _vendor_documentation():
+        identifier = facts['setting_definition_id']
+        if identifier in entries:
+            entry(identifier)['vendor_documentation'].append(copy.deepcopy(facts))
+    def matches(row):
+        terms = [row['identifier'], *row['aliases']]
+        for facts in row['vendor_documentation']:
+            terms.extend([facts['name'], facts['csp_uri'], *facts['aliases']])
+        return any(query.casefold() in term.casefold() for term in terms)
+    return {'query':query, 'entries':[entries[key] for key in sorted(entries) if matches(entries[key])],
             'freshness':overview.get('freshness','unknown'),'cloud_authority':False,'execution_authorized':False,
-            'qualification':'Observed values, bounded local mappings and attributed references are separate; vendor meanings and service applicability remain unknown.'}
+            'qualification':'Observed values, local mappings, community/company references and pinned vendor documentation are separate. Graph enum translation and observed-device applicability remain unqualified.'}
 
 
 def _compare(left, right):

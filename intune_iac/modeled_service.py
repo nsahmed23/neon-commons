@@ -25,6 +25,8 @@ GRAPH = 'https://graph.microsoft.com/beta/deviceManagement/configurationPolicies
 FIELDS = frozenset({'name', 'description', 'platforms', 'technologies', 'role_scope_tag_ids', 'settings', 'assignments'})
 MAX_OBJECTS = 8
 MAX_REQUESTS = 4096
+MAX_VISIBILITY_DELAY_READS = 16
+MAX_STATE_BYTES = 8 * 1024 * 1024
 FAULTS = frozenset({None, 'deny', 'throttle', 'lost-response', 'after-policy', 'cross-origin', 'loop'})
 
 
@@ -174,27 +176,54 @@ class ModeledService:
 
     def _load(self):
         info = self.path.stat()
-        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > 8 * 1024 * 1024:
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_size > MAX_STATE_BYTES:
             _fail('model_state_invalid')
         value = load_json(self.path)
-        if (type(value) is not dict or set(value) != {'schema_version', 'source_sha256', 'initial', 'current', 'revision', 'requests'}
+        required = {'schema_version', 'source_sha256', 'initial', 'current', 'revision', 'requests'}
+        if (type(value) is not dict or set(value) not in (required, required | {'visibility'})
                 or value['schema_version'] != VERSION or type(value['revision']) is not int or value['revision'] < 1
                 or type(value['requests']) is not list or len(value['requests']) > MAX_REQUESTS): _fail('model_state_invalid')
+        # Old fixtures retain their exact state shape. The optional view exists
+        # only after explicitly requested deterministic delayed visibility.
+        if 'visibility' in value:
+            view = value['visibility']
+            if (type(view) is not dict or set(view) != {'estate', 'revision', 'remaining_gets'}
+                    or type(view['revision']) is not int or not 1 <= view['revision'] <= value['revision']
+                    or type(view['remaining_gets']) is not int
+                    or not 0 <= view['remaining_gets'] <= MAX_VISIBILITY_DELAY_READS
+                    or type(view['estate']) is not dict or set(view['estate']) != set(value['current'])
+                    or view['estate'].get('schema_version') != 'intune-semantic-estate/1.0'
+                    or view['estate'].get('tenant_id') != value['current']['tenant_id']
+                    or view['estate'].get('cloud') != 'public'
+                    or type(view['estate'].get('objects')) is not dict
+                    or len(view['estate']['objects']) > MAX_OBJECTS): _fail('model_state_invalid')
+            for oid, body in view['estate']['objects'].items():
+                _uuid(oid)
+                if type(body) is not dict or set(body) != FIELDS: _fail('model_state_invalid')
+            if view['revision'] == value['revision'] and digest(view['estate']) != digest(value['current']):
+                _fail('model_state_invalid')
         return value
 
     def snapshot(self):
         return copy.deepcopy(self._load())
 
-    def request(self, method, path, *, tenant_id, body=None, if_match=None, fault=None, page_size=2):
+    def request(self, method, path, *, tenant_id, body=None, if_match=None, fault=None, page_size=2,
+                visibility_delay_reads=0):
         """Execute one modeled request, with no sockets or credentials.
 
         PATCH can fail after policy facets but before assignments, or lose its
-        response after a complete durable write. GET readback is always fresh.
+        response after a complete durable write. Explicit delayed visibility
+        serves the old public estate for at most 16 successful GETs, separately
+        from committed mutation and persisted Workbench observation. This is a
+        deterministic lab boundary, not a Microsoft Graph timing claim.
         All requests/outcomes, including denied ones, are retained atomically.
         """
         if (fault not in FAULTS or type(page_size) is not int or not 1 <= page_size <= 8
                 or type(method) is not str or method not in ('GET', 'POST', 'PATCH', 'DELETE')
-                or type(path) is not str or len(path) > 4096): _fail('model_request_invalid')
+                or type(path) is not str or len(path) > 4096
+                or type(visibility_delay_reads) is not int
+                or not 0 <= visibility_delay_reads <= MAX_VISIBILITY_DELAY_READS
+                or (visibility_delay_reads and method not in ('POST', 'PATCH', 'DELETE'))): _fail('model_request_invalid')
         try:
             if len(canonical(body)) > 1024 * 1024: _fail('model_request_limit')
         except (TypeError, ValueError, RecursionError): _fail('model_request_invalid')
@@ -207,11 +236,14 @@ class ModeledService:
             except BlockingIOError: _fail('model_writer_busy')
             state = self._load()
             if len(state['requests']) >= MAX_REQUESTS: _fail('model_request_limit')
+            prior_public = copy.deepcopy(state.get('visibility', {
+                'estate': state['current'], 'revision': state['revision'], 'remaining_gets': 0}))
             before = digest(state['current'])
             record = {'sequence': len(state['requests']) + 1, 'method': method, 'path': path,
                 'request_body': copy.deepcopy(body), 'if_match': if_match, 'before_sha256': before,
                 'fault': fault, 'status': None, 'revision_before': state['revision'], 'evidence_class': 'modeled_request'}
             status, response, mutation = 400, {'error': 'unsupported_request'}, False
+            response_revision = state['revision']
             if tenant_id != state['current']['tenant_id']:
                 status, response = 403, {'error': 'wrong_tenant'}
             elif fault in ('deny', 'throttle'):
@@ -219,6 +251,15 @@ class ModeledService:
             elif type(path) is str and path.startswith(BASE):
                 suffix = path[len(BASE):]
                 objects = state['current']['objects']
+                if method == 'GET' and 'visibility' in state:
+                    view = state['visibility']
+                    # Publication happens at the next admitted GET after the
+                    # delay is consumed. Snapshot inspection never advances it.
+                    if view['remaining_gets'] == 0:
+                        view['estate'] = copy.deepcopy(state['current'])
+                        view['revision'] = state['revision']
+                    objects = view['estate']['objects']
+                    response_revision = view['revision']
                 if method == 'GET' and (suffix == '' or suffix.startswith('?page=')):
                     try: start = 0 if not suffix else int(suffix.removeprefix('?page='))
                     except ValueError: start = -1
@@ -231,7 +272,7 @@ class ModeledService:
                         status = 200
                 elif suffix.startswith('/') and suffix[1:] in objects:
                     oid = suffix[1:]
-                    if method == 'GET': status, response = 200, {'id': oid, **copy.deepcopy(objects[oid]), '@odata.etag': str(state['revision'])}
+                    if method == 'GET': status, response = 200, {'id': oid, **copy.deepcopy(objects[oid]), '@odata.etag': str(response_revision)}
                     elif method == 'PATCH' and type(body) is dict and set(body) == FIELDS:
                         if if_match != str(state['revision']): status, response = 412, {'error': 'stale_revision'}
                         else:
@@ -249,15 +290,38 @@ class ModeledService:
                     else:
                         objects[oid] = {k: copy.deepcopy(v) for k, v in body.items() if k != 'id'}
                         state['revision'] += 1; mutation = True; status, response = 201, {'id': oid}
+            if mutation:
+                response_revision = state['revision']
+                if visibility_delay_reads:
+                    state['visibility'] = {'estate': prior_public['estate'], 'revision': prior_public['revision'],
+                                           'remaining_gets': visibility_delay_reads}
+                elif 'visibility' in state:
+                    state['visibility'] = {'estate': copy.deepcopy(state['current']),
+                                           'revision': state['revision'], 'remaining_gets': 0}
+            if method == 'GET' and status == 200 and 'visibility' in state:
+                state['visibility']['remaining_gets'] = max(0, state['visibility']['remaining_gets'] - 1)
             record.update(status=status, after_sha256=digest(state['current']), revision_after=state['revision'],
                           mutation_committed=mutation, response_lost=fault == 'lost-response' and mutation)
-            state['requests'].append(record); write_json(self.path, state)
+            if 'visibility' in state:
+                record['visibility'] = {'response_revision': response_revision,
+                    'visible_revision': state['visibility']['revision'],
+                    'remaining_gets': state['visibility']['remaining_gets']}
+            state['requests'].append(record)
+            # Delayed visibility retains a second estate. Reject an expanded
+            # state before commit if the next reader could not admit it.
+            if len(canonical(state)) + 1 > MAX_STATE_BYTES: _fail('model_state_limit')
+            write_json(self.path, state)
             if record['response_lost']: _fail('model_response_lost')
-            return {'status': status, 'body': response, 'revision': state['revision'], 'model_only': True}
+            return {'status': status, 'body': response, 'revision': response_revision, 'model_only': True}
         finally:
             os.close(fd)
 
     def readback(self, *, tenant_id):
+        """Compatibility estate-only public read; it may be explicitly delayed."""
+        return self.readback_observation(tenant_id=tenant_id)['estate']
+
+    def readback_observation(self, *, tenant_id):
+        """Expose public observation and explicit model-only revision diagnostics."""
         objects, seen, url, revision = {}, set(), BASE, None
         while url is not None:
             if url in seen or len(seen) >= 16 or not (url == BASE or url.startswith(BASE + '?page=')):
@@ -272,5 +336,8 @@ class ModeledService:
                 if oid in objects: _fail('model_readback_duplicate')
                 objects[oid] = {key: value for key, value in item.items() if key != 'id'}
             url = response['body'].get('@odata.nextLink')
-        return {'schema_version': 'intune-semantic-estate/1.0', 'tenant_id': tenant_id,
-                'cloud': 'public', 'objects': objects}
+        committed_revision = self.snapshot()['revision']
+        return {'estate': {'schema_version': 'intune-semantic-estate/1.0', 'tenant_id': tenant_id,
+                'cloud': 'public', 'objects': objects}, 'visibility': {
+                    'visible_revision': revision, 'committed_revision': committed_revision,
+                    'pending': revision != committed_revision, 'model_only': True}}
