@@ -22,7 +22,7 @@ from .repository import resolve_component, public_resolution, discover_repositor
 from .workbench_provenance import _read
 from . import workbench_semantics as semantics
 
-COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','views','source-acceptance-propose','field-semantics'})
+COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
 SCOPE_FIELDS=frozenset({'repository','stack','component','backend'})
 MAX_OBJECTS=1000
 MAX_ESTATE_ARTIFACTS=10000
@@ -109,6 +109,11 @@ def _intents(store,object_id=None,scope=None):
 
 def import_repository(store,repo,stack,component,object_id,pointer,revision,backend,resource_address,*,git_executable=None,git_sha256=None):
     """Read effective policy from actual supported literal Atmos source files."""
+    from .windows_workbench import WindowsWorkbenchStore
+    if type(store) is WindowsWorkbenchStore:
+        from .windows_source import import_repository as native_import
+        return native_import(store,repo,stack,component,object_id,pointer,revision,backend,resource_address,
+            git_executable=git_executable,git_sha256=git_sha256)
     _identity(object_id)
     if type(revision) is not str or not re.fullmatch('[0-9a-f]{40}',revision):_fail('workbench_repository_revision')
     report=resolve_component(repo,_text(stack),_text(component))
@@ -125,14 +130,20 @@ def import_repository(store,repo,stack,component,object_id,pointer,revision,back
         from .workbench_revision import verify_revision
         revision_evidence=verify_revision(root,revision,report['sources'],git_executable=git_executable,git_sha256=git_sha256)
     scope=_scope({'repository':str(root),'stack':stack,'component':component,'backend':backend})
+    data=_repository_intent(store,object_id,scope,revision,resource_address,pointer,body,report,analysis,revision_evidence)
+    # Global record permits repository-only objects absent from discovery/state.
+    return store.record_artifact('repository_intent',None,data)
+
+
+def _repository_intent(store,object_id,scope,revision,resource_address,pointer,body,report,analysis,revision_evidence=None):
     data={'schema_version':'workbench-repository-intent/1','tenant_id':store.tenant_id,'target_object_id':object_id,
           'scope':scope,'source_revision':revision,'revision_authenticated':False,'revision_assurance':'caller_asserted_revision_actual_working_source_hashes',
           'revision_evidence':revision_evidence,'revision_content_verified':bool(revision_evidence and revision_evidence['working_sources_match_revision']),
           'resource_address':_text(resource_address),'effective_pointer':pointer,'desired':body,
           'resolution':public_resolution(report),'semantics':analysis,'collected_at':time.time(),
           'evidence_class':'local_literal_repository_read','cloud_authority':False,'execution_authorized':False}
-    # Global record permits repository-only objects absent from discovery/state.
-    return store.record_artifact('repository_intent',None,data)
+    return data
+
 
 
 def import_ownership(store,path):
@@ -570,6 +581,11 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
             'scope':scope,'approval_digest':digest(plan),'journal_status':journal['status'],'provider_principal':'not_applicable_local_model',
             'backend_principal':'not_applicable_local_model','unresolved_risks':['Local modeled operation; no platform authority.'],
             'evidence_class':plan['evidence_class']}
+    from . import workbench_adoption_views as adoption_views
+    adoption_history=adoption_views.history(store,object_id,native_reader=native_reader)
+    adoption_links=adoption_views.rows(store,object_id)
+    if operation is None and adoption_links and (not links or adoption_links[0]['sequence']>max(r['sequence'] for r in links)):
+        proposed=adoption_history['operations'][0]
     own=ownership(store,object_id,scope,now)
     semantic=semantics.analyze(observed['body']) if observed.get('body') is not None else None
     coverage={'observation':'complete_fresh' if coverage_ok else 'stale_or_incomplete' if observed.get('body') is not None else 'unknown',
@@ -583,6 +599,7 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
             normalized_mapping_refers_to='retained_normalized_snapshot')
     result={'schema_version':'workbench-four-views/1','tenant_id':store.tenant_id,'object_id':object_id,'scope':scope,
         'repository':repo,'observed':observed,'proposed':proposed,'coverage':coverage,'comparisons':comparisons,
+        'adoption_history':adoption_history,
         'deployment':deployment or _unknown('verified_deployment_missing'),'field_semantics':semantics.contract(),
         'cloud_authority':False,'execution_authorized':False,'limitations':['Cooperative same-user evidence is not a protected audit anchor.',
         'Declared ownership and imported refresh/deployment claims are not authenticated external authority.']}
@@ -591,8 +608,53 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     return result
 
 
+def _render_source_proposal(raw,origin,old_value,new_value):
+    import yaml
+    try:document=yaml.safe_load(raw)
+    except yaml.YAMLError:_fail('workbench_source_acceptance_yaml')
+    # Confirm the origin pointer truly represents the selected effective field.
+    if canonical(_pointer(document,origin['pointer']))!=canonical(old_value):_fail('workbench_source_acceptance_merged_field')
+    changed=copy.deepcopy(document);_set_pointer(changed,origin['pointer'],new_value)
+    rendered=yaml.safe_dump(changed,allow_unicode=False,sort_keys=False).encode()
+    if len(rendered)>512*1024:_fail('workbench_source_acceptance_bound')
+    return rendered
+
+
+def _source_impact(root,origin,*,discover=None,resolve=None):
+    if discover is None:discover=discover_repository
+    if resolve is None:resolve=resolve_component
+    discovered=discover(root);impact=[]
+    if discovered['status']!='discovered' or len(discovered['stacks'])>100:_fail('workbench_source_acceptance_scope_incomplete')
+    for stack in discovered['stacks']:
+        if stack['status']!='discovered':_fail('workbench_source_acceptance_scope_incomplete')
+        for component in stack['components']:
+            if not component['selectable']:continue
+            resolved=resolve(root,stack['stack'],component['name'])
+            if resolved['status']!='resolved':_fail('workbench_source_acceptance_scope_incomplete')
+            fields=[p for p,info in resolved['provenance'].items() if any(h.get('path')==origin['path'] and
+                    (h.get('pointer')==origin['pointer'] or h.get('pointer','').startswith(origin['pointer']+'/')) for h in info.get('history',[]))]
+            if fields:impact.append({'stack':stack['stack'],'component':component['name'],'effective_fields':sorted(fields),
+                                    'impact':'source_dependency_requires_fresh_resolution_and_plan'})
+    return impact
+
+
+def _source_proposal_document(store,object_id,field,repo,observed,origin,raw,rendered,impact):
+    result={'schema_version':'workbench-source-acceptance-proposal/1','tenant_id':store.tenant_id,'object_id':object_id,
+        'field':field,'repository_intent_id':repo['artifact_id'],'observation_snapshot_id':observed['snapshot_id'],
+        'authoritative_source':{'path':origin['path'],'pointer':origin['pointer'],'before_sha256':hashlib.sha256(raw).hexdigest(),'after_sha256':hashlib.sha256(rendered).hexdigest()},
+        'shared_inheritance_impact':impact,'fresh_plan_required':True,'normal_change_review_required':True,
+        'no_resource_changes_established':False,'source_modified':False,'refresh_only_apply_performed':False,
+        'formatting':'YAML rendering may change formatting/comments; complete byte diff requires review.',
+        'cloud_authority':False,'execution_authorized':False}
+    return result
+
+
 def propose_source_acceptance(store,object_id,field,output,*,scope=None):
     """Emit a bounded patch to the winning source, never apply or refresh state."""
+    from .windows_workbench import WindowsWorkbenchStore
+    if type(store) is WindowsWorkbenchStore:
+        from .windows_source import propose_source_acceptance as native_propose
+        return native_propose(store,object_id,field,output,scope=scope)
     import yaml
     value=views(store,object_id,scope=scope);repo=value['repository'];observed=value['observed']
     if repo['status']!='recorded' or value['coverage']['observation']!='complete_fresh':_fail('workbench_source_acceptance_incomplete')
@@ -608,25 +670,8 @@ def propose_source_acceptance(store,object_id,field,output,*,scope=None):
     if type(origin) is not dict or not {'path','pointer'}<=set(origin):_fail('workbench_source_acceptance_origin')
     source_path=root/origin['path'];raw=_read(source_path)
     if hashlib.sha256(raw).hexdigest()!=next((s['sha256'] for s in fresh['sources'] if s['path']==origin['path']),None):_fail('workbench_source_acceptance_stale')
-    try:document=yaml.safe_load(raw)
-    except yaml.YAMLError:_fail('workbench_source_acceptance_yaml')
-    # Confirm the origin pointer truly represents the selected effective field.
-    if canonical(_pointer(document,origin['pointer']))!=canonical(old_value):_fail('workbench_source_acceptance_merged_field')
-    changed=copy.deepcopy(document);_set_pointer(changed,origin['pointer'],new_value)
-    rendered=yaml.safe_dump(changed,allow_unicode=False,sort_keys=False).encode()
-    if len(rendered)>512*1024:_fail('workbench_source_acceptance_bound')
-    discovered=discover_repository(root);impact=[]
-    if discovered['status']!='discovered' or len(discovered['stacks'])>100:_fail('workbench_source_acceptance_scope_incomplete')
-    for stack in discovered['stacks']:
-        if stack['status']!='discovered':_fail('workbench_source_acceptance_scope_incomplete')
-        for component in stack['components']:
-            if not component['selectable']:continue
-            resolved=resolve_component(root,stack['stack'],component['name'])
-            if resolved['status']!='resolved':_fail('workbench_source_acceptance_scope_incomplete')
-            fields=[p for p,info in resolved['provenance'].items() if any(h.get('path')==origin['path'] and
-                    (h.get('pointer')==origin['pointer'] or h.get('pointer','').startswith(origin['pointer']+'/')) for h in info.get('history',[]))]
-            if fields:impact.append({'stack':stack['stack'],'component':component['name'],'effective_fields':sorted(fields),
-                                    'impact':'source_dependency_requires_fresh_resolution_and_plan'})
+    rendered=_render_source_proposal(raw,origin,old_value,new_value)
+    impact=_source_impact(root,origin)
     patch=''.join(difflib.unified_diff(raw.decode('utf-8').splitlines(True),rendered.decode().splitlines(True),
         fromfile='a/'+origin['path'],tofile='b/'+origin['path']))
     # Recheck selected source snapshot after impact discovery before publishing.
@@ -635,13 +680,7 @@ def propose_source_acceptance(store,object_id,field,output,*,scope=None):
     destination=Path(output).absolute()
     if any(p.is_symlink() for p in (destination,*destination.parents)) or destination.exists() or not destination.parent.is_dir():_fail('workbench_source_acceptance_output')
     if destination==root or root in destination.parents:_fail('workbench_source_acceptance_output')
-    result={'schema_version':'workbench-source-acceptance-proposal/1','tenant_id':store.tenant_id,'object_id':object_id,
-        'field':field,'repository_intent_id':repo['artifact_id'],'observation_snapshot_id':observed['snapshot_id'],
-        'authoritative_source':{'path':origin['path'],'pointer':origin['pointer'],'before_sha256':hashlib.sha256(raw).hexdigest(),'after_sha256':hashlib.sha256(rendered).hexdigest()},
-        'shared_inheritance_impact':impact,'fresh_plan_required':True,'normal_change_review_required':True,
-        'no_resource_changes_established':False,'source_modified':False,'refresh_only_apply_performed':False,
-        'formatting':'YAML rendering may change formatting/comments; complete byte diff requires review.',
-        'cloud_authority':False,'execution_authorized':False}
+    result=_source_proposal_document(store,object_id,field,repo,observed,origin,raw,rendered,impact)
     destination.mkdir(mode=0o700)
     for name,data in (('source.before.yaml',raw),('source.after.yaml',rendered),('change.patch',patch.encode())):
         fd=os.open(destination/name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
@@ -661,6 +700,10 @@ def add_parser(sub):
     for name in ('root','operation','intent'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('service-link',help='Link a registered protected service operation into persistent views; does not execute')
     for name in ('root','object','job-root','policy'):p.add_argument('--'+name,required=True)
+    p=sub.add_parser('adoption-link',help='Link a protected state-only adoption; never promote a Graph deployment baseline')
+    for name in ('root','object','job-root','policy'):p.add_argument('--'+name,required=True)
+    p=sub.add_parser('adoption-history',help='Read linked protected adoption journals; no import or replay')
+    for name in ('root','object'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('views',help='Repository, observed, proposed and coverage with distinct evidence baselines')
     p.add_argument('--root',required=True);p.add_argument('--object');p.add_argument('--scope');p.add_argument('--operation');p.add_argument('--intent')
     p.add_argument('--limit',type=int,default=100);p.add_argument('--offset',type=int,default=0)
@@ -684,6 +727,10 @@ def command(args):
     if name=='service-link':
         from .workbench_service_views import link
         return link(store,args.object,args.job_root,args.policy)
+    if name in ('adoption-link','adoption-history'):
+        from . import workbench_adoption_views as adoption_views
+        if name=='adoption-link':return adoption_views.link(store,args.object,args.job_root,args.policy)
+        return adoption_views.history(store,args.object)
     scope=_load(args.scope)[0] if args.scope else None
     if name=='views':return views(store,args.object,scope=scope,operation=args.operation,intent_id=args.intent,limit=args.limit,offset=args.offset,query=args.query,ownership_filter=args.ownership,coverage_filter=args.coverage,health_filter=args.health)
     if name=='source-acceptance-propose':return propose_source_acceptance(store,args.object,args.field,args.output,scope=scope)

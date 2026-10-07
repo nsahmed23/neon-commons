@@ -13,7 +13,8 @@ class _NativeViewReader:
     def __init__(self):self.issues=[]
     def reject(self,kind,*,row=None):
         evidence=row.get('data',{}).get('evidence_class') if row is not None else None
-        reason=('native_protected_service_journal_unsupported' if evidence=='linked_protected_service'
+        reason=('native_protected_adoption_journal_unsupported' if evidence=='linked_protected_adoption'
+                else 'native_protected_service_journal_unsupported' if evidence=='linked_protected_service'
                 else 'native_modeled_execution_journal_unsupported' if evidence=='verified_local_modeled_deployment'
                 else 'native_selected_operation_journal_unsupported' if kind=='proposed_operation'
                 else 'deployment_claim_not_independently_verified')

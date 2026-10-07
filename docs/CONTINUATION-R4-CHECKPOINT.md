@@ -683,3 +683,45 @@ Resume from `integration/COMMIT-11.json` after this checkpoint: inspect
 `git status --short`, read this ledger and the frozen proposed integrations,
 then finish review before whole-runtime signing. Do not rerun historical
 full suites. No platform or organizational production approval is claimed.
+
+Increment11 committed `8fb914a36651b0bd79e3e4f2d342294613682685`; all3271
+selected files match independently rehashed Git objects. The91-row ledger
+passes487 top-level receipt references across84 unique files; no tests rerun.
+
+Increment12 integrates distinct signed protected state-only adoption, shared
+writer reservations/nonce authority, exact native import/first-plan controls,
+frozen signed-approval transcripts and durable adoption links/history. Atomic
+transcript failure prevents dispatch.76 integrated interface checks pass with
+injected adoption host; separate110 unique adjacent methods include19 actual
+ordinary native Docker/TLS service routes. The original inaccurate76 scope
+phrase is retained with `integrated-02/SCOPE-CORRECTION-01.json`. Counts are
+scoped and overlapping, never a new combined total. Native adoption itself is
+the next gate and is not yet claimed by these interface checks.
+
+Native repository intent import and immutable source proposal are integrated.
+Their90-test candidate scope and12 independent controls retain recorded-Win32
+limits. Source remains untouched by proposal; full byte diff, shared impacts
+and fresh-plan requirements remain explicit. The native source writer/recovery
+is separately staged. Local checkout identity and the approved logical worker
+repository URL need an explicit reviewed binding; a Git remote is not proof.
+
+Adoption navigation repairs preserve legacy help and read-only operation context
+across review/execution tabs and reopening. Independent14 actualLinuxPTY checks
+on a disposable prepared journal pass after preserved help/context/back failures;
+17 presentation methods also pass. These do not qualify nativeWindows or a
+successful native journal/final package. Those replays remain required.
+
+Two authorized agents concurrently admitted the same source paths. The collided
+inventory/builder bytes and observed check30 receipt are preserved under
+`integration/admission-collision-01/`. Redundant runtime entries/empty comment
+were repaired without losing source selection. Both wrote check30; the first
+output's exact bytes were not independently retained. Check31 is a new scoped
+validation, not restoration of that result. Root now exclusively owns inventory
+admissions. This event does not close any historical provenance finding.
+
+Resume from `integration/COMMIT-12.json`: inspect `git status --short`, read the
+ledger and frozen source pins, then execute native adoption/change and distinct
+interruption cases without runtime edits during signing. Portable signed worker
+evidence, native source writing, source/execution binding and adoption recovery
+remain staged dependencies. Final packages, required external routes and
+accountable organizational approval remain incomplete.

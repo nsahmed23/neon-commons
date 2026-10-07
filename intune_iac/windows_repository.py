@@ -160,6 +160,9 @@ def _readback(record,api):
     started=time.time()
     with _access(root,api) as access:
         report=_report(access,scope['stack'],scope['component'])
+        prior=record.get('native_source_snapshot')
+        if prior is not None and (type(prior) is not dict or prior.get('captured_root_identity')!=access.root_identity):
+            _fail('windows_repository_recorded_root_identity_changed')
         if report['status']!='resolved':
             result={'status':'unknown','reason':'native_literal_resolution_blocked','blockers':report['blockers'],
                 'root_identity':access.root_identity,'git_revision_verified':False}
@@ -173,8 +176,10 @@ def _readback(record,api):
             result={'status':'recorded','scope':scope,'root_identity':access.root_identity,
                 'recorded_source_revision':record.get('source_revision'),'recorded_revision_assurance':record.get('revision_assurance'),
                 'git_revision_verified':False,'publisher_authenticated':False,
-                'prior_native_root_identity_available':False,
-                'association':'Exact recorded DOS scope path and selected stack/component; prior filesystem identity was not recorded.',
+                'prior_native_root_identity_available':prior is not None,
+                'recorded_native_root_identity_matches':True if prior is not None else None,
+                'historical_root_binding_authenticated':False,
+                'association':('Exact recorded local native root identity matches current held observation; publisher unverified.' if prior is not None else 'Exact recorded DOS scope path and selected stack/component; prior filesystem identity was not recorded.'),
                 'source_hashes_equal':wanted==current,'source_files':report['sources'],
                 'source_file_changes':{'missing':sorted(set(wanted)-set(current)),'added':sorted(set(current)-set(wanted)),
                     'changed':sorted(name for name in set(wanted)&set(current) if wanted[name]!=current[name])},

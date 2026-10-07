@@ -75,6 +75,8 @@ def parser():
     from .workbench_parsers import add_worker_parser, add_service_parser
     add_worker_parser(commands)
     add_service_parser(commands)
+    from .adoption_cli import add_parser as add_adoption_parser
+    add_adoption_parser(commands)
     from .artifact_vault import add_parser as add_artifact_parser
     add_artifact_parser(commands)
     commands.add_parser('doctor',help='Report installed prerequisites and capability boundaries')
@@ -148,6 +150,9 @@ def execute(args):
         from .host_capabilities import require_profile
         require_profile('protected_worker')
         from .protected_worker import command
+        return command(args)
+    if args.command=='adoption':
+        from .adoption_cli import command
         return command(args)
     if args.command=='service':
         from .service_cli import command

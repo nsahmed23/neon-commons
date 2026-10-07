@@ -334,6 +334,7 @@ class ServicePolicy:
             if 'controller_start' not in columns: db.execute('ALTER TABLE jobs ADD COLUMN controller_start TEXT')
             db.execute('CREATE TABLE IF NOT EXISTS ownership (scope TEXT PRIMARY KEY, job TEXT NOT NULL)')
             db.execute('CREATE TABLE IF NOT EXISTS consumed (issuer TEXT, nonce TEXT, operation_id TEXT UNIQUE, manifest_sha256 TEXT, PRIMARY KEY(issuer,nonce))')
+            db.execute('CREATE TABLE IF NOT EXISTS approval_transcripts (operation_id TEXT PRIMARY KEY, receipt_json TEXT NOT NULL, receipt_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL)')
             db.execute('CREATE TABLE IF NOT EXISTS revoked (issuer TEXT, key_id TEXT, PRIMARY KEY(issuer,key_id))')
             db.execute('CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY, job TEXT, kind TEXT, payload TEXT, created_at INTEGER)')
             db.execute('COMMIT')
@@ -450,6 +451,7 @@ class ServiceJob:
         self.policy = ServicePolicy(policy_path); self.root = _private(job_root, directory=True)
         if self.root.parent != self.policy.jobs_root: _fail('service_job_outside_policy')
         self.manifest = _bounded_private_json(self.root / 'manifest.json')
+        if self.manifest.get('schema_version') != VERSION: _fail('service_job_domain')
         self.sha256, self.identifier = digest(self.manifest), self.manifest.get('operation_id')
         self._check(expiry=False)
     def _check(self, *, expiry=True):
@@ -509,13 +511,17 @@ class ServiceJob:
         if list(_private(spec.job_root, directory=True).iterdir()): _fail('service_fresh_job_required')
         broker_root = _private(spec.broker_root, directory=True)
         if list(broker_root.iterdir()): _fail('service_fresh_broker_required')
-        payload = self.policy.verify(self.manifest, signed_receipt)
+        # Freeze once before verification; persist only these exact checked bytes.
+        signed_snapshot = _snapshot(signed_receipt)
+        payload = self.policy.verify(self.manifest, signed_snapshot)
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             if db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone() != ('prepared', 0, 0):
                 _fail('service_operation_not_replayable')
             if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (payload['issuer'], payload['key_id'])).fetchone(): _fail('service_key_revoked')
             db.execute('INSERT INTO consumed VALUES (?,?,?,?)', (payload['issuer'], payload['nonce'], self.identifier, self.sha256))
+            db.execute('INSERT INTO approval_transcripts VALUES (?,?,?,?)',
+                (self.identifier, canonical(signed_snapshot).decode(), digest(signed_snapshot), int(time.time())))
             identity = _controller_identity(os.getpid())
             if identity is None: _fail('service_controller_identity_unavailable')
             db.execute("UPDATE jobs SET status='running',dispatches=1,controller_pid=?,controller_start=? WHERE id=?",

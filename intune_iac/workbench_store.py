@@ -33,7 +33,7 @@ MAX_QUERY_SCAN_BYTES = 128 * 1024 * 1024
 _SECRET_KEYS = frozenset({'access_token', 'refresh_token', 'client_secret', 'password', 'authorization', 'private_key', 'api_key'})
 
 _ARTIFACT_KINDS = frozenset({'source_reference','device_evidence','workflow_run','schedule','adoption',
-    'repository_intent','ownership_index','provider_refresh','deployment_receipt','queue_review'})
+    'repository_intent','ownership_index','provider_refresh','deployment_receipt','queue_review','adoption_receipt'})
 _UNSPECIFIED_PRIOR = object()
 
 

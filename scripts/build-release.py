@@ -139,6 +139,9 @@ def runtime_files():
         'WINDOWS-FOUR-VIEWS-R4.md',
         'QUALIFICATION-TOOLS-R4.md',
         'WINDOWS-REPOSITORY-R4.md',
+        'WORKER-ADOPTION-STATE-R4.md',
+        'WINDOWS-SOURCE-R4.md',
+        'WORKER-ADOPTION-R4.md',
         'EXECUTION-SEQUENCE-R4.md',
         'WINDOWS-READONLY-CONTINUATION-R4.md','WORKER-COMMITTED-STATE-RECOVERY-R4.md',
         'WORKER-PARTIAL-RECOVERY-R4.md',
@@ -160,6 +163,8 @@ def runtime_files():
                   'scripts/qualification_tools.py','scripts/prepare-qualification-tools.py',
                   'native/worker-relay/relay-v2.c',
                   'scripts/qualify-windows-repository.py',
+                  'scripts/qualify-windows-source.py',
+                  'scripts/intune-windows-source.py',
                   'scripts/restore-evidence-layer.py','scripts/restore-complete-layers.py',
                   'scripts/build-evidence-layer.py','scripts/verify-source-linkage.py',
                   'scripts/verify-release-artifact.py'])

@@ -3304,3 +3304,30 @@ intune_iac/windows_repository.py
 plugin_tests/test_windows_repository_r4.py
 scripts/qualify-windows-repository.py
 docs/WINDOWS-REPOSITORY-R4.md
+
+# R4 closed state-only native import adapter; separate signed service approval required.
+intune_iac/worker_adoption_provider.py
+plugin_tests/test_worker_adoption_provider_r4.py
+
+# R4 exact typed native adoption state admission and restricted broker integration.
+intune_iac/worker_adoption_state.py
+plugin_tests/test_worker_adoption_state_r4.py
+docs/WORKER-ADOPTION-STATE-R4.md
+
+# R4 signed state-only adoption with exact shared ownership and persistent history.
+docs/WORKER-ADOPTION-R4.md
+intune_iac/adoption_cli.py
+intune_iac/workbench_adoption_views.py
+intune_iac/worker_adoption.py
+intune_iac/worker_adoption_ownership.py
+plugin_tests/test_worker_adoption_ownership_r4.py
+
+# R4 inactive native authoritative intent import and immutable bounded source proposals.
+intune_iac/windows_source.py
+plugin_tests/test_windows_source_r4.py
+scripts/intune-windows-source.py
+scripts/qualify-windows-source.py
+docs/WINDOWS-SOURCE-R4.md
+
+# R4 distinct protected adoption navigation; literal PTY before/after retained externally.
+plugin_tests/test_workbench_adoption_tui_r4.py

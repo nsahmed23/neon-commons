@@ -22,6 +22,7 @@ MAX_COMMAND = 16384
 MAX_RENDER_LINES = 200000
 CONTEXT_VERSION = 'intune-workspace-context/1'
 SERVICE_NAVIGATION_VERSION = 'workbench-service-navigation/1'
+ADOPTION_NAVIGATION_VERSION = 'workbench-adoption-navigation/1'
 SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
@@ -49,6 +50,22 @@ def _service_parts(parts):
 def _valid_service_navigation(value):
     return (type(value) is dict and set(value) == {'schema_version', 'job_root', 'policy_path', 'read_action'}
             and value['schema_version'] == SERVICE_NAVIGATION_VERSION
+            and type(value['read_action']) is str and value['read_action'] in SERVICE_READ_ACTIONS
+            and _service_path(value['job_root']) and _service_path(value['policy_path']))
+
+
+def _adoption_command(action, navigation):
+    return 'adoption-' + action + ' ' + shlex.quote(navigation['job_root']) + ' ' + shlex.quote(navigation['policy_path'])
+
+
+def _adoption_parts(parts):
+    return (len(parts) == 3 and parts[0] in {'adoption-' + action for action in SERVICE_READ_ACTIONS}
+            and all(_service_path(value) for value in parts[1:]))
+
+
+def _valid_adoption_navigation(value):
+    return (type(value) is dict and set(value) == {'schema_version', 'job_root', 'policy_path', 'read_action'}
+            and value['schema_version'] == ADOPTION_NAVIGATION_VERSION
             and type(value['read_action']) is str and value['read_action'] in SERVICE_READ_ACTIONS
             and _service_path(value['job_root']) and _service_path(value['policy_path']))
 
@@ -246,6 +263,7 @@ class Workspace:
         self.active_operation = None
         self.execution_result = None
         self.active_service = None
+        self.active_adoption = None
         self.pending = deque()
         self.size = self._terminal_size()
         self.key_reader = None
@@ -264,7 +282,8 @@ class Workspace:
             self.page_command = value['page_command']
             self.tab = value['tab']
             self.active_service = value.get('service_navigation')
-            service_view = _service_parts(shlex.split(self.view_command))
+            self.active_adoption = value.get('adoption_navigation')
+            service_view = _service_parts(shlex.split(self.view_command)) or _adoption_parts(shlex.split(self.view_command))
             # Only validated navigation resumes. Service paths carry no receipt,
             # signature, runtime capability or permission to dispatch execution.
             self.pending.append(self.page_command)
@@ -280,13 +299,16 @@ class Workspace:
     def _validate_context(self, value):
         from .workbench_store import _identity
         required = {'schema_version', 'tenant_id', 'selected', 'view_command', 'page_command', 'tab'}
-        if (not isinstance(value, dict) or not required <= set(value) <= required | {'service_navigation'} or value['schema_version'] != CONTEXT_VERSION
+        if (not isinstance(value, dict) or not required <= set(value) <= required | {'service_navigation', 'adoption_navigation'} or value['schema_version'] != CONTEXT_VERSION
                 or value['tenant_id'] != self.store.tenant_id or type(value['tab']) is not int or not 0 <= value['tab'] < len(TABS)):
             raise AppError('workspace_context_invalid', 'Workspace context is invalid; preserve it for inspection before reopening.')
         if value['selected'] is not None: _identity(value['selected'])
         navigation = value.get('service_navigation')
         if navigation is not None and not _valid_service_navigation(navigation):
             raise AppError('workspace_context_invalid', 'Only bounded read-only service navigation may resume.')
+        adoption_navigation = value.get('adoption_navigation')
+        if adoption_navigation is not None and (not _valid_adoption_navigation(adoption_navigation) or navigation is not None):
+            raise AppError('workspace_context_invalid', 'Only one bounded read-only operation domain may resume.')
         for key in ('view_command', 'page_command'):
             command = value[key]
             if type(command) is not str or len(command) > MAX_COMMAND:
@@ -295,7 +317,11 @@ class Workspace:
             except ValueError: raise AppError('workspace_context_invalid', 'Workspace navigation is not a complete read-only command.')
             valid = (len(parts) == 1 and parts[0] in READ_VIEWS)
             if _service_parts(parts):
-                valid = navigation is None or parts[1:] == [navigation['job_root'], navigation['policy_path']]
+                valid = adoption_navigation is None and (navigation is None or parts[1:] == [navigation['job_root'], navigation['policy_path']])
+            if _adoption_parts(parts):
+                valid = adoption_navigation is not None and parts[1:] == [adoption_navigation['job_root'], adoption_navigation['policy_path']]
+            if parts == ['adoption-history']:
+                valid = value['selected'] is not None
             if parts and parts[0] == 'history-recent':
                 valid = (value['selected'] is not None and 1 <= len(parts) <= 3 and
                          all(p.isascii() and p.isdigit() for p in parts[1:]) and
@@ -318,7 +344,7 @@ class Workspace:
         value = {'schema_version': CONTEXT_VERSION, 'tenant_id': self.store.tenant_id,
                  'selected': self.selected, 'view_command': self.view_command,
                  'page_command': self.page_command, 'tab': self.tab,
-                 'service_navigation': self.active_service}
+                 'service_navigation': self.active_service, 'adoption_navigation': self.active_adoption}
         self._validate_context(value)
         if self.native_binding is None:
             write_json(self.context_path, value)
@@ -338,12 +364,12 @@ class Workspace:
             if object_id and self.last_command.startswith('select '):
                 if self.selected != object_id:
                     self.active_operation = None; self.execution_result = None
-                    self.active_service = None
+                    self.active_service = None; self.active_adoption = None
                 self.selected = object_id
                 self.view_command = 'inspect'
             history_page = value.get('pagination', {}).get('scope') == 'history_page'
             if value.get('status') == 'selection_cleared' or (self.last_command in ('next', 'previous') and not history_page): self.selected = None
-            if self.selected is None and self.view_command.startswith('history-recent'):
+            if self.selected is None and (self.view_command.startswith('history-recent') or self.view_command == 'adoption-history'):
                 self.view_command = 'overview'
             if history_page and isinstance(value.get('history'), list):
                 self.selected = value['object_id']
@@ -375,13 +401,13 @@ class Workspace:
             if isinstance(value.get('operation_root'), str):
                 if self.active_operation != value['operation_root']: self.execution_result = None
                 self.active_operation = value['operation_root']
-                self.active_service = None
+                self.active_service = None; self.active_adoption = None
             try: parts = shlex.split(self.last_command)
             except ValueError: parts = []
             if len(parts) >= 2 and parts[0] in ('execute', 'reconcile'):
                 self.active_operation = parts[1]
                 self.execution_result = value
-                self.active_service = None
+                self.active_service = None; self.active_adoption = None
             action = value.get('interface_action')
             if (type(action) is str and action in SERVICE_ACTIONS and
                     type(value.get('service_job_root')) is str and type(value.get('service_policy')) is str):
@@ -391,9 +417,21 @@ class Workspace:
                     'read_action':action if action in SERVICE_READ_ACTIONS else 'attach'}
                 if not _valid_service_navigation(navigation):
                     raise AppError('workspace_context_invalid', 'Service navigation cannot be saved safely.')
-                self.active_service = navigation
+                self.active_service = navigation; self.active_adoption = None
                 self.active_operation = None; self.execution_result = None
                 self.view_command = _service_command(navigation['read_action'], navigation)
+            if (type(action) is str and action in SERVICE_ACTIONS and value.get('evidence_class') == 'protected_adoption_journal'
+                    and type(value.get('adoption_job_root')) is str and type(value.get('adoption_policy')) is str):
+                navigation = {'schema_version': ADOPTION_NAVIGATION_VERSION,
+                    'job_root': os.path.abspath(value['adoption_job_root']),
+                    'policy_path': os.path.abspath(value['adoption_policy']),
+                    'read_action': action if action in SERVICE_READ_ACTIONS else 'attach'}
+                if not _valid_adoption_navigation(navigation):
+                    raise AppError('workspace_context_invalid', 'Adoption navigation cannot be saved safely.')
+                self.active_adoption = navigation; self.active_service = None
+                self.active_operation = None; self.execution_result = None
+                self.view_command = _adoption_command(navigation['read_action'], navigation)
+            if self.last_command == 'adoption-history': self.view_command = self.last_command
             if self.last_command in READ_VIEWS and not history_page: self.view_command = self.last_command
             # Persist only after successful result. The explicit service route
             # saves read-only paths, never approvals, captures or credentials.
@@ -456,6 +494,29 @@ class Workspace:
                     field('Snapshot', item.get('snapshot_id', 'unknown'))
             if len(value['history']) > 12: rows.append('[SUMMARY] First 12 records; full result follows.')
             rows.append('[EXACT HISTORY]')
+        elif self.tab == 3 and value.get('schema_version') == 'workbench-protected-adoption-history/1':
+            rows.append('[PROTECTED STATE-ONLY ADOPTION HISTORY]')
+            field('Object', value.get('object_id', 'unknown'))
+            field('Linked operations', len(value.get('operations', [])))
+            rows.extend(wrap('Adoption records state ownership and independent qualification. This history does not establish a Graph deployment or a last-apply baseline.', width))
+            rows.append('[EXACT ADOPTION HISTORY] Full engine values follow.')
+        elif self.tab in (4, 5) and value.get('evidence_class') == 'protected_adoption_journal':
+            rows.append('[PROTECTED STATE-ONLY ADOPTION ' + ('REVIEW]' if self.tab == 4 else 'JOURNAL]'))
+            manifest = value.get('manifest', {})
+            for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Objects', 'object_ids'),
+                    ('Manifest SHA-256', 'manifest_sha256'), ('Action', 'action'), ('Profile', 'profile'),
+                    ('Durable status', 'status'), ('Import dispatches', 'dispatches'),
+                    ('First-plan dispatches', 'verification_dispatches'), ('First-plan status', 'verification_status'),
+                    ('Cancellation requested', 'cancel_requested')):
+                field(label, value.get(key, manifest.get(key, 'unknown')))
+            if self.tab == 4:
+                field('Intended policy and assignment writer', manifest.get('intended_writer', 'unknown'))
+                field('Approval authority', value.get('authority', 'independent external signer required'))
+            else:
+                field('Recorded outcome', value.get('outcome') or 'not recorded; outcome unknown')
+            rows.extend(wrap('State-only adoption does not deploy Graph changes or promote a last-apply baseline. Native import completion requires independent receiving-state, Graph and first-plan evidence.', width))
+            rows.extend(wrap('Attach and tab navigation are read-only. Cancellation does not prove termination; recovery never replays import.', width))
+            rows.append('[EXACT ADOPTION MANIFEST / JOURNAL] Full engine values follow.')
         elif self.tab == 4 and value.get('evidence_class') == 'protected_service_journal':
             rows.append('[PROTECTED SERVICE REVIEW]')
             manifest = value.get('manifest', {})
@@ -625,7 +686,9 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
-                'service-cancel': 5, 'service-recover': 5}
+                'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
+                'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
+                'adoption-history': 3, 'adoption-link': 3}
         if name in tabs: self.tab = tabs[name]
         self.last_command = command
         self.scroll = 0
@@ -640,6 +703,8 @@ class Workspace:
     def _tab_command(self, tab):
         self.tab = tab
         command = TAB_COMMANDS[tab]
+        if tab in (4, 5) and self.active_adoption is not None:
+            return self._send(_adoption_command('review' if tab == 4 else 'attach', self.active_adoption))
         if tab in (4, 5) and self.active_service is not None:
             return self._send(_service_command('review' if tab == 4 else 'attach', self.active_service))
         if tab == 4 and self.active_operation:

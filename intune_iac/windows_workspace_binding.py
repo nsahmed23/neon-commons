@@ -1,7 +1,7 @@
 """Inactive exact native presentation/store composition; no CLI activates it.
 
-Only existing read-only Workbench commands are admitted by this first native
-console profile. The complete parser remains shared; service/worker/mutation
+Existing read commands and explicit local repository-intent/proposal commands
+are admitted. The latter persist local evidence; neither edits source nor runs a plan. The complete parser remains shared; service/worker/mutation
 routes are explicitly unsupported until their native capabilities are reviewed.
 """
 from __future__ import annotations
@@ -15,6 +15,8 @@ READ_ONLY_COMMANDS = frozenset({'quit', 'exit', 'help', 'overview', 'next', 'pre
     'search', 'search-page', 'select', 'inspect', 'settings', 'relationships', 'health', 'health-page',
     'dictionary', 'dictionary-page', 'collections', 'history', 'history-recent', 'views', 'views-page'})
 
+
+LOCAL_SOURCE_COMMANDS = frozenset({'repository-import', 'source-acceptance-propose'})
 
 def _fail(code):
     raise AppError(code, 'The inactive native Workspace capability or command route was not established.') from None
@@ -32,7 +34,7 @@ def admit_store(root, store):
 
 
 def require_command(name):
-    if name not in READ_ONLY_COMMANDS:
+    if name not in READ_ONLY_COMMANDS | LOCAL_SOURCE_COMMANDS:
         _fail('native_workspace_command_unimplemented')
 
 

@@ -8,6 +8,7 @@ The laboratory transport is a distinct type and cannot serve a native policy.
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import asdict
 import base64
 import hashlib
 from datetime import datetime, timezone
@@ -29,6 +30,7 @@ from . import identity_binding as ib
 from .azure_backend import NativeStateWriteContract
 from .worker_state import ComputedNativeStateWriteContract
 from .worker_state_recovery import DescriptionRecoveryStateWriteContract
+from .worker_adoption_state import NativeAdoptionStateContract
 from . import worker_precondition as wp
 from .io import AppError, canonical, digest, parse_json
 from .provider_journey import _private
@@ -85,10 +87,12 @@ def live_guard(execution_binding_sha256, *, binding, recheck):
     return BrokerGuard(_SEAL, execution_binding_sha256, recheck, binding)
 
 
-def validate_backend_targets(policy, backend):
+def validate_backend_targets(policy, backend, *, adoption_contract=None):
     """Validate declared routes against one bound backend; no authentication grant."""
     if type(backend) is not ib.BackendSpec: _fail('broker_backend_target_invalid')
-    value = validate_policy(policy)
+    if adoption_contract is not None and (type(adoption_contract) is not NativeAdoptionStateContract or adoption_contract.binding()['backend'] != asdict(backend)):
+        _fail('broker_adoption_binding')
+    value = validate_policy(policy, adoption_contract=adoption_contract)
     host = urlsplit(backend.blob_endpoint).hostname
     state_path = '/' + backend.container + '/' + backend.key
     if value.get('native_lock') not in (None, {'host': host, 'path': state_path}): _fail('broker_backend_target_invalid')
@@ -124,7 +128,7 @@ class BrokerCredentials:
     def __repr__(self): return '<BrokerCredentials redacted>'
     def __reduce_ex__(self, protocol): raise TypeError('Broker credentials cannot be serialized.')
 
-    def check(self, policy):
+    def check(self, policy, *, adoption_contract=None):
         if self.closed or self.pid != os.getpid() or policy['execution_binding_sha256'] != self.execution_binding_sha256:
             _fail('broker_credential_binding')
         if ((policy['profile'] == 'azure_public_pilot') != (type(self.binding) is ib.LiveIdentityBinding) or
@@ -132,7 +136,7 @@ class BrokerCredentials:
             _fail('broker_credential_binding')
         self.binding.assert_fresh()
         _, target = self.binding.backend_configuration(self.backend_credential)
-        if policy['profile'] != 'laboratory_tls_fixture': validate_backend_targets(policy, target)
+        if policy['profile'] != 'laboratory_tls_fixture': validate_backend_targets(policy, target, adoption_contract=adoption_contract)
 
     def worker_environment(self):
         """Only placeholders and declared IDs; no actual credential is returned."""
@@ -147,8 +151,8 @@ class BrokerCredentials:
                 'ARM_ENVIRONMENT': 'public', 'ARM_USE_AZUREAD': 'true', 'ARM_USE_CLI': 'false',
                 'ARM_USE_MSI': 'false', 'ARM_USE_OIDC': 'false', 'ARM_USE_AKS_WORKLOAD_IDENTITY': 'false'}
 
-    def replace(self, policy, route, body):
-        self.check(policy)
+    def replace(self, policy, route, body, *, adoption_contract=None):
+        self.check(policy, adoption_contract=adoption_contract)
         if route['effect'] != 'oauth' or route['role'] not in self.identities: _fail('broker_credential_binding')
         pairs = parse_qsl(body.decode('ascii'), strict_parsing=True, max_num_fields=16)
         form = dict(pairs)
@@ -193,7 +197,9 @@ class LaboratoryUpstream:
         finally: conn.close()
 
 
-def validate_policy(value):
+def validate_policy(value, *, adoption_contract=None):
+    if adoption_contract is not None and type(adoption_contract) is not NativeAdoptionStateContract:
+        _fail('broker_adoption_contract_required')
     if (type(value) is not dict or set(value) - {'native_lock'} != {'schema_version', 'profile', 'operation_id', 'execution_binding_sha256',
             'expires_at', 'worker_uid', 'identities', 'routes'} or value['schema_version'] != 'protected-egress-policy/1.0' or
             value['profile'] not in ('laboratory_tls_fixture', 'laboratory_native_protocol', 'azure_public_pilot') or
@@ -274,7 +280,7 @@ def validate_policy(value):
         dynamic = route.get('dynamic_headers', {})
         allowed_dynamic = {'x-ms-proposed-lease-id': {'native_lease_proposal'},
             'x-ms-lease-id': {'active_native_lease'},
-            'x-ms-meta-terraformlockid': {'native_lock_metadata_plan', 'native_lock_metadata_apply'}}
+            'x-ms-meta-terraformlockid': {'native_lock_metadata_plan', 'native_lock_metadata_apply'} | ({'native_lock_metadata_adoption'} if adoption_contract is not None else set())}
         if (type(dynamic) is not dict or set(dynamic) - set(allowed_dynamic) or set(dynamic) & set(route['headers']) or
                 any(type(v) is not str or v not in allowed_dynamic[k] for k, v in dynamic.items()) or
                 dynamic and (route['role'] != 'backend' or route['audience'] != 'storage')):
@@ -282,7 +288,7 @@ def validate_policy(value):
         if 'x-ms-proposed-lease-id' in dynamic and (route['effect'] != 'lease' or route['headers'].get('x-ms-lease-action') != 'acquire'):
             _fail('broker_dynamic_headers_invalid')
         if 'x-ms-meta-terraformlockid' in dynamic and not (route['effect'] == 'lock_metadata' or
-                route['effect'] == 'state_write' and dynamic['x-ms-meta-terraformlockid'] == 'native_lock_metadata_apply'):
+                route['effect'] == 'state_write' and dynamic['x-ms-meta-terraformlockid'] in ({'native_lock_metadata_apply', 'native_lock_metadata_adoption'} if adoption_contract is not None else {'native_lock_metadata_apply'})):
             _fail('broker_dynamic_headers_invalid')
         if 'x-ms-meta-terraformlockid' in route['headers']: _fail('broker_dynamic_headers_invalid')
         if route['effect'] == 'readonly' and (route['method'] not in ('GET', 'HEAD') or route['body_sha256'] != hashlib.sha256(b'').hexdigest()):
@@ -325,12 +331,36 @@ def validate_policy(value):
             _fail('broker_native_lock_invalid')
         identifiers.add(route['id']); total += route['max_attempts']
     if total > 256: _fail('broker_policy_invalid')
+    if adoption_contract is not None: _validate_adoption_policy(value, adoption_contract)
     return parse_json(canonical(value))
 
 
+def _validate_adoption_policy(policy, contract):
+    """Additional closed import-only projection; an inert policy cannot select it."""
+    binding=contract.binding();backend=binding['backend'];host=urlsplit(backend['blob_endpoint']).hostname
+    path='/'+backend['container']+'/'+backend['key'];oid=binding['object_id'];base='/beta/deviceManagement/configurationPolicies'
+    graph={(base+'/'+oid,canonical({})),(base+"('"+oid+"')/settings",canonical({'$expand':'children'})),(base+"('"+oid+"')/assignments",canonical({}))}
+    state=[route for route in policy['routes'] if route['effect']=='state_write']
+    if (policy['profile']!=binding['profile'] or policy['execution_binding_sha256']!=binding['execution_binding_sha256']
+            or policy['identities'].get('provider',{}).get('tenant_id')!=binding['tenant_id']
+            or policy.get('native_lock')!={'host':host,'path':path} or len(state)!=1
+            or state[0].get('state_contract_sha256')!=digest(binding) or state[0]['body_sha256']!=binding['expected_semantic_sha256']):
+        _fail('broker_adoption_binding')
+    for route in policy['routes']:
+        if route['effect']=='mutation':_fail('broker_adoption_graph_write_forbidden')
+        if route['audience']=='graph' and route['effect'] not in ('oauth','discovery'):
+            if (route['role']!='provider' or route['effect']!='readonly' or route['method']!='GET' or route['host']!='graph.microsoft.com'
+                    or (route['path'],canonical(route['query'])) not in graph):_fail('broker_adoption_graph_route_invalid')
+        if route['effect'] in ('state_write','lease','lock_metadata') and (route['host'],route['path'])!=(host,path):_fail('broker_adoption_binding')
+        mode=route.get('dynamic_headers',{}).get('x-ms-meta-terraformlockid')
+        if mode is not None and mode!='native_lock_metadata_adoption':_fail('broker_adoption_lock_mode_invalid')
+        if route['effect']=='state_write' and mode!='native_lock_metadata_adoption':_fail('broker_adoption_lock_mode_invalid')
+
+
 class EgressBroker:
-    def __init__(self, policy, *, journal, guard, upstream, state_contracts=None, credentials=None, precondition=None):
-        self.policy = validate_policy(policy)
+    def __init__(self, policy, *, journal, guard, upstream, state_contracts=None, credentials=None, precondition=None, adoption_contract=None):
+        self.adoption_contract = adoption_contract
+        self.policy = validate_policy(policy, adoption_contract=adoption_contract)
         self.policy_sha256 = digest(self.policy); self.closed = False
         if type(guard) is not BrokerGuard: _fail('broker_host_guard_required')
         expected = NativeUpstream if self.policy['profile'] == 'azure_public_pilot' else LaboratoryUpstream
@@ -340,16 +370,18 @@ class EgressBroker:
         if set(self.state_contracts) != set(state_routes): _fail('broker_state_contract_invalid')
         for identifier, contract in self.state_contracts.items():
             route = state_routes[identifier]
-            if (type(contract) not in (NativeStateWriteContract, ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract) or digest(contract.binding()) != route['state_contract_sha256'] or
+            if (type(contract) not in ((NativeAdoptionStateContract,) if adoption_contract is not None else (NativeStateWriteContract, ComputedNativeStateWriteContract, DescriptionRecoveryStateWriteContract)) or
+                    (adoption_contract is not None and contract is not adoption_contract) or digest(contract.binding()) != route['state_contract_sha256'] or
                     contract.binding().get('expected_semantic_sha256', contract.binding().get('admission_template_sha256')) != route['body_sha256']):
                 _fail('broker_state_contract_invalid')
         if credentials is not None and type(credentials) is not BrokerCredentials: _fail('broker_credential_binding')
         if self.policy['profile'] != 'laboratory_tls_fixture' and credentials is None: _fail('broker_credential_binding')
         self.credentials = credentials
         if credentials is not None:
-            credentials.check(self.policy)
+            credentials.check(self.policy, adoption_contract=self.adoption_contract)
             if self.policy['profile'] == 'azure_public_pilot' and credentials.binding is not guard.binding:
                 _fail('broker_credential_binding')
+        if adoption_contract is not None and precondition is not None: _fail('broker_adoption_binding')
         self.precondition = precondition; self.graph_completion = None; self.state_admissions = {}
         mutations = [route for route in self.policy['routes'] if route['effect'] == 'mutation']
         if precondition is not None or (mutations and self.policy['profile'] != 'laboratory_tls_fixture'):
@@ -391,7 +423,7 @@ class EgressBroker:
     def check(self):
         if self.closed or digest(self.policy) != self.policy_sha256: _fail('broker_policy_changed_or_closed')
         self.guard.check(self.policy)
-        if self.credentials is not None: self.credentials.check(self.policy)
+        if self.credentials is not None: self.credentials.check(self.policy, adoption_contract=self.adoption_contract)
 
     @contextmanager
     def _database(self):
@@ -481,7 +513,8 @@ class EgressBroker:
                     document = parse_json(raw)
                     created = datetime.fromisoformat(document['Created'].replace('Z', '+00:00'))
                 except (ValueError, TypeError, KeyError, AttributeError, AppError): _fail('broker_native_lock_invalid')
-                expected = 'OperationTypePlan' if rule == 'native_lock_metadata_plan' else 'OperationTypeApply'
+                expected = ('OperationTypeInvalid' if rule == 'native_lock_metadata_adoption' and type(self.adoption_contract) is NativeAdoptionStateContract else
+                            'OperationTypePlan' if rule == 'native_lock_metadata_plan' else 'OperationTypeApply')
                 if (type(document) is not dict or set(document) != {'ID', 'Operation', 'Info', 'Who', 'Version', 'Created', 'Path'} or
                         lease is None or document['ID'] != lease['id'] or document['Operation'] != expected or
                         document['Info'] != '' or document['Version'] != '1.13.1' or
@@ -490,7 +523,8 @@ class EgressBroker:
                         created.tzinfo is None or abs(created.timestamp() - time.time()) > 120):
                     _fail('broker_native_lock_invalid')
         if route['effect'] == 'state_write' and self.policy['profile'] != 'laboratory_tls_fixture':
-            if lease is None or lease.get('operation') != 'OperationTypeApply': _fail('broker_native_lock_invalid')
+            expected_operation='OperationTypeInvalid' if type(self.adoption_contract) is NativeAdoptionStateContract else 'OperationTypeApply'
+            if lease is None or lease.get('operation') != expected_operation: _fail('broker_native_lock_invalid')
             if 'x-ms-meta-terraformlockid' in headers and headers['x-ms-meta-terraformlockid'] != lease.get('metadata'):
                 _fail('broker_native_lock_invalid')
         if route['effect'] == 'mutation' and self.policy.get('native_lock') is not None:
@@ -550,7 +584,7 @@ class EgressBroker:
             self.check()
             timeout = min(10, self.policy['expires_at'] - time.time())
             if timeout <= 0: _fail('broker_expired')
-            forwarded_body = self.credentials.replace(self.policy, route, body) if route['effect'] == 'oauth' and self.credentials is not None else body
+            forwarded_body = self.credentials.replace(self.policy, route, body, adoption_contract=self.adoption_contract) if route['effect'] == 'oauth' and self.credentials is not None else body
             response = self.upstream.request(host, method, target, {**headers, 'accept-encoding': 'identity'}, forwarded_body, timeout=timeout)
             self.check()
             if (type(response) is not ib.ServiceResponse or type(response.status) is not int or

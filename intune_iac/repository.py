@@ -549,7 +549,10 @@ def resolve_component(root, stack, component):
 
 def discover_repository(root):
     """Discover physical manifests/components without returning arbitrary config values."""
-    repository = _Repository(root)
+    return _discover(_Repository(root))
+
+
+def _discover(repository):
     report = repository.base_report()
     report.update({'status': 'blocked' if repository.blockers else 'discovered', 'stacks': []})
     if repository.blockers:

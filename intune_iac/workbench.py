@@ -432,7 +432,8 @@ HELP = {
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
-                   'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
+                   'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
+                   'source-acceptance-propose FIELD NEW_OUTPUT_DIR', 'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
                    'field-semantics', 'back', 'cancel', 'quit'],
     'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
@@ -443,6 +444,10 @@ HELP = {
                           'service-attach JOB_ROOT POLICY_PATH (read-only; no dispatch or replay)',
                           'service-cancel JOB_ROOT POLICY_PATH (request only; inspect resulting state)',
                           'service-recover JOB_ROOT POLICY_PATH (explicit recovery; no mutation replay)'],
+    'protected_adoption': ['adoption-link JOB_ROOT POLICY_PATH (state-only; no Graph deployment baseline)',
+                 'adoption-history (selected object)', 'adoption-review JOB_ROOT POLICY_PATH',
+                 'adoption-status JOB_ROOT POLICY_PATH', 'adoption-attach JOB_ROOT POLICY_PATH (no dispatch)',
+                 'adoption-cancel JOB_ROOT POLICY_PATH', 'adoption-recover JOB_ROOT POLICY_PATH (no import replay)'],
     'collection': ['collect (requires --service-root; also runs as a separate headless command)',
                    'import-capture CAPTURE_DIRECTORY', 'collection-history [LIMIT [OFFSET]]', 'collection RUN_ID',
                    'migrate NEW_BACKUP_PATH', 'schedule-create NEW_JOB_DIR INTERVAL_SECONDS (requires --service-root)',
@@ -569,6 +574,24 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 if values and selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 result = views(store, selected, operation=values[0] if values else None, limit=10)
+            elif name == 'repository-import' and len(values) == 8:
+                from .workbench_views import import_repository
+                result = import_repository(store,*values)
+            elif name == 'source-acceptance-propose' and len(values) == 2:
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from .workbench_views import propose_source_acceptance
+                result = propose_source_acceptance(store,selected,*values)
+            elif name in ('adoption-link', 'adoption-history') and len(values) == (2 if name == 'adoption-link' else 0):
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from . import workbench_adoption_views as adoption_views
+                result = adoption_views.link(store, selected, values[0], values[1]) if name == 'adoption-link' else adoption_views.history(store, selected)
+            elif name in ('adoption-review', 'adoption-status', 'adoption-attach', 'adoption-cancel', 'adoption-recover') and len(values) == 2:
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from .adoption_cli import invoke
+                result = invoke(name.removeprefix('adoption-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
             elif name == 'service-link' and len(values) == 2:
                 if selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
