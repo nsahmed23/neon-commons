@@ -3362,3 +3362,6 @@ docs/NATIVE-PLAN-EVIDENCE-R4.md
 scripts/prepare-evidence-snapshot.py
 plugin_tests/test_evidence_snapshot_r4.py
 docs/EVIDENCE-SNAPSHOT-R4.md
+
+# R4 selfcontained local source-intent and zero-dispatch regression.
+plugin_tests/test_worker_source_intent_r4.py

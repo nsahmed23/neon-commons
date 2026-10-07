@@ -1,14 +1,14 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T23:45:12.573684+00:00",
+  "recorded_at": "2026-10-07T23:50:03.575038+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "5cb2ee7177e38e0c6387efcba0935e8fac2b8d82",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-15.json"
+    "latest_completed_checkpoint": "9ecc98b75c6e12f4492d1907e9c6900721d567b6",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-16.json"
   },
   "contract": {
     "path": "docs/STRICT-CONTINUATION-CONTRACT-R4.md",
@@ -2994,7 +2994,8 @@
         "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
-        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
@@ -3227,6 +3228,11 @@
           "path": "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
           "bytes": 3195,
           "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
+          "sha256": "a2cff494cb7136ff9af557d5eded5f3f455165912dcc419ccd0f1ab60d8918d5",
+          "bytes": 1212
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3284,6 +3290,18 @@
             "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
           }
         ]
+      },
+      "increment16": {
+        "status": "PASS",
+        "scope": "Six selfcontained source-package methods pass with real local Git/Atmos/store, signed authority and source/lock rejection with zero consumption/dispatch; first ambient hardlinked-Git rejection retained. No native worker or network.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
+            "sha256": "a2cff494cb7136ff9af557d5eded5f3f455165912dcc419ccd0f1ab60d8918d5",
+            "bytes": 1212
+          }
+        ],
+        "native_or_final_package_acceptance": false
       }
     },
     {
@@ -3356,7 +3374,10 @@
         "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
-        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -3709,6 +3730,21 @@
           "path": "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
           "bytes": 3195,
           "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
+          "sha256": "b8cc56c3d81041d5ab3e812d11b31bb6f86471d9e1608dd6735c93754b78fcbf",
+          "bytes": 5455
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
+          "sha256": "e458917b17bfc0ca65a15f30f6f4fdd692aff682d8194e496a23f2726c7ab0a9",
+          "bytes": 2102
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
+          "sha256": "42ca7dac9e33185d06b645d5e4aea6e6deedcb39850e2cfe665082e7571fcc6c",
+          "bytes": 1255
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3780,6 +3816,28 @@
             "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
           }
         ]
+      },
+      "increment16": {
+        "status": "PASS",
+        "scope": "Final helper5c8 exact unchanged independent10 content/13 archive and4 edge assertions pass; overlap not added. Actual FIFO replacement rejected promptly; no native caller proof.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
+            "sha256": "b8cc56c3d81041d5ab3e812d11b31bb6f86471d9e1608dd6735c93754b78fcbf",
+            "bytes": 5455
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
+            "sha256": "e458917b17bfc0ca65a15f30f6f4fdd692aff682d8194e496a23f2726c7ab0a9",
+            "bytes": 2102
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
+            "sha256": "42ca7dac9e33185d06b645d5e4aea6e6deedcb39850e2cfe665082e7571fcc6c",
+            "bytes": 1255
+          }
+        ],
+        "native_or_final_package_acceptance": false
       }
     },
     {
@@ -10080,7 +10138,8 @@
         "evidence/epoch-20261007-r4/integration/LEDGER-INTEGRITY-03.json",
         "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/APPLIED-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json"
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
+        "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -10172,6 +10231,11 @@
           "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
           "bytes": 59597,
           "sha256": "54192f2f9ecf9396a7eaa92a90d5ea8a5b04490927eb9ed14fec16efec403715"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
+          "sha256": "823325d706160d8eebb1a1dfd27fc5cdd885f33ccbfd8e583c9dbcc098832a06",
+          "bytes": 2837
         }
       ],
       "evidence_producer_increment8": {
@@ -10218,6 +10282,18 @@
             "sha256": "54192f2f9ecf9396a7eaa92a90d5ea8a5b04490927eb9ed14fec16efec403715"
           }
         ]
+      },
+      "increment16": {
+        "status": "PASS",
+        "scope": "Sixteen independent actual CLI/tiny-fixture roundtrip controls pass. Explicit roots/types/pins/overlap/literal links/IPC and injected extra output rejection; no full corpus copy.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
+            "sha256": "823325d706160d8eebb1a1dfd27fc5cdd885f33ccbfd8e583c9dbcc098832a06",
+            "bytes": 2837
+          }
+        ],
+        "native_or_final_package_acceptance": false
       }
     },
     {
@@ -10623,7 +10699,8 @@
         "evidence/epoch-20261007-r4/integration/LEDGER-INTEGRITY-03.json",
         "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/APPLIED-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json"
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
+        "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -10701,6 +10778,11 @@
           "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
           "bytes": 59597,
           "sha256": "54192f2f9ecf9396a7eaa92a90d5ea8a5b04490927eb9ed14fec16efec403715"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
+          "sha256": "823325d706160d8eebb1a1dfd27fc5cdd885f33ccbfd8e583c9dbcc098832a06",
+          "bytes": 2837
         }
       ],
       "transfer_increment10": {
@@ -10733,6 +10815,18 @@
             "sha256": "54192f2f9ecf9396a7eaa92a90d5ea8a5b04490927eb9ed14fec16efec403715"
           }
         ]
+      },
+      "increment16": {
+        "status": "PASS",
+        "scope": "Sixteen independent actual CLI/tiny-fixture roundtrip controls pass. Explicit roots/types/pins/overlap/literal links/IPC and injected extra output rejection; no full corpus copy.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
+            "sha256": "823325d706160d8eebb1a1dfd27fc5cdd885f33ccbfd8e583c9dbcc098832a06",
+            "bytes": 2837
+          }
+        ],
+        "native_or_final_package_acceptance": false
       }
     },
     {
@@ -11224,7 +11318,8 @@
         "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
-        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -11660,6 +11755,11 @@
           "path": "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
           "bytes": 3195,
           "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
+          "sha256": "a2cff494cb7136ff9af557d5eded5f3f455165912dcc419ccd0f1ab60d8918d5",
+          "bytes": 1212
         }
       ],
       "increment15": {
@@ -11684,6 +11784,18 @@
             "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
           }
         ]
+      },
+      "increment16": {
+        "status": "PASS",
+        "scope": "Six selfcontained source-package methods pass with real local Git/Atmos/store, signed authority and source/lock rejection with zero consumption/dispatch; first ambient hardlinked-Git rejection retained. No native worker or network.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
+            "sha256": "a2cff494cb7136ff9af557d5eded5f3f455165912dcc419ccd0f1ab60d8918d5",
+            "bytes": 1212
+          }
+        ],
+        "native_or_final_package_acceptance": false
       }
     },
     {
@@ -16951,7 +17063,10 @@
         "evidence/epoch-20261007-r4/independent/plan-content-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-content-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-archive-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json"
+        "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
+        "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json"
       ],
       "evidence_receipts": [
         {
@@ -17012,6 +17127,21 @@
           "path": "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
           "bytes": 2304,
           "sha256": "888334fc1d084ac5b3e62c22fbeaecb37d2e238d6e95d53f9b3853d80cb61d72"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
+          "sha256": "b8cc56c3d81041d5ab3e812d11b31bb6f86471d9e1608dd6735c93754b78fcbf",
+          "bytes": 5455
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
+          "sha256": "e458917b17bfc0ca65a15f30f6f4fdd692aff682d8194e496a23f2726c7ab0a9",
+          "bytes": 2102
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
+          "sha256": "42ca7dac9e33185d06b645d5e4aea6e6deedcb39850e2cfe665082e7571fcc6c",
+          "bytes": 1255
         }
       ],
       "environment": "Linux; preserved actual native plan binary, independent mutated JSON; no new native dispatch",
@@ -17100,8 +17230,30 @@
             "sha256": "888334fc1d084ac5b3e62c22fbeaecb37d2e238d6e95d53f9b3853d80cb61d72"
           }
         ]
+      },
+      "increment16": {
+        "status": "PASS",
+        "scope": "Final helper5c8 exact unchanged independent10 content/13 archive and4 edge assertions pass; overlap not added. Actual FIFO replacement rejected promptly; no native caller proof.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
+            "sha256": "b8cc56c3d81041d5ab3e812d11b31bb6f86471d9e1608dd6735c93754b78fcbf",
+            "bytes": 5455
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
+            "sha256": "e458917b17bfc0ca65a15f30f6f4fdd692aff682d8194e496a23f2726c7ab0a9",
+            "bytes": 2102
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
+            "sha256": "42ca7dac9e33185d06b645d5e4aea6e6deedcb39850e2cfe665082e7571fcc6c",
+            "bytes": 1255
+          }
+        ],
+        "native_or_final_package_acceptance": false
       }
     }
   ],
-  "checkpoint_increment": 15
+  "checkpoint_increment": 16
 }

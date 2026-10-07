@@ -40,6 +40,14 @@ python scripts/intune-iac.py service attach --job-root JOB --policy POLICY
 
 The complete manifest, including source binding, is available through the existing service review and linked workbench proposed view. There is no CLI flag that deserializes an execution runtime.
 
-Local evidence is indexed by `work/evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json` in the complete recovery corpus. It retains the main-thread-only guard failure, the denied-census failure and their repairs. The final capability passed 24 focused Git/materialization/signature/zero-dispatch rejection checks; 36 ordinary service regression tests remain a separate reused scope. Independent review has 18 assertions, eight overlapping the earlier capability review; counts must not be summed. The qualifiers currently rely on the complete retained laboratory corpus and exact disposable paths, and are not presented as standalone source-package tests. Their exact invocations and inputs remain with each receipt.
+Local evidence is indexed by `work/evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json` in the complete recovery corpus. It retains the main-thread-only guard failure, the denied-census failure and their repairs. The final capability passed 24 focused Git/materialization/signature/zero-dispatch rejection checks; 36 ordinary service regression tests remain a separate reused scope. Independent review has 18 assertions, eight overlapping the earlier capability review; counts must not be summed. Those broader qualifiers rely on the complete retained laboratory corpus and exact disposable paths; their exact invocations and inputs remain with each receipt.
+
+The source package also contains a selfcontained six-method changed-code gate:
+
+```text
+python -B -m unittest -v plugin_tests.test_worker_source_intent_r4
+```
+
+It creates its own disposable Git/Atmos repository and workbench store, tests actual import/materialization and a real thread recheck, rejects closed-manifest/JSON/serialization substitutions, and verifies actual prepared jobs reject changed source and locks before consumption or dispatch. It requires the documented pinned signing-validator prerequisite, `/usr/bin/git` (or an explicit `INTUNE_TEST_GIT_EXECUTABLE`) and `/usr/bin/openssl`; it does not use retained tenant/laboratory captures, Docker or network access. Its denied-directory error is an injected filesystem failure; the separate retained census experiment exercised a real unreadable subtree. Signature execution and native worker success are outside this narrow test scope. These cases overlap the broader evidence and must not be added as independent end-to-end journeys.
 
 Successful native version 2 execution, connected source review and external platform qualification are still required after this insertion. Existing version 1 adoption/maintenance evidence remains valid only at its recorded scope; it does not retroactively establish this bridge.

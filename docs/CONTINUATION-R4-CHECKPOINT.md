@@ -809,3 +809,14 @@ common Plan-phase integration, freeze runtime, then recover the retained native
 fault authorities with new exact approvals and no import replay. Complete the
 same-authority v2 source journey and portable evidence path; then qualify exact
 final packages and delivery. Historical1242/1141 totals are not repeated or added.
+
+Increment16 adds the six selfcontained source-intent regression methods and
+retains final independent strict-plan and snapshot preparation evidence. Its
+product runtime is byte-identical to checkpoint15; only test/inventory/docs
+change. COMMIT-16.json records exact source and dirty-tree observation. Native
+original-import recovery and same-authority source-v2 maintenance may now be
+qualified under a coordinated runtime freeze. Common stopped-Plan extensions
+and portable receipt integration remain staged, with no shared runtime edits
+during signed operations. New initial Plan cancellation creates a distinct
+authority once; it must never replay an old import. No final package/global
+laboratory/platform/production completion is implied.
