@@ -81,8 +81,8 @@ def add_parser(commands):
         if name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'compare', 'workflows'):
             item.add_argument('--object', required=True, help='Exact immutable object ID, never a display name')
         if name in ('search', 'dictionary'): item.add_argument('--query', default='')
-        if name in ('operations', 'health', 'collection-history'): item.add_argument('--object')
-        if name in ('history', 'operations', 'collection-history', 'references'):
+        if name in ('operations', 'health', 'collection-history', 'dictionary'): item.add_argument('--object')
+        if name in ('history', 'operations', 'collection-history', 'references', 'overview', 'search', 'dictionary', 'queue', 'health'):
             item.add_argument('--limit', type=int, help='Explicit bounded page size, 1 through 1000')
             item.add_argument('--offset', type=int, default=0)
         if name == 'compare':
@@ -126,22 +126,25 @@ def _source_metadata(args):
     return value
 
 
-def _search(store, query):
-    overview = store.overview()
-    rows = overview.get('objects', [])
-    matched = [row for row in rows if query.casefold() in str(row.get('name', '')).casefold()
-               or query.casefold() in row['object_id'].casefold()
-               or any(query.casefold() in str(edge.get('target_id', '')).casefold()
-                      for edge in row.get('relationships', []) if edge.get('relation') == 'setting')]
-    return {'evidence_class': overview.get('evidence_class', 'unknown'), 'query': query, 'objects': matched,
+def _page_metadata(value):
+    return {key: value[key] for key in ('pagination', 'total_inventory_objects') if key in value}
+
+
+def _search(store, query, *, limit=None, offset=0):
+    overview = store.overview(query=query, limit=limit, offset=offset)
+    return {'evidence_class': overview.get('evidence_class', 'unknown'), 'query': query,
+            'objects': overview.get('objects', []), 'pending_observations': overview.get('pending_observations', []),
             'freshness': overview.get('freshness'), 'last_attempt': overview.get('last_attempt'),
+            **_page_metadata(overview),
             'selection': 'Use an exact immutable object_id; duplicate names are not identities.'}
 
 
-def _health(store, object_id=None):
+def _health(store, object_id=None, *, limit=None, offset=0):
     from .workbench_health import device_health
-    if object_id is not None: return device_health(store, object_id)
-    value = store.overview()
+    if object_id is not None:
+        if limit is not None or offset: raise AppError('workbench_query_invalid', 'Choose one object or an observation page.')
+        return device_health(store, object_id)
+    value = store.overview(limit=limit, offset=offset)
     return {key: item for key, item in value.items() if key != 'objects'} | {
         'collection_health': value.get('health'),
         'objects': [{**{key: row.get(key) for key in ('object_id', 'name', 'observed_at', 'coverage')},
@@ -149,16 +152,15 @@ def _health(store, object_id=None):
         'qualification': 'Collection aggregates and policy-bound imported device evidence are separate; neither grants rollout approval.'}
 
 
-def _queue(store):
+def _queue(store, *, limit=None, offset=0):
     """Evidence gaps are review findings, never inferred authorization to fix."""
-    overview = store.overview()
+    overview = store.overview(limit=limit, offset=offset)
     findings = []
-    operations = store.operations()
-    for row in overview.get('objects', []):
+    for row in overview.get('objects', []) + overview.get('pending_observations', []):
         reasons = []
         if row.get('freshness') != 'fresh':
             reasons.append(('observation_stale', 'A current complete observation is required before assessing changes.'))
-        attempt = overview.get('last_attempt')
+        attempt = row.get('last_attempt', overview.get('last_attempt'))
         if attempt and attempt.get('status') != 'complete':
             reasons.append(('collection_incomplete', 'Last collection did not complete; preserved values are last-good evidence.'))
         health = row.get('health', {})
@@ -167,7 +169,7 @@ def _queue(store):
         source = row.get('source') or {}
         if not source.get('owner'):
             reasons.append(('ownership_unknown', 'An observed policy does not establish repository or team ownership.'))
-        related = [operation for operation in operations if operation.get('object_id') == row['object_id']]
+        related = store.operations(object_id=row['object_id'])
         for finding, rationale in reasons:
             findings.append({'tenant_id': overview['tenant_id'], 'object_id': row['object_id'],
                 'owner': source.get('owner'), 'owner_assertion': 'source_declared' if source.get('owner') else 'unknown',
@@ -177,19 +179,20 @@ def _queue(store):
                 'review_due': None, 'related_proposals': related, 'exception_expiry': None,
                 'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
                 'action_state': 'review_required', 'automatic_remediation': False})
-    if not overview.get('objects'):
+    if overview.get('pagination', {}).get('total_objects', len(overview.get('objects', []))) == 0:
         findings.append({'tenant_id': overview['tenant_id'], 'object_id': None, 'owner': None,
                          'finding': 'no_complete_observations', 'evidence': {'last_attempt': overview.get('last_attempt')},
                          'freshness': 'unknown', 'priority': 'review', 'priority_rationale': 'Collect before assessing policy state.',
                          'review_due': None, 'related_proposals': [], 'exception_expiry': None,
                          'compatibility': 'unqualified', 'action_state': 'collection_required', 'automatic_remediation': False})
-    return {'evidence_class': overview.get('evidence_class', 'unknown'), 'cloud_authority': False, 'findings': findings}
+    return {'evidence_class': overview.get('evidence_class', 'unknown'), 'cloud_authority': False, 'findings': findings,
+            **_page_metadata(overview), 'findings_scope': 'observation_page' if limit is not None else 'all_admitted_observations'}
 
 
-def _dictionary(store, query=''):
+def _dictionary(store, query='', *, object_id=None, limit=None, offset=0):
     """Observed setting identifiers and exact uses, without invented vendor facts."""
     from .workbench_provenance import dictionary
-    return dictionary(store, query)
+    return dictionary(store, query, object_id=object_id, limit=limit, offset=offset)
 
 
 def _facet(store, object_id, facet):
@@ -198,7 +201,7 @@ def _facet(store, object_id, facet):
     if facet == 'settings':
         return {'object_id': object_id, 'snapshot_id': value.get('snapshot_id'),
                 'settings': body.get('settings'), 'source': value.get('source'), 'coverage': value.get('coverage'),
-                'dictionary': _dictionary(store)}
+                'dictionary': _dictionary(store, object_id=object_id)}
     from .workbench_health import workflow_lineage
     lineage = workflow_lineage(store, object_id)
     from .workbench_adoption import lineage as adoption_lineage
@@ -280,11 +283,11 @@ def command(args):
         return store.collect(ModeledService(args.service_root), observed_at=args.observed_at, fault=args.fault,
                              deployment=load_json(args.deployment) if args.deployment else None,
                              source=_source_metadata(args))
-    if name == 'overview': return store.overview()
-    if name == 'health': return _health(store, args.object)
-    if name == 'queue': return _queue(store)
-    if name == 'dictionary': return _dictionary(store, args.query)
-    if name == 'search': return _search(store, args.query)
+    if name == 'overview': return store.overview(limit=args.limit, offset=args.offset)
+    if name == 'health': return _health(store, args.object, limit=args.limit, offset=args.offset)
+    if name == 'queue': return _queue(store, limit=args.limit, offset=args.offset)
+    if name == 'dictionary': return _dictionary(store, args.query, object_id=args.object, limit=args.limit, offset=args.offset)
+    if name == 'search': return _search(store, args.query, limit=args.limit, offset=args.offset)
     if name == 'inspect': return store.inspect(args.object)
     if name == 'adoption-lineage':
         from .workbench_adoption import lineage
@@ -302,9 +305,10 @@ def command(args):
 
 
 HELP = {
-    'navigation': ['overview', 'search TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
+    'navigation': ['overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
-                   'workflows', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT', 'health', 'queue', 'operations [LIMIT [OFFSET]]', 'back', 'cancel', 'quit'],
+                   'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
+                   'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]', 'back', 'cancel', 'quit'],
     'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
@@ -315,7 +319,7 @@ HELP = {
                    'schedule-run JOB_DIR MAX_RUNS MAX_DURATION_SECONDS', 'schedule-status JOB_DIR'],
     'evidence': ['device-evidence-import ENVELOPE_JSON', 'workflow-import ENVELOPE_JSON',
                  'reference-import JSON SHA256 FULL_REVISION HTTPS_SOURCE_URL LICENSE_ID [ASSERTION_CLASS]'],
-    'limits': 'Imported captures and reports remain unverified local evidence. Collection and execution adapters are synthetic; no deployment or rollout authority.',
+    'limits': 'Terminal estate views default to 10 observations per page; totals and continuation are explicit. Imported captures and reports remain unverified local evidence. Collection and execution adapters are synthetic; no deployment or rollout authority.',
 }
 
 
@@ -338,7 +342,20 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
     output_fn = print if output_fn is None else output_fn
     store = _store(root)
     selected = None
-    initial_overview = store.overview()
+    page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
+    def show_page(specification=None):
+        target = page if specification is None else specification
+        if target['kind'] == 'search': return _search(store, target['query'], limit=target['limit'], offset=target['offset'])
+        if target['kind'] == 'dictionary': return _dictionary(store, target['query'], limit=target['limit'], offset=target['offset'])
+        if target['kind'] == 'health': return _health(store, limit=target['limit'], offset=target['offset'])
+        if target['kind'] == 'queue': return _queue(store, limit=target['limit'], offset=target['offset'])
+        return store.overview(limit=target['limit'], offset=target['offset'])
+    def set_page(kind, limit=10, offset=0, query=''):
+        candidate = {'kind': kind, 'limit': limit, 'offset': offset, 'query': query}
+        result = show_page(candidate)
+        page.update(candidate)
+        return result
+    initial_overview = show_page()
     _render({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP}, output_fn)
     _render(initial_overview, output_fn)
     while True:
@@ -354,14 +371,35 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None):
             elif name in ('back', 'cancel') and not values:
                 selected = None
                 result = {'status': 'selection_cleared', 'mutation_dispatched': False}
-            elif name == 'overview' and not values: result = store.overview()
-            elif name == 'search': result = _search(store, ' '.join(values))
+            elif name == 'overview' and len(values) <= 2:
+                result = set_page('overview', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
+            elif name in ('next', 'previous') and not values:
+                if name == 'previous': page['offset'] = max(0, page['offset'] - page['limit'])
+                else:
+                    current = show_page()
+                    pagination = current.get('pagination', current.get('observation_scope', {}).get('pagination', {}))
+                    if pagination.get('next_offset') is None:
+                        _render({'status': 'end_of_observation_pages', 'pagination': pagination}, output_fn)
+                        continue
+                    page['offset'] = pagination['next_offset']
+                selected = None
+                result = show_page()
+            elif name == 'search': result = set_page('search', query=' '.join(values))
+            elif name == 'search-page' and len(values) >= 3:
+                result = set_page('search', int(values[0]), int(values[1]), ' '.join(values[2:]))
             elif name == 'select' and len(values) == 1:
                 result = store.inspect(values[0])
                 selected = values[0]
-            elif name == 'health' and not values: result = _health(store, selected)
-            elif name == 'queue' and not values: result = _queue(store)
-            elif name == 'dictionary': result = _dictionary(store, ' '.join(values))
+            elif name == 'health' and len(values) <= 2:
+                result = (_health(store, selected) if selected is not None and not values else
+                          set_page('health', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0))
+            elif name == 'queue' and len(values) <= 2:
+                result = set_page('queue', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
+            elif name == 'dictionary':
+                result = (_dictionary(store, ' '.join(values), object_id=selected) if selected is not None else
+                          set_page('dictionary', query=' '.join(values)))
+            elif name == 'dictionary-page' and len(values) >= 2:
+                result = set_page('dictionary', int(values[0]), int(values[1]), ' '.join(values[2:]))
             elif name == 'references' and not values: result = {'references': store.artifacts(kind='source_reference')}
             elif name == 'collection-history' and len(values) <= 2:
                 result = {'collections': store.collection_history(selected, limit=int(values[0]) if values else None,

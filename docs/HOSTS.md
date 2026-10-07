@@ -139,3 +139,10 @@ Official packaging/Claude references were checked on 2026-10-02 after local CLI
 help inspection. The installed binary's captured help is the measured Codex
 command contract. Documentation, portable schemas and static Plugin Eval
 reports remain separate from actual host execution.
+
+
+## R3 capability reassessment
+
+The 2026-10-07 continuation exposes a working Docker 28.4.0 daemon and a static Codex CLI 0.159.0-alpha.3 binary, SHA-256 `981ade7b03926534c654fd718ced3a9f378b7b2841271e29156f939462d176e9`. This is a different observation from the preserved 0.159.2 host above. A disposable nonroot container with no network, no capabilities, no new privileges, read-only root/input mounts and private temporary home passed explicit boundary probes. No personal account configuration or Docker socket is mounted into that container.
+
+The R3 `native-codex-container` receipt records the exact final runtime's actual discovery/install/list/uninstall outcome, command failures, installed-file hashes and teardown. Read that receipt before claiming native installation qualification; preparation or boundary success alone is insufficient. No model session or skill invocation is run by this procedure. Its container boundary does not qualify the separate protected provider worker, native Windows/macOS, cloud identity or production permissions.

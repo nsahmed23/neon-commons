@@ -28,6 +28,8 @@ SCHEMA_VERSION = 2
 MAX_DOCUMENT = 2 * 1024 * 1024
 MAX_QUERY_ROWS = 1000
 MAX_QUERY_BYTES = 16 * 1024 * 1024
+MAX_QUERY_STEPS = 10000000
+MAX_QUERY_SCAN_BYTES = 128 * 1024 * 1024
 _SECRET_KEYS = frozenset({'access_token', 'refresh_token', 'client_secret', 'password', 'authorization', 'private_key', 'api_key'})
 
 _SCHEMA_SQL_V1 = '''
@@ -598,62 +600,207 @@ class WorkbenchStore:
             'pending_observation':True,'freshness':'unknown','last_attempt':run,'last_success':None,
             'collections':run.get('collections',[]),'health':self._health(None,time.time(),3600)}
 
-    def overview(self, *, now=None, max_age_seconds=3600):
+    def _collection_health(self, db, success, now, max_age_seconds):
+        deployment = None
+        if success:
+            row = db.execute('SELECT data_json FROM deployments WHERE run_id=?',(success['run_id'],)).fetchone()
+            if row: deployment = parse_json(row[0])
+        return self._health(deployment,now,max_age_seconds)
+
+    def _current_observation(self, db, row, attempt, health, now, max_age_seconds):
+        obj = self._observation(db,row)
+        object_attempt = attempt if self.schema_version==1 else self._object_attempt(db,row['object_id'],row['domain'])
+        object_success = db.execute('SELECT * FROM collection_runs WHERE run_id=?',(row['run_id'],)).fetchone()
+        last_good = object_attempt is not None and object_attempt['status']!='complete'
+        age = max(0,now-row['observed_at'])
+        obj.update(last_attempt=self._run(object_attempt,db),last_success=self._run(object_success,db),
+            retained_last_good=last_good,age_seconds=age,
+            freshness='stale' if last_good or age>max_age_seconds or row['observed_at']>now else 'fresh',health=health)
+        obj['collections'] = obj['last_attempt'].get('collections',[]) if obj['last_attempt'] else []
+        return obj
+
+    @staticmethod
+    @contextmanager
+    def _query_budget(db):
+        """Bound SQLite work and decoded metadata, including filtered-out rows."""
+        steps, scanned, exhausted = 0, 0, False
+        def progress():
+            nonlocal steps, exhausted
+            steps += 1000
+            exhausted = exhausted or steps > MAX_QUERY_STEPS
+            return int(exhausted)
+        def charge(value):
+            nonlocal scanned, exhausted
+            scanned += len(value.encode('utf-8'))
+            if scanned > MAX_QUERY_SCAN_BYTES:
+                exhausted = True
+                _fail('workbench_query_limit')
+            return value
+        db.set_progress_handler(progress,1000)
+        try:
+            yield charge
+        except sqlite3.Error:
+            if exhausted: _fail('workbench_query_limit')
+            raise
+        finally:
+            db.set_progress_handler(None,0)
+
+    def _inventory_sql(self, db, success, attempt, charge):
+        # These pure functions do not import or execute persisted content. They
+        # preserve Python Unicode casefold without a new SQLite JSON dependency.
+        def source_class(value):
+            return parse_json(charge(value)).get('evidence_class','synthetic')
+        def body_name(value):
+            name = parse_json(charge(value)).get('name') if value is not None else None
+            return name.casefold() if isinstance(name,str) else ''
+        def pending_name(value):
+            raw = parse_json(charge(value)).get('raw_observed',{}).get('policy',{}) if value is not None else {}
+            if isinstance(raw,list): raw = raw[0] if raw else {}
+            name = raw.get('name') if isinstance(raw,dict) else None
+            return name.casefold() if isinstance(name,str) else ''
+        db.create_function('wb_source_class',1,source_class,deterministic=True)
+        db.create_function('wb_body_name',1,body_name,deterministic=True)
+        db.create_function('wb_pending_name',1,pending_name,deterministic=True)
+        db.create_function('wb_casefold',1,lambda value:value.casefold(),deterministic=True)
+        if self.schema_version==1:
+            return """WITH inventory AS (
+                SELECT o.object_id,o.observation_id,o.snapshot_id,o.observed_at,
+                    0 AS pending,:attempt_id AS attempt_id,:attempt_status AS attempt_status,
+                    wb_source_class(o.source_json) AS evidence_class
+                FROM observations o WHERE o.run_id=:success_id)
+                """, {'attempt_id':None if attempt is None else attempt['run_id'],
+                    'attempt_status':None if attempt is None else attempt['status'],
+                    'success_id':None if success is None else success['run_id']}
+        # Latest scoped/domain attempts are computed once, without materializing
+        # bodies. They implement the same OR rules as _object_attempt, including
+        # legacy unscoped failures and synthetic model:legacy estate failures.
+        return """WITH scoped AS (
+                SELECT object_id,MAX(run_id) AS run_id FROM run_scope_objects GROUP BY object_id),
+            domains AS (
+                SELECT domain,MAX(run_id) AS run_id FROM run_details
+                WHERE evidence_class='synthetic' GROUP BY domain),
+            fallback AS (
+                SELECT COALESCE(MAX(r.run_id),0) AS run_id FROM collection_runs r
+                LEFT JOIN run_details d USING(run_id) WHERE d.run_id IS NULL),
+            heads AS (
+                SELECT h.object_id,h.observation_id,o.snapshot_id,h.observed_at,
+                    MAX(COALESCE(s.run_id,0),COALESCE(d.run_id,0),f.run_id,
+                        CASE WHEN h.domain LIKE 'model:%' THEN COALESCE(l.run_id,0) ELSE 0 END) AS attempt_id,
+                    wb_source_class(o.source_json) AS evidence_class
+                FROM object_heads h JOIN observations o USING(observation_id)
+                LEFT JOIN scoped s ON s.object_id=h.object_id
+                LEFT JOIN domains d ON d.domain=h.domain
+                LEFT JOIN domains l ON l.domain='model:legacy' CROSS JOIN fallback f
+                WHERE h.present=1),
+            candidates AS (
+                SELECT DISTINCT s.object_id,MAX(COALESCE(latest.run_id,0),f.run_id) AS attempt_id
+                FROM run_scope_objects s JOIN run_details d USING(run_id)
+                LEFT JOIN scoped latest ON latest.object_id=s.object_id CROSS JOIN fallback f
+                WHERE d.evidence_class='graph_capture_unverified' AND NOT EXISTS(
+                    SELECT 1 FROM object_heads h WHERE h.object_id=s.object_id AND h.present=1)),
+            inventory AS (
+                SELECT h.object_id,h.observation_id,h.snapshot_id,h.observed_at,0 AS pending,
+                    h.attempt_id,r.status AS attempt_status,h.evidence_class
+                FROM heads h LEFT JOIN collection_runs r ON r.run_id=h.attempt_id
+                UNION ALL
+                SELECT c.object_id,NULL,NULL,r.observed_at,1,c.attempt_id,r.status,'graph_capture_unverified'
+                FROM candidates c JOIN collection_runs r ON r.run_id=c.attempt_id WHERE r.status!='complete')
+                """, {}
+
+    def overview(self, *, now=None, max_age_seconds=3600, limit=None, offset=0, query=None):
         now = _timestamp(now)
         if type(max_age_seconds) not in (int,float) or not math.isfinite(max_age_seconds) or max_age_seconds<0: _fail('workbench_age_invalid')
-        with self._connection() as db:
+        requested_limit = limit
+        limit,offset,require_complete = _page(limit,offset)
+        if query is not None and (type(query) is not str or len(query)>4096): _fail('workbench_query_invalid')
+        with self._connection() as db, self._query_budget(db) as charge:
+            # Keep count, selection, freshness and rendered rows in one read
+            # snapshot while another process can publish its next observation.
+            db.execute('BEGIN')
             attempt,success = self._latest(db)
-            objects,pending,deployment=[],[],None
-            if self.schema_version==1:
-                rows=[] if success is None else db.execute('SELECT o.*,s.body_json FROM observations o JOIN snapshots s USING(snapshot_id) WHERE o.run_id=? ORDER BY o.object_id',(success['run_id'],)).fetchall()
-            else:
-                rows=db.execute('SELECT o.*,s.body_json,h.domain FROM object_heads h JOIN observations o USING(observation_id) JOIN snapshots s USING(snapshot_id) WHERE h.present=1 ORDER BY o.object_id LIMIT ?', (MAX_QUERY_ROWS+1,)).fetchall()
-            if len(rows)>MAX_QUERY_ROWS: _fail('workbench_query_limit')
-            for row in rows:
-                obj=self._observation(db,row)
-                object_attempt = attempt if self.schema_version==1 else self._object_attempt(db,row['object_id'],row['domain'])
-                object_success = db.execute('SELECT * FROM collection_runs WHERE run_id=?',(row['run_id'],)).fetchone()
-                last_good = object_attempt is not None and object_attempt['status']!='complete'
-                age = max(0,now-row['observed_at'])
-                obj.update(last_attempt=self._run(object_attempt,db),last_success=self._run(object_success,db),
-                    retained_last_good=last_good,age_seconds=age,
-                    freshness='stale' if last_good or age>max_age_seconds or row['observed_at']>now else 'fresh')
-                obj['collections']=obj['last_attempt'].get('collections',[]) if obj['last_attempt'] else []
-                objects.append(obj)
-            if self.schema_version==2:
-                candidates=db.execute("""SELECT DISTINCT s.object_id FROM run_scope_objects s JOIN run_details d USING(run_id)
-                    WHERE d.evidence_class='graph_capture_unverified' AND NOT EXISTS(
-                        SELECT 1 FROM object_heads h WHERE h.object_id=s.object_id AND h.present=1)
-                    ORDER BY s.object_id LIMIT ?""",(MAX_QUERY_ROWS+1,)).fetchall()
-                if len(candidates)>MAX_QUERY_ROWS: _fail('workbench_query_limit')
-                for candidate in candidates:
-                    latest=self._object_attempt(db,candidate['object_id'])
-                    if latest is not None and latest['status']!='complete': pending.append(self._pending(db,candidate['object_id'],latest))
-            if success:
-                deployment_row=db.execute('SELECT data_json FROM deployments WHERE run_id=?',(success['run_id'],)).fetchone()
-                if deployment_row:deployment=parse_json(deployment_row[0])
-            health=self._health(deployment,now,max_age_seconds)
-            age=None if success is None else max(0,now-success['observed_at'])
-            retained_last_good=bool(success is not None and attempt is not None and attempt['status']!='complete')
-            freshness='unknown' if success is None else 'stale' if retained_last_good or pending or age>max_age_seconds or success['observed_at']>now or any(o['freshness']=='stale' for o in objects) else 'fresh'
-            for obj in objects:obj['health']=health
-            classes={o['evidence_class'] for o in objects+pending}
-            evidence_class=next(iter(classes)) if len(classes)==1 else 'mixed_observations' if classes else self._run(attempt,db)['evidence_class'] if attempt else 'synthetic'
-            result={'tenant_id':self.tenant_id,'objects':objects,'pending_observations':pending,'last_attempt':self._run(attempt,db),
-                'last_success':self._run(success,db),'freshness':freshness,'retained_last_good':retained_last_good,
-                'age_seconds':age,'health':health,'coverage':None if attempt is None else attempt['coverage'],
+            inventory,parameters = self._inventory_sql(db,success,attempt,charge)
+            parameters.update(now=now,max_age=max_age_seconds)
+            summary = db.execute(inventory + """SELECT COUNT(*) AS total,
+                COALESCE(MAX(pending),0) AS has_pending,
+                COALESCE(MAX(attempt_status!='complete' OR :now-observed_at>:max_age OR observed_at>:now),0) AS has_stale
+                FROM inventory""",parameters).fetchone()
+            classes = {row[0] for row in db.execute(inventory+'SELECT DISTINCT evidence_class FROM inventory',parameters)}
+            where = ''
+            if query is not None:
+                parameters['query'] = query.casefold()
+                # Literal substring matching only over the documented search
+                # fields. Percent/underscore are ordinary characters, never SQL
+                # wildcards; descriptions and arbitrary settings values cannot match.
+                where = """WHERE instr(wb_casefold(i.object_id),:query)>0
+                    OR instr(wb_body_name((SELECT body_json FROM snapshots WHERE snapshot_id=i.snapshot_id)),:query)>0
+                    OR EXISTS(SELECT 1 FROM relationships r WHERE r.snapshot_id=i.snapshot_id
+                        AND r.relation='setting' AND instr(wb_casefold(r.target_id),:query)>0)"""
+                if self.schema_version==2:
+                    where += """ OR (i.pending=1 AND instr(wb_pending_name((SELECT source_json FROM run_details
+                        WHERE run_id=i.attempt_id)),:query)>0)"""
+            total = summary['total'] if query is None else db.execute(inventory+'SELECT COUNT(*) FROM inventory i '+where,parameters).fetchone()[0]
+            if require_complete and max(0,total-offset)>limit: _fail('workbench_query_limit')
+            parameters.update(limit=limit,offset=offset)
+            selected = db.execute(inventory+'SELECT i.* FROM inventory i '+where+' ORDER BY i.object_id LIMIT :limit OFFSET :offset',parameters).fetchall()
+            health = self._collection_health(db,success,now,max_age_seconds)
+            objects,pending,size = [],[],0
+            for item in selected:
+                if item['pending']:
+                    latest = db.execute('SELECT * FROM collection_runs WHERE run_id=?',(item['attempt_id'],)).fetchone()
+                    value = self._pending(db,item['object_id'],latest)
+                    pending.append(value)
+                else:
+                    sql = 'SELECT o.*,s.body_json' + (',h.domain' if self.schema_version==2 else '') + ' FROM observations o JOIN snapshots s USING(snapshot_id)'
+                    if self.schema_version==2: sql += ' JOIN object_heads h USING(observation_id)'
+                    row = db.execute(sql+' WHERE o.observation_id=?',(item['observation_id'],)).fetchone()
+                    value = self._current_observation(db,row,attempt,health,now,max_age_seconds)
+                    objects.append(value)
+                size += len(canonical(value))
+                if size>MAX_QUERY_BYTES: _fail('workbench_query_limit')
+            age = None if success is None else max(0,now-success['observed_at'])
+            retained_last_good = bool(success is not None and attempt is not None and attempt['status']!='complete')
+            freshness = 'unknown' if success is None else 'stale' if retained_last_good or summary['has_pending'] or age>max_age_seconds or success['observed_at']>now or summary['has_stale'] else 'fresh'
+            evidence_class = next(iter(classes)) if len(classes)==1 else 'mixed_observations' if classes else self._run(attempt,db)['evidence_class'] if attempt else 'synthetic'
+            returned = len(selected)
+            has_more = offset+returned<total
+            result = {'tenant_id':self.tenant_id,'objects':objects,'pending_observations':pending,'last_attempt':self._run(attempt,db),
+                'last_success':self._run(success,db),'freshness':freshness,'freshness_scope':'inventory',
+                'retained_last_good':retained_last_good,'age_seconds':age,'health':health,'coverage':None if attempt is None else attempt['coverage'],
                 'evidence_class':evidence_class,'cloud_authority':False,'execution_authorized':False,'schema_version':self.schema_version,
+                'total_inventory_objects':summary['total'],
+                'pagination':{'total_objects':total,'returned_objects':returned,'limit':requested_limit,'offset':offset,
+                    'has_more':has_more,'next_offset':offset+returned if has_more else None,
+                    'complete':offset==0 and returned==total,'scope':'unpaged' if require_complete else 'page'},
                 'limitations':['Synthetic and imported capture assurance remain distinct; no authenticated Graph or endpoint qualification.',
                     'Same-user local storage is not tamper-proof; changed time and attribution are unknown.']}
-            if len(canonical(result))>MAX_QUERY_BYTES:_fail('workbench_query_limit')
+            if query is not None: result['query'] = query
+            if len(canonical(result))>MAX_QUERY_BYTES: _fail('workbench_query_limit')
             return result
 
     def inspect(self, object_id):
+        """Inspect exactly one current/pending object, independent of estate size."""
         _identity(object_id)
-        overview=self.overview()
-        for value in overview['objects']+overview['pending_observations']:
-            if value['object_id']==object_id:return value
-        _fail('workbench_object_missing')
+        now = _timestamp()
+        with self._connection() as db, self._query_budget(db):
+            db.execute('BEGIN')
+            attempt,success = self._latest(db)
+            if self.schema_version==1:
+                row = None if success is None else db.execute('SELECT o.*,s.body_json FROM observations o JOIN snapshots s USING(snapshot_id) WHERE o.run_id=? AND o.object_id=?',
+                    (success['run_id'],object_id)).fetchone()
+            else:
+                row = db.execute('SELECT o.*,s.body_json,h.domain FROM object_heads h JOIN observations o USING(observation_id) JOIN snapshots s USING(snapshot_id) WHERE h.object_id=? AND h.present=1',
+                    (object_id,)).fetchone()
+            if row is not None:
+                health = self._collection_health(db,success,now,3600)
+                value = self._current_observation(db,row,attempt,health,now,3600)
+            elif self.schema_version==2 and db.execute("""SELECT 1 FROM run_scope_objects s JOIN run_details d USING(run_id)
+                    WHERE s.object_id=? AND d.evidence_class='graph_capture_unverified' LIMIT 1""",(object_id,)).fetchone():
+                latest = self._object_attempt(db,object_id)
+                if latest is None or latest['status']=='complete': _fail('workbench_object_missing')
+                value = self._pending(db,object_id,latest)
+            else: _fail('workbench_object_missing')
+            if len(canonical(value))>MAX_QUERY_BYTES: _fail('workbench_query_limit')
+            return value
 
     def history(self, object_id, *, limit=None, offset=0):
         """Observed-time ordered history; explicit pages or fail on oversized result."""

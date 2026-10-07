@@ -1,6 +1,6 @@
 # Current 0.8.0 qualification authority
 
-The final external artifact receipt and R3 acceptance ledger bind the tested commit, exact source/runtime ZIP bytes, strict result, independent CLI/PTY journeys and reproducibility. The preserved R2 result is 1,141/1,141 with zero failures/errors/skips at commit `74130d0db99febf2f41cf4f4ebe2920a5d4dffb7`; it is not a test result for changed0.8.0 source. See [R3 checkpoint](docs/CONTINUATION-R3.md) and [external gates](docs/EXTERNAL-QUALIFICATION-R3.md). All historical counts and failures below remain scoped to their original artifacts.
+The final external artifact receipt and R3 acceptance ledger bind the tested commit, exact source/runtime ZIP bytes, strict result, independent CLI/PTY journeys and reproducibility. The preserved R2 result is 1,141/1,141 with zero failures/errors/skips at commit `74130d0db99febf2f41cf4f4ebe2920a5d4dffb7`; it is not a test result for changed 0.8.0 source. See [R3 checkpoint](docs/CONTINUATION-R3.md) and [external gates](docs/EXTERNAL-QUALIFICATION-R3.md). All historical counts and failures below remain scoped to their original artifacts.
 
 # Verification status: Intune IaC 0.5.1 engineering epoch
 

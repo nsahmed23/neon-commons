@@ -3084,3 +3084,8 @@ plugin_tests/test_workbench_vendor_lineage.py
 plugin_tests/test_workbench_retry_review.py
 scripts/qualify-workbench-connected.py
 scripts/qualify-workbench-performance.py
+
+plugin_tests/test_workbench_capacity.py
+plugin_tests/test_workbench_dictionary_capacity.py
+plugin_tests/test_workbench_paging.py
+scripts/qualify-workbench-capacity.py

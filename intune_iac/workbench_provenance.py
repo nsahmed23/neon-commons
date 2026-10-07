@@ -344,14 +344,25 @@ def repository_lineage(store, object_id, pointer=None):
     return result
 
 
-def dictionary(store, query=''):
+def dictionary(store, query='', *, object_id=None, limit=None, offset=0):
     if type(query) is not str or len(query)>512: _fail()
     entries = {}
     def entry(identifier):
         return entries.setdefault(identifier,{'identifier':identifier,'name':None,'aliases':[],
             'meaning':'unknown','vendor_dictionary':'unresolved','actual_uses':[],'local_mapping':[],
             'references':[],'vendor_documentation':[]})
-    overview = store.overview()
+    if object_id is not None:
+        if limit is not None or offset != 0:
+            _fail('workbench_dictionary_scope_invalid')
+        selected = store.inspect(object_id)
+        overview = {'objects': [selected], 'freshness': selected.get('freshness', 'unknown')}
+        observation_scope = {'kind': 'object', 'object_id': object_id}
+    elif limit is not None or offset != 0:
+        overview = store.overview(limit=limit, offset=offset)
+        observation_scope = {'kind': 'page', 'pagination': copy.deepcopy(overview.get('pagination'))}
+    else:
+        overview = store.overview()
+        observation_scope = {'kind': 'unpaged_observations'}
     for observed in overview.get('objects',[]):
         settings, blockers = _settings(observed.get('body'))
         for setting in settings:
@@ -389,6 +400,7 @@ def dictionary(store, query=''):
             terms.extend([facts['name'], facts['csp_uri'], *facts['aliases']])
         return any(query.casefold() in term.casefold() for term in terms)
     return {'query':query, 'entries':[entries[key] for key in sorted(entries) if matches(entries[key])],
+            'observation_scope': observation_scope,
             'freshness':overview.get('freshness','unknown'),'cloud_authority':False,'execution_authorized':False,
             'qualification':'Observed values, local mappings, community/company references and pinned vendor documentation are separate. Graph enum translation and observed-device applicability remain unqualified.'}
 
