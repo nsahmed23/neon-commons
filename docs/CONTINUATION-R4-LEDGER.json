@@ -1,15 +1,15 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-08T01:58:35.766756+00:00",
+  "recorded_at": "2026-10-08T02:13:58.111970+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "301061ad4e85ee911fa97581aef0e074efc0cbb2",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-24.json",
-    "candidate_disposition": "REPAIRED_SOURCE_PENDING_NEW_EXACT_PACKAGE_AND_REQUIRED_GATE",
+    "latest_completed_checkpoint": "07b747247c01ac291011bb666d328c5bbd66e8f6",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-25.json",
+    "candidate_disposition": "REPORT_ONLY_REPAIR_PENDING_NEW_EXACT_PACKAGES",
     "retained_candidate_artifacts": [
       {
         "source_commit": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
@@ -29,6 +29,28 @@
             "sha256": "48a3cf1d2e4a12a5d960bda3b193b565a014bcc4c463ee7ff3543ea5671466f7",
             "extracted": "/tmp/intune-r4-final-packages-01/extract-runtime/intune-iac",
             "rebuild_path": "/tmp/intune-r4-final-packages-01/build-b/Intune_IaC_Plugin_0.9.0.zip",
+            "byte_identical_rebuild": true
+          }
+        }
+      },
+      {
+        "source_commit": "07b747247c01ac291011bb666d328c5bbd66e8f6",
+        "disposition": "PASS_REQUIRED_STRICT_AND_RUNTIME_SCOPES_SUPERSEDED_BY_REPORT_ONLY_FIX",
+        "artifacts": {
+          "source": {
+            "path": "/tmp/intune-r4-final-packages-02/build-a/Intune_IaC_Plugin_0.9.0_Source.zip",
+            "bytes": 17946395,
+            "sha256": "62d9b67832216bea3099a34326b668183d9530734266f1b162b1b69df02a673f",
+            "extracted": "/tmp/intune-r4-final-packages-02/extract-source/intune-iac-source",
+            "rebuild_path": "/tmp/intune-r4-final-packages-02/build-b/Intune_IaC_Plugin_0.9.0_Source.zip",
+            "byte_identical_rebuild": true
+          },
+          "runtime": {
+            "path": "/tmp/intune-r4-final-packages-02/build-a/Intune_IaC_Plugin_0.9.0.zip",
+            "bytes": 1511912,
+            "sha256": "04dd586928e1f242b2f04e362f6b42f32af96a5fe10ec199b2fd39ba51e2be22",
+            "extracted": "/tmp/intune-r4-final-packages-02/extract-runtime/intune-iac",
+            "rebuild_path": "/tmp/intune-r4-final-packages-02/build-b/Intune_IaC_Plugin_0.9.0.zip",
             "byte_identical_rebuild": true
           }
         }
@@ -62,7 +84,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Three C22 strict failure causes repaired and independently qualified in focused scopes. C22 failed gate remains preserved. New exact package/full gate, remaining native fault journeys, performance and complete delivery remain; platform/security/production gates are separate."
+    "explanation": "C24 exact package strict2304/2304 and actual runtime journeys pass. Narrow doctor reporting defect repaired and independently qualified; new C25 exact package gates, fresh native fault/restoration, performance and verified delivery remain. Platform/security/production approval remain blocked."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -513,7 +535,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -1168,7 +1190,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -1701,7 +1723,12 @@
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
         "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
         "evidence/epoch-20261007-r4/windows-views/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+        "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+        "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+        "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
@@ -1753,12 +1780,68 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-views-after-01/RESULT.json",
           "sha256": "1df0e92ea86029f457dfdf3d8679744f7e93dcb07b93b0fc9cb3e65367b63775"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+          "bytes": 1229,
+          "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+          "bytes": 1810,
+          "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+          "bytes": 697,
+          "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+          "bytes": 774,
+          "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+          "bytes": 12242,
+          "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
         }
       ],
       "native_views_increment10": {
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "doctor_capability_correction25": {
+        "status": "PASS",
+        "scope": "Actual doctor incorrectly labeled implemented signed durable adoption as not_implemented. Report-only correction separates implementation, host primitives, exact signed/process-held controller prerequisites, independent readback/no-change verification and missing live/platform/production approval. Terminal still cannot dispatch import. Before3checks/2fail, integrated14 and independent12 overlap; no execution or approval gate changed.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+            "bytes": 1229,
+            "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+            "bytes": 1810,
+            "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+            "bytes": 697,
+            "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+            "bytes": 774,
+            "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+            "bytes": 12242,
+            "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
+          }
+        ]
       }
     },
     {
@@ -1972,7 +2055,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -3035,7 +3118,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "A07"
@@ -3622,7 +3705,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
-      "next_action": "Preserve C18 exact saved-plan source-bound maintenance and signed history; qualify final packages. Unsupported raw ID37 source acceptance stays blocked without a supported mapping; do not weaken mapper preservation.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -4233,7 +4316,12 @@
         "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json"
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+        "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+        "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+        "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+        "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
@@ -4585,6 +4673,31 @@
           "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
           "bytes": 5679,
           "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+          "bytes": 1229,
+          "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+          "bytes": 1810,
+          "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+          "bytes": 697,
+          "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+          "bytes": 774,
+          "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+          "bytes": 12242,
+          "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -4693,6 +4806,37 @@
             "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
           }
         ]
+      },
+      "doctor_capability_correction25": {
+        "status": "PASS",
+        "scope": "Actual doctor incorrectly labeled implemented signed durable adoption as not_implemented. Report-only correction separates implementation, host primitives, exact signed/process-held controller prerequisites, independent readback/no-change verification and missing live/platform/production approval. Terminal still cannot dispatch import. Before3checks/2fail, integrated14 and independent12 overlap; no execution or approval gate changed.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+            "bytes": 1229,
+            "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+            "bytes": 1810,
+            "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+            "bytes": 697,
+            "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+            "bytes": 774,
+            "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+            "bytes": 12242,
+            "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
+          }
+        ]
       }
     },
     {
@@ -4765,7 +4909,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
-      "next_action": "Preserve C18 exact local Git/input/saved-plan binding and changed-source/lock rejection; qualify exact final packages and separately obtain real protected CI/run identity evidence.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -5453,7 +5597,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -6432,7 +6576,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Local protocol qualification only. C17 extraction and phase composition require scoped checks and final exact package gate; no platform qualification.",
-      "next_action": "Qualify new phase chain and exported native evidence, then final packages.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -6813,7 +6957,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -9049,7 +9193,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -10088,7 +10232,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "A09",
@@ -10776,7 +10920,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "C03"
@@ -11406,7 +11550,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -11805,7 +11949,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -12251,7 +12395,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -13823,7 +13967,12 @@
         "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+        "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+        "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+        "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
@@ -14066,6 +14215,31 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
           "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+          "bytes": 1229,
+          "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+          "bytes": 1810,
+          "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+          "bytes": 697,
+          "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+          "bytes": 774,
+          "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+          "bytes": 12242,
+          "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -14080,6 +14254,37 @@
         "scope": "Distinct readonly adoption navigation survives reopen and drives review/execution tabs; legacy help retained. Independent14 actualLinuxPTY controls on disposable prepared journal;17 presentation methods overlap. Before help/context/back failures preserved.",
         "limitations": "Prepared journal,0native dispatch in these PTYs; successful native fixture and final exact-package replay still required. No nativeWindows qualification.",
         "next_action": "Replay actual investigation/history/recovery keys on newly qualified native journal and final packages."
+      },
+      "doctor_capability_correction25": {
+        "status": "PASS",
+        "scope": "Actual doctor incorrectly labeled implemented signed durable adoption as not_implemented. Report-only correction separates implementation, host primitives, exact signed/process-held controller prerequisites, independent readback/no-change verification and missing live/platform/production approval. Terminal still cannot dispatch import. Before3checks/2fail, integrated14 and independent12 overlap; no execution or approval gate changed.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+            "bytes": 1229,
+            "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+            "bytes": 1810,
+            "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+            "bytes": 697,
+            "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+            "bytes": 774,
+            "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+            "bytes": 12242,
+            "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
+          }
+        ]
       }
     },
     {
@@ -14575,7 +14780,12 @@
         "evidence/epoch-20261007-r4/native-readiness-reporting/SOURCE-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/external-gates/bounded-profile-04/PREPARATION-RECEIPT.json",
         "evidence/epoch-20261007-r4/external-gates/MANAGED-ENVIRONMENT-READINESS-01.json",
-        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json"
+        "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
+        "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+        "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+        "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+        "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Host capability discovery now rejects unsupported storage/worker routes before unsafe imports or store creation, while help remains usable. Linux import-denial probes are not native Windows evidence. Native Windows has missing identity/ACL/reparse/durability implementations, beyond unavailable qualification; qualifier records required cases unsupported/blocked rather than passing negative gates as functionality.",
@@ -14627,8 +14837,64 @@
         {
           "path": "evidence/epoch-20261007-r4/host-capabilities/doctor-reconciliation-01/RECEIPT.json",
           "sha256": "85d8d6a1a749d2a64b48fe25f3fcc49aa24daec3912326bf2fa970d328eb4ffc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+          "bytes": 1229,
+          "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+          "bytes": 1810,
+          "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+          "bytes": 697,
+          "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+          "bytes": 774,
+          "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+          "bytes": 12242,
+          "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
         }
-      ]
+      ],
+      "doctor_capability_correction25": {
+        "status": "PASS",
+        "scope": "Actual doctor incorrectly labeled implemented signed durable adoption as not_implemented. Report-only correction separates implementation, host primitives, exact signed/process-held controller prerequisites, independent readback/no-change verification and missing live/platform/production approval. Terminal still cannot dispatch import. Before3checks/2fail, integrated14 and independent12 overlap; no execution or approval gate changed.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+            "bytes": 1229,
+            "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+            "bytes": 1810,
+            "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+            "bytes": 697,
+            "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+            "bytes": 774,
+            "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+            "bytes": 12242,
+            "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
+          }
+        ]
+      }
     },
     {
       "id": "E02",
@@ -15539,11 +15805,20 @@
         "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/PROPOSAL-02.json",
         "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/integrated-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/release-transfer-five-01/RESULT.json",
-        "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/documentation/PROPOSAL.json"
+        "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/documentation/PROPOSAL.json",
+        "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+        "/tmp/intune-r4-final-runtime-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+        "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+        "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+        "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+        "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "C22 required strict FAIL remains immutable historical evidence. Three demonstrated failure causes have integrated focused before/after repairs; new exact package and required full gate are still pending.",
-      "next_action": "Commit repaired candidate, build and verify both exact packages, then run the required extracted-source strict gate. Preserve C22 failures and scoped integration evidence; no gate is waived.",
+      "limitation": "C24 required strict gate2304/2304 PASS retained; report-only doctor correction changes candidate bytes. New C25 exact packages and required gate pending. C22 failed candidate remains preserved.",
+      "next_action": "Build C25 exact source/runtime packages, verify linkage/reproducibility, then run required extracted-source gate and actual runtime/native/performance journeys. No historical result relabeling.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -15723,6 +15998,51 @@
           "path": "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/documentation/PROPOSAL.json",
           "bytes": 464,
           "sha256": "43923c3849362cb08c488ff61e9cd50dd6df528d575bf4c9490c9e5127d87e6a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+          "bytes": 1699,
+          "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+        },
+        {
+          "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+          "bytes": 4486,
+          "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+          "bytes": 1229,
+          "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+          "bytes": 1810,
+          "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+          "bytes": 697,
+          "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+        },
+        {
+          "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+          "bytes": 774,
+          "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+          "bytes": 12242,
+          "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
         }
       ],
       "tool_relocation_increment11": {
@@ -15894,6 +16214,63 @@
             "sha256": "43923c3849362cb08c488ff61e9cd50dd6df528d575bf4c9490c9e5127d87e6a"
           }
         ]
+      },
+      "c24_exact_candidate25": {
+        "status": "PASS",
+        "scope": "C24 07b747247c01ac291011bb666d328c5bbd66e8f6 exact source/runtime packages rebuilt byte-identically, safe extraction and raw Git linkage passed. Required extracted-source gate2304 planned/run/pass, zero fail/error/skip/xfail/unexpected success; all source bytes and archive unchanged. Runtime9 outer commands include workflow11checks/8commands, Linux wizard PTY and connected64checks/34commands; overlapping scopes never summed. This evidence applies only C24, not changed C25.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+            "bytes": 1699,
+            "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+          },
+          {
+            "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+            "bytes": 4486,
+            "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
+          }
+        ]
+      },
+      "doctor_capability_correction25": {
+        "status": "PASS",
+        "scope": "Actual doctor incorrectly labeled implemented signed durable adoption as not_implemented. Report-only correction separates implementation, host primitives, exact signed/process-held controller prerequisites, independent readback/no-change verification and missing live/platform/production approval. Terminal still cannot dispatch import. Before3checks/2fail, integrated14 and independent12 overlap; no execution or approval gate changed.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/integration/doctor-admission-25.json",
+            "bytes": 1229,
+            "sha256": "3f349ace71d04b2445e65ebe70fb2ce675c69fd9e4f775f923235cf8e2540d23"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/PROPOSED-01.json",
+            "bytes": 1810,
+            "sha256": "5199a1a2c50eb189f467d9da16c2959f7d54347302a89781fe2b009ed9675fa9"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/before-01/RESULT.json",
+            "bytes": 697,
+            "sha256": "453590fa64c08d22070e178e8ca0f04ad7befcc855874f1779e29dfb546555d0"
+          },
+          {
+            "path": "/tmp/intune-r4-doctor-adoption-01/integrated-01/RESULT.json",
+            "bytes": 774,
+            "sha256": "066319c2765a8acefd56c072a77f0fc05601980adc56868ba9676a50f3603349"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json",
+            "bytes": 12242,
+            "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
+          }
+        ]
       }
     },
     {
@@ -15913,7 +16290,15 @@
         "/tmp/intune-r4-final-strict-01/RECEIPT.json",
         "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
         "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
-        "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json"
+        "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+        "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+        "/tmp/intune-r4-final-runtime-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+        "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
@@ -15986,6 +16371,46 @@
           "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
           "bytes": 248366,
           "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+          "bytes": 1699,
+          "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+        },
+        {
+          "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+          "bytes": 4486,
+          "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+          "bytes": 12459,
+          "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+          "bytes": 781,
+          "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+          "bytes": 8030,
+          "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+          "bytes": 16661,
+          "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
         }
       ],
       "required_strict_candidate23": {
@@ -16012,6 +16437,58 @@
             "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
             "bytes": 248366,
             "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+          }
+        ]
+      },
+      "c24_exact_candidate25": {
+        "status": "PASS",
+        "scope": "C24 07b747247c01ac291011bb666d328c5bbd66e8f6 exact source/runtime packages rebuilt byte-identically, safe extraction and raw Git linkage passed. Required extracted-source gate2304 planned/run/pass, zero fail/error/skip/xfail/unexpected success; all source bytes and archive unchanged. Runtime9 outer commands include workflow11checks/8commands, Linux wizard PTY and connected64checks/34commands; overlapping scopes never summed. This evidence applies only C24, not changed C25.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+            "bytes": 1699,
+            "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+          },
+          {
+            "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+            "bytes": 4486,
+            "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
+          }
+        ]
+      },
+      "expanded_native_qualifier25": {
+        "status": "PASS",
+        "scope": "Admitted exact closed27-helper qualifier with independent strict type/JSON/prior/planned-state and targeting oracles; all failed evaluator attempts preserved. Static export and negative contracts pass, no native execution inferred. Fresh ordinary seed must be prepared immediately after fresh adoption, before maintenance; final profile awaits new C25 packages.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+            "bytes": 12459,
+            "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+            "bytes": 781,
+            "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+            "bytes": 8030,
+            "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+            "bytes": 16661,
+            "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
           }
         ]
       }
@@ -16065,7 +16542,11 @@
         "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/PROPOSAL-02.json",
         "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/integrated-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/release-transfer-five-01/RESULT.json",
-        "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/documentation/PROPOSAL.json"
+        "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/documentation/PROPOSAL.json",
+        "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+        "/tmp/intune-r4-final-runtime-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
@@ -16272,6 +16753,26 @@
           "path": "evidence/epoch-20261007-r4/packaging/release-transfer-repair-01/documentation/PROPOSAL.json",
           "bytes": 464,
           "sha256": "43923c3849362cb08c488ff61e9cd50dd6df528d575bf4c9490c9e5127d87e6a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+          "bytes": 1699,
+          "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+        },
+        {
+          "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+          "bytes": 4486,
+          "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
         }
       ],
       "evidence_producer_increment8": {
@@ -16483,6 +16984,32 @@
             "sha256": "43923c3849362cb08c488ff61e9cd50dd6df528d575bf4c9490c9e5127d87e6a"
           }
         ]
+      },
+      "c24_exact_candidate25": {
+        "status": "PASS",
+        "scope": "C24 07b747247c01ac291011bb666d328c5bbd66e8f6 exact source/runtime packages rebuilt byte-identically, safe extraction and raw Git linkage passed. Required extracted-source gate2304 planned/run/pass, zero fail/error/skip/xfail/unexpected success; all source bytes and archive unchanged. Runtime9 outer commands include workflow11checks/8commands, Linux wizard PTY and connected64checks/34commands; overlapping scopes never summed. This evidence applies only C24, not changed C25.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+            "bytes": 1699,
+            "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+          },
+          {
+            "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+            "bytes": 4486,
+            "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
+          }
+        ]
       }
     },
     {
@@ -16508,7 +17035,11 @@
         "evidence/epoch-20261007-r4/independent/qualification-tools-01/PROPOSAL-02-REVIEW.json",
         "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
         "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
-        "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+        "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+        "/tmp/intune-r4-final-runtime-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -16583,6 +17114,26 @@
           "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
           "bytes": 2691,
           "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+          "bytes": 1699,
+          "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+        },
+        {
+          "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+          "bytes": 4486,
+          "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
         }
       ],
       "tool_relocation_increment11": {
@@ -16610,6 +17161,32 @@
             "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
             "bytes": 2691,
             "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+          }
+        ]
+      },
+      "c24_exact_candidate25": {
+        "status": "PASS",
+        "scope": "C24 07b747247c01ac291011bb666d328c5bbd66e8f6 exact source/runtime packages rebuilt byte-identically, safe extraction and raw Git linkage passed. Required extracted-source gate2304 planned/run/pass, zero fail/error/skip/xfail/unexpected success; all source bytes and archive unchanged. Runtime9 outer commands include workflow11checks/8commands, Linux wizard PTY and connected64checks/34commands; overlapping scopes never summed. This evidence applies only C24, not changed C25.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-02/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "1ebb621c6a016d761b64c3f49d083a4b75ed5af7dd20f63852c5f7bc4b80007a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-02/RECEIPT.json",
+            "bytes": 1699,
+            "sha256": "31f69d120141454b44d2a433f461575afecd67b98c29df4adf8aa68b4499c91b"
+          },
+          {
+            "path": "/tmp/intune-r4-final-runtime-02/RESULT.json",
+            "bytes": 4486,
+            "sha256": "5b48c142896ab078d902491043bb449e156c573b433c4523a4dad170b6bb9a89"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-c24-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
           }
         ]
       }
@@ -18087,7 +18664,7 @@
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
-      "next_action": "Preserve actual C18 changed-source/lock rejection before dispatch; bind unchanged dependencies to final packages and execute required final gate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -19815,7 +20392,7 @@
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -21308,7 +21885,7 @@
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -21937,7 +22514,11 @@
       "test_procedure_id": "R4-FAULT-policy-success-assignment-failure",
       "evidence_path": [
         "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
-        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json"
+        "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+        "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -22026,6 +22607,26 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/partial-recovery-journey-02/receipt.json",
           "sha256": "32d472afd17ed99e600df12c0de73d55dddc840622a2fe6d12b986992ac99af4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+          "bytes": 12459,
+          "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+          "bytes": 781,
+          "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+          "bytes": 8030,
+          "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+          "bytes": 16661,
+          "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
         }
       ],
       "native_fault_increment": {
@@ -22034,7 +22635,33 @@
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
       },
-      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate."
+      "partial_recovery_scope": "PASS actual local native same-authority signed transfer/cancel-return/newtransfer and exact native apply/readback/second-nochange under strict synthetic metadata ETags. Original failedhistory preserved. Producer20outcomes+4negatives and independent18literal checks overlap; no aggregate. Advanced state-write interruption and already-unlocked variants remain separate.",
+      "expanded_native_qualifier25": {
+        "status": "PASS",
+        "scope": "Admitted exact closed27-helper qualifier with independent strict type/JSON/prior/planned-state and targeting oracles; all failed evaluator attempts preserved. Static export and negative contracts pass, no native execution inferred. Fresh ordinary seed must be prepared immediately after fresh adoption, before maintenance; final profile awaits new C25 packages.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+            "bytes": 12459,
+            "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+            "bytes": 781,
+            "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+            "bytes": 8030,
+            "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+            "bytes": 16661,
+            "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
+          }
+        ]
+      }
     },
     {
       "id": "E-FAULT-11",
@@ -22157,11 +22784,15 @@
         "evidence/epoch-20261007-r4/worker-evidence/WINDOWS-PENDING-EDIT-DELIVERY-01.json",
         "/tmp/intune-r4-windows-pending-edit-staging-01/PROPOSED-01.json",
         "/tmp/intune-r4-windows-pending-edit-staging-01/integrated-01/RECEIPT.json",
-        "evidence/epoch-20261007-r4/independent/windows-pending-edit-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-pending-edit-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+        "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -22893,6 +23524,26 @@
           "path": "evidence/epoch-20261007-r4/independent/windows-pending-edit-01/RESULT.json",
           "bytes": 1508,
           "sha256": "219e0f988de28cc3eba7d8ad0b1017e4a8ee96f1af8112dd7146bc5397a754b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+          "bytes": 12459,
+          "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+          "bytes": 781,
+          "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+          "bytes": 8030,
+          "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+          "bytes": 16661,
+          "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
         }
       ],
       "native_fault_increment": {
@@ -23380,6 +24031,32 @@
             "sha256": "219e0f988de28cc3eba7d8ad0b1017e4a8ee96f1af8112dd7146bc5397a754b5"
           }
         ]
+      },
+      "expanded_native_qualifier25": {
+        "status": "PASS",
+        "scope": "Admitted exact closed27-helper qualifier with independent strict type/JSON/prior/planned-state and targeting oracles; all failed evaluator attempts preserved. Static export and negative contracts pass, no native execution inferred. Fresh ordinary seed must be prepared immediately after fresh adoption, before maintenance; final profile awaits new C25 packages.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+            "bytes": 12459,
+            "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+            "bytes": 781,
+            "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+            "bytes": 8030,
+            "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+            "bytes": 16661,
+            "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
+          }
+        ]
       }
     },
     {
@@ -23541,7 +24218,11 @@
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
         "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
-        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+        "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -23661,6 +24342,26 @@
           "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
           "bytes": 163418,
           "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+          "bytes": 12459,
+          "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+          "bytes": 781,
+          "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+          "bytes": 8030,
+          "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+          "bytes": 16661,
+          "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
         }
       ],
       "native_fault_increment": {
@@ -23720,6 +24421,32 @@
             "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
             "bytes": 163418,
             "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
+      },
+      "expanded_native_qualifier25": {
+        "status": "PASS",
+        "scope": "Admitted exact closed27-helper qualifier with independent strict type/JSON/prior/planned-state and targeting oracles; all failed evaluator attempts preserved. Static export and negative contracts pass, no native execution inferred. Fresh ordinary seed must be prepared immediately after fresh adoption, before maintenance; final profile awaits new C25 packages.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/PROPOSED-FINAL-01.json",
+            "bytes": 12459,
+            "sha256": "3bf918a0f218db4206339e692e3aa6ef22fbe1c4febfb6555d8208a4afef67ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/FINAL-REVIEW-01.json",
+            "bytes": 781,
+            "sha256": "07e37101278835a3fbbde3d53e45bc76b04613777075054bd3a12f46ab08c299"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json",
+            "bytes": 8030,
+            "sha256": "904b4efb065ce84af544204299f23d8ee12c3f4558bb260c5a38bb738d269a57"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
+            "bytes": 16661,
+            "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
           }
         ]
       }
@@ -25408,7 +26135,7 @@
       ],
       "environment": "Linux; preserved actual native plan binary, independent mutated JSON; no new native dispatch",
       "limitation": "Local protocol qualification only. C17 extraction and phase composition require scoped checks and final exact package gate; no platform qualification.",
-      "next_action": "Qualify new phase chain and exported native evidence, then final packages.",
+      "next_action": "Preserve completed C18/C21 native and signed-history evidence with exact dependency scope. Complete new C25 exact-package strict/runtime gates and fresh closed-profile native fault/restoration sequence, then final delivery. External qualification stays separate.",
       "blocker_owner": "Workbench worker/verification maintainer (active observation lane)",
       "depends_on": [
         "B05",
@@ -25618,5 +26345,5 @@
       }
     }
   ],
-  "checkpoint_increment": 24
+  "checkpoint_increment": 25
 }

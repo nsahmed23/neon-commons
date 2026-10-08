@@ -1060,3 +1060,31 @@ profile including ordinary partial/committed-state/reverse-description faults.
 Performance preparation for C22 remains untimed historical preparation; rebind
 the new candidate before claiming measurements. Full Git/unselected-bytecode
 preservation and the separately blocked external gates remain required.
+
+Increment25 preserves C24 exact source/runtime integrity, reproducible builds,
+actual CLI/PTY/connected journeys and the required2304/2304 strict result with
+zero failures/errors/skips and unchanged extracted source/archive. These are
+local scopes and counts overlap. C22 failures remain immutable.
+
+Actual doctor output exposed stale adoption capability labels. The report-only
+repair now says durable signed state-only import is implemented, names required
+host/controller/review/readback conditions, and explicitly keeps live, platform
+and organizational production qualification false. The terminal gains no import
+dispatch authority. Before3/2fail, integrated14PASS and independent12PASS are
+preserved separately. One new test file was explicitly admitted to source inventory.
+
+The expanded closed27-helper native qualifier is admitted after independent
+type/duplicate-key/prior/planned-value/targeting/cleanup counterexamples and their
+repairs. Static export is preparation only. Use a NEW final profile bound to C25
+complete extracted source; prepare the ordinary seed immediately after fresh
+adoption and before maintenance changes that fixture. Never use active-checkout
+fallback or replay old consumed unknown operations.
+
+Resume from integration/COMMIT-25.json:
+  /workspace/intune-runtime/bin/python -B /tmp/intune-r4-final-package.py --commit COMMIT_FROM_RECEIPT --output /tmp/intune-r4-final-packages-03
+  /workspace/intune-runtime/bin/python -B /tmp/intune-r4-final-strict.py --package-receipt /tmp/intune-r4-final-packages-03/PACKAGE-RECEIPT.json --output /tmp/intune-r4-final-strict-03
+After the required gate is quiet and passes, finish actual runtime/native/fault/
+signed-history/PTY journeys, preregistered quiet-window performance and complete
+layered archive/readback delivery. Laboratory completion is not yet established;
+native Windows, real service/backend/CI/device, AppSec and organizational approval
+remain separate gates with the existing exact external procedures.
