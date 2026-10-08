@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 from intune_iac import worker_source_intent as source, worker_service as service
 from intune_iac import worker_host as host, worker_provider as provider
-from intune_iac.io import AppError, canonical, digest, write_json
+from intune_iac.io import AppError, canonical, digest, write_json, parse_json
 from intune_iac.workbench_store import WorkbenchStore
 from intune_iac.workbench_views import import_repository
 from plugin_tests.signing_fixture import verifier_pin
@@ -157,6 +157,33 @@ class SourceIntentR4Tests(unittest.TestCase):
         with patch.object(source.os, 'walk', side_effect=denied):
             self.assert_code('worker_source_git_storage_unreadable', self.cap.check)
         self.assertEqual(self.cap.check(), self.cap.binding())
+
+    def test_filesystem_ids_are_lossless_canonical_uint64_strings(self):
+        for value in (0, 1, 9007199254740992, 9223372036854775909, (1 << 64) - 1):
+            self.assertEqual(source._filesystem_id(value), str(value))
+        for bad in (True, 1.0, '1', -1, 1 << 64):
+            self.assert_code('worker_source_filesystem_identity', lambda: source._filesystem_id(bad))
+        facts = self.cap.binding()
+        self.assertEqual(facts['schema_version'], 'worker-source-authoring-binding/2')
+        self.assertEqual(facts['git_storage_binding']['schema_version'], 'worker-source-git-storage/2')
+        for rows in (facts['local_root_identity'], facts['git_storage_binding']['directories'], facts['git_storage_binding']['files']):
+            self.assertTrue(all(type(row[key]) is str for row in rows for key in ('device', 'inode')))
+        large = copy.deepcopy(facts); large['local_root_identity'][0]['inode'] = '9223372036854775909'
+        self.assertEqual(parse_json(canonical(large)), large)
+        self.assert_code('invalid_json', lambda: parse_json(canonical({'inode': 9223372036854775909})))
+        for bad in (1, True, 1.0, '01', '-1', '+1', '1.0', '18446744073709551616'):
+            changed = copy.deepcopy(facts); changed['local_root_identity'][0]['inode'] = bad
+            self.assert_code('worker_source_filesystem_identity', lambda: source._validate_filesystem_ids(changed))
+
+    def test_historical_integer_binding_is_readable_but_not_current_capability(self):
+        old = copy.deepcopy(self.manifest)
+        facts = old['source_authoring_binding']; facts['schema_version'] = 'worker-source-authoring-binding/1'
+        facts['git_storage_binding']['schema_version'] = 'worker-source-git-storage/1'
+        for rows in (facts['local_root_identity'], facts['git_storage_binding']['directories'], facts['git_storage_binding']['files']):
+            for row in rows:
+                for key in ('device', 'inode'): row[key] = int(row[key])
+        self.assertEqual(service.validate_manifest(old), old)
+        self.assert_code('service_source_binding_changed', lambda: self.runtime(self.cap).check(old))
 
     def test_actual_prepared_job_rejects_source_lock_and_json_before_dispatch(self):
         trust = self.root / 'trust'; trust.mkdir(mode=0o700)

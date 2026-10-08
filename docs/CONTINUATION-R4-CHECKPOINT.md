@@ -820,3 +820,49 @@ and portable receipt integration remain staged, with no shared runtime edits
 during signed operations. New initial Plan cancellation creates a distinct
 authority once; it must never replay an old import. No final package/global
 laboratory/platform/production completion is implied.
+
+Increment17 preserves the C16 native recovery evidence before integrating the
+next dependency wave. Three original interrupted imports received separate
+exact lease-recovery approvals; concurrency, receipt-recording interruption and
+lost response preserve once-only release and unknown histories. The committed
+import subsequently passed a new separately approved native no-change Plan and
+readback. These local TLS fixture results do not qualify real Azure or Intune.
+
+The native source-v2 attempt failed before approval because the actual overlay
+inode exceeded JSON's safe integer range. Binding/storage schema2 now preserves
+uint64 identity as canonical decimal strings; the global numeric gate remains
+unchanged. Eight inserted checks and six independent controls qualify that local
+repair. The exact retained proposal is the next native continuation input.
+
+Stopped initial and recovery Plan phases now have distinct approval/release
+contracts and bounded immutable successor ancestry. The real typed-phase
+composition first rejected the complete broker/host/lease fact union; the
+stronger two-site comparison repair retains all eight additional pins. No
+previous import or failed Plan may be replayed to close this gate.
+
+Portable signed worker history is integrated with current-trust revalidation,
+publisher-wide ordering, exact raw archives and explicit synthetic evidence.
+The actual retained v1 native recovery Plan was exported, signed, received and
+reopened through the product CLI. State-only recovery remains separate from a
+Graph deployment baseline. Windows-shaped tests do not establish native Windows.
+
+Nine-layer restoration preserves separate complete epoch and attributed external
+evidence supplements. Final archives and publication readback are pending; the
+current filesystem cannot hold a new simultaneous full-corpus reconstruction.
+The original archives and historical anomalies remain unchanged.
+
+Execution transport failed intermittently before process creation during this
+increment. Failed tool calls were not recorded as product failures or passes;
+pending writes were checked before retry. COMMIT-17.json identifies the final
+committed files and any remaining working-tree changes. Resume with:
+
+    cd /workspace/intune-continuation/work/projects/intune
+    git status --short
+    git log -1 --format='%H %s'
+    /workspace/intune-runtime/bin/python -B scripts/build-release.py --check-only
+
+Then follow EXECUTION-SEQUENCE-R4.md: qualify the retained source-v2 proposal and
+initial-Plan/new-Plan interruption recovery chain under an exact runtime freeze,
+finish native signed-history linkage, and qualify the exact final packages.
+The historical 1141/1242 suites remain separate. Laboratory completion, real
+platform qualification and accountable production approval are not established.

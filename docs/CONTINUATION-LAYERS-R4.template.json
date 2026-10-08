@@ -7,7 +7,8 @@
     "UNFINALIZED: current R4 archive/source pins are absent; restoration MUST BLOCK before creating output.",
     "Original named full repository archive remains unchanged, separately preserved; R2 is the required complete continuation base, not a reduced bundle.",
     "Stopped provider candidate is preserved solely as unqualified source/evidence; no candidate build, replay or execution is authorized.",
-    "Complete restoration has separate directories for every source/runtime/evidence generation and never overlays the recovered baseline."
+    "Complete restoration has separate directories for every source/runtime/evidence generation and never overlays the recovered baseline.",
+    "Both R4 evidence supplements are required: complete epoch and explicitly attributed external task roots, with exact combined root/capsule/IPC coverage. Provider candidate remains its separate ninth layer."
   ],
   "original_release_provenance": {
     "name": "Intune_Atmos_Wally_Repository_All_Threads.zip",
@@ -235,6 +236,33 @@
       },
       "source_commit": null,
       "qualification": "pending_final_artifact_qualification"
+    },
+    {
+      "id": "r4-external-evidence",
+      "archive": {
+        "name": "PENDING_R4_EXTERNAL_EVIDENCE.zip",
+        "bytes": null,
+        "sha256": null,
+        "parts": [
+          {
+            "name": "PENDING_R4_EXTERNAL_EVIDENCE.zip.part01",
+            "bytes": null,
+            "sha256": null
+          }
+        ]
+      },
+      "extract": {
+        "kind": "typed_evidence",
+        "directory": "r4-external-evidence",
+        "snapshot": {
+          "root": "PENDING_R4_LAYER_ROOT",
+          "manifest": "PENDING_R4_MANIFEST.json",
+          "manifest_sha256": null,
+          "schema": "intune-r4-evidence-supplement/1"
+        }
+      },
+      "source_commit": null,
+      "qualification": "pending_attributed_external_root_coverage_and_final_artifact_qualification"
     },
     {
       "id": "r4-provider-candidate",

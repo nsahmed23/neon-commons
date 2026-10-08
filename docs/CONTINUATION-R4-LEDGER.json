@@ -1,14 +1,14 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-07T23:50:03.575038+00:00",
+  "recorded_at": "2026-10-08T00:16:59.371972+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "9ecc98b75c6e12f4492d1907e9c6900721d567b6",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-16.json"
+    "latest_completed_checkpoint": "705ad727d17e8864602a467ac447f8dfcb2190c3",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
   },
   "contract": {
     "path": "docs/STRICT-CONTINUATION-CONTRACT-R4.md",
@@ -37,7 +37,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Laboratory incomplete: strict no-change artifact/type repair and source-intent v2 are integrated with scoped positive/negative evidence; changed-dependency native recovery, common Plan-phase recovery, portable evidence integration and exact final packages remain. Platform qualification and organizational approval remain blocked separately."
+    "explanation": "Laboratory incomplete: C16 native import recovery and new approved no-change Plan pass scoped local protocol assertions. C17 integrates inode binding repair, stopped-Plan recovery and portable signed history. New phase/v2 native journeys, exact final packages and delivery remain. Native Windows, real service/backend/CI/scheduler/device qualification and accountable production approval are separate blocked gates."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -463,11 +463,20 @@
         "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
-        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -671,6 +680,51 @@
           "path": "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
           "bytes": 3195,
           "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "native_views_increment10": {
@@ -713,6 +767,59 @@
             "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -848,11 +955,20 @@
         "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
         "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
         "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
-        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -1020,6 +1136,51 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
           "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1028,6 +1189,59 @@
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -1281,11 +1495,20 @@
         "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
         "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
         "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
-        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual CLI/TUI protected-service review and persistent links implemented. Exact independent capture required for normalized deployment comparison; raw unsupported captures remain visible without mapping promotion. Service view tests explicitly use journal contract fixtures; actual native integration and exact package tests are separate.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -1454,6 +1677,51 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
           "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1462,6 +1730,59 @@
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -1973,11 +2294,20 @@
       "test_procedure_id": "R4-A11",
       "evidence_path": [
         "evidence/epoch-20261007-r4/views/DEVELOPMENT-RECEIPT-03.json",
-        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Four views, exact native Git/source checks, cross-state declared ownership, lossless comparisons and reviewed source patches implemented. Independent34 checks cover pre-filter candidate; later full-inventory filters have21 focused cases and8 overlapping health regressions. Final committed-byte replay pending. Imported state/ownership/provider snapshots do not authenticate cloud facts.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "A07"
@@ -2017,8 +2347,106 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
-      ]
+      ],
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      }
     },
     {
       "id": "A12",
@@ -2210,11 +2638,16 @@
         "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
-        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+        "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual source patch/whole-file review, git apply --check, commit, both affected stack imports and fresh existing-engine plan qualified with independent assertions. Corrected source gives no-op and known-bad value gives update in synthetic_local_process_only profile. YAML alias rejection preserved; full diff exposes comment loss. Not native provider convergence.",
-      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
+      "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
+      "next_action": "Resume exact retained proposal after fresh source/state/Graph checks with new operation/approval under frozen C17.",
       "blocker_owner": null,
       "depends_on": [
         "A01",
@@ -2311,6 +2744,31 @@
           "path": "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
           "bytes": 3195,
           "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+          "bytes": 2064,
+          "sha256": "011577e84453432881d942313140feae525882936ef983b19434ee4a4fb9b213"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+          "bytes": 974,
+          "sha256": "157df79cf692724944ad399727a3fe62ff43f4a1d668fc0f004439260fd5c020"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+          "bytes": 646,
+          "sha256": "f167acc81d43bcddf9697684bd4799901c78d9ffe7f645cf09143c43aa63be23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json",
+          "bytes": 1427,
+          "sha256": "60cfbea1afa52cb315620a5b1862e4e535938c995d90305d35b42718b46410c1"
         }
       ],
       "native_source_increment11": {
@@ -2348,6 +2806,39 @@
             "sha256": "ed616ccc676211e067717833b998387ac79fe81c933b781dc7e2ed3b9358eb23"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Native v2 attempt failed before approval/dispatch on actual overlay inode above JSON safe integer range. Binding/storage schema2 uses canonical uint64 decimal IDs; historical schema1 read-only. Actual overlay before/after,8 inserted methods and6 independent checks retained.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+            "bytes": 2064,
+            "sha256": "011577e84453432881d942313140feae525882936ef983b19434ee4a4fb9b213"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+            "bytes": 974,
+            "sha256": "157df79cf692724944ad399727a3fe62ff43f4a1d668fc0f004439260fd5c020"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+            "bytes": 646,
+            "sha256": "f167acc81d43bcddf9697684bd4799901c78d9ffe7f645cf09143c43aa63be23"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json",
+            "bytes": 1427,
+            "sha256": "60cfbea1afa52cb315620a5b1862e4e535938c995d90305d35b42718b46410c1"
+          }
+        ],
+        "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -2995,11 +3486,16 @@
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
         "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json"
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+        "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock.",
-      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
+      "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
+      "next_action": "Resume exact retained proposal after fresh source/state/Graph checks with new operation/approval under frozen C17.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -3233,6 +3729,31 @@
           "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
           "sha256": "a2cff494cb7136ff9af557d5eded5f3f455165912dcc419ccd0f1ab60d8918d5",
           "bytes": 1212
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+          "bytes": 2064,
+          "sha256": "011577e84453432881d942313140feae525882936ef983b19434ee4a4fb9b213"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+          "bytes": 974,
+          "sha256": "157df79cf692724944ad399727a3fe62ff43f4a1d668fc0f004439260fd5c020"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+          "bytes": 646,
+          "sha256": "f167acc81d43bcddf9697684bd4799901c78d9ffe7f645cf09143c43aa63be23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json",
+          "bytes": 1427,
+          "sha256": "60cfbea1afa52cb315620a5b1862e4e535938c995d90305d35b42718b46410c1"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3302,6 +3823,39 @@
           }
         ],
         "native_or_final_package_acceptance": false
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Native v2 attempt failed before approval/dispatch on actual overlay inode above JSON safe integer range. Binding/storage schema2 uses canonical uint64 decimal IDs; historical schema1 read-only. Actual overlay before/after,8 inserted methods and6 independent checks retained.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+            "bytes": 2064,
+            "sha256": "011577e84453432881d942313140feae525882936ef983b19434ee4a4fb9b213"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+            "bytes": 974,
+            "sha256": "157df79cf692724944ad399727a3fe62ff43f4a1d668fc0f004439260fd5c020"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+            "bytes": 646,
+            "sha256": "f167acc81d43bcddf9697684bd4799901c78d9ffe7f645cf09143c43aa63be23"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json",
+            "bytes": 1427,
+            "sha256": "60cfbea1afa52cb315620a5b1862e4e535938c995d90305d35b42718b46410c1"
+          }
+        ],
+        "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -3377,11 +3931,23 @@
         "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -3745,6 +4311,66 @@
           "path": "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
           "sha256": "42ca7dac9e33185d06b645d5e4aea6e6deedcb39850e2cfe665082e7571fcc6c",
           "bytes": 1255
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+          "bytes": 2542,
+          "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+          "bytes": 742,
+          "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+          "bytes": 2138,
+          "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+          "bytes": 6365,
+          "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+          "bytes": 799,
+          "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+          "bytes": 767,
+          "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+          "bytes": 1364,
+          "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+          "bytes": 999,
+          "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+          "bytes": 2596,
+          "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3838,6 +4464,82 @@
           }
         ],
         "native_or_final_package_acceptance": false
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "plan_phase17": {
+        "status": "IMPLEMENTED",
+        "scope": "Distinct exact initial/recovery Plan lease releases, signed v2 successors with bounded immutable ancestry and once-only edges.31 successor methods overlap prior29;16 release controls and independent13 transaction controls have distinct scopes. Full original-facts mismatch failed before stronger two-site repair; all8 extra fields remain required.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+            "bytes": 2542,
+            "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+            "bytes": 742,
+            "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+            "bytes": 2138,
+            "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+            "bytes": 6365,
+            "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+            "bytes": 799,
+            "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+            "bytes": 767,
+            "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+            "bytes": 1364,
+            "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+            "bytes": 999,
+            "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+            "bytes": 2596,
+            "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
+          }
+        ],
+        "limitation": "No genuine sealed phase completion/native v2 chain yet; local interface/transaction fixtures cannot substitute for it.",
+        "next_action": "Frozen C17 original initial-Plan release, new cancelled Plan, exact new release and new approved no-change Plan."
       }
     },
     {
@@ -3873,11 +4575,14 @@
         "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
         "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
         "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
-        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "/tmp/intune-adoption-recovery-plan-native-01/receipt.json",
+        "/tmp/intune-adoption-recovery-plan-native-01/FINAL-QUALIFICATION.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual pinned Atmos1.230.1/OpenTofu1.13.1/provider route qualified against local TLS service fixtures. Correct exact-plan arguments are two-token --from-plan --planfile; advertised --from-plan=... replanning failure retained. Native local import/no-change/change/exact-plan/readback/convergence completed; real platform and combined worker integration remain open.",
-      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
+      "limitation": "Local protocol qualification only. C17 extraction and phase composition require scoped checks and final exact package gate; no platform qualification.",
+      "next_action": "Qualify new phase chain and exported native evidence, then final packages.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -4063,6 +4768,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
           "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-plan-native-01/receipt.json",
+          "bytes": 1709,
+          "sha256": "f2ccb755503307aa303e4a6fba9beb30760ecd38988a7bc18f74524b58afba4c"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-plan-native-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
         }
       ],
       "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
@@ -4103,6 +4823,29 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual pinned Atmos/Tofu/provider recovery Plan:18 assertions, new signed Plan-only operation, exact native artifacts, receiving readback and typed reconciliation. Original import remains execution unknown; no Graph/state-content writes.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          },
+          {
+            "path": "/tmp/intune-adoption-recovery-plan-native-01/receipt.json",
+            "bytes": 1709,
+            "sha256": "f2ccb755503307aa303e4a6fba9beb30760ecd38988a7bc18f74524b58afba4c"
+          },
+          {
+            "path": "/tmp/intune-adoption-recovery-plan-native-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          }
+        ],
+        "limitation": "Local protocol qualification only. C17 extraction and phase composition require scoped checks and final exact package gate; no platform qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -4156,11 +4899,14 @@
         "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
         "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
-        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": null,
       "depends_on": [
         "B01",
@@ -4419,6 +5165,21 @@
         {
           "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
           "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -4460,6 +5221,29 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -4530,11 +5314,23 @@
         "evidence/epoch-20261007-r4/independent/plan-content-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-content-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-archive-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json"
+        "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Both original-computed and exact description-recovery committed-state schemas now have local signed recovery evidence. Original uncertain execution stays unknown after converged service/state readback. No blind apply replay. Constructed already-unlocked transfer evidence is separate from native fault creation. Real Azure/Graph/CI/Windows/device and hostile-host qualification are absent.",
-      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": null,
       "depends_on": [
         "B05",
@@ -4872,6 +5668,66 @@
           "path": "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
           "bytes": 2304,
           "sha256": "888334fc1d084ac5b3e62c22fbeaecb37d2e238d6e95d53f9b3853d80cb61d72"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+          "bytes": 2542,
+          "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+          "bytes": 742,
+          "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+          "bytes": 2138,
+          "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+          "bytes": 6365,
+          "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+          "bytes": 799,
+          "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+          "bytes": 767,
+          "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+          "bytes": 1364,
+          "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+          "bytes": 999,
+          "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+          "bytes": 2596,
+          "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -4989,6 +5845,82 @@
             "sha256": "888334fc1d084ac5b3e62c22fbeaecb37d2e238d6e95d53f9b3853d80cb61d72"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "plan_phase17": {
+        "status": "IMPLEMENTED",
+        "scope": "Distinct exact initial/recovery Plan lease releases, signed v2 successors with bounded immutable ancestry and once-only edges.31 successor methods overlap prior29;16 release controls and independent13 transaction controls have distinct scopes. Full original-facts mismatch failed before stronger two-site repair; all8 extra fields remain required.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+            "bytes": 2542,
+            "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+            "bytes": 742,
+            "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+            "bytes": 2138,
+            "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+            "bytes": 6365,
+            "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+            "bytes": 799,
+            "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+            "bytes": 767,
+            "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+            "bytes": 1364,
+            "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+            "bytes": 999,
+            "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+            "bytes": 2596,
+            "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
+          }
+        ],
+        "limitation": "No genuine sealed phase completion/native v2 chain yet; local interface/transaction fixtures cannot substitute for it.",
+        "next_action": "Frozen C17 original initial-Plan release, new cancelled Plan, exact new release and new approved no-change Plan."
       }
     },
     {
@@ -5479,11 +6411,14 @@
         "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
         "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
         "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
-        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Nine real Docker host checks pass with pinned native ToFu, network-none, nonroot/read-only mounts, limits, timeout/SIGINT/controller-SIGKILL recovery and cleanup. Disk quota for writable bind mount is not enforced; no hostile disk-exhaustion or crash/power-loss qualification claimed. Native live execution is not yet qualified. Later independent counterexamples led to stricter contradictory-inspect and writable-executable admission; three focused tests on repaired source pass, independent10/10 retained-positive and negative interface checks pass on repaired source. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": null,
       "depends_on": [
         "B03",
@@ -5684,6 +6619,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
           "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
         }
       ],
       "native_fault_increment": {
@@ -5706,6 +6656,29 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -6449,11 +7422,20 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/queue/DEVELOPMENT-RECEIPT-02.json",
         "evidence/epoch-20261007-r4/independent/portable-reopen-before-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Immutable reviewed queue metadata and compare-and-swap concurrent updates implemented. Policy-bound reporting and fresh cross-stack writer evidence replace collection-wide/report-owner assumptions. Human reviewer is distinct from declared writer; no finding suppression or automatic write. Focused and actual CLI assertions are overlapping local evidence, not production qualification.",
-      "next_action": "Qualify exact committed source and final packages; preserve local scope and complete remaining native integration.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "A09",
@@ -6502,6 +7484,51 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json",
           "bytes": 157485,
           "sha256": "681e6be5a078c0b2e0278b7644848f79bf05e2fd34849096b8f7a4f4f0bf2807"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "increment15": {
@@ -6521,6 +7548,59 @@
             "sha256": "681e6be5a078c0b2e0278b7644848f79bf05e2fd34849096b8f7a4f4f0bf2807"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -6788,11 +7868,20 @@
         "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
         "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-reopen-before-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Authenticated-reader implementation and independent scheduler adapter are locally tested with declared fixtures;29developer checks and8independent CLI scenarios overlap and are not summed. Plain import remains unverified. Actual authenticated Graph collection/live schedule activation and encrypted persistent storage remain external/uncompleted.",
-      "next_action": "Qualify the committed integrated candidate through independent real entrypoints; continue native worker/host/provider integration and required external procedures.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "C03"
@@ -6877,6 +7966,51 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json",
           "bytes": 157485,
           "sha256": "681e6be5a078c0b2e0278b7644848f79bf05e2fd34849096b8f7a4f4f0bf2807"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "increment15": {
@@ -6896,6 +8030,59 @@
             "sha256": "681e6be5a078c0b2e0278b7644848f79bf05e2fd34849096b8f7a4f4f0bf2807"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -7311,11 +8498,20 @@
         "evidence/epoch-20261007-r4/independent/windows-repository-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/packaging/NATIVE-SOURCE-ADMISSION-29.json",
         "evidence/epoch-20261007-r4/windows-source/SOURCE-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
-      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -7416,6 +8612,51 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/windows-source-after-03/RESULT.json",
           "sha256": "46ae28a4fc3912cd4a37630f26f6e8630fc0b1a7572213b9fa82592537777f4c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -7436,6 +8677,59 @@
         "scope": "Actual native intent-import and immutable bounded proposal routes use existing literal resolver/render/shared impact engine;90 selected owner methods and12 independent controls overlap. Actual files/SQLite/shared text terminal with recorded Win32 boundaries.",
         "limitations": "No nativeWindows/Git authentication, source mutation, native pipeline or production approval. Reviewed native source writer/recovery still staged.",
         "next_action": "Complete explicit source editing and recovery; qualify actual native host separately."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -7589,11 +8883,20 @@
         "evidence/epoch-20261007-r4/independent/windows-repository-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/packaging/NATIVE-SOURCE-ADMISSION-29.json",
         "evidence/epoch-20261007-r4/independent/portable-reopen-before-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
-      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -7700,6 +9003,51 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-reopen-after-01/RESULT.json",
           "bytes": 157485,
           "sha256": "681e6be5a078c0b2e0278b7644848f79bf05e2fd34849096b8f7a4f4f0bf2807"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -7733,6 +9081,59 @@
             "sha256": "681e6be5a078c0b2e0278b7644848f79bf05e2fd34849096b8f7a4f4f0bf2807"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -7766,11 +9167,20 @@
         "evidence/epoch-20261007-r4/integration/CONTINUATION-12-NATIVE-PROGRESS-01.json",
         "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT12-FULL-LINKAGE-01.json",
         "evidence/epoch-20261007-r4/packaging/inventory-check-32.json",
-        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope.",
-      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -7962,6 +9372,51 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
           "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -7971,6 +9426,59 @@
         "scope": "Distinct readonly adoption navigation survives reopen and drives review/execution tabs; legacy help retained. Independent14 actualLinuxPTY controls on disposable prepared journal;17 presentation methods overlap. Before help/context/back failures preserved.",
         "limitations": "Prepared journal,0native dispatch in these PTYs; successful native fixture and final exact-package replay still required. No nativeWindows qualification.",
         "next_action": "Replay actual investigation/history/recovery keys on newly qualified native journal and final packages."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -8021,11 +9529,29 @@
         "evidence/epoch-20261007-r4/windows-source-edit/APPLIED-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/independent/windows-edit-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/windows-edit-qualifier-01/RESULT.json",
-        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json"
+        "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+        "/tmp/intune-r4-worker-evidence-product-01/stderr",
+        "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual Linux PTY journey passes17independent assertions across3sessions and no-TTY: pending raw-object selection, literal ID/settings/targeting, fourviews, exact protected review/attach/reopen, duplicate-name immutable selection and unchanged original job journal. Mapping unsupported remains explicit. Final integrated/package scope and native Windows remain unqualified; earlier broader visual controls retain their exact historical scope. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Qualify exact committed final candidate; reuse unchanged independent controls only with dependency linkage.",
+      "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+      "next_action": "Finish closed v2 phase decoder, qualify exact native chain export/receive/reopen, then final packages and native Windows gates.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -8283,6 +9809,96 @@
         {
           "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
           "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+          "bytes": 6743,
+          "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+          "bytes": 209,
+          "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+          "bytes": 19733,
+          "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+          "bytes": 32594,
+          "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+          "bytes": 1304,
+          "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+          "bytes": 38738,
+          "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+          "bytes": 27492,
+          "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+          "bytes": 27400,
+          "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+          "bytes": 27459,
+          "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+          "bytes": 2542,
+          "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+          "bytes": 742,
+          "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+          "bytes": 2138,
+          "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+          "bytes": 6365,
+          "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+          "bytes": 799,
+          "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+          "bytes": 767,
+          "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+          "bytes": 1364,
+          "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+          "bytes": 999,
+          "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+          "bytes": 2596,
+          "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -8293,6 +9909,112 @@
         "scope": "Distinct readonly adoption navigation survives reopen and drives review/execution tabs; legacy help retained. Independent14 actualLinuxPTY controls on disposable prepared journal;17 presentation methods overlap. Before help/context/back failures preserved.",
         "limitations": "Prepared journal,0native dispatch in these PTYs; successful native fixture and final exact-package replay still required. No nativeWindows qualification.",
         "next_action": "Replay actual investigation/history/recovery keys on newly qualified native journal and final packages."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Portable signed history integrated: exact approval and publisher signatures, current trust on reopen, publisher-wide sequence/fork checks and raw bytes retained. Synthetic observations cannot become live baselines. Native v1 Plan export8 CLI assertions; Windows-shaped navigation/restore12 independent checks with recorded Win32.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-05/APPLIED-RECEIPT.json",
+            "bytes": 6743,
+            "sha256": "b1520b9d6ebcecc03bdab2f6c062102c8ad270bddefaba412f58d16669fb086f"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-product-01/stderr",
+            "bytes": 209,
+            "sha256": "97c0f3024d0d4ac11f0a65ed5aa441586ad732fb5695cfb242e3d0adf861edc9"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-export-01/RESULT.json",
+            "bytes": 19733,
+            "sha256": "7eb1ba2bd56e8296b61f95d73783b9c9167ea20e38a9eae980b3233e160b6479"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domains-01/RESULT.json",
+            "bytes": 32594,
+            "sha256": "c40cf0fe20203c7ba6893de7cf0c5b8999c8646dc9ec256ff9542daa39099540"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-domain-precision-02/RESULT.json",
+            "bytes": 1304,
+            "sha256": "44315bf239abeff0313b7fac7f573e90db4b84086ae6d7bafb8b06045d66406d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
+            "bytes": 38738,
+            "sha256": "5fda6bff5e2d657bd4284f2ca950484890656224d00efca3f3ccd67b754c82eb"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
+            "bytes": 27492,
+            "sha256": "7cd63e97e4a876cfd24814291355a849b78cb9c30c1f78f1e3a11c6fdceac90c"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
+            "bytes": 27400,
+            "sha256": "6a15882fc0e2c7fc8c5d376d49c92ada9e507215403542fe1c7bb669807419b5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+            "bytes": 27459,
+            "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+          }
+        ],
+        "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "plan_phase17": {
+        "status": "IMPLEMENTED",
+        "scope": "Distinct exact initial/recovery Plan lease releases, signed v2 successors with bounded immutable ancestry and once-only edges.31 successor methods overlap prior29;16 release controls and independent13 transaction controls have distinct scopes. Full original-facts mismatch failed before stronger two-site repair; all8 extra fields remain required.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+            "bytes": 2542,
+            "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+            "bytes": 742,
+            "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+            "bytes": 2138,
+            "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+            "bytes": 6365,
+            "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+            "bytes": 799,
+            "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+            "bytes": 767,
+            "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+            "bytes": 1364,
+            "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+            "bytes": 999,
+            "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+            "bytes": 2596,
+            "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
+          }
+        ],
+        "limitation": "No genuine sealed phase completion/native v2 chain yet; local interface/transaction fixtures cannot substitute for it.",
+        "next_action": "Frozen C17 original initial-Plan release, new cancelled Plan, exact new release and new approved no-change Plan."
       }
     },
     {
@@ -10139,11 +11861,18 @@
         "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/APPLIED-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
-        "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+        "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
-      "next_action": "Freeze integrated candidate, close required local failures, qualify exact reproducible source/runtime packages and complete verified layered recovery.",
+      "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
+      "next_action": "After final package/evidence freeze, finalize explicit roots, archive each new layer, independently verify, review public delta and read back authorized delivery. Reuse baseline exact-layer receipts separately.",
       "blocker_owner": null,
       "depends_on": [
         "F01",
@@ -10236,6 +11965,41 @@
           "path": "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
           "sha256": "823325d706160d8eebb1a1dfd27fc5cdd885f33ccbfd8e583c9dbcc098832a06",
           "bytes": 2837
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+          "bytes": 2946,
+          "sha256": "d848bfdf1aef6522eab9e1c74d7688e3e6a5fd85cc2b77461a90afbcb6deba58"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+          "bytes": 9550,
+          "sha256": "de61d10b846646c436921b9e4f65a0b42ded8ad81625bd37a08c7c2dc0995142"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+          "bytes": 431,
+          "sha256": "affa800b2ad87bfddb81fba9c673e4ddb0a2a6b0665be54c09ea7a5e404701c2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+          "bytes": 1374,
+          "sha256": "69dc622d870c4f446ade0112b81d53bb3f64be86bf1f324a22d1bc4f9c2cb745"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+          "bytes": 7720,
+          "sha256": "6df524fb8033c980c2a299af40ea62334b882c1bdaa16a17937b9231444d3693"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+          "bytes": 1111,
+          "sha256": "b18c76c38ea8612c1fef7281fbb9d89816a65a990a932c639cb1ee33bfc912ec"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json",
+          "bytes": 1335,
+          "sha256": "c4dc5606b4650a20c093992713cce4410cee90f3da173decd08d1d652d7af756"
         }
       ],
       "evidence_producer_increment8": {
@@ -10294,6 +12058,49 @@
           }
         ],
         "native_or_final_package_acceptance": false
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Nine-layer restore explicitly separates complete R4 epoch and attributed external roots, with stopped provider candidate separate.17 inserted and17 independent scaled controls plus exact type substitution qualify bounded per-layer closure. Ordinary files retained; explicit IPC/capsule mappings.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+            "bytes": 2946,
+            "sha256": "d848bfdf1aef6522eab9e1c74d7688e3e6a5fd85cc2b77461a90afbcb6deba58"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+            "bytes": 9550,
+            "sha256": "de61d10b846646c436921b9e4f65a0b42ded8ad81625bd37a08c7c2dc0995142"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+            "bytes": 431,
+            "sha256": "affa800b2ad87bfddb81fba9c673e4ddb0a2a6b0665be54c09ea7a5e404701c2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+            "bytes": 1374,
+            "sha256": "69dc622d870c4f446ade0112b81d53bb3f64be86bf1f324a22d1bc4f9c2cb745"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+            "bytes": 7720,
+            "sha256": "6df524fb8033c980c2a299af40ea62334b882c1bdaa16a17937b9231444d3693"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+            "bytes": 1111,
+            "sha256": "b18c76c38ea8612c1fef7281fbb9d89816a65a990a932c639cb1ee33bfc912ec"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json",
+            "bytes": 1335,
+            "sha256": "c4dc5606b4650a20c093992713cce4410cee90f3da173decd08d1d652d7af756"
+          }
+        ],
+        "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -10615,11 +12422,18 @@
       "evidence_path": [
         "evidence/epoch-20261007-r4/packaging/public-review-01/PUBLIC-SUITABILITY-PREPARATION-04.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/APPLIED-RECEIPT-01.json",
-        "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json"
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+        "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Frozen prior corpus public-suitability preparation reviewed exact binaries, nested archives/Git objects, SQLite, fixture keys/certificates and historical provider examples; no real organization/tenant credential identified in that scope. Final additions and exact final archive require delta review. Historical provenance anomalies, dangling blobs and unlinked bytecode remain open. This is scoped publication preparation, not AppSec approval or public readback.",
-      "next_action": "Review final frozen evidence delta and archive identities; record explicit omissions and publish only suitable final artifacts using exact new-branch transfer and verified anonymous readback.",
+      "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
+      "next_action": "After final package/evidence freeze, finalize explicit roots, archive each new layer, independently verify, review public delta and read back authorized delivery. Reuse baseline exact-layer receipts separately.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -10655,6 +12469,41 @@
           "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
           "bytes": 59597,
           "sha256": "54192f2f9ecf9396a7eaa92a90d5ea8a5b04490927eb9ed14fec16efec403715"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+          "bytes": 2946,
+          "sha256": "d848bfdf1aef6522eab9e1c74d7688e3e6a5fd85cc2b77461a90afbcb6deba58"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+          "bytes": 9550,
+          "sha256": "de61d10b846646c436921b9e4f65a0b42ded8ad81625bd37a08c7c2dc0995142"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+          "bytes": 431,
+          "sha256": "affa800b2ad87bfddb81fba9c673e4ddb0a2a6b0665be54c09ea7a5e404701c2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+          "bytes": 1374,
+          "sha256": "69dc622d870c4f446ade0112b81d53bb3f64be86bf1f324a22d1bc4f9c2cb745"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+          "bytes": 7720,
+          "sha256": "6df524fb8033c980c2a299af40ea62334b882c1bdaa16a17937b9231444d3693"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+          "bytes": 1111,
+          "sha256": "b18c76c38ea8612c1fef7281fbb9d89816a65a990a932c639cb1ee33bfc912ec"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json",
+          "bytes": 1335,
+          "sha256": "c4dc5606b4650a20c093992713cce4410cee90f3da173decd08d1d652d7af756"
         }
       ],
       "increment15": {
@@ -10674,6 +12523,49 @@
             "sha256": "54192f2f9ecf9396a7eaa92a90d5ea8a5b04490927eb9ed14fec16efec403715"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Nine-layer restore explicitly separates complete R4 epoch and attributed external roots, with stopped provider candidate separate.17 inserted and17 independent scaled controls plus exact type substitution qualify bounded per-layer closure. Ordinary files retained; explicit IPC/capsule mappings.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+            "bytes": 2946,
+            "sha256": "d848bfdf1aef6522eab9e1c74d7688e3e6a5fd85cc2b77461a90afbcb6deba58"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+            "bytes": 9550,
+            "sha256": "de61d10b846646c436921b9e4f65a0b42ded8ad81625bd37a08c7c2dc0995142"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+            "bytes": 431,
+            "sha256": "affa800b2ad87bfddb81fba9c673e4ddb0a2a6b0665be54c09ea7a5e404701c2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+            "bytes": 1374,
+            "sha256": "69dc622d870c4f446ade0112b81d53bb3f64be86bf1f324a22d1bc4f9c2cb745"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+            "bytes": 7720,
+            "sha256": "6df524fb8033c980c2a299af40ea62334b882c1bdaa16a17937b9231444d3693"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+            "bytes": 1111,
+            "sha256": "b18c76c38ea8612c1fef7281fbb9d89816a65a990a932c639cb1ee33bfc912ec"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json",
+            "bytes": 1335,
+            "sha256": "c4dc5606b4650a20c093992713cce4410cee90f3da173decd08d1d652d7af756"
+          }
+        ],
+        "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -10700,11 +12592,18 @@
         "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/APPLIED-RECEIPT-01.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/AFTER-DEEP-CAPSULE-COVERAGE-01.json",
-        "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+        "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+        "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
-      "next_action": "Freeze integrated candidate, close required local failures, qualify exact reproducible source/runtime packages and complete verified layered recovery.",
+      "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
+      "next_action": "After final package/evidence freeze, finalize explicit roots, archive each new layer, independently verify, review public delta and read back authorized delivery. Reuse baseline exact-layer receipts separately.",
       "blocker_owner": null,
       "depends_on": [
         "R00"
@@ -10783,6 +12682,41 @@
           "path": "evidence/epoch-20261007-r4/independent/multiroot-01/RESULT.json",
           "sha256": "823325d706160d8eebb1a1dfd27fc5cdd885f33ccbfd8e583c9dbcc098832a06",
           "bytes": 2837
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+          "bytes": 2946,
+          "sha256": "d848bfdf1aef6522eab9e1c74d7688e3e6a5fd85cc2b77461a90afbcb6deba58"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+          "bytes": 9550,
+          "sha256": "de61d10b846646c436921b9e4f65a0b42ded8ad81625bd37a08c7c2dc0995142"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+          "bytes": 431,
+          "sha256": "affa800b2ad87bfddb81fba9c673e4ddb0a2a6b0665be54c09ea7a5e404701c2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+          "bytes": 1374,
+          "sha256": "69dc622d870c4f446ade0112b81d53bb3f64be86bf1f324a22d1bc4f9c2cb745"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+          "bytes": 7720,
+          "sha256": "6df524fb8033c980c2a299af40ea62334b882c1bdaa16a17937b9231444d3693"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+          "bytes": 1111,
+          "sha256": "b18c76c38ea8612c1fef7281fbb9d89816a65a990a932c639cb1ee33bfc912ec"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json",
+          "bytes": 1335,
+          "sha256": "c4dc5606b4650a20c093992713cce4410cee90f3da173decd08d1d652d7af756"
         }
       ],
       "transfer_increment10": {
@@ -10827,6 +12761,49 @@
           }
         ],
         "native_or_final_package_acceptance": false
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Nine-layer restore explicitly separates complete R4 epoch and attributed external roots, with stopped provider candidate separate.17 inserted and17 independent scaled controls plus exact type substitution qualify bounded per-layer closure. Ordinary files retained; explicit IPC/capsule mappings.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/nine-layer-staging/SOURCE-RECEIPT-01.json",
+            "bytes": 2946,
+            "sha256": "d848bfdf1aef6522eab9e1c74d7688e3e6a5fd85cc2b77461a90afbcb6deba58"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/nine-layers-01/RESULT.json",
+            "bytes": 9550,
+            "sha256": "de61d10b846646c436921b9e4f65a0b42ded8ad81625bd37a08c7c2dc0995142"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/nine-layer-type-01/RESULT.json",
+            "bytes": 431,
+            "sha256": "affa800b2ad87bfddb81fba9c673e4ddb0a2a6b0665be54c09ea7a5e404701c2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/PREPARATION-CHECKPOINT-01.json",
+            "bytes": 1374,
+            "sha256": "69dc622d870c4f446ade0112b81d53bb3f64be86bf1f324a22d1bc4f9c2cb745"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/CAPACITY-AND-EXECUTION-PLAN-01.md",
+            "bytes": 7720,
+            "sha256": "6df524fb8033c980c2a299af40ea62334b882c1bdaa16a17937b9231444d3693"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-before-01/RESULT.json",
+            "bytes": 1111,
+            "sha256": "b18c76c38ea8612c1fef7281fbb9d89816a65a990a932c639cb1ee33bfc912ec"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-delta-dependencies-after-01/RESULT.json",
+            "bytes": 1335,
+            "sha256": "c4dc5606b4650a20c093992713cce4410cee90f3da173decd08d1d652d7af756"
+          }
+        ],
+        "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -11319,11 +13296,16 @@
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INTEGRATION-01.json",
         "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PROPOSAL-02.json",
         "evidence/epoch-20261007-r4/independent/source-intent-v2-03/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json"
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+        "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
-      "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
+      "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
+      "next_action": "Resume exact retained proposal after fresh source/state/Graph checks with new operation/approval under frozen C17.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -11760,6 +13742,31 @@
           "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/PACKAGED-TESTS-01.json",
           "sha256": "a2cff494cb7136ff9af557d5eded5f3f455165912dcc419ccd0f1ab60d8918d5",
           "bytes": 1212
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+          "bytes": 2064,
+          "sha256": "011577e84453432881d942313140feae525882936ef983b19434ee4a4fb9b213"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+          "bytes": 974,
+          "sha256": "157df79cf692724944ad399727a3fe62ff43f4a1d668fc0f004439260fd5c020"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+          "bytes": 646,
+          "sha256": "f167acc81d43bcddf9697684bd4799901c78d9ffe7f645cf09143c43aa63be23"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json",
+          "bytes": 1427,
+          "sha256": "60cfbea1afa52cb315620a5b1862e4e535938c995d90305d35b42718b46410c1"
         }
       ],
       "increment15": {
@@ -11796,6 +13803,39 @@
           }
         ],
         "native_or_final_package_acceptance": false
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "Native v2 attempt failed before approval/dispatch on actual overlay inode above JSON safe integer range. Binding/storage schema2 uses canonical uint64 decimal IDs; historical schema1 read-only. Actual overlay before/after,8 inserted methods and6 independent checks retained.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-REPAIR-PROPOSAL-01.json",
+            "bytes": 2064,
+            "sha256": "011577e84453432881d942313140feae525882936ef983b19434ee4a4fb9b213"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-INSERTION-01.json",
+            "bytes": 974,
+            "sha256": "157df79cf692724944ad399727a3fe62ff43f4a1d668fc0f004439260fd5c020"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/source-intent-service/INODE-PRODUCT-TESTS-01.json",
+            "bytes": 646,
+            "sha256": "f167acc81d43bcddf9697684bd4799901c78d9ffe7f645cf09143c43aa63be23"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/source-inode-01/RESULT.json",
+            "bytes": 1427,
+            "sha256": "60cfbea1afa52cb315620a5b1862e4e535938c995d90305d35b42718b46410c1"
+          }
+        ],
+        "limitation": "No native v2 after repair yet. Global JSON numeric gate unchanged; no import, proposal or signed mutation replay.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -12783,11 +14823,14 @@
         "evidence/epoch-20261007-r4/worker-service/adoption-staging/integrated-02/SCOPE-CORRECTION-01.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/integration/adoption-adjacent-01/TEST-IDENTITIES.json",
-        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
-      "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -13147,6 +15190,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/adoption-transcript-history-01/RESULT.json",
           "sha256": "cf9981222858922eafbe83bf0dffb7670a75f1168337610f53b8da5b3aad32ad"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
         }
       ],
       "protected_adoption_increment12": {
@@ -13155,6 +15213,29 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -14217,11 +16298,14 @@
         "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-journey-01/receipt.json",
         "evidence/epoch-20261007-r4/worker-provider/committed-state-recovery-resume-01/receipt.json",
-        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01"
+        "evidence/epoch-20261007-r4/worker-broker/committed-focused-01",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Complete the explicitly mapped remaining local controls against the final integrated candidate; preserve external route gates.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -14589,6 +16673,21 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
         }
       ],
       "native_fault_increment": {
@@ -14596,6 +16695,29 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     },
     {
@@ -14771,11 +16893,23 @@
         "evidence/epoch-20261007-r4/independent/plan-content-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-content-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-archive-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json"
+        "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
-      "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Qualify final exact packages and retained fault gates after Windows local integration; external platform, security disposition and organizational approval remain separate.",
+      "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+      "next_action": "Freeze C17; release exact retained initial Plan lease, interrupt one new successor, release that distinct Plan lease, approve new no-change Plan; no import or old Plan replay.",
       "blocker_owner": "root/service integration",
       "depends_on": [
         "A14",
@@ -15207,6 +17341,66 @@
           "path": "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
           "bytes": 2304,
           "sha256": "888334fc1d084ac5b3e62c22fbeaecb37d2e238d6e95d53f9b3853d80cb61d72"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+          "bytes": 2866,
+          "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+          "bytes": 6379,
+          "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+          "bytes": 2542,
+          "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+          "bytes": 742,
+          "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+          "bytes": 2138,
+          "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+          "bytes": 6365,
+          "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+          "bytes": 799,
+          "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+          "bytes": 767,
+          "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+          "bytes": 1364,
+          "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+          "bytes": 999,
+          "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+          "bytes": 2596,
+          "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
         }
       ],
       "native_fault_increment": {
@@ -15322,6 +17516,82 @@
             "sha256": "888334fc1d084ac5b3e62c22fbeaecb37d2e238d6e95d53f9b3853d80cb61d72"
           }
         ]
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual native import recovery: three exact approvals release original acquisition, committed-state and lost-response leases once. Concurrency, interrupted receipt persistence and lost response preserve unknown history. Independent raw18 overlaps native20/17/20 scopes; not additive.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-RECOVERY-NATIVE-INDEX-01.json",
+            "bytes": 2866,
+            "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/adoption-fault-raw-02/RESULT.json",
+            "bytes": 6379,
+            "sha256": "dba49bfd5b9f6ed152cc6d5b95cb0855ba8be223c049a798714c141f49fcd79d"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          }
+        ],
+        "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "plan_phase17": {
+        "status": "IMPLEMENTED",
+        "scope": "Distinct exact initial/recovery Plan lease releases, signed v2 successors with bounded immutable ancestry and once-only edges.31 successor methods overlap prior29;16 release controls and independent13 transaction controls have distinct scopes. Full original-facts mismatch failed before stronger two-site repair; all8 extra fields remain required.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/PROPOSED-02.json",
+            "bytes": 2542,
+            "sha256": "33c9e4dfb941bcbc31b7b106ef3d6360bbccd8ed3aa5d6016860d19ebb3f3741"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-broker/adoption-plan-recovery-staging/integrated-qualified-01/receipt.json",
+            "bytes": 742,
+            "sha256": "0e1e3d184eda156b54b6fc3484abfb12faa185ca1afde341b2f3155015538f69"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/PROPOSED-02.json",
+            "bytes": 2138,
+            "sha256": "d13a52731245a7e9ad34200c9211856271b8dc55138ce5ce4057e576583a7795"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/integrated-01/receipt.json",
+            "bytes": 6365,
+            "sha256": "c594df896b0028ec68c0aa4b001f85269018ce0f770b86c0d40b73b6b80e7db1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-before-01/receipt.json",
+            "bytes": 799,
+            "sha256": "c7bd620aee927791bacc81e1c6b08c7dfa56c6bf7dbba6deaadbac238c6f36e1"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/phase-facts-after-01/receipt.json",
+            "bytes": 767,
+            "sha256": "b4e8dd04af9bda7296edfe33718b36c2ef46141d623da0819d5df141a1ede4f4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/APPLIED-01.json",
+            "bytes": 1364,
+            "sha256": "1c622c1a1ef68c65a0318058262c59e241d4739b8365ea712e860c92772900f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-successor-staging/full-original-repair/integrated-01/receipt.json",
+            "bytes": 999,
+            "sha256": "d2e6dbde9563c172b5e9113e4e2a59b53f7264e6fad19c0d828c35f3ae51e091"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/phase-transaction-01/RESULT.json",
+            "bytes": 2596,
+            "sha256": "f6291724e90203a7d0b4a08ed6d3c11bdff52f300c31c1849e97ae8e59d95d77"
+          }
+        ],
+        "limitation": "No genuine sealed phase completion/native v2 chain yet; local interface/transaction fixtures cannot substitute for it.",
+        "next_action": "Frozen C17 original initial-Plan release, new cancelled Plan, exact new release and new approved no-change Plan."
       }
     },
     {
@@ -17066,7 +19336,10 @@
         "evidence/epoch-20261007-r4/independent/plan-caller-review-01/REVIEW.json",
         "evidence/epoch-20261007-r4/independent/plan-content-final-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/plan-archive-final-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+        "/tmp/intune-adoption-recovery-plan-native-01/receipt.json",
+        "/tmp/intune-adoption-recovery-plan-native-01/FINAL-QUALIFICATION.json"
       ],
       "evidence_receipts": [
         {
@@ -17142,11 +19415,26 @@
           "path": "evidence/epoch-20261007-r4/independent/plan-edge-final-01/RESULT.json",
           "sha256": "42ca7dac9e33185d06b645d5e4aea6e6deedcb39850e2cfe665082e7571fcc6c",
           "bytes": 1255
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+          "bytes": 3396,
+          "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-plan-native-01/receipt.json",
+          "bytes": 1709,
+          "sha256": "f2ccb755503307aa303e4a6fba9beb30760ecd38988a7bc18f74524b58afba4c"
+        },
+        {
+          "path": "/tmp/intune-adoption-recovery-plan-native-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
         }
       ],
       "environment": "Linux; preserved actual native plan binary, independent mutated JSON; no new native dispatch",
-      "limitation": "No native caller run on these changed dependencies yet. Prior native positive bytes remain historical. Content checks do not independently authenticate a receiving service; typed callers supply that evidence.",
-      "next_action": "Freeze reviewed candidate and execute actual native recovery Plan plus new initial Plan interruption/recovery; preserve once histories and independently assert final state.",
+      "limitation": "Local protocol qualification only. C17 extraction and phase composition require scoped checks and final exact package gate; no platform qualification.",
+      "next_action": "Qualify new phase chain and exported native evidence, then final packages.",
       "blocker_owner": "Workbench worker/verification maintainer (active observation lane)",
       "depends_on": [
         "B05",
@@ -17252,8 +19540,31 @@
           }
         ],
         "native_or_final_package_acceptance": false
+      },
+      "increment17": {
+        "status": "IMPLEMENTED",
+        "scope": "C16 actual pinned Atmos/Tofu/provider recovery Plan:18 assertions, new signed Plan-only operation, exact native artifacts, receiving readback and typed reconciliation. Original import remains execution unknown; no Graph/state-content writes.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/C16-NATIVE-INDEX-01.json",
+            "bytes": 3396,
+            "sha256": "82fe93dd3b4ed72eeb688f52799a7856cff33e7936c4c15bae649c8e7f0ccc0b"
+          },
+          {
+            "path": "/tmp/intune-adoption-recovery-plan-native-01/receipt.json",
+            "bytes": 1709,
+            "sha256": "f2ccb755503307aa303e4a6fba9beb30760ecd38988a7bc18f74524b58afba4c"
+          },
+          {
+            "path": "/tmp/intune-adoption-recovery-plan-native-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          }
+        ],
+        "limitation": "Local protocol qualification only. C17 extraction and phase composition require scoped checks and final exact package gate; no platform qualification.",
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
       }
     }
   ],
-  "checkpoint_increment": 16
+  "checkpoint_increment": 17
 }

@@ -146,6 +146,8 @@ def runtime_files():
         'WORKER-ADOPTION-RECOVERY-PLAN-R4.md',
         'WINDOWS-SOURCE-EDIT-R4.md',
         'WORKER-SOURCE-INTENT-R4.md','NATIVE-PLAN-EVIDENCE-R4.md','EVIDENCE-SNAPSHOT-R4.md',
+        'WORKER-ADOPTION-PLAN-RECOVERY-R4.md','ADOPTION-PLAN-SUCCESSOR-R4.md',
+        'WORKER-EVIDENCE-R4.md','WINDOWS-WORKER-EVIDENCE-R4.md',
         'EXECUTION-SEQUENCE-R4.md',
         'WINDOWS-READONLY-CONTINUATION-R4.md','WORKER-COMMITTED-STATE-RECOVERY-R4.md',
         'WORKER-PARTIAL-RECOVERY-R4.md',
@@ -170,6 +172,8 @@ def runtime_files():
                   'scripts/qualify-windows-source.py',
                   'scripts/qualify-windows-source-edit.py',
                   'scripts/intune-windows-source.py',
+                  'scripts/intune-worker-evidence.py','scripts/intune-windows-evidence.py',
+                  'scripts/qualify-windows-worker-evidence.py',
                   'scripts/restore-evidence-layer.py','scripts/restore-complete-layers.py',
                   'scripts/build-evidence-layer.py','scripts/verify-source-linkage.py',
                   'scripts/verify-release-artifact.py'])

@@ -14,10 +14,10 @@ from .io import AppError
 
 READ_ONLY_COMMANDS = frozenset({'quit', 'exit', 'help', 'overview', 'next', 'previous', 'back', 'cancel',
     'search', 'search-page', 'select', 'inspect', 'settings', 'relationships', 'health', 'health-page',
-    'dictionary', 'dictionary-page', 'collections', 'history', 'history-recent', 'views', 'views-page'})
+    'dictionary', 'dictionary-page', 'collections', 'history', 'history-recent', 'evidence-history', 'views', 'views-page'})
 
 
-LOCAL_SOURCE_COMMANDS = frozenset({'repository-import', 'source-acceptance-propose', 'source-review',
+LOCAL_SOURCE_COMMANDS = frozenset({'repository-import', 'source-acceptance-propose', 'evidence-link', 'source-review',
     'source-edit', 'source-edit-status', 'source-edit-recover'})
 
 def _fail(code):

@@ -443,6 +443,8 @@ HELP = {
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
     'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
+    'received_worker_evidence': ['evidence-link EVIDENCE_STORE REQUEST_SHA256 TRUST_PATH VERIFIER_PATH PRIVATE_SCRATCH',
+                                 'evidence-history (selected object; every read rechecks signed bytes/current trust)'],
     'protected_service': ['service-link JOB_ROOT POLICY_PATH (link selected object to persistent four views)',
                           'service-review JOB_ROOT POLICY_PATH', 'service-status JOB_ROOT POLICY_PATH',
                           'service-attach JOB_ROOT POLICY_PATH (read-only; no dispatch or replay)',
@@ -618,6 +620,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 from .adoption_cli import invoke_plan
                 result = invoke_plan(name.removeprefix('adoption-plan-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
+            elif name in ('evidence-link','evidence-history') and len(values) == (5 if name == 'evidence-link' else 0):
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from . import workbench_evidence_views as received_views
+                result = received_views.link(store,selected,*values) if name == 'evidence-link' else received_views.history(store,selected)
             elif name == 'service-link' and len(values) == 2:
                 if selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')

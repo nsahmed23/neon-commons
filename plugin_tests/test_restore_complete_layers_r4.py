@@ -1,4 +1,4 @@
-"""Literal independently authored eight-layer fixtures through the actual CLI."""
+"""Literal independently authored nine-layer fixtures through the actual CLI."""
 import copy
 import hashlib
 import importlib.util
@@ -15,8 +15,8 @@ import zipfile
 
 PROJECT=Path(__file__).resolve().parents[1]
 SCRIPT=PROJECT/'scripts/restore-complete-layers.py'
-IDS=('r2-complete','r3-source','r3-runtime','r3-evidence','r4-source','r4-runtime','r4-evidence','r4-provider-candidate')
-TYPED={'r2-complete','r3-evidence','r4-evidence','r4-provider-candidate'}
+IDS=('r2-complete','r3-source','r3-runtime','r3-evidence','r4-source','r4-runtime','r4-evidence','r4-external-evidence','r4-provider-candidate')
+TYPED={'r2-complete','r3-evidence','r4-evidence','r4-external-evidence','r4-provider-candidate'}
 BASE='289ee9477372825aad848f4482cf681c2ff43b02'
 def sha(raw):return hashlib.sha256(raw).hexdigest()
 
@@ -172,6 +172,63 @@ class CompleteLayersTests(unittest.TestCase):
     def test_actual_cli_delivered_unfinalized_template_blocks_before_output(self):
         template=PROJECT/'docs/CONTINUATION-LAYERS-R4.template.json'
         self.denied(self.invoke(manifest=str(template),**{'manifest-sha256':sha(template.read_bytes())}))
+
+
+    def test_actual_cli_required_external_evidence_cannot_be_dropped_or_rebound(self):
+        original=copy.deepcopy(self.manifest);local=copy.deepcopy(self.returned)
+        self.manifest['layers']=[x for x in self.manifest['layers'] if x['id']!='r4-external-evidence']
+        self.returned['layers']=[x for x in self.returned['layers'] if x['id']!='r4-external-evidence']
+        self.save();self.denied(self.invoke())
+        self.manifest=copy.deepcopy(original);self.returned=copy.deepcopy(local)
+        self.manifest['layers'][7]['source_commit']='3'*40;self.save();self.denied(self.invoke())
+
+    def test_composed_readback_keeps_small_per_layer_limit_with_larger_total(self):
+        spec=importlib.util.spec_from_file_location('complete_composed_budget',SCRIPT);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        original=module.load_helpers
+        def limited(manifest):
+            evidence,release=original(manifest);evidence.MAX_ENTRIES=20;return evidence,release
+        module.load_helpers=limited
+        receipt=module.restore(self.manifest_path,self.manifest_sha,self.returned_path,self.output)
+        self.assertEqual(receipt['status'],'PASS')
+        self.assertEqual(receipt['per_layer_entry_limit'],20)
+        self.assertGreater(sum(1 for _ in self.output.rglob('*')),22)
+        self.assertEqual((self.output/'layers/r4-external-evidence/Fixture_r4-external-evidence/payload.bin').read_bytes(),b'LITERAL r4-external-evidence\x00\n')
+
+    def test_composed_readback_rejects_extra_nested_layer_file_and_retains_it(self):
+        spec=importlib.util.spec_from_file_location('complete_composed_unknown',SCRIPT);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        original=module.extract_application
+        def injected(archive,layer,output,*args):
+            result=original(archive,layer,output,*args)
+            if layer['id']=='r4-runtime':(output/'unexpected-retained').write_bytes(b'not admitted')
+            return result
+        module.extract_application=injected
+        with self.assertRaisesRegex(ValueError,'file set'):
+            module.restore(self.manifest_path,self.manifest_sha,self.returned_path,self.output)
+        self.assertEqual((self.output/'layers/r4-runtime/unexpected-retained').read_bytes(),b'not admitted')
+        self.assertFalse((self.output/'COMPLETE-LAYER-RECEIPT.json').exists())
+
+
+
+    def _final_outer_negative(self,scenario):
+        spec=importlib.util.spec_from_file_location('complete_outer_'+scenario,SCRIPT);module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        original=module.verify_complete_output
+        def injected(rootfd,physical,evidence):
+            if scenario=='archive':(self.output/'archives/unlisted.zip').write_bytes(b'retain extra')
+            elif scenario=='layer':(self.output/'layers/unlisted-layer').mkdir()
+            else:
+                target=self.output/'layers/r4-external-evidence/Fixture_r4-external-evidence/payload.bin'
+                target.rename(target.with_name('original-retained'));target.symlink_to('/DO-NOT-FOLLOW/type-swap')
+            return original(rootfd,physical,evidence)
+        module.verify_complete_output=injected
+        with self.assertRaises(ValueError):module.restore(self.manifest_path,self.manifest_sha,self.returned_path,self.output)
+        self.assertFalse((self.output/'COMPLETE-LAYER-RECEIPT.json').exists())
+        if scenario=='archive':self.assertEqual((self.output/'archives/unlisted.zip').read_bytes(),b'retain extra')
+        elif scenario=='layer':self.assertTrue((self.output/'layers/unlisted-layer').is_dir())
+        else:self.assertEqual(os.readlink(self.output/'layers/r4-external-evidence/Fixture_r4-external-evidence/payload.bin'),'/DO-NOT-FOLLOW/type-swap')
+
+    def test_composed_extra_archive_is_rejected_and_retained(self):self._final_outer_negative('archive')
+    def test_composed_extra_layer_is_rejected_and_retained(self):self._final_outer_negative('layer')
+    def test_composed_nested_type_swap_is_rejected_and_retained(self):self._final_outer_negative('type')
 
 
 if __name__=='__main__':unittest.main()

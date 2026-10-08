@@ -3365,3 +3365,34 @@ docs/EVIDENCE-SNAPSHOT-R4.md
 
 # R4 selfcontained local source-intent and zero-dispatch regression.
 plugin_tests/test_worker_source_intent_r4.py
+
+# R4 exact stopped-Plan recovery, distinct successor approvals and portable evidence.
+docs/ADOPTION-PLAN-SUCCESSOR-R4.md
+docs/WINDOWS-WORKER-EVIDENCE-R4.md
+docs/WORKER-ADOPTION-PLAN-RECOVERY-R4.md
+docs/WORKER-EVIDENCE-R4.md
+intune_iac/windows_worker_evidence.py
+intune_iac/windows_worker_evidence_store.py
+intune_iac/workbench_evidence_views.py
+intune_iac/worker_adoption_plan_phase.py
+intune_iac/worker_adoption_plan_recovery.py
+intune_iac/worker_evidence.py
+intune_iac/worker_evidence_domain_posix.py
+intune_iac/worker_evidence_domains.py
+intune_iac/worker_evidence_posix.py
+intune_iac/worker_plan_content.py
+plugin_tests/test_windows_worker_evidence_domains_r4.py
+plugin_tests/test_windows_worker_evidence_r4.py
+plugin_tests/test_windows_worker_evidence_store_r4.py
+plugin_tests/test_workbench_evidence_views_r4.py
+plugin_tests/test_worker_adoption_phase_successor_r4.py
+plugin_tests/test_worker_adoption_plan_recovery_r4.py
+plugin_tests/test_worker_evidence_close_r4.py
+plugin_tests/test_worker_evidence_domains_r4.py
+plugin_tests/test_worker_evidence_r4.py
+plugin_tests/test_worker_evidence_read_r4.py
+plugin_tests/test_worker_evidence_source_v2_r4.py
+plugin_tests/test_worker_evidence_transcript_r4.py
+scripts/intune-windows-evidence.py
+scripts/intune-worker-evidence.py
+scripts/qualify-windows-worker-evidence.py

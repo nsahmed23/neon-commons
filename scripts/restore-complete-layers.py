@@ -21,8 +21,8 @@ SCHEMA='intune-complete-continuation-layers/1'
 RETURN_SCHEMA='intune-local-layer-parts/1'
 BASE_COMMIT='289ee9477372825aad848f4482cf681c2ff43b02'
 R2_COMMIT='74130d0db99febf2f41cf4f4ebe2920a5d4dffb7'
-LAYER_IDS=('r2-complete','r3-source','r3-runtime','r3-evidence','r4-source','r4-runtime','r4-evidence','r4-provider-candidate')
-EVIDENCE_IDS={'r2-complete','r3-evidence','r4-evidence','r4-provider-candidate'}
+LAYER_IDS=('r2-complete','r3-source','r3-runtime','r3-evidence','r4-source','r4-runtime','r4-evidence','r4-external-evidence','r4-provider-candidate')
+EVIDENCE_IDS={'r2-complete','r3-evidence','r4-evidence','r4-external-evidence','r4-provider-candidate'}
 TOOLS=('restore-evidence-layer.py','verify-release-artifact.py')
 HEX=re.compile(r'[0-9a-f]{64}\Z')
 COMMIT=re.compile(r'[0-9a-f]{40}\Z')
@@ -207,6 +207,90 @@ def extract_application(archive,layer,output,evidence,release):
     finally:os.close(rootfd)
 
 
+
+def verify_complete_output(rootfd, physical, evidence):
+    """Compose unchanged bounded per-layer readbacks with exact outer closure.
+
+    The full continuation exceeds one archive's entry budget. Each independently
+    pinned layer retains that budget; no payload, unknown outer path or extra
+    layer is skipped to fit. Held directory identities bind every readback.
+    """
+    require(len(physical)<=len(LAYER_IDS)*(evidence.MAX_ENTRIES+4)+16,
+            'Combined continuation physical map exceeds declared layer budget')
+    def shallow(directory, expected):
+        require(set(os.listdir(directory))==set(expected),'Complete outer namespace differs')
+        signatures={}
+        for name,item in expected.items():
+            info=os.stat(name,dir_fd=directory,follow_symlinks=False)
+            kind='directory' if stat.S_ISDIR(info.st_mode) else 'file' if stat.S_ISREG(info.st_mode) else 'unsupported'
+            require(kind==item['type'],'Complete outer type differs: '+name)
+            signatures[name]=signature(info)+(info.st_mode,info.st_nlink)
+            if kind=='file':
+                fd=os.open(name,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK,dir_fd=directory)
+                with os.fdopen(fd,'rb') as source:
+                    held=os.fstat(source.fileno())
+                    require(signature(held)+(held.st_mode,held.st_nlink)==signatures[name]
+                            and held.st_nlink==1 and held.st_size==item['bytes'],'Complete outer file identity differs')
+                    count=0;sha=hashlib.sha256()
+                    for raw in evidence.file_chunks(source):
+                        count+=len(raw);require(count<=item['bytes'],'Complete outer file grew');sha.update(raw)
+                    require((count,sha.hexdigest())==(item['bytes'],item['sha256']),'Complete outer file bytes differ')
+                    require(signature(os.fstat(source.fileno()))+(held.st_mode,held.st_nlink)==signatures[name],
+                            'Complete outer file changed during readback')
+        require(set(os.listdir(directory))==set(expected),'Complete outer namespace changed')
+        for name,prior in signatures.items():
+            current=os.stat(name,dir_fd=directory,follow_symlinks=False)
+            require(signature(current)+(current.st_mode,current.st_nlink)==prior,'Complete outer entry changed')
+        return signatures
+    root_expected={name:item for name,item in physical.items() if '/' not in name}
+    require(set(root_expected)=={'archives','layers','PINNED-LAYER-MANIFEST.json','EXACT-RETURNED-PART-PATHS.json'},
+            'Invalid complete root inventory')
+    initial=shallow(rootfd,root_expected)
+    handles=[]
+    primary=None
+    try:
+        for name in ('archives','layers'):
+            fd=os.open(name,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=rootfd);handles.append(fd)
+            held=os.fstat(fd)
+            require(signature(held)+(held.st_mode,held.st_nlink)==initial[name],'Complete directory replaced')
+        archives,layers=handles
+        archive_expected={name[len('archives/'):]:item for name,item in physical.items() if name.startswith('archives/')}
+        require(all('/' not in name for name in archive_expected),'Unexpected archive nesting')
+        evidence.verify_output(archives,archive_expected)
+        layer_expected={name:{'type':'directory'} for name in LAYER_IDS}
+        layer_initial=shallow(layers,layer_expected)
+        for identity in LAYER_IDS:
+            fd=os.open(identity,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=layers)
+            layer_primary=None
+            try:
+                held=os.fstat(fd)
+                require(signature(held)+(held.st_mode,held.st_nlink)==layer_initial[identity],'Complete layer replaced')
+                prefix='layers/'+identity+'/'
+                expected={name[len(prefix):]:item for name,item in physical.items() if name.startswith(prefix)}
+                require(expected and len(expected)<=evidence.MAX_ENTRIES+2,'Layer physical map exceeds unchanged bound')
+                evidence.verify_output(fd,expected)
+                current=os.stat(identity,dir_fd=layers,follow_symlinks=False)
+                require(signature(current)+(current.st_mode,current.st_nlink)==layer_initial[identity],
+                        'Complete layer changed during final readback')
+            except BaseException as error:layer_primary=error;raise
+            finally:
+                try:os.close(fd)
+                except BaseException:
+                    if layer_primary is None:raise
+                    if hasattr(layer_primary,'add_note'):layer_primary.add_note('Layer descriptor cleanup also failed; original cause preserved.')
+        require(shallow(layers,layer_expected)==layer_initial,'Complete layer namespace changed')
+        require(shallow(rootfd,root_expected)==initial,'Complete root changed during final readback')
+    except BaseException as error:primary=error;raise
+    finally:
+        failures=[]
+        for fd in reversed(handles):
+            try:os.close(fd)
+            except BaseException as error:failures.append(error)
+        if failures:
+            if primary is None:raise failures[0]
+            if hasattr(primary,'add_note'):primary.add_note('Complete output directory cleanup also failed; PASS withheld.')
+
+
 def restore(manifest_path,manifest_sha256,parts_path,output):
     require(pin(manifest_sha256),'Independent outer manifest SHA-256 pin required')
     raw=bounded(manifest_path);require(digest(raw)==manifest_sha256,'Outer manifest SHA-256 mismatch')
@@ -263,9 +347,11 @@ def restore(manifest_path,manifest_sha256,parts_path,output):
                  'layers':results,'required_layers_present':list(LAYER_IDS),'downloaded':False,'overlay_performed':False,
                  'ordered_returned_paths_only':True,'all_archives_verified_before_first_extraction':True,
                  'complete_physical_file_set_and_type_map_verified':True,
+                 'final_readback_scope':'exact outer namespaces plus each unchanged bounded layer and archives',
+                 'per_layer_entry_limit':evidence.MAX_ENTRIES,
                  'candidate_executed':False,'content_executed':False,'historical_three_unexpected_files_closed':False,
                  'platform_qualified':False,'production_approved':False}
-        evidence.verify_output(root,physical)
+        verify_complete_output(root,physical,evidence)
         evidence.write_new(root,'COMPLETE-LAYER-RECEIPT.json',[json.dumps(receipt,indent=2).encode()+b'\n']);os.fsync(root)
         return receipt
     finally:os.close(root)

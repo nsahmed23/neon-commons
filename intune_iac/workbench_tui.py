@@ -27,7 +27,7 @@ ADOPTION_PLAN_NAVIGATION_VERSION = 'workbench-adoption-recovery-plan-navigation/
 SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
-              'history', 'history-recent', 'health', 'operations', 'views', 'help'}
+              'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help')
 ANSI_START = '\x1b[?1049h\x1b[?25l\x1b[?2004h'
@@ -730,7 +730,7 @@ class Workspace:
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
-                'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'compare': 3, 'review': 4,
+                'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
@@ -769,7 +769,7 @@ class Workspace:
             return None
         if tab == 6 and self.active_operation and self.selected is not None:
             return self._send('views ' + shlex.quote(self.active_operation))
-        if command in ('inspect', 'relationships', 'history', 'history-recent', 'views') and self.selected is None:
+        if command in ('inspect', 'relationships', 'history', 'history-recent', 'evidence-history', 'views') and self.selected is None:
             self.notice = 'Select an exact identity from Estate first.'
             self.draw()
             return None

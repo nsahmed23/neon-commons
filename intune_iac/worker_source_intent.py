@@ -24,10 +24,42 @@ from .worker_host import _hash_file
 _SEAL = object()
 _HASH = re.compile(r'[0-9a-f]{64}')
 _REPOSITORY = re.compile(r'https://github\.com/[A-Za-z0-9][A-Za-z0-9_.-]*/[A-Za-z0-9][A-Za-z0-9_.-]*')
+_UINT64_MAX = (1 << 64) - 1
 
 
 def _fail(code):
     raise AppError(code, 'The reviewed local source, intent and native materialization binding was not established.') from None
+
+
+def _filesystem_id(value):
+    """Injective artifact encoding of an actual OS integer, never a JSON float."""
+    if type(value) is not int or not 0 <= value <= _UINT64_MAX:
+        _fail('worker_source_filesystem_identity')
+    return str(value)
+
+
+def _validate_filesystem_ids(facts):
+    """Old safe-integer facts remain readable; current facts are decimal uint64."""
+    version = facts['schema_version']
+    storage = facts['git_storage_binding']
+    expected = {'worker-source-authoring-binding/1': 'worker-source-git-storage/1',
+                'worker-source-authoring-binding/2': 'worker-source-git-storage/2'}
+    if (version not in expected or type(storage) is not dict or
+            storage.get('schema_version') != expected[version] or
+            type(facts['local_root_identity']) is not list or not facts['local_root_identity'] or
+            type(storage.get('files')) is not list or type(storage.get('directories')) is not list):
+        _fail('worker_source_filesystem_identity')
+    for row in [*facts['local_root_identity'], *storage['files'], *storage['directories']]:
+        if type(row) is not dict or not {'device','inode'} <= set(row):
+            _fail('worker_source_filesystem_identity')
+        for key in ('device','inode'):
+            value = row[key]
+            if version == 'worker-source-authoring-binding/1':
+                if type(value) is not int or not 0 <= value <= 9007199254740991:
+                    _fail('worker_source_filesystem_identity')
+            elif (type(value) is not str or not re.fullmatch(r'0|[1-9][0-9]{0,19}', value)
+                    or int(value) > _UINT64_MAX):
+                _fail('worker_source_filesystem_identity')
 
 
 def _root_identity(path):
@@ -39,7 +71,7 @@ def _root_identity(path):
         info = candidate.lstat()
         if not stat.S_ISDIR(info.st_mode) or candidate.is_symlink():
             _fail('worker_source_root')
-        rows.append({'path': str(candidate), 'device': info.st_dev, 'inode': info.st_ino})
+        rows.append({'path': str(candidate), 'device': _filesystem_id(info.st_dev), 'inode': _filesystem_id(info.st_ino)})
     return rows
 
 
@@ -59,7 +91,7 @@ def _git_storage(root, git_executable, git_sha256):
         directory = Path(current); info = directory.lstat()
         if not stat.S_ISDIR(info.st_mode) or directory.is_symlink():
             _fail('worker_source_git_storage_type')
-        directories.append({'path': str(directory.relative_to(gitdir)), 'device': info.st_dev, 'inode': info.st_ino})
+        directories.append({'path': str(directory.relative_to(gitdir)), 'device': _filesystem_id(info.st_dev), 'inode': _filesystem_id(info.st_ino)})
         if len(directories) > 1024:
             _fail('worker_source_git_storage_limit')
         for child in children:
@@ -72,8 +104,8 @@ def _git_storage(root, git_executable, git_sha256):
             if len(files) >= 1024 or total > 32 * 1024 * 1024:
                 _fail('worker_source_git_storage_limit')
             files.append({'path': str(path.relative_to(gitdir)), 'sha256': _hash_file(path, 32 * 1024 * 1024),
-                'bytes': info.st_size, 'device': info.st_dev, 'inode': info.st_ino})
-    return {'schema_version': 'worker-source-git-storage/1', 'files': sorted(files, key=lambda row: row['path']),
+                'bytes': info.st_size, 'device': _filesystem_id(info.st_dev), 'inode': _filesystem_id(info.st_ino)})
+    return {'schema_version': 'worker-source-git-storage/2', 'files': sorted(files, key=lambda row: row['path']),
         'directories': sorted(directories, key=lambda row: row['path']), 'total_bytes': total,
         'configuration_sha256': hashlib.sha256(_read(gitdir/'config')).hexdigest(),
         'git_sha256': git_sha256, 'scope': 'exact bounded object-store bytes independently interpreted by pinned Git at capability creation'}
@@ -145,7 +177,7 @@ def _collect(store, intent_id, adapter, repository, git_executable, git_sha256, 
             _read(root / PROJECT / 'main.tf.json') != authored or
             _read(root / PROJECT / '.terraform.lock.hcl') != lock):
         _fail('worker_source_changed_during_check')
-    return {'schema_version': 'worker-source-authoring-binding/1',
+    return {'schema_version': 'worker-source-authoring-binding/2',
         'local_scope': copy.deepcopy(scope), 'logical_repository': repository,
         'repository_association': 'explicit_operation_manifest_declaration',
         'local_root_identity': roots, 'tenant_id': tenant, 'object_id': target,
@@ -209,10 +241,11 @@ def validate_operation_binding(facts, *, provider_binding, run_context, tenant_i
         'management_mapping_status', 'source_evidence_class', 'remote_origin_authenticated',
         'commit_actor_authenticated', 'execution_authorized', 'platform_qualified', 'limitations'}
     if (type(facts) is not dict or set(facts) != fields or
-            facts['schema_version'] != 'worker-source-authoring-binding/1' or
+            facts['schema_version'] not in ('worker-source-authoring-binding/1','worker-source-authoring-binding/2') or
             type(provider_binding) is not dict or type(run_context) is not dict or
             run_context.get('schema_version') != 'service-run-context/1'):
         _fail('worker_source_operation_shape')
+    _validate_filesystem_ids(facts)
     scope = facts['local_scope']; provider = provider_binding
     if (type(scope) is not dict or set(scope) != {'repository','stack','component','backend'} or
             facts['logical_repository'] != run_context['repository'] or

@@ -70,26 +70,10 @@ def proposed(store, row):
 def deployment(store, row):
     job = open_link(store, row)
     status = job.status()
-    # An unknown dispatch can establish current convergence, but cannot become
-    # a recorded successful deployment or erase uncertain execution provenance.
-    if status['status'] != 'service_state_converged':
-        _fail('workbench_service_deployment_unverified')
-    outcome = status['outcome']
-    if (outcome.get('execution_provenance') != 'host_completed' or
-            outcome.get('reservation_released') is not True or outcome.get('mutation_replayed') is not False):
-        _fail('workbench_service_deployment_unverified')
-    events = [e for e in status['events'] if e['kind'] == 'independent_state_reconciled']
-    if len(events) != 1 or digest(events[0]['payload']) != digest(outcome):
-        _fail('workbench_service_reconciliation_event')
-    facts = outcome['independent_readback']
+    from .worker_evidence import deployment_state
     manifest = job.manifest
-    evidence = ('authenticated_service_state_convergence' if manifest['profile'] == 'azure_public_pilot'
-                else 'laboratory_service_state_convergence')
-    if (facts.get('schema_version') != 'worker-service-independent-readback/1' or
-            facts.get('operation_id') != job.identifier or facts.get('manifest_sha256') != job.sha256 or
-            facts.get('execution_binding_sha256') != manifest['execution_binding_sha256'] or
-            facts.get('evidence_class') != evidence or facts.get('backend_lock_released') is not True):
-        _fail('workbench_service_readback_binding')
+    facts, event, evidence = deployment_state(manifest, status, job.identifier, job.sha256)
+    outcome = status['outcome']
     observed = store.observation_for_capture(row['data']['target_object_id'], facts['graph_capture_sha256'])
     raw = store.raw_capture_observation(row['data']['target_object_id'], facts['graph_capture_sha256'])
     expected = 'graph_authenticated_observation' if manifest['profile'] == 'azure_public_pilot' else 'graph_reader_laboratory'
@@ -106,7 +90,7 @@ def deployment(store, row):
         'raw_observation': raw,
         'backend_state': facts['backend_state'], 'source_context': manifest['run_context']}
     return {'artifact_id': row['artifact_id'], 'evidence_class': evidence,
-        'baseline_kind': 'verified_protected_service_deployment', 'recorded_at': events[0]['created_at'],
+        'baseline_kind': 'verified_protected_service_deployment', 'recorded_at': event['created_at'],
         'proof': proof, 'baseline_admissible': True, 'normalized_comparison_available': observed is not None,
         'source_scope_association': 'compare_by_tenant_and_object_identity',
         'second_plan_convergence': facts['second_plan_convergence'], 'endpoint_effectiveness': 'unestablished',

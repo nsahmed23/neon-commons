@@ -29,7 +29,7 @@ class _NativeViewReader:
             'stored_repository_snapshot':'preserved_with_separate_current_source_readback',
             'stored_ownership_and_refresh':'caller_assertions_with_original_scope',
             'observation':'guarded_native_store_and_capture_readback',
-            'execution_journals':'unsupported','issues':self.issues,
+            'execution_journals':'direct_host_access_unsupported','received_signed_worker_snapshots':'reverify_exact_bytes_current_trust_and_pinned_native_verifier','issues':self.issues,
             'current_repository_resolution_implemented':True,'platform_qualified':False,'workbench_profile_enabled':False}
         if result.get('repository',{}).get('status')=='recorded':
             from .windows_repository import readback_windows_repository
@@ -37,8 +37,6 @@ class _NativeViewReader:
             except AppError as error:
                 readback={'status':'unknown','reason':error.code,
                     'recorded_revision_and_source_hashes_preserved':True,'git_revision_verified':False}
-                pending=getattr(error,'source_edit_pending',None)
-                if pending is not None:readback['pending_local_source_edit']=pending
             result['repository']['current_working_source_readback']=readback
         if self.issues and result.get('deployment',{}).get('reason')=='verified_deployment_missing':
             result['deployment']['reason']='required_deployment_evidence_unsupported_or_unverified'

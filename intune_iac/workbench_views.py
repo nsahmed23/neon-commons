@@ -22,7 +22,7 @@ from .repository import resolve_component, public_resolution, discover_repositor
 from .workbench_provenance import _read
 from . import workbench_semantics as semantics
 
-COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
+COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','evidence-link','evidence-history','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
 SCOPE_FIELDS=frozenset({'repository','stack','component','backend'})
 MAX_OBJECTS=1000
 MAX_ESTATE_ARTIFACTS=10000
@@ -341,14 +341,17 @@ def record_local_deployment(store,operation,intent_id):
 
 
 def _deployment(store,object_id,scope,*,_native_reader=None):
-    from . import workbench_service_views as service_views
+    from . import workbench_service_views as service_views, workbench_evidence_views as received_views
     candidates=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and
-        (scope is None or r['data'].get('scope')==scope or r['data'].get('evidence_class')==service_views.KIND)]
+        (scope is None or r['data'].get('scope')==scope or r['data'].get('evidence_class') in (service_views.KIND,received_views.KIND))]
     for row in sorted(candidates,key=lambda r:r['sequence'],reverse=True):
         data=row['data']
-        if _native_reader is not None:
+        if _native_reader is not None and data.get('evidence_class')!=received_views.KIND:
             _native_reader.reject('deployment',row=row)
             continue
+        if data.get('evidence_class')==received_views.KIND:
+            try:return received_views.deployment(store,row)
+            except (AppError,OSError,KeyError,TypeError):continue
         if data.get('evidence_class')==service_views.KIND:
             try:return service_views.deployment(store,row)
             except (AppError,OSError,KeyError):continue
@@ -556,14 +559,14 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
                 classification='difference_since_verified_deployment' if deployment.get('baseline_kind') else 'difference_since_verified_local_deployment',actor='unknown',live_drift_established=False)
     proposed=_unknown('operation_not_selected')
     if operation is None:
-        from . import workbench_service_views as service_views
-        links=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and r['data'].get('evidence_class')==service_views.KIND]
+        from . import workbench_service_views as service_views, workbench_evidence_views as received_views
+        links=[r for r in _rows(store,'deployment_receipt') if r['data'].get('target_object_id')==object_id and r['data'].get('evidence_class') in (service_views.KIND,received_views.KIND)]
         if links:
             selected_link=max(links,key=lambda r:r['sequence'])
-            if native_reader is not None:
+            if native_reader is not None and selected_link['data'].get('evidence_class')!=received_views.KIND:
                 proposed=native_reader.reject('proposed_service',row=selected_link)
             else:
-                try:proposed=service_views.proposed(store,selected_link)
+                try:proposed=(received_views if selected_link['data'].get('evidence_class')==received_views.KIND else service_views).proposed(store,selected_link)
                 except (AppError,OSError,KeyError) as exc:
                     proposed=_unknown('linked_service_unavailable_or_changed',error_code=getattr(exc,'code',type(exc).__name__),link_artifact_id=selected_link['artifact_id'])
     if operation is not None and native_reader is not None:
@@ -700,6 +703,10 @@ def add_parser(sub):
     for name in ('root','operation','intent'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('service-link',help='Link a registered protected service operation into persistent views; does not execute')
     for name in ('root','object','job-root','policy'):p.add_argument('--'+name,required=True)
+    p=sub.add_parser('evidence-link',help='Link exact signed received worker evidence; every read revalidates bytes and trust')
+    for name in ('root','object','evidence-store','request-sha256','trust','verifier','scratch'):p.add_argument('--'+name,required=True)
+    p=sub.add_parser('evidence-history',help='Reverify received signed evidence and show historical/expired scope explicitly')
+    for name in ('root','object'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('adoption-link',help='Link a protected state-only adoption; never promote a Graph deployment baseline')
     for name in ('root','object','job-root','policy'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('adoption-history',help='Read linked protected adoption journals; no import or replay')
@@ -727,6 +734,10 @@ def command(args):
     if name=='service-link':
         from .workbench_service_views import link
         return link(store,args.object,args.job_root,args.policy)
+    if name in ('evidence-link','evidence-history'):
+        from . import workbench_evidence_views as received_views
+        if name=='evidence-link':return received_views.link(store,args.object,args.evidence_store,args.request_sha256,args.trust,args.verifier,args.scratch)
+        return received_views.history(store,args.object)
     if name in ('adoption-link','adoption-history'):
         from . import workbench_adoption_views as adoption_views
         if name=='adoption-link':return adoption_views.link(store,args.object,args.job_root,args.policy)
