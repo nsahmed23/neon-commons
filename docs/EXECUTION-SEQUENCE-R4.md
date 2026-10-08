@@ -19,10 +19,12 @@ scoped native laboratory checks. The new recovery Plan2 FAILED in a watchdog
 before backend acquisition; its approval remains consumed and outcome unknown.
 Checkpoint19 integrated the read-only phase opener; checkpoint20 integrates the
 distinct sealed no-acquisition assessment. Checkpoint21 integrates the /3
-successor, portable history and public read-only reattachment. Next execute a
-NEW approved Plan3 under that exact source freeze. Never
-invent a lease release or replay that Plan. Preserve the complete chain, then
-qualify signed export and actual PTY history, followed by final package gates.
+successor, portable history and public read-only reattachment. Checkpoint22
+records the NEW approved Plan3 PASS with exact state13/Graph/no-change proof,
+independent raw review, signed history and actual mixed-chain Linux PTY.
+Historical Plan2 stays consumed/unknown; no lease release was invented and no
+old Plan was replayed. Next qualify exact reproducible source/runtime packages,
+the required strict gate and fresh closed-profile native recovery journeys.
 
 | Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
 | --- | --- | --- |

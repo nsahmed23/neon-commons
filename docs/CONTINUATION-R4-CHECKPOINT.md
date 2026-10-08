@@ -979,3 +979,33 @@ until the new operation and independent readback actually complete.
 Resume using the exact commit receipt and EXECUTION-SEQUENCE-R4.md, then the
 prepared final-package drivers. Preserve the historical1141/1242 results and
 all unresolved platform, provider, scheduler, provenance and approval gates.
+
+Increment22 records the C21 native Plan3 result without changing runtime bytes.
+New operation ccc821ee-32d2-4829-b8c6-511acb744487 completed native no-change
+verification with exact state13 and independent Graph/settings/assignment readback.
+Its /3 approval and observation edge are distinct from the earlier lease releases.
+The original import and failed Plans remain consumed/unknown in history; no Plan
+was replayed and no nonexistent Plan2 lease was released. Host/fixture cleanup
+completed. Producer24, independent raw23, signed application history14 and
+quiet Linux PTY30 have overlapping scopes and must not be added.
+
+The real terminal sequence reviewed all /2,/2,/3 operations, switched tabs,
+opened original/history, went back and reopened context with restored terminal
+state. Independent authority/file checks stayed unchanged. Signed history keeps
+pre-Plan and refreshed binding identities explicit; it does not assert a verified
+Graph deployment baseline or organizational actor authority.
+
+Current source is ready for final package qualification, not production release.
+Read integration/COMMIT-22.json for exact commit and inventory, then execute:
+
+    /workspace/intune-runtime/bin/python -B /tmp/intune-r4-final-package.py --commit FULL_COMMIT_FROM_RECEIPT --output NEW_PACKAGE_DIRECTORY
+
+The driver safely extracts both exact archives, verifies all source against raw
+Git objects and rebuilds byte-identically from extracted source. Before the final
+strict suite, the gate must compare extraction membership/bytes to the exact ZIP;
+unchanged before/after files alone do not establish package identity. Final native
+journeys use the reviewed closed helper profile and complete extracted source.
+The runtime-only archive receives its own actual text/PTY/connected checks and
+full byte linkage to that source; do not mislabel this as runtime-only native
+execution. Preserve all source qualification failures and historical1141/1242
+evidence. Platform qualification and accountable approval remain blocked.

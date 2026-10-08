@@ -1,14 +1,14 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-08T01:27:14.692811+00:00",
+  "recorded_at": "2026-10-08T01:34:45.019692+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "020440fd45d5f36e366feb1e03fec26bed619f94",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+    "latest_completed_checkpoint": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-22.json"
   },
   "contract": {
     "path": "docs/STRICT-CONTINUATION-CONTRACT-R4.md",
@@ -37,7 +37,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Laboratory incomplete pending new native Plan3, exact signed history/PTY and final package/delivery gates. Integrated observation/successor/public-read repairs retain failing-before and independent scoped evidence. Historical Plan2 remains failed/unknown. Required native host, service/backend/CI/device, security and organizational gates remain separate."
+    "explanation": "Current-source native Plan3, signed persistent history and actual mixed-chain Linux PTY passed their separately scoped checks. Laboratory completion still requires exact final-package gates and delivery. Historical failures/provenance and required native host/service/backend/CI/device/security/organizational gates remain open."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -478,7 +478,9 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -761,6 +763,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+          "bytes": 1757,
+          "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+          "bytes": 163418,
+          "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
         }
       ],
       "native_views_increment10": {
@@ -893,6 +905,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_signed_history22": {
+        "status": "PASS",
+        "scope": "Actual application request/prepare/sign/assemble/ingest/reopen for new Plan3 and forged-receipt rejection PASS14. All251 original entries unchanged. Completed fresh identity-binding hash differs from pre-Plan while exact state/principal remain bound. Signed state-and-plan content consistency is narrower than Graph deployment or organizational attribution; baseline=false and prior unknown results retained.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+            "bytes": 1757,
+            "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+            "bytes": 163418,
+            "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
       }
     },
     {
@@ -1057,7 +1086,9 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -1374,6 +1405,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+          "bytes": 1757,
+          "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+          "bytes": 163418,
+          "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1550,6 +1591,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_signed_history22": {
+        "status": "PASS",
+        "scope": "Actual application request/prepare/sign/assemble/ingest/reopen for new Plan3 and forged-receipt rejection PASS14. All251 original entries unchanged. Completed fresh identity-binding hash differs from pre-Plan while exact state/principal remain bound. Signed state-and-plan content consistency is narrower than Graph deployment or organizational attribution; baseline=false and prior unknown results retained.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+            "bytes": 1757,
+            "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+            "bytes": 163418,
+            "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
       }
     },
     {
@@ -1832,7 +1890,9 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -2150,6 +2210,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+          "bytes": 1757,
+          "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+          "bytes": 163418,
+          "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -2326,6 +2396,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_signed_history22": {
+        "status": "PASS",
+        "scope": "Actual application request/prepare/sign/assemble/ingest/reopen for new Plan3 and forged-receipt rejection PASS14. All251 original entries unchanged. Completed fresh identity-binding hash differs from pre-Plan while exact state/principal remain bound. Signed state-and-plan content consistency is narrower than Graph deployment or organizational attribution; baseline=false and prior unknown results retained.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+            "bytes": 1757,
+            "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+            "bytes": 163418,
+            "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
       }
     },
     {
@@ -2866,7 +2953,9 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -3055,6 +3144,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+          "bytes": 1757,
+          "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+          "bytes": 163418,
+          "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
         }
       ],
       "increment17": {
@@ -3224,6 +3323,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_signed_history22": {
+        "status": "PASS",
+        "scope": "Actual application request/prepare/sign/assemble/ingest/reopen for new Plan3 and forged-receipt rejection PASS14. All251 original entries unchanged. Completed fresh identity-binding hash differs from pre-Plan while exact state/principal remain bound. Signed state-and-plan content consistency is narrower than Graph deployment or organizational attribution; baseline=false and prior unknown results retained.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+            "bytes": 1757,
+            "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+            "bytes": 163418,
+            "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
       }
     },
     {
@@ -3988,11 +4104,13 @@
         "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Preserve actual locked-writer public read evidence; finish quiet native Plan3 history/PTY and exact final-package qualification. Native Windows and real platform routes remain separate.",
+      "next_action": "Qualify exact extracted runtime CLI/PTY/connected journey, preserving current-source mixed-chain evidence. Native Windows and real platform routes remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -4330,6 +4448,16 @@
           "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
           "bytes": 4335,
           "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+          "bytes": 29435,
+          "sha256": "f6231806a2610732189094b3253cab858cca56549c95d781db534f1ab6b5f4d3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+          "bytes": 5679,
+          "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -4421,6 +4549,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_mixed_history_pty22": {
+        "status": "PASS",
+        "scope": "Actual quiet Linux PTY PASS30: /2,/2,/3 review/status/attach, real tab keys, original/history/back/reopen, terminal restoration. Independent raw authority/events/transcripts/edges/ownership and private artifact assertions unchanged. Failed Plan2 has no exceptional release and new Plan3 exact observation anchor remains navigable. This is Linux current-source terminal evidence, not native Windows or final package qualification.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+            "bytes": 29435,
+            "sha256": "f6231806a2610732189094b3253cab858cca56549c95d781db534f1ab6b5f4d3"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+            "bytes": 5679,
+            "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
+          }
+        ]
       }
     },
     {
@@ -5172,7 +5317,12 @@
         "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
         "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
@@ -5730,6 +5880,31 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
           "bytes": 1301,
           "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+          "bytes": 5526,
+          "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+          "bytes": 2637,
+          "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+          "bytes": 59591,
+          "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+          "bytes": 5981,
+          "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -6051,6 +6226,38 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_observation_successor22": {
+        "status": "PASS",
+        "scope": "Actual NEW Plan3 ccc821ee-32d2-4829-b8c6-511acb744487 uses distinct /3 approval after no-acquisition observation. Pinned Linux Docker/Atmos/OpenTofu/provider communicate with synthetic receiving service. Native no-change plan and independent exact state13/policy/settings/assignment readback passed. Original import and both failed Plan rows remain unknown and once-dispatched; no fabricated Plan2 release. Owners release only after fresh proof/reconciliation. Producer24 and independent raw23 overlap and are not summed; wrong-domain/JSON rejection controls retained. All host/fixture handles closed. No organizational Azure/Graph/device claim.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+            "bytes": 5526,
+            "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+            "bytes": 2637,
+            "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+            "bytes": 59591,
+            "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+            "bytes": 5981,
+            "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
+          }
+        ]
       }
     },
     {
@@ -6824,7 +7031,7 @@
       "description": "Reject wrong target, advanced state and lock contention; handle lease loss, interruption and uncertain write recovery without blind replay.",
       "milestone": "B",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "FAIL",
+      "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
       "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
       "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
@@ -6952,11 +7159,18 @@
         "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Failed C18 Plan2 remains consumed and execution-unknown. Distinct no-acquisition observation and Plan /3 successor plus public readonly reattachment are integrated with scoped evidence. Fresh native successor/convergence is still required; older successful journeys do not turn failed Plan2 into a pass.",
-      "next_action": "Freeze reviewed integrated source, execute a NEW approved Plan3 using the separate no-acquisition observation, then independently verify exact state/Graph/no-op, preserved old once rows, signed history and quiet PTY reattachment. Continue final exact-package gates.",
+      "limitation": "Historical C18 Plan2 remains FAIL, consumed and execution-unknown; its root-cause repair and new independently qualified Plan3 are distinct records. Current-source Linux synthetic-service recovery passes scoped native/raw/PTY evidence. Exact final-package gate and actual organizational backend/identity routes remain required.",
+      "next_action": "Build exact frozen source/runtime packages, verify full source/ZIP/Git linkage, run required strict final gate and fresh native recovery sequence through the closed extracted-source profile; retain failed Plan2 unchanged.",
       "blocker_owner": null,
       "depends_on": [
         "B05",
@@ -7619,6 +7833,41 @@
           "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
           "bytes": 4335,
           "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+          "bytes": 5526,
+          "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+          "bytes": 2637,
+          "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+          "bytes": 59591,
+          "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+          "bytes": 5981,
+          "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+          "bytes": 29435,
+          "sha256": "f6231806a2610732189094b3253cab858cca56549c95d781db534f1ab6b5f4d3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+          "bytes": 5679,
+          "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -8127,6 +8376,55 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_observation_successor22": {
+        "status": "PASS",
+        "scope": "Actual NEW Plan3 ccc821ee-32d2-4829-b8c6-511acb744487 uses distinct /3 approval after no-acquisition observation. Pinned Linux Docker/Atmos/OpenTofu/provider communicate with synthetic receiving service. Native no-change plan and independent exact state13/policy/settings/assignment readback passed. Original import and both failed Plan rows remain unknown and once-dispatched; no fabricated Plan2 release. Owners release only after fresh proof/reconciliation. Producer24 and independent raw23 overlap and are not summed; wrong-domain/JSON rejection controls retained. All host/fixture handles closed. No organizational Azure/Graph/device claim.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+            "bytes": 5526,
+            "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+            "bytes": 2637,
+            "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+            "bytes": 59591,
+            "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+            "bytes": 5981,
+            "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
+          }
+        ]
+      },
+      "native_mixed_history_pty22": {
+        "status": "PASS",
+        "scope": "Actual quiet Linux PTY PASS30: /2,/2,/3 review/status/attach, real tab keys, original/history/back/reopen, terminal restoration. Independent raw authority/events/transcripts/edges/ownership and private artifact assertions unchanged. Failed Plan2 has no exceptional release and new Plan3 exact observation anchor remains navigable. This is Linux current-source terminal evidence, not native Windows or final package qualification.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+            "bytes": 29435,
+            "sha256": "f6231806a2610732189094b3253cab858cca56549c95d781db534f1ab6b5f4d3"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+            "bytes": 5679,
+            "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
+          }
+        ]
       }
     },
     {
@@ -9657,7 +9955,9 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -9855,6 +10155,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+          "bytes": 1757,
+          "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+          "bytes": 163418,
+          "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
         }
       ],
       "increment15": {
@@ -10042,6 +10352,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_signed_history22": {
+        "status": "PASS",
+        "scope": "Actual application request/prepare/sign/assemble/ingest/reopen for new Plan3 and forged-receipt rejection PASS14. All251 original entries unchanged. Completed fresh identity-binding hash differs from pre-Plan while exact state/principal remain bound. Signed state-and-plan content consistency is narrower than Graph deployment or organizational attribution; baseline=false and prior unknown results retained.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+            "bytes": 1757,
+            "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+            "bytes": 163418,
+            "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
       }
     },
     {
@@ -12349,11 +12676,13 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve actual locked-writer public read evidence; finish quiet native Plan3 history/PTY and exact final-package qualification. Native Windows and real platform routes remain separate.",
+      "next_action": "Qualify exact extracted runtime CLI/PTY/connected journey, preserving current-source mixed-chain evidence. Native Windows and real platform routes remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -12886,6 +13215,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+          "bytes": 29435,
+          "sha256": "f6231806a2610732189094b3253cab858cca56549c95d781db534f1ab6b5f4d3"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+          "bytes": 5679,
+          "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -13216,6 +13555,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_mixed_history_pty22": {
+        "status": "PASS",
+        "scope": "Actual quiet Linux PTY PASS30: /2,/2,/3 review/status/attach, real tab keys, original/history/back/reopen, terminal restoration. Independent raw authority/events/transcripts/edges/ownership and private artifact assertions unchanged. Failed Plan2 has no exceptional release and new Plan3 exact observation anchor remains navigable. This is Linux current-source terminal evidence, not native Windows or final package qualification.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
+            "bytes": 29435,
+            "sha256": "f6231806a2610732189094b3253cab858cca56549c95d781db534f1ab6b5f4d3"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+            "bytes": 5679,
+            "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
+          }
+        ]
       }
     },
     {
@@ -17453,7 +17809,12 @@
         "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
         "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -18052,6 +18413,31 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
           "bytes": 1301,
           "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+          "bytes": 5526,
+          "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+          "bytes": 2637,
+          "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+          "bytes": 59591,
+          "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+          "bytes": 5981,
+          "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
         }
       ],
       "protected_adoption_increment12": {
@@ -18102,6 +18488,38 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_observation_successor22": {
+        "status": "PASS",
+        "scope": "Actual NEW Plan3 ccc821ee-32d2-4829-b8c6-511acb744487 uses distinct /3 approval after no-acquisition observation. Pinned Linux Docker/Atmos/OpenTofu/provider communicate with synthetic receiving service. Native no-change plan and independent exact state13/policy/settings/assignment readback passed. Original import and both failed Plan rows remain unknown and once-dispatched; no fabricated Plan2 release. Owners release only after fresh proof/reconciliation. Producer24 and independent raw23 overlap and are not summed; wrong-domain/JSON rejection controls retained. All host/fixture handles closed. No organizational Azure/Graph/device claim.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+            "bytes": 5526,
+            "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+            "bytes": 2637,
+            "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+            "bytes": 59591,
+            "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+            "bytes": 5981,
+            "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
+          }
+        ]
       }
     },
     {
@@ -19972,7 +20390,12 @@
         "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
         "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
@@ -20424,6 +20847,31 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
           "bytes": 1301,
           "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+          "bytes": 5526,
+          "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+          "bytes": 2637,
+          "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+          "bytes": 59591,
+          "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+          "bytes": 5981,
+          "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
         }
       ],
       "native_fault_increment": {
@@ -20533,6 +20981,38 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_observation_successor22": {
+        "status": "PASS",
+        "scope": "Actual NEW Plan3 ccc821ee-32d2-4829-b8c6-511acb744487 uses distinct /3 approval after no-acquisition observation. Pinned Linux Docker/Atmos/OpenTofu/provider communicate with synthetic receiving service. Native no-change plan and independent exact state13/policy/settings/assignment readback passed. Original import and both failed Plan rows remain unknown and once-dispatched; no fabricated Plan2 release. Owners release only after fresh proof/reconciliation. Producer24 and independent raw23 overlap and are not summed; wrong-domain/JSON rejection controls retained. All host/fixture handles closed. No organizational Azure/Graph/device claim.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+            "bytes": 5526,
+            "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+            "bytes": 2637,
+            "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+            "bytes": 59591,
+            "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+            "bytes": 5981,
+            "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
+          }
+        ]
       }
     },
     {
@@ -20759,7 +21239,12 @@
         "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+        "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
@@ -21450,6 +21935,31 @@
           "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
           "bytes": 4335,
           "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+          "bytes": 5526,
+          "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+          "bytes": 2637,
+          "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+          "bytes": 79,
+          "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+          "bytes": 59591,
+          "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+          "bytes": 5981,
+          "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
         }
       ],
       "native_fault_increment": {
@@ -21878,6 +22388,38 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_observation_successor22": {
+        "status": "PASS",
+        "scope": "Actual NEW Plan3 ccc821ee-32d2-4829-b8c6-511acb744487 uses distinct /3 approval after no-acquisition observation. Pinned Linux Docker/Atmos/OpenTofu/provider communicate with synthetic receiving service. Native no-change plan and independent exact state13/policy/settings/assignment readback passed. Original import and both failed Plan rows remain unknown and once-dispatched; no fabricated Plan2 release. Owners release only after fresh proof/reconciliation. Producer24 and independent raw23 overlap and are not summed; wrong-domain/JSON rejection controls retained. All host/fixture handles closed. No organizational Azure/Graph/device claim.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/adoption-staging/PLAN3-NATIVE-01.json",
+            "bytes": 5526,
+            "sha256": "f48eaf8ed42a1bb46f76ad5cebfebd1a63c797af4758f1a6a4d30d0631655551"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/receipt.json",
+            "bytes": 2637,
+            "sha256": "2d8b5c0d9d4e0a002719fdaca4ace7f825fb404c1d974833c2ce5c1fb33eaaab"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01/FINAL-QUALIFICATION.json",
+            "bytes": 79,
+            "sha256": "9f3c11ff20c9490f20696284b9c2cdcff4bc26b36452e5e900d53a8f22cd480a"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-plan-converged-01-source/RESULT.json",
+            "bytes": 59591,
+            "sha256": "271621fb5528651529bca1a7eef642150d5742bc0427f4120ff18da2069e82d4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-plan3-raw-02/RESULT.json",
+            "bytes": 5981,
+            "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
+          }
+        ]
       }
     },
     {
@@ -22037,7 +22579,9 @@
         "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+        "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -22147,6 +22691,16 @@
           "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
           "bytes": 16295,
           "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+          "bytes": 1757,
+          "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+          "bytes": 163418,
+          "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
         }
       ],
       "native_fault_increment": {
@@ -22191,6 +22745,23 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "native_signed_history22": {
+        "status": "PASS",
+        "scope": "Actual application request/prepare/sign/assemble/ingest/reopen for new Plan3 and forged-receipt rejection PASS14. All251 original entries unchanged. Completed fresh identity-binding hash differs from pre-Plan while exact state/principal remain bound. Signed state-and-plan content consistency is narrower than Graph deployment or organizational attribution; baseline=false and prior unknown results retained.",
+        "observed_source_revision": "54fb7970b87681b28ebdb5405e74eff27de9c462",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/NATIVE-PLAN3-HISTORY-DELIVERY-01.json",
+            "bytes": 1757,
+            "sha256": "cbed77c1c2a2fbe48debce5d771548460eb4b2194c05dd84cb4e9731da2408be"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-native-plan-v3-01/RESULT.json",
+            "bytes": 163418,
+            "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
+          }
+        ]
       }
     },
     {
@@ -24087,5 +24658,5 @@
       }
     }
   ],
-  "checkpoint_increment": 21
+  "checkpoint_increment": 22
 }
