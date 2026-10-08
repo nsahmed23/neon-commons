@@ -1,14 +1,32 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-08T01:34:45.019692+00:00",
+  "recorded_at": "2026-10-08T01:50:54.714242+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
-    "current_candidate_commit": null,
-    "new_artifacts": [],
-    "latest_completed_checkpoint": "54fb7970b87681b28ebdb5405e74eff27de9c462",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-22.json"
+    "current_candidate_commit": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+    "new_artifacts": {
+      "source": {
+        "path": "/tmp/intune-r4-final-packages-01/build-a/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "bytes": 17932603,
+        "sha256": "a97968ccc4a86f4549c7ab31f7f0467692609bb2e1177a66a7754e8433689b87",
+        "extracted": "/tmp/intune-r4-final-packages-01/extract-source/intune-iac-source",
+        "rebuild_path": "/tmp/intune-r4-final-packages-01/build-b/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "byte_identical_rebuild": true
+      },
+      "runtime": {
+        "path": "/tmp/intune-r4-final-packages-01/build-a/Intune_IaC_Plugin_0.9.0.zip",
+        "bytes": 1499635,
+        "sha256": "48a3cf1d2e4a12a5d960bda3b193b565a014bcc4c463ee7ff3543ea5671466f7",
+        "extracted": "/tmp/intune-r4-final-packages-01/extract-runtime/intune-iac",
+        "rebuild_path": "/tmp/intune-r4-final-packages-01/build-b/Intune_IaC_Plugin_0.9.0.zip",
+        "byte_identical_rebuild": true
+      }
+    },
+    "latest_completed_checkpoint": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-23.json",
+    "candidate_disposition": "FAILED_REQUIRED_STRICT_GATE; retained unchanged, not qualified release"
   },
   "contract": {
     "path": "docs/STRICT-CONTINUATION-CONTRACT-R4.md",
@@ -31,13 +49,13 @@
     "NOT_STARTED": "New requirement not yet qualified in this continuation; does not erase inherited implementation.",
     "UNSUPPORTED": "Explicit unsupported required route remains a release blocker.",
     "historical_statuses": "Retain verbatim in immutable original records; never normalize or rewrite historical ledgers.",
-    "null_identity": "No final reviewed package candidate/artifact identity is pinned yet; each completed source increment is bound by its exact commit receipt. Never substitute a historical artifact hash for new qualification."
+    "null_identity": "C22 candidate artifacts are explicitly pinned with a failed required strict gate. Any new candidate requires exact rebuilt hashes and scoped applicability; historical artifact pins are never substituted."
   },
   "outcomes": {
-    "laboratory": "IMPLEMENTED",
+    "laboratory": "FAIL",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Current-source native Plan3, signed persistent history and actual mixed-chain Linux PTY passed their separately scoped checks. Laboratory completion still requires exact final-package gates and delivery. Historical failures/provenance and required native host/service/backend/CI/device/security/organizational gates remain open."
+    "explanation": "C22 exact package integrity and runtime journey passed, but required source suite FAILED and native final-package fault routes remain incomplete. Historical current-source native results retain their original scope. Platform and accountable production approval remain blocked."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -12678,7 +12696,9 @@
         "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
         "evidence/epoch-20261007-r4/worker-service/native-mixed-phase-pty-01/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json"
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
+        "/tmp/intune-r4-final-runtime-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-02.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -13225,6 +13245,16 @@
           "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
           "bytes": 5679,
           "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
+        },
+        {
+          "path": "/tmp/intune-r4-final-runtime-01/RESULT.json",
+          "bytes": 4487,
+          "sha256": "a179244f48e00d6a8f11eaf58867a7384bc725a837a79f41c687e633f6ed4402"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-02.json",
+          "bytes": 6191,
+          "sha256": "2fcc17d5d1a5336282af8ea89ad8090e8fe2d700775d952bb3bb9f80e5eb4b31"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -13570,6 +13600,23 @@
             "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-01.json",
             "bytes": 5679,
             "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
+          }
+        ]
+      },
+      "exact_runtime_journey23": {
+        "status": "PASS",
+        "scope": "Actual exact runtime doctor/help/version, workflow11 checks/8 commands, wizard Linux PTY and connected64checks/34commands. All3354 source and300runtime file bytes/membership unchanged and equal exactZIPs. Counts overlap and are not added. Protected native package faults and native Windows/platform are separate unfinished gates.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-runtime-01/RESULT.json",
+            "bytes": 4487,
+            "sha256": "a179244f48e00d6a8f11eaf58867a7384bc725a837a79f41c687e633f6ed4402"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-02.json",
+            "bytes": 6191,
+            "sha256": "2fcc17d5d1a5336282af8ea89ad8090e8fe2d700775d952bb3bb9f80e5eb4b31"
           }
         ]
       }
@@ -15236,11 +15283,11 @@
       "description": "Release source equals reviewed source; changed-scope and required final gates retain exact source/artifact identity without duplicated counts.",
       "milestone": "F",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "IMPLEMENTED",
+      "status": "FAIL",
       "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
-      "applicable_revision": null,
-      "artifact_sha256": null,
+      "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+      "applicable_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+      "artifact_sha256": "a97968ccc4a86f4549c7ab31f7f0467692609bb2e1177a66a7754e8433689b87",
       "test_procedure_id": "R4-F01",
       "evidence_path": [
         "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json",
@@ -15259,11 +15306,20 @@
         "evidence/epoch-20261007-r4/source-linkage/CHECKPOINT11-FULL-LINKAGE-01.json",
         "evidence/epoch-20261007-r4/integration/COMMIT-11.json",
         "evidence/epoch-20261007-r4/integration/LEDGER-INTEGRITY-03.json",
-        "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json"
+        "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json",
+        "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+        "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+        "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+        "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+        "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+        "evidence/epoch-20261007-r4/independent/final-strict-binding-01/RESULT.json",
+        "/tmp/intune-final-strict-controls-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present. Read-only GitHub capability reassessment found baseline289 two failed workflow admissions, zero jobs, unprotected source/handoff branches. Root-cause runner.temp context source repair passes9 local cases and unchanged independentactionlint/7shellcontrols; no new hosted run or control change.",
-      "next_action": "Qualify exact final committed selected source and extracted runtime/source packages, including whole-inventory raw Git-object identity. Current11 local linkage controls are preparation, not final release qualification.",
+      "limitation": "Exact C22 integrity and runtime journey passed, required strict suite FAILED. All failed bytes/logs and8setup errors/87unexecuted methods retained. No final artifact release pass.",
+      "next_action": "Repair demonstrated test-process contamination, exact release-layer admission and source-edit interface expectation without weakening product gates; independently verify before/after, commit a new candidate, rebuild and run its required strict gate.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -15333,6 +15389,51 @@
         {
           "path": "evidence/epoch-20261007-r4/integration/admission-collision-01/RECEIPT.json",
           "sha256": "666c2a87b9795df6cbe1f53b8fad6acabbe3db2c3b4a0dab1f1da5d9105455ed"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "e795d840eaa02909f8d2ce76d8d44f659c7079c10aa5f269e01f2a10db83572a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+          "bytes": 1577962,
+          "sha256": "d2a8c9500cf064bb77f7a3d657a22b2976aab896cbb3ce5aa7ecdc51cff93965"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+          "bytes": 1702,
+          "sha256": "8fd9196cf16cff9c0a3bd2e68cb4ad899f2804db4229a63074dc9437dd830ca9"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+          "bytes": 762,
+          "sha256": "63f5dbcc14f651453f8559ea89beef635fc0b831e0e1367d5425a88fe1947ea9"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+          "bytes": 607668,
+          "sha256": "6a7c41f42bfa343b495f7997584d0ebe7f1aebd116e0cb93200420f4770fc7c7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+          "bytes": 248366,
+          "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-strict-binding-01/RESULT.json",
+          "bytes": 1019,
+          "sha256": "ea8d7ab0a53c3b94b7d65b9c66b1e86209f557f31f939109c8fe727693e8f2b9"
+        },
+        {
+          "path": "/tmp/intune-final-strict-controls-01/RESULT.json",
+          "bytes": 1690,
+          "sha256": "eab61be3d41744fa4e69b9a140955132878e14a74df0e74e15397b40e3822600"
         }
       ],
       "tool_relocation_increment11": {
@@ -15352,6 +15453,72 @@
         "status": "IMPLEMENTED",
         "scope": "Checkpoint11 exact3271-file Git linkage and91-row receipt-reference check PASS. Concurrent root/packaging inventory admissions were attributed, preserved and repaired; source selection unaffected.",
         "limitations": "Both wrote check30 output; original first-result bytes were not independently retained and cannot be claimed byte-identical to later observed result. Current check31 is separate; historical provenance findings remain open. No final package or full8-layer reconstruction claim."
+      },
+      "exact_candidate_package23": {
+        "status": "PASS",
+        "scope": "C22 selected3353 Git source files plus generated SHA256SUMS and300 runtime members verified against exact archives. Independent raw Git/ZIP review13 and byte-identical extracted-source rebuild. These integrity results do not imply final suite success or full corpus delivery.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "e795d840eaa02909f8d2ce76d8d44f659c7079c10aa5f269e01f2a10db83572a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+            "bytes": 1577962,
+            "sha256": "d2a8c9500cf064bb77f7a3d657a22b2976aab896cbb3ce5aa7ecdc51cff93965"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+          }
+        ]
+      },
+      "required_strict_candidate23": {
+        "status": "FAIL",
+        "scope": "C22 exact extracted-source required gate:2300 planned,2213 run,2086 passes,5 failures,130 error records,zero skips/expected failures/unexpected successes. Eight class-setup errors leave87 planned methods unexecuted; remaining122 method errors+5 failures account for2213 run. Source/archive bytes unchanged.126 errors share deleted unregistered native mapping; release transfer has5 failures+3 errors from four-versus-five new-layer contract/stale assertion and TestCase.fail override; one Windows source-edit result-key error. Do not turn completed methods or absent skips into a passing gate.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+            "bytes": 1702,
+            "sha256": "8fd9196cf16cff9c0a3bd2e68cb4ad899f2804db4229a63074dc9437dd830ca9"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+            "bytes": 762,
+            "sha256": "63f5dbcc14f651453f8559ea89beef635fc0b831e0e1367d5425a88fe1947ea9"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+            "bytes": 607668,
+            "sha256": "6a7c41f42bfa343b495f7997584d0ebe7f1aebd116e0cb93200420f4770fc7c7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+            "bytes": 248366,
+            "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+          }
+        ]
+      },
+      "qualification_orchestrator23": {
+        "status": "PASS",
+        "scope": "Retained old wrapper accepted premodified extraction; repaired wrapper checks full types/member bytes against exactZIP before suite, fails on unreadable descendants, and preserves failures. Eight owner and six independent controls overlap; no runtime acceptance gate was relaxed.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-strict-binding-01/RESULT.json",
+            "bytes": 1019,
+            "sha256": "ea8d7ab0a53c3b94b7d65b9c66b1e86209f557f31f939109c8fe727693e8f2b9"
+          },
+          {
+            "path": "/tmp/intune-final-strict-controls-01/RESULT.json",
+            "bytes": 1690,
+            "sha256": "eab61be3d41744fa4e69b9a140955132878e14a74df0e74e15397b40e3822600"
+          }
+        ]
       }
     },
     {
@@ -15359,16 +15526,23 @@
       "description": "Independent complete application journeys and negative controls qualify exact source/runtime packages.",
       "milestone": "F",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "NOT_STARTED",
+      "status": "IMPLEMENTED",
       "evidence_class": "new-local-evidence-required",
       "observed_source_revision": "289ee9477372825aad848f4482cf681c2ff43b02",
       "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-F02",
-      "evidence_path": [],
+      "evidence_path": [
+        "/tmp/intune-r4-final-runtime-01/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-02.json",
+        "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+        "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+        "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+        "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json"
+      ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "The R3 release is valid for its recorded scopes. R4 must bind its own reviewed changed candidate, evidence and artifacts; no production approval is present.",
-      "next_action": "Implement and independently exercise Independent complete application journeys and negative controls qualify exact source/runtime packages.",
+      "next_action": "Complete fresh exact-package native adoption/source-maintenance and all partial/committed-state/reverse-description/recovery routes under one closed source/helper profile after the required source repair gate.",
       "blocker_owner": null,
       "depends_on": [
         "F01"
@@ -15389,6 +15563,82 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "exact_runtime_journey23": {
+        "status": "PASS",
+        "scope": "Actual exact runtime doctor/help/version, workflow11 checks/8 commands, wizard Linux PTY and connected64checks/34commands. All3354 source and300runtime file bytes/membership unchanged and equal exactZIPs. Counts overlap and are not added. Protected native package faults and native Windows/platform are separate unfinished gates.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-runtime-01/RESULT.json",
+            "bytes": 4487,
+            "sha256": "a179244f48e00d6a8f11eaf58867a7384bc725a837a79f41c687e633f6ed4402"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-02.json",
+            "bytes": 6191,
+            "sha256": "2fcc17d5d1a5336282af8ea89ad8090e8fe2d700775d952bb3bb9f80e5eb4b31"
+          }
+        ]
+      },
+      "evidence_receipts": [
+        {
+          "path": "/tmp/intune-r4-final-runtime-01/RESULT.json",
+          "bytes": 4487,
+          "sha256": "a179244f48e00d6a8f11eaf58867a7384bc725a837a79f41c687e633f6ed4402"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/OWNED-ROOTS-02.json",
+          "bytes": 6191,
+          "sha256": "2fcc17d5d1a5336282af8ea89ad8090e8fe2d700775d952bb3bb9f80e5eb4b31"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+          "bytes": 1702,
+          "sha256": "8fd9196cf16cff9c0a3bd2e68cb4ad899f2804db4229a63074dc9437dd830ca9"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+          "bytes": 762,
+          "sha256": "63f5dbcc14f651453f8559ea89beef635fc0b831e0e1367d5425a88fe1947ea9"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+          "bytes": 607668,
+          "sha256": "6a7c41f42bfa343b495f7997584d0ebe7f1aebd116e0cb93200420f4770fc7c7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+          "bytes": 248366,
+          "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+        }
+      ],
+      "required_strict_candidate23": {
+        "status": "FAIL",
+        "scope": "C22 exact extracted-source required gate:2300 planned,2213 run,2086 passes,5 failures,130 error records,zero skips/expected failures/unexpected successes. Eight class-setup errors leave87 planned methods unexecuted; remaining122 method errors+5 failures account for2213 run. Source/archive bytes unchanged.126 errors share deleted unregistered native mapping; release transfer has5 failures+3 errors from four-versus-five new-layer contract/stale assertion and TestCase.fail override; one Windows source-edit result-key error. Do not turn completed methods or absent skips into a passing gate.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+            "bytes": 1702,
+            "sha256": "8fd9196cf16cff9c0a3bd2e68cb4ad899f2804db4229a63074dc9437dd830ca9"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+            "bytes": 762,
+            "sha256": "63f5dbcc14f651453f8559ea89beef635fc0b831e0e1367d5425a88fe1947ea9"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+            "bytes": 607668,
+            "sha256": "6a7c41f42bfa343b495f7997584d0ebe7f1aebd116e0cb93200420f4770fc7c7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+            "bytes": 248366,
+            "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+          }
+        ]
       }
     },
     {
@@ -15429,7 +15679,14 @@
         "evidence/epoch-20261007-r4/packaging/STOPPED-CANDIDATE-DELIVERY-01.json",
         "evidence/epoch-20261007-r4/packaging/WORKSPACE-PROXY-CAPSULE-DELIVERY-01.json",
         "evidence/epoch-20261007-r4/independent/proxy-archive-01/RESULT.json",
-        "evidence/epoch-20261007-r4/packaging/multiroot-staging/DELIVERY-PREPARATION-CHECKPOINT-04.json"
+        "evidence/epoch-20261007-r4/packaging/multiroot-staging/DELIVERY-PREPARATION-CHECKPOINT-04.json",
+        "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+        "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+        "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+        "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+        "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
@@ -15581,6 +15838,41 @@
           "path": "evidence/epoch-20261007-r4/packaging/multiroot-staging/DELIVERY-PREPARATION-CHECKPOINT-04.json",
           "bytes": 4074,
           "sha256": "9c7fd93f9e162583a70f3a79eab2a233ac0e0554529e9ad1ae608582fc6c4edd"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "e795d840eaa02909f8d2ce76d8d44f659c7079c10aa5f269e01f2a10db83572a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+          "bytes": 1577962,
+          "sha256": "d2a8c9500cf064bb77f7a3d657a22b2976aab896cbb3ce5aa7ecdc51cff93965"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+          "bytes": 1702,
+          "sha256": "8fd9196cf16cff9c0a3bd2e68cb4ad899f2804db4229a63074dc9437dd830ca9"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+          "bytes": 762,
+          "sha256": "63f5dbcc14f651453f8559ea89beef635fc0b831e0e1367d5425a88fe1947ea9"
+        },
+        {
+          "path": "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+          "bytes": 607668,
+          "sha256": "6a7c41f42bfa343b495f7997584d0ebe7f1aebd116e0cb93200420f4770fc7c7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+          "bytes": 248366,
+          "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
         }
       ],
       "evidence_producer_increment8": {
@@ -15716,6 +16008,55 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+      },
+      "exact_candidate_package23": {
+        "status": "PASS",
+        "scope": "C22 selected3353 Git source files plus generated SHA256SUMS and300 runtime members verified against exact archives. Independent raw Git/ZIP review13 and byte-identical extracted-source rebuild. These integrity results do not imply final suite success or full corpus delivery.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "e795d840eaa02909f8d2ce76d8d44f659c7079c10aa5f269e01f2a10db83572a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+            "bytes": 1577962,
+            "sha256": "d2a8c9500cf064bb77f7a3d657a22b2976aab896cbb3ce5aa7ecdc51cff93965"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+          }
+        ]
+      },
+      "required_strict_candidate23": {
+        "status": "FAIL",
+        "scope": "C22 exact extracted-source required gate:2300 planned,2213 run,2086 passes,5 failures,130 error records,zero skips/expected failures/unexpected successes. Eight class-setup errors leave87 planned methods unexecuted; remaining122 method errors+5 failures account for2213 run. Source/archive bytes unchanged.126 errors share deleted unregistered native mapping; release transfer has5 failures+3 errors from four-versus-five new-layer contract/stale assertion and TestCase.fail override; one Windows source-edit result-key error. Do not turn completed methods or absent skips into a passing gate.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-strict-01/RECEIPT.json",
+            "bytes": 1702,
+            "sha256": "8fd9196cf16cff9c0a3bd2e68cb4ad899f2804db4229a63074dc9437dd830ca9"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-01/strict-suite/result.json",
+            "bytes": 762,
+            "sha256": "63f5dbcc14f651453f8559ea89beef635fc0b831e0e1367d5425a88fe1947ea9"
+          },
+          {
+            "path": "/tmp/intune-r4-final-strict-01/strict-suite/test-log.txt",
+            "bytes": 607668,
+            "sha256": "6a7c41f42bfa343b495f7997584d0ebe7f1aebd116e0cb93200420f4770fc7c7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-strict-triage-01/GROUPED-ERRORS.json",
+            "bytes": 248366,
+            "sha256": "ceecaeb52f88da1073de5d360eafd047fa87caccae4e16941cffc57c04896e13"
+          }
+        ]
       }
     },
     {
@@ -15738,7 +16079,10 @@
         "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
         "evidence/epoch-20261007-r4/packaging/QUALIFICATION-TOOLS-ADMISSION-28.json",
         "evidence/epoch-20261007-r4/independent/qualification-tools-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/qualification-tools-01/PROPOSAL-02-REVIEW.json"
+        "evidence/epoch-20261007-r4/independent/qualification-tools-01/PROPOSAL-02-REVIEW.json",
+        "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+        "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+        "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -15798,6 +16142,21 @@
         {
           "path": "evidence/epoch-20261007-r4/independent/qualification-tools-01/PROPOSAL-02-REVIEW.json",
           "sha256": "bef31c19a9173b7ccb73dc00fb063f7f6fcbb74de6a767302d8d3dc08268d57e"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+          "bytes": 4994,
+          "sha256": "e795d840eaa02909f8d2ce76d8d44f659c7079c10aa5f269e01f2a10db83572a"
+        },
+        {
+          "path": "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+          "bytes": 1577962,
+          "sha256": "d2a8c9500cf064bb77f7a3d657a22b2976aab896cbb3ce5aa7ecdc51cff93965"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+          "bytes": 2691,
+          "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
         }
       ],
       "tool_relocation_increment11": {
@@ -15805,6 +16164,28 @@
         "scope": "Same fixed tool bytes at explicit relocated paths;9 input controls+2 native host+1 signed native TLS test, independent9 controls overlap. Missing/substituted tools fail; no skip or repinning.",
         "limitations": "No final package or hosted CI qualification; pinned Docker daemon/image/UID prerequisites remain.",
         "next_action": "Use exact admitted tool preparation for extracted-package gate after source freeze."
+      },
+      "exact_candidate_package23": {
+        "status": "PASS",
+        "scope": "C22 selected3353 Git source files plus generated SHA256SUMS and300 runtime members verified against exact archives. Independent raw Git/ZIP review13 and byte-identical extracted-source rebuild. These integrity results do not imply final suite success or full corpus delivery.",
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-final-packages-01/PACKAGE-RECEIPT.json",
+            "bytes": 4994,
+            "sha256": "e795d840eaa02909f8d2ce76d8d44f659c7079c10aa5f269e01f2a10db83572a"
+          },
+          {
+            "path": "/tmp/intune-r4-final-packages-01/SOURCE-LINKAGE.json",
+            "bytes": 1577962,
+            "sha256": "d2a8c9500cf064bb77f7a3d657a22b2976aab896cbb3ce5aa7ecdc51cff93965"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/final-packages-01/RESULT.json",
+            "bytes": 2691,
+            "sha256": "45b0be1c7d61621443a500a4ae771da79f100631fb44709ac4e659f4d6c1a6f3"
+          }
+        ]
       }
     },
     {
@@ -24658,5 +25039,5 @@
       }
     }
   ],
-  "checkpoint_increment": 22
+  "checkpoint_increment": 23
 }

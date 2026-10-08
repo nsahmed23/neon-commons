@@ -26,6 +26,13 @@ Historical Plan2 stays consumed/unknown; no lease release was invented and no
 old Plan was replayed. Next qualify exact reproducible source/runtime packages,
 the required strict gate and fresh closed-profile native recovery journeys.
 
+Checkpoint23 records C22's required strict FAIL:2300 planned/2213 run/2086 passes,
+5 failures and130 errors (including8 class-setup failures and87 unexecuted
+methods). Exact package bytes and the runtime connected journey remain valid
+within their scopes. First repair the demonstrated isolated-test, five-layer
+staging and source-edit fixture issues; do not relax any product gate. Rebuild
+a new committed source and qualify it. Preserve all C22 artifacts and failures.
+
 | Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
 | --- | --- | --- |
 | 1 | `workbench views`, `workbench workspace` and the same text engine expose repository, observed, proposed and coverage evidence. Native object/current-source readers are integrated; native intent import/proposal are integrated; bounded source editing/recovery is integrated; finish authenticated portable worker evidence without opening unsupported POSIX journals. | Retain actual Linux CLI/PTY evidence and recorded-Win32 controls. Real Windows/Git Bash/mintty remains a host-owner gate. |

@@ -1009,3 +1009,30 @@ The runtime-only archive receives its own actual text/PTY/connected checks and
 full byte linkage to that source; do not mislabel this as runtime-only native
 execution. Preserve all source qualification failures and historical1141/1242
 evidence. Platform qualification and accountable approval remain blocked.
+
+Increment23 preserves the FAILED C22 required exact-source gate. The source ZIP
+is17,932,603 bytes/a97968ccc4a86f4549c7ab31f7f0467692609bb2e1177a66a7754e8433689b87;
+the runtime ZIP is1,499,635 bytes/48a3cf1d2e4a12a5d960bda3b193b565a014bcc4c463ee7ff3543ea5671466f7.
+Raw Git linkage, independent ZIP membership/bytes and reproducible builds passed.
+The runtime text/PTY/connected journey passed its exact scope; neither result
+changes the source-suite failure. All package/extraction bytes stayed unchanged.
+
+The required suite planned2300 methods, ran2213, passed2086, and recorded5 failures
+and130 errors, with zero skips. Eight class-setup errors account for87 methods
+not run; they are neither passes nor skips.126 errors share the deleted/unbound
+native-library mapping guard. A real wrong-library approval negative leaves an
+irreversible dlopen mapping in the shared test interpreter; the subsequent guard
+correctly rejects it. Repair the offending test's process isolation, not the
+security gate. Release-transfer fixtures expose five new layers against a
+four-layer stager and an inherited TestCase.fail override. One native source-edit
+fixture expects a missing result key. Focused before/after repairs are pending.
+
+Read /tmp/intune-r4-final-strict-01/RECEIPT.json and its complete test-log, then
+integration/COMMIT-23.json for this failure checkpoint. No complete suite retry
+is justified by a changed count alone: admit the concrete repairs, qualify
+focused ordered cohorts independently, commit/build a new exact candidate, then
+run its required gate. Never overwrite C22 outputs. The closed native profile
+also needs the existing ordinary partial, committed-state and reverse-description
+fault routes before new artifact qualification is complete. Performance is only
+preregistered, not timed. Complete delivery must include raw Intune Git history
+and unselected bytecode evidence; do not call a selected source ZIP full recovery.
