@@ -17,8 +17,9 @@ qualification tools; its exact commit is recorded in `integration/COMMIT-11.json
 Checkpoint18 source-bound maintenance and its signed persistent history passed
 scoped native laboratory checks. The new recovery Plan2 FAILED in a watchdog
 before backend acquisition; its approval remains consumed and outcome unknown.
-Current next action at checkpoint19 is the read-only constructor repair plus a
-distinct sealed no-acquisition assessment and newly approved successor. Never
+Checkpoint19 integrated the read-only phase opener; checkpoint20 integrates the
+distinct sealed no-acquisition assessment. Next finish the /3 successor and
+portable history plus public read-only reattachment, then a new approval. Never
 invent a lease release or replay that Plan. Preserve the complete chain, then
 qualify signed export and actual PTY history, followed by final package gates.
 

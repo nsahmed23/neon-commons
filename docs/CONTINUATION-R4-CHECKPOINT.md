@@ -913,3 +913,35 @@ checkpoint18 Plan2 failure receipt and EXECUTION-SEQUENCE-R4.md; finish the boun
 no-acquisition assessment, then approve a NEW successor under frozen repaired
 source. No current native convergence or final-package pass is claimed. Baseline
 evidence and the earlier valid C18 journeys remain preserved at their exact bytes.
+
+Increment20 integrates the distinct stopped-Plan no-acquisition assessment.
+Only a bound stopped phase with zero backend, lease and state-write attempts is
+admitted. Fresh typed backend and Graph reads, exact original state, an absent
+host and unchanged consumed rows/ownership are required. The assessment creates
+an append-only observation; it cannot release a lease or authorize execution.
+Inserted14 parser/guard methods and independent19 assertions/19 overlapping
+negative controls preserve their precise scopes. The actual Plan2 stays failed
+and unknown. New /3 approval/successor history and a focused public constructor
+read-path repair are staged; no new native Plan has been dispatched.
+
+Two historical C18 lease releases now have separate independent raw17 evidence.
+An interim preservation capsule includes407 proxy namespaces and42 explicitly
+omitted socket nodes as metadata; originals remain unchanged. A staged history
+qualification helper changed without attributable author evidence. Both versions
+and the evaluator failure are retained; the unexplained version is not admitted.
+Neither finding resolves older provenance anomalies. A ledger-update helper
+failed on an absent optional receipt list, before writing; its source/failure and
+unchanged ledger hash are preserved in integration/ledger20-attempt01.
+
+Read integration/COMMIT-20.json for exact source/working-tree identity. Resume:
+
+    cd /workspace/intune-continuation/work/projects/intune
+    git status --short
+    git log -1 --format='%H %s'
+    /workspace/intune-runtime/bin/python -B scripts/build-release.py --check-only
+
+Then finish the bounded staged repairs and their independent controls, commit a
+new native freeze, and execute a NEW approved successor through the actual
+worker. Do not replay failed Plan2 or call the no-acquisition observation a
+release. Exact final packaging, platform qualification and accountable approval
+remain separate unfinished gates.

@@ -3400,3 +3400,6 @@ scripts/qualify-windows-worker-evidence.py
 # R4 closed signed stopped-Plan predecessor/terminal evidence.
 intune_iac/worker_evidence_phase.py
 plugin_tests/test_worker_evidence_phase_r4.py
+docs/WORKER-ADOPTION-PLAN-OBSERVATION-R4.md
+intune_iac/worker_adoption_plan_observation.py
+plugin_tests/test_worker_adoption_plan_observation_r4.py
