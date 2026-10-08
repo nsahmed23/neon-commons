@@ -27,6 +27,10 @@ SIGNATURE_DOMAIN=b'intune-workbench:native-adoption-recovery-plan-approval:v1\x0
 PHASE_VERSION='native-adoption-recovery-plan/2'
 PHASE_APPROVAL_VERSION='signed-native-adoption-recovery-plan-approval/2'
 PHASE_SIGNATURE_DOMAIN=b'intune-workbench:native-adoption-recovery-plan-approval:v2\x00'
+UNACQUIRED_VERSION='native-adoption-recovery-plan/3'
+UNACQUIRED_APPROVAL_VERSION='signed-native-adoption-recovery-plan-approval/3'
+UNACQUIRED_SIGNATURE_DOMAIN=b'intune-workbench:native-adoption-recovery-plan-approval:v3\x00'
+UNACQUIRED_KIND='unacquired_phase_observation'
 MAX_PHASE_ANCESTORS=32
 _SEAL=object()
 
@@ -45,6 +49,26 @@ def _recovery_types():
 def _phase_types():
     from intune_iac import worker_adoption_plan_recovery as phase_recovery
     return phase_recovery,phase_recovery.LiveAdoptionPlanRecoveryCompletion,phase_recovery.LaboratoryAdoptionPlanRecoveryCompletion
+
+
+def _unacquired_types():
+    from intune_iac import worker_adoption_plan_observation as observed
+    return observed,observed.LiveUnacquiredPlanObservation,observed.LaboratoryUnacquiredPlanObservation
+
+
+def _is_phase(value):return value.get('schema_version') in (PHASE_VERSION,UNACQUIRED_VERSION)
+
+
+def _resolution_ids(binding,version):
+    if version==UNACQUIRED_VERSION:
+        if binding.get('resolution_kind')!=UNACQUIRED_KIND:_fail('adoption_recovery_observation_kind')
+        return binding['observation_id'],binding['anchor_sha256']
+    return binding['recovery_operation_id'],binding['recovery_manifest_sha256']
+
+
+def _state_artifact(completion):
+    _,live,lab=_unacquired_types()
+    return (completion.root if type(completion) in (live,lab) else completion.observation.root)/'state.raw'
 
 
 def _phase_from_binding(original,binding):
@@ -68,17 +92,19 @@ def _same(left,right):return canonical(left)==canonical(right)
 
 
 def _completion(job,value):
-    recovery,live,lab=_recovery_types();phase_recovery,phase_live,phase_lab=_phase_types()
+    recovery,live,lab=_recovery_types();phase_recovery,phase_live,phase_lab=_phase_types();observed_api,observed_live,observed_lab=_unacquired_types()
     if type(job) is not adoption.AdoptionJob:_fail('adoption_recovery_original_required')
     live_profile=job.manifest['profile']=='azure_public_pilot'
-    expected=(live,phase_live) if live_profile else (lab,phase_lab)
+    expected=(live,phase_live,observed_live) if live_profile else (lab,phase_lab,observed_lab)
     if type(value) not in expected:_fail('adoption_recovery_completion_required')
     job._check(expiry=False);facts=value.verified();observed=facts['fresh_observation'];proof=observed['adoption_state_proof']
-    is_phase=type(value) in (phase_live,phase_lab)
+    is_observed=type(value) in (observed_live,observed_lab)
+    is_phase=type(value) in (phase_live,phase_lab,observed_live,observed_lab)
     if is_phase:
         selected=value.context.phase
         if selected.original.identifier!=job.identifier or selected.original.sha256!=job.sha256 or selected.original.policy.database!=job.policy.database:_fail('adoption_recovery_phase_foreign')
-        actual=phase_recovery._original(selected)
+        actual=observed_api._original(selected) if is_observed else phase_recovery._original(selected)
+        if is_observed and (facts.get('schema_version')!='adoption-plan-unacquired-observation/1' or facts.get('classification')!=observed_api.CLASSIFICATION or facts.get('release_performed') is not False or facts.get('ownership_release_authorized') is not False):_fail('adoption_recovery_observation_kind')
     else:actual=recovery._original(job)
     if (facts['service_authority_root']!=str(job.policy.root) or
             not _same(_stable_original(facts['original']),_stable_original(actual)) or
@@ -99,9 +125,49 @@ def _release_row(db,phase_id,recovery_id,recovery_sha):
     return list(row)
 
 
+def _observation_row(db,original,phase_id,phase_sha,identifier,anchor_sha,facts):
+    row=db.execute('SELECT observation_id,original_operation_id,phase_operation_id,phase_manifest_sha256,anchor_sha256,anchor_path FROM adoption_plan_unacquired_observations WHERE observation_id=?',(identifier,)).fetchone()
+    if row is None or row[:5]!=(identifier,original.identifier,phase_id,phase_sha,anchor_sha):_fail('adoption_recovery_observation_unestablished')
+    path=Path(row[5]);anchor=service._bounded_private_json(path)
+    if (not path.is_absolute() or protected._sha(path)!=anchor_sha or digest(anchor)!=anchor_sha or anchor.get('schema_version')!='adoption-plan-unacquired-anchor/1'
+            or anchor.get('observation_id')!=identifier or anchor.get('classification')!='no_native_backend_dispatch_observed_execution_unknown'
+            or anchor.get('service_authority_root')!=str(original.policy.root)
+            or not _same(_stable_original(anchor.get('original',{})),_stable_original(facts))):_fail('adoption_recovery_observation_changed')
+    return list(row)
+
+
+def _resolution_row(db,original,binding,version,facts):
+    identifier,sha=_resolution_ids(binding,version)
+    if version==UNACQUIRED_VERSION:
+        return _observation_row(db,original,binding['phase']['operation_id'],binding['phase']['manifest_sha256'],identifier,sha,facts)
+    return _release_row(db,binding['phase']['operation_id'],identifier,sha)
+
+
+def _edge_rows(db,*,child=None,prior=None):
+    result=[]
+    for kind,table,columns in (
+        ('released_lease','adoption_plan_successors','recovery_operation_id,recovery_manifest_sha256'),
+        (UNACQUIRED_KIND,'adoption_plan_observation_successors','observation_id,anchor_sha256')):
+        if not db.execute('SELECT 1 FROM sqlite_master WHERE type=? AND name=?',('table',table)).fetchone():continue
+        if prior is None:
+            where='successor_operation_id=?';params=(child,)
+        else:
+            where='prior_operation_id=? OR successor_operation_id=?';params=(prior,child)
+        for row in db.execute('SELECT successor_operation_id,original_operation_id,successor_manifest_sha256,prior_operation_id,prior_manifest_sha256,'+columns+',prior_phase_json FROM '+table+' WHERE '+where,params):result.append((kind,row))
+    return result
+
+
+def _successor_slot(db,original,manifest,current_id):
+    selected=manifest['recovery_binding']['phase'];rows=_edge_rows(db,child=manifest['operation_id'],prior=selected['operation_id'])
+    if not rows:return
+    expected_kind=UNACQUIRED_KIND if manifest['schema_version']==UNACQUIRED_VERSION else 'released_lease'
+    identifier,sha=_resolution_ids(manifest['recovery_binding'],manifest['schema_version'])
+    expected=(manifest['operation_id'],original.identifier,digest(manifest),selected['operation_id'],selected['manifest_sha256'],identifier,sha,canonical(manifest['original_facts']).decode())
+    if len(rows)!=1 or current_id!=manifest['operation_id'] or rows[0]!=(expected_kind,expected):_fail('adoption_recovery_phase_successor_conflict')
+
+
 def _ancestor_chain(db,original,phase_id):
     """Only append-only edges made with a consumed child can exempt old rows."""
-    edge_table=bool(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='adoption_plan_successors'").fetchone())
     plan_table=bool(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='adoption_recovery_plans'").fetchone())
     result=[];declared=[];seen={phase_id};child=phase_id
     def completed():
@@ -124,12 +190,16 @@ def _ancestor_chain(db,original,phase_id):
             return completed()
         manifest=service._bounded_private_json(Path(registered[1])/'manifest.json')
         if digest(manifest)!=registered[0] or manifest.get('operation_id')!=child or manifest.get('original_operation_id')!=original.identifier:_fail('adoption_recovery_phase_chain_manifest_changed')
-        row=db.execute('SELECT original_operation_id,successor_manifest_sha256,prior_operation_id,prior_manifest_sha256,recovery_operation_id,recovery_manifest_sha256,prior_phase_json FROM adoption_plan_successors WHERE successor_operation_id=?',(child,)).fetchone() if edge_table else None
-        if row is None:
+        edges=_edge_rows(db,child=child)
+        if len(edges)>1:_fail('adoption_recovery_phase_chain_invalid')
+        if not edges:
             if manifest.get('schema_version')!=VERSION:_fail('adoption_recovery_phase_chain_orphan')
             return completed()
+        kind,edge=edges[0];row=edge[1:]
         if len(result)>=MAX_PHASE_ANCESTORS:_fail('adoption_recovery_phase_chain_limit')
-        if manifest.get('schema_version')!=PHASE_VERSION:_fail('adoption_recovery_phase_chain_manifest_changed')
+        expected_version=UNACQUIRED_VERSION if kind==UNACQUIRED_KIND else PHASE_VERSION
+        if manifest.get('schema_version')!=expected_version:_fail('adoption_recovery_phase_chain_manifest_changed')
+        if len(_edge_rows(db,child=child,prior=row[2]))!=1:_fail('adoption_recovery_phase_chain_invalid')
         if row[0]!=original.identifier or row[2] in seen:_fail('adoption_recovery_phase_chain_invalid')
         childrow=db.execute('SELECT original_operation_id,manifest_sha256,status,dispatches,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(child,)).fetchone()
         used=db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?',(child,)).fetchone()
@@ -145,14 +215,15 @@ def _ancestor_chain(db,original,phase_id):
         else:_fail('adoption_recovery_phase_chain_invalid')
         selected=manifest.get('recovery_binding',{}).get('phase',{})
         if (selected.get('operation_id')!=row[2] or selected.get('manifest_sha256')!=row[3] or selected.get('kind')!=facts['phase_kind']
-                or manifest.get('recovery_binding',{}).get('recovery_operation_id')!=row[4]
-                or manifest['recovery_binding'].get('recovery_manifest_sha256')!=row[5]
+                or _resolution_ids(manifest.get('recovery_binding',{}),manifest['schema_version'])!=row[4:6]
                 or not _same(manifest.get('original_facts'),facts)):_fail('adoption_recovery_phase_chain_manifest_changed')
         declared.append(manifest['recovery_binding'].get('ancestors'))
-        release=_release_row(db,row[2],row[4],row[5])
-        result.append({'successor_operation_id':child,'successor_manifest_sha256':row[1],'prior_operation_id':row[2],
-            'prior_manifest_sha256':row[3],'recovery_operation_id':row[4],'recovery_manifest_sha256':row[5],
-            'prior_phase_sha256':digest(facts),'release_row':release})
+        evidence=_resolution_row(db,original,manifest['recovery_binding'],manifest['schema_version'],facts)
+        common={'successor_operation_id':child,'successor_manifest_sha256':row[1],'prior_operation_id':row[2],
+            'prior_manifest_sha256':row[3],'prior_phase_sha256':digest(facts)}
+        if kind==UNACQUIRED_KIND:common.update(resolution_kind=UNACQUIRED_KIND,observation_id=row[4],anchor_sha256=row[5],observation_row=evidence)
+        else:common.update(recovery_operation_id=row[4],recovery_manifest_sha256=row[5],release_row=evidence)
+        result.append(common)
         seen.add(row[2]);child=row[2]
         if facts['phase_kind']=='initial_verification':return completed()
     _fail('adoption_recovery_phase_chain_limit')
@@ -176,7 +247,8 @@ def _phase_transaction(db,original,manifest,*,phase,current_id=None):
     binding=manifest['recovery_binding'];_held_phase(phase,original,binding)
     actual,_,_=phase.database_snapshot(db)
     if any(not _same(manifest['original_facts'].get(key),value) for key,value in actual.items()):_fail('adoption_recovery_phase_changed')
-    _release_row(db,phase.identifier,binding['recovery_operation_id'],binding['recovery_manifest_sha256'])
+    _resolution_row(db,original,binding,manifest['schema_version'],manifest['original_facts'])
+    _successor_slot(db,original,manifest,current_id)
     chain=_ancestor_chain(db,original,phase.identifier);_new_edge_room(chain)
     if not _same(chain,binding['ancestors']):_fail('adoption_recovery_phase_chain_changed')
     exempt={item['prior_operation_id'] for item in chain}|{phase.identifier}
@@ -211,7 +283,7 @@ def validate_manifest(value,*,original,require_implementation=True):
     fields={'schema_version','operation_id','profile','action','prepared_at','expires_at','original_operation_id','original_manifest_sha256',
         'original_facts','recovery_binding','execution_binding_sha256','host_spec','broker_policy','provider_binding','run_context',
         'run_binding_sha256','storage_binding_sha256','identity_binding_sha256','implementation_files'}
-    if type(value) is not dict or set(value)!=fields or value['schema_version'] not in (VERSION,PHASE_VERSION) or value['action']!='native_first_plan_only':_fail('adoption_recovery_plan_manifest')
+    if type(value) is not dict or set(value)!=fields or value['schema_version'] not in (VERSION,PHASE_VERSION,UNACQUIRED_VERSION) or value['action']!='native_first_plan_only':_fail('adoption_recovery_plan_manifest')
     if type(original) is not adoption.AdoptionJob:_fail('adoption_recovery_original_required')
     original._check(expiry=False)
     if (value['original_operation_id']!=original.identifier or value['original_manifest_sha256']!=original.sha256
@@ -221,18 +293,18 @@ def validate_manifest(value,*,original,require_implementation=True):
     if (type(value['prepared_at']) is not int or type(value['expires_at']) is not int or
             not value['prepared_at']<=now+5<value['expires_at']<=value['prepared_at']+900):_fail('adoption_recovery_plan_expired')
     for key in ('execution_binding_sha256','run_binding_sha256','storage_binding_sha256','identity_binding_sha256'):service._hash(value[key])
-    recovery,_,_=_recovery_types();binding=value['recovery_binding'];is_phase=value['schema_version']==PHASE_VERSION
-    expected_binding={'recovery_operation_id','recovery_manifest_sha256','state','projection_sha256','original_contract_sha256'} | ({'phase','ancestors'} if is_phase else set())
+    recovery,_,_=_recovery_types();binding=value['recovery_binding'];is_phase=_is_phase(value);is_observed=value['schema_version']==UNACQUIRED_VERSION
+    expected_binding=({'resolution_kind','observation_id','anchor_sha256'} if is_observed else {'recovery_operation_id','recovery_manifest_sha256'}) | {'state','projection_sha256','original_contract_sha256'} | ({'phase','ancestors'} if is_phase else set())
     if (type(binding) is not dict or set(binding)!=expected_binding
             or binding['original_contract_sha256']!=digest(original.manifest['state_contract'])):_fail('adoption_recovery_plan_readback_binding')
-    actual=_phase_types()[0]._original(_phase_from_binding(original,binding)) if is_phase else recovery._original(original)
+    actual=(_unacquired_types()[0] if is_observed else _phase_types()[0])._original(_phase_from_binding(original,binding)) if is_phase else recovery._original(original)
     if not _same(_stable_original(value['original_facts']),_stable_original(actual)):_fail('adoption_recovery_original_changed')
     if is_phase:
         _new_edge_room(binding['ancestors'])
         with original.policy.connection() as db:
-            _release_row(db,binding['phase']['operation_id'],binding['recovery_operation_id'],binding['recovery_manifest_sha256'])
+            _resolution_row(db,original,binding,value['schema_version'],value['original_facts'])
             if not _same(_ancestor_chain(db,original,binding['phase']['operation_id']),binding['ancestors']):_fail('adoption_recovery_phase_chain_changed')
-    for key in ('recovery_manifest_sha256','projection_sha256','original_contract_sha256'):service._hash(binding[key])
+    for key in (('anchor_sha256' if is_observed else 'recovery_manifest_sha256'),'projection_sha256','original_contract_sha256'):service._hash(binding[key])
     _provider_matches_original(original.manifest,value['provider_binding'],binding['state'])
     context=service._run_context(value['run_context']);native=value['provider_binding']
     if (context['schema_version']!='service-run-context/1' or digest(context)!=value['run_binding_sha256']
@@ -263,9 +335,11 @@ def _projection_binding(facts):
 
 
 def _binding(facts,*,original=None):
-    result={'recovery_operation_id':facts['recovery_operation_id'],'recovery_manifest_sha256':facts['recovery_manifest_sha256'],
-        'state':facts['fresh_observation']['state'],'projection_sha256':_projection_binding(facts),
+    observed=facts.get('schema_version')=='adoption-plan-unacquired-observation/1'
+    result={'state':facts['fresh_observation']['state'],'projection_sha256':_projection_binding(facts),
         'original_contract_sha256':facts['fresh_observation']['adoption_state_proof']['original_contract_sha256']}
+    if observed:result.update(resolution_kind=UNACQUIRED_KIND,observation_id=facts['observation_id'],anchor_sha256=facts['anchor_sha256'])
+    else:result.update(recovery_operation_id=facts['recovery_operation_id'],recovery_manifest_sha256=facts['recovery_manifest_sha256'])
     prior=facts['original']
     if 'phase_kind' in prior:
         if type(original) is not adoption.AdoptionJob:_fail('adoption_recovery_original_required')
@@ -285,7 +359,7 @@ def make_manifest(*,original,completion,operation_id,expires_at,execution_bindin
         provider_binding,run_context,storage_binding_sha256,identity_binding_sha256):
     facts=_completion(original,completion)
     if type(host_spec) is not host.HostSpec:_fail('adoption_recovery_host_required')
-    return validate_manifest({'schema_version':PHASE_VERSION if 'phase_kind' in facts['original'] else VERSION,'operation_id':operation_id,'profile':original.manifest['profile'],
+    return validate_manifest({'schema_version':UNACQUIRED_VERSION if facts.get('schema_version')=='adoption-plan-unacquired-observation/1' else PHASE_VERSION if 'phase_kind' in facts['original'] else VERSION,'operation_id':operation_id,'profile':original.manifest['profile'],
         'action':'native_first_plan_only','prepared_at':int(time.time()),'expires_at':expires_at,
         'original_operation_id':original.identifier,'original_manifest_sha256':original.sha256,'original_facts':facts['original'],
         'recovery_binding':_binding(facts,original=original),'execution_binding_sha256':execution_binding_sha256,'host_spec':asdict(host_spec),
@@ -297,6 +371,7 @@ def make_manifest(*,original,completion,operation_id,expires_at,execution_bindin
 def _signature_contract(manifest):
     if manifest.get('schema_version')==VERSION:return APPROVAL_VERSION,SIGNATURE_DOMAIN
     if manifest.get('schema_version')==PHASE_VERSION:return PHASE_APPROVAL_VERSION,PHASE_SIGNATURE_DOMAIN
+    if manifest.get('schema_version')==UNACQUIRED_VERSION:return UNACQUIRED_APPROVAL_VERSION,UNACQUIRED_SIGNATURE_DOMAIN
     _fail('adoption_recovery_plan_domain')
 
 
@@ -342,6 +417,7 @@ def _verify(policy,manifest,receipt):
 def _tables(policy):
     with policy.connection() as db:
         db.execute('CREATE TABLE IF NOT EXISTS adoption_plan_successors (successor_operation_id TEXT PRIMARY KEY,original_operation_id TEXT NOT NULL,successor_manifest_sha256 TEXT NOT NULL,prior_operation_id TEXT UNIQUE NOT NULL,prior_manifest_sha256 TEXT NOT NULL,recovery_operation_id TEXT NOT NULL,recovery_manifest_sha256 TEXT NOT NULL,prior_phase_json TEXT NOT NULL)')
+        db.execute('CREATE TABLE IF NOT EXISTS adoption_plan_observation_successors (successor_operation_id TEXT PRIMARY KEY,original_operation_id TEXT NOT NULL,successor_manifest_sha256 TEXT NOT NULL,prior_operation_id TEXT UNIQUE NOT NULL,prior_manifest_sha256 TEXT NOT NULL,observation_id TEXT NOT NULL,anchor_sha256 TEXT NOT NULL,prior_phase_json TEXT NOT NULL)')
         db.execute('CREATE TABLE IF NOT EXISTS adoption_recovery_plans (operation_id TEXT PRIMARY KEY,original_operation_id TEXT NOT NULL,manifest_sha256 TEXT NOT NULL,root TEXT UNIQUE NOT NULL,status TEXT NOT NULL,cancelled INTEGER NOT NULL DEFAULT 0,dispatches INTEGER NOT NULL DEFAULT 0,outcome TEXT,controller_pid INTEGER,controller_start TEXT)')
 
 
@@ -398,10 +474,10 @@ def prepare_job(root,*,original,manifest,policy_path):
     _tables(policy);root=Path(root).absolute()
     if root.parent!=policy.jobs_root:_fail('adoption_recovery_plan_outside_policy')
     root.mkdir(mode=0o700,exist_ok=False);protected._exclusive(root/'manifest.json',canonical(manifest));protected._exclusive(root/'original.json',canonical({'root':str(original.root),'manifest_sha256':original.sha256}));protected._exclusive(root/'policy-binding.json',canonical({'policy_sha256':policy.sha256}))
-    phase=_phase_from_binding(original,manifest['recovery_binding']) if manifest['schema_version']==PHASE_VERSION else None
+    phase=_phase_from_binding(original,manifest['recovery_binding']) if _is_phase(manifest) else None
     with policy.connection() as db:
         db.execute('BEGIN IMMEDIATE');_original_row(db,original,manifest['original_facts'])
-        if manifest['schema_version']==PHASE_VERSION:_phase_transaction(db,original,manifest,phase=phase)
+        if _is_phase(manifest):_phase_transaction(db,original,manifest,phase=phase)
         elif db.execute("SELECT 1 FROM adoption_recovery_plans WHERE original_operation_id=? AND (controller_pid IS NOT NULL OR status!='cancelled_before_dispatch')",(original.identifier,)).fetchone():_fail('adoption_recovery_plan_conflict')
         db.execute('INSERT INTO adoption_recovery_plans(operation_id,original_operation_id,manifest_sha256,root,status) VALUES (?,?,?,?,?)',(manifest['operation_id'],original.identifier,digest(manifest),str(root),'prepared'))
         policy.event(db,original.identifier,'adoption_recovery_plan_prepared',{'operation_id':manifest['operation_id'],'manifest_sha256':digest(manifest),'job_root':str(root),'policy_path':str(policy.path),'import_replayed':False});db.execute('COMMIT')
@@ -413,7 +489,7 @@ class _Permit:
     def check_active(self):
         if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
         self.job._check();self.runtime.check(self.job.manifest)
-        phase=_phase_from_binding(self.job.original,self.job.manifest['recovery_binding']) if self.job.manifest['schema_version']==PHASE_VERSION else None
+        phase=_phase_from_binding(self.job.original,self.job.manifest['recovery_binding']) if _is_phase(self.job.manifest) else None
         with self.job.policy.connection() as db:
             if phase is not None:_phase_transaction(db,self.job.original,self.job.manifest,phase=phase,current_id=self.job.identifier)
             row=db.execute('SELECT status,cancelled,dispatches,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.job.identifier,)).fetchone()
@@ -425,7 +501,7 @@ class _Permit:
 
 class RecoveryPlanJob:
     def __init__(self,root,policy_path):
-        self.policy=service.ServicePolicy(policy_path)
+        self.policy=service.ServicePolicy(policy_path,initialize=False)
         self._load(root)
     @classmethod
     def _from_original(cls,root,original):
@@ -442,7 +518,7 @@ class RecoveryPlanJob:
         self.root=_private(root,directory=True)
         if self.root.parent!=self.policy.jobs_root:_fail('adoption_recovery_plan_outside_policy')
         self.manifest=service._bounded_private_json(self.root/'manifest.json')
-        if self.manifest.get('schema_version') not in (VERSION,PHASE_VERSION):_fail('adoption_recovery_plan_domain')
+        if self.manifest.get('schema_version') not in (VERSION,PHASE_VERSION,UNACQUIRED_VERSION):_fail('adoption_recovery_plan_domain')
         self.identifier=self.manifest['operation_id'];self.sha256=digest(self.manifest);self._completed_capture=None
         reference=service._bounded_private_json(self.root/'original.json');self.original=adoption.AdoptionJob(reference['root'],self.policy.path) if original is None else original
         if reference!={'root':str(self.original.root),'manifest_sha256':self.original.sha256}:_fail('adoption_recovery_original_changed')
@@ -487,12 +563,12 @@ class RecoveryPlanJob:
         payload=_verify(self.policy,self.manifest,receipt);raw=canonical(receipt);spec=service._host_spec(self.manifest['host_spec'])
         for directory in (spec.job_root,spec.broker_root):
             if list(_private(directory,directory=True).iterdir()):_fail('adoption_recovery_fresh_host_required')
-        phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if self.manifest['schema_version']==PHASE_VERSION else None
+        phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if _is_phase(self.manifest) else None
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE');row=db.execute('SELECT status,cancelled,dispatches FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
             if row!=('prepared',0,0):_fail('adoption_recovery_plan_not_replayable')
             _original_row(db,self.original,self.manifest['original_facts'])
-            if self.manifest['schema_version']==PHASE_VERSION:_phase_transaction(db,self.original,self.manifest,phase=phase,current_id=self.identifier)
+            if _is_phase(self.manifest):_phase_transaction(db,self.original,self.manifest,phase=phase,current_id=self.identifier)
             owners=sorted(r[0] for r in db.execute('SELECT scope FROM ownership WHERE job=?',(self.original.identifier,)))
             if owners!=service._scopes(self.original.manifest):_fail('adoption_recovery_original_unowned')
             if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(payload['issuer'],payload['key_id'])).fetchone():_fail('adoption_recovery_signer_revoked')
@@ -500,9 +576,11 @@ class RecoveryPlanJob:
             if identity is None:_fail('adoption_recovery_controller_identity')
             db.execute('INSERT INTO consumed VALUES (?,?,?,?)',(payload['issuer'],payload['nonce'],self.identifier,self.sha256))
             db.execute('INSERT INTO approval_transcripts VALUES (?,?,?,?)',(self.identifier,raw.decode(),hashlib.sha256(raw).hexdigest(),int(time.time())))
-            if self.manifest['schema_version']==PHASE_VERSION:
+            if _is_phase(self.manifest):
                 selected=self.manifest['recovery_binding']['phase'];recovered=self.manifest['recovery_binding']
-                db.execute('INSERT INTO adoption_plan_successors VALUES (?,?,?,?,?,?,?,?)',(self.identifier,self.original.identifier,self.sha256,selected['operation_id'],selected['manifest_sha256'],recovered['recovery_operation_id'],recovered['recovery_manifest_sha256'],canonical(self.manifest['original_facts']).decode()))
+                identifier,resolution_sha=_resolution_ids(recovered,self.manifest['schema_version'])
+                table='adoption_plan_observation_successors' if self.manifest['schema_version']==UNACQUIRED_VERSION else 'adoption_plan_successors'
+                db.execute('INSERT INTO '+table+' VALUES (?,?,?,?,?,?,?,?)',(self.identifier,self.original.identifier,self.sha256,selected['operation_id'],selected['manifest_sha256'],identifier,resolution_sha,canonical(self.manifest['original_facts']).decode()))
             db.execute("UPDATE adoption_recovery_plans SET status='running',dispatches=1,controller_pid=?,controller_start=? WHERE operation_id=?",(os.getpid(),identity,self.identifier))
             self.policy.event(db,self.original.identifier,'adoption_recovery_plan_consumed',{'operation_id':self.identifier,'manifest_sha256':self.sha256,'receipt_sha256':hashlib.sha256(raw).hexdigest(),'state_content_write_authorized':False});db.execute('COMMIT')
         return self._dispatch(payload,runtime,spec,raw)
@@ -587,12 +665,12 @@ class RecoveryPlanJob:
         """Only fresh sealed backend/Graph proof plus this exact no-op plan release."""
         self._check(expiry=False);facts=_completion(self.original,completion)
         expected=self.manifest['recovery_binding'];actual=_binding(facts,original=self.original)
-        if (actual['recovery_operation_id']!=expected['recovery_operation_id'] or actual['recovery_manifest_sha256']!=expected['recovery_manifest_sha256']
+        if (_resolution_ids(actual,self.manifest['schema_version'])!=_resolution_ids(expected,self.manifest['schema_version'])
                 or actual['projection_sha256']!=expected['projection_sha256'] or actual['original_contract_sha256']!=expected['original_contract_sha256']
                 or {k:v for k,v in actual['state'].items() if k!='etag'}!={k:v for k,v in expected['state'].items() if k!='etag'}
                 or facts['lock_metadata_remaining'] is not False or facts['fresh_observation']['metadata']):_fail('adoption_recovery_final_readback_changed')
         plan=self._plan_evidence(completion=completion);capture=completion.captured_observation()
-        phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if self.manifest['schema_version']==PHASE_VERSION else None
+        phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if _is_phase(self.manifest) else None
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE');row=db.execute('SELECT status,dispatches,outcome,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
             old=db.execute('SELECT status,dispatches,outcome,controller_pid,controller_start FROM jobs WHERE id=?',(self.original.identifier,)).fetchone()
@@ -602,7 +680,7 @@ class RecoveryPlanJob:
                     or used!=(self.sha256,) or old[1]!=1 or old[3:]!=(None,None) or owners!=service._scopes(self.original.manifest)
                     or old[0]!=facts['original']['status'] or digest(parse_json(old[2]))!=facts['original']['outcome_sha256']):_fail('adoption_recovery_reconciliation_not_ready')
             _original_row(db,self.original,facts['original'])
-            if self.manifest['schema_version']==PHASE_VERSION:_phase_transaction(db,self.original,self.manifest,phase=phase,current_id=self.identifier)
+            if _is_phase(self.manifest):_phase_transaction(db,self.original,self.manifest,phase=phase,current_id=self.identifier)
             outcome=parse_json(row[2]);host_result=outcome.get('host')
             if not isinstance(host_result,dict) or host_result.get('cleanup',{}).get('removed') is not True or host_result['cleanup'].get('stopped_state',{}).get('Running') is not False:_fail('adoption_recovery_host_cleanup_unconfirmed')
             host_manifest=service._bounded_private_json(self.root/'host-run/manifest.json');host_receipt=service._bounded_private_json(self.root/'host-run/receipt.json')
@@ -615,7 +693,7 @@ class RecoveryPlanJob:
             if digest(record)!=plan['plan_output_proof']['capture_sha256']:_fail('adoption_recovery_plan_output_record_changed')
             spec=service._host_spec(self.manifest['host_spec'])
             final_proof=evidence.qualify(record,job_root=spec.job_root,archive=self.root/'plan-output',
-                state_raw=evidence._read(completion.observation.root/'state.raw'),
+                state_raw=evidence._read(_state_artifact(completion)),
                 source_raw=evidence._read(Path(spec.source_root)/'project'/provider.PROJECT/'main.tf.json'),
                 object_id=self.original.manifest['object_ids'][0],state_sha256=facts['fresh_observation']['state']['sha256'],
                 source_sha256=self.manifest['provider_binding']['source_sha256'],
@@ -666,7 +744,7 @@ class RecoveryPlanJob:
         spec=service._host_spec(self.manifest['host_spec'])
         # Sealed completion independently authenticates these exact receiving
         # bytes. The shared helper itself makes no authentication claim.
-        state_path=completion.observation.root/'state.raw'
+        state_path=_state_artifact(completion)
         source_path=Path(spec.source_root)/'project'/provider.PROJECT/'main.tf.json'
         qualified=evidence.qualify(record,job_root=spec.job_root,archive=self.root/'plan-output',
             state_raw=evidence._read(state_path),source_raw=evidence._read(source_path),

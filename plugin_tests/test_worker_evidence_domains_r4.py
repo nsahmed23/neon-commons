@@ -93,7 +93,7 @@ class DomainEvidenceTests(unittest.TestCase):
     def test_copied_json_no_original_signature_and_future_domain_rejected(self):
         envelope,req=self.bundle(True);p=copy.deepcopy(envelope['payload']);p['snapshot']['approval']['receipt']['signature']=base64.b64encode(bytes(64)).decode();p['snapshot']['approval']['receipt_sha256']=digest(p['snapshot']['approval']['receipt'])
         with self.assertRaises(AppError):self.check(self.f.sign(p),req)
-        changed=copy.deepcopy(self.plan);changed['schema_version']='native-adoption-recovery-plan/3'
+        changed=copy.deepcopy(self.plan);changed['schema_version']='native-adoption-recovery-plan/4'
         with self.assertRaises(AppError):c.make_request(changed,self.policy,'a'*32)
     def test_hot_source_journal_refused_and_retained(self):
         req=c.make_request(self.manifest,self.policy,'b'*32);sentinel=self.authority/'service.sqlite3-journal';sentinel.write_bytes(b'preserved negative');sentinel.chmod(0o600)

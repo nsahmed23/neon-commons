@@ -236,3 +236,30 @@ chain; only the original initial verification or a v1 recovery Plan may terminat
 it. Exact terminal row bytes, manifest and original approval remain bound even
 after the original job's current status advances through reconciliation. The
 current status is presented separately from the historical stopped-phase fact.
+
+
+Plan v3 uses `signed-native-adoption-recovery-plan-approval/3` and the distinct
+NUL-terminated v3 signature domain for a new Plan after an independently
+observed stopped phase with zero backend dispatch. Its retained observation
+anchor bytes, six-field observation row and separate observation-successor edge
+are bound to the selected phase, exact state revision, original approved import,
+Graph projection, identity and backend. This domain has no lease-release ID,
+release row or ownership-release authority. An unlocked read is not a release.
+
+Mixed v2 release and v3 observation predecessors retain their own exact schemas,
+raw anchor bytes, original consumed approvals and immutable edge kinds. The
+reader rejects opposite-kind duplicate edges, missing v3 edges, nonzero or
+boolean dispatch counters, changed anchors, backend/identity substitutions and
+wrong approval domains. Every v2/v3 predecessor must continue to an explicitly
+retained initial-verification or v1 terminal. Original once-only unknown rows
+remain history; reading or receiving the statement never replays their work.
+The common receiver, current-trust revalidation, expiry/history, ordering and
+backup contracts apply unchanged. Local signed SQLite/CLI qualification does
+not establish a native Windows host, live service or organizational approval.
+
+The anchor's initial identity binding remains bound to the signed pre-Plan
+binding. Completed observation may retain a newly authenticated binding hash
+after metadata-only ETag change while exact principal, backend, state content,
+lineage, serial and storage remain equal. The reader displays all three hashes
+separately; a differing hash is not relabeled as the historical one. ETag change
+cause remains unestablished, and received signed facts grant no capability.

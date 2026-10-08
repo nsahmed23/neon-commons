@@ -945,3 +945,37 @@ new native freeze, and execute a NEW approved successor through the actual
 worker. Do not replay failed Plan2 or call the no-acquisition observation a
 release. Exact final packaging, platform qualification and accountable approval
 remain separate unfinished gates.
+
+Increment21 integrates the separately signed Plan /3 successor, closed portable
+history and read-only public service/adoption/Plan constructors. Distinct
+observation edges coexist with the unchanged historical release edges. Exact
+raw anchor bytes, original phase/ownership, fresh state/identity and prior
+consumed operations remain required. Actual signature-domain and cross-table
+negative controls reject wrong proofs without a native dispatch.
+
+Public status/attach no longer initializes schema. Actual subprocess readers
+see committed values while another connection holds uncommitted writes. An
+exact existing-schema check rejects altered conflict/collation/CHECK semantics;
+close failures preserve the primary cause and secondary interruptions. All
+failing-before cases, partial insertion/evaluator failures and repairs remain
+retained. Preparation/migration remains an explicit separate API with backup
+and quiescence requirements; no timeout or approval gate was relaxed.
+
+Portable history now keeps pre-Plan and refreshed identity-binding hashes
+distinct when metadata changes ETag, while enforcing the same exact principal,
+backend, state content/revision, storage and linked evidence. The former honest
+rebind rejection and independent signed after controls are preserved. The new
+history helper is explicitly derived from the known baseline; the unexplained
+staged edit remains an unresolved provenance finding.
+
+The scoped product gates are48 successor methods,22 shared public-reader methods,
+6 Plan-reader methods and37 portable-history methods. They overlap prior and
+independent scopes and are not a combined suite total. COMMIT-21.json records
+the exact native signing freeze. No runtime changes are permitted during the
+NEW Plan3 run, subsequent signed export and quiet mixed-history PTY inspection.
+The consumed failed Plan2 is never replayed; no native convergence is claimed
+until the new operation and independent readback actually complete.
+
+Resume using the exact commit receipt and EXECUTION-SEQUENCE-R4.md, then the
+prepared final-package drivers. Preserve the historical1141/1242 results and
+all unresolved platform, provider, scheduler, provenance and approval gates.

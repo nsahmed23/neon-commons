@@ -3403,3 +3403,10 @@ plugin_tests/test_worker_evidence_phase_r4.py
 docs/WORKER-ADOPTION-PLAN-OBSERVATION-R4.md
 intune_iac/worker_adoption_plan_observation.py
 plugin_tests/test_worker_adoption_plan_observation_r4.py
+docs/ADOPTION-UNACQUIRED-PLAN-R4.md
+docs/PUBLIC-SERVICE-READS-R4.md
+plugin_tests/test_worker_adoption_unacquired_successor_r4.py
+plugin_tests/test_worker_public_readonly_r4.py
+plugin_tests/test_worker_recovery_public_readonly_r4.py
+intune_iac/worker_evidence_observation.py
+plugin_tests/test_worker_evidence_observation_r4.py

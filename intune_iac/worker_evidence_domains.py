@@ -12,7 +12,8 @@ from .io import canonical,digest,parse_json
 ADOPTION='native-state-adoption/1'
 RECOVERY='native-adoption-recovery-plan/1'
 RECOVERY_PHASE='native-adoption-recovery-plan/2'
-KINDS={ADOPTION:'state_adoption',RECOVERY:'adoption_recovery_plan',RECOVERY_PHASE:'adoption_recovery_plan'}
+RECOVERY_OBSERVED='native-adoption-recovery-plan/3'
+KINDS={ADOPTION:'state_adoption',RECOVERY:'adoption_recovery_plan',RECOVERY_PHASE:'adoption_recovery_plan',RECOVERY_OBSERVED:'adoption_recovery_plan'}
 ADOPTION_FIELDS='schema_version operation_id verification_operation_id profile prepared_at expires_at action execution_binding_sha256 host_spec broker_policy verification_host_spec verification_broker_policy identity_binding_sha256 run_binding_sha256 run_context storage_binding_sha256 provider_binding tenant_id object_ids backend_scope_sha256 implementation_files state_contract ownership_binding intended_writer'
 RECOVERY_FIELDS='schema_version operation_id profile action prepared_at expires_at original_operation_id original_manifest_sha256 original_facts recovery_binding execution_binding_sha256 host_spec broker_policy provider_binding run_context run_binding_sha256 storage_binding_sha256 identity_binding_sha256 implementation_files'
 REQUEST_FIELDS='schema_version nonce tenant_id object_id operation_id operation_kind original_manifest_sha256 manifest_sha256 saved_plan_sha256 execution_binding_sha256 run_binding_sha256 source_revision source_sha256 run_id run_attempt trust_sha256'
@@ -85,11 +86,14 @@ def manifest(value,req,at,original=None):
             or value['profile']!=original['profile'] or original['tenant_id']!=req['tenant_id'] or original['object_ids']!=[req['object_id']]):c.fail('worker_evidence_recovery_original')
         for key in ('repository','stack','component','source_revision','source_sha256','effective_inputs_sha256','provider_lock_sha256'):
             if context[key]!=original['run_context'][key]:c.fail('worker_evidence_recovery_source')
-        b=value['recovery_binding'];c.shape(b,'recovery_operation_id recovery_manifest_sha256 state projection_sha256 original_contract_sha256'+(' phase ancestors' if version==RECOVERY_PHASE else ''))
-        c.identifier(b['recovery_operation_id'])
-        for key in ('recovery_manifest_sha256','projection_sha256','original_contract_sha256'):c.hashed(b[key])
+        b=value['recovery_binding'];c.shape(b,('resolution_kind observation_id anchor_sha256' if version==RECOVERY_OBSERVED else 'recovery_operation_id recovery_manifest_sha256')+' state projection_sha256 original_contract_sha256'+(' phase ancestors' if version in (RECOVERY_PHASE,RECOVERY_OBSERVED) else ''))
+        if version==RECOVERY_OBSERVED:
+            from .worker_evidence_observation import ids
+            ids(b)
+        else:c.identifier(b['recovery_operation_id'])
+        for key in (('anchor_sha256' if version==RECOVERY_OBSERVED else 'recovery_manifest_sha256'),'projection_sha256','original_contract_sha256'):c.hashed(b[key])
         if b['original_contract_sha256']!=digest(original['state_contract']) or type(b['state']) is not dict:c.fail('worker_evidence_recovery_binding')
-    if version==RECOVERY_PHASE:
+    if version in (RECOVERY_PHASE,RECOVERY_OBSERVED):
         from .worker_evidence_phase import binding
         binding(value,original)
     return version
@@ -107,7 +111,7 @@ def validate_snapshot(snapshot,req):
     c.shape(snapshot,'schema_version read_at manifest policy_sha256 journal job events approval consumed capture_provenance capture domain_records')
     if snapshot['schema_version']!='worker-evidence-snapshot/2':c.fail('worker_evidence_domain_snapshot')
     c.number(snapshot['read_at'],1,9007199254740991);c.hashed(snapshot['policy_sha256'])
-    records=snapshot['domain_records'];c.shape(records,'verification original plan_artifacts state source source_policy'+(' phase_ledger' if snapshot['manifest'].get('schema_version')==RECOVERY_PHASE else ''))
+    records=snapshot['domain_records'];c.shape(records,'verification original plan_artifacts state source source_policy'+(' phase_ledger' if snapshot['manifest'].get('schema_version') in (RECOVERY_PHASE,RECOVERY_OBSERVED) else ''))
     c.shape(records['source_policy'],'reviewed_policy_sha256 current_policy_sha256')
     for item in records['source_policy'].values():c.hashed(item)
     if records['source_policy']['current_policy_sha256']!=snapshot['policy_sha256']:c.fail('worker_evidence_domain_source_policy')
@@ -132,7 +136,7 @@ def validate_snapshot(snapshot,req):
         for name,row in artifacts.items():member(row,64 if name=='exit.txt' else 8*1024*1024)
     for name in ('state','source'):
         if records[name] is not None:member(records[name])
-    if version==RECOVERY_PHASE:
+    if version in (RECOVERY_PHASE,RECOVERY_OBSERVED):
         from .worker_evidence_phase import validate
         validate(snapshot)
     return c.journal_snapshot(snapshot,req,prepared_kind='adoption_recovery_plan_prepared' if is_recovery else 'adoption_prepared',selected_operation=is_recovery)
@@ -140,7 +144,7 @@ def validate_snapshot(snapshot,req):
 
 def approval_proof(snapshot,req,policy,verify):
     recovery=req['operation_kind']=='adoption_recovery_plan'
-    phase=snapshot['manifest']['schema_version']==RECOVERY_PHASE;version='2' if phase else '1'
+    phase=snapshot['manifest']['schema_version'] in (RECOVERY_PHASE,RECOVERY_OBSERVED);version={RECOVERY_PHASE:'2',RECOVERY_OBSERVED:'3'}.get(snapshot['manifest']['schema_version'],'1')
     schema='signed-native-adoption-recovery-plan-approval/'+version if recovery else 'signed-native-state-adoption-approval/1'
     domain=('intune-workbench:native-adoption-recovery-plan-approval:v'+version+'\x00').encode() if recovery else b'intune-workbench:native-state-adoption-approval:v1\x00'
     result=c.approval_transcript(snapshot,req,policy,verify,schema=schema,domain=domain,dispatch_kind='adoption_recovery_plan_consumed' if recovery else 'adoption_dispatch_consumed',selected_operation=recovery)
@@ -191,6 +195,9 @@ def baseline(snapshot,req,cap,approval_status):
     receiving=facts.get('fresh_observation',{}) if recovery else facts.get('receiving_state',{})
     if type(receiving) is not dict:c.fail('worker_evidence_domain_readback_shape')
     if recovery:
+        if m['schema_version']==RECOVERY_OBSERVED and facts:
+            from .worker_evidence_observation import completed
+            completed(facts,m,records['phase_ledger'],snapshot['read_at'])
         if (outcome.get('original_operation_id')!=m['original_operation_id'] or outcome.get('original_manifest_sha256')!=m['original_manifest_sha256'] or outcome.get('recovery_plan_operation_id')!=req['operation_id'] or outcome.get('recovery_plan_manifest_sha256')!=req['manifest_sha256']
             or facts.get('lease_independently_unlocked') is not True or receiving.get('locked') is not False or receiving.get('metadata') not in ({},None)
             or receiving.get('adoption_state_proof',{}).get('classification')!='approved_adoption_successor' or receiving.get('adoption_state_proof',{}).get('graph_unchanged') is not True):reasons.append('recovery_readback_not_established')
@@ -204,7 +211,7 @@ def baseline(snapshot,req,cap,approval_status):
     if any(outcome.get(key) is not value for key,value in [('reservation_released',True),('import_replayed',False),('graph_mutated',False)]):reasons.append('state_only_outcome_not_established')
     if recovery:
         captured=receiving.get('adoption_capture')
-        if receiving and (receiving.get('schema_version')!=('adoption-plan-native-lease-recovery-observation/1' if m['schema_version']==RECOVERY_PHASE else 'adoption-native-lease-recovery-observation/1') or type(captured) is not dict):c.fail('worker_evidence_recovery_capture_shape')
+        if receiving and (receiving.get('schema_version')!={RECOVERY:'adoption-native-lease-recovery-observation/1',RECOVERY_PHASE:'adoption-plan-native-lease-recovery-observation/1',RECOVERY_OBSERVED:'adoption-plan-unacquired-fresh-observation/1'}[m['schema_version']] or type(captured) is not dict):c.fail('worker_evidence_recovery_capture_shape')
         if captured is not None:c.shape(captured,'capture_sha256 path');c.hashed(captured['capture_sha256'])
         rawsha=captured['capture_sha256'] if captured else None
     else:rawsha=receiving.get('graph_capture_sha256')
@@ -219,7 +226,7 @@ def baseline(snapshot,req,cap,approval_status):
         if state_sha is not None and expected.get('content_proof',{}).get('state_sha256')!=state_sha:c.fail('worker_evidence_plan_receiving_state_binding')
         missing=plan_proof(snapshot,req,expected)
         if missing:reasons.append(missing)
-    return {'baseline_admissible':False,'baseline_kind':'state_only_signed_worker_history','reasons':reasons,
+    result={'baseline_admissible':False,'baseline_kind':'state_only_signed_worker_history','reasons':reasons,
         'evidence_class':'signed_state_only_worker_history','domain_qualification':'signed_state_and_plan_content_consistent' if not reasons else 'unestablished',
         'state_only':True,'graph_deployment':False,'original_execution_outcome':outcome.get('original_execution_outcome','recorded_at_snapshot'),
         'normalized_comparison_available':False,'desired':None,'raw_observed':cap['source']['raw_observed'] if cap else None,
@@ -227,3 +234,13 @@ def baseline(snapshot,req,cap,approval_status):
         'second_plan_convergence':'state_only_first_plan_no_change' if not reasons else 'unestablished','endpoint_effectiveness':'unestablished',
         'platform_qualified':False,'production_approved':False,'execution_authorized':False,'cloud_authority':False,
         'domain_records':records,'receiving_state_authentication':'signed_publisher_assertion_not_remote_reauthentication'}
+
+    if m['schema_version']==RECOVERY_OBSERVED:
+        from .worker_evidence_observation import anchor
+        initial=anchor(records['phase_ledger']['current_observation'],m,snapshot['read_at'])['initial_observation']
+        current=receiving.get('identity_binding_sha256')
+        result['observation_identity_binding_history']={'signed_pre_plan_sha256':m['identity_binding_sha256'],
+            'anchor_initial_sha256':initial['identity_binding_sha256'],'completed_observation_sha256':current,
+            'completed_differs_from_pre_plan':None if current is None else current!=m['identity_binding_sha256'],
+            'scope':'retained signed snapshot facts; no receiving-side authentication or capability'}
+    return result

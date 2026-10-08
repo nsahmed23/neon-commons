@@ -1,14 +1,14 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-08T01:12:26.956289+00:00",
+  "recorded_at": "2026-10-08T01:27:14.692811+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
     "current_candidate_commit": null,
     "new_artifacts": [],
-    "latest_completed_checkpoint": "d858a2c0d10a0ee88b0a4bbecf0ddc24e890bab7",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+    "latest_completed_checkpoint": "020440fd45d5f36e366feb1e03fec26bed619f94",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
   },
   "contract": {
     "path": "docs/STRICT-CONTINUATION-CONTRACT-R4.md",
@@ -31,13 +31,13 @@
     "NOT_STARTED": "New requirement not yet qualified in this continuation; does not erase inherited implementation.",
     "UNSUPPORTED": "Explicit unsupported required route remains a release blocker.",
     "historical_statuses": "Retain verbatim in immutable original records; never normalize or rewrite historical ledgers.",
-    "null_identity": "No new candidate/artifact identity exists yet; never fill with baseline hash to imply new qualification."
+    "null_identity": "No final reviewed package candidate/artifact identity is pinned yet; each completed source increment is bound by its exact commit receipt. Never substitute a historical artifact hash for new qualification."
   },
   "outcomes": {
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Laboratory incomplete: C18 source-bound maintenance and history pass scoped checks, while failed Plan2 remains unknown. C19 readonly phase repair and C20 distinct no-acquisition assessment are integrated. New approved successor/portable history/public readonly reattachment and exact final package/delivery gates remain. Platform and organizational approval are blocked separately."
+    "explanation": "Laboratory incomplete pending new native Plan3, exact signed history/PTY and final package/delivery gates. Integrated observation/successor/public-read repairs retain failing-before and independent scoped evidence. Historical Plan2 remains failed/unknown. Required native host, service/backend/CI/device, security and organizational gates remain separate."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -472,7 +472,13 @@
         "evidence/epoch-20261007-r4/independent/native-evidence-journey-03/RESULT.json",
         "evidence/epoch-20261007-r4/independent/native-verifier-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/native-evidence-copy-before-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -725,6 +731,36 @@
           "path": "evidence/epoch-20261007-r4/independent/native-evidence-copy-after-01/RESULT.json",
           "bytes": 27459,
           "sha256": "3ab2bbdc0d6db8f3f716c4bcadb89da63c9dc325dd56063bad672e3256969b9b"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "native_views_increment10": {
@@ -820,6 +856,43 @@
         ],
         "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -978,7 +1051,13 @@
         "/tmp/intune-r4-worker-evidence-phase-chain-after-02/stderr",
         "evidence/epoch-20261007-r4/worker-evidence/integrated-06/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-phase-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -1265,6 +1344,36 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
           "bytes": 2811,
           "sha256": "f38f0d81ad33c19d656bd1c6ae1f29189f68c4ae09d568e81fe230bd91a167bd"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -1404,6 +1513,43 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -1680,7 +1826,13 @@
         "/tmp/intune-r4-worker-evidence-phase-chain-after-02/stderr",
         "evidence/epoch-20261007-r4/worker-evidence/integrated-06/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-phase-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -1968,6 +2120,36 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
           "bytes": 2811,
           "sha256": "f38f0d81ad33c19d656bd1c6ae1f29189f68c4ae09d568e81fe230bd91a167bd"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -2107,6 +2289,43 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -2641,7 +2860,13 @@
         "/tmp/intune-r4-worker-evidence-phase-chain-after-02/stderr",
         "evidence/epoch-20261007-r4/worker-evidence/integrated-06/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-phase-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -2800,6 +3025,36 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
           "bytes": 2811,
           "sha256": "f38f0d81ad33c19d656bd1c6ae1f29189f68c4ae09d568e81fe230bd91a167bd"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "increment17": {
@@ -2932,6 +3187,43 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -3684,11 +3976,23 @@
         "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
         "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
-        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Protected service, bounded native broker, sealed fresh Graph preconditions, computed native state admission and independent state reconciliation implemented. Independent signed Docker/relay/TLS journey is real local transport but not native provider/live Azure/CI. Native composed provider journey still in progress. Read-only lease recovery inspection does not authorize remote unlock. Ordinary computed-state interruption is now independently recovered by separate exact signed lease release and fresh sealed readback; initial stale-identity completion FAIL is retained, no replay, execution attribution stays unknown. Nested description-recovery committed-write schema remains active local implementation work.",
-      "next_action": "Complete separately retained native fault/restoration cases and qualify exact committed/package bytes; real external platform and approval gates remain.",
+      "next_action": "Preserve actual locked-writer public read evidence; finish quiet native Plan3 history/PTY and exact final-package qualification. Native Windows and real platform routes remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "B01"
@@ -3966,6 +4270,66 @@
         {
           "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
           "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+          "bytes": 3367,
+          "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+          "bytes": 954,
+          "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+          "bytes": 1057,
+          "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+          "bytes": 2432,
+          "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+          "bytes": 2153,
+          "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+          "bytes": 972,
+          "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+          "bytes": 24586,
+          "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+          "bytes": 564,
+          "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+          "bytes": 16791,
+          "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+          "bytes": 918,
+          "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+          "bytes": 983,
+          "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+          "bytes": 4335,
+          "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -3990,6 +4354,73 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "public_readonly21": {
+        "status": "IMPLEMENTED",
+        "scope": "Service/adoption/recovery-Plan public constructors now validate an existing authority with mode=ro/query_only, retaining default preparation/migration as an explicit separate path. Actual reserved-writer API/CLI failures before are retained. Inserted22 and6 methods overlap staging; independent six CLI processes/10 assertions read committed state while another writer holds uncommitted changes. Exact generated SQL rejects hidden conflict/collation/CHECK changes; independent cleanup3+4 and schema8 preserve before failures. Close errors retain primary cause; no timeout increase or implicit migration.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+            "bytes": 3367,
+            "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+            "bytes": 954,
+            "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+            "bytes": 1057,
+            "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+            "bytes": 2432,
+            "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+            "bytes": 2153,
+            "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+            "bytes": 972,
+            "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+            "bytes": 24586,
+            "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+            "bytes": 564,
+            "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+            "bytes": 16791,
+            "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+            "bytes": 918,
+            "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+            "bytes": 983,
+            "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+            "bytes": 4335,
+            "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -4734,7 +5165,14 @@
         "evidence/epoch-20261007-r4/worker-provider/native-adoption-journey-01/source-bound-maintenance-resume-01/FINAL-QUALIFICATION.json",
         "evidence/epoch-20261007-r4/independent/native-source-v2-01/RESULT.json",
         "/tmp/intune-r4-worker-evidence-native-source-v2-03/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/native-source-export-02/RESULT.json"
+        "evidence/epoch-20261007-r4/independent/native-source-export-02/RESULT.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
@@ -5257,6 +5695,41 @@
           "path": "evidence/epoch-20261007-r4/independent/native-source-export-02/RESULT.json",
           "bytes": 43568,
           "sha256": "31718b1d8de948d82fd7ae7b626927c03e67b7c4ad18fe36b543e2109615b17e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+          "bytes": 2883,
+          "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+          "bytes": 1197,
+          "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+          "bytes": 24613,
+          "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+          "bytes": 11854,
+          "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+          "bytes": 2591,
+          "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+          "bytes": 1192,
+          "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+          "bytes": 1301,
+          "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -5536,6 +6009,48 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-19.json"
+      },
+      "observation_successor21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated distinct Plan /3 observation successor with separate NUL signature domain and same-authority append-only edge. Existing /1,/2 release proofs unchanged. Product48 (34 overlapping+14 new), genuine sealed observation/full-manifest preflight10, independent chain6 assertions/11 negatives and actual signature3/8 are separate scopes. Raw-anchor reformats, cross-table duplicate successors, wrong domains, changed phase/ownership and missing observation reject. No new native Plan result yet.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+            "bytes": 2883,
+            "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+            "bytes": 1197,
+            "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+            "bytes": 24613,
+            "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+            "bytes": 11854,
+            "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+            "bytes": 2591,
+            "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+            "bytes": 1192,
+            "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+            "bytes": 1301,
+            "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -6418,11 +6933,30 @@
         "evidence/epoch-20261007-r4/independent/unacquired-observation-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-36.json",
         "evidence/epoch-20261007-r4/independent/native-phase-releases-01/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-PLAN-RECOVERY-NATIVE-INDEX-01.json"
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-PLAN-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Actual Plan2 failed before backend acquisition and remains consumed/unknown. Read-only constructor repair and separate no-acquisition assessment are integrated with scoped evidence. New /3 successor, portable history and public readonly reattachment remain in progress; no native convergence is claimed.",
-      "next_action": "Finish reviewed /3 successor and public readonly reattachment repairs, integrate portable decoder, then freeze and execute one NEW approved Plan. Preserve failed Plan2 and all prior rows; qualify exact final packages afterward.",
+      "limitation": "Failed C18 Plan2 remains consumed and execution-unknown. Distinct no-acquisition observation and Plan /3 successor plus public readonly reattachment are integrated with scoped evidence. Fresh native successor/convergence is still required; older successful journeys do not turn failed Plan2 into a pass.",
+      "next_action": "Freeze reviewed integrated source, execute a NEW approved Plan3 using the separate no-acquisition observation, then independently verify exact state/Graph/no-op, preserved old once rows, signed history and quiet PTY reattachment. Continue final exact-package gates.",
       "blocker_owner": null,
       "depends_on": [
         "B05",
@@ -6990,6 +7524,101 @@
           "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-PLAN-RECOVERY-NATIVE-INDEX-01.json",
           "bytes": 2036,
           "sha256": "d4d26d47a256f60f67fc64a7e5d6bb79e560b273a76c837f57c03d663a31cd76"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+          "bytes": 2883,
+          "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+          "bytes": 1197,
+          "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+          "bytes": 24613,
+          "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+          "bytes": 11854,
+          "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+          "bytes": 2591,
+          "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+          "bytes": 1192,
+          "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+          "bytes": 1301,
+          "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+          "bytes": 3367,
+          "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+          "bytes": 954,
+          "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+          "bytes": 1057,
+          "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+          "bytes": 2432,
+          "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+          "bytes": 2153,
+          "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+          "bytes": 972,
+          "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+          "bytes": 24586,
+          "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+          "bytes": 564,
+          "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+          "bytes": 16791,
+          "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+          "bytes": 918,
+          "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+          "bytes": 983,
+          "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+          "bytes": 4335,
+          "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
@@ -7389,6 +8018,115 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+      },
+      "observation_successor21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated distinct Plan /3 observation successor with separate NUL signature domain and same-authority append-only edge. Existing /1,/2 release proofs unchanged. Product48 (34 overlapping+14 new), genuine sealed observation/full-manifest preflight10, independent chain6 assertions/11 negatives and actual signature3/8 are separate scopes. Raw-anchor reformats, cross-table duplicate successors, wrong domains, changed phase/ownership and missing observation reject. No new native Plan result yet.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+            "bytes": 2883,
+            "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+            "bytes": 1197,
+            "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+            "bytes": 24613,
+            "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+            "bytes": 11854,
+            "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+            "bytes": 2591,
+            "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+            "bytes": 1192,
+            "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+            "bytes": 1301,
+            "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "public_readonly21": {
+        "status": "IMPLEMENTED",
+        "scope": "Service/adoption/recovery-Plan public constructors now validate an existing authority with mode=ro/query_only, retaining default preparation/migration as an explicit separate path. Actual reserved-writer API/CLI failures before are retained. Inserted22 and6 methods overlap staging; independent six CLI processes/10 assertions read committed state while another writer holds uncommitted changes. Exact generated SQL rejects hidden conflict/collation/CHECK changes; independent cleanup3+4 and schema8 preserve before failures. Close errors retain primary cause; no timeout increase or implicit migration.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+            "bytes": 3367,
+            "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+            "bytes": 954,
+            "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+            "bytes": 1057,
+            "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+            "bytes": 2432,
+            "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+            "bytes": 2153,
+            "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+            "bytes": 972,
+            "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+            "bytes": 24586,
+            "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+            "bytes": 564,
+            "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+            "bytes": 16791,
+            "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+            "bytes": 918,
+            "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+            "bytes": 983,
+            "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+            "bytes": 4335,
+            "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -8913,7 +9651,13 @@
         "/tmp/intune-r4-worker-evidence-phase-chain-after-02/stderr",
         "evidence/epoch-20261007-r4/worker-evidence/integrated-06/QUALIFICATION-01.json",
         "evidence/epoch-20261007-r4/independent/portable-phase-signature-01/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
@@ -9081,6 +9825,36 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-32.json",
           "bytes": 2811,
           "sha256": "f38f0d81ad33c19d656bd1c6ae1f29189f68c4ae09d568e81fe230bd91a167bd"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "increment15": {
@@ -9231,6 +10005,43 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -11520,11 +12331,29 @@
         "evidence/epoch-20261007-r4/independent/native-phase-failure-01/RESULT.json",
         "/tmp/intune-adoption-plan-recovery-native-initial-01/receipt.json",
         "/tmp/intune-adoption-phase-plan-cancel-01/receipt.json",
-        "/tmp/intune-adoption-plan-recovery-native-successor-01/receipt.json"
+        "/tmp/intune-adoption-plan-recovery-native-successor-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
-      "next_action": "Preserve completed C18 source-bound/native history evidence and integrated C19 repair; finish the new no-acquisition successor/portable chain, then qualify exact final packages. Required native Windows/live platform evidence remains separate.",
+      "next_action": "Preserve actual locked-writer public read evidence; finish quiet native Plan3 history/PTY and exact final-package qualification. Native Windows and real platform routes remain separate.",
       "blocker_owner": null,
       "depends_on": [
         "D01",
@@ -11967,6 +12796,96 @@
           "path": "/tmp/intune-adoption-plan-recovery-native-successor-01/receipt.json",
           "bytes": 15027,
           "sha256": "aaedeac890ef8c7fd62bdb355b8bc79ce77b2336bf2d5efac01772d598c98391"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+          "bytes": 3367,
+          "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+          "bytes": 954,
+          "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+          "bytes": 1057,
+          "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+          "bytes": 2432,
+          "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+          "bytes": 2153,
+          "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+          "bytes": 972,
+          "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+          "bytes": 24586,
+          "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+          "bytes": 564,
+          "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+          "bytes": 16791,
+          "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+          "bytes": 918,
+          "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+          "bytes": 983,
+          "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+          "bytes": 4335,
+          "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "source_scope": "Uncommitted additive visual repair; exact observed file hashes; integrated candidate qualification pending",
@@ -12193,6 +13112,110 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-19.json"
+      },
+      "public_readonly21": {
+        "status": "IMPLEMENTED",
+        "scope": "Service/adoption/recovery-Plan public constructors now validate an existing authority with mode=ro/query_only, retaining default preparation/migration as an explicit separate path. Actual reserved-writer API/CLI failures before are retained. Inserted22 and6 methods overlap staging; independent six CLI processes/10 assertions read committed state while another writer holds uncommitted changes. Exact generated SQL rejects hidden conflict/collation/CHECK changes; independent cleanup3+4 and schema8 preserve before failures. Close errors retain primary cause; no timeout increase or implicit migration.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+            "bytes": 3367,
+            "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+            "bytes": 954,
+            "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+            "bytes": 1057,
+            "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+            "bytes": 2432,
+            "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+            "bytes": 2153,
+            "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+            "bytes": 972,
+            "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+            "bytes": 24586,
+            "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+            "bytes": 564,
+            "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+            "bytes": 16791,
+            "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+            "bytes": 918,
+            "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+            "bytes": 983,
+            "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+            "bytes": 4335,
+            "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -14447,7 +15470,10 @@
         "evidence/epoch-20261007-r4/worker-service/shutdown-after-01/RECEIPT.json",
         "evidence/epoch-20261007-r4/worker-service/shutdown-qualified-02/RECEIPT.json",
         "evidence/epoch-20261007-r4/independent/service-shutdown-04/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-evidence/helper-attribution-discrepancy-01/FINDING.json"
+        "evidence/epoch-20261007-r4/worker-evidence/helper-attribution-discrepancy-01/FINDING.json",
+        "evidence/epoch-20261007-r4/worker-evidence/HISTORY-HELPER-DELIVERY-02.json",
+        "/tmp/intune-r4-worker-evidence-history-helper-review-01/DERIVATION.json",
+        "evidence/epoch-20261007-r4/independent/native-history-helper-review-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Recovery helpers, source admission, dependency notices, external runbooks and independent boundary review are in progress. No final artifact, full R4 extraction/readback or organizational AppSec approval exists. Historical full corpus and findings remain retained.",
@@ -14508,6 +15534,21 @@
           "path": "evidence/epoch-20261007-r4/worker-evidence/helper-attribution-discrepancy-01/FINDING.json",
           "bytes": 3057,
           "sha256": "c58a8e0997c828da06557b3e1bd417fc5ec923b93563167bab347a334e026ba7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/HISTORY-HELPER-DELIVERY-02.json",
+          "bytes": 1866,
+          "sha256": "fb50f8e14fe7af317318b8bff9338b68d159048d365cd05bda9ab77f6a3a7114"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-history-helper-review-01/DERIVATION.json",
+          "bytes": 616,
+          "sha256": "1d255cc73b80cff6cb9f31a0ea0d485518cad273612d48a568aa5b0c0f632c0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-history-helper-review-02/RESULT.json",
+          "bytes": 1102,
+          "sha256": "e0cf9461b0b70d560513f7b8a87f74f5ee321ec80a46c5d5b9f40e38c63d18a2"
         }
       ],
       "shutdown_increment10": {
@@ -14528,6 +15569,28 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+      },
+      "attributed_helper21": {
+        "status": "IMPLEMENTED",
+        "scope": "New history helper is independently derived from known9a38 with explicit patch/output-boundary controls and source review. It does not adopt unattributed b2b bytes or resolve that finding; earlier tested native history and failed evaluator attempts remain preserved. Final exact-package profile and new native /3 history remain pending.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/HISTORY-HELPER-DELIVERY-02.json",
+            "bytes": 1866,
+            "sha256": "fb50f8e14fe7af317318b8bff9338b68d159048d365cd05bda9ab77f6a3a7114"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-history-helper-review-01/DERIVATION.json",
+            "bytes": 616,
+            "sha256": "1d255cc73b80cff6cb9f31a0ea0d485518cad273612d48a568aa5b0c0f632c0b"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-history-helper-review-02/RESULT.json",
+            "bytes": 1102,
+            "sha256": "e0cf9461b0b70d560513f7b8a87f74f5ee321ec80a46c5d5b9f40e38c63d18a2"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -14937,7 +16000,10 @@
         "evidence/epoch-20261007-r4/packaging/WORKSPACE-PROXY-CAPSULE-DELIVERY-01.json",
         "evidence/epoch-20261007-r4/independent/proxy-archive-01/RESULT.json",
         "evidence/epoch-20261007-r4/packaging/multiroot-staging/DELIVERY-PREPARATION-CHECKPOINT-04.json",
-        "evidence/epoch-20261007-r4/worker-evidence/helper-attribution-discrepancy-01/FINDING.json"
+        "evidence/epoch-20261007-r4/worker-evidence/helper-attribution-discrepancy-01/FINDING.json",
+        "evidence/epoch-20261007-r4/worker-evidence/HISTORY-HELPER-DELIVERY-02.json",
+        "/tmp/intune-r4-worker-evidence-history-helper-review-01/DERIVATION.json",
+        "evidence/epoch-20261007-r4/independent/native-history-helper-review-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
@@ -15080,6 +16146,21 @@
           "path": "evidence/epoch-20261007-r4/worker-evidence/helper-attribution-discrepancy-01/FINDING.json",
           "bytes": 3057,
           "sha256": "c58a8e0997c828da06557b3e1bd417fc5ec923b93563167bab347a334e026ba7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/HISTORY-HELPER-DELIVERY-02.json",
+          "bytes": 1866,
+          "sha256": "fb50f8e14fe7af317318b8bff9338b68d159048d365cd05bda9ab77f6a3a7114"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-history-helper-review-01/DERIVATION.json",
+          "bytes": 616,
+          "sha256": "1d255cc73b80cff6cb9f31a0ea0d485518cad273612d48a568aa5b0c0f632c0b"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/native-history-helper-review-02/RESULT.json",
+          "bytes": 1102,
+          "sha256": "e0cf9461b0b70d560513f7b8a87f74f5ee321ec80a46c5d5b9f40e38c63d18a2"
         }
       ],
       "transfer_increment10": {
@@ -15213,6 +16294,28 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+      },
+      "attributed_helper21": {
+        "status": "IMPLEMENTED",
+        "scope": "New history helper is independently derived from known9a38 with explicit patch/output-boundary controls and source review. It does not adopt unattributed b2b bytes or resolve that finding; earlier tested native history and failed evaluator attempts remain preserved. Final exact-package profile and new native /3 history remain pending.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/HISTORY-HELPER-DELIVERY-02.json",
+            "bytes": 1866,
+            "sha256": "fb50f8e14fe7af317318b8bff9338b68d159048d365cd05bda9ab77f6a3a7114"
+          },
+          {
+            "path": "/tmp/intune-r4-worker-evidence-history-helper-review-01/DERIVATION.json",
+            "bytes": 616,
+            "sha256": "1d255cc73b80cff6cb9f31a0ea0d485518cad273612d48a568aa5b0c0f632c0b"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/native-history-helper-review-02/RESULT.json",
+            "bytes": 1102,
+            "sha256": "e0cf9461b0b70d560513f7b8a87f74f5ee321ec80a46c5d5b9f40e38c63d18a2"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -16343,7 +17446,14 @@
         "evidence/epoch-20261007-r4/independent/adoption-host-envelope-before-01/RESULT.json",
         "evidence/epoch-20261007-r4/independent/adoption-host-envelope-after-01/RESULT.json",
         "/tmp/intune-adoption-recovery-preflight-acquisition-01/receipt.json",
-        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json"
+        "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -16907,6 +18017,41 @@
         {
           "path": "/tmp/intune-adoption-recovery-preflight-state-01/receipt.json",
           "sha256": "fd55d8e7734548f3801daf8c1f0fea95c459a53934d7ee763b68b2a9cc249bc0"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+          "bytes": 2883,
+          "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+          "bytes": 1197,
+          "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+          "bytes": 24613,
+          "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+          "bytes": 11854,
+          "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+          "bytes": 2591,
+          "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+          "bytes": 1192,
+          "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+          "bytes": 1301,
+          "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
         }
       ],
       "protected_adoption_increment12": {
@@ -16915,6 +18060,48 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "observation_successor21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated distinct Plan /3 observation successor with separate NUL signature domain and same-authority append-only edge. Existing /1,/2 release proofs unchanged. Product48 (34 overlapping+14 new), genuine sealed observation/full-manifest preflight10, independent chain6 assertions/11 negatives and actual signature3/8 are separate scopes. Raw-anchor reformats, cross-table duplicate successors, wrong domains, changed phase/ownership and missing observation reject. No new native Plan result yet.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+            "bytes": 2883,
+            "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+            "bytes": 1197,
+            "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+            "bytes": 24613,
+            "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+            "bytes": 11854,
+            "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+            "bytes": 2591,
+            "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+            "bytes": 1192,
+            "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+            "bytes": 1301,
+            "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -18778,7 +19965,14 @@
         "evidence/epoch-20261007-r4/worker-broker/adoption-plan-observation-staging/integrated-01/receipt.json",
         "/tmp/intune-adoption-unacquired-observation-01/receipt.json",
         "evidence/epoch-20261007-r4/independent/unacquired-observation-02/RESULT.json",
-        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-36.json"
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-36.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
@@ -19195,6 +20389,41 @@
           "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-36.json",
           "bytes": 1419,
           "sha256": "1f0147573cc3651e2959b28ddfe6e802fdbdb41260a41d674377c8461d24fd0f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+          "bytes": 2883,
+          "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+          "bytes": 1197,
+          "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+          "bytes": 24613,
+          "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+          "bytes": 11854,
+          "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+          "bytes": 2591,
+          "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+          "bytes": 1192,
+          "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+          "bytes": 1301,
+          "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
         }
       ],
       "native_fault_increment": {
@@ -19262,6 +20491,48 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+      },
+      "observation_successor21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated distinct Plan /3 observation successor with separate NUL signature domain and same-authority append-only edge. Existing /1,/2 release proofs unchanged. Product48 (34 overlapping+14 new), genuine sealed observation/full-manifest preflight10, independent chain6 assertions/11 negatives and actual signature3/8 are separate scopes. Raw-anchor reformats, cross-table duplicate successors, wrong domains, changed phase/ownership and missing observation reject. No new native Plan result yet.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+            "bytes": 2883,
+            "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+            "bytes": 1197,
+            "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+            "bytes": 24613,
+            "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+            "bytes": 11854,
+            "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+            "bytes": 2591,
+            "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+            "bytes": 1192,
+            "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+            "bytes": 1301,
+            "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -19469,7 +20740,26 @@
         "evidence/epoch-20261007-r4/independent/unacquired-observation-02/RESULT.json",
         "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-36.json",
         "evidence/epoch-20261007-r4/independent/native-phase-releases-01/RESULT.json",
-        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-PLAN-RECOVERY-NATIVE-INDEX-01.json"
+        "evidence/epoch-20261007-r4/worker-broker/ADOPTION-PLAN-RECOVERY-NATIVE-INDEX-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+        "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+        "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+        "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
@@ -20065,6 +21355,101 @@
           "path": "evidence/epoch-20261007-r4/worker-broker/ADOPTION-PLAN-RECOVERY-NATIVE-INDEX-01.json",
           "bytes": 2036,
           "sha256": "d4d26d47a256f60f67fc64a7e5d6bb79e560b273a76c837f57c03d663a31cd76"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+          "bytes": 2883,
+          "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+          "bytes": 1197,
+          "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+          "bytes": 24613,
+          "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+        },
+        {
+          "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+          "bytes": 11854,
+          "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+          "bytes": 2591,
+          "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+          "bytes": 1192,
+          "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+          "bytes": 1301,
+          "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+          "bytes": 3367,
+          "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+          "bytes": 954,
+          "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+          "bytes": 1057,
+          "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+          "bytes": 2432,
+          "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+          "bytes": 2153,
+          "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+          "bytes": 972,
+          "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+          "bytes": 24586,
+          "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+          "bytes": 564,
+          "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+          "bytes": 16791,
+          "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+          "bytes": 918,
+          "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+          "bytes": 983,
+          "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+          "bytes": 4335,
+          "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
         }
       ],
       "native_fault_increment": {
@@ -20384,6 +21769,115 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-20.json"
+      },
+      "observation_successor21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated distinct Plan /3 observation successor with separate NUL signature domain and same-authority append-only edge. Existing /1,/2 release proofs unchanged. Product48 (34 overlapping+14 new), genuine sealed observation/full-manifest preflight10, independent chain6 assertions/11 negatives and actual signature3/8 are separate scopes. Raw-anchor reformats, cross-table duplicate successors, wrong domains, changed phase/ownership and missing observation reject. No new native Plan result yet.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-01.json",
+            "bytes": 2883,
+            "sha256": "953dad2742928d426054a69d86e52c4d2423a2c3df920d207f37515eb97309f5"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-01.json",
+            "bytes": 1197,
+            "sha256": "662ae819943b45f1784bc6147a6089cd493da58157d52cc0c0dc1b053af48931"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/integrated-01/receipt.json",
+            "bytes": 24613,
+            "sha256": "afd5e25d3efdc67fb4049ba6fb700b939e060cf22a8b882f9e3993cd2681c250"
+          },
+          {
+            "path": "/tmp/intune-adoption-unacquired-manifest-01/receipt.json",
+            "bytes": 11854,
+            "sha256": "d150cf0310094c801655b4803269dbf5efe67351144ff66bf0d7bba27b774f64"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-successor-01/RESULT.json",
+            "bytes": 2591,
+            "sha256": "8a0a0f7dacd4a92525885446f479395356e8c6e316d5e9eb8508e99c45d28ac4"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/unacquired-signature-01/RESULT.json",
+            "bytes": 1192,
+            "sha256": "14a685e6557c6b1dbc1b4efbe4b35f99a8600bbbc6ec3cc95de1ea4c6a92f805"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/FOLLOWUP-REVIEW-CHECKPOINT-38.json",
+            "bytes": 1301,
+            "sha256": "c15f92c422586eabc0000c74dcec53f000a4f40d7d6dee5f204374edd58d764e"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "public_readonly21": {
+        "status": "IMPLEMENTED",
+        "scope": "Service/adoption/recovery-Plan public constructors now validate an existing authority with mode=ro/query_only, retaining default preparation/migration as an explicit separate path. Actual reserved-writer API/CLI failures before are retained. Inserted22 and6 methods overlap staging; independent six CLI processes/10 assertions read committed state while another writer holds uncommitted changes. Exact generated SQL rejects hidden conflict/collation/CHECK changes; independent cleanup3+4 and schema8 preserve before failures. Close errors retain primary cause; no timeout increase or implicit migration.",
+        "receipts": [
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PROPOSED.json",
+            "bytes": 3367,
+            "sha256": "28620a5a44fd0d51791c2625a15cda68b663e7f5dff4393595d058616c08ed3f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INSERTION-01.json",
+            "bytes": 954,
+            "sha256": "cf60139c8b54676735ce12f3e55df100b4bbbc991960342a6a52476d8457a9bc"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/PRODUCT-22.json",
+            "bytes": 1057,
+            "sha256": "cbcdef2ca8c0fb4c1864f8be4fa856432be99755f67803ba1dbf01e4bf75b07f"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-provider/public-readonly-staging/INDEPENDENT-INDEX.json",
+            "bytes": 2432,
+            "sha256": "4eb9b1b74c7fa3e79d3e2f20c5547528a174a1229d1f58ba2dfd26250c3630d2"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PROPOSED-PUBLIC-READONLY-02.json",
+            "bytes": 2153,
+            "sha256": "d282680e3da0b4da3aa86c641d67b8700d27e155b871a9254f33b35112cac039"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/APPLIED-PUBLIC-READONLY-01.json",
+            "bytes": 972,
+            "sha256": "d6dbb980011562dc2ccf2e98c07d5e90a193fe715a6e706e03431526b1ed9f77"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/public-readonly/integrated-01/receipt.json",
+            "bytes": 24586,
+            "sha256": "9c1224098f9c84362d1c30f9f8117bd192824e358a897dda4d8e0fe1809c77e7"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-service/adoption-plan-unacquired-staging/PUBLIC-INSERTION-ATTEMPT-01.json",
+            "bytes": 564,
+            "sha256": "af3d22b7072884ec3b000a592cb78bb041580da77adf3d5e0cb012e2d0d299de"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-cli-01/RESULT.json",
+            "bytes": 16791,
+            "sha256": "3d9b482bc6db39ac0d30299fbabbb68216a9e95ee991b04023bb5de1e1a4c7dd"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-close-after-03/RESULT.json",
+            "bytes": 918,
+            "sha256": "7c8b4bbcdd72bbc8abdc27c653a0e576b26bc2c33d4c7b081536e6d4ec6b1586"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-connection-close-after-01/RESULT.json",
+            "bytes": 983,
+            "sha256": "1746e087b3ab5b6b0d30023e0f7486b7166061edc2ed2244dbda7dd09864562e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/public-readonly-schema-after-01/RESULT.json",
+            "bytes": 4335,
+            "sha256": "51d76b7dc759ab5eda1fbb793b50f8d05ffb5265f00c70cb1590900b582538f2"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -20537,7 +22031,13 @@
       "artifact_sha256": null,
       "test_procedure_id": "R4-FAULT-historical-restoration",
       "evidence_path": [
-        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json"
+        "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
+        "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+        "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+        "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json"
       ],
       "environment": "Synthetic harmless fault locally; native/live repetition only in authorized profile",
       "limitation": "Map preserves each assertion and exact source dependency, including changes since the observed run. IMPLEMENTED is not full fault-family or native-platform PASS. Counts are not added across overlapping scopes.",
@@ -20617,6 +22117,36 @@
         {
           "path": "evidence/epoch-20261007-r4/worker-provider/NATIVE-SERVICE-EVIDENCE-INDEX.json",
           "sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1"
+        },
+        {
+          "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+          "bytes": 19194,
+          "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+          "bytes": 2365,
+          "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+          "bytes": 1483,
+          "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+          "bytes": 15454,
+          "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+          "bytes": 15419,
+          "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+        },
+        {
+          "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+          "bytes": 16295,
+          "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
         }
       ],
       "native_fault_increment": {
@@ -20624,6 +22154,43 @@
         "scope": "Native pinned Atmos/OpenTofu/provider and Docker through nonforwarding TLS Graph/Azure fixtures; independent state/journal/lease assertions. Not real service/CI/Windows/device evidence.",
         "index_sha256": "afc0307955e8519ad1ad13424839793fbed1bad1e20aab93a42d18befc07c0f1",
         "reuse_policy": "Exact source/tool pins per indexed receipt; final changed dependency requalification pending; no summed total."
+      },
+      "portable_observation21": {
+        "status": "IMPLEMENTED",
+        "scope": "Integrated closed Plan /3 signed history: distinct observation row/edge/raw anchor and mixed /2-release versus /3-observation ancestry. Initial identity binding stays pre-Plan bound; completed fresh rebind is recorded separately while full principal/backend/state/storage/capture equality remains checked. Actual inserted37 methods, independent signed rebind3 and mixed-chain5 assertions/17 negatives are separate overlapping scopes. Forged domain, raw anchor, phase, identity and proof-kind controls reject. No sealed authority or native/live qualification is manufactured by received JSON.",
+        "receipts": [
+          {
+            "path": "/tmp/intune-r4-worker-evidence-review-10/PROPOSED-09.json",
+            "bytes": 19194,
+            "sha256": "7d7bb799f8d4cc7c80cd216ef8b03821f6bdc00533651781d6908d7e9f53a6ff"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/APPLIED-RECEIPT.json",
+            "bytes": 2365,
+            "sha256": "f6958127ee0b797af2dc564230dd4f3fbf77068553fd6e633497b048fc7a91d6"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/worker-evidence/integrated-07/QUALIFICATION-01.json",
+            "bytes": 1483,
+            "sha256": "497b26e05aaa6e680633da030f81e91a7750a1a34cd622175fa7454af452489e"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-before-01/RESULT.json",
+            "bytes": 15454,
+            "sha256": "12d58b5fca189f0f2df77f7a127c4c14b1fdcd775206242459919d4f7e8c73ae"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-rebind-after-01/RESULT.json",
+            "bytes": 15419,
+            "sha256": "6025d1d1cc3de6866999e3ddb593e70ea17efc6588dcfc1db788edc8ee674516"
+          },
+          {
+            "path": "evidence/epoch-20261007-r4/independent/portable-observation-02/RESULT.json",
+            "bytes": 16295,
+            "sha256": "4575e347cbfc8ec0208286098c3eeb1189b39106791c9ca8c8dad9f8e66e4686"
+          }
+        ],
+        "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
       }
     },
     {
@@ -22520,5 +24087,5 @@
       }
     }
   ],
-  "checkpoint_increment": 20
+  "checkpoint_increment": 21
 }

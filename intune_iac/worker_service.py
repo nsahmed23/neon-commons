@@ -317,7 +317,8 @@ def live_runtime(**kwargs):
 
 
 class ServicePolicy:
-    def __init__(self, path):
+    def __init__(self, path, *, initialize=True):
+        if type(initialize) is not bool: _fail('service_initialization_mode_invalid')
         self.path = _private(path); _private(self.path.parent, directory=True); _outside_repository(self.path)
         value = _bounded_private_json(self.path)
         if (type(value) is not dict or set(value) != {'schema_version', 'authority_root', 'jobs_root',
@@ -329,7 +330,9 @@ class ServicePolicy:
         if (self.root == self.jobs_root or self.root in self.jobs_root.parents or self.jobs_root in self.root.parents
                 or self.path.is_relative_to(self.jobs_root)):
             _fail('service_policy_overlap')
-        self.root.mkdir(mode=0o700, exist_ok=True); _private(self.root, directory=True)
+        if initialize: self.root.mkdir(mode=0o700, exist_ok=True)
+        elif not self.root.exists(): _fail('service_store_missing')
+        _private(self.root, directory=True)
         verifier = value['verifier']
         if type(verifier) is not dict or set(verifier) != {'executable', 'sha256', 'validator_library', 'validator_sha256'}:
             _fail('service_policy_invalid')
@@ -352,6 +355,9 @@ class ServicePolicy:
             _fail('service_policy_invalid')
         self.admitted = frozenset(_hash(item) for item in entries); self.sha256 = digest(value)
         self.database = self.root / 'service.sqlite3'
+        if not initialize:
+            self._validate_existing_store()
+            return
         try:
             fd = os.open(self.database, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
             os.fsync(fd); os.close(fd); protected._sync(self.root)
@@ -368,6 +374,91 @@ class ServicePolicy:
             db.execute('CREATE TABLE IF NOT EXISTS revoked (issuer TEXT, key_id TEXT, PRIMARY KEY(issuer,key_id))')
             db.execute('CREATE TABLE IF NOT EXISTS events (sequence INTEGER PRIMARY KEY, job TEXT, kind TEXT, payload TEXT, created_at INTEGER)')
             db.execute('COMMIT')
+    def _validate_existing_store(self):
+        """Open an existing authority without creating, migrating or locking it for writes.
+
+        Preparation owns schema initialization. A status/attach constructor must
+        work while the controller holds a reserved writer lock, and must never
+        silently upgrade an incomplete authority. Additional operation tables
+        remain the responsibility of their respective typed journal readers.
+        """
+        if not self.database.exists(): _fail('service_store_missing')
+        _private(self.database)
+        for suffix in ('-journal', '-wal', '-shm'):
+            path = Path(str(self.database) + suffix)
+            if path.exists() or path.is_symlink(): _private(path)
+        # name, declared type, NOT NULL, default SQL, primary-key position.
+        columns = {
+            'jobs': [('id','TEXT',0,None,1),('root','TEXT',1,None,0),
+                ('manifest_sha256','TEXT',1,None,0),('status','TEXT',1,None,0),
+                ('cancelled','INTEGER',1,'0',0),('dispatches','INTEGER',1,'0',0),
+                ('outcome','TEXT',0,None,0),('controller_pid','INTEGER',0,None,0),
+                ('controller_start','TEXT',0,None,0)],
+            'ownership': [('scope','TEXT',0,None,1),('job','TEXT',1,None,0)],
+            'consumed': [('issuer','TEXT',0,None,1),('nonce','TEXT',0,None,2),
+                ('operation_id','TEXT',0,None,0),('manifest_sha256','TEXT',0,None,0)],
+            'approval_transcripts': [('operation_id','TEXT',0,None,1),
+                ('receipt_json','TEXT',1,None,0),('receipt_sha256','TEXT',1,None,0),
+                ('consumed_at','INTEGER',1,None,0)],
+            'revoked': [('issuer','TEXT',0,None,1),('key_id','TEXT',0,None,2)],
+            'events': [('sequence','INTEGER',0,None,1),('job','TEXT',0,None,0),
+                ('kind','TEXT',0,None,0),('payload','TEXT',0,None,0),('created_at','INTEGER',0,None,0)],
+        }
+        unique = {'jobs': {('id',),('root',)}, 'ownership': {('scope',)},
+            'consumed': {('issuer','nonce'),('operation_id',)},
+            'approval_transcripts': {('operation_id',)}, 'revoked': {('issuer','key_id')}, 'events': set()}
+        # PRAGMA column/index metadata does not expose conflict policies,
+        # collations or CHECK clauses. Admit only these existing product-created
+        # declarations (including the explicitly migrated jobs columns).
+        declarations = {
+            'jobs': 'CREATE TABLE jobs (id TEXT PRIMARY KEY, root TEXT UNIQUE NOT NULL, manifest_sha256 TEXT NOT NULL, status TEXT NOT NULL, cancelled INTEGER NOT NULL DEFAULT 0, dispatches INTEGER NOT NULL DEFAULT 0, outcome TEXT, controller_pid INTEGER, controller_start TEXT)',
+            'ownership': 'CREATE TABLE ownership (scope TEXT PRIMARY KEY, job TEXT NOT NULL)',
+            'consumed': 'CREATE TABLE consumed (issuer TEXT, nonce TEXT, operation_id TEXT UNIQUE, manifest_sha256 TEXT, PRIMARY KEY(issuer,nonce))',
+            'approval_transcripts': 'CREATE TABLE approval_transcripts (operation_id TEXT PRIMARY KEY, receipt_json TEXT NOT NULL, receipt_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL)',
+            'revoked': 'CREATE TABLE revoked (issuer TEXT, key_id TEXT, PRIMARY KEY(issuer,key_id))',
+            'events': 'CREATE TABLE events (sequence INTEGER PRIMARY KEY, job TEXT, kind TEXT, payload TEXT, created_at INTEGER)',
+        }
+        db = None; primary = None
+        try:
+            db = sqlite3.connect(self.database.as_uri() + '?mode=ro', uri=True, timeout=0, isolation_level=None)
+            db.execute('PRAGMA query_only=ON'); db.execute('PRAGMA trusted_schema=OFF')
+            db.execute('BEGIN')
+            if db.execute('PRAGMA journal_mode').fetchone() != ('delete',): _fail('service_store_schema_required')
+            for table, expected in columns.items():
+                if db.execute('SELECT type,sql FROM sqlite_master WHERE name=?', (table,)).fetchone() != ('table',declarations[table]):
+                    _fail('service_store_schema_required')
+                # Names here are fixed source literals, never policy/input SQL.
+                actual = db.execute('PRAGMA table_xinfo(' + table + ')').fetchall()
+                if ([tuple(row[1:6]) for row in actual] != expected or any(row[6] != 0 for row in actual)):
+                    _fail('service_store_schema_required')
+                indexes = db.execute('PRAGMA index_list(' + table + ')').fetchall()
+                keys = set()
+                for row in indexes:
+                    if not row[2]: continue
+                    if row[4] or row[3] not in ('pk','u'): _fail('service_store_schema_required')
+                    fields = db.execute('SELECT name FROM pragma_index_info(?) ORDER BY seqno', (row[1],)).fetchall()
+                    keys.add(tuple(field[0] for field in fields))
+                if keys != unique[table]: _fail('service_store_schema_required')
+                if db.execute("SELECT 1 FROM sqlite_master WHERE type='trigger' AND tbl_name=?", (table,)).fetchone():
+                    _fail('service_store_schema_required')
+            db.execute('COMMIT')
+        except sqlite3.Error as error:
+            primary = AppError('service_store_schema_required',
+                'An initialized service authority with the supported schema is required; use the explicit preparation/migration procedure.')
+            primary.__cause__ = error
+        except BaseException as error:
+            primary = error
+        self._close_database(db, primary)
+    @staticmethod
+    def _close_database(db, primary):
+        """Retain the original failure and surface secondary interruption."""
+        try:
+            if db is not None: db.close()
+        except BaseException as cleanup:
+            if primary is None: raise
+            if isinstance(cleanup, (KeyboardInterrupt, SystemExit)): raise cleanup from primary
+            primary.add_note('Secondary service database cleanup/close failure: ' + type(cleanup).__name__)
+        if primary is not None: raise primary
     @contextmanager
     def connection(self):
         _private(self.root, directory=True); _private(self.database)
@@ -375,11 +466,17 @@ class ServicePolicy:
             path = Path(str(self.database) + suffix)
             if path.exists() or path.is_symlink(): _private(path)
         db = sqlite3.connect(self.database, timeout=0, isolation_level=None)
+        primary = None
         try:
             db.execute('PRAGMA synchronous=FULL'); db.execute('PRAGMA journal_mode=DELETE'); db.execute('PRAGMA trusted_schema=OFF')
             yield db
-        except sqlite3.Error: _fail('service_store_unavailable')
-        finally: db.close()
+        except sqlite3.Error as error:
+            primary = AppError('service_store_unavailable',
+                'The service authority database could not complete the requested operation.')
+            primary.__cause__ = error
+        except BaseException as error:
+            primary = error
+        self._close_database(db, primary)
     def check(self):
         if digest(_bounded_private_json(self.path)) != self.sha256: _fail('service_policy_changed')
     def event(self, db, identifier, kind, payload):
@@ -478,7 +575,7 @@ class ServicePermit:
 
 class ServiceJob:
     def __init__(self, job_root, policy_path):
-        self.policy = ServicePolicy(policy_path); self.root = _private(job_root, directory=True)
+        self.policy = ServicePolicy(policy_path, initialize=False); self.root = _private(job_root, directory=True)
         if self.root.parent != self.policy.jobs_root: _fail('service_job_outside_policy')
         self.manifest = _bounded_private_json(self.root / 'manifest.json')
         if self.manifest.get('schema_version') not in (VERSION, INTENT_VERSION): _fail('service_job_domain')

@@ -359,7 +359,7 @@ class AdoptionPermit:
 
 class AdoptionJob:
     def __init__(self, job_root, policy_path):
-        self.policy = service.ServicePolicy(policy_path); self.root = _private(job_root, directory=True)
+        self.policy = service.ServicePolicy(policy_path, initialize=False); self.root = _private(job_root, directory=True)
         if self.root.parent != self.policy.jobs_root: _fail('adoption_job_outside_policy')
         self.manifest = service._bounded_private_json(self.root / 'manifest.json')
         if self.manifest.get('schema_version') != VERSION: _fail('adoption_job_domain')

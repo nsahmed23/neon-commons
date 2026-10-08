@@ -110,14 +110,14 @@ class PhaseAncestorTests(PhaseAncestorFixture):
         with self.assertRaises(AppError):self.chain()
     def test_only_selected_and_verified_ancestors_can_exempt_conflicts(self):
         phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None))
-        manifest={'original_facts':{},'recovery_binding':self.binding}
+        manifest={'schema_version':bridge.PHASE_VERSION,'operation_id':'new-plan','original_facts':{},'recovery_binding':self.binding}
         with patch.object(bridge,'_phase_from_binding',return_value=phase),patch.object(bridge,'_held_phase',return_value=None):
             bridge._phase_transaction(self.db,self.original,manifest,phase=phase)
             self.plan('unrelated')
             with self.assertRaises(AppError):bridge._phase_transaction(self.db,self.original,manifest,phase=phase)
     def test_prepared_cancelled_successor_has_no_edge_or_ownership_transfer(self):
         self.plan('new');self.db.execute("UPDATE adoption_recovery_plans SET status='cancelled_before_dispatch',dispatches=0,cancelled=1 WHERE operation_id='new'");self.db.execute("DELETE FROM consumed WHERE operation_id='new'")
-        phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None));manifest={'original_facts':{},'recovery_binding':self.binding}
+        phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None));manifest={'schema_version':bridge.PHASE_VERSION,'operation_id':'new-plan','original_facts':{},'recovery_binding':self.binding}
         with patch.object(bridge,'_phase_from_binding',return_value=phase),patch.object(bridge,'_held_phase',return_value=None):bridge._phase_transaction(self.db,self.original,manifest,phase=phase)
         self.assertIsNone(self.db.execute("SELECT 1 FROM adoption_plan_successors WHERE successor_operation_id='new'").fetchone())
     def test_registered_initial_verification_terminates_with_existing_edge_table(self):
@@ -138,10 +138,10 @@ class PhaseAncestorTests(PhaseAncestorFixture):
         self.selected=self.edge('selected',prior);chain=self.chain();self.assertEqual(len(chain),32)
         self.db.execute("DELETE FROM adoption_recovery_plans WHERE operation_id='old'")
         binding=dict(self.binding,ancestors=chain);binding['phase']=dict(binding['phase'],manifest_sha256=self.selected)
-        phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None));manifest={'original_facts':{},'recovery_binding':binding}
+        phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None));manifest={'schema_version':bridge.PHASE_VERSION,'operation_id':'new-plan','original_facts':{},'recovery_binding':binding}
         with patch.object(bridge,'_phase_from_binding',return_value=phase),patch.object(bridge,'_held_phase',return_value=None),self.assertRaises(AppError):bridge._phase_transaction(self.db,self.original,manifest,phase=phase)
     def test_declared_ancestor_list_cannot_be_replaced(self):
-        phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None));manifest={'original_facts':{},'recovery_binding':dict(self.binding,ancestors=[])}
+        phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None));manifest={'schema_version':bridge.PHASE_VERSION,'operation_id':'new-plan','original_facts':{},'recovery_binding':dict(self.binding,ancestors=[])}
         with patch.object(bridge,'_phase_from_binding',return_value=phase),patch.object(bridge,'_held_phase',return_value=None),self.assertRaises(AppError):bridge._phase_transaction(self.db,self.original,manifest,phase=phase)
 
 
@@ -152,7 +152,7 @@ class PhaseAtomicConsumptionTests(PhaseAncestorFixture):
         self.db.execute('INSERT INTO ownership VALUES (?,?)',('scope','original'))
         if failure:self.db.execute("CREATE TRIGGER refuse_new_edge BEFORE INSERT ON adoption_plan_successors WHEN NEW.successor_operation_id='new-plan' BEGIN SELECT RAISE(ABORT,'injected edge-record failure');END")
         jobroot=self.root/'new-plan';jobroot.mkdir(mode=0o700);native=self.root/'native';native.mkdir(mode=0o700);proxy=self.root/'proxy';proxy.mkdir(mode=0o700)
-        manifest={'schema_version':bridge.PHASE_VERSION,'original_facts':{},'recovery_binding':self.binding,'identity_binding_sha256':'identity','host_spec':{}}
+        manifest={'schema_version':bridge.PHASE_VERSION,'operation_id':'new-plan','original_facts':{},'recovery_binding':self.binding,'identity_binding_sha256':'identity','host_spec':{}}
         sha=digest(manifest);self.db.execute('INSERT INTO adoption_recovery_plans VALUES (?,?,?,?,?,?,?,?,?,?)',('new-plan','original',sha,str(jobroot),'prepared',0,0,None,None,None));self.db.commit()
         subject=object.__new__(bridge.RecoveryPlanJob);subject.root=jobroot;subject.identifier='new-plan';subject.sha256=sha;subject.manifest=manifest;subject.original=self.original
         subject.policy=types.SimpleNamespace(connection=lambda:sqlite3.connect(self.root/'authority.sqlite3'),event=lambda *args:None)
