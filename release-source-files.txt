@@ -3396,3 +3396,7 @@ plugin_tests/test_worker_evidence_transcript_r4.py
 scripts/intune-windows-evidence.py
 scripts/intune-worker-evidence.py
 scripts/qualify-windows-worker-evidence.py
+
+# R4 closed signed stopped-Plan predecessor/terminal evidence.
+intune_iac/worker_evidence_phase.py
+plugin_tests/test_worker_evidence_phase_r4.py

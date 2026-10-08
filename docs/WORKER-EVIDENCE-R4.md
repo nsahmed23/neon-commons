@@ -156,13 +156,14 @@ and original limitations. It never constructs `RepositoryExecutionIntent`, reads
 remote Git or re-attests an old controller. Worker-service-operation/1 remains
 explicitly unassociated; no v2 field is silently discarded or relabeled as v1.
 The same read-only channel accepts two closed, distinct state-only domains:
-`native-state-adoption/1` and `native-adoption-recovery-plan/1`. Their original
+`native-state-adoption/1`, `native-adoption-recovery-plan/1`, and the distinct
+phase-aware `native-adoption-recovery-plan/2`. Their original
 approval schema and NUL-terminated signature domains remain distinct from an
 ordinary saved-plan apply. A recovery receipt includes the exact original adoption
 manifest, journal and retained original approval; missing transcripts stay
 explicitly unqualified. Neither domain can become a Graph deployment baseline.
-Future recovery versions are rejected until their exact phase binding is added
-and independently qualified; there is no relabeling or automatic migration.
+Unknown future recovery versions are rejected; there is no relabeling or
+automatic migration.
 
 The request is `worker-evidence-request/2` with an explicit operation kind,
 original-manifest hash where applicable, and a literal null saved-plan hash:
@@ -213,3 +214,25 @@ field. Initial adoption uses its distinct `receiving_state.graph_capture_sha256`
 The decoder does not search alternate labels or accept a renamed shape. Plan
 content proofs compare canonical typed JSON; boolean/number aliases and a
 boolean false masquerading as exit code zero are rejected.
+
+Plan v2 preserves its exact full stopped-phase original facts (including the
+broker/lease fields), selected phase identity, and bounded ancestor declarations.
+The read-only source transaction retains the matching registration rows,
+consumed approval transcripts, immutable successor edges and observed release
+rows. The pure reader cross-checks these against signed hashes and the declared
+chain, and verifies retained predecessor Plan approvals in their own v1/v2
+domains at their historical dispatch times. Missing old transcripts remain
+unqualified; copied rows cannot mint a stopped-phase or release capability.
+At most 31 ancestors are accepted for an already declared new child, matching
+the worker's refusal to create a child at its 32-edge bound. Cycles, changed
+phase rows, unobserved releases, unknown schemas and mismatched domains fail.
+Version 2 uses exactly `adoption-plan-native-lease-recovery-observation/1` for
+its capture linkage; original recovery v1 keeps its own distinct schema.
+All received evidence/store/history/backup behavior remains shared.
+
+The terminal predecessor is retained explicitly from the same read-only source
+transaction. A selected v2 predecessor requires its immutable edge and remaining
+chain; only the original initial verification or a v1 recovery Plan may terminate
+it. Exact terminal row bytes, manifest and original approval remain bound even
+after the original job's current status advances through reconciliation. The
+current status is presented separately from the historical stopped-phase fact.

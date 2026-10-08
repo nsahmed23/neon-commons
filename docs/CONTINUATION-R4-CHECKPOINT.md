@@ -866,3 +866,21 @@ initial-Plan/new-Plan interruption recovery chain under an exact runtime freeze,
 finish native signed-history linkage, and qualify the exact final packages.
 The historical 1141/1242 suites remain separate. Laboratory completion, real
 platform qualification and accountable production approval are not established.
+
+Increment18 integrates the closed portable Plan-v2 decoder after two retained
+counterexamples. A version2 predecessor now requires its exact ancestry edge
+and a coherent initial-verification or version1 terminal record. Every retained
+predecessor approval uses its own signature domain. The current original status
+may advance after reconciliation while the exact historical stopped phase row,
+approval, dispatch and outcome stay bound. A successful new history read does
+not rewrite the original execution-unknown result.
+
+Independent actual signed CLI/SQLite controls, a separate true bad-signature
+control, and original native-v1 Plan/export raw-byte review are retained with
+their distinct overlapping scopes. COMMIT-18.json is the exact native signing
+freeze. No runtime edits are allowed during the following coordinated runs:
+retained source-v2 proposal with new approval; exact stopped initial-Plan release;
+new Plan1 deliberately interrupted after acquisition; its separate exact release;
+new Plan2 no-change output/readback/reconciliation. Old imports and Plans are
+never requeued. The prepared PTY checker inspects the quiet completed history
+without issuing mutation commands. Final package and external gates remain.

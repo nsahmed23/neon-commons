@@ -100,7 +100,7 @@ def request(value):
 
 def make_request(manifest,policy,nonce):
     policy=trust(policy);context=manifest['run_context']
-    if manifest.get('schema_version') in ('native-state-adoption/1','native-adoption-recovery-plan/1'):
+    if manifest.get('schema_version') in ('native-state-adoption/1','native-adoption-recovery-plan/1','native-adoption-recovery-plan/2'):
         from .worker_evidence_domains import make_request as domain_request
         return domain_request(manifest,policy,nonce)
     if manifest.get('action')!='apply_saved_plan' or len(manifest.get('object_ids',[]))!=1 or context.get('schema_version')!='service-run-context/1':fail('worker_evidence_action_unsupported')

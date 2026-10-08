@@ -14,6 +14,13 @@ Git-object linkage, checkpoint8's98 tests and historical1,242/1,141 results.
 Checkpoint11 adds native current-source reading and fixed-byte relocatable
 qualification tools; its exact commit is recorded in `integration/COMMIT-11.json`.
 
+Current next action is the coordinated checkpoint18 native freeze recorded in
+`integration/COMMIT-18.json`: source-bound proposal continuation and the retained
+initial-Plan/new-successor interruption recovery chain. Portable Plan-v2 history
+is integrated; preserve its missing-terminal and stale-current-status failures.
+Then qualify signed export and actual PTY history on those exact native results,
+followed by the final package gates below.
+
 | Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
 | --- | --- | --- |
 | 1 | `workbench views`, `workbench workspace` and the same text engine expose repository, observed, proposed and coverage evidence. Native object/current-source readers are integrated; native intent import/proposal are integrated; bounded source editing/recovery is integrated; finish authenticated portable worker evidence without opening unsupported POSIX journals. | Retain actual Linux CLI/PTY evidence and recorded-Win32 controls. Real Windows/Git Bash/mintty remains a host-owner gate. |

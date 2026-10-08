@@ -68,11 +68,13 @@ def snapshot(job_root,policy_path,req,*,capture_root=None,store_root=None,state_
                 source_path=Path(m['host_spec']['source_root'])/'project/components/terraform/intune-policy/main.tf.json'
                 source=packed(retained(source_path))
             at=int(time.time())
-            return {'schema_version':'worker-evidence-snapshot/2','read_at':at,'manifest':m,'policy_sha256':digest(policy),
+            result={'schema_version':'worker-evidence-snapshot/2','read_at':at,'manifest':m,'policy_sha256':digest(policy),
                 'journal':{'database_sha256':dbsha,'selected_event_count':len(events),'first_sequence':events[0]['sequence'],'last_sequence':events[-1]['sequence'],'events_sha256':digest(events)},
                 'job':{'status':row[2],'cancel_requested':bool(row[3]),'dispatches':row[4],'outcome':parse_json(row[5]) if row[5] else None},
                 'events':events,'approval':transcript,'consumed':dict(zip(('issuer','nonce','operation_id','manifest_sha256'),consumed)) if consumed else None,
                 'capture_provenance':None,'capture':None,'domain_records':{'source_policy':{'reviewed_policy_sha256':binding['policy_sha256'],'current_policy_sha256':digest(policy)},'verification':verification,'original':original,'plan_artifacts':artifacts,'state':packed(retained(state_raw)) if state_raw is not None else None,'source':source}}
+            if m['schema_version']=='native-adoption-recovery-plan/2':result['domain_records']['phase_ledger']=_phase_ledger(db,m,original,jobs,retained)
+            return result
         value=selected(root,req)
         if capture_root is not None:
             if store_root is None:c.fail('worker_evidence_observation_required')
@@ -82,3 +84,37 @@ def snapshot(job_root,policy_path,req,*,capture_root=None,store_root=None,state_
             if h.read(name,8*1024*1024)!=raw:c.fail('worker_evidence_source_changed')
         if digest(h.load(policy_path,256*1024))!=digest(policy):c.fail('worker_evidence_source_changed')
         c.validate_snapshot(value,req);return value
+
+
+def _phase_ledger(db,m,original,jobs,retained):
+    from . import worker_evidence_posix as h,worker_evidence_phase as phase
+    h._columns(db,'native_lease_recoveries',['original_operation','recovery_operation','issuer','nonce','manifest_sha256','status','response_code','observed_sha256'])
+    h._columns(db,'adoption_plan_successors',phase.EDGE.split())
+    def edge(op):
+        row=db.execute('SELECT '+','.join(phase.EDGE.split())+' FROM adoption_plan_successors WHERE successor_operation_id=?',(op,)).fetchone()
+        return dict(zip(phase.EDGE.split(),row)) if row else None
+    def release(op):
+        row=db.execute('SELECT recovery_operation,manifest_sha256,status,observed_sha256 FROM native_lease_recoveries WHERE original_operation=?',(op,)).fetchone()
+        if row is None:c.fail('worker_evidence_phase_release')
+        return list(row)
+    def record(op):
+        row=db.execute('SELECT original_operation_id,manifest_sha256,root,status,cancelled,dispatches,outcome,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(op,)).fetchone()
+        if row is None:c.fail('worker_evidence_phase_row')
+        root=h._private(row[2],directory=True)
+        if root.parent!=jobs:c.fail('worker_evidence_phase_root')
+        manifest=parse_json(retained(root/'manifest.json',256*1024))
+        if digest(manifest)!=row[1] or manifest.get('operation_id')!=op:c.fail('worker_evidence_phase_manifest')
+        used=db.execute('SELECT issuer,nonce,operation_id,manifest_sha256 FROM consumed WHERE operation_id=?',(op,)).fetchone()
+        raw=db.execute('SELECT receipt_json,receipt_sha256,consumed_at FROM approval_transcripts WHERE operation_id=?',(op,)).fetchone()
+        approval={'receipt':parse_json(raw[0]),'receipt_sha256':raw[1],'consumed_at':raw[2]} if raw else None
+        if approval and db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(approval['receipt']['payload']['issuer'],approval['receipt']['payload']['key_id'])).fetchone():c.fail('worker_evidence_revoked')
+        return {'manifest':manifest,'row':list(row),'approval':approval,'consumed':dict(zip(('issuer','nonce','operation_id','manifest_sha256'),used)) if used else None}
+    selected=m['recovery_binding']['phase'];phase.binding(m,original['manifest'])
+    def initial():
+        row=db.execute('SELECT verification_id,verification_dispatches,verification_status,verification_outcome FROM adoption_operations WHERE operation_id=?',(original['manifest']['operation_id'],)).fetchone()
+        return {'manifest':original['manifest'],'row':list(row) if row else None,'approval':original['approval'],'consumed':original['consumed']}
+    selected_record=initial() if selected['kind']=='initial_verification' else record(selected['operation_id'])
+    chain=m['recovery_binding']['ancestors'];terminal_id=chain[-1]['prior_operation_id'] if chain else selected['operation_id']
+    terminal=initial() if terminal_id==original['manifest']['verification_operation_id'] else record(terminal_id)
+    return {'selected':selected_record,'terminal':terminal,'current_edge':edge(m['operation_id']),'current_release':release(selected['operation_id']),
+        'ancestors':[{'record':record(link['successor_operation_id']),'edge':edge(link['successor_operation_id']),'release':release(link['prior_operation_id'])} for link in m['recovery_binding']['ancestors']]}

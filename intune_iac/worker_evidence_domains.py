@@ -11,7 +11,8 @@ from . import worker_evidence as c
 from .io import canonical,digest,parse_json
 ADOPTION='native-state-adoption/1'
 RECOVERY='native-adoption-recovery-plan/1'
-KINDS={ADOPTION:'state_adoption',RECOVERY:'adoption_recovery_plan'}
+RECOVERY_PHASE='native-adoption-recovery-plan/2'
+KINDS={ADOPTION:'state_adoption',RECOVERY:'adoption_recovery_plan',RECOVERY_PHASE:'adoption_recovery_plan'}
 ADOPTION_FIELDS='schema_version operation_id verification_operation_id profile prepared_at expires_at action execution_binding_sha256 host_spec broker_policy verification_host_spec verification_broker_policy identity_binding_sha256 run_binding_sha256 run_context storage_binding_sha256 provider_binding tenant_id object_ids backend_scope_sha256 implementation_files state_contract ownership_binding intended_writer'
 RECOVERY_FIELDS='schema_version operation_id profile action prepared_at expires_at original_operation_id original_manifest_sha256 original_facts recovery_binding execution_binding_sha256 host_spec broker_policy provider_binding run_context run_binding_sha256 storage_binding_sha256 identity_binding_sha256 implementation_files'
 REQUEST_FIELDS='schema_version nonce tenant_id object_id operation_id operation_kind original_manifest_sha256 manifest_sha256 saved_plan_sha256 execution_binding_sha256 run_binding_sha256 source_revision source_sha256 run_id run_attempt trust_sha256'
@@ -84,10 +85,13 @@ def manifest(value,req,at,original=None):
             or value['profile']!=original['profile'] or original['tenant_id']!=req['tenant_id'] or original['object_ids']!=[req['object_id']]):c.fail('worker_evidence_recovery_original')
         for key in ('repository','stack','component','source_revision','source_sha256','effective_inputs_sha256','provider_lock_sha256'):
             if context[key]!=original['run_context'][key]:c.fail('worker_evidence_recovery_source')
-        b=value['recovery_binding'];c.shape(b,'recovery_operation_id recovery_manifest_sha256 state projection_sha256 original_contract_sha256')
+        b=value['recovery_binding'];c.shape(b,'recovery_operation_id recovery_manifest_sha256 state projection_sha256 original_contract_sha256'+(' phase ancestors' if version==RECOVERY_PHASE else ''))
         c.identifier(b['recovery_operation_id'])
         for key in ('recovery_manifest_sha256','projection_sha256','original_contract_sha256'):c.hashed(b[key])
         if b['original_contract_sha256']!=digest(original['state_contract']) or type(b['state']) is not dict:c.fail('worker_evidence_recovery_binding')
+    if version==RECOVERY_PHASE:
+        from .worker_evidence_phase import binding
+        binding(value,original)
     return version
 
 
@@ -103,7 +107,7 @@ def validate_snapshot(snapshot,req):
     c.shape(snapshot,'schema_version read_at manifest policy_sha256 journal job events approval consumed capture_provenance capture domain_records')
     if snapshot['schema_version']!='worker-evidence-snapshot/2':c.fail('worker_evidence_domain_snapshot')
     c.number(snapshot['read_at'],1,9007199254740991);c.hashed(snapshot['policy_sha256'])
-    records=snapshot['domain_records'];c.shape(records,'verification original plan_artifacts state source source_policy')
+    records=snapshot['domain_records'];c.shape(records,'verification original plan_artifacts state source source_policy'+(' phase_ledger' if snapshot['manifest'].get('schema_version')==RECOVERY_PHASE else ''))
     c.shape(records['source_policy'],'reviewed_policy_sha256 current_policy_sha256')
     for item in records['source_policy'].values():c.hashed(item)
     if records['source_policy']['current_policy_sha256']!=snapshot['policy_sha256']:c.fail('worker_evidence_domain_source_policy')
@@ -128,18 +132,26 @@ def validate_snapshot(snapshot,req):
         for name,row in artifacts.items():member(row,64 if name=='exit.txt' else 8*1024*1024)
     for name in ('state','source'):
         if records[name] is not None:member(records[name])
+    if version==RECOVERY_PHASE:
+        from .worker_evidence_phase import validate
+        validate(snapshot)
     return c.journal_snapshot(snapshot,req,prepared_kind='adoption_recovery_plan_prepared' if is_recovery else 'adoption_prepared',selected_operation=is_recovery)
 
 
 def approval_proof(snapshot,req,policy,verify):
     recovery=req['operation_kind']=='adoption_recovery_plan'
-    schema='signed-native-adoption-recovery-plan-approval/1' if recovery else 'signed-native-state-adoption-approval/1'
-    domain=b'intune-workbench:native-adoption-recovery-plan-approval:v1\x00' if recovery else b'intune-workbench:native-state-adoption-approval:v1\x00'
+    phase=snapshot['manifest']['schema_version']==RECOVERY_PHASE;version='2' if phase else '1'
+    schema='signed-native-adoption-recovery-plan-approval/'+version if recovery else 'signed-native-state-adoption-approval/1'
+    domain=('intune-workbench:native-adoption-recovery-plan-approval:v'+version+'\x00').encode() if recovery else b'intune-workbench:native-state-adoption-approval:v1\x00'
     result=c.approval_transcript(snapshot,req,policy,verify,schema=schema,domain=domain,dispatch_kind='adoption_recovery_plan_consumed' if recovery else 'adoption_dispatch_consumed',selected_operation=recovery)
     if recovery:
         original=snapshot['domain_records']['original'];m=original['manifest']
         oldreq=make_request(m,policy,req['nonce']);old=c.approval_transcript(original,oldreq,policy,verify,schema='signed-native-state-adoption-approval/1',domain=b'intune-workbench:native-state-adoption-approval:v1\x00',dispatch_kind='adoption_dispatch_consumed')
         if old!='verified_retained_original':return 'original_adoption_approval_not_retained'
+    if phase:
+        from .worker_evidence_phase import approvals
+        prior=approvals(snapshot,req,policy,verify)
+        if prior!='verified_retained_original':return prior
     return result
 
 
@@ -192,7 +204,7 @@ def baseline(snapshot,req,cap,approval_status):
     if any(outcome.get(key) is not value for key,value in [('reservation_released',True),('import_replayed',False),('graph_mutated',False)]):reasons.append('state_only_outcome_not_established')
     if recovery:
         captured=receiving.get('adoption_capture')
-        if receiving and (receiving.get('schema_version')!='adoption-native-lease-recovery-observation/1' or type(captured) is not dict):c.fail('worker_evidence_recovery_capture_shape')
+        if receiving and (receiving.get('schema_version')!=('adoption-plan-native-lease-recovery-observation/1' if m['schema_version']==RECOVERY_PHASE else 'adoption-native-lease-recovery-observation/1') or type(captured) is not dict):c.fail('worker_evidence_recovery_capture_shape')
         if captured is not None:c.shape(captured,'capture_sha256 path');c.hashed(captured['capture_sha256'])
         rawsha=captured['capture_sha256'] if captured else None
     else:rawsha=receiving.get('graph_capture_sha256')
