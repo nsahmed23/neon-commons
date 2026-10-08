@@ -1036,3 +1036,27 @@ also needs the existing ordinary partial, committed-state and reverse-descriptio
 fault routes before new artifact qualification is complete. Performance is only
 preregistered, not timed. Complete delivery must include raw Intune Git history
 and unselected bytecode evidence; do not call a selected source ZIP full recovery.
+
+Increment24 integrates the three demonstrated C22 strict repairs. The irreversible
+wrong-native-library negative now runs in a child and still asserts deleted-map
+rejection. The parent subsequently binds a real service manifest; the runtime
+identity guard is unchanged. The transfer stager now admits exactly five new
+layers, including external evidence, and retains exact nine-layer recovery. Its
+assertion helper no longer masks unittest failures. Native Windows inspection
+now preserves the pending local-edit operation and manual status guidance after
+a lost rename acknowledgement, while import remains blocked and outcome unknown.
+
+Focused integrated scopes20/39/26 and independent7/18/15 overlap and are never
+summed. All prior C22 failures, setup/evaluator failures and negative controls
+remain unchanged. Native Windows remains unqualified. Current runtime changed
+only in pending-edit presentation; new source/runtime artifacts must be built.
+
+Resume from integration/COMMIT-24.json and the exact insertion/scoped receipts,
+then build into a NEW package directory with /tmp/intune-r4-final-package.py.
+Run the repaired exact-ZIP-admission /tmp/intune-r4-final-strict.py only against
+that new package receipt. The failed C22 directory must never be reused or edited.
+After a passing required gate, run actual runtime and the full closed native
+profile including ordinary partial/committed-state/reverse-description faults.
+Performance preparation for C22 remains untimed historical preparation; rebind
+the new candidate before claiming measurements. Full Git/unselected-bytecode
+preservation and the separately blocked external gates remain required.

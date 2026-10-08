@@ -6,7 +6,8 @@ promote imported metadata into a verified deployment. Ordinary Windows remains
 unsupported pending native qualification; every unsupported link stays visible.
 """
 from .windows_workbench import WindowsWorkbenchStore
-from .io import AppError,canonical
+from .io import AppError,canonical,parse_json
+import re
 
 
 class _NativeViewReader:
@@ -37,6 +38,9 @@ class _NativeViewReader:
             except AppError as error:
                 readback={'status':'unknown','reason':error.code,
                     'recorded_revision_and_source_hashes_preserved':True,'git_revision_verified':False}
+                pending=getattr(error,'source_edit_pending',None)
+                if _pending_edit(pending,error.code):
+                    readback['pending_local_source_edit']=parse_json(canonical(pending))
             result['repository']['current_working_source_readback']=readback
         if self.issues and result.get('deployment',{}).get('reason')=='verified_deployment_missing':
             result['deployment']['reason']='required_deployment_evidence_unsupported_or_unverified'
@@ -48,3 +52,15 @@ class _NativeViewReader:
 def _reader_for(store):
     # No caller flag, subclass or persisted metadata selects native support.
     return _NativeViewReader() if type(store) is WindowsWorkbenchStore else None
+
+
+def _pending_edit(value, code):
+    """Retain the exact local recovery reference without authorizing a retry."""
+    if code!='windows_repository_source_edit_unresolved' or type(value) is not dict:return False
+    if set(value)!={'operation_id','source_root','outcome_uncertain','next_action','invalid_closure_records','automatic_retry_permitted'}:return False
+    identifier=value['operation_id'];root=value['source_root'];action=value['next_action']
+    return (type(identifier) is str and re.fullmatch('[a-f0-9]{64}',identifier) is not None
+        and type(root) is str and 0<len(root)<=4096 and value['outcome_uncertain'] is True
+        and value['automatic_retry_permitted'] is False and type(value['invalid_closure_records']) is list
+        and type(action) is dict and set(action)=={'command','arguments'}
+        and action['command']=='source-edit-status' and action['arguments']==[root,identifier])

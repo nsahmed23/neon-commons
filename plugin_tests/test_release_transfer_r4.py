@@ -1,7 +1,7 @@
 """Actual offline delivery CLIs with literal parts and independent raw Git reads.
 
 No real publication, live service, remote download or external credential use.
-Existing tiny eight-layer payload fixtures are reused, not their test results.
+Existing tiny nine-layer payload fixtures are reused, not their test results.
 """
 import copy
 import hashlib
@@ -63,7 +63,7 @@ class ReleaseTransferTests(unittest.TestCase):
             'repository':self.repository,'branch':'intune-r4-offline-fixture','git-executable':GIT,'git-sha256':sha(GIT.read_bytes()),
             'validator-sha256':sha(VALIDATOR.read_bytes()),'helper-sha256':sha(DOWNLOAD.read_bytes())};values.update(overrides)
         return self.invoke(STAGE,values,env)
-    def fail(self,result,*,path=None,absent=True):
+    def denied(self,result,*,path=None,absent=True):
         self.assertEqual(result.returncode,1,result.stdout+result.stderr);self.assertEqual(json.loads(result.stderr)['status'],'FAIL')
         if path is not None and absent:self.assertFalse(path.exists())
     def module(self,path):
@@ -78,24 +78,24 @@ class ReleaseTransferTests(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stderr);self.assertTrue(json.loads(result.stdout)['complete_physical_file_set_and_type_map_verified'])
         self.assertEqual({p:p.read_bytes()for p in before},before)
     def test_actual_download_rejects_wrong_manifest_validator_map_pins_before_output(self):
-        for key in ('manifest-sha256','validator-sha256','local-fixture-sha256'):self.fail(self.dl(**{key:'f'*64}),path=self.downloaded)
+        for key in ('manifest-sha256','validator-sha256','local-fixture-sha256'):self.denied(self.dl(**{key:'f'*64}),path=self.downloaded)
     def test_actual_unfinalized_or_wrong_layer_order_blocks_download_and_stage(self):
-        self.manifest['status']='preparation';self.save();self.fail(self.dl(),path=self.downloaded);self.fail(self.st(),path=self.repository)
-        self.manifest['status']='ready';self.manifest['layers'].reverse();self.save();self.fail(self.dl(),path=self.downloaded);self.fail(self.st(),path=self.repository)
+        self.manifest['status']='preparation';self.save();self.denied(self.dl(),path=self.downloaded);self.denied(self.st(),path=self.repository)
+        self.manifest['status']='ready';self.manifest['layers'].reverse();self.save();self.denied(self.dl(),path=self.downloaded);self.denied(self.st(),path=self.repository)
     def test_actual_download_wrong_part_or_aggregate_hash_retains_all_partial_bytes(self):
         path=Path(self.fixture.returned['layers'][-1]['parts'][-1]);path.write_bytes(path.read_bytes()[:-1]+b'X')
-        self.fail(self.dl(),absent=False);self.assertFalse((self.downloaded/'DOWNLOAD-RECEIPT.json').exists());self.assertTrue((self.downloaded/'DOWNLOAD-FAILURE.json').exists())
+        self.denied(self.dl(),absent=False);self.assertFalse((self.downloaded/'DOWNLOAD-RECEIPT.json').exists());self.assertTrue((self.downloaded/'DOWNLOAD-FAILURE.json').exists())
         self.assertTrue((self.downloaded/'parts/r4-provider-candidate/r4-provider-candidate.part2.partial').exists())
         self.assertEqual((self.downloaded/'parts/r2-complete/r2-complete.part1').read_bytes(),self.fixture.archives['r2-complete'][:len(self.fixture.archives['r2-complete'])//2])
     def test_actual_download_refuses_unsafe_mutable_or_cross_origin_urls(self):
         original=self.manifest['layers'][0]['archive']['parts'][0]['url']
         for url in ('http://example.invalid/x','https://raw.githubusercontent.com/nsahmed23/neon-commons/main/intune-workbench/x',original+'?secret=x',original.replace('/fixture/','/../'),original.replace('raw.githubusercontent.com','user@raw.githubusercontent.com')):
-            self.manifest['layers'][0]['archive']['parts'][0]['url']=url;self.save();self.fail(self.dl(),path=self.downloaded)
+            self.manifest['layers'][0]['archive']['parts'][0]['url']=url;self.save();self.denied(self.dl(),path=self.downloaded)
     def test_actual_download_existing_destination_parent_alias_and_input_alias_rejected(self):
-        alias=self.root/'alias';alias.symlink_to(self.root,target_is_directory=True);self.fail(self.dl(output=alias/'new'),path=self.root/'new')
-        self.downloaded.mkdir();sentinel=self.downloaded/'keep';sentinel.write_bytes(b'UNCHANGED');self.fail(self.dl(),absent=False);self.assertEqual(sentinel.read_bytes(),b'UNCHANGED')
+        alias=self.root/'alias';alias.symlink_to(self.root,target_is_directory=True);self.denied(self.dl(output=alias/'new'),path=self.root/'new')
+        self.downloaded.mkdir();sentinel=self.downloaded/'keep';sentinel.write_bytes(b'UNCHANGED');self.denied(self.dl(),absent=False);self.assertEqual(sentinel.read_bytes(),b'UNCHANGED')
         link=self.root/'input-link';link.symlink_to(next(iter(self.mapping.values())));self.mapping[next(iter(self.mapping))]=str(link);self.save()
-        output=self.root/'input-denied';self.fail(self.dl(output=output),absent=False);self.assertTrue((output/'DOWNLOAD-FAILURE.json').exists());self.assertFalse((output/'DOWNLOAD-RECEIPT.json').exists())
+        output=self.root/'input-denied';self.denied(self.dl(output=output),absent=False);self.assertTrue((output/'DOWNLOAD-FAILURE.json').exists());self.assertFalse((output/'DOWNLOAD-RECEIPT.json').exists())
     def test_download_final_part_substitution_detected_by_independent_readback(self):
         m=self.module(DOWNLOAD);original=m.write_verified
         def injected(fd,name,chunks,expected):
@@ -142,7 +142,7 @@ class ReleaseTransferTests(unittest.TestCase):
                 return Response(request.full_url)
         with patch.object(m.urllib.request,'build_opener',return_value=Opener()):
             result=m.download(self.fixture.manifest_path,self.fixture.manifest_sha,sha(VALIDATOR.read_bytes()),self.downloaded)
-        self.assertEqual(len(seen),16);self.assertTrue(result['final_part_readback_verified'])
+        self.assertEqual(len(seen),18);self.assertTrue(result['final_part_readback_verified'])
         self.assertFalse(result['origin_authentication_supplied']);self.assertFalse(result['proxy_credential_values_inspected'])
         self.assertTrue(result['existing_proxy_configuration_inherited']);self.assertIn('origin request headers',result['authentication_scope'])
         # This is deliberately a modeled HTTP adapter; the actual CLI/local
@@ -157,6 +157,9 @@ class ReleaseTransferTests(unittest.TestCase):
         result=self.st();self.assertEqual(result.returncode,0,result.stderr);receipt=json.loads(result.stdout)
         self.assertEqual(receipt['status'],'LOCAL_STAGED_AND_BLOB_READBACK_VERIFIED');self.assertFalse(receipt['remote_mutation_requested'])
         self.assertFalse(any(r['network']for r in receipt['commands']));self.assertEqual([x['id']for x in receipt['layers']],list(fixtures.IDS[4:]))
+        metadata=json.loads(subprocess.check_output([str(GIT),'--git-dir='+str(self.repository),'cat-file','blob',receipt['data_commit']+':intune-workbench/r4-evidence-20261007/DATA-RECEIPT.json']))
+        self.assertEqual(metadata['scope'],'Five exact new continuation layers; unchanged complete R2 and R3 layers remain required.')
+        self.assertEqual([row['id'] for row in metadata['layers']],['r4-source','r4-runtime','r4-evidence','r4-external-evidence','r4-provider-candidate'])
         for layer in receipt['layers']:
             chunks=[]
             for part in layer['parts']:
@@ -171,15 +174,31 @@ class ReleaseTransferTests(unittest.TestCase):
         result=self.st(env=env);self.assertEqual(result.returncode,0,result.stderr);self.assertFalse(marker.exists());self.assertFalse((self.root/'unexpected-objects').exists())
         self.assertFalse((self.repository/'hooks').exists())
     def test_actual_staging_pin_branch_order_and_existing_output_negatives(self):
-        for key in ('manifest-sha256','inputs-sha256','git-sha256','validator-sha256','helper-sha256'):self.fail(self.st(**{key:'f'*64}),path=self.repository)
-        self.fail(self.st(branch='main'),path=self.repository)
-        inp=json.loads(self.input_path.read_text());inp['layers'].reverse();self.input_path.write_text(json.dumps(inp));self.fail(self.st(),path=self.repository)
-        self.save();self.repository.mkdir();sentinel=self.repository/'keep';sentinel.write_bytes(b'KEEP');self.fail(self.st(),absent=False);self.assertEqual(sentinel.read_bytes(),b'KEEP')
+        for key in ('manifest-sha256','inputs-sha256','git-sha256','validator-sha256','helper-sha256'):self.denied(self.st(**{key:'f'*64}),path=self.repository)
+        self.denied(self.st(branch='main'),path=self.repository)
+        inp=json.loads(self.input_path.read_text());inp['layers'].reverse();self.input_path.write_text(json.dumps(inp));self.denied(self.st(),path=self.repository)
+        self.save();self.repository.mkdir();sentinel=self.repository/'keep';sentinel.write_bytes(b'KEEP');self.denied(self.st(),absent=False);self.assertEqual(sentinel.read_bytes(),b'KEEP')
+    def test_actual_staging_requires_each_of_five_named_new_layers_before_git_effects(self):
+        original=json.loads(self.input_path.read_text())
+        for scenario in ('omit-external','omit-candidate','extra-layer','duplicate-layer','swap-evidence'):
+            value=copy.deepcopy(original)
+            if scenario=='omit-external':value['layers']=[row for row in value['layers'] if row['id']!='r4-external-evidence']
+            elif scenario=='omit-candidate':value['layers']=[row for row in value['layers'] if row['id']!='r4-provider-candidate']
+            elif scenario=='extra-layer':value['layers'].append({'id':'unlisted-evidence','archive':value['layers'][0]['archive']})
+            elif scenario=='duplicate-layer':value['layers'][-1]=copy.deepcopy(value['layers'][0])
+            else:value['layers'][2:4]=reversed(value['layers'][2:4])
+            self.input_path.write_text(json.dumps(value))
+            with self.subTest(scenario=scenario):
+                result=self.st();self.denied(result,path=self.repository)
+                self.assertIn('All five new layers required in exact declared order',json.loads(result.stderr)['error'])
+        self.save()
+    def test_ordinary_assertion_failures_keep_unittest_failure_type(self):
+        with self.assertRaises(self.failureException):self.assertEqual('required literal','contrary literal')
     def test_actual_staging_wrong_input_or_symlink_rejected_before_new_repository(self):
-        path=self.fixture.inputs/'r4-source.zip';raw=path.read_bytes();path.write_bytes(raw+b'X');self.fail(self.st(),path=self.repository);path.write_bytes(raw)
-        link=self.root/'archive-link';link.symlink_to(path);value=json.loads(self.input_path.read_text());value['layers'][0]['archive']=str(link);self.input_path.write_text(json.dumps(value));self.fail(self.st(),path=self.repository)
+        path=self.fixture.inputs/'r4-source.zip';raw=path.read_bytes();path.write_bytes(raw+b'X');self.denied(self.st(),path=self.repository);path.write_bytes(raw)
+        link=self.root/'archive-link';link.symlink_to(path);value=json.loads(self.input_path.read_text());value['layers'][0]['archive']=str(link);self.input_path.write_text(json.dumps(value));self.denied(self.st(),path=self.repository)
     def test_actual_staging_wrong_part_boundary_retains_failed_bare_repository(self):
-        self.manifest['layers'][4]['archive']['parts'][0]['sha256']='f'*64;self.save();self.fail(self.st(),absent=False)
+        self.manifest['layers'][4]['archive']['parts'][0]['sha256']='f'*64;self.save();self.denied(self.st(),absent=False)
         self.assertTrue((self.repository/'STAGING-FAILURE.json').exists());self.assertFalse((self.repository/'STAGING-RECEIPT.json').exists())
     def test_staging_input_change_after_preflight_is_preserved_and_rejected(self):
         m=self.module(STAGE);original=m.subprocess.run;archive=self.fixture.inputs/'r4-source.zip';initial=archive.read_bytes();owned=[];popen=m.subprocess.Popen
@@ -253,9 +272,9 @@ class ReleaseTransferTests(unittest.TestCase):
         self.assertEqual(network,['ls-remote','push','ls-remote']);self.assertTrue(result['expected_absent_ref_lease'])
         self.assertTrue(result['new_branch_porcelain_verified']);self.assertEqual(result['remote_commit'],commit)
     def test_actual_publish_requires_separate_gh_and_main_pins_before_any_network(self):
-        self.fail(self.st(push=True),path=self.repository)
-        self.fail(self.st(**{'push':True,'expected-remote-main':'1'*40,'gh-executable':GIT,'gh-sha256':'f'*64}),path=self.repository)
-        self.fail(self.st(**{'expected-remote-main':'1'*40}),path=self.repository)
+        self.denied(self.st(push=True),path=self.repository)
+        self.denied(self.st(**{'push':True,'expected-remote-main':'1'*40,'gh-executable':GIT,'gh-sha256':'f'*64}),path=self.repository)
+        self.denied(self.st(**{'expected-remote-main':'1'*40}),path=self.repository)
 
 
 if __name__=='__main__':unittest.main()

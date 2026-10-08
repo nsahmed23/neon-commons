@@ -1,12 +1,12 @@
 # Exact ordered continuation transfer
 
 `download-complete-layers.py` and `stage-release-git.py` adapt the retained R3
-delivery procedure to the complete eight-layer continuation contract. The R2/R3
+delivery procedure to the complete nine-layer continuation contract. The R2/R3
 helpers and archives remain unchanged. These tools transfer bytes; they do not
 grant cloud execution, platform qualification or production approval.
 
 The required order is `r2-complete`, `r3-source`, `r3-runtime`, `r3-evidence`,
-`r4-source`, `r4-runtime`, `r4-evidence`, `r4-provider-candidate`. The stopped
+`r4-source`, `r4-runtime`, `r4-evidence`, `r4-external-evidence`, `r4-provider-candidate`. The stopped
 provider candidate remains explicitly unqualified. The complete R2 base and
 each newer source/runtime/evidence generation stay separate. Original release
 provenance, literal negative links, capsule coverage and the historical three
@@ -34,7 +34,7 @@ python -B scripts/download-complete-layers.py --manifest FINAL_OUTER.json --mani
 The local outer document must already have its independently trusted digest.
 The validator pin binds the exact neighboring `restore-complete-layers.py`
 before importing its contract; the downloader itself must also be verified
-against its independent delivery-tool receipt before invocation. All eight
+against its independent delivery-tool receipt before invocation. All nine
 layers validate before the first transfer. New private directories and exclusive
 partial files preserve prior output. Each part is hashed while received, then
 read back from its held descriptor and final no-follow name. Ordered part
@@ -52,9 +52,9 @@ python -B scripts/restore-complete-layers.py --manifest FINAL_OUTER.json --manif
 
 Downloading and stream verification do not imply extraction or physical file-set
 closure of the restored archive contents. The final complete wrapper requires
-sufficient capacity for all eight archives and their separate extracted layers.
+sufficient capacity for all nine archives and their separate extracted layers.
 Prior verified R2/R3 recovery/readback evidence remains reusable at its exact
-scope; it cannot be relabelled as a fresh simultaneous eight-layer restoration.
+scope; it cannot be relabelled as a fresh simultaneous nine-layer restoration.
 
 For offline fixture qualification only, the downloader accepts
 `--local-fixture-map MAP.json --local-fixture-sha256 MAP_SHA256`. This maps exactly
@@ -63,10 +63,10 @@ the declared URLs to bounded, no-follow local regular files. Its result says
 anonymous public availability. Unknown map entries, unsafe input paths and
 existing output remain refused.
 
-The publisher stages only the four new R4 layers; R2/R3 public parts are retained
+The publisher stages only the five new R4 layers; R2/R3 public parts are retained
 by immutable reference. Its pinned `intune-release-git-inputs/1` document has
 exactly `schema_version`, `manifest_sha256`, and `layers`, with ordered entries
-`{id, archive}` for those four absolute archive paths. The manifest declares
+`{id, archive}` for those five absolute archive paths. The manifest declares
 the actual part boundaries and hashes; the tool never silently re-splits or
 repackages them. Use the established 96,000,000-byte Git chunk profile so every
 blob stays below the public host's file-size limit. The public R2 route has24
@@ -108,7 +108,7 @@ packages and typed evidence extraction. No publication has been performed by
 the local fixture tests.
 
 Focused local replay is `python -B -m unittest plugin_tests.test_release_transfer_r4 -v`.
-It includes actual CLIs, real Git blobs, deterministic commits, the eight-layer
+It includes actual CLIs, real Git blobs, deterministic commits, the nine-layer
 restorer, corruption/order/path/pin negatives and retained unexpected files.
 Modeled HTTPS/remote-ref controls test dispatch contracts, not live public
 availability. Earlier late-file closure failure and process-pipe warning logs

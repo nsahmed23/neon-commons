@@ -77,6 +77,10 @@ class NativeSourceEditTests(unittest.TestCase):
         with patch.object(windows_repository,'_NativeAPI',return_value=self.api):view=workbench_views.views(self.store,source_fixture.OID)
         pending=view['repository']['current_working_source_readback']['pending_local_source_edit']
         self.assertEqual(pending['operation_id'],self.operation());self.assertEqual(pending['next_action']['command'],'source-edit-status')
+        self.assertEqual(pending['source_root'],str(self.root));self.assertEqual(pending['next_action']['arguments'],[str(self.root),self.operation()])
+        self.assertIs(pending['outcome_uncertain'],True);self.assertIs(pending['automatic_retry_permitted'],False)
+        self.assertEqual(view['repository']['current_working_source_readback']['status'],'unknown');self.assertEqual(pending['invalid_closure_records'],[])
+        self.assertFalse(view['native_evidence_access']['platform_qualified'])
         count=len(self.store.artifacts(kind='repository_intent'))
         with self.assertRaises(AppError):self.fixture.imp()
         self.assertEqual(len(self.store.artifacts(kind='repository_intent')),count)
@@ -274,3 +278,26 @@ class NativeSourceEditTests(unittest.TestCase):
         self.assertEqual(caught.exception.code,'windows_directory_platform_unsupported');self.assertEqual(self.api.renames,0)
 
 if __name__=='__main__':unittest.main()
+
+
+class NativePendingEditPresentationTests(unittest.TestCase):
+    def pending(self):
+        return {'operation_id':'a'*64,'source_root':ROOT,'outcome_uncertain':True,
+            'next_action':{'command':'source-edit-status','arguments':[ROOT,'a'*64]},
+            'invalid_closure_records':[],'automatic_retry_permitted':False}
+    def test_closed_pending_shape_preserves_unknown_and_no_automatic_retry(self):
+        from intune_iac.windows_views import _NativeViewReader
+        value=self.pending();error=AppError('windows_repository_source_edit_unresolved','literal');error.source_edit_pending=value
+        with patch.object(windows_repository,'readback_windows_repository',side_effect=error):
+            result=_NativeViewReader().decorate({'repository':{'status':'recorded'}})
+        retained=result['repository']['current_working_source_readback'];self.assertEqual(retained['pending_local_source_edit'],value)
+        value['next_action']['arguments'][0]='changed later';self.assertEqual(retained['pending_local_source_edit']['next_action']['arguments'][0],ROOT)
+        self.assertEqual(retained['status'],'unknown');self.assertFalse(retained['git_revision_verified'])
+        self.assertFalse(result['native_evidence_access']['platform_qualified'])
+    def test_wrong_error_or_changed_pending_command_never_invents_recovery_route(self):
+        from intune_iac.windows_views import _NativeViewReader
+        for code,change in [('different_error',lambda v:None),('windows_repository_source_edit_unresolved',lambda v:v.update(automatic_retry_permitted=True)),('windows_repository_source_edit_unresolved',lambda v:v['next_action'].update(command='source-edit-apply')),('windows_repository_source_edit_unresolved',lambda v:v.update(operation_id='wrong'))]:
+            value=self.pending();change(value);error=AppError(code,'literal');error.source_edit_pending=value
+            with patch.object(windows_repository,'readback_windows_repository',side_effect=error):
+                result=_NativeViewReader().decorate({'repository':{'status':'recorded'}})
+            self.assertNotIn('pending_local_source_edit',result['repository']['current_working_source_readback'])

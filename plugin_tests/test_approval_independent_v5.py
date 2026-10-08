@@ -132,6 +132,30 @@ class IndependentApprovalTests(unittest.TestCase):
                 api.ApprovalAuthority(self.root / label, pin, [self.approver])
 
     def test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path(self):
+        # Loading a deliberately rejected native image is irreversible in this
+        # interpreter. Keep the adversarial assertion in a fresh process so its
+        # deleted, unadmitted mapping cannot contaminate later service tests.
+        probe = '''
+import json,os,sys
+sys.path.insert(0,sys.argv[1])
+from plugin_tests.test_approval_independent_v5 import IndependentApprovalTests
+case=IndependentApprovalTests('test_validator_dlopen_does_not_reuse_a_recycled_descriptor_path')
+case.setUp()
+try:
+    case._assert_recycled_descriptor_probe()
+    print(json.dumps({'native_probe':'wrong-library-rejected-and-inventory-denied','pid':os.getpid()}))
+finally:
+    case.doCleanups()
+'''
+        result = subprocess.run([sys.executable, '-B', '-c', probe, str(Path(__file__).resolve().parents[1])],
+            capture_output=True, text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        import json
+        observed = json.loads(result.stdout)
+        self.assertEqual(observed['native_probe'], 'wrong-library-rejected-and-inventory-denied')
+        self.assertNotEqual(observed['pid'], os.getpid())
+
+    def _assert_recycled_descriptor_probe(self):
         # Prime the dlopen cache at the next available descriptor number, then
         # select another genuinely hashed system library without crypto symbols.
         # Merely reopening /proc/self/fd/N must not return the old native image.
@@ -139,8 +163,14 @@ class IndependentApprovalTests(unittest.TestCase):
         libc = Path('/usr/lib/x86_64-linux-gnu/libc.so.6')
         other = api.VerifierPin(self.pin.executable, self.pin.sha256,
             libc, hashlib.sha256(libc.read_bytes()).hexdigest())
-        with self.assertRaises(AppError):
+        with self.assertRaises(AppError) as caught:
             api.ApprovalAuthority(self.root / 'wrong-native-library', other, [self.approver])
+        self.assertEqual(caught.exception.code, 'approval_key_validator_unavailable')
+        # The runtime gate must continue to reject the actual deleted mapping;
+        # isolation of this negative test is not permission to ignore it.
+        from intune_iac import worker_runtime_identity
+        with self.assertRaises(AppError) as caught: worker_runtime_identity.inventory()
+        self.assertEqual(caught.exception.code, 'service_runtime_deleted_mapping')
 
     def test_full_request_fields_are_signed_not_only_selected_bindings(self):
         receipt = self.sign()

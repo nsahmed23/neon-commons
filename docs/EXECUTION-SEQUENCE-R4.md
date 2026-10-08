@@ -33,6 +33,11 @@ within their scopes. First repair the demonstrated isolated-test, five-layer
 staging and source-edit fixture issues; do not relax any product gate. Rebuild
 a new committed source and qualify it. Preserve all C22 artifacts and failures.
 
+Checkpoint24 integrates those three repairs with focused before/after and
+independent controls. Build a NEW exact source/runtime pair, run its required
+strict gate, then complete runtime and closed-profile native journeys. The
+prior failed C22 packages remain immutable; no security gate or test is waived.
+
 | Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
 | --- | --- | --- |
 | 1 | `workbench views`, `workbench workspace` and the same text engine expose repository, observed, proposed and coverage evidence. Native object/current-source readers are integrated; native intent import/proposal are integrated; bounded source editing/recovery is integrated; finish authenticated portable worker evidence without opening unsupported POSIX journals. | Retain actual Linux CLI/PTY evidence and recorded-Win32 controls. Real Windows/Git Bash/mintty remains a host-owner gate. |

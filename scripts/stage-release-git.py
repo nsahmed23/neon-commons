@@ -19,7 +19,7 @@ import sys
 import types
 
 ORIGIN='https://github.com/nsahmed23/neon-commons.git'
-NEW_LAYERS=('r4-source','r4-runtime','r4-evidence','r4-provider-candidate')
+NEW_LAYERS=('r4-source','r4-runtime','r4-evidence','r4-external-evidence','r4-provider-candidate')
 PREFIX='intune-workbench/r4-evidence-20261007/'
 CHUNK=1024*1024
 
@@ -77,7 +77,7 @@ def stage(manifest_path,manifest_sha256,inputs_path,inputs_sha256,repository,bra
     raw_inputs=v.bounded(inputs_path);require(v.pin(inputs_sha256) and sha(raw_inputs)==inputs_sha256,'Archive input map differs from independent pin')
     inputs=v.loads(raw_inputs);require(isinstance(inputs,dict) and set(inputs)=={'schema_version','manifest_sha256','layers'}
         and inputs['schema_version']=='intune-release-git-inputs/1' and inputs['manifest_sha256']==manifest_sha256,'Wrong exact input-map contract')
-    require(isinstance(inputs['layers'],list) and all(isinstance(x,dict)for x in inputs['layers']) and tuple(x.get('id')for x in inputs['layers'])==NEW_LAYERS,'All four new layers required in exact declared order')
+    require(isinstance(inputs['layers'],list) and all(isinstance(x,dict)for x in inputs['layers']) and tuple(x.get('id')for x in inputs['layers'])==NEW_LAYERS,'All five new layers required in exact declared order')
     require(re.fullmatch(r'intune-r4-[a-z0-9-]{1,64}',branch or ''),'A new bounded R4 branch name is required')
     layers=manifest['layers'][4:];source_paths=[]
     for layer,local in zip(layers,inputs['layers']):
@@ -168,7 +168,7 @@ def stage(manifest_path,manifest_sha256,inputs_path,inputs_sha256,repository,bra
                 require(info.st_size==layer['archive']['bytes'] and hashlib.file_digest(stream,'sha256').hexdigest()==layer['archive']['sha256'],'Archive input changed after streaming; preserve staging')
         metadata={'schema_version':'intune-r4-git-data/1','source_commit':report['source_commit'],
             'outer_manifest_input_sha256':manifest_sha256,'layers':records,
-            'scope':'Four exact new continuation layers; unchanged complete R2 and R3 layers remain required.',
+            'scope':'Five exact new continuation layers; unchanged complete R2 and R3 layers remain required.',
             'complete_repository':False,'historical_three_unexpected_files_closed':False}
         for path,raw in (('.gitattributes',b'* -text -filter\n'),(PREFIX+'DATA-RECEIPT.json',(json.dumps(metadata,sort_keys=True,indent=2)+'\n').encode())):
             blob=run('hash-object','-w','--stdin',data=raw);run('update-index','--add','--cacheinfo','100644',blob,path)
