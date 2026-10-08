@@ -212,3 +212,73 @@ class PhaseCompletionFactsTests(unittest.TestCase):
                     self.completion.facts['original']=facts
                     with self.assertRaises(AppError) as caught:bridge._completion(self.job,self.completion)
                     self.assertEqual(caught.exception.code,'adoption_recovery_successor_required')
+
+
+class PhaseReadOnlyOpenTests(unittest.TestCase):
+    """Actual common-policy constructors/SQL, explicitly modeled job records."""
+    def setUp(self):
+        import uuid
+        from intune_iac import worker_adoption as adoption,worker_service as service
+        from intune_iac.io import write_json
+        old_contracts.RecoveryPlanContracts.setUp(self)
+        self.original_root=self.root/'jobs/original';self.original_root.mkdir(mode=0o700)
+        original={'schema_version':adoption.VERSION,'operation_id':str(uuid.uuid4()),'verification_operation_id':str(uuid.uuid4()),
+            'tenant_id':'11111111-1111-4111-8111-111111111111','object_ids':['22222222-2222-4222-8222-222222222222'],
+            'backend_scope_sha256':'a'*64,'profile':'native_docker_laboratory_protocol'}
+        write_json(self.original_root/'manifest.json',original);write_json(self.original_root/'policy-binding.json',{'policy_sha256':self.policy.sha256})
+        adoption._tables(self.policy);bridge._tables(self.policy)
+        with self.policy.connection() as db:
+            db.execute('INSERT INTO jobs(id,root,manifest_sha256,status,dispatches,outcome) VALUES (?,?,?,?,?,?)',
+                (original['operation_id'],str(self.original_root),digest(original),'outcome_unknown',1,'{"modeled":true}'))
+            db.execute('INSERT INTO adoption_operations(operation_id,manifest_sha256,verification_id) VALUES (?,?,?)',
+                (original['operation_id'],digest(original),original['verification_operation_id']))
+        self.original=adoption.AdoptionJob(self.original_root,self.policy_path)
+        self.plan_root=self.root/'jobs/stopped-plan';self.plan_root.mkdir(mode=0o700)
+        self.plan_manifest={'schema_version':bridge.VERSION,'operation_id':str(uuid.uuid4())}
+        self.reference={'root':str(self.original_root),'manifest_sha256':self.original.sha256}
+        write_json(self.plan_root/'manifest.json',self.plan_manifest);write_json(self.plan_root/'original.json',self.reference)
+        write_json(self.plan_root/'policy-binding.json',{'policy_sha256':self.policy.sha256})
+        with self.policy.connection() as db:
+            db.execute('INSERT INTO adoption_recovery_plans(operation_id,original_operation_id,manifest_sha256,root,status,dispatches,outcome) VALUES (?,?,?,?,?,?,?)',
+                (self.plan_manifest['operation_id'],self.original.identifier,digest(self.plan_manifest),str(self.plan_root),'outcome_unknown',1,'{"modeled":true}'))
+    def test_actual_readonly_open_with_other_thread_read_or_write_reservation(self):
+        import threading
+        for begin in ('BEGIN','BEGIN IMMEDIATE'):
+            with self.subTest(begin=begin):
+                locked=threading.Event();release=threading.Event();errors=[]
+                def hold():
+                    try:
+                        with self.policy.connection() as db:
+                            db.execute(begin);db.execute('SELECT id FROM jobs').fetchall();locked.set()
+                            if not release.wait(5):raise AssertionError('held transaction timed out')
+                            db.execute('ROLLBACK')
+                    except BaseException as error:errors.append(error);locked.set()
+                thread=threading.Thread(target=hold);before=self.policy.database.read_bytes();thread.start()
+                try:
+                    self.assertTrue(locked.wait(3));self.assertFalse(errors)
+                    opened=bridge.RecoveryPlanJob._from_original(self.plan_root,self.original)
+                    self.assertIs(opened.policy,self.original.policy);self.assertIs(opened.original,self.original)
+                    self.assertEqual(opened.identifier,self.plan_manifest['operation_id'])
+                finally:release.set();thread.join(5)
+                self.assertFalse(thread.is_alive());self.assertFalse(errors);self.assertEqual(self.policy.database.read_bytes(),before)
+    def test_readonly_open_keeps_exact_reference_manifest_and_registration_gates(self):
+        from intune_iac.io import write_json
+        for field,value in (('root',str(self.root/'foreign')),('manifest_sha256','f'*64)):
+            write_json(self.plan_root/'original.json',{**self.reference,field:value})
+            with self.assertRaises(AppError):bridge.RecoveryPlanJob._from_original(self.plan_root,self.original)
+        write_json(self.plan_root/'original.json',self.reference)
+        write_json(self.plan_root/'manifest.json',{**self.plan_manifest,'changed':True})
+        with self.assertRaises(AppError):bridge.RecoveryPlanJob._from_original(self.plan_root,self.original)
+        write_json(self.plan_root/'manifest.json',self.plan_manifest)
+        with self.policy.connection() as db:db.execute('DELETE FROM adoption_recovery_plans')
+        with self.assertRaises(AppError):bridge.RecoveryPlanJob._from_original(self.plan_root,self.original)
+    def test_readonly_open_rejects_json_authority_changed_policy_and_outside_root(self):
+        from intune_iac.io import write_json
+        with self.assertRaises(AppError):bridge.RecoveryPlanJob._from_original(self.plan_root,{'approved':True})
+        with self.assertRaises(AppError):bridge.RecoveryPlanJob._from_original(self.root/'trust',self.original)
+        raw=self.policy_path.read_bytes();self.policy_path.write_bytes(raw+b' ')
+        # Semantically identical serialization is not a policy change; change
+        # an actual admitted digest and require current authority rechecking.
+        import json
+        value=json.loads(raw);value['admitted_manifest_sha256']=['e'*64];write_json(self.policy_path,value)
+        with self.assertRaises(AppError):bridge.RecoveryPlanJob._from_original(self.plan_root,self.original)

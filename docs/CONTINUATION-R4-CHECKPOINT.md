@@ -884,3 +884,32 @@ new Plan1 deliberately interrupted after acquisition; its separate exact release
 new Plan2 no-change output/readback/reconciliation. Old imports and Plans are
 never requeued. The prepared PTY checker inspects the quiet completed history
 without issuing mutation commands. Final package and external gates remain.
+
+Increment19 preserves C18 source-bound native maintenance: exact retained saved
+proposal, new approval, source/lock negative controls, actual apply, independent
+readback, state14 to15, native no-change Plan and persistent views. Producer25,
+independent raw23 and signed-export16/raw9 are separate overlapping scopes.
+No import or proposal was replayed; unsupported raw ID37 acceptance remains
+explicit, and none of this establishes real tenant or endpoint evidence.
+
+The retained initial Plan lease and a newly interrupted Plan1 lease each received
+a distinct exact recovery approval. The new Plan2 then FAILED during concurrent
+watchdog/broker checks with service_store_unavailable. Its approval is consumed,
+outcome unknown, original scopes retained and host removed. Exact journals show
+one provider-instance GET, zero backend/lease attempts and unchanged state13.
+There is no lease to release and the failed Plan will never be replayed.
+
+Root cause: prior-Plan selection reconstructed ServicePolicy and opened a schema
+write transaction from repeated read checks. A genuine held-reader/writer
+counterexample fails before the private read-only opener repair and passes after;
+all exact root/reference/manifest/registered-row checks remain. The repair is
+integrated: 34 scoped methods (31 overlapping and three added) pass against the
+inserted bytes; five independent assertions preserve the before/after result.
+Timeouts and approval gates were not weakened. Distinct sealed no-acquisition observation,
+versioned successor approval and corresponding portable history remain staged.
+
+COMMIT-19.json records the current source and working tree. Resume with the
+checkpoint18 Plan2 failure receipt and EXECUTION-SEQUENCE-R4.md; finish the bounded
+no-acquisition assessment, then approve a NEW successor under frozen repaired
+source. No current native convergence or final-package pass is claimed. Baseline
+evidence and the earlier valid C18 journeys remain preserved at their exact bytes.

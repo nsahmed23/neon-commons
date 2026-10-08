@@ -52,7 +52,7 @@ health, platform qualification and organization approval remain separate.
 
 ## Actual CLI and exact bytes
 
-The staged/new entrypoint is `scripts/intune-worker-evidence.py`:
+The integrated entrypoint is `scripts/intune-worker-evidence.py`:
 
 ```text
 python -B scripts/intune-worker-evidence.py request --manifest MANIFEST --trust TRUST --output NEW_REQUEST

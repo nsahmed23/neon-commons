@@ -54,7 +54,7 @@ def _phase_from_binding(original,binding):
     if selected['kind']=='initial_verification':
         phase=phases.stopped_initial_verification(original)
     elif selected['kind']=='recovery_plan':
-        previous=RecoveryPlanJob(selected['job_root'],original.policy.path)
+        previous=RecoveryPlanJob._from_original(selected['job_root'],original)
         if previous.original.identifier!=original.identifier or previous.original.sha256!=original.sha256:_fail('adoption_recovery_phase_foreign')
         phase=phases.stopped_recovery_plan(previous)
     else:_fail('adoption_recovery_phase_kind')
@@ -425,12 +425,26 @@ class _Permit:
 
 class RecoveryPlanJob:
     def __init__(self,root,policy_path):
-        self.policy=service.ServicePolicy(policy_path);self.root=_private(root,directory=True)
+        self.policy=service.ServicePolicy(policy_path)
+        self._load(root)
+    @classmethod
+    def _from_original(cls,root,original):
+        # Repeated broker/watchdog reads must not initialize another schema
+        # writer. Reuse only the exact validated current common authority and
+        # original object; every historical root/manifest/row check still runs.
+        if cls is not RecoveryPlanJob or type(original) is not adoption.AdoptionJob or type(original.policy) is not service.ServicePolicy:
+            _fail('adoption_recovery_original_required')
+        original._check(expiry=False)
+        result=object.__new__(cls);result.policy=original.policy
+        result._load(root,original=original)
+        return result
+    def _load(self,root,*,original=None):
+        self.root=_private(root,directory=True)
         if self.root.parent!=self.policy.jobs_root:_fail('adoption_recovery_plan_outside_policy')
         self.manifest=service._bounded_private_json(self.root/'manifest.json')
         if self.manifest.get('schema_version') not in (VERSION,PHASE_VERSION):_fail('adoption_recovery_plan_domain')
         self.identifier=self.manifest['operation_id'];self.sha256=digest(self.manifest);self._completed_capture=None
-        reference=service._bounded_private_json(self.root/'original.json');self.original=adoption.AdoptionJob(reference['root'],policy_path)
+        reference=service._bounded_private_json(self.root/'original.json');self.original=adoption.AdoptionJob(reference['root'],self.policy.path) if original is None else original
         if reference!={'root':str(self.original.root),'manifest_sha256':self.original.sha256}:_fail('adoption_recovery_original_changed')
         self._check(expiry=False)
     def _check(self,*,expiry=True):

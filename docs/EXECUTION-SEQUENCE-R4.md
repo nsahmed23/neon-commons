@@ -14,12 +14,13 @@ Git-object linkage, checkpoint8's98 tests and historical1,242/1,141 results.
 Checkpoint11 adds native current-source reading and fixed-byte relocatable
 qualification tools; its exact commit is recorded in `integration/COMMIT-11.json`.
 
-Current next action is the coordinated checkpoint18 native freeze recorded in
-`integration/COMMIT-18.json`: source-bound proposal continuation and the retained
-initial-Plan/new-successor interruption recovery chain. Portable Plan-v2 history
-is integrated; preserve its missing-terminal and stale-current-status failures.
-Then qualify signed export and actual PTY history on those exact native results,
-followed by the final package gates below.
+Checkpoint18 source-bound maintenance and its signed persistent history passed
+scoped native laboratory checks. The new recovery Plan2 FAILED in a watchdog
+before backend acquisition; its approval remains consumed and outcome unknown.
+Current next action at checkpoint19 is the read-only constructor repair plus a
+distinct sealed no-acquisition assessment and newly approved successor. Never
+invent a lease release or replay that Plan. Preserve the complete chain, then
+qualify signed export and actual PTY history, followed by final package gates.
 
 | Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
 | --- | --- | --- |
