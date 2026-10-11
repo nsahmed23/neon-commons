@@ -1,0 +1,41 @@
+{
+  "status": "FAIL",
+  "exit_code": 1,
+  "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_archive": {
+    "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+    "bytes": 17956520,
+    "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+    "extracted": "/tmp/intune-c25-restored-packages-20261011/extract-source/intune-iac-source",
+    "rebuild_path": "/tmp/intune-c25-restored-packages-20261011/build-b/Intune_IaC_Plugin_0.9.0_Source.zip",
+    "byte_identical_rebuild": true
+  },
+  "source_file_set_changes": {},
+  "source_unchanged": true,
+  "source_archive_exact_before": true,
+  "source_archive_unchanged": true,
+  "suite": {
+    "schema_version": "1.0.0",
+    "verified_at": "2026-10-11T20:54:08.782763+00:00",
+    "tests": 2307,
+    "passed": 2298,
+    "planned": 2307,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 9,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "core_regressions_included": true,
+    "success": false,
+    "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+    "not_established": [
+      "Live Graph authenticity or service semantics",
+      "Provider-backed import/no-change plan",
+      "Full native Atmos runtime configuration parity",
+      "Native Windows/PowerShell behavior",
+      "Native host installation",
+      "CLM learned-model quality, calibration or latency"
+    ]
+  },
+  "scope": "Required exact extracted-source local gate; counts overlap component/native suites and are not added. Native Windows, live service/backend/CI/device and organizational approval remain separate."
+}

@@ -1,3 +1,8 @@
+> Historical-content notice (increment27): retain the original profile below
+> unchanged. The **Current October11 reconciliation** at its end states current
+> code/artifact scope and supersedes older implementation-pending prose only
+> where identified. No platform qualification or approval is inferred.
+
 # R4 bounded pilot profile — proposed, not approved
 
 This is the initial support declaration for the strict continuation contract.
@@ -100,3 +105,31 @@ preparation can be reviewed without starting a service. See G06 for the exact
 commands, credential-delivery preparation, stop procedure and required receipts.
 
 Native adoption now has a separately signed durable route through `adoption prepare/review/status/attach/cancel/recover` and trusted `AdoptionJob.run`. Checkpoint12 qualifies its actual pinned native import and first no-change plan, followed by same-authority exact-plan correction/readback/convergence. `NATIVE-ADOPTION-EVIDENCE-INDEX-02.json` retains precise source, fixture and assertion scopes. These are nonforwarding laboratory protocols; actual tenant qualification remains required. Original interrupted-import recovery and source-to-execution binding have scoped native laboratory results at checkpoints16/18. A later Plan2 watchdog failure remains preserved: no backend dispatch occurred, and its distinct no-acquisition assessment plus fresh successor are still required. The old network-denied provider preparation and modeled Workbench adoption keep their distinct scopes.
+
+
+---
+
+## Current October11 reconciliation — increment27
+
+| Dimension | Current implementation/qualification scope | Remaining limit and next evidence |
+| --- | --- | --- |
+| Adopt/source/recover/history | Protected import/adoption, original-import recovery, source-v2 maintenance binding, fresh sealed no-acquisition observation, Plan /3 successor and mixed signed history/read-only constructors are already integrated. Current code matches C25. Historical scopes at checkpoints12/16/18/20–22 are retained. | Older “still required” implementation wording above is historical. C21 Plan3's native state13/readback/history/PTY attestation keeps its original revision/raw availability; it is not a new C25 run. Failed consumed Plan2 remains unknown; no replay or invented lease release. |
+| Exact candidate | C25 `e3bdefe0b1ac0c58e46f9af3360970f8e47ae393`, source SHA `b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e`, runtime SHA `7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d`. Reconstruction/extraction/selected Git linkage/rebuild and actual source gate02 2,307/2,307 with zero exceptions pass precise scopes. | Gate01 FAIL with nine required skips and targeted-nine fixture repair PASS remain separate. No additive test count. Runtime admission passes its bounded local modeled-service scope; exact native/fault/history qualification remains PENDING; source suite is not a full native/provider or live-host qualification. |
+| Local scale/performance | Independently admitted exact C25 Linux source 1,037 CLI/22 checks/37 samples; runtime 48 CLI/samples/10 checks/nine real PTY inputs. Unchanged wall/CPU/RSS thresholds pass. Complete 100 unpaged objects and 1,000 objects in explicit 50-object pages; full unpaged 1,000 overview rejects the byte bound. | Only D12 performance/E01 local scale/G11 performance portions. Counts overlap and fixtures are synthetic/caller asserted; SQL history/denied rows remain explicit. Three samples/uncontrolled page cache are not fleet, Windows, service or comparative acceleration evidence. Both failed reviewer attempts are preserved. |
+| New qualifier | Specifically reviewed UTF-8 helper text is exactly 28,860 bytes/SHA `aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100`. Ten AST/30 JSON controls and exact scope-label rebinding support closed local preparation. | Qualification-only outside runtime, not a standalone complete profile or recovered old helper. Closed profile admission/native/fault/history execution remain pending. Other 27 helper sources/raw inputs/artifacts/binaries/signers are not granted public clearance. |
+| Source publication | C26 `b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad` equals published continuation ref; main unchanged. Anonymous HTTP200 byte/hash readback of 13 specifically reviewed source documentation/inventory files passes. | C27 awaits its own commit/readback. Selected source publication does not deliver the private corpus or qualify protected CI/deployment. Three exact repaired wrapper/binding source texts are specifically admitted as qualification-only documentation; other helpers/private inputs remain omitted. |
+| Outcomes | Laboratory completion incomplete; admitted modeled-service runtime scope; native journeys PENDING; platform BLOCKED; production approval absent. Native Windows is still inactive/ordinary Workbench UNSUPPORTED. | G05 needs both final exact native qualification and real G01–G04/protected CI/device scope; execution platform choice remains unresolved. Scheduler failures, provider G13, key custody/AppSec and accountable decisions remain. |
+
+The resumed audit recorded 265 absent historical scratch roots and 39 unavailable
+pinned receipts; 27/28 original helper members are recoverable. The new exact
+1.13.1 test-fixture alias is not restored original 1.10.0/broker evidence. A new
+qualifier/test run cannot recover missing raw bytes or close actor/helper/
+unexpected-file findings. F03/F09 remain BLOCKED; historical C24 2,304, R2 1,141
+and R3 1,242 keep their exact scopes. Earlier original strict03 stays unobserved.
+
+See [current checkpoint](CONTINUATION-R4-CHECKPOINT.md), [ledger](CONTINUATION-R4-LEDGER.json),
+[source gate02](continuation-evidence/20261011/source-gate-attempt-02.json),
+[performance/independent admission](continuation-evidence/20261011/performance-independent-review.json),
+[public helper text/review](continuation-evidence/20261011/recovery-helper-public-text-review.json)
+and [explicit omissions](continuation-evidence/20261011/publication-scope-27.md).
+No private raw tenant captures/state/plans/credentials are proposed for publication.

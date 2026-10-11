@@ -1,0 +1,58 @@
+{
+  "candidates": [
+    {
+      "bytes": 9515,
+      "sha256": "7b6b5b5965cd8fe4843a718c92de015f34f519164f2d809e0f57e834a6257d86",
+      "snapshot": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-source-review-01/prepare-c25-native-resumed-20261011.py",
+      "source": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepare-c25-native-resumed-20261011.py"
+    },
+    {
+      "bytes": 6126,
+      "sha256": "2459bbe031727a3d1dcf5ec1062bce25a638bec270f5abd34c626acd948ceaa0",
+      "snapshot": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-source-review-01/qualify-c25-runtime-resumed-20261011.py",
+      "source": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/qualify-c25-runtime-resumed-20261011.py"
+    }
+  ],
+  "disposition": "Repair and narrowly review exact new wrapper bytes before use; preserve these pre-repair candidates. These are qualification evidence identity issues, not changed engine behavior or security approval.",
+  "evidence_class": "Source/AST inspection only; no wrapper, archive, suite, profile creator, tool or native execution.",
+  "findings": [
+    {
+      "id": "WR01",
+      "observed": "Initial before trees are calculated from the current extracted directories; archive size/hash checks and after==before cannot prove initial member/type/byte equality to pinned archives.",
+      "owner": "Continuation coordinator",
+      "required_repair": "Before any qualification subprocess, independently bind source and runtime typed namespace and every file, including generated SHA256SUMS, to exact trusted ZIP bytes. Keep archives unchanged and qualify only those exact extractions.",
+      "scope": "Runtime wrapper exact initial package binding",
+      "status": "FAIL"
+    },
+    {
+      "id": "WR02",
+      "observed": "Loader/exporter/helper/selection are hard-pinned; copied create_profile.py is executable preparation code without its own pin. PACKAGE-RECEIPT and SOURCE-LINKAGE records are read without exact trusted receipt pins; gate PASS is checked without exact commit/archive identity and boolean typing.",
+      "owner": "Continuation coordinator",
+      "required_repair": "Pin create_profile.py bf6470ef137ba7a8c4b2e124b9d5ea81c2c78e8c289df2465d17e344f813c458 and context8c59404e959916715ad72e38f436f4bf4f205bf90f5c93f640696cd7a973dc7b; bind known package d366/source-linkage01f24 receipts. Require actual gate02 commit C25, exact source archive/path and source_archive_exact_before/source_unchanged/source_archive_unchanged is True, empty changes and successful actual suite/exit.",
+      "scope": "Assembler/profile executable and trusted input identity",
+      "status": "FAIL"
+    },
+    {
+      "id": "WR03",
+      "observed": "Runtime RESULT.json PASS is written before finally capsule verification; an archive failure afterward can leave a PASS receipt. Secondary archival failures can become the raised exception while FAILURE.json retains the earlier failure.",
+      "owner": "Continuation coordinator",
+      "required_repair": "Consume PASS only alongside verified CAPSULE-RECEIPT and successful wrapper exit, preferably emit a final overall outcome after archive verification. Preserve primary failure and annotate secondary recording/archival errors.",
+      "scope": "Final runtime evidence and primary failure limits",
+      "status": "IMPLEMENTED"
+    }
+  ],
+  "native_execution": false,
+  "pending_gate_note": "Gate02 RECEIPT.json is currently absent while the coordinator says its run is active; absence is a pending prerequisite, not proof the required suite failed.",
+  "platform_qualified": false,
+  "positive_scope": [
+    "Both wrappers stop before their work if required gate receipt is missing/non-PASS; no gate was executed here.",
+    "Assembler hard-pins known loader/exporter/replacement/available selection, exactly27 retained helpers plus1new replacement, transforms to expected pins and checks selected direct helper imports.",
+    "create_profile.py reviewed source requires fixed qualified hashes for Atmos/Tofu/provider/relay/docker/validator and closed9 tool roles; runtime activation remains separate.",
+    "Runtime wrapper invokes real existing workflow/terminal/connected CLI graders with actual documented flags and retains stdout/stderr/capsule without global laboratory or platform claim."
+  ],
+  "production_approved": false,
+  "profile_activated": false,
+  "schema": "independent-qualification-wrapper-static-review/1",
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "FAIL"
+}

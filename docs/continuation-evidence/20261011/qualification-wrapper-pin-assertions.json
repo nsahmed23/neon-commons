@@ -1,0 +1,70 @@
+{
+  "status": "PASS_SCOPED",
+  "controls": [
+    {
+      "id": "module-exact",
+      "scope": "Exact wrapper assertion AST only; no import, profile creation, qualification or native execution",
+      "expected": "ACCEPT",
+      "observed": "ACCEPT",
+      "origin": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25_package_binding.py",
+      "origin_sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053",
+      "fixture": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-pin-assertions-03-01/module-exact/c25_package_binding.py",
+      "fixture_sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053"
+    },
+    {
+      "id": "module-substitution",
+      "scope": "Exact wrapper assertion AST only; no import, profile creation, qualification or native execution",
+      "expected": "REJECT",
+      "observed": "REJECT",
+      "origin": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25_package_binding.py",
+      "origin_sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053",
+      "fixture": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-pin-assertions-03-01/module-changed/c25_package_binding.py",
+      "fixture_sha256": "b13184cb4da9eeb41a361dfaf8dd56192e20ff24ce3d3a36282961c1599b984d"
+    },
+    {
+      "id": "creator-exact",
+      "scope": "Exact wrapper assertion AST only; no import, profile creation, qualification or native execution",
+      "expected": "ACCEPT",
+      "observed": "ACCEPT",
+      "origin": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/create_profile.py",
+      "origin_sha256": "bf6470ef137ba7a8c4b2e124b9d5ea81c2c78e8c289df2465d17e344f813c458",
+      "fixture": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-pin-assertions-03-01/creator-exact/create_profile.py",
+      "fixture_sha256": "bf6470ef137ba7a8c4b2e124b9d5ea81c2c78e8c289df2465d17e344f813c458"
+    },
+    {
+      "id": "creator-substitution",
+      "scope": "Exact wrapper assertion AST only; no import, profile creation, qualification or native execution",
+      "expected": "REJECT",
+      "observed": "REJECT",
+      "origin": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/create_profile.py",
+      "origin_sha256": "bf6470ef137ba7a8c4b2e124b9d5ea81c2c78e8c289df2465d17e344f813c458",
+      "fixture": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-pin-assertions-03-01/creator-changed/create_profile.py",
+      "fixture_sha256": "1d807b43792c24991a95f4d22db5dfd312b7f564fe9dd80a384f7de93e3c33e4"
+    },
+    {
+      "id": "context-exact",
+      "scope": "Exact wrapper assertion AST only; no import, profile creation, qualification or native execution",
+      "expected": "ACCEPT",
+      "observed": "ACCEPT",
+      "origin": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/qualification_context.py",
+      "origin_sha256": "8c59404e959916715ad72e38f436f4bf4f205bf90f5c93f640696cd7a973dc7b",
+      "fixture": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-pin-assertions-03-01/context-exact/qualification_context.py",
+      "fixture_sha256": "8c59404e959916715ad72e38f436f4bf4f205bf90f5c93f640696cd7a973dc7b"
+    },
+    {
+      "id": "context-substitution",
+      "scope": "Exact wrapper assertion AST only; no import, profile creation, qualification or native execution",
+      "expected": "REJECT",
+      "observed": "REJECT",
+      "origin": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/qualification_context.py",
+      "origin_sha256": "8c59404e959916715ad72e38f436f4bf4f205bf90f5c93f640696cd7a973dc7b",
+      "fixture": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-pin-assertions-03-01/context-changed/qualification_context.py",
+      "fixture_sha256": "bb9f4eb66753c86ac9d73d72501ac865e1c36808f4b335c7d07534e35c85538f"
+    }
+  ],
+  "count": 6,
+  "optimization": 0,
+  "requirement": "Source asserts qualified under actual unoptimized Python invocation; operator must not enable optimization",
+  "scope": "Tiny detached existing module/creator/context exact assertion acceptance and substitution rejection; not platform counts",
+  "dispatches": 0
+}

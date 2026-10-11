@@ -1,0 +1,91 @@
+"""Root-reviewed local qualifier binding; no dispatch, extraction or mutation."""
+from pathlib import Path
+import hashlib,json,os,re,stat,zipfile
+
+COMMIT='e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'
+TREE='0bdbdeb3556acce23c8390abb20e835184880b27'
+PACKAGE_RECEIPT_SHA256='d366a41ea6751b0dde12f5da80ad628f1c5bf67c7490f553f3021f1b334a0886'
+SOURCE_LINKAGE_SHA256='01f24b0c41388a6a7fd20ae525716ef40051b2cb5f40efb01586967357f8614a'
+ARTIFACTS={
+ 'source':{'bytes':17956520,'sha256':'b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e','root':'intune-iac-source'},
+ 'runtime':{'bytes':1520542,'sha256':'7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d','root':'intune-iac'},
+}
+
+def require(condition,message):
+ if not condition:raise ValueError(message)
+
+def literal_path(path,kind):
+ path=Path(path)
+ require(path.is_absolute(),'Input must have an absolute literal path.')
+ for ancestor in reversed(path.parents):
+  require(stat.S_ISDIR(ancestor.lstat().st_mode),'Input ancestor must be a literal directory.')
+ require(stat.S_IFMT(path.lstat().st_mode)==kind,'Input path type differs from its declared type.')
+ return path
+
+def sha(path):
+ with literal_path(path,stat.S_IFREG).open('rb') as stream:return hashlib.file_digest(stream,'sha256').hexdigest()
+
+def tree(root):
+ root=literal_path(root,stat.S_IFDIR);result={}
+ def denied(error):raise error
+ for parent,dirs,files in os.walk(root,followlinks=False,onerror=denied):
+  for name in sorted(dirs+files):
+   path=Path(parent)/name;mode=path.lstat().st_mode;key=path.relative_to(root).as_posix()
+   if stat.S_ISDIR(mode):value={'kind':'directory'}
+   elif stat.S_ISREG(mode):value={'kind':'file','bytes':path.stat().st_size,'sha256':sha(path)}
+   elif stat.S_ISLNK(mode):value={'kind':'symlink','target':os.readlink(path)}
+   else:raise ValueError('Unexpected special path in the input/evidence tree.')
+   result[key]=value
+ return result
+
+def archive_census(archive,root):
+ """Compare types and exact bytes without extracting or following members."""
+ archive=literal_path(archive,stat.S_IFREG);result={};seen=set()
+ with zipfile.ZipFile(archive) as packed:
+  for member in packed.infolist():
+   name=member.filename
+   require(name not in seen,'Duplicate ZIP member.');seen.add(name)
+   literal=name[:-1] if member.is_dir() else name;parts=literal.split('/')
+   require(len(parts)>=2 and parts[0]==root and all(p not in ('','.','..') for p in parts)
+    and '\\' not in name and ':' not in name,'Unexpected archive namespace.')
+   relative='/'.join(parts[1:]);kind=stat.S_IFMT(member.external_attr>>16)
+   if member.is_dir():
+    require(kind in (0,stat.S_IFDIR),'ZIP directory type mismatch.');value={'kind':'directory'}
+   else:
+    require(kind==stat.S_IFREG,'Package members must be typed regular files.')
+    with packed.open(member) as stream:value={'kind':'file','bytes':member.file_size,'sha256':hashlib.file_digest(stream,'sha256').hexdigest()}
+   require(relative not in result or result[relative]==value,'Conflicting ZIP member type.')
+   result[relative]=value
+   for count in range(1,len(parts)-1):
+    parent='/'.join(parts[1:count+1])
+    require(parent not in result or result[parent]=={'kind':'directory'},'ZIP file shadows a directory.')
+    result[parent]={'kind':'directory'}
+ require(result.get('SHA256SUMS',{}).get('kind')=='file','Exact package manifest is missing.')
+ return result
+
+def verify_packages(receipt_path):
+ require(sha(receipt_path)==PACKAGE_RECEIPT_SHA256,'Trusted package receipt bytes changed.')
+ package=json.loads(Path(receipt_path).read_bytes())
+ require(package['status']=='PASS' and package['commit']==COMMIT and package['tree']==TREE,'Package identity differs from C25.')
+ require(set(package['artifacts'])==set(ARTIFACTS),'Unexpected package role set.')
+ before={}
+ for role,expected in ARTIFACTS.items():
+  item=package['artifacts'][role]
+  require(item['bytes']==expected['bytes'] and item['sha256']==expected['sha256'],'Declared archive pin differs from trusted C25 pin.')
+  archive=literal_path(item['path'],stat.S_IFREG)
+  require(archive.stat().st_size==expected['bytes'] and sha(archive)==expected['sha256'],'Archive bytes differ from trusted C25 pin.')
+  actual=tree(item['extracted']);require(actual==archive_census(archive,expected['root']),'Initial extracted '+role+' namespace/types/bytes differ from exact ZIP.')
+  before[role]=actual
+ return package,before
+
+def verify_gate(path,expected_sha256):
+ require(isinstance(expected_sha256,str) and re.fullmatch('[a-f0-9]{64}',expected_sha256),'An observed root-admitted gate receipt pin is required.')
+ require(sha(path)==expected_sha256,'Gate receipt differs from the root-admitted exact bytes.')
+ gate=json.loads(Path(path).read_bytes());suite=gate['suite'];archive=gate['source_archive']
+ require(gate['status']=='PASS' and type(gate['exit_code']) is int and gate['exit_code']==0 and gate['commit']==COMMIT,'Gate is not a successful exact C25 run.')
+ require(all(gate[k] is True for k in ['source_unchanged','source_archive_exact_before','source_archive_unchanged']) and gate['source_file_set_changes']=={},'Gate source binding is incomplete.')
+ require(archive['bytes']==ARTIFACTS['source']['bytes'] and archive['sha256']==ARTIFACTS['source']['sha256'],'Gate source archive differs from trusted C25.')
+ require(suite['success'] is True and suite['core_regressions_included'] is True,'Required complete suite did not succeed.')
+ for name in ['planned','tests','passed']:require(type(suite[name]) is int and suite[name]==2307,'Required suite count is not exact.')
+ for name in ['failures','errors','skipped','expected_failures','unexpected_successes']:require(type(suite[name]) is int and suite[name]==0,'Required strict suite has a nonzero outcome.')
+ return gate

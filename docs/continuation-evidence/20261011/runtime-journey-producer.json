@@ -1,0 +1,26 @@
+{
+  "schema": "exact-c25-runtime-journey-binding/1",
+  "status": "PASS",
+  "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_runtime_bytes_unchanged": true,
+  "both_initial_extractions_match_exact_archives": true,
+  "actions": [
+    {
+      "procedure": "qualify-workflow.py",
+      "exit_code": 0,
+      "raw_output": "/tmp/intune-c25-runtime-resumed-20261011-01/qualify-workflow"
+    },
+    {
+      "procedure": "qualify-terminal.py",
+      "exit_code": 0,
+      "raw_output": "/tmp/intune-c25-runtime-resumed-20261011-01/qualify-terminal"
+    },
+    {
+      "procedure": "qualify-workbench-connected.py",
+      "exit_code": 0,
+      "raw_output": "/tmp/intune-c25-runtime-resumed-20261011-01/qualify-workbench-connected"
+    }
+  ],
+  "finished_at": "2026-10-11T21:16:21.245197+00:00",
+  "scope": "Successful existing workflow/wizard/connected laboratory routes; independent raw assertions/admission still required, not global laboratory completion, external qualification or organizational approval."
+}

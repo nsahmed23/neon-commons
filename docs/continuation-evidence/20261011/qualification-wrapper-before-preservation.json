@@ -1,0 +1,20 @@
+{
+  "status": "PRESERVED_PRE_REPAIR_NOT_EXECUTED",
+  "findings": [
+    "WR01 initial extracted source/runtime must equal trusted exact archive namespace and bytes",
+    "WR02 executable profile creator/context and receipts must be pinned before preparation",
+    "WR03 do not issue final PASS before complete capsule verification; preserve primary failure"
+  ],
+  "files": {
+    "qualify-c25-runtime-resumed-20261011.py": {
+      "bytes": 6126,
+      "sha256": "2459bbe031727a3d1dcf5ec1062bce25a638bec270f5abd34c626acd948ceaa0",
+      "retained_copy": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepared-wrapper-revisions-02/qualify-c25-runtime-resumed-20261011.py.before.txt"
+    },
+    "prepare-c25-native-resumed-20261011.py": {
+      "bytes": 9515,
+      "sha256": "7b6b5b5965cd8fe4843a718c92de015f34f519164f2d809e0f57e834a6257d86",
+      "retained_copy": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepared-wrapper-revisions-02/prepare-c25-native-resumed-20261011.py.before.txt"
+    }
+  }
+}

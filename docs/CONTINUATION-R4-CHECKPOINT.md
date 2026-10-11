@@ -1,3 +1,218 @@
+# Increment27 — exact C25 source gate, bounded performance and verified source publication
+
+The engineering candidate remains **0.9.0, C25**,
+`e3bdefe0b1ac0c58e46f9af3360970f8e47ae393`, tree
+`0bdbdeb3556acce23c8390abb20e835184880b27`. Its exact packages keep their C25
+identity: source **17,956,520 bytes**, SHA-256
+`b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e`;
+runtime **1,520,542 bytes**, SHA-256
+`7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d`.
+Reconstruction, safe extraction, selected 3,354-file Git linkage and exact
+rebuilds pass their integrity scopes. This documentation checkpoint does not
+relabel the packages or claim an updated runtime/native release.
+
+The NEW exact extracted-source required gate02 **passed 2,307 planned/run/passed
+methods**, with complete core and zero failures, errors, skips, expected failures
+or unexpected successes. Its actual receipt is SHA-256
+`cb3c66aebfc2a81aa31c7d31a8e19eca510e55f167a2f8c1fae5e4ba297ed88d`;
+[source-gate02 metadata](continuation-evidence/20261011/source-gate-attempt-02.json)
+retains exact source/archive linkage and the independent raw result/log pins.
+The before/after namespace inventories are byte-identical, SHA-256
+`36bd870fbab4759b2c3740ec4cc5aab6cc8068d1cd3f6d452b1c34a8c03c215d`,
+and the source ZIP remained exact. This is the recorded local source-suite
+scope; it does not establish the full native lifecycle, actual runtime journey,
+Windows, live Graph/Azure/CI/device behavior or organizational approval.
+
+[Gate01 remains FAIL](continuation-evidence/20261011/source-gate-attempt-01.json):
+2,307 planned/run, 2,298 passed and nine required skips, with zero failures/errors.
+Exact-source inspection found seven native-convergence methods defaulting to
+`/tmp/intune-native-completion/tofu` and two native-completion methods hard-coding
+that absent alias. A new byte-exact copy of the existing independently pinned
+OpenTofu 1.13.1 satisfied that qualification interface without changing product,
+provider, assertions or gates. The [targeted nine-method replay](continuation-evidence/20261011/qualification-context-targeted-nine.json)
+passed with zero skips; it justified the mandatory complete new gate02 rather
+than a union-based 2,298+9 PASS. Counts overlap and are never added across attempts.
+The [namespace distinction](continuation-evidence/20261011/historical-namespace-distinction.json)
+preserves the original missing 1.10.0/broker corpus and unresolved actor finding:
+the new fixture is not recovery of that directory. Gate01's four observed Z/PID1
+children were nonexecuting; no complete reap claim is made. Earlier original
+strict03 remains unobserved; no new run recreates its old raw logs.
+
+Exact C25 Linux performance/capacity now has independently admitted evidence:
+source **1,037 CLI calls / 22 recorded checks / 37 gated samples**; runtime
+**48 CLI calls/samples / 10 recorded checks**, including nine real Linux PTY
+inputs for paging, search, immutable selection, inspection, settings, dictionary,
+health and quit. Original wall ceilings 2/5/15 seconds, CPU 1.5/4/12 seconds and
+RSS 256/512/768 MiB remain unchanged. Complete 100-object unpaged and 1,000-object
+inventories through explicit 50-object pages are demonstrated; a complete
+unpaged 1,000-object overview correctly rejects its byte bound. The observations
+are synthetic/caller asserted and seeded history/denied variants are explicit
+SQL fixtures. Three descriptive samples and uncontrolled page caches do not
+establish a fleet SLA or comparative acceleration. The [summary](continuation-evidence/20261011/performance-summary.json),
+[replay](continuation-evidence/20261011/performance-replay.md) and
+[independent admission](continuation-evidence/20261011/performance-independent-review.json)
+retain complete capsule/readback, original thresholds, independent SQL/negative
+controls and 152 actual Git-blob measured dependencies. Fifty-six read-only
+review assertions overlap other scopes. Both failed reviewer attempts remain;
+only three SQLite header bytes differ after restore, while all 12 table schemas/
+rows and original backup bytes are independently preserved. No product/timing
+rerun occurred in that review. Only D12 performance, E01 local scale and G11
+performance portions are updated; their whole requirements are not promoted.
+
+C26 **`b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad`** equals the published
+`continuation/r4-20261007` ref; main remained
+`4ba077d93fecbf5f893ee13ef972c839cf13883d`. The [publication receipt](continuation-evidence/20261011/source-branch-publication.json)
+and [anonymous HTTP200 readback](continuation-evidence/20261011/source-documentation-readback.json)
+prove exact bytes/hashes for 13 reviewed source documentation/inventory files.
+This C27 write is awaiting its own commit/publication readback; it does not borrow
+C26's publication result. Selected source publication is not full corpus delivery
+or protected CI/deployment qualification.
+
+Protected adoption/import recovery, source-v2 maintenance binding, sealed
+no-acquisition observation, separately approved Plan /3 successor and portable
+mixed history are already integrated. Current implementation bytes match C25;
+older checkpoint12/19 implementation-pending prose below is historical. C21's
+Plan3 operation `ccc821ee-32d2-4829-b8c6-511acb744487` has a historical native
+no-change/state13/readback/history/PTY attestation at checkpoint22, bounded by
+its original revision and now-missing raw dependencies. Failed consumed Plan2
+remains unknown and is never replayed; observation cannot release a nonexistent
+lease. A **new attributable recovery qualifier** has [API/artifact review](continuation-evidence/20261011/recovery-helper-api-review.json),
+[scope-label rebinding](continuation-evidence/20261011/recovery-helper-label-review.json)
+and [specific public text review](continuation-evidence/20261011/recovery-helper-public-text-review.json).
+Its [source-text copy](continuation-evidence/20261011/native-recovery-plan-qualifier.py.txt)
+is exactly 28,860 bytes, SHA-256
+`aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100`.
+It is qualification-only, outside the runtime and not the missing original
+helper. Closed profile admission and actual native/fault/history execution
+remain PENDING. Ten AST/30 JSON/static controls are scoped, overlapping reviews,
+not native passes or additional strict tests.
+
+**Next increment:** preserve the independently admitted exact-runtime evidence,
+then activate only the independently reviewed complete native helper/tool/source
+profile and drive adoption → ordinary-prepare immediately → bounded authoritative
+change → exact approved apply → independent readback/convergence → interruption/
+partial/committed-state recovery → signed history and actual PTY reopening.
+[The current sequence](EXECUTION-SEQUENCE-R4.md) provides verified commands.
+Pre-execution wrapper review found WR01–WR03 initial archive binding, trusted
+input/creator pins and premature final-receipt weaknesses; original bytes and
+[failed review](continuation-evidence/20261011/qualification-wrapper-review-before.json)
+are preserved. Exact repaired wrapper admission and specifically reviewed source-text copies
+are now recorded below. No native PASS is inferred from preparation; independent
+runtime/native outcomes belong to a separate checkpoint.
+
+The resumed audit found **265 absent historical scratch roots / 39 unavailable
+pinned receipts**, with 27/28 original native helper members recoverable. Those
+counts describe that audit; new attributable files do not reconstruct history.
+F03/F09 remain BLOCKED. Historical three unexpected files/reappearance, actor
+attribution, helper/bytecode provenance and missing raw evidence remain open.
+C24's 2,304 result, 0.7.0's 1,141 and 0.8.0's 1,242 retain their exact original
+scopes; none is added to 2,307 or rerun for this documentation update. Preserve
+all six threads, original inputs, failures, skips and Wally's optional read-only
+87 completed reviews/nine timeouts/no demonstrated benefit.
+
+**Outcomes:** laboratory completion remains incomplete (exact native/fault/history
+journeys PENDING); platform qualification BLOCKED; organizational production
+approval absent. G01–G13 retain actual Windows, protected-platform choice/CI,
+Azure/Graph identities/state, OS scheduling, devices, containment, key custody,
+AppSec and accountable owner gates. G05 is not access-only: current final native
+qualification and real platform scope both remain. [Publication omissions](continuation-evidence/20261011/publication-scope-27.md)
+explicitly exclude 27 other helpers, raw inputs/artifacts, profiles/binaries/
+private signer material and the complete private corpus. Root-authored new
+wrappers/binding module are specifically admitted as the three exact source-text
+copies below; 27 other helpers, raw inputs/artifacts and private profile remain
+explicitly omitted.
+
+Automatic approval review rejected the isolated malformed-error provider repair,
+citing possible cybersecurity risk; no specific command or more detailed reason
+was exposed. Its unbuilt candidate and failures remain preserved. G13 is still
+a release blocker, and this checkpoint grants no alternate repair route.
+
+Resume without restarting completed work:
+
+```sh
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+git log -5 --oneline
+cat docs/EXECUTION-SEQUENCE-R4.md
+cat /workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/RECEIPT.json
+```
+
+
+Repaired outer qualification wrappers now have **PASS_SCOPED** independent
+admission, SHA-256 `c214a73cddd9a9919d0c5ff3708dc1c9233c4db4259ba81133e0e0aa7acfcb57`.
+[The repaired review](continuation-evidence/20261011/qualification-wrapper-repaired-review.json)
+retains 46 bounded binding/gate controls and eight failing-before/passing-after
+primary-error probes; these overlap other reviews and are not added to test counts.
+WR01–WR04 fixes bind exact initial ZIP namespace/types/bytes, trusted helper/input
+and observed gate identities, final receipts after capsule verification, and the
+original failure when secondary evidence recording fails. Original failed
+reviews/pre-repair bytes remain preserved. Exact source texts are specifically
+admitted as qualification-only documentation:
+[binding](continuation-evidence/20261011/qualifiers/c25_package_binding.py.txt)
+5,746 bytes/SHA `964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053`;
+[runtime](continuation-evidence/20261011/qualifiers/qualify-c25-runtime-resumed-20261011.py.txt)
+7,154 bytes/SHA `c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468`;
+[native preparation](continuation-evidence/20261011/qualifiers/prepare-c25-native-resumed-20261011.py.txt)
+10,891 bytes/SHA `c46e6fecf617cad13d3a3cff429154edf56a983d8b7ad294b95d1418166bef3e`.
+They remain outside the C25 runtime and do not provide a complete standalone
+private qualification profile or production worker authority.
+
+Outer qualifiers require **unoptimized Python (`sys.flags.optimize == 0`)**.
+Do not use `-O`/`-OO` or set `PYTHONOPTIMIZE`; `-B` does not itself override an
+optimization environment. [Six detached exact/substituted input-pin controls](continuation-evidence/20261011/qualification-wrapper-pin-assertions.json)
+passed with optimization zero. The prepared procedure and root invocations use
+unoptimized Python; qualification asserts are input admission, not a production
+authorization boundary. These controls are not additional suite/native counts.
+
+Actual exact-runtime producer procedures `qualify-workflow.py`,
+`qualify-terminal.py` and `qualify-workbench-connected.py` have now each exited 0.
+The [producer receipt](continuation-evidence/20261011/runtime-journey-producer.json)
+is SHA-256 `c5b8a28507eb270c9c259c957bbff3095c24417ffa7d1929288c0e346832398d`;
+initial source/runtime extracts match their exact ZIPs and remain unchanged.
+The [verified owned-output capsule receipt](continuation-evidence/20261011/runtime-owned-capsule.json)
+is SHA-256 `c454a1168fe8e5062117faed33bf24718c90bf08bb2774fe1b6667c2db24bcf7`,
+covering 284 members and 46,179,244 archive bytes, SHA-256
+`1268bd9197d0354e3b1520b841c3cb1ec23a9494a905683376de34cba4ff454c`.
+Independent runtime admission now passes the precise modeled-service scope
+recorded below; retain its connected raw SQL/PTY/input outputs. The first two qualifiers internally discarded their
+TemporaryDirectory raw intermediates, an explicit evidence omission; a complete
+owned-output capsule does not recreate them. Exact closed native/fault/signed
+history qualification remains **PENDING**. Later exact native/fault/history outcomes
+belong to C28, with no global laboratory/platform/production PASS inferred.
+
+
+Independent runtime admission is now **PASS for the precise local route scope**,
+receipt SHA-256 `7085b2281bd14931835e941a3518aea23fc09316d01d44ad8546b6ad5c84792e`.
+[Specifically public independent metadata](continuation-evidence/20261011/runtime-independent-admission.json)
+is SHA-256 `43c3cdfa19d53f210535e16a8cb4b000a412d50895eaf4549e27b7b8cc102c74`.
+Thirty-six independent stdlib/raw-capsule/SQL/PTY/literal reader assertions admit
+the actual packaged connected journey: **64 named checks / 34 commands / ten
+Linux PTYs**. Independent postconditions preserve stable identity, assignments,
+exclusions/filters across adoption and bounded setting change; verify exact
+modeled approval/journal/replay rejection, exactly two modeled writes,
+interruption/readback/no-change convergence, history/last-good denied reads,
+health denominators and populated migration data. Closed-terminal collection is
+a **finite explicitly invoked modeled schedule**, not an independently installed
+persistent OS scheduler. Workflow eight parsed CLI results/11 harness checks
+and the standalone wizard PTY retain their narrower evidence scopes; deleted
+TemporaryDirectory state/child/verify streams remain unavailable explicitly.
+These counts overlap source tests, other route checks and old evidence; never
+add them into a test total. No new suite/native/timing rerun occurred in the
+independent review. Exact closed native/fault/signed-history qualification,
+missing historical corpus and external host/service/backend/CI/device/security
+and organizational decisions remain pending or blocked. All-required local
+implementation completion, platform qualification and production approval are
+**not established** by this admitted modeled-service route.
+
+---
+
+## Prior increment26 — unchanged historical status
+
+The complete original checkpoint26 below is retained unchanged. Its bold
+“no C25 ... performance PASS” statement describes that earlier increment;
+current precise source/performance/publication scopes above supersede it.
+Original old paths, failures and unresolved provenance retain their history.
+
 # Current R4 continuation checkpoint — 2026-10-11
 
 The engineering candidate is **0.9.0, C25**,

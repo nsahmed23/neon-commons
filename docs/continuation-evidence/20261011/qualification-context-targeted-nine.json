@@ -1,0 +1,22 @@
+{
+  "schema": "attributable-test-prerequisite-restoration/1",
+  "status": "PASS_SCOPED",
+  "recorded_at": "2026-10-11T20:56:07.204029+00:00",
+  "origin": "/workspace/intune-recovery/native-reprobe/tools/tofu",
+  "destination": "/tmp/intune-native-completion/tofu",
+  "exact_tool": {
+    "bytes": 114188448,
+    "sha256": "a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a"
+  },
+  "reason": "All9 mandatory C25 skips use this absent legacy fixture path (7 default+2 literal). Four qualification role environment entries did not supply it. No product source/gate weakened.",
+  "previous_full_gate": "integration/c25-strict-resumed-20261011-01/RECEIPT.json",
+  "historical_raw_logs_restored": false,
+  "provider_changed_or_built": false,
+  "tests": 9,
+  "passed": 9,
+  "skipped": 0,
+  "exit_code": 0,
+  "completed_at": "2026-10-11T20:56:57.336873+00:00",
+  "full_required_gate_passed": false,
+  "scope": "Exactly9 previously skipped pinned native output-only methods now exercised. Mandatory complete gate remains separately required. Original failure unchanged."
+}

@@ -1,0 +1,126 @@
+{
+  "schema": "anonymous-source-documentation-readback/1",
+  "status": "PASS",
+  "commit": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "recorded_at": "2026-10-11T20:46:27.374593+00:00",
+  "files": [
+    {
+      "path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "bytes": 79718,
+      "sha256": "592d16667528cc95c151864892583621f3de2f26209adb62d2ef360a2e0db8f9",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/CONTINUATION-R4-LEDGER.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1583358,
+      "sha256": "cd335c7814214542134a542717759b2a3b22c139f7a7fadba993b3e5e3bb52a6",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/CONTINUATION-R4-LEDGER.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/EXECUTION-SEQUENCE-R4.md",
+      "bytes": 7887,
+      "sha256": "1c672157887107230f7292114ccf5c1cbbb11c09e53ede2a0522249a0ae9b78a",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/EXECUTION-SEQUENCE-R4.md",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/PUBLICATION-DISPOSITION.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/PUBLICATION-DISPOSITION.md",
+      "bytes": 4760,
+      "sha256": "a0cac5808bc61e1fc0c938765db82050952b7c6d63db30a100231d0bf1eb5144",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/PUBLICATION-DISPOSITION.md",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/available-roots.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/available-roots.json",
+      "bytes": 235120,
+      "sha256": "61be84ba2900b00c38a41ce623e12bddc4212206d9cdba0627c344932d7d7176",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/available-roots.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/current-package-inputs.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/current-package-inputs.json",
+      "bytes": 1640,
+      "sha256": "d366a41ea6751b0dde12f5da80ad628f1c5bf67c7490f553f3021f1b334a0886",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/current-package-inputs.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/ledger-availability.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/ledger-availability.json",
+      "bytes": 164415,
+      "sha256": "564fa07f48d1ce644e70e0e719eb2fc4c3c5af49184e1209b1c32b6322d8eb72",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/ledger-availability.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/reconstructed-package-verification.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/reconstructed-package-verification.json",
+      "bytes": 1663,
+      "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/reconstructed-package-verification.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/reconstructed-packages.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/reconstructed-packages.json",
+      "bytes": 2603,
+      "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/reconstructed-packages.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/source-history-packages-review.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/source-history-packages-review.json",
+      "bytes": 5270,
+      "sha256": "66bb44b04a9c6ce06bea07833ff6a1033aa969af4a21874eeea4f6ffe1406006",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/source-history-packages-review.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/source-review.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/source-review.json",
+      "bytes": 4480,
+      "sha256": "7f05762d77e9822e1c7838a196e8d15f2e970d894325edb683156f4c4faca07b",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/source-review.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/workspace-availability.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/workspace-availability.json",
+      "bytes": 3347,
+      "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/docs/continuation-evidence/20261011/workspace-availability.json",
+      "authorization_header_supplied": false
+    },
+    {
+      "path": "release-source-files.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/release-source-files.txt",
+      "bytes": 265411,
+      "sha256": "89cd0e2773e9f2213a1f6d515d339228d9cdb0f1a1a23bca43467148efaf3bf5",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad/release-source-files.txt",
+      "authorization_header_supplied": false
+    }
+  ],
+  "scope": "Anonymous HTTPS readback of exact13reviewed C26 documentation/inventory paths; Git remote ref publication separately verified. No entire raw private-corpus or native/platform gate claim."
+}

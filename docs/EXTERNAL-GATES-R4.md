@@ -1,3 +1,8 @@
+> Historical-content notice (increment27): preserve the prior gate register and
+> preparation sections below. The **Current October11 gate reconciliation** at the
+> end distinguishes current implementation from still-missing exact native and
+> external qualification. Required external gates remain blocked.
+
 # R4 external qualification and production decision gates
 
 This document is a prepared execution contract, not approval or a claim that the gates passed. It supplements [the declared operating profile](OPERATING-PROFILE-R4.md), [the strict continuation contract](STRICT-CONTINUATION-CONTRACT-R4.md) and the preserved R3 procedures. Missing implementation, missing access, actual platform evidence and organizational approval are separate blockers. None authorizes production mutation, deployment/control administration, new credentials, paid services or privilege expansion.
@@ -187,3 +192,39 @@ a future native Windows pass would establish only its bounded native storage
 and publication behavior. Real reader identity, Git Bash/mintty interaction,
 ordinary host activation, real OS scheduling and real service/device evidence
 remain distinct requirements. Current Linux BLOCKED output is not a native pass.
+
+
+---
+
+## Current October11 gate reconciliation — increment27
+
+| Gate | Precisely completed local preparation/evidence | Remaining gate and accountable owner |
+| --- | --- | --- |
+| G05 Actual connected maintenance | Protected adoption/import recovery, source-v2 binding, sealed no-acquisition observation, Plan /3 successor and portable mixed history are integrated; older checkpoint12/19 pending-implementation wording is historical. Historical C21 Plan3/readback/history/PTY attestation remains scoped. New attributable helper aec945 has static API/artifact, label-rebinding and single-file public text admission. | **BLOCKED, not access-only.** All three exact C25 runtime procedures have independent bounded modeled-service admission; closed native/fault/history route remains PENDING. Original helper/raw evidence is not recovered. Real native Windows, authorized Azure/Graph/provider identity, protected CI and device scope plus organizational execution-platform choice remain. Execution/platform, tenant/backend/device owners and native maintainer supply reviewed scope/authorization; provider G13 remains a separate blocker. |
+| G07 Protected CI/platform | C26 continuation ref is exactly published and main unchanged; anonymous 13-file source documentation/inventory readback matches. Local `runner.temp` source repair remains integrated. | Both earlier actual baseline CI runs remain zero-job failures. Source publication is not protected CI qualification, deployment or ruleset/environment authority. Platform/repository administrator and independent approver must supply selected actual platform/ref/run/permissions and controls. |
+| G11 Exact delivery | C25 exact archives/rebuild/linkage pass integrity. Actual source gate02 passes 2,307 planned/run/passed with complete core and zero exceptions; gate01 FAIL/target-nine PASS remain distinct. Independently admitted bounded Linux performance/capacity/nine-inputPTY passes unchanged thresholds. | **BLOCKED** on exact native/fault/history, preserved complete layered recovery and actual package delivery/readback. Resumed audit's 265 absent historical roots/39 missing pinned receipts retain F03/F09 blockers. Release/corpus and environment-storage custodians restore actual old bytes; new outputs do not reconstruct history. |
+| Other required gates | Existing current/inactive code routes and executable preparations remain; their earlier evidence keeps its exact scope. | G01–G04/G06/G08–G10/G12/G13 need actual Windows/host, identities/backend/service/CI/devices, installed OS scheduling, containment/key custody/AppSec and accountable decisions. Two BusyBox scheduler attempts launched zero observers. Stopped unbuilt provider repair is not retried through another route. Existing named gate owners/procedures apply. |
+
+C25 engineering commit `e3bdefe0b1ac0c58e46f9af3360970f8e47ae393` and C26
+published docs/source commit `b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad` are distinct.
+C27's commit/publication is not yet inferred. Laboratory completion remains
+incomplete; platform and production outcomes are unapproved. Wrapper WR01–WR03
+pre-execution source identity/receipt findings and original bytes are preserved;
+repaired WR01–WR04 source now has specific bounded independent admission and
+public source-text suitability. Those repairs do not establish native execution. The new
+single helper text is outside runtime and excludes 27 other helpers, fixtures,
+profiles/tools, private keys, plans/state/approvals/journals/raw capsules.
+
+Current [source gate02](continuation-evidence/20261011/source-gate-attempt-02.json),
+[first failure](continuation-evidence/20261011/source-gate-attempt-01.json),
+[targeted prerequisite proof](continuation-evidence/20261011/qualification-context-targeted-nine.json),
+[independent performance](continuation-evidence/20261011/performance-independent-review.json),
+[C26 source/readback](continuation-evidence/20261011/source-documentation-readback.json),
+[new qualifier source/review](continuation-evidence/20261011/recovery-helper-public-text-review.json)
+and [public omissions](continuation-evidence/20261011/publication-scope-27.md)
+retain source-relative evidence. These are reviewable metadata/single source-text
+copies, not complete corpus, universal secret-absence, AppSec, live platform or
+production clearance. Prior failed/unknown operations, original strict03,
+unexpected files/reappearance, actor/helper gaps and raw loss remain preserved.
+No publication authority grants production changes, control administration,
+credential provisioning, paid services or privilege expansion.

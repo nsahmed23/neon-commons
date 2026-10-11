@@ -1,0 +1,22 @@
+{
+  "schema": "historical-namespace-distinction/1",
+  "status": "OBSERVED_NEW_ATTRIBUTABLE_FIXTURE",
+  "resumed_historical_audit_rows": [
+    {
+      "observed": {
+        "availability": "ABSENT",
+        "path": "/tmp/intune-native-completion"
+      },
+      "owner": "root preservation custodian; original copy actor unresolved",
+      "prefix": "task-owned/tmp/intune-native-completion",
+      "reason": "Root authorized retain after content inspection: historical OpenTofu1.10.0 hash0a9eda0f is content-linked to verification/plugin-0.2/native/tofu-checksum-verification.json; broker scratch e6eb8332 matches task source-edit purpose but execution receipt absent. Never execute or claim provenance closure",
+      "source": "/tmp/intune-native-completion",
+      "type": "directory"
+    }
+  ],
+  "new_declared_file": "/tmp/intune-native-completion/tofu",
+  "new_sha256": "a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a",
+  "new_bytes": 114188448,
+  "old_native_tool_and_broker_scratch_restored": false,
+  "scope": "A fresh copy of independently pinned1.13.1 satisfies a hardcoded C25 test interface. The old1.10.0 corpus/actor provenance is not recovered, not executed, and not closed. New target9 PASS is independent current evidence, not restoration of old outputs."
+}
