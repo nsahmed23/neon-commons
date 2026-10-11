@@ -26,9 +26,9 @@
         "scope": "Exact original C25 archive bytes reconstructed and verified on2026-10-11. New scoped source strict gate02 and bounded source/runtime performance are recorded independently; no missing historical logs recovered and no full runtime/native/platform approval inferred."
       }
     ],
-    "latest_completed_checkpoint": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-27.json",
-    "candidate_disposition": "C25_SOURCE_STRICT_PACKAGE_PERFORMANCE_SCOPED_RUNTIME_PASS_NATIVE_RUN01_STOPPED_EXTERNAL_QUALIFICATION_FAILURE_REMAINING_NATIVE_RECOVERY_HISTORY_DELIVERY_PLATFORM_PENDING",
+    "latest_completed_checkpoint": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-28.json",
+    "candidate_disposition": "C25_SOURCE_STRICT_PACKAGE_PERFORMANCE_MODELED_RUNTIME_PASS_ORIGINAL_NATIVE_FAIL_FOCUSED_HELPER_REPAIRS_NORMAL32_PREPARATION_ADMITTED_CAPACITY_AND_NATIVE_PLATFORM_PENDING",
     "retained_candidate_artifacts": [
       {
         "source_commit": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
@@ -103,7 +103,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Laboratory completion is not globally established. Exact C25 source gate02 (2,307 planned/run/passed, zero exceptions), bounded Linux performance and independently admitted modeled runtime scopes remain preserved; no rerun or additive count. Actual native run01 stopped after five completed of 38 planned actions; the sixth assignment-fault scenario finalized, but external portable linkage rejected an unsupported qualification JSON value. Independent stopped-prefix admission has 111 nonadditive reader assertions: policy PUT204, assignment403, unchanged state serial13, outcome_unknown, held lease and two reservations are preserved. Full native run01 remains FAIL; 32 later actions, external helper repair/frozen metadata reconciliation and explicit reviewed recovery/history remain required. Complete owned private capsules do not restore missing historical corpus, and actual platform/device/OS scheduler/security/accountable approval remain blocked."
+    "explanation": "Laboratory completion remains IMPLEMENTED, not globally established. Exact C25 source gate02 (2,307 planned/run/passed, zero exceptions), bounded Linux performance and independently admitted modeled-runtime scopes are preserved without reruns or additive counts. Original native run01 remains FAIL:38 planned,6 attempted,5 completed,32 not attempted; its sixth assignment fault left outcome_unknown, a held lease and two reservations despite scenario/cleanup PASS. Two exact producer fields now serialize SQL tuples as ordered JSON arrays with strict linkage unchanged; NC01/NC02 receipt/input closure and NC03 typed route repairs have independent detached before/after evidence. Normal32 loader04/outer05 and selected source text are independently admitted preparation only, with0 new native dispatches. Additional abnormal-mode03 fixed32 preparation now has scoped325metadata/100negative independent source admission with0native dispatch; three ordinary-stage/recovery work remains pending. Reader/publisher04 selected source is admitted but final companion publication is pending. A separate currentC25 knownhost-completed/normal-release archivefailure readbackfactory gap was source-discovered; staged core repair/C30 independent verification and newgates/packages cannotborrowoldglobalPASS. A private322,348-byte preparation capsule preserves22 selected roots/446typed nodes; this neither restores265 missing historical roots/39references nor completes native recovery. Native activation is blocked by receiving persistent space below32MiB+64KiB and still requires fresh recovery approval/current readback/root GO. ActualWindows/CI/Graph/Azure/devices/OSscheduler/containment/keycustody/AppSec and accountable production approval remain blocked."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -16560,8 +16560,8 @@
         "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "Exact C25 sourcegate02 and independently admitted cooperative modeled-runtime/performance scopes pass with unchanged dependencies; counts overlap and are neveradded. Actual native run01 stopped after5completedof38plannedactions at attempted ordinary-fault-assignment externalportable metadata failure. Its scenarioFINALPASS/cleanup completion do not establish whole native qualification. Originalfailedportable/outer receipts and complete privatecapsule remain preserved. Exact helpercontract repair/independent frozenmetadata reconciliation, later32actions and realexternal/corpusdelivery gates remain required.",
-      "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+      "limitation": "F01 remains IMPLEMENTED: exactC25 sourcegate02/performance/modeled-runtime scopes pass, while original native run01 is FAIL. Focused tuple-producer and NC01–03 closure repairs plus exact normal32 preparation/public-source admission pass their detached/read-only scopes only. Actual normal32/additional-mode32/ordinary timing/recovery/history routes, complete corpus/delivery and external/organizational gates remain required; native receiving capacity is below the unchanged32MiB+64KiB threshold. Counts overlap and are not added. CurrentC25 lacksnormal-host-completed/normal-release archivefailure restart-readbackfactory; separateC30corecandidate/independentbeforeafter/journey/newgates required,notoldsourcePASS.",
+      "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -27638,7 +27638,7 @@
       "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     }
   ],
-  "checkpoint_increment": 28,
+  "checkpoint_increment": 29,
   "environment_resumption26": {
     "candidate_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
     "candidate_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
@@ -27898,7 +27898,7 @@
           "sha256": "9185188deb897c5fb76b8e9ee92a09c473fa5ac563dce1ad26ec6e144b11ddb1"
         }
       ],
-      "remaining": "Whole native qualification is FAIL for attemptedrun01, with5completed/1attemptedfailed/32laterunexecutedof38plannedactions; independent full nativeadmission remains incomplete. Exacthelperrepair/frozenmetadata reconciliation and remainingnative/recovery/history qualification, capacity/completeownedcapsules, complete layeredrecovery/package/public-saved delivery/readback and F03/F09 historicalcorpus remain. Sourcegate/performance/modeledruntime and actualC27sourcepublication pass only their precise scopes; realexternal profile/AppSec/approval remainblocked.",
+      "remaining": "ExactC25source/performance/modeled-runtime andactualC28source scopes passonlytheirexactdependencies. Reuse exactnormal59cd/additionala665 contract/sourceadmission; native normal32/additional32 outcomesremainNOT_STARTEDwithreceivingcapacitybelow32MiB+64KiB. Ordinarythree-stage/recoveryclosures/C30factory source/application/newpackagegates and actualnative/history/delivery remainrequired. F03/F09historicalmissingcorpus, realexternalprofile/AppSec/accountableapproval remainblocked.",
       "source_strict_portion": "PASS",
       "source_strict_receipt": {
         "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/RECEIPT.json",
@@ -27916,14 +27916,14 @@
     "G05": {
       "status": "BLOCKED",
       "implementation_scope": "Protected adoption/import recovery, source-v2 maintenance binding, no-acquisition observation, Plan /3 successor and portable mixed history integrated; code matches exact C25 source package. Historical checkpoint12/19 pending prose does not mean those code paths are absent.",
-      "remaining_local": "Native run01 completed5of38plannedactions, then ordinary-fault-assignment loader exited1 after scenarioFINALPASS/cleanup, because externallinkage canonical encoding rejected a qualificationJSONvalue. Preserve originalfailure and independently qualify focused helperrepair/frozenmetadata reconciliation without repeating mutation. Then separately admit changed helper/profile and complete remaining32actions/fault/recovery/signedhistory scope. 38is totalactions, not38faultchecks or independentassertions. Originalmissinghelper/rawhistory/provenance remain separate blockers.",
+      "remaining_local": "Reuse exactnormal32loader6105/profilefb35/outer70fd59cd and extra03loaderb98/profile8b00/outer966a665 preparation/source admissions; completedcontractreview is notrepeated. Allnormal32/additional32nativeoutcomesremainNOT_STARTED/capacitygated, freshapproval/currentreadback/rootGO required. Finish only ordinarythree-stage/recoveryclosures and stagedC30normal-host-completed readbackfactory admissions/newsourcegates, then actualremainingnative/history qualification. OriginalportableFAIL/heldstate/rawhistory/provenance remainunchanged.",
       "remaining_external": "Organizational protected platform choice and accountable service owner, actual protected CI authorization/run, native Windows and real Azure/Graph/provider/identity/device scopes; provider malformed-error blocker remains.",
       "blocker_owner": "Execution/service and tenant/backend/device owners; native qualification maintainer and release/corpus custodian for exact closed helper; AppSec/provider disposition owner for stopped repair.",
       "no_external_pass": true
     },
     "G07": {
       "status": "BLOCKED",
-      "source_branch_publication": "PASS_EXACT_C27_SCOPE",
+      "source_branch_publication": "PASS_EXACT_C28_SCOPE",
       "scope": "Git ref and anonymous source documentation publication only. Existing failed zero-job baseline runs remain; no protected CI dispatch/run or administration was performed.",
       "blocker_owner": "Organizational execution-platform owner and repository/platform administrator"
     }
@@ -27990,7 +27990,7 @@
     },
     "environment": "Linux x86_64 CPython3.12; exact extracted C25 package, restored independently pinned native fixture, local synthetic/API-shaped HTTP fixtures.",
     "limitation": "Exact source strict gate only. Not full native Atmos/Intune lifecycle, exact runtime connected journeys, native Windows, live Graph/Azure/CI/device, installation or production approval. Counts overlap targeted/component/previous scopes and are not added.",
-    "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+    "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
     "blocker_owner": null,
     "public_metadata_path": "docs/continuation-evidence/20261011/source-gate-attempt-02.json"
   },
@@ -28169,7 +28169,7 @@
       },
       "environment": "Linux x86_64 CPython3.12; exact extracted C25 package, restored independently pinned native fixture, local synthetic/API-shaped HTTP fixtures.",
       "limitation": "Exact source strict gate only. Not full native Atmos/Intune lifecycle, exact runtime connected journeys, native Windows, live Graph/Azure/CI/device, installation or production approval. Counts overlap targeted/component/previous scopes and are not added.",
-      "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+      "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
       "blocker_owner": null,
       "public_metadata_path": "docs/continuation-evidence/20261011/source-gate-attempt-02.json"
     }
@@ -28198,7 +28198,7 @@
     "seconds": 49.844,
     "environment": "Existing pinned OpenTofu1.13.1 bytes copied to anewdeclaredlegacyfixturepath; no product/gate/provider code change.",
     "limitation": "Exactly9previouslyskipped nativeoutput-only methods; overlapsfullgate and not added tostrictcount. Historical1.10.0tool/brokerscratch/actorprovenanceare notrestored orclosed.",
-    "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+    "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
     "blocker_owner": null
   },
   "replacement_recovery_helper27": {
@@ -28994,5 +28994,876 @@
     "disposition_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
     "source_filename_alias": "Original staged native-lab-orchestration.py bytes copied exactly as.py.txt; SOURCE-DISPOSITION retains original source-relative filename, not executable runtime inclusion.",
     "limitation": "No privateconfig/profile/rawhost/GO/nonce/capture/state/plan/approval/journal/capsule clearance. Fullnative stoppedFAIL and independentexternal/profile/AppSec/production blockers remain."
+  },
+  "historical_current_guidance29": {
+    "source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+    "source_ledger_pin": {
+      "path": "/workspace/intune-continuation/work/projects/intune/docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1708390,
+      "sha256": "d1da9c9574121754a434d490dd8009e951efa11b559bf4b0f21d8c16605ce541"
+    },
+    "source_url": "https://github.com/nsahmed23/neon-commons/blob/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/CONTINUATION-R4-LEDGER.json",
+    "scope": "Exact previousC28 values remain historical; all92IDs/statuses unchanged. This records only changed current guidance, not unchanged-all-fields. Earlier history/reuse/Markdown/sourceGit bytes remain preserved.",
+    "changes": [
+      {
+        "field": "checkpoint_increment",
+        "old_value": 28,
+        "new_value": 29,
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "source_authority.latest_completed_checkpoint",
+        "old_value": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "new_value": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "source_authority.current_checkpoint_receipt",
+        "old_value": "evidence/epoch-20261007-r4/integration/COMMIT-27.json",
+        "new_value": "evidence/epoch-20261007-r4/integration/COMMIT-28.json",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "source_authority.candidate_disposition",
+        "old_value": "C25_SOURCE_STRICT_PACKAGE_PERFORMANCE_SCOPED_RUNTIME_PASS_NATIVE_RUN01_STOPPED_EXTERNAL_QUALIFICATION_FAILURE_REMAINING_NATIVE_RECOVERY_HISTORY_DELIVERY_PLATFORM_PENDING",
+        "new_value": "C25_SOURCE_STRICT_PACKAGE_PERFORMANCE_MODELED_RUNTIME_PASS_ORIGINAL_NATIVE_FAIL_FOCUSED_HELPER_REPAIRS_NORMAL32_PREPARATION_ADMITTED_CAPACITY_AND_NATIVE_PLATFORM_PENDING",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "outcomes.explanation",
+        "old_value": "Laboratory completion is not globally established. Exact C25 source gate02 (2,307 planned/run/passed, zero exceptions), bounded Linux performance and independently admitted modeled runtime scopes remain preserved; no rerun or additive count. Actual native run01 stopped after five completed of 38 planned actions; the sixth assignment-fault scenario finalized, but external portable linkage rejected an unsupported qualification JSON value. Independent stopped-prefix admission has 111 nonadditive reader assertions: policy PUT204, assignment403, unchanged state serial13, outcome_unknown, held lease and two reservations are preserved. Full native run01 remains FAIL; 32 later actions, external helper repair/frozen metadata reconciliation and explicit reviewed recovery/history remain required. Complete owned private capsules do not restore missing historical corpus, and actual platform/device/OS scheduler/security/accountable approval remain blocked.",
+        "new_value": "Laboratory completion remains IMPLEMENTED, not globally established. Exact C25 source gate02 (2,307 planned/run/passed, zero exceptions), bounded Linux performance and independently admitted modeled-runtime scopes are preserved without reruns or additive counts. Original native run01 remains FAIL:38 planned,6 attempted,5 completed,32 not attempted; its sixth assignment fault left outcome_unknown, a held lease and two reservations despite scenario/cleanup PASS. Two exact producer fields now serialize SQL tuples as ordered JSON arrays with strict linkage unchanged; NC01/NC02 receipt/input closure and NC03 typed route repairs have independent detached before/after evidence. Normal32 loader04/outer05 and selected source text are independently admitted preparation only, with0 new native dispatches. Additional abnormal-mode03 fixed32 preparation now has scoped325metadata/100negative independent source admission with0native dispatch; three ordinary-stage/recovery work remains pending. Reader/publisher04 selected source is admitted but final companion publication is pending. A separate currentC25 knownhost-completed/normal-release archivefailure readbackfactory gap was source-discovered; staged core repair/C30 independent verification and newgates/packages cannotborrowoldglobalPASS. A private322,348-byte preparation capsule preserves22 selected roots/446typed nodes; this neither restores265 missing historical roots/39references nor completes native recovery. Native activation is blocked by receiving persistent space below32MiB+64KiB and still requires fresh recovery approval/current readback/root GO. ActualWindows/CI/Graph/Azure/devices/OSscheduler/containment/keycustody/AppSec and accountable production approval remain blocked.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "rows.63.limitation",
+        "old_value": "Exact C25 sourcegate02 and independently admitted cooperative modeled-runtime/performance scopes pass with unchanged dependencies; counts overlap and are neveradded. Actual native run01 stopped after5completedof38plannedactions at attempted ordinary-fault-assignment externalportable metadata failure. Its scenarioFINALPASS/cleanup completion do not establish whole native qualification. Originalfailedportable/outer receipts and complete privatecapsule remain preserved. Exact helpercontract repair/independent frozenmetadata reconciliation, later32actions and realexternal/corpusdelivery gates remain required.",
+        "new_value": "F01 remains IMPLEMENTED: exactC25 sourcegate02/performance/modeled-runtime scopes pass, while original native run01 is FAIL. Focused tuple-producer and NC01–03 closure repairs plus exact normal32 preparation/public-source admission pass their detached/read-only scopes only. Actual normal32/additional-mode32/ordinary timing/recovery/history routes, complete corpus/delivery and external/organizational gates remain required; native receiving capacity is below the unchanged32MiB+64KiB threshold. Counts overlap and are not added. CurrentC25 lacksnormal-host-completed/normal-release archivefailure restart-readbackfactory; separateC30corecandidate/independentbeforeafter/journey/newgates required,notoldsourcePASS.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "rows.63.next_action",
+        "old_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "new_value": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "c25_required_gate27.next_action",
+        "old_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "new_value": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "required_source_gate_attempts27.1.next_action",
+        "old_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "new_value": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "qualification_context_repair27.next_action",
+        "old_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "new_value": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "external_gate_progress27.G05.remaining_local",
+        "old_value": "Native run01 completed5of38plannedactions, then ordinary-fault-assignment loader exited1 after scenarioFINALPASS/cleanup, because externallinkage canonical encoding rejected a qualificationJSONvalue. Preserve originalfailure and independently qualify focused helperrepair/frozenmetadata reconciliation without repeating mutation. Then separately admit changed helper/profile and complete remaining32actions/fault/recovery/signedhistory scope. 38is totalactions, not38faultchecks or independentassertions. Originalmissinghelper/rawhistory/provenance remain separate blockers.",
+        "new_value": "Reuse exactnormal32loader6105/profilefb35/outer70fd59cd and extra03loaderb98/profile8b00/outer966a665 preparation/source admissions; completedcontractreview is notrepeated. Allnormal32/additional32nativeoutcomesremainNOT_STARTED/capacitygated, freshapproval/currentreadback/rootGO required. Finish only ordinarythree-stage/recoveryclosures and stagedC30normal-host-completed readbackfactory admissions/newsourcegates, then actualremainingnative/history qualification. OriginalportableFAIL/heldstate/rawhistory/provenance remainunchanged.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "external_gate_progress27.G11.remaining",
+        "old_value": "Whole native qualification is FAIL for attemptedrun01, with5completed/1attemptedfailed/32laterunexecutedof38plannedactions; independent full nativeadmission remains incomplete. Exacthelperrepair/frozenmetadata reconciliation and remainingnative/recovery/history qualification, capacity/completeownedcapsules, complete layeredrecovery/package/public-saved delivery/readback and F03/F09 historicalcorpus remain. Sourcegate/performance/modeledruntime and actualC27sourcepublication pass only their precise scopes; realexternal profile/AppSec/approval remainblocked.",
+        "new_value": "ExactC25source/performance/modeled-runtime andactualC28source scopes passonlytheirexactdependencies. Reuse exactnormal59cd/additionala665 contract/sourceadmission; native normal32/additional32 outcomesremainNOT_STARTEDwithreceivingcapacitybelow32MiB+64KiB. Ordinarythree-stage/recoveryclosures/C30factory source/application/newpackagegates and actualnative/history/delivery remainrequired. F03/F09historicalmissingcorpus, realexternalprofile/AppSec/accountableapproval remainblocked.",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "external_gate_progress27.G07.source_branch_publication",
+        "old_value": "PASS_EXACT_C27_SCOPE",
+        "new_value": "PASS_EXACT_C28_SCOPE",
+        "old_value_observed_source_commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      }
+    ]
+  },
+  "source_branch_publication29": {
+    "status": "PASS",
+    "scope": "Observed C28 source/documentation publication and independent binding only; currentC29 commit/publication is PENDING.",
+    "commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+    "tree": "9ceaa3d87f7ce68d72c215c73d79b8cf9bd0be4f",
+    "parent": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+    "receipts": {
+      "checkpoint28_commit": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-28.json",
+        "bytes": 5367,
+        "sha256": "7003124ea80340f207e71e1519d21c002111412d83740a46baadc6796a404123"
+      },
+      "checkpoint28_publication": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/source-branch-publication-20261011-03/RECEIPT.json",
+        "bytes": 1242,
+        "sha256": "8462f1bdcaa91651647455edc13c28a4e4fd8cee66de3ea33f642dced5e957ec"
+      },
+      "checkpoint28_readback": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/source-branch-publication-20261011-03/PUBLIC-DOCUMENTATION-READBACK.json",
+        "bytes": 11894,
+        "sha256": "3ad2c4511b4f413861914fe9a5a8ea801163c9685069a22c21cec721fbb1eb15"
+      },
+      "checkpoint28_independent_binding": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint28-public-docs-delta-01/commit-binding-01/PUBLIC-COMMIT-BINDING.json",
+        "bytes": 9190,
+        "sha256": "6c089914c910808c8816400182c23170b7efdb96f8eb6d61e2f8fa95274bff52"
+      }
+    },
+    "anonymous_HTTP_readbacks": 17,
+    "independent_binding_reader_assertions": 51,
+    "counts": "Documentation/readback assertions overlap; no product/native test increments.",
+    "main_unchanged": "4ba077d93fecbf5f893ee13ef972c839cf13883d",
+    "C29_publication": "PENDING_ROOT_COMMIT_PUSH_READBACK"
+  },
+  "qualification_preparation_increment29": {
+    "status": "IMPLEMENTED",
+    "engineering_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "observed_docs_revision": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+    "original_native_result": "FAIL_UNCHANGED",
+    "original_native_counts": {
+      "planned_actions": 38,
+      "attempted_actions": 6,
+      "completed_actions": 5,
+      "not_attempted_actions": 32
+    },
+    "original_sixth": "PolicyPUT204/assignment403/state13unchanged/outcome_unknown/heldlease/tworeservations; expectedfaultFINAL/cleanupPASS doesnotcloseportableFAIL or unknownoperation.",
+    "root_cause": "Two producer broker_attempts SQL tuple fields do not match strictJSON arrays; convert only each orderedrow tolist. Strictlinker unchanged; original rawreceipt and failedportable kept.",
+    "receipts": {
+      "checkpoint28_commit": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-28.json",
+        "bytes": 5367,
+        "sha256": "7003124ea80340f207e71e1519d21c002111412d83740a46baadc6796a404123"
+      },
+      "checkpoint28_publication": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/source-branch-publication-20261011-03/RECEIPT.json",
+        "bytes": 1242,
+        "sha256": "8462f1bdcaa91651647455edc13c28a4e4fd8cee66de3ea33f642dced5e957ec"
+      },
+      "checkpoint28_readback": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/source-branch-publication-20261011-03/PUBLIC-DOCUMENTATION-READBACK.json",
+        "bytes": 11894,
+        "sha256": "3ad2c4511b4f413861914fe9a5a8ea801163c9685069a22c21cec721fbb1eb15"
+      },
+      "checkpoint28_independent_binding": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint28-public-docs-delta-01/commit-binding-01/PUBLIC-COMMIT-BINDING.json",
+        "bytes": 9190,
+        "sha256": "6c089914c910808c8816400182c23170b7efdb96f8eb6d61e2f8fa95274bff52"
+      },
+      "first_producer_repair": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-attempt-row-repair-01/RESULT.json",
+        "bytes": 7955,
+        "sha256": "f4155798eac5fa5eac13d442fcc045758e971beff2e5d6f09ab488624c843039"
+      },
+      "second_producer_repair": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-second-attempt-row-repair-01/RESULT.json",
+        "bytes": 2220,
+        "sha256": "b8fe17c9664e404dfb40b0fc461fe141ff728b0030bf14e8ee702c54656e6535"
+      },
+      "recovery_witness_public": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/fault-recovery-input-witness-01/PUBLIC-METADATA.json",
+        "bytes": 1303,
+        "sha256": "6916e9040afdc2c5b8cadcd895d3d6640d00ff3788f524d0c616b82288af797b"
+      },
+      "extra_modes_public": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/remaining-native-modes-01/PUBLIC-METADATA.json",
+        "bytes": 3249,
+        "sha256": "63c49f4258bc99b1a3e1c70ceb149a31f601ee0ca0471f79257ee9685a574586"
+      },
+      "extra_convergence_public": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/remaining-native-modes-convergence-02/PUBLIC-METADATA.json",
+        "bytes": 2028,
+        "sha256": "f60d0a545ccba885a323de5be2b38f2bd34391e31253ac4d6422351305a992a4"
+      },
+      "normal_final_admission": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/ADMISSION.json",
+        "bytes": 3780,
+        "sha256": "59cd0d80ba7495b5c6383ea055e92d394c93551a5fe0f7d79a1b45fbdbf88c93"
+      },
+      "normal_public_source_review": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/public-text-and-minimal-patch-05.json",
+        "bytes": 5220,
+        "sha256": "96d2e0a3249aeb174f8dec375a642551bdf8f4fc4d3e1791bc60cb7bab07e1a1"
+      },
+      "closed_control_index": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/RECEIPT-INDEX.json",
+        "bytes": 4204,
+        "sha256": "c4f62b09db11c40d5f70afa9c856e84a2d0b6ef61bfc0c2d7250c2542d38fa50"
+      },
+      "private_preparation_preservation": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/private-preparation-preservation-20261011-01/RESULT.json",
+        "bytes": 2536,
+        "sha256": "ba2b07cb6edca6ef1d71e593f32581d924451b2e083cad6dbdf529126c7b3039"
+      },
+      "companion_reader_public": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-current-reader-20261011-01/PUBLIC-METADATA.json",
+        "bytes": 2210,
+        "sha256": "983d1e7055646682ed80cc5221f98a6ddadad799b0af0997b6cef1f915fd07b0"
+      },
+      "companion_C28_stage": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-stage-C28-20261011-01/PUBLIC-STAGE-REVIEW.json",
+        "bytes": 29346,
+        "sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b"
+      },
+      "companion_C28_prior_interface": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-stage-C28-20261011-01/PRIOR-INTERFACE-QUALIFICATION.json",
+        "bytes": 1515,
+        "sha256": "c7d09b69efd36fc5745de6d8790993d8ba0e49cb8362b3e6674d2d3d665924e5"
+      },
+      "external_readiness": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/EXTERNAL-READINESS-20261011-22.json",
+        "bytes": 618,
+        "sha256": "535e0d7809646fe50c3ef05b5a8f63914ed33170e075195875777243f644bd14"
+      },
+      "external_readiness_time_correction": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/EXTERNAL-READINESS-TIME-CORRECTION-20261011-22.json",
+        "bytes": 814,
+        "sha256": "896f9cd9193329374dd71e0187704741f104885742080a16958fcf39a369567a"
+      },
+      "normal_author_checkpoint": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/CHECKPOINT05.md",
+        "bytes": 6688,
+        "sha256": "f9fef6c1deb4e6c4cde8a06328748c5c4c783559d89963fc10a455659f187c56"
+      },
+      "extra_author_controls": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/AUTHOR-ADDITIONAL-MODES02.json",
+        "bytes": 14303,
+        "sha256": "0d1526e78b9b126c0933182521db66ea4f44ff7931a89c10d2f134894394979b"
+      },
+      "before-closure-01": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/before-closure-01.json",
+        "bytes": 2145,
+        "sha256": "9b8d7e5e8ea9ccec4c8d32d7952de5a3d513b169d5b8ef66e8c0b276bfc65532"
+      },
+      "after-closure-02": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/after-closure-02.json",
+        "bytes": 2174,
+        "sha256": "f6c3f523c4341e200c7c12cdcf695af5d2daa338c5f5bb0e9e5f0d133a5d1eaa"
+      },
+      "before-route-types-03": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/before-route-types-03.json",
+        "bytes": 1206,
+        "sha256": "db2124fae33bbe53f70537b35a72236bd41402303c06a87ab078ced42925ae0e"
+      },
+      "after-route-types-04": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/after-route-types-04.json",
+        "bytes": 1201,
+        "sha256": "83ee3f5de93571b32dee68ab4308cc83aa545152fa269c2f2b22c18638a3cdbd"
+      },
+      "after-closure-04": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/after-closure-04.json",
+        "bytes": 2234,
+        "sha256": "72ee2452fe33ad7c66ba6b697dfd52976b26955c792a8ce03ad5223283155c33"
+      },
+      "profile-admission-04": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/profile-admission-04.json",
+        "bytes": 5352,
+        "sha256": "854ecbf75c6a0800e14f4be65d7d1618efbfb266f6ce6f52546184d27a11ea50"
+      },
+      "outer-preparation-05": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/outer-preparation-05.json",
+        "bytes": 5167,
+        "sha256": "95e065e6e0ef1c22c314291d61237769d8f830ebd5764e5c76b5a109ddbb5d27"
+      },
+      "snapshot-order-before-after-05": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/snapshot-order-before-after-05.json",
+        "bytes": 1588,
+        "sha256": "7d8bfbf890607c03acddee26b6b718a7e717ec310b4dc0df674a5344fe65bd00"
+      },
+      "outer-admission-contract-05": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/outer-admission-contract-05.json",
+        "bytes": 2489,
+        "sha256": "718046cc1a94fe63470602fe5cd2f346ccae8164e5a712f5cd8dc79d3f3ba589"
+      }
+    },
+    "normal32": {
+      "status": "IMPLEMENTED",
+      "evidence_admission": "PASS_SCOPED_PREPARATION_AND_SELECTED_PUBLIC_TEXT_NO_NATIVE_GO",
+      "fixed_actions": 32,
+      "loader_sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3",
+      "profile_sha256": "fb35b21001e4e25073bbe6cffb66db037cc62105a0a0e4fbb116ff0736993d8c",
+      "reuse_sha256": "86722a4dddace883d655d5fae0eec79f895a13e9e9fd350e3d6647911a9f0f3b",
+      "outer_sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b",
+      "configuration_sha256": "c0974c00fc8bd70b62d890c324a4315015ef64ce4e6792ab52b8c2667c3c59e4",
+      "plan_sha256": "5cf87344cd472528a8b82d98ef33502c7e9ffb87dde39f268c3fc20a1718db76",
+      "native_dispatches": 0,
+      "actual_journey_status": "BLOCKED",
+      "limitations": "Exact source/read-only/metadata controls only. Fresh recoveryapproval/currentreadback/rootGO and adequatepersistentcapacity required. No failedoriginal genericreceipt reuse or consumedapply/release replay."
+    },
+    "extra32": {
+      "status": "IMPLEMENTED",
+      "procedure_status": "PREPARED_NOT_EXECUTED",
+      "fault_cases": 8,
+      "seed_release_actions": 20,
+      "convergence_history_actions": 12,
+      "total_prepared_actions": 32,
+      "author_admission": "PASS_AUTHOR_PURE_PREPARATION_ONLY",
+      "independent_final_admission": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/fresh-modes-candidate03-20261011-01/PUBLIC-ADMISSION.json",
+        "bytes": 9246,
+        "sha256": "a665e0c0cb23ee436f0535f41117bbd426f99f7b34eb6fe823a1fce6586a52bc"
+      },
+      "native_dispatches": 0,
+      "limitation": "Actualfullmetadata03passesafteronly3route-localreferencesrename;02Namespace-shadowAttributeErrorFAILandearlierreviewerboundaryfailurepreserved. Detached/in-memoryadmissiondoesnotgrantrootGO. All32nativeactionsNOT_STARTED; normal32andordinary3stageseparate.",
+      "independent_status": "PASS_SCOPED_READONLY_AND_DETACHED_FRESH_MODE_CONTRACT",
+      "current_loader": {
+        "bytes": 52893,
+        "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/loader/qualify_fresh_modes.py",
+        "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8"
+      },
+      "current_profile": {
+        "bytes": 671428,
+        "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/profile.json",
+        "sha256": "8b00a57469e7580191dfc012d8bd7cb38f611b5539d7de8d2d7e89dfa08e834d"
+      },
+      "current_outer": {
+        "bytes": 60627,
+        "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/orchestrate-fresh-modes.py",
+        "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8"
+      },
+      "current_configuration": {
+        "bytes": 2128,
+        "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/CONFIGURATION.json",
+        "sha256": "72974a7b901075df0c1ead10e3ca2ac7b19c5c6b1ee508f67da2f6bac5ae4173"
+      },
+      "current_route_manifest": {
+        "bytes": 25777,
+        "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/bundle/inputs/fresh-recovery-mode-routes.json",
+        "sha256": "e497afc192fb77d99849c40599e179c86622b3bde176112a91135a61e663631b"
+      },
+      "current_fixed_prepared": {
+        "bytes": 33767,
+        "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/PREPARED.json",
+        "sha256": "5d206e592ecea07b37d17ed0c9892b9fd6a47437c5015848f431a25b0bd2eb6d"
+      },
+      "read_only_metadata_assertions": 325,
+      "detached_negative_controls": 100,
+      "preserved_candidate02_FAIL": {
+        "bytes": 3840,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/fresh-modes-candidate02-20261011-01/PUBLIC-REVIEW-FAIL.json",
+        "sha256": "5f3b971f890cada14fc3c61b72cb668edb0aa97363abba9f51714c6806b4fc6d"
+      },
+      "actual_journey_status": "NOT_STARTED"
+    },
+    "ordinary_three_stage_work": {
+      "status": "IMPLEMENTED",
+      "candidate_status": "ONGOING_CANDIDATE_REVISIONS_NOT_FINAL_ADMITTED",
+      "ids": [
+        "ordinary-cancel-acquisition",
+        "ordinary-cancel-policy-response",
+        "ordinary-evidence-recording-interruption"
+      ],
+      "actual_native_status": "NOT_STARTED",
+      "limitation": "Exactcandidate03/status/query/recoveryclosure review pending. Initialreviewer parsedURI hypothesis was DISPROVED because actualfixturejournals retain fullURI including?comp=lease; preserve originalfinding/correction, nevercallitnative or product failing-before evidence."
+    },
+    "counts": "Producer/closure/profile/outer/source/reader controls overlap; no addition to2307strict,64connected or original38nativeaction counts."
+  },
+  "private_preparation_preservation29": {
+    "status": "PASS",
+    "scope": "Selected ownedprivate preparation preservation/readback only; no native/platform/recovery success. OriginalprivateRESULT/capsule notpublic-cleared.",
+    "receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/private-preparation-preservation-20261011-01/RESULT.json",
+      "bytes": 2536,
+      "sha256": "ba2b07cb6edca6ef1d71e593f32581d924451b2e083cad6dbdf529126c7b3039"
+    },
+    "artifact": {
+      "bytes": 322348,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/private-preparation-preservation-20261011-01/PRIVATE-PREPARATION.tar.xz",
+      "sha256": "d8b82641aebd4311074d75b0f6a53060a554f2c99fa07969577040c9a5a8a660"
+    },
+    "owned_roots": 22,
+    "typed_nodes": 446,
+    "archive_members": 154,
+    "unique_payload_blobs": 153,
+    "literal_links_followed": 0,
+    "source_preparations_unchanged": true,
+    "explicit_omissions": "Tools/fullsource/currentoriginalcorpus/archives/nativefailedraw/witness raw are exact external dependency references, notduplicated. Active timing/review revisions are separate. Missing historical265roots/39refs notrestored. Metadata-only specialnodes cannotrestoreIPC.",
+    "public_disposition": {
+      "status": "PASS_SCOPED_SANITIZED_DESCRIPTOR_ONLY",
+      "source_review": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/selected-public-text-01.json",
+        "bytes": 3582,
+        "sha256": "b7a07b7022d95471e215430d7295d221007de5531241ebfd2e9b815872facc72"
+      },
+      "descriptor_sha256": "f8bbd67e5fda305fa5e763e894c1753142c60d0dbfcf7cd7941cc544ef0e2747",
+      "scope": "Exactsanitized1592-byte identity/counts/omissions only. PrivateRESULT/archive/membermanifest/profileinputs/raw remain NOT_PUBLIC; no newarchiveextraction or nativeproof."
+    },
+    "native_capacity_gate_waived": false
+  },
+  "companion_preparation29": {
+    "status": "IMPLEMENTED",
+    "reader_scope": "0b8ea repair independently admits only currentmetadata-reader linkage; originalf3a actualfailure preserved, C27complete-RESULT semantics retained, C28wholepublicdelta bound.2readonlyvalidatepositives/22negatives/48Gitpins nonadditive.",
+    "reader_public_metadata": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-current-reader-20261011-01/PUBLIC-METADATA.json",
+      "bytes": 2210,
+      "sha256": "983d1e7055646682ed80cc5221f98a6ddadad799b0af0997b6cef1f915fd07b0"
+    },
+    "C28_selection_scope": "Exactinert79files at selectionb2802d75f367b89adc6903f22d49a9d36e2290bde0249d60bd7f61473fc06ea1 independently admitted, notpublished;45currentpublicmetadata and all62priorbytes retained with6changedprevious artifacts explicitlypreserved.",
+    "C28_admission": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-stage-C28-20261011-01/PUBLIC-STAGE-REVIEW.json",
+      "bytes": 29346,
+      "sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b"
+    },
+    "C28_prior_interface": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-stage-C28-20261011-01/PRIOR-INTERFACE-QUALIFICATION.json",
+      "bytes": 1515,
+      "sha256": "c7d09b69efd36fc5745de6d8790993d8ba0e49cb8362b3e6674d2d3d665924e5"
+    },
+    "C29_selection": "PENDING_AFTER_EXACT_FINAL_C29_SOURCE_COMMIT",
+    "publication": "NOT_STARTED",
+    "uncleared_source_work": "Exactreader0b8esource-text/sanitizedf8bbdescriptoradmittedb7a; publisher04/3f13exact14929bytesandPUB01–04guardsadmittedd219. FutureactualC29selection/apply/Gitcommit/push/anonymousHTTPreadback remainindependentlygated. Originalf3a reader,906publisher02 andpathbeforefindingsarepreserved; nofuturepayloadorblanketpublicationclearance.",
+    "limitations": "No newnative/product/HTTP/publication/fullprivatecorpus recovery claim.",
+    "reader_source_admission": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/selected-public-text-01.json",
+      "bytes": 3582,
+      "sha256": "b7a07b7022d95471e215430d7295d221007de5531241ebfd2e9b815872facc72"
+    },
+    "publisher_source_admission": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/PUBLISHER-04-ADMISSION.json",
+      "bytes": 5256,
+      "sha256": "d219e05359f9326f9e2992bf30b2dbddffa916532053111426a06c2a15aef672"
+    },
+    "publisher_exact_source": {
+      "bytes": 14929,
+      "path": "/tmp/intune-r4-companion-refresh-20261011/publish_admitted_companion04.py",
+      "sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e"
+    },
+    "publisher_guards_scope": "PUB01primaryexceptionpreserved iffailure-reportwritefails;PUB02inheritedGitenvironmentscrubbed/fixedgitdir-worktree/stderrhashlength;PUB03exacteffectivefetch/pushURL/repo;PUB04literalroot/.git/ancestorandfixedprefixdirectoryguards.12detached+8literalpathfixtures,notnewapplicationcounts.",
+    "publisher_actual_C28_readonly_validation": {
+      "admission_sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b",
+      "checkpoint": 28,
+      "driver_sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e",
+      "mode": "validate",
+      "prepared": {
+        "bytes": 15467,
+        "path": "/tmp/intune-companion-delivery-validate-C28-04/PREPARED.json",
+        "sha256": "9116f60bac01d2e0a6e1c4b953677506600b1893aa253ff166ec5d4cee58aeed"
+      },
+      "receipt": {
+        "bytes": 15463,
+        "path": "/tmp/intune-companion-delivery-validate-C28-04/RECEIPT.json",
+        "sha256": "aae7b304a790bcc85adc4eb5f5b351ef37eb653076474a7d4c69a8ed872e1441"
+      },
+      "scope": "Root-owned existing exact physical/admitted/prospective-Git-byte validation. Reused unchanged; this reviewer did not repeat actual validator or selected ZIP qualification.",
+      "selected_files": 79,
+      "selection_sha256": "b2802d75f367b89adc6903f22d49a9d36e2290bde0249d60bd7f61473fc06ea1",
+      "status": "PASS"
+    }
+  },
+  "external_capability_reassessment29": {
+    "status": "BLOCKED",
+    "measured_observation_interval_UTC": [
+      "2026-10-11 22:18:05 UTC",
+      "2026-10-11 22:19:44 UTC"
+    ],
+    "original_timestamp": "Estimated22:19:00Z remains originalreceipt; correctionrecordsmeasuredinterval.",
+    "receipts": {
+      "external_readiness": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/EXTERNAL-READINESS-20261011-22.json",
+        "bytes": 618,
+        "sha256": "535e0d7809646fe50c3ef05b5a8f63914ed33170e075195875777243f644bd14"
+      },
+      "external_readiness_time_correction": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/EXTERNAL-READINESS-TIME-CORRECTION-20261011-22.json",
+        "bytes": 814,
+        "sha256": "896f9cd9193329374dd71e0187704741f104885742080a16958fcf39a369567a"
+      }
+    },
+    "actual_configuration": "Spec114/running; declaredcapabilities,secrets,outboundidentities,runtimevariables all empty. Network doesnotestablishrealreceivingtenant/principal/host/CI/device routes.",
+    "activation_or_credentials_provisioned": false
+  },
+  "native_capacity_blocker29": {
+    "status": "BLOCKED",
+    "observed_at": "2026-10-11T22:31:00.412544+00:00",
+    "workspace_available_bytes": 31191040,
+    "required_native_receiving_bytes": 33619968,
+    "requested_existing_authorized_private_space_bytes": 268435456,
+    "owner": "Existing private persistent-storage coordinator/user; root exactconfiguration/admission and nativeGO owner",
+    "completed_preparation": "Exactindependentnormal32 59cd and additional03a665 source/contract admissions, reviewedreader/publisher sources andselectedtypedprivate22rootpreservation; originalheldstate historicalwitness. Allrequirednativeoutcomesunexecuted; ordinarythree-stage/C30factory admissionsremainpending.",
+    "procedure": "Provide existingauthorizedprivate receivinglocation with>=256MiBfree, ownership/no-follow/retention boundaries; root restagesbyteexactprivatepreparations/dependencyreferences, changesreceivingconfiguration withnewdigest/review, checks>=32MiB+64KiBbeforeoutputs/snapshots and eachaction, obtainsfresh recoveryapproval/currentreadback and independently pinnedrootGO.",
+    "limitation": "No pruning/deletinghistoricalinputs, newpaidstorage, reserveweakening, publicrawupload or implicitprivatecredentials authority. Storage doesnotblockindependentcode/source/metadata reviews."
+  },
+  "requirement_evidence_increment29": [
+    {
+      "id": "C29-PRODUCER-01",
+      "description": "Ordered typedSQLrow producer encoding at two externalqualification sites; mapsB08/B13/F01",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "PASS",
+      "evidence_class": "Independent detached/source exactbeforeafter repair",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "f4155798eac5fa5eac13d442fcc045758e971beff2e5d6f09ab488624c843039",
+      "test_procedure_id": "f4155798/b8fe17c9",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-attempt-row-repair-01/RESULT.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "First21controls and reusedsecondAST/siteproof only; strictlinker unchanged; originalnativeFAIL unchanged.",
+      "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+      "blocker_owner": "Qualification helper author/root/native reader"
+    },
+    {
+      "id": "C29-RECEIPT-INPUT-TYPE",
+      "description": "NC01–03 exactnewreceiptroute/root and completeinputnamespace, typedfalsevs0/0.0",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "PASS",
+      "evidence_class": "Independent detachedbeforeafter controls",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "c4f62b09db11c40d5f70afa9c856e84a2d0b6ef61bfc0c2d7250c2542d38fa50",
+      "test_procedure_id": "closed-controls04",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/RECEIPT-INDEX.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "Partial3082passfollowedbyNC03FAILpreserved; final6105 guardsqualifyonlytestedcontract.",
+      "next_action": "Retainknownbadcontrols; qualifiednative outcomes remainrequired.",
+      "blocker_owner": "Independent source reviewer/root"
+    },
+    {
+      "id": "C29-NORMAL-PREP",
+      "description": "Exactnormal32profile04/outer05 preparation and selectedpublicsource",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "PASS",
+      "evidence_class": "Independentactualread-onlyprofile/snapshot/metadata controls and source-textreview",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "59cd0d80ba7495b5c6383ea055e92d394c93551a5fe0f7d79a1b45fbdbf88c93",
+      "test_procedure_id": "normal-final05",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/ADMISSION.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "0native dispatch;20profilenegatives/6outer/12metadata and snapshot probes overlap,notadditive; no production approval.",
+      "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+      "blocker_owner": "Root/private storage owner"
+    },
+    {
+      "id": "C29-HELD-RECOVERY-WITNESS",
+      "description": "Originalheldstate andhistoricalsignature recoveryinput",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "PASS",
+      "evidence_class": "Independenthistoricalmetadata/copiedSQL/public-key-only verification",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "6916e9040afdc2c5b8cadcd895d3d6640d00ff3788f524d0c616b82288af797b",
+      "test_procedure_id": "fault-recovery-input-witness01",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/fault-recovery-input-witness-01/PUBLIC-METADATA.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "57readerassertions/6cryptocommands/10readercontrols notnativeorcurrentpermission; originalapprovalexpired.",
+      "next_action": "Freshapproval/currentreadback and explicitreviewedrecovery,neverconsumedapplyreplay.",
+      "blocker_owner": "Root/native reader"
+    },
+    {
+      "id": "C29-NATIVE-NORMAL32",
+      "description": "Actualreviewednative normalcontinuation/recovery/intent/convergence/history",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "BLOCKED",
+      "evidence_class": "Preparedactualinterfaces; executionunperformed",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "5cf87344cd472528a8b82d98ef33502c7e9ffb87dde39f268c3fc20a1718db76",
+      "test_procedure_id": "normal32fixedplan",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/ADMISSION.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "Requiredreceivingspacebelow32MiB+64KiB; freshapproval/readback/rootGO absent; originalnativeFAIL remains.",
+      "next_action": "Reuse completed exactC25source/performance/modeled-runtime, focusedproducer/NC01–03 and normal32/extra03 preparation/source admissions; no rerun or repeatreview absentrelevantchange. Extra03a665 is alreadyadmitted; allnormal32/additional32nativeoutcomes remainNOT_STARTED/capacitygated. Obtain existingauthorizedprivatepersistentcapacity>=256MiBfree, restage/readback exactselectedpreparations/dependencyreferences and receivingconfiguration/admission, freshrecoveryapproval/currentheldreadback/rootGO, then once-onlynative qualification withoutconsumedapply/release replay. Finish only ordinarythree-stage/recoveryclosure and stagedC30normal-host-completedfactory admissions, independentbeforeafter/appjourneys/newsource/packagegates; complete remainingnative/history/delivery and realexternal procedures.",
+      "blocker_owner": "Private storage coordinator/user and root"
+    },
+    {
+      "id": "C29-ADDITIONAL32",
+      "description": "Eightadditional abnormaltiming cohorts with20seed/release+12convergence/history",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "IMPLEMENTED",
+      "evidence_class": "Independentactualmetadata/detached/source-textadmission, actualnativeunexecuted",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "a665e0c0cb23ee436f0535f41117bbd426f99f7b34eb6fe823a1fce6586a52bc",
+      "test_procedure_id": "fresh-modes-candidate03",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/fresh-modes-candidate03-20261011-01/PUBLIC-ADMISSION.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "325metadata/100negatives scopednonadditive; all32nativeactionsNOT_STARTED; otherordinarytiming/corefactorygaps separate.",
+      "next_action": "Retain02actualAttributeErrorFAIL, freshcohort/fulltypedargv controls; adequatecapacity/freshapproval/exactrootGO thenactualnativeoutcomes.",
+      "blocker_owner": "Author/independent native reader/root"
+    },
+    {
+      "id": "C29-PRIVATE-PRESERVATION",
+      "description": "Preserveexactcurrentselectedprivate preparations",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "PASS",
+      "evidence_class": "Typedselectednamespace andeverypayloadblob readback",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "d8b82641aebd4311074d75b0f6a53060a554f2c99fa07969577040c9a5a8a660",
+      "test_procedure_id": "private-preparation-preservation01",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/private-preparation-preservation-20261011-01/RESULT.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "Selected22roots/446nodes only; fullprivatecorpus/IPCrestore andhistorical265/39 gaps remain.",
+      "next_action": "Preservecapsuleprivately; separatelyadmit sanitizeddescriptor and lateractiveversions.",
+      "blocker_owner": "Root/private storage owner"
+    },
+    {
+      "id": "C29-COMPANION",
+      "description": "Preparecurrentmetadata reader andexactC28inert79-fileselection",
+      "required_profile": "Linux native synthetic protected-laboratory qualification preparation; requirednative outcomes/external profile separate",
+      "status": "IMPLEMENTED",
+      "evidence_class": "Independentread-onlymetadata/sourceGit selection",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b",
+      "test_procedure_id": "companion-stage-C28",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-stage-C28-20261011-01/PUBLIC-STAGE-REVIEW.json",
+      "environment": "CurrentLinux/Python isolatedread-only/detachedfixturecontrols; synthetic nonforwardnative target onlywhen laterauthorized",
+      "limitation": "Selectionadmissionisnotpublication; C29finalsource/selection/readback remainsfuture.",
+      "next_action": "RefreshonlyafterexactC29commit; reviewpublisher/source andpublish/readbackwithinexistingauthority.",
+      "blocker_owner": "Root/publication reviewer"
+    },
+    {
+      "id": "C29-NORMAL-HOST-READBACK",
+      "description": "Knownhostcompleted/normalleasereleasedarchivefailure restart-readbackfactory; mapsB08/B13/F01",
+      "required_profile": "Protectedworkerpersistent recovery/native laboratory andfutureauthorizedliveprofile",
+      "status": "NOT_STARTED",
+      "evidence_class": "Focusedsourceinspection/consequentialmissingbehavior; actualnegativepending",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "CurrentC25; newcorecandidatequalificationwillbeseparate",
+      "artifact_sha256": "b703a2ca11528c1f38aedbaf901e7e7c7b4732cf7592b1d64f1b7ccf7ee158f9",
+      "test_procedure_id": "normal-host-completed-factory-gap",
+      "evidence_path": "/workspace/intune-continuation/work/projects/intune/intune_iac/worker_committed_readback.py",
+      "environment": "Currentunchangedsource inspection; no native/product run",
+      "limitation": "Existingexceptionalcompletioncollectisvalidforitsnarrowrecoverycontractbutdoesnotsupplynormalcompletionrestartfactory. Do notfakeexceptionalreleaseorborrowsuitePASSfornewcode.",
+      "next_action": "Implementdistinctvalidatednormal-host-completedcollectionfactory/corecommandinaseparatestagedcandidate; retainexistingstrictrecoverycompletionrules. Obtainindependentfailing-before/passing-afterandactualreadback/recoveryjourney,thenrequiredgatesandnewexactpackagesafterintegration.",
+      "blocker_owner": "Coreimplementationauthor/root/independentreviewer"
+    }
+  ],
+  "normal_source_public_selection29": {
+    "status": "PASS",
+    "scope": "Exactsix admittednormal-loader/outer/source-disposition andminimalproducerdelta filesonly; finalC29branchselection/readback pending.",
+    "review": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/public-text-and-minimal-patch-05.json",
+      "bytes": 5220,
+      "sha256": "96d2e0a3249aeb174f8dec375a642551bdf8f4fc4d3e1791bc60cb7bab07e1a1"
+    },
+    "files": [
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-loader.py.txt",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-01/public-candidates/normal32/closed-native-continuation-loader.py.txt",
+          "bytes": 60974,
+          "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-continuation-public-source-20261011-03/closed-native-continuation-loader.py.txt",
+          "bytes": 60974,
+          "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3"
+        },
+        "scope": "Exactspecificallyadmitted96d2 source-text/minimaldelta/scope metadata; outsideC25runtime. No privateprofile/creator/helpers/raw/keys/GO clearance."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-outer.py.txt",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-01/public-candidates/normal32/closed-native-continuation-outer.py.txt",
+          "bytes": 63040,
+          "sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-continuation-public-source-20261011-03/closed-native-continuation-outer.py.txt",
+          "bytes": 63040,
+          "sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b"
+        },
+        "scope": "Exactspecificallyadmitted96d2 source-text/minimaldelta/scope metadata; outsideC25runtime. No privateprofile/creator/helpers/raw/keys/GO clearance."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/README.md",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-01/public-candidates/normal32/README.md",
+          "bytes": 2586,
+          "sha256": "603ce904acd484b6f0707ea84d08c21dc3032bc642f460c9694d013b83f7b628"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-continuation-public-source-20261011-03/README.md",
+          "bytes": 2586,
+          "sha256": "603ce904acd484b6f0707ea84d08c21dc3032bc642f460c9694d013b83f7b628"
+        },
+        "scope": "Exactspecificallyadmitted96d2 source-text/minimaldelta/scope metadata; outsideC25runtime. No privateprofile/creator/helpers/raw/keys/GO clearance."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/SOURCE-DISPOSITION.json",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-01/public-candidates/normal32/SOURCE-DISPOSITION.json",
+          "bytes": 2038,
+          "sha256": "7256b80cb0ae24aa460910aa8959580ad2f1df6c68eabd029838cb7f4e509f8a"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-continuation-public-source-20261011-03/SOURCE-DISPOSITION.json",
+          "bytes": 2038,
+          "sha256": "7256b80cb0ae24aa460910aa8959580ad2f1df6c68eabd029838cb7f4e509f8a"
+        },
+        "scope": "Exactspecificallyadmitted96d2 source-text/minimaldelta/scope metadata; outsideC25runtime. No privateprofile/creator/helpers/raw/keys/GO clearance."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-repair.md",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-01/public-candidates/producer-repair/ordinary-fault-producer-repair.md",
+          "bytes": 2966,
+          "sha256": "45e3499bef17b7b453a251d3bada16b662a269e356e94ad1c6b79be6d13e0109"
+        },
+        "source": {
+          "path": "/tmp/intune-r4-companion-refresh-20261011/producer-patch-preparation-01/ordinary-fault-producer-repair.md",
+          "bytes": 2966,
+          "sha256": "45e3499bef17b7b453a251d3bada16b662a269e356e94ad1c6b79be6d13e0109"
+        },
+        "scope": "Exactspecificallyadmitted96d2 source-text/minimaldelta/scope metadata; outsideC25runtime. No privateprofile/creator/helpers/raw/keys/GO clearance."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-source-disposition.json",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-01/public-candidates/producer-repair/ordinary-fault-producer-source-disposition.json",
+          "bytes": 4146,
+          "sha256": "0341a213c4125709906c3904e203a5d11d98daed174628ac0982683dedabd894"
+        },
+        "source": {
+          "path": "/tmp/intune-r4-companion-refresh-20261011/producer-patch-preparation-01/ordinary-fault-producer-source-disposition.json",
+          "bytes": 4146,
+          "sha256": "0341a213c4125709906c3904e203a5d11d98daed174628ac0982683dedabd894"
+        },
+        "scope": "Exactspecificallyadmitted96d2 source-text/minimaldelta/scope metadata; outsideC25runtime. No privateprofile/creator/helpers/raw/keys/GO clearance."
+      }
+    ],
+    "producer_MD_footer_scope": "Exactauthored45e349footer saysrecommendation/reviewpending atpreparationtime. Current96d2/59cd admission governs selectedsource scope; preserveoldtext,donotclaimcurrentpending or entirehelperclearance."
+  },
+  "pending_public_source_admissions29": {
+    "status": "BLOCKED",
+    "scope": "Normal32/additional03/reader/publisher04/sanitizeddescriptor selectedpublicsourceadmissions arecompleteonlyattheirexactpins; ordinarytiming/recovery/corefactorynewcandidatesandfutureselection/privatepayloads arenotapprovedhere.",
+    "candidates": [
+      {
+        "kind": "Ordinarythree-stagefinalhelper/status/query/recoveryclosure code/profiles",
+        "status": "ONGOING_REVISIONS_NOT_FINAL_ADMITTED"
+      },
+      {
+        "kind": "Newcoreknown-host-completed-normal-release readbackfactory",
+        "status": "STAGED_SEPARATE_C30_CANDIDATE_AND_QUALIFICATION_REQUIRED"
+      }
+    ],
+    "owner": "Independent source/publication reviewers and root"
+  },
+  "selected_delivery_public_source29": {
+    "status": "PASS",
+    "scope": "Exacttwo selected reader-source-text/sanitizeddescriptor files; no privatearchive/profile/membermanifest or futurepublisher/publication qualification.",
+    "review": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/selected-public-text-01.json",
+      "bytes": 3582,
+      "sha256": "b7a07b7022d95471e215430d7295d221007de5531241ebfd2e9b815872facc72"
+    },
+    "reader_SHA256": "0b8ea305089a9f1dd724ddfb528f697b7c26c448790b53082da6b373bbabfe5f",
+    "descriptor_SHA256": "f8bbd67e5fda305fa5e763e894c1753142c60d0dbfcf7cd7941cc544ef0e2747",
+    "evidence_reuse": "Unchangedreader24cases/2positives22negatives48Gitpins reusedbyidentity, not rerun oradded; scopedprivatepreservationreceipt checkednot re-extracted."
+  },
+  "additional_source_public_selection29": {
+    "status": "PASS",
+    "scope": "Exactfour additional03 .py.txt/readme/dispositionandpublica665admissiononly; completeprivatebundle/nativeoutcomesnotestablished.",
+    "review": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/fresh-modes-candidate03-20261011-01/PUBLIC-ADMISSION.json",
+      "bytes": 9246,
+      "sha256": "a665e0c0cb23ee436f0535f41117bbd426f99f7b34eb6fe823a1fce6586a52bc"
+    },
+    "public_files": [
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/README.md",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-03/public-candidates/additional32/README.md",
+          "bytes": 2472,
+          "sha256": "f2f689d170e273cb67e01437c284ece2aead6c7995b50c13a655df6f13c947a2"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/README.md",
+          "bytes": 2472,
+          "sha256": "f2f689d170e273cb67e01437c284ece2aead6c7995b50c13a655df6f13c947a2"
+        },
+        "scope": "Exacta665 admittedadditional03documentation-onlysource/scope text, outsideunchangedC25runtime; no privateprofile/helpers/creator/inputs/raw/keys/GOclearance,0native dispatch."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-loader.py.txt",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-03/public-candidates/additional32/fresh-recovery-modes-loader.py.txt",
+          "bytes": 52893,
+          "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/fresh-recovery-modes-loader.py.txt",
+          "bytes": 52893,
+          "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8"
+        },
+        "scope": "Exacta665 admittedadditional03documentation-onlysource/scope text, outsideunchangedC25runtime; no privateprofile/helpers/creator/inputs/raw/keys/GOclearance,0native dispatch."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-outer.py.txt",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-03/public-candidates/additional32/fresh-recovery-modes-outer.py.txt",
+          "bytes": 60627,
+          "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/fresh-recovery-modes-outer.py.txt",
+          "bytes": 60627,
+          "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8"
+        },
+        "scope": "Exacta665 admittedadditional03documentation-onlysource/scope text, outsideunchangedC25runtime; no privateprofile/helpers/creator/inputs/raw/keys/GOclearance,0native dispatch."
+      },
+      {
+        "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/SOURCE-DISPOSITION.json",
+        "candidate": {
+          "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-03/public-candidates/additional32/SOURCE-DISPOSITION.json",
+          "bytes": 2014,
+          "sha256": "530f58268dd962cee85680280ad72d63868b1bc35eadf1285e20b5d1f9a69c2e"
+        },
+        "source": {
+          "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/SOURCE-DISPOSITION.json",
+          "bytes": 2014,
+          "sha256": "530f58268dd962cee85680280ad72d63868b1bc35eadf1285e20b5d1f9a69c2e"
+        },
+        "scope": "Exacta665 admittedadditional03documentation-onlysource/scope text, outsideunchangedC25runtime; no privateprofile/helpers/creator/inputs/raw/keys/GOclearance,0native dispatch."
+      }
+    ],
+    "originalcandidate02_FAIL": {
+      "bytes": 3840,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/fresh-modes-candidate02-20261011-01/PUBLIC-REVIEW-FAIL.json",
+      "sha256": "5f3b971f890cada14fc3c61b72cb668edb0aa97363abba9f51714c6806b4fc6d"
+    }
+  },
+  "new_core_readback_gap29": {
+    "status": "NOT_STARTED",
+    "scope": "MissingbehaviorintheunchangedC25engineeringcandidate; newfixisstagedseparatelyandwillqualifyinC30. Noappnegative/testreceiptisinferredfromsourceinspection.",
+    "actual_entrypoint": "intune_iac.worker_committed_readback.collect",
+    "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "source_file": {
+      "path": "/workspace/intune-continuation/work/projects/intune/intune_iac/worker_committed_readback.py",
+      "bytes": 8423,
+      "sha256": "b703a2ca11528c1f38aedbaf901e7e7c7b4732cf7592b1d64f1b7ccf7ee158f9"
+    },
+    "missing_behavior": "Knownhost-completedoperationwithnormalleasereleasefollowedbyarchivefailurelackssupportedrestartreadbackfactory. Existingcollectconsumesexceptionalcommitted-staterecoverycompletion; itcannotbeusedbyfabricatingexceptionalreleaseevidence.",
+    "next_action": "Implementdistinctvalidatednormal-host-completedcollectionfactory/corecommandinaseparatestagedcandidate; retainexistingstrictrecoverycompletionrules. Obtainindependentfailing-before/passing-afterandactualreadback/recoveryjourney,thenrequiredgatesandnewexactpackagesafterintegration.",
+    "evidence_class": "Focusedsourceinspection/rootconsequentialdiscovery; independentverificationpending",
+    "applicable_revision": "CurrentC25only; anynewcorecandidatecannotborrowold2307globalPASS",
+    "owner": "Coreimplementationauthor/root/independentreviewer"
+  },
+  "draft_review_reconciliation29": {
+    "scope": "Independent03 reviewfound literal stalecurrent next-actions predatinga665 admission.04 changes onlycurrentinstructions andhistoricalnew_value mirrors; originalC28old_values/fullMarkdown and03evidence retained.",
+    "superseded_candidate_delivery": {
+      "path": "/tmp/intune-c29-preparation-docs-proposal-20261011-03/DELIVERY-29-03.json",
+      "bytes": 45119,
+      "sha256": "4145d8e0658614ecf0a35bdab47c381b00cda4c286b5b4a972e9c967fae4637c"
+    },
+    "completed_review_reuse": "Extra03a665 contract/source reviewis complete, not anextaction; its32actualnativeoutcomesremainNOT_STARTED/capacity-gated. Ordinarythree-stage/C30factory admissions andnative qualificationremainpending.",
+    "reviewer_error": "Firstindependentquery requiredcase-sensitiveG13marker, whilecurrentunchangedproviderdenialrecordhadlowercaseg13; reviewerpreserved/correctedqueryerror,notacandidatedefect."
   }
 }

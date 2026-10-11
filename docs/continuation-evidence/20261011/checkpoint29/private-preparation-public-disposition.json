@@ -1,0 +1,34 @@
+{
+  "schema_version": "intune-private-preparation-public-disposition/1",
+  "status": "PUBLIC_METADATA_FOR_PRIVATE_PRESERVATION",
+  "author_public_suitability_recommendation": true,
+  "private_archive_identity": {
+    "bytes": 322348,
+    "sha256": "d8b82641aebd4311074d75b0f6a53060a554f2c99fa07969577040c9a5a8a660"
+  },
+  "private_receipt_identity": {
+    "bytes": 2536,
+    "sha256": "ba2b07cb6edca6ef1d71e593f32581d924451b2e083cad6dbdf529126c7b3039"
+  },
+  "preservation_scope": {
+    "owned_roots": 22,
+    "typed_nodes": 446,
+    "archive_members": 154,
+    "unique_payload_blobs": 153,
+    "literal_links_followed": 0,
+    "source_preparations_unchanged": true,
+    "staged_and_receiving_bytes_verified": true
+  },
+  "native_dispatches": 0,
+  "native_capacity_gate_waived": false,
+  "omissions": [
+    "Private source/profile/helper/creator/input/witness/approval/capture/state/raw fixture bytes and private archive/member manifest are not included in this public descriptor.",
+    "Current source/tool/corpus dependencies use separately retained exact archives, not duplicated payload.",
+    "Active later reviewer and timing preparations were outside this captured freeze and require their own preservation."
+  ],
+  "limitations": [
+    "Metadata-only publication is distinct from private corpus recovery and runnable IPC restoration.",
+    "265 missing historical temporary roots and39 unavailable pinned receipts remain unresolved.",
+    "This is preparation preservation; no new native journey, Windows/live platform qualification, AppSec disposition or production approval."
+  ]
+}

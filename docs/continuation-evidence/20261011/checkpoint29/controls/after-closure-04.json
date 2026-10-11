@@ -1,0 +1,67 @@
+{
+  "candidate": {
+    "bytes": 60974,
+    "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3"
+  },
+  "controls": [
+    {
+      "expected": "ACCEPT",
+      "id": "correct-declared-receipt-route",
+      "observed": "ACCEPT"
+    },
+    {
+      "error": "new receipt must bind exact selected action/root/route and JSON types",
+      "expected": "REJECT",
+      "id": "copied-new-receipt-unlisted-root",
+      "observed": "REJECT"
+    },
+    {
+      "error": "new receipt must bind exact selected action/root/route and JSON types",
+      "expected": "REJECT",
+      "id": "mislabeled-new-receipt-route-id",
+      "observed": "REJECT"
+    },
+    {
+      "error": "new receipt must bind exact selected action/root/route and JSON types",
+      "expected": "REJECT",
+      "id": "substituted-stored-route-row",
+      "observed": "REJECT"
+    },
+    {
+      "error": "new receipt must bind exact selected action/root/route and JSON types",
+      "expected": "REJECT",
+      "id": "missing-stored-route-id",
+      "observed": "REJECT"
+    },
+    {
+      "error": "continuation requires qualified exact action/package",
+      "expected": "REJECT",
+      "id": "portable-fail-never-generic-fallback",
+      "observed": "REJECT"
+    },
+    {
+      "error": "new continuation receipt must identify actual loader/profile/reuse contract",
+      "expected": "REJECT",
+      "id": "wrong-new-profile-pin",
+      "observed": "REJECT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "recheck-exact-declared-input-namespace",
+      "observed": "ACCEPT"
+    },
+    {
+      "error": "input file set changed during qualification",
+      "expected": "REJECT",
+      "id": "recheck-undeclared-input-accepted-before-rejected-after",
+      "observed": "REJECT"
+    }
+  ],
+  "external_process_calls": 0,
+  "native_or_product_operation_calls": 0,
+  "observed_findings": [],
+  "original_profile_or_receipt_mutations": 0,
+  "schema": "independent-closed-continuation-guard-probe/1",
+  "scope": "Detached exact receipt_binding and Profile.recheck contracts with literal synthetic fixture files. Profile namespace check does not construct a full native profile or import tools/engine/helpers.",
+  "status": "PASS_SCOPED_CLOSURE_REPAIR"
+}

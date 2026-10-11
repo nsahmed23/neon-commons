@@ -1,0 +1,181 @@
+{
+  "schema": "anonymous-source-documentation-readback/1",
+  "status": "PASS",
+  "commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "recorded_at": "2026-10-11T22:01:31.805181+00:00",
+  "files": [
+    {
+      "path": "docs/CONTINUATION-R4-LEDGER.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/CONTINUATION-R4-LEDGER.json",
+      "authorization_header_supplied": false,
+      "bytes": 1708390,
+      "sha256": "d1da9c9574121754a434d490dd8009e951efa11b559bf4b0f21d8c16605ce541",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/CONTINUATION-R4-LEDGER.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "authorization_header_supplied": false,
+      "bytes": 103434,
+      "sha256": "ed94fa04ab031b7596bd866ede8602cdfa6797be40ffd17ad4dd1fe7f8d2522e",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/EXECUTION-SEQUENCE-R4.md",
+      "authorization_header_supplied": false,
+      "bytes": 26318,
+      "sha256": "50f7ef9bcdac69c44e87e1bb7dfe962b50b2076dde19bc20d7207c3af4fcda67",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/EXECUTION-SEQUENCE-R4.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/OPERATING-PROFILE-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/OPERATING-PROFILE-R4.md",
+      "authorization_header_supplied": false,
+      "bytes": 24280,
+      "sha256": "909da31459773fc61958229f05e0f88e3d596ae0ced0bdf256c5b5fa843b6dd2",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/OPERATING-PROFILE-R4.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/EXTERNAL-GATES-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/EXTERNAL-GATES-R4.md",
+      "authorization_header_supplied": false,
+      "bytes": 57746,
+      "sha256": "c9f7a58c71afffea85e28d25da84485561dc09c35f5a03aac111b441b5bea328",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/EXTERNAL-GATES-R4.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "authorization_header_supplied": false,
+      "bytes": 4991,
+      "sha256": "02a244e7cff15b2333354fcc30e5e059928f778cbc4287a54410d8a886b19f37",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "authorization_header_supplied": false,
+      "bytes": 1242,
+      "sha256": "45bd001d57ddff524ace0621ce366d0ba45c7e79987ac48d2d34d83e90fafe64",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "authorization_header_supplied": false,
+      "bytes": 20977,
+      "sha256": "98d3a6bf2838e3f51458727eba582c01b7ca9ae7d834ea88f7a3c541e95f7233",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "authorization_header_supplied": false,
+      "bytes": 8428,
+      "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "authorization_header_supplied": false,
+      "bytes": 5224,
+      "sha256": "3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "authorization_header_supplied": false,
+      "bytes": 5489,
+      "sha256": "ff9f9181648c435f0f9d30f44bf5072bbe4afe2508f1056fd78bb45654f49456",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "authorization_header_supplied": false,
+      "bytes": 2492,
+      "sha256": "c3bc51324ffb097a1683415edf18ee643438bb52070148a2be6c38b469a8f73a",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "authorization_header_supplied": false,
+      "bytes": 4137,
+      "sha256": "d44dc3646562154c7a8ca66d12ad51bd3d72cd0774c7dd9f49fcaa2f103fba1f",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 50011,
+      "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "authorization_header_supplied": false,
+      "bytes": 927,
+      "sha256": "965e54f9e2bd26d52e4e3b919323db95f522a8ed31fc53d2e77d3afa3237f964",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "authorization_header_supplied": false,
+      "bytes": 4653,
+      "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "status": "PASS"
+    },
+    {
+      "path": "release-source-files.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/release-source-files.txt",
+      "authorization_header_supplied": false,
+      "bytes": 268255,
+      "sha256": "9709a90f636a6efa13bcf97d19321b16cf1ca2e4506c675fedba7df5e574fcb1",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4/release-source-files.txt",
+      "status": "PASS"
+    }
+  ],
+  "review_sha256": "d731c98333ba8fbd62c4037b52749d0aa4f34bea217137885466690cca95d1c4",
+  "scope": "Anonymous normal-TLS HTTPS exact-byte readback of all 17 reviewed C28 documentation/inventory paths. Source branch ref/main identity verified separately. No whole private-corpus, native, external platform or production claim.",
+  "driver_sha256": "e8bbe9d8267800ec45be11daa1f41ccbf70486e7b8f5b10198c2b473d5748999"
+}

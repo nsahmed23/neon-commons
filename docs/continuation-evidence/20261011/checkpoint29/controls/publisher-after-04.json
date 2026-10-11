@@ -1,0 +1,212 @@
+{
+  "actual_git_http_native_calls": 0,
+  "controls": [
+    {
+      "id": "PUB01-RuntimeError",
+      "original_primary_preserved": true,
+      "secondary_record_denial_noted": true,
+      "status": "PASS"
+    },
+    {
+      "id": "PUB01-KeyboardInterrupt",
+      "original_primary_preserved": true,
+      "secondary_record_denial_noted": true,
+      "status": "PASS"
+    },
+    {
+      "Git_override_keys_removed": [
+        "GIT_CONFIG_COUNT",
+        "GIT_CONFIG_KEY_0",
+        "GIT_CONFIG_VALUE_0",
+        "GIT_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_SSH_COMMAND",
+        "GIT_TRACE",
+        "GIT_TRACE2_EVENT",
+        "GIT_WORK_TREE"
+      ],
+      "actual_process_calls": 0,
+      "explicit_git_dir_and_work_tree": true,
+      "id": "PUB02-environment-and-explicit-receiving-path",
+      "managed_proxy_CA_environment_retained": true,
+      "status": "PASS"
+    },
+    {
+      "exit_hash_bytes_retained": true,
+      "id": "PUB02-redacted-process-failure",
+      "raw_stderr_absent": true,
+      "status": "PASS"
+    },
+    {
+      "accepted": true,
+      "id": "PUB03-origin-good",
+      "recorded_remote_identity_queries": [
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ],
+        [
+          "remote",
+          "get-url",
+          "--push",
+          "--all",
+          "origin"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": false,
+      "id": "PUB03-fetch-wrong",
+      "recorded_remote_identity_queries": [
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": false,
+      "id": "PUB03-push-wrong",
+      "recorded_remote_identity_queries": [
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ],
+        [
+          "remote",
+          "get-url",
+          "--push",
+          "--all",
+          "origin"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": false,
+      "id": "PUB03-fetch-multiple",
+      "recorded_remote_identity_queries": [
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": false,
+      "id": "PUB03-push-multiple",
+      "recorded_remote_identity_queries": [
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ],
+        [
+          "remote",
+          "get-url",
+          "--push",
+          "--all",
+          "origin"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": true,
+      "id": "main-good",
+      "output_created": true,
+      "recorded_git_argv": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ],
+        [
+          "remote",
+          "get-url",
+          "--push",
+          "--all",
+          "origin"
+        ],
+        [
+          "branch",
+          "--show-current"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": false,
+      "id": "main-wrong-repository",
+      "output_created": false,
+      "recorded_git_argv": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ]
+      ],
+      "status": "PASS"
+    },
+    {
+      "accepted": false,
+      "id": "main-wrong-origin",
+      "output_created": false,
+      "recorded_git_argv": [
+        [
+          "rev-parse",
+          "--show-toplevel"
+        ],
+        [
+          "remote",
+          "get-url",
+          "--all",
+          "origin"
+        ]
+      ],
+      "status": "PASS"
+    }
+  ],
+  "limitations": [
+    "Literal receiving repository/.git ancestor type rejection is a separate pending PUB04 guard; this receipt does not admit it.",
+    "The actual existing C28 read-only79file validation is root-owned separate evidence; tiny fixtures here add no product/native/platform test count.",
+    "No actual delivery, Git commit/push, HTTP/public readback or production approval established."
+  ],
+  "replay": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "-I",
+    "/tmp/review_companion_publisher_after_20261011.py",
+    "--source",
+    "/tmp/intune-r4-companion-refresh-20261011/publish_admitted_companion04.py",
+    "--sha256",
+    "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e",
+    "--output",
+    "NEW_ABSOLUTE_TMP_OUTPUT"
+  ],
+  "repository_or_remote_mutations": 0,
+  "schema": "independent-companion-publisher-successor-guards/1",
+  "source": {
+    "bytes": 14929,
+    "frozen": "/tmp/intune-companion-publisher-independent-after-04/REVIEWED-PUBLISHER.py",
+    "path": "/tmp/intune-r4-companion-refresh-20261011/publish_admitted_companion04.py",
+    "sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e"
+  },
+  "status": "PASS_SCOPED_REPAIRED_PUB01_PUB02_PUB03"
+}

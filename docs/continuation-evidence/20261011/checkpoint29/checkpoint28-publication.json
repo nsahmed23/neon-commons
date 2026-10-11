@@ -1,0 +1,20 @@
+{
+  "schema": "verified-source-branch-publication/1",
+  "status": "PASS",
+  "candidate": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "previous": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+  "target": "refs/heads/continuation/r4-20261007",
+  "main_before": "4ba077d93fecbf5f893ee13ef972c839cf13883d",
+  "review_receipt": "independent/checkpoint28-public-docs-delta-01/PUBLIC-DOCS-DELTA.json",
+  "review_receipt_sha256": "d731c98333ba8fbd62c4037b52749d0aa4f34bea217137885466690cca95d1c4",
+  "scope": "Exact independently admitted documentation/inventory checkpoint on the dedicated source branch. Main unchanged; no workflow dispatch, deployment, tenant mutation or raw private evidence publication.",
+  "published_at": "2026-10-11T22:00:55.956294+00:00",
+  "remote_after": {
+    "refs/heads/continuation/r4-20261007": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+    "refs/heads/main": "4ba077d93fecbf5f893ee13ef972c839cf13883d"
+  },
+  "working_tree_after": "",
+  "url": "https://github.com/nsahmed23/neon-commons/tree/94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "branch_url": "https://github.com/nsahmed23/neon-commons/tree/continuation/r4-20261007",
+  "driver_sha256": "5cb7dda48d75c25ce06cce6dcb7e700de5461d6c4b7f769e8d05a61522b5c8bc"
+}

@@ -1,0 +1,158 @@
+{
+  "base_command": {
+    "bytes": 684,
+    "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/base-command.json",
+    "sha256": "76f7d3454a2bd871abcdc83dffd8991664177663107785356ebdc01e609afd7f"
+  },
+  "blocker_owners": {
+    "external_profile_qualification": "Native host, tenant/CI/backend/device owners.",
+    "native_activation_and_receipts": "Root execution coordinator within authorized local synthetic scope.",
+    "persistent_capacity": "Workspace/recovery-corpus owner; do not delete evidence or weaken32MiB reserve.",
+    "security_and_production_decision": "Independent AppSec and accountable organizational owners."
+  },
+  "candidate_output_roots_created": false,
+  "complete_runnable_bundle": false,
+  "configuration": {
+    "bytes": 2128,
+    "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/CONFIGURATION.json",
+    "sha256": "72974a7b901075df0c1ead10e3ca2ac7b19c5c6b1ee508f67da2f6bac5ae4173"
+  },
+  "counts_nonadditive": "All checks are metadata/parse/detached guard controls; no new product, strict-suite, native journey, performance or platform count. Author controls overlap and are not added.",
+  "current_capacity_sample": {
+    "available_bytes": 31191040,
+    "dispatch_authorized": false,
+    "environment": "current container only",
+    "minimum_start_admission_bytes": 33619968,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration",
+    "workspace_reserve_bytes": 33554432
+  },
+  "execution_admission_created": false,
+  "failing_before_passing_after": {
+    "after": "Full actual candidate03 configuration/prepared/source/daemon/profile/base/tool metadata validation passes with a final in-memory detached admission fixture; 100 known-bad metadata controls reject. No actual approval/GO or dispatch is issued.",
+    "before": "Exact candidate02 outer 3f2f292c reproduced AttributeError at admission read after route-local dictionary shadowed arguments Namespace; no output/native dispatch.",
+    "repair": "Exact candidate03 outer 966349bf changes only the three route-local references to route_arguments. Source engine, loader b98, profile8b00, route e497, helper/fixture/tool package bytes remain unchanged; metadata namespaces explicitly rebind03."
+  },
+  "full_review": {
+    "bytes": 142230,
+    "path": "/tmp/intune-c25-fresh-mode-independent03-01/RESULT.json",
+    "sha256": "abeea0ab3cdd2c78f5e920d5adaae44c828379470bdec25d14a3675ba12780af"
+  },
+  "global_laboratory_complete": false,
+  "helper_main_calls": 0,
+  "historical_raw_loss_closed": false,
+  "independent_metadata_assertions": 325,
+  "independent_procedure": {
+    "bytes": 108973,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/remaining-native-modes-convergence-02/PROCEDURES.json",
+    "sha256": "64b60e90f003bebb2b9a938083a30e728d5653424974ba60e4be8e910822adca"
+  },
+  "loader": {
+    "bytes": 52893,
+    "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/loader/qualify_fresh_modes.py",
+    "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8"
+  },
+  "native_dispatches": 0,
+  "next_action": "Preserve all failed candidates/readers and bind these exact prepared03 pins in the next source checkpoint. Native actions remain NOT_STARTED until independent local admission/explicit coordinator decision and measured persistent capacity, then verify actual raw native/state/service/history postconditions independently.",
+  "omitted_private_payloads_cleared": false,
+  "outer": {
+    "bytes": 60627,
+    "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/orchestrate-fresh-modes.py",
+    "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8"
+  },
+  "platform_qualified": false,
+  "prepared": {
+    "bytes": 33767,
+    "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/PREPARED.json",
+    "sha256": "5d206e592ecea07b37d17ed0c9892b9fd6a47437c5015848f431a25b0bd2eb6d"
+  },
+  "preserved_candidate02_FAIL": {
+    "bytes": 3840,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/fresh-modes-candidate02-20261011-01/PUBLIC-REVIEW-FAIL.json",
+    "sha256": "5f3b971f890cada14fc3c61b72cb668edb0aa97363abba9f51714c6806b4fc6d"
+  },
+  "product_imports": 0,
+  "production_approved": false,
+  "profile": {
+    "bytes": 671428,
+    "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/profile.json",
+    "sha256": "8b00a57469e7580191dfc012d8bd7cb38f611b5539d7de8d2d7e89dfa08e834d"
+  },
+  "public_source_selection": {
+    "complete_runnable_bundle": false,
+    "disposition": {
+      "bytes": 2014,
+      "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/SOURCE-DISPOSITION.json",
+      "sha256": "530f58268dd962cee85680280ad72d63868b1bc35eadf1285e20b5d1f9a69c2e"
+    },
+    "exact_files": {
+      "README.md": {
+        "bytes": 2472,
+        "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/README.md",
+        "sha256": "f2f689d170e273cb67e01437c284ece2aead6c7995b50c13a655df6f13c947a2"
+      },
+      "fresh-recovery-modes-loader.py.txt": {
+        "bytes": 52893,
+        "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/fresh-recovery-modes-loader.py.txt",
+        "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8"
+      },
+      "fresh-recovery-modes-outer.py.txt": {
+        "bytes": 60627,
+        "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/fresh-recovery-modes-outer.py.txt",
+        "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8"
+      }
+    },
+    "omitted_private_payloads_cleared": false,
+    "status": "PASS_SCOPED_REVIEWABLE_SOURCE_TEXT_ONLY"
+  },
+  "public_suitable": true,
+  "rejected_detached_negative_controls": 100,
+  "remaining_required_cases": [
+    "No prepared native action has executed. Exact synthetic fixtures, native tools, live receiving outcomes, actual postconditions, no-change plans and history require future independently admitted execution and raw evidence.",
+    "Synthetic admission/receipt objects are only in-memory test inputs. They cannot be used as execution permission or a generated native receipt.",
+    "Only the frozen reviewed outer child invocation (-B -I, no PYTHONOPTIMIZE) is in scope; ad hoc optimized/direct loader invocation is not admitted.",
+    "Original stopped38 prefix retains five complete and one failed action, with old portable FAIL unchanged; the new32 fresh cohorts neither replay consumed operations nor relabel the old failure.",
+    "The separate three ordinary-apply acquisition/policy-response/evidence-recording timing cases are not covered by these32 modes.",
+    "Historical unavailable265 temporary roots/39 receipt references and provenance anomalies remain unresolved.",
+    "Native Windows/Git Bash/mintty/PowerShell, live Graph/Azure/protected CI/devices, installed OS scheduler, crash/hostile process containment, independent AppSec, key custody and accountable organizational approval are not established.",
+    "Public selection is exact source-text documentation only. Full private profiles/helpers/fixtures/maps/keys/state/plans/witness/raw/approvals/GO and creator payloads remain explicitly omitted."
+  ],
+  "replay": [
+    "/workspace/intune-runtime/bin/python",
+    "-I",
+    "-B",
+    "/tmp/intune-c25-fresh-mode-independent03-01/review.py"
+  ],
+  "review_history": {
+    "bytes": 1021,
+    "path": "/tmp/intune-c25-fresh-mode-independent03-01/REVIEW-HISTORY.json",
+    "sha256": "1445990b161b35081c3623bf366cc4e649e5dc07966e11b9757eb145e63c8fc3"
+  },
+  "reviewer_script": {
+    "bytes": 46840,
+    "path": "/tmp/intune-c25-fresh-mode-independent03-01/review.py",
+    "sha256": "6b700334817ae0f4ef16be3128374f6b0920f0b7b8aa00275ae63a165a6c7339"
+  },
+  "root_GO_created": false,
+  "route_manifest": {
+    "bytes": 25777,
+    "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/bundle/inputs/fresh-recovery-mode-routes.json",
+    "sha256": "e497afc192fb77d99849c40599e179c86622b3bde176112a91135a61e663631b"
+  },
+  "schema_version": "public-independent-C25-fresh-mode-candidate03-admission/1",
+  "scope": {
+    "actual_pinned_helper_files_read": 28,
+    "actual_pinned_input_files_read": 9,
+    "actual_pinned_package_files_read": 3355,
+    "actual_pinned_tool_roles_read": 9,
+    "convergence_history_actions_not_started": 12,
+    "failure_and_capsule_reuse": "Exact AST-equivalent old cae6702 finalization/exception handlers and typed census/capsule primitives; previous actual evidence scopes remain historical and nonadditive.",
+    "fresh_cohorts": 8,
+    "parsed_literal_actions": 32,
+    "receipt_type_root_source_profile_loader_route_guards": "Actual candidate functions with explicitly detached/in-memory controls; not generated native qualification receipts.",
+    "reserve_order": "Actual run() rejects at first/second capacity call before output roots; one-byte-below denied/exact boundary accepted; no process/daemon/helper invocation.",
+    "seed_release_actions_not_started": 20
+  },
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_READONLY_AND_DETACHED_FRESH_MODE_CONTRACT",
+  "tool_dispatches": 0
+}

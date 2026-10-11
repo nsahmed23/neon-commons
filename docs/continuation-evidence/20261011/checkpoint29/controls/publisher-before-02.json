@@ -1,0 +1,138 @@
+{
+  "actual_git_http_product_native_calls": 0,
+  "controls": [
+    {
+      "id": "PUB01-primary-failure-record-denied",
+      "known_bad_accepted": true,
+      "observed_exception": "PermissionError",
+      "primary_exception_preserved": false,
+      "root_cause": "Final failure-report write is unguarded and replaces the original delivery failure.",
+      "status": "FAIL_REPRODUCED_BEFORE"
+    },
+    {
+      "id": "PUB02-inherited-repository-and-config-overrides",
+      "known_bad_accepted": true,
+      "observed": {
+        "argv": [
+          "/usr/bin/git",
+          "-c",
+          "core.hooksPath=/dev/null",
+          "rev-parse",
+          "HEAD"
+        ],
+        "cwd": "/tmp/intune-r4-publication-isolated-20261011",
+        "git_override_keys": [
+          "GIT_CONFIG_COUNT",
+          "GIT_CONFIG_KEY_0",
+          "GIT_CONFIG_VALUE_0",
+          "GIT_DIR",
+          "GIT_INDEX_FILE",
+          "GIT_WORK_TREE"
+        ]
+      },
+      "root_cause": "The environment copies ambient Git repository/index/config routing instead of binding the fixed cwd.",
+      "status": "FAIL_REPRODUCED_BEFORE"
+    },
+    {
+      "actual_process_or_network_calls": 0,
+      "fetch_or_push_origin_identity_checked": false,
+      "id": "PUB03-unbound-origin-with-matching-ref-names",
+      "known_bad_accepted": true,
+      "recorded_git_argv": [
+        [
+          "branch",
+          "--show-current"
+        ],
+        [
+          "rev-parse",
+          "HEAD"
+        ],
+        [
+          "rev-parse",
+          "HEAD^"
+        ],
+        [
+          "diff-tree",
+          "--no-commit-id",
+          "--name-only",
+          "-r",
+          "-z",
+          "1111111111111111111111111111111111111111"
+        ],
+        [
+          "cat-file",
+          "blob",
+          "1111111111111111111111111111111111111111:intune-workbench/r4-20261011/synthetic-public.txt"
+        ],
+        [
+          "status",
+          "--porcelain"
+        ],
+        [
+          "ls-remote",
+          "origin",
+          "refs/heads/main",
+          "refs/heads/intune-atmos-wally-r4-20261011"
+        ],
+        [
+          "push",
+          "--porcelain",
+          "--force-with-lease=refs/heads/intune-atmos-wally-r4-20261011:",
+          "origin",
+          "1111111111111111111111111111111111111111:refs/heads/intune-atmos-wally-r4-20261011"
+        ],
+        [
+          "ls-remote",
+          "origin",
+          "refs/heads/main",
+          "refs/heads/intune-atmos-wally-r4-20261011"
+        ],
+        [
+          "update-ref",
+          "refs/remotes/origin/intune-atmos-wally-r4-20261011",
+          "1111111111111111111111111111111111111111"
+        ],
+        [
+          "branch",
+          "--set-upstream-to=origin/intune-atmos-wally-r4-20261011",
+          "intune-atmos-wally-r4-20261011"
+        ]
+      ],
+      "root_cause": "Matching main/target refs do not establish which receiving repository origin routes to.",
+      "simulated_origin": "https://example.invalid/unrelated.git",
+      "status": "FAIL_REPRODUCED_BEFORE",
+      "stubbed_push_called": true
+    },
+    {
+      "actual_receiving_repository_symlink_claimed": false,
+      "id": "PUB04-repository-parent-link-not-checked",
+      "known_bad_accepted": true,
+      "literal_link_target": "outside",
+      "root_cause": "The path guard stops at the publication prefix, excluding repository and earlier ancestors.",
+      "status": "FAIL_REPRODUCED_BEFORE"
+    }
+  ],
+  "limitations": [
+    "No actual publisher apply/commit/push/readback or platform/tenant dispatch performed.",
+    "A simulated remote destination control tests guard reachability; it does not claim the actual origin or repository path is wrong.",
+    "Exact current source is not behaviorally admitted for consequential delivery until these bounded guards are repaired."
+  ],
+  "replay": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "-I",
+    "/tmp/review_companion_publisher_guards_20261011.py",
+    "--output",
+    "NEW_ABSOLUTE_TMP_OUTPUT"
+  ],
+  "repository_or_remote_mutations": 0,
+  "schema": "independent-companion-publisher-guard-review/1",
+  "scope": "Exact source/AST functions and fully stubbed push control. Synthetic fixture data only. Existing actual read-only validation is neither contradicted nor repeated.",
+  "source": {
+    "bytes": 13270,
+    "frozen": "/tmp/intune-companion-publisher-independent-before-02/REVIEWED-PUBLISHER.py",
+    "path": "/tmp/intune-r4-companion-refresh-20261011/publish_admitted_companion02.py",
+    "sha256": "d4c7f4eb28690da4f9212736872550cdd5e13a36db63685fa2667f25de9c6147"
+  },
+  "status": "FOUR_BOUNDED_GUARD_FINDINGS_REPRODUCED_BEFORE"
+}

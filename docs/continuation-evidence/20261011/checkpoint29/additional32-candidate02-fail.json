@@ -1,0 +1,66 @@
+{
+  "blocker_owner": "Execution qualification coordinator author; independent reviewer verifies successor.",
+  "candidate_configuration": {
+    "bytes": 2128,
+    "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-02/CONFIGURATION.json",
+    "sha256": "dc03155b691287d7753909bf757c38dacf1b96737325516fd19b532e6b234b03"
+  },
+  "candidate_loader": {
+    "bytes": 52893,
+    "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-02/loader/qualify_fresh_modes.py",
+    "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8"
+  },
+  "candidate_outer": {
+    "bytes": 60603,
+    "path": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-02/orchestrate-fresh-modes.py",
+    "sha256": "3f2f292c992495997da0202ca3a8eb19eecfe4bbc0f5be6e82ef0a99b40bd39c"
+  },
+  "candidate_output_roots_absent": true,
+  "candidate_profile": {
+    "bytes": 671428,
+    "path": "/tmp/intune-c25-native-extra-modes-profile-20261011-02/profile.json",
+    "sha256": "8b00a57469e7580191dfc012d8bd7cb38f611b5539d7de8d2d7e89dfa08e834d"
+  },
+  "completed_metadata_assertions_before_stop": 245,
+  "counts_nonadditive": "Metadata/parse controls only, not new product/native/suite/performance counts; first reader attempt and author controls overlap.",
+  "earlier_reviewer_fixture_failure": {
+    "bytes": 1672,
+    "path": "/tmp/intune-c25-fresh-mode-independent02-02/REVIEWER-FAILURE-HISTORY.json",
+    "sha256": "3c2def8f60a060b3bbbdd3f3c26ef894572755f0a8b9e56a2a1fba94545bf4e9"
+  },
+  "exact_independent_procedure": {
+    "bytes": 108973,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/remaining-native-modes-convergence-02/PROCEDURES.json",
+    "sha256": "64b60e90f003bebb2b9a938083a30e728d5653424974ba60e4be8e910822adca"
+  },
+  "execution_admission_created": false,
+  "failed_attempt": {
+    "bytes": 49810,
+    "path": "/tmp/intune-c25-fresh-mode-independent02-02/FAILED-ATTEMPT.json",
+    "sha256": "280b9fc77601b4d94f9b6803cfd778ebff686cf87f8a31204d83f831b3705e69"
+  },
+  "full_private_recovery_or_history_closure": false,
+  "global_laboratory_complete": false,
+  "helper_main_calls": 0,
+  "literal_error": "'dict' object has no attribute 'admission'",
+  "native_dispatches": 0,
+  "negative_metadata_guards_before_stop": 58,
+  "next_action": "Author preserves candidate02 and creates immutable03 with a distinct normalized_arguments local in the route loop; independent full metadata positive and negatives must pass before any dispatch decision. Storage gate remains separate.",
+  "observed_scope": "Read-only actual source/profile/helper/input/tool/package identity and all32 argv/route guards; detached receipt and negative controls; full actual outer configuration validation stopped before the final in-memory admission fixture reader. No product/helper main/tool or native work dispatched.",
+  "platform_qualified": false,
+  "private_raw_payloads_included": false,
+  "product_imports": 0,
+  "production_approved": false,
+  "public_suitable": true,
+  "reviewer_script": {
+    "bytes": 44201,
+    "path": "/tmp/intune-c25-fresh-mode-independent02-02/review.py",
+    "sha256": "d842e837425c944e6a64e748c32841e284cc84f1d81b43e64bab14b871135cc5"
+  },
+  "root_GO_created": false,
+  "root_cause": "Actual frozen outer validate_contract(arguments) shadows its argparse Namespace with the normalized route-local dict in the 32-route loop (line 151). The later arguments.admission access (line 207) therefore raises AttributeError. This is a candidate bug, separate from the preserved earlier reviewer boundary error.",
+  "schema_version": "public-independent-fresh-mode-candidate02-review/1",
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "FAIL_ACTUAL_PRE_DISPATCH_OUTER_METADATA_VALIDATION",
+  "tool_dispatches": 0
+}

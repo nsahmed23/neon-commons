@@ -1,0 +1,72 @@
+{
+  "descriptor_exact_typed_count_and_identity_match": {
+    "archive_members": 154,
+    "literal_links_followed": 0,
+    "owned_roots": 22,
+    "source_preparations_unchanged": true,
+    "staged_and_receiving_bytes_verified": true,
+    "typed_nodes": 446,
+    "unique_payload_blobs": 153
+  },
+  "descriptor_original_private_receipt": {
+    "NOT_PUBLIC": true,
+    "bytes": 2536,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/private-preparation-preservation-20261011-01/RESULT.json",
+    "sha256": "ba2b07cb6edca6ef1d71e593f32581d924451b2e083cad6dbdf529126c7b3039"
+  },
+  "explicit_omissions": [
+    "Actual private archive/member manifest, private preparation profiles/creators/inputs/witness/key/approval/plan/state/capture/SQL/log payloads.",
+    "265 missing historical roots and39 unavailable reference receipts remain unresolved.",
+    "Active later reviewer/timing preparation outside captured freeze and complete original/R4 corpus.",
+    "Future changed source/pins/selection or the publisher behavior admission; this receipt clears only the exact two selected files."
+  ],
+  "limitations": [
+    "Source suitability does not make source text a complete runnable profile or qualify future staging/publication outputs.",
+    "Descriptor checks an existing scoped preservation receipt; this review does not rebuild/read/extract the private archive or establish runnable IPC recovery.",
+    "Reader metadata cases and preservation node/member counts are distinct, nonadditive evidence classes.",
+    "No new native, host/live platform, independent organizational AppSec disposition or production approval. Capacity gate remains unwaived."
+  ],
+  "pattern_matches": [],
+  "platform_qualified": false,
+  "product_native_or_reader_dispatches": 0,
+  "production_approved": false,
+  "reader_existing_evidence_reuse": {
+    "bytes": 2210,
+    "no_stage_or_native_call": true,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/companion-current-reader-20261011-01/PUBLIC-METADATA.json",
+    "result_identity": {
+      "bytes": 61635,
+      "sha256": "6109780b96d3e594f269188506f143c240d3b5baf62b35db54ee44582ed23c2e"
+    },
+    "scope": "Exact unchanged metadata reader independent qualification: 24 cases, 2 positive/22 negative, 48 raw Git files. Reused by identity; no tests rerun or added.",
+    "sha256": "983d1e7055646682ed80cc5221f98a6ddadad799b0af0997b6cef1f915fd07b0"
+  },
+  "reader_full_source_and_literals_reviewed": true,
+  "reader_string_and_byte_literals_inspected": 460,
+  "replay": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "-I",
+    "/tmp/review_selected_delivery_text_20261011.py",
+    "--output",
+    "NEW_ABSOLUTE_OUTPUT_DIRECTORY"
+  ],
+  "repository_or_remote_mutations": 0,
+  "schema": "independent-selected-delivery-public-text-review/1",
+  "selected_public_files": [
+    {
+      "bytes": 28882,
+      "classification": "SOURCE_TEXT_ONLY_NOT_RUNTIME_INCLUDED_NOT_EXECUTABLE_PROFILE",
+      "path": "/tmp/intune-r4-companion-refresh-20261011/refresh_companion_current.py",
+      "sha256": "0b8ea305089a9f1dd724ddfb528f697b7c26c448790b53082da6b373bbabfe5f"
+    },
+    {
+      "bytes": 1592,
+      "classification": "SANITIZED_PRIVATE_PRESERVATION_IDENTITY_AND_COUNTS_ONLY",
+      "path": "/tmp/intune-private-preparation-public-disposition-20261011-01/PUBLIC-DISPOSITION.json",
+      "sha256": "f8bbd67e5fda305fa5e763e894c1753142c60d0dbfcf7cd7941cc544ef0e2747"
+    }
+  ],
+  "source_runtime_packages_changed": false,
+  "status": "PASS_SCOPED_TWO_SELECTED_FILES"
+}

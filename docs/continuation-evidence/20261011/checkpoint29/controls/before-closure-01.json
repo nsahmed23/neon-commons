@@ -1,0 +1,71 @@
+{
+  "candidate": {
+    "bytes": 60164,
+    "sha256": "7faf38d59a4a903d32b9d79675165036b433e9c25b2180821ae53d29c3418117"
+  },
+  "controls": [
+    {
+      "expected": "ACCEPT",
+      "id": "correct-declared-receipt-route",
+      "observed": "ACCEPT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "copied-new-receipt-unlisted-root",
+      "observed": "ACCEPT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "mislabeled-new-receipt-route-id",
+      "observed": "ACCEPT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "substituted-stored-route-row",
+      "observed": "ACCEPT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "missing-stored-route-id",
+      "observed": "ACCEPT"
+    },
+    {
+      "error": "continuation requires qualified exact action/package",
+      "expected": "REJECT",
+      "id": "portable-fail-never-generic-fallback",
+      "observed": "REJECT"
+    },
+    {
+      "error": "new continuation receipt must identify actual loader/profile/reuse contract",
+      "expected": "REJECT",
+      "id": "wrong-new-profile-pin",
+      "observed": "REJECT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "recheck-exact-declared-input-namespace",
+      "observed": "ACCEPT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "recheck-undeclared-input-accepted-before-rejected-after",
+      "observed": "ACCEPT"
+    }
+  ],
+  "external_process_calls": 0,
+  "native_or_product_operation_calls": 0,
+  "observed_findings": [
+    {
+      "description": "New-schema receipts were not bound to selected declared action/output/id/full route row.",
+      "id": "NC01"
+    },
+    {
+      "description": "Profile.recheck accepted a present undeclared input file; init has the same missing inputs census closure.",
+      "id": "NC02"
+    }
+  ],
+  "original_profile_or_receipt_mutations": 0,
+  "schema": "independent-closed-continuation-guard-probe/1",
+  "scope": "Detached exact receipt_binding and Profile.recheck contracts with literal synthetic fixture files. Profile namespace check does not construct a full native profile or import tools/engine/helpers.",
+  "status": "FAIL_KNOWN_RECEIPT_AND_INPUT_CLOSURE_GAPS"
+}

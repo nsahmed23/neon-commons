@@ -1,0 +1,69 @@
+{
+  "schema_version": "independent-C25-additional-native-fault-procedures-public/1",
+  "status": "PREPARED_NOT_EXECUTED",
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "baseline_profile_sha256": "214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774",
+  "procedures": {
+    "bytes": 75989,
+    "sha256": "42215fd8fa6d29bcea6cc1dae5a074e4cea9d22f800a2b444139d3947a217adc"
+  },
+  "original38": "Normal release timing only; stopped actual prefix is five completed/six attempted. Completing38 does not establish all local acceptance.",
+  "prepared_existing_modes": [
+    "recover-import --recovery-mode lost-response|recording-interruption",
+    "recover-initial-plan --recovery-mode lost-response|recording-interruption",
+    "recover-stopped-plan --recovery-mode lost-response|recording-interruption"
+  ],
+  "new_existing_mode_cases": 8,
+  "new_existing_mode_actions": 20,
+  "fresh_once_only_seeds_required": true,
+  "first_unblocked_implementation": {
+    "id": "closed-literal-recovery-mode-serialization",
+    "status": "NOT_STARTED",
+    "actual_source": "orchestrate.py action_argv",
+    "line": 313,
+    "missing_behavior": "Nonboolean arguments are universally joined with run_root; recovery_mode would become a filesystem path rejected by parser.",
+    "required_change": "Distinguish only known path-valued flags from the exact literal closed recovery_mode enum normal/lost-response/recording-interruption. Reject unknown enum/key and whitespace/injection/substitution; never weaken existing root/linkage guards.",
+    "independent_negative_procedures": [
+      "Known values produce exact standalone literal values, never prefixed paths.",
+      "Unsupported mode rejects before profile import/native dispatch.",
+      "Mode on unsupported action rejects rather than silently ignored.",
+      "Path-valued adoption/released/plan roots retain type/owner/containment and exact predecessor validation.",
+      "No existing first5/completed mutation or original consumed fault is replayed."
+    ],
+    "blocker_owner": "Qualification helper author, root coordinator and independent source reviewer"
+  },
+  "additional_unexposed_native_stage_gap_ids": [
+    "ordinary-cancel-policy-response",
+    "ordinary-cancel-acquisition",
+    "ordinary-evidence-recording-interruption"
+  ],
+  "historical_index_pins": [
+    {
+      "bytes": 2866,
+      "sha256": "4d4a6460872d8b0aed58e4a32c063dfbaaa3280eb310a78789979c3eec51fb8a",
+      "observed_source_revision": "705ad727d17e8864602a467ac447f8dfcb2190c3",
+      "raw_receipts_present": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "bytes": 2036,
+      "sha256": "d4d26d47a256f60f67fc64a7e5d6bb79e560b273a76c837f57c03d663a31cd76",
+      "observed_source_revision": "c7e6322725e50587f471888daebecbf28ba7f120",
+      "raw_receipts_present": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "dispatches": 0,
+  "global_laboratory_complete": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_suitable": true,
+  "public_omissions": "Machine-local input/root paths and raw state/plans/approval/capture/SQL/keys excluded. This metadata is procedure preparation, not acceptance evidence."
+}

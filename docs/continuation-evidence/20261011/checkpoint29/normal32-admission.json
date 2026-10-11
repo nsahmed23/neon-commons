@@ -1,0 +1,55 @@
+{
+  "actual_capacity": "BLOCKED_PRIVATE_DURABLE_SPACE; parent observed less than32MiB reserve, no native GO or mutations.",
+  "configuration_sha256": "c0974c00fc8bd70b62d890c324a4315015ef64ce4e6792ab52b8c2667c3c59e4",
+  "execution_or_production_authority": false,
+  "fixed_actions": 32,
+  "fixed_plan_sha256": "5cf87344cd472528a8b82d98ef33502c7e9ffb87dde39f268c3fc20a1718db76",
+  "limits": [
+    "Preparation guard controls overlap prior scopes and are not additional native/application/suite counts.",
+    "Full original current R4 corpus remains incomplete; historical loss and actor findings stay open.",
+    "Large private source/probe fixtures remain/tmp; small receipts persisted only.",
+    "Original faulty snapshots and reviewer expectation error retained /tmp/intune-snapshot-capacity-order-05; no deletion/rewriting."
+  ],
+  "loader_sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3",
+  "native_dispatches": 0,
+  "original_portable_status": "FAIL_UNCHANGED",
+  "outer_sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b",
+  "prior_durable_controls_index": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/RECEIPT-INDEX.json",
+  "prior_durable_controls_index_sha256": "c4f62b09db11c40d5f70afa9c856e84a2d0b6ef61bfc0c2d7250c2542d38fa50",
+  "profile_sha256": "fb35b21001e4e25073bbe6cffb66db037cc62105a0a0e4fbb116ff0736993d8c",
+  "public_scope": "Only exact selected source-text/README/disposition/minimal patch MD+metadata identities covered in96d2. No private profile/reuse/witness/creator/fullhelper/raw/state/plan/key/approval/GO/capsule clearance.",
+  "receipts": [
+    {
+      "bytes": 5167,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/outer-preparation-05.json",
+      "id": "outer-preparation-05",
+      "observed_path": "/tmp/intune-closed-outer-independent-05/RESULT.json",
+      "sha256": "95e065e6e0ef1c22c314291d61237769d8f830ebd5764e5c76b5a109ddbb5d27"
+    },
+    {
+      "bytes": 1588,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/snapshot-order-before-after-05.json",
+      "id": "snapshot-order-before-after-05",
+      "observed_path": "/tmp/intune-snapshot-capacity-order-05b/RESULT.json",
+      "sha256": "7d8bfbf890607c03acddee26b6b718a7e717ec310b4dc0df674a5344fe65bd00"
+    },
+    {
+      "bytes": 2489,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/outer-admission-contract-05.json",
+      "id": "outer-admission-contract-05",
+      "observed_path": "/tmp/intune-outer-admission-contract-05/RESULT.json",
+      "sha256": "718046cc1a94fe63470602fe5cd2f346ccae8164e5a712f5cd8dc79d3f3ba589"
+    },
+    {
+      "bytes": 5220,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-final-05/public-text-and-minimal-patch-05.json",
+      "id": "public-text-and-minimal-patch-05",
+      "observed_path": "/tmp/intune-closed-public-text-review-05/RESULT.json",
+      "sha256": "96d2e0a3249aeb174f8dec375a642551bdf8f4fc4d3e1791bc60cb7bab07e1a1"
+    }
+  ],
+  "reuse_sha256": "86722a4dddace883d655d5fae0eec79f895a13e9e9fd350e3d6647911a9f0f3b",
+  "schema": "independent-closed-continuation-final-narrow-admission/1",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_PREPARATION_AND_SELECTED_PUBLIC_TEXT_NO_NATIVE_GO"
+}

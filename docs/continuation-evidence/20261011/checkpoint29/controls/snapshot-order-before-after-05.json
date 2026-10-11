@@ -1,0 +1,35 @@
+{
+  "candidates": [
+    {
+      "bytes": 61928,
+      "candidate": "before",
+      "capacity_calls": [],
+      "observed": "COPIED_BEFORE_CAPACITY_ADMISSION",
+      "source_sha256": "58d9f7b005d394bc56a30ec3a0138cbca9214c468208ffea631a990f60d3bcea"
+    },
+    {
+      "bytes": 63040,
+      "candidate": "after",
+      "capacity_calls": [
+        {
+          "path": "/tmp/intune-snapshot-capacity-order-05b/after",
+          "phase": "before scoped snapshot first/before",
+          "required": 536936492
+        }
+      ],
+      "observed": "REJECTED_BEFORE_SNAPSHOT_COPY",
+      "source_sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b"
+    }
+  ],
+  "finding": {
+    "id": "NC04",
+    "repair": "Outer05 performs temp/durable preflight before outputs, per-action receiving checks before snapshot/native work, and snapshot worst-case reservation before any copy.",
+    "root_cause": "Old stage snapshot made full selected/SQL working copies and returned PASS without any snapshot capacity admission. The outer per-action check also ran only after the stage copy."
+  },
+  "limitation": "Passing guard controls do not grant actual persistent capacity or native/production GO.",
+  "native_or_product_calls": 0,
+  "original_actual_result_mutations": 0,
+  "schema": "independent-snapshot-capacity-order-before-after/1",
+  "scope": "Exact stage_snapshot functions against existing tiny synthetic binary/link/SQLite fixture. No real legacy DB opened, helper/worker/native dispatch or original result mutation.",
+  "status": "PASS_SCOPED_FAILING_BEFORE_REPAIR_AFTER"
+}

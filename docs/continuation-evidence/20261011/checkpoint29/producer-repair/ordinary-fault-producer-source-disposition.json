@@ -1,0 +1,87 @@
+{
+  "actions_performed": {
+    "canonical_normalizer_changed": false,
+    "helper_import_or_execution": false,
+    "native_dispatches": 0,
+    "product_or_test_execution": 0,
+    "public_copy_commit_push_HTTP": false,
+    "source_hash_and_minimal_diff_inspection": true,
+    "source_repo_or_handoff_prefix_mutations": false
+  },
+  "exact_private_preparation_receipt": {
+    "bytes": 4708,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/PREPARATION.json",
+    "public_suitable": false,
+    "sha256": "72bd6a8b6c4ab85c8beb51ddf3b582c68661675204a7f1306deaf1e294677b1e"
+  },
+  "excluded_payloads": [
+    "Full original/candidate helper source bytes and any fixture private-key literals",
+    "Full closed-profile JSON, loader, native inputs and remaining external helper bundle",
+    "Raw saved plans/state/service captures/operation journal/approval or SQL outputs",
+    "Failed or successful raw qualification capsules"
+  ],
+  "helpers": [
+    {
+      "after": {
+        "bytes": 39726,
+        "sha256": "cd309fd3964deffc670157fcc2514cbcd1912e126e4b5dbe7330574d7ffc3a56"
+      },
+      "all_other_source_lines_exact": true,
+      "before": {
+        "bytes": 39703,
+        "sha256": "f25068417fa8997ff8a5c9f10973b2622f88ab34fbf07ccb9eedf874b30974fb"
+      },
+      "changed_function": "apply",
+      "changed_source_line_after": 181,
+      "changed_source_line_before": 181,
+      "changed_source_lines": 1,
+      "full_helper_public_disposition": "NOT_ADMITTED_NOT_SELECTED",
+      "helper_relative_path": "helpers/native_ordinary_qualification.py",
+      "native_result_claim": "NONE",
+      "ordered_row_tuple_to_array_only": true,
+      "private_key_marker_observed": false
+    },
+    {
+      "after": {
+        "bytes": 47895,
+        "sha256": "6b7588925052030dc63959a3fb93b43c43103b2555651ab01bf2477c3ba84b7d"
+      },
+      "all_other_source_lines_exact": true,
+      "before": {
+        "bytes": 47872,
+        "sha256": "646b13d8818271c079b0f3f91c99ff3183c3965507bbad6502bf393b2f225664"
+      },
+      "changed_function": "_cancelled_result",
+      "changed_source_line_after": 335,
+      "changed_source_line_before": 335,
+      "changed_source_lines": 1,
+      "full_helper_public_disposition": "NOT_ADMITTED_NOT_SELECTED",
+      "helper_relative_path": "helpers/native_ordinary_partial.py",
+      "native_result_claim": "NONE",
+      "ordered_row_tuple_to_array_only": true,
+      "private_key_marker_observed": false
+    }
+  ],
+  "implementation_status": "Existing private repair is implemented; current native continuation result is not asserted by this disposition.",
+  "patch": {
+    "bytes": 1668,
+    "changed_source_lines": 2,
+    "context_lines": 0,
+    "path": "/tmp/intune-r4-companion-refresh-20261011/producer-patch-preparation-01/ordinary-fault-producer-repair.patch.txt",
+    "private_full_helpers_selected": false,
+    "sha256": "626e5fc68cab04e8be288f96da71d021f9eb672e323d56362d162a584fb64c46"
+  },
+  "possible_future_public_MD_copy": {
+    "bytes": 2966,
+    "compatible_with_frozen_next_stager_extension": ".md; raw .patch.txt is intentionally not added to current source metadata subtree",
+    "path": "/tmp/intune-r4-companion-refresh-20261011/producer-patch-preparation-01/ordinary-fault-producer-repair.md",
+    "selection_admission": "PENDING_SPECIFIC_AUTHOR_AND_INDEPENDENT_REVIEW",
+    "sha256": "45e3499bef17b7b453a251d3bada16b662a269e356e94ad1c6b79be6d13e0109"
+  },
+  "public_authority": "Not granted by this lane; parent may request exact patch+metadata review after author recommendation.",
+  "schema": "minimal-native-producer-repair-source-disposition/1",
+  "scope": "Read-only exact source identity/diff inspection. One producer-line change per helper only; no source/helper/profile/checkout/prefix mutation or dispatch. A clean minimal patch does not confer blanket clearance on its containing helper/module/bundle.",
+  "source_package_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_runtime_packages_changed": false,
+  "status": "PROPOSED_AUTHOR_RECOMMENDATION_AND_EXACT_PUBLIC_TEXT_REVIEW_PENDING"
+}

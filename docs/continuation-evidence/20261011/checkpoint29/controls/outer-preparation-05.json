@@ -1,0 +1,133 @@
+{
+  "capacity_calls": [
+    {
+      "path": "/tmp/intune-closed-outer-independent-05/fixtures/command",
+      "phase": "before scoped snapshot first/before",
+      "required": 536936492
+    },
+    {
+      "path": "/tmp/intune-closed-outer-independent-05/fixtures/command/existing-inputs-before",
+      "phase": "before copied SQL proof write",
+      "required": 536871632
+    }
+  ],
+  "configuration": {
+    "bytes": 2110,
+    "path": "/tmp/intune-c25-native-continuation-orchestration-20261011-05/CONFIGURATION.json",
+    "sha256": "c0974c00fc8bd70b62d890c324a4315015ef64ce4e6792ab52b8c2667c3c59e4"
+  },
+  "controls": [
+    {
+      "error_type": "CapacityBlocker",
+      "expected": "REJECT",
+      "id": "temporary-capacity-fails-before-any-output",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "CapacityBlocker",
+      "expected": "REJECT",
+      "id": "durable-reserve-fails-before-any-output",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "CapacityBlocker",
+      "expected": "REJECT",
+      "id": "snapshot-reservation-fails-before-any-copy-or-output",
+      "observed": "REJECT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "snapshot-exact-bytes-literal-link-copied-only-typed-SQL",
+      "observed": "ACCEPT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "authorized-old-namespace-change-detected-and-bounded",
+      "observed": "ACCEPT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "same-change-outside-declared-scope-rejected",
+      "observed": "REJECT"
+    }
+  ],
+  "driver": {
+    "bytes": 63040,
+    "path": "/tmp/intune-c25-native-continuation-orchestration-20261011-05/orchestrate-continuation.py",
+    "sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b"
+  },
+  "evidence_reuse": {
+    "guarded_finalization_AST_unchanged_except_cached_legacy_root_inclusion": true,
+    "original_census_capsule_controls_not_repeated_or_added_to_counts": true,
+    "prior14_finalization_controls_sha256": "cdf7c4d6db596381b4f686409463029cdce74f5a2781672b9ddde315e8877319",
+    "unchanged_ASTs": [
+      {
+        "ast_sha256": "51e25977611f2336fe861e43885599706ddcc6e49d832f6843340048c41f197c",
+        "function": "census"
+      },
+      {
+        "ast_sha256": "15feee7c5a84866955faf49ace2054c562b785c3b673c5161c7b5bbc8f7e4f28",
+        "function": "capsule"
+      },
+      {
+        "ast_sha256": "6bf228cf5a6e36038f71d38b133c4c0aabb2e9fa8b2c26280a7b7d8ddb0ebfee",
+        "function": "stop_child"
+      },
+      {
+        "ast_sha256": "9204a7c59d2ed139bc7a6a32a093a7c1215566745da03c35e352fec77b1115cd",
+        "function": "literal"
+      },
+      {
+        "ast_sha256": "4d04f7e7155b9e0f3c703db4460e27368b9ebfb2f2c202487cc25512dc2391be",
+        "function": "read_exact"
+      },
+      {
+        "ast_sha256": "1083c962e9a7402e931738f7ba74d95ca86032172db4c676b8cebf61ce917436",
+        "function": "json_exact"
+      },
+      {
+        "ast_sha256": "8c6df1379e25d9ebacf93aa19dd998119291f4748d125f69e490b35c36ab4730",
+        "function": "verify_pin"
+      },
+      {
+        "ast_sha256": "3c2083682c1b50191a7e5075445ded4b8e2451b90d2c88ea53ae5702b8b7e3e3",
+        "function": "identity"
+      },
+      {
+        "ast_sha256": "313e572210215bc481d35dc55a7d4296a7984b17106ed8c355636f7bf75528c4",
+        "function": "capacity"
+      },
+      {
+        "ast_sha256": "a0ecac1fb50aa9d2ab40c638318f0de539a76a2e4981582e51d1f672308b3329",
+        "function": "check_worker_daemon"
+      }
+    ]
+  },
+  "fixed_actions": 32,
+  "fixed_plan_sha256": "5cf87344cd472528a8b82d98ef33502c7e9ffb87dde39f268c3fc20a1718db76",
+  "limitations": [
+    "Synthetic capacity callbacks qualify guards only, not actual durable storage capacity.",
+    "Real32journey outcomes/fresh approvals/native service observations/complete private recovery remain unexecuted.",
+    "No root admission/GO, platform qualification or organizational approval granted.",
+    "Historical missing evidence/provenance and stopped G13 lane remain preserved."
+  ],
+  "loader_sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3",
+  "native_or_product_dispatches": 0,
+  "original_actual_result_mutations": 0,
+  "profile_admission_sha256": "854ecbf75c6a0800e14f4be65d7d1618efbfb266f6ce6f52546184d27a11ea50",
+  "public_suitability": "Not established for private config/profile/reuse/raw proof. Exact source-only text clearance recorded separately.",
+  "replay": [
+    "python",
+    "-B",
+    "-I",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_closed_continuation_outer.py",
+    "--output",
+    "NEW_ABSOLUTE_OUTPUT_DIRECTORY"
+  ],
+  "root_capacity_status": "BLOCKED: parent observed less than required32MiB durable reserve; no native GO or mutation attempted.",
+  "schema": "independent-closed-continuation-outer-preparation-review/1",
+  "snapshot_result": "Literal known fixture bytes and links preserved; SQLite opened only a separate working copy; original census unchanged.",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_PREPARATION_NOT_NATIVE_GO"
+}

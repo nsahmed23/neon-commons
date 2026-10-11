@@ -1,0 +1,42 @@
+{
+  "artifacts": [
+    {
+      "bytes": 52893,
+      "classification": "DOCUMENTATION_ONLY_REVIEWABLE_QUALIFICATION_SOURCE",
+      "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/fresh-recovery-modes-loader.py.txt",
+      "public_suitable_author_recommendation": true,
+      "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8",
+      "source_origin": "/tmp/intune-c25-native-extra-modes-profile-20261011-03/loader/qualify_fresh_modes.py"
+    },
+    {
+      "bytes": 60627,
+      "classification": "DOCUMENTATION_ONLY_REVIEWABLE_QUALIFICATION_SOURCE",
+      "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/fresh-recovery-modes-outer.py.txt",
+      "public_suitable_author_recommendation": true,
+      "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8",
+      "source_origin": "/tmp/intune-c25-native-extra-modes-orchestration-20261011-03/orchestrate-fresh-modes.py"
+    },
+    {
+      "bytes": 2472,
+      "classification": "PUBLIC_SCOPE_AND_OMISSIONS",
+      "path": "/tmp/intune-c25-fresh-modes-public-source-20261011-02/README.md",
+      "public_suitable_author_recommendation": true,
+      "sha256": "f2f689d170e273cb67e01437c284ece2aead6c7995b50c13a655df6f13c947a2"
+    }
+  ],
+  "native_dispatches": 0,
+  "omissions": [
+    "private exact profile/helper/input/tool bundle and maps",
+    "original source/runtime packages",
+    "authority/state/binary and exported plans/raw captures/capsules",
+    "approval signatures, keys, witness payloads and execution decisions",
+    "preparation creators with private exact recovery bindings"
+  ],
+  "platform_qualified": false,
+  "production_approved": false,
+  "requires_independent_source_text_disposition": true,
+  "schema_version": "c25-fresh-recovery-modes-public-source-selection/1",
+  "source_package_changed": false,
+  "status": "AUTHOR_RECOMMENDED_PENDING_INDEPENDENT_TEXT_CLEARANCE",
+  "supersedes_text_selection_only": "/tmp/intune-c25-fresh-modes-public-source-20261011-01"
+}

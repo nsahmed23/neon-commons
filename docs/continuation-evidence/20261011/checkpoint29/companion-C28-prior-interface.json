@@ -1,0 +1,35 @@
+{
+  "schema": "companion-C28-prior-reader-interface-qualification/1",
+  "status": "PASS_METADATA_PRIOR_INTERFACE_ONLY",
+  "reader_sha256": "0b8ea305089a9f1dd724ddfb528f697b7c26c448790b53082da6b373bbabfe5f",
+  "selection_sha256": "b2802d75f367b89adc6903f22d49a9d36e2290bde0249d60bd7f61473fc06ea1",
+  "admission_sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b",
+  "checkpoint": 28,
+  "selected_files": 79,
+  "positive_actual_readonly_prior_interface": true,
+  "negative_controls": [
+    {
+      "id": "wrong-prior-selection-pin",
+      "status": "PASS",
+      "actual_rejection": "Prior selection/admission substituted",
+      "scope": "Read-only metadata prior interface; no stage main."
+    },
+    {
+      "id": "wrong-prior-admission-pin",
+      "status": "PASS",
+      "actual_rejection": "Prior selection/admission substituted",
+      "scope": "Read-only metadata prior interface; no stage main."
+    },
+    {
+      "id": "C27-admission-cannot-admit-C28",
+      "status": "PASS",
+      "actual_rejection": "Exact prior public admission linkage absent",
+      "scope": "Read-only metadata prior interface; no stage main."
+    }
+  ],
+  "stage_main_called": false,
+  "publication_prefix_modified": false,
+  "native_or_product_execution": 0,
+  "new_HTTP_or_publication": 0,
+  "prior_large_archive_scope": "Current C28 independent stage admission already rehashed exact ZIPs; this interface checks same pinned path/type/size and reuses that exact clearance without extraction or copies."
+}

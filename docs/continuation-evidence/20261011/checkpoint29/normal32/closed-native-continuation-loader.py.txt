@@ -1,0 +1,846 @@
+"""New attributed closed continuation loader over the preserved C25 package.
+
+The profile is an operator-supplied integrity contract, not service permission.
+Every allowed action targets newly allocated nonforwarding synthetic fixtures.
+No package module is imported before byte/file-set and tool verification.
+"""
+from pathlib import Path, PurePosixPath
+import argparse
+import hashlib
+import importlib
+import json
+import os
+import re
+import stat
+import sys
+import time
+
+MAX_FILE = 1024 * 1024 * 1024
+MAX_FILES = 40000
+ROLES = {'atmos', 'tofu', 'provider', 'relay', 'docker', 'openssl', 'git', 'validator', 'python'}
+ORDINARY_PREDECESSORS = {
+    'ordinary-prepare': (),
+    'ordinary-service': ('ordinary-prepare',),
+    'ordinary-fault-assignment': ('ordinary-prepare',),
+    'ordinary-fault-state': ('ordinary-prepare',),
+    'ordinary-partial-recovery': ('ordinary-fault-assignment',),
+    'ordinary-committed-recovery': ('ordinary-fault-state',),
+    'ordinary-restore': ('ordinary-service',),
+    'description-fault-state': ('ordinary-fault-assignment',),
+    'description-committed-recovery': ('description-fault-state',),
+}
+ACTIONS = ('validate', 'prepare', 'adoption', 'maintenance', 'cancel-acquisition', 'cancel-state', 'cancel-first-plan', 'recover-import', 'recover-initial-plan', 'recover-stopped-plan', 'phase-plan', 'import-plan', 'history', 'source-maintenance', 'phase-plan-prebackend', 'unacquired-plan') + tuple(ORDINARY_PREDECESSORS)
+
+
+class ProfileError(ValueError):
+    pass
+
+
+def require(condition, message):
+    if not condition:
+        raise ProfileError(message)
+
+
+def canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode()
+
+
+def path_under(root, name):
+    require(type(name) is str and '\\' not in name and '\x00' not in name, 'invalid relative path')
+    rel = PurePosixPath(name)
+    require(not rel.is_absolute() and name == str(rel) and all(p not in ('', '.', '..') for p in rel.parts), 'invalid relative path')
+    result = root / name
+    require(not any(p.is_symlink() for p in (result, *result.parents)), 'symlink input denied')
+    return result
+
+
+def root_path(value):
+    path = Path(value).absolute()
+    require('..' not in path.parts and not any(p.is_symlink() for p in (path, *path.parents)), 'unsafe root')
+    require(path.is_dir(), 'missing root')
+    return path
+
+
+def hash_file(path, maximum=MAX_FILE):
+    info = path.lstat()
+    require(stat.S_ISREG(info.st_mode) and 0 <= info.st_size <= maximum, 'unsupported or oversized input')
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as stream:
+        before = os.fstat(stream.fileno())
+        value = hashlib.file_digest(stream, 'sha256').hexdigest()
+        after = os.fstat(stream.fileno())
+    identity = lambda s: (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+    require(identity(info) == identity(before) == identity(after) == identity(path.lstat()), 'input changed during verification')
+    return {'bytes': info.st_size, 'sha256': value}
+
+
+def inventory(root):
+    rows = {}
+    def traversal_failed(error):
+        raise ProfileError('input tree traversal failed: ' + str(error)) from error
+    for current, directories, files in os.walk(root, followlinks=False, onerror=traversal_failed):
+        for name in directories:
+            require(not (Path(current) / name).is_symlink(), 'directory symlink denied')
+        for name in files:
+            path = Path(current) / name
+            relative = path.relative_to(root).as_posix()
+            require(len(rows) < MAX_FILES, 'file count bound')
+            rows[relative] = hash_file(path)
+    require(rows, 'empty input tree')
+    return dict(sorted(rows.items()))
+
+
+def load_json(path, maximum=16 * 1024 * 1024):
+    hash_file(path, maximum)
+    def pairs(rows):
+        result = {}
+        for key, value in rows:
+            require(key not in result, 'duplicate JSON key')
+            result[key] = value
+        return result
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs)
+
+
+# Explicit continuation evidence selection. None of these facts grants service
+# permission or replays an approval. The existing helpers obtain fresh receiving
+# observations and fresh signed recovery/plan/apply operations at their APIs.
+CONTINUATION_PROFILE_SCHEMA = 'c25-native-closed-continuation-profile/1'
+CONTINUATION_RECEIPT_SCHEMA = 'c25-native-closed-continuation-receipt/1'
+LEGACY_RECEIPT_SCHEMA = 'portable-native-adoption-qualification-receipt/1'
+REUSE_SCHEMA = 'c25-native-explicit-evidence-reuse/1'
+REUSE_FIELDS = {'schema_version', 'source_revision', 'original_profile',
+               'original_loader', 'original_capsule', 'legacy_pass_roots',
+               'fault_witness', 'first_recovery', 'routes', 'producer_changes',
+               'mutation_boundaries', 'immutable_original_files'}
+ROUTE_ARGUMENTS = ('adoption_root', 'released_root', 'plan_result_root',
+                   'ordinary_result_root', 'ordinary_seed_root')
+
+
+def explicit_pin(value):
+    require(type(value) is dict and set(value) == {'path', 'bytes', 'sha256'}, 'closed explicit evidence pin')
+    require(type(value['path']) is str and Path(value['path']).is_absolute()
+            and '..' not in Path(value['path']).parts, 'explicit pin path')
+    require(type(value['bytes']) is int and value['bytes'] >= 0
+            and type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']) is not None,
+            'explicit pin type')
+    path = Path(value['path'])
+    require(not any(p.is_symlink() for p in (path, *path.parents)), 'explicit pin symlink')
+    require(hash_file(path) == {key: value[key] for key in ('bytes', 'sha256')}, 'explicit evidence changed')
+    return path
+
+
+def validate_reuse(profile, value):
+    require(type(value) is dict and set(value) == REUSE_FIELDS and value['schema_version'] == REUSE_SCHEMA,
+            'closed continuation reuse fields')
+    require(value['source_revision'] == profile.source_revision, 'reuse source revision')
+    old = load_json(explicit_pin(value['original_profile']))
+    require(old.get('schema_version') == 'portable-native-adoption-qualification/1'
+            and old.get('source_revision') == profile.source_revision
+            and old.get('loader_sha256') == value['original_loader']['sha256'], 'original profile identity')
+    explicit_pin(value['original_loader'])
+    explicit_pin(value['original_capsule'])
+    require(all(old[key] == profile.value[key] for key in ('source_linkage', 'package', 'tools')),
+            'continuation cannot change source, package or tools')
+    require(old['inputs'] == {key: row for key, row in profile.value['inputs'].items()
+                             if key != 'inputs/continuation-reuse.json'}, 'original fixture inputs unchanged')
+    changes = value['producer_changes']
+    require(type(changes) is dict and set(changes) == {'helpers/native_ordinary_qualification.py',
+                                                     'helpers/native_ordinary_partial.py'}, 'closed producer change scope')
+    expected_helpers = dict(old['helpers'])
+    for name, row in changes.items():
+        require(type(row) is dict and set(row) == {'before', 'after'}
+                and row['before'] == old['helpers'][name] and row['after'] == profile.value['helpers'][name],
+                'producer before/after pins')
+        expected_helpers[name] = row['after']
+    require(expected_helpers == profile.value['helpers'], 'unexpected helper change')
+    roots = value['legacy_pass_roots']
+    require(type(roots) is dict and len(roots) == 2
+            and {row.get('action') for row in roots.values()} == {'adoption', 'ordinary-prepare'},
+            'only exact completed adoption/preparation evidence may be reused')
+    for root, row in roots.items():
+        require(type(row) is dict and set(row) == {'action', 'receipt'}
+                and row['receipt']['path'] == str(root_path(root) / 'PORTABLE-QUALIFICATION.json'),
+                'legacy root receipt binding')
+        receipt = load_json(explicit_pin(row['receipt']))
+        require(receipt.get('schema_version') == LEGACY_RECEIPT_SCHEMA and receipt.get('status') == 'PASS'
+                and receipt.get('action') == row['action']
+                and receipt.get('profile_sha256') == value['original_profile']['sha256']
+                and receipt.get('loader_sha256') == value['original_loader']['sha256']
+                and receipt.get('source_revision') == profile.source_revision
+                and receipt.get('project_root') == str(profile.project)
+                and receipt.get('package_inventory_sha256') == hashlib.sha256(canonical(profile.value['package'])).hexdigest(),
+                'legacy evidence must remain byte-exact PASS of the declared old package')
+    witness = load_json(explicit_pin(value['fault_witness']))
+    first = value['first_recovery']
+    require(type(first) is dict and set(first) == {'action', 'output', 'fault_root', 'seed_root'}
+            and first['action'] == 'ordinary-partial-recovery'
+            and first['fault_root'] not in roots and first['seed_root'] in roots
+            and roots[first['seed_root']]['action'] == 'ordinary-prepare', 'closed first recovery binding')
+    require(witness.get('schema_version') == 'native-stopped-fault-recovery-input-witness/1'
+            and witness.get('status') == 'PASS_METADATA_ONLY_RECOVERY_INPUT'
+            and witness.get('source_revision') == profile.source_revision
+            and witness.get('original_profile_sha256') == value['original_profile']['sha256']
+            and witness.get('original_fault_root') == first['fault_root']
+            and witness.get('prepared_seed_root') == first['seed_root']
+            and witness.get('platform_qualified') is False and witness.get('production_approved') is False
+            and witness.get('signature_verification', {}).get('valid_original') is True
+            and witness.get('signature_verification', {}).get('requires_fresh_recovery_approval') is True,
+            'historical witness is exact recovery input only')
+    held = witness.get('held_state_assertions', {})
+    require(held.get('portable_qualification_status') == 'FAIL'
+            and held.get('original_operation_status') == 'outcome_unknown'
+            and held.get('native_dispatches') == 1 and type(held.get('native_dispatches')) is int
+            and held.get('consumed_approvals') == 1 and type(held.get('consumed_approvals')) is int
+            and held.get('writer_reservations') == 2 and type(held.get('writer_reservations')) is int
+            and held.get('native_lease_retained') is True
+            and held.get('permits_original_apply_replay') is False
+            and held.get('fresh_recovery_approval_required') is True
+            and held.get('recovery_performed') is False, 'held original failure must not become a passed/replayable operation')
+    routes = value['routes']
+    require(type(routes) is list and len(routes) == 32, 'exact remaining 32 action routes')
+    outputs = set(); ids = set()
+    for row in routes:
+        require(type(row) is dict and set(row) == {'id', 'action', 'output', 'arguments'}
+                and type(row['id']) is str and row['id'] not in ids and row['action'] in ACTIONS
+                and type(row['output']) is str and Path(row['output']).is_absolute()
+                and '..' not in Path(row['output']).parts and row['output'] not in outputs
+                and type(row['arguments']) is dict and set(row['arguments']) == set(ROUTE_ARGUMENTS) | {'cancel_after_acquire', 'recovery_mode'},
+                'closed unambiguous continuation route')
+        require(all(row['arguments'][key] is None or type(row['arguments'][key]) is str for key in ROUTE_ARGUMENTS)
+                and type(row['arguments']['cancel_after_acquire']) is bool
+                and row['arguments']['recovery_mode'] == 'normal', 'literal route arguments')
+        ids.add(row['id']); outputs.add(row['output'])
+    require(routes[0]['id'] == 'ordinary-partial-recovery'
+            and routes[0]['action'] == first['action'] and routes[0]['output'] == first['output']
+            and routes[0]['arguments']['ordinary_result_root'] == first['fault_root']
+            and routes[0]['arguments']['ordinary_seed_root'] == first['seed_root'], 'first recovery exact route')
+    immutable = value['immutable_original_files']
+    require(type(immutable) is list and len(immutable) >= 10, 'original immutable evidence pins required')
+    for pin in immutable:
+        explicit_pin(pin)
+    boundaries = value['mutation_boundaries']
+    require(type(boundaries) is list and boundaries, 'explicit disposable mutation boundaries required')
+    for row in boundaries:
+        require(type(row) is dict and set(row) == {'stage_ids', 'paths', 'procedure', 'restrictions'}
+                and type(row['stage_ids']) is list and set(row['stage_ids']) <= ids
+                and type(row['paths']) is list and row['paths']
+                and all(type(path) is str and Path(path).is_absolute() and '..' not in Path(path).parts for path in row['paths'])
+                and type(row['procedure']) is str and type(row['restrictions']) is list,
+                'closed disposable mutation boundary')
+    return value, witness
+
+
+def continuation_route(profile, args, output):
+    selected = [row for row in profile.reuse['routes'] if row['action'] == args.action and row['output'] == str(output)]
+    require(len(selected) == 1, 'action/output is not in the exact continuation route')
+    supplied = {key: getattr(args, key) for key in (*ROUTE_ARGUMENTS, 'cancel_after_acquire', 'recovery_mode')}
+    require(supplied == selected[0]['arguments'], 'continuation route input substitution denied')
+    return selected[0]
+
+
+def receipt_binding(profile, selected, receipt, actions):
+    require(type(receipt) is dict and receipt.get('status') == 'PASS' and receipt.get('action') in actions
+            and receipt.get('source_revision') == profile.source_revision
+            and receipt.get('project_root') == str(profile.project)
+            and receipt.get('package_inventory_sha256') == hashlib.sha256(canonical(profile.value['package'])).hexdigest(),
+            'continuation requires qualified exact action/package')
+    if receipt.get('schema_version') == CONTINUATION_RECEIPT_SCHEMA:
+        routes = [row for row in profile.reuse['routes'] if row['action'] == receipt['action'] and row['output'] == str(selected)]
+        require(len(routes) == 1 and receipt.get('continuation_route_id') == routes[0]['id']
+                and type(receipt.get('continuation_route')) is dict
+                and canonical(receipt['continuation_route']) == canonical(routes[0]), 'new receipt must bind exact selected action/root/route and JSON types')
+        require(receipt.get('profile_sha256') == profile.sha256
+                and receipt.get('loader_sha256') == profile.value['loader_sha256']
+                and receipt.get('reuse_sha256') == profile.value['inputs']['inputs/continuation-reuse.json']['sha256'],
+                'new continuation receipt must identify actual loader/profile/reuse contract')
+    else:
+        row = profile.reuse['legacy_pass_roots'].get(str(selected))
+        require(row is not None and receipt.get('schema_version') == LEGACY_RECEIPT_SCHEMA
+                and row['action'] == receipt['action']
+                and receipt.get('profile_sha256') == profile.reuse['original_profile']['sha256']
+                and receipt.get('loader_sha256') == profile.reuse['original_loader']['sha256']
+                and explicit_pin(row['receipt']) == selected / 'PORTABLE-QUALIFICATION.json',
+                'only explicit byte-exact completed legacy roots may be reused; failed roots are excluded')
+
+
+def fault_recovery_input(profile, args, output):
+    first = profile.reuse['first_recovery']; witness = profile.witness
+    require(args.action == first['action'] and str(output) == first['output']
+            and args.ordinary_result_root == first['fault_root'] and args.ordinary_seed_root == first['seed_root'],
+            'negative historical input is admitted only for the single named first recovery')
+    previous = root_path(first['fault_root'])
+    # Witness files include initial mutable receiving values; these are checked
+    # only before the first recovery. Later approved reconciliation may append
+    # authority/history or change disposable receiving state, never old evidence.
+    for row in witness['immutable_original_files'].values():
+        require(Path(row['path']) == previous / Path(row['path']).relative_to(previous), 'witness path escapes exact original fault')
+        explicit_pin({key: row[key] for key in ('path', 'bytes', 'sha256')})
+    for snapshot in witness['authority_snapshot']['snapshots']:
+        require(snapshot.get('copy_precedes_SQLite_open') is True, 'independent DB copy must precede reads')
+        for row in snapshot['files']:
+            path = Path(row['path'])
+            require(previous in path.parents, 'authority input outside original fault')
+            if row.get('present') is False:
+                require(not path.exists() and not path.is_symlink(), 'new original DB sidecar before recovery')
+            else:
+                explicit_pin({key: row[key] for key in ('path', 'bytes', 'sha256')})
+    portable = load_json(previous / 'PORTABLE-QUALIFICATION.json')
+    native = load_json(previous / 'receipt.json')
+    negative = load_json(previous / 'NEGATIVE-CONTROL-RECEIPT.json')
+    final = load_json(previous / 'FINAL-QUALIFICATION.json'); cleanup = load_json(previous / 'cleanup.json')
+    require(portable.get('status') == 'FAIL' and portable.get('schema_version') == LEGACY_RECEIPT_SCHEMA
+            and portable.get('action') == 'ordinary-fault-assignment' and portable.get('error') == 'ValueError'
+            and portable.get('profile_sha256') == profile.reuse['original_profile']['sha256']
+            and portable.get('loader_sha256') == profile.reuse['original_loader']['sha256']
+            and portable.get('scenario_result') is None, 'original failed qualification must stay failed')
+    require(native.get('status') == 'PASS' and negative.get('status') == 'PASS'
+            and final.get('status') == 'PASS' and final.get('cleanup_failures') == []
+            and final.get('primary_error') is None and cleanup.get('failures') == []
+            and cleanup.get('primary') is None, 'actual native negative outcome and cleanup required')
+    require(native.get('operation_id') == witness['operation_id']
+            and native.get('manifest_sha256') == witness['manifest_sha256']
+            and native.get('saved_plan_sha256') == witness['saved_plan_sha256']
+            and native.get('job_root') == witness['job_root'] and native.get('policy_path') == witness['policy_path']
+            and native.get('actual_operation_status') == 'outcome_unknown', 'selected stopped operation identity')
+    manifest = load_json(Path(witness['job_root']) / 'manifest.json')
+    require(manifest.get('operation_id') == witness['operation_id']
+            and hashlib.sha256(canonical(manifest)).hexdigest() == witness['manifest_sha256']
+            and native.get('classification') == 'expected_partial_or_unknown_native_operation', 'exact original manifest and failure classification')
+    return previous, {'schema_version': 'c25-native-metadata-only-recovery-input/1',
+        'status': 'PASS_METADATA_ONLY_RECOVERY_INPUT', 'witness': profile.reuse['fault_witness'],
+        'original_portable_status': 'FAIL', 'replays_consumed_apply': False,
+        'linkage': {'schema_version': 'c25-native-stopped-operation-reference/1',
+            'action': 'ordinary-fault-assignment', 'source_revision': profile.source_revision,
+            'kind': 'operation', 'seed_root': first['seed_root'], 'previous_root': first['seed_root'],
+            'operation_id': witness['operation_id'], 'manifest_sha256': witness['manifest_sha256'],
+            'job_root': witness['job_root'], 'policy_path': witness['policy_path'],
+            'receiving_fixture': str(previous / 'fixture')}}
+
+
+class Profile:
+    def __init__(self, args):
+        require(re.fullmatch('[0-9a-f]{64}', args.profile_sha256 or '') is not None, 'explicit profile pin required')
+        profile_path = Path(args.profile).absolute()
+        require(hash_file(profile_path)['sha256'] == args.profile_sha256, 'profile hash mismatch')
+        value = load_json(profile_path)
+        require(set(value) == {'schema_version', 'source_revision', 'source_linkage', 'package', 'helpers', 'inputs', 'tools', 'loader_sha256'}, 'profile fields')
+        require(value['schema_version'] == CONTINUATION_PROFILE_SCHEMA, 'profile schema')
+        require(value['loader_sha256'] == hash_file(Path(__file__).absolute())['sha256'], 'loader implementation changed')
+        require(re.fullmatch('[0-9a-f]{40}', value['source_revision'] or '') is not None, 'source revision')
+        require(type(value['package']) is dict and type(value['helpers']) is dict and type(value['inputs']) is dict, 'inventory types')
+        self.project = root_path(args.project_root)
+        self.evidence = root_path(args.evidence_root)
+        self.tool_root = root_path(args.tool_root)
+        self.scratch = root_path(args.scratch_root)
+        scratch = self.scratch.stat()
+        require(scratch.st_uid == os.geteuid() and not scratch.st_mode & 0o077 and len(str(self.scratch)) <= 50, 'private short scratch root required')
+        self.source_revision = value['source_revision']
+        self.value = value
+        self.sha256 = args.profile_sha256
+        require(inventory(self.project) == value['package'], 'complete package file set or bytes differ')
+        for group in ('helpers', 'inputs'):
+            for name, expected in value[group].items():
+                require(hash_file(path_under(self.evidence, name)) == expected, group + ' input mismatch: ' + name)
+        require(value['helpers'] == {'helpers/' + name: row for name, row in inventory(self.evidence / 'helpers').items()}, 'helper file set mismatch')
+        require(value['inputs'] == {'inputs/' + name: row for name, row in inventory(self.evidence / 'inputs').items()}, 'input file set mismatch')
+        linkage = value['source_linkage']
+        require(type(linkage) is dict and set(linkage) == {'path', 'sha256'}, 'linkage fields')
+        require(linkage['path'] in value['inputs'] and value['inputs'][linkage['path']]['sha256'] == linkage['sha256'], 'unbound source linkage')
+        self.linkage = load_json(path_under(self.evidence, linkage['path']))
+        require(self.linkage.get('source_revision') == self.source_revision and self.linkage.get('package_inventory_sha256') == hashlib.sha256(canonical(value['package'])).hexdigest(), 'source linkage does not bind this package')
+        require(self.linkage.get('scope') == 'package bytes compared to specified source revision', 'linkage scope')
+        require(set(value['tools']) == ROLES, 'closed tool roles required')
+        locations = load_json(Path(args.tool_map).absolute())
+        require(set(locations) == ROLES, 'closed tool locations required')
+        self.paths = {}
+        for role, expected in value['tools'].items():
+            path = path_under(self.tool_root, locations[role])
+            require(hash_file(path) == expected, 'tool hash mismatch: ' + role)
+            info = path.stat()
+            require(info.st_nlink == 1 and info.st_uid in (0, os.geteuid()) and not info.st_mode & 0o022, 'tool identity denied: ' + role)
+            self.paths[role] = path
+        require(hash_file(Path(sys.executable).resolve()) == value['tools']['python'], 'running interpreter not selected pin')
+        self.tool_rows = [{'role': role, 'path': str(self.paths[role]), 'sha256': value['tools'][role]['sha256']} for role in ('atmos', 'tofu', 'provider', 'relay')]
+        self.fixture = json.loads(self.input('native-policy.json').read_bytes())
+        self.assert_import_origins()
+        self.reuse, self.witness = validate_reuse(self, load_json(self.input('continuation-reuse.json')))
+
+    def input(self, name):
+        path = 'inputs/' + name
+        require(path in self.value['inputs'], 'unlisted fixture input')
+        return path_under(self.evidence, path)
+
+    def tool(self, name):
+        require(name in self.paths, 'unlisted tool')
+        return str(self.paths[name])
+
+    def assert_import_origins(self):
+        origins = {}
+        for name, module in tuple(sys.modules.items()):
+            if name == 'intune_iac' or name.startswith('intune_iac.') or name == 'plugin_tests' or name.startswith('plugin_tests.'):
+                source = getattr(module, '__file__', None)
+                require(source is not None, 'package module has no source origin')
+                path = Path(source).absolute()
+                require(self.project in path.parents and path.suffix == '.py', 'package module imported outside selected package')
+                relative = path.relative_to(self.project).as_posix()
+                require(relative in self.value['package'] and hash_file(path) == self.value['package'][relative], 'imported package module changed')
+                origins[name] = {'path': relative, **self.value['package'][relative]}
+            elif name in {Path(key).stem for key in self.value['helpers'] if key.endswith('.py')}:
+                source=getattr(module,'__file__',None)
+                require(source is not None,'helper module has no source origin')
+                path=Path(source).absolute();key='helpers/'+name+'.py'
+                require(path==self.evidence/key and key in self.value['helpers'] and hash_file(path)==self.value['helpers'][key],
+                    'helper imported outside exact selected bundle')
+                origins[name]={'external_helper':key,**self.value['helpers'][key]}
+        return origins
+
+    def recheck(self):
+        require(inventory(self.project) == self.value['package'], 'package changed during qualification')
+        require(self.value['helpers'] == {'helpers/' + name: row for name, row in inventory(self.evidence / 'helpers').items()}, 'helper file set changed during qualification')
+        require(self.value['inputs'] == {'inputs/' + name: row for name, row in inventory(self.evidence / 'inputs').items()}, 'input file set changed during qualification')
+        for group in ('helpers', 'inputs'):
+            for name, expected in self.value[group].items():
+                require(hash_file(path_under(self.evidence, name)) == expected, 'qualification dependency changed')
+        for role, path in self.paths.items():
+            require(hash_file(path) == self.value['tools'][role], 'tool changed during qualification')
+        require(hash_file(Path(__file__).absolute())['sha256'] == self.value['loader_sha256'], 'loader changed during qualification')
+        return self.assert_import_origins()
+
+
+def parser():
+    result = argparse.ArgumentParser(description=__doc__)
+    for key in ('profile', 'profile-sha256', 'project-root', 'evidence-root', 'tool-root', 'tool-map', 'scratch-root', 'output'):
+        result.add_argument('--' + key, required=True)
+    result.add_argument('--action', choices=ACTIONS, required=True)
+    result.add_argument('--adoption-root')
+    result.add_argument('--released-root')
+    result.add_argument('--plan-result-root')
+    result.add_argument('--ordinary-result-root')
+    result.add_argument('--ordinary-seed-root')
+    result.add_argument('--cancel-after-acquire', action='store_true')
+    result.add_argument('--recovery-mode',choices=('normal','lost-response','recording-interruption'),default='normal')
+    return result
+
+
+def adoption_artifacts(root):
+    root = root_path(root)
+    declared = ('jobs/adoption/manifest.json','jobs/adoption/approval.json','trust/policy.json','initial-state.json')
+    artifacts = {name: hash_file(path_under(root, name)) for name in declared}
+    trees = {name: inventory(path_under(root, name)) for name in ('preimage','source')}
+    manifest = load_json(root/'jobs/adoption/manifest.json')
+    policy = load_json(root/'trust/policy.json')
+    require(manifest.get('schema_version') == 'native-state-adoption/1' and type(manifest.get('operation_id')) is str, 'original adoption artifact schema')
+    return {'operation_id':manifest['operation_id'],'verification_operation_id':manifest['verification_operation_id'],
+            'manifest_sha256':hashlib.sha256(canonical(manifest)).hexdigest(),
+            'service_authority_root':policy['authority_root'],'jobs_root':policy['jobs_root'],
+            'files':artifacts,'trees':trees}
+
+
+
+def maintenance_artifacts(root,result):
+    root=root_path(root);command=load_json(root/'cli-prepare.json');argv=command.get('argv')
+    require(set(command)=={'argv','exit_code'} and command['exit_code']==0 and type(argv) is list and len(argv)==11
+        and all(type(item) is str for item in argv) and argv[1]=='-B' and argv[3:5]==['service','prepare']
+        and argv[5::2]==['--job-root','--policy','--manifest'] and argv[10]==str(root/'manifest.json'), 'exact service preparation linkage')
+    job=root_path(argv[6]);policy=Path(argv[8]).absolute();manifest=load_json(job/'manifest.json');seed=root.parent
+    require(manifest==load_json(root/'manifest.json') and manifest.get('schema_version') in ('worker-service-operation/1','worker-service-operation/2')
+        and manifest.get('operation_id')==result.get('operation_id') and hashlib.sha256(canonical(manifest)).hexdigest()==result.get('manifest_sha256')
+        and result.get('status')=='PASS' and result.get('adoption_operation_id')==adoption_artifacts(seed)['operation_id'], 'maintenance original/manifest linkage')
+    return {'job_root':str(job),'policy_path':str(policy),'operation_id':manifest['operation_id'],'schema_version':manifest['schema_version'],
+        'receiving_fixture':str(seed/'fixture'),'receiving_files':inventory(seed/'fixture'),
+        'files':{str(path):hash_file(path) for path in (job/'manifest.json',job/'policy-binding.json',job/'service-receipt.json',policy,root/'signed-approval.json',root/'cli-prepare.json',root/'receipt.json',root/'intent-receipt.json')},
+        'source_files':inventory(root/'source'),'control_files':inventory(root/'control'),'intent_repository_files':inventory(seed/'maintenance/intent-repository')}
+
+
+def source_history_artifacts(root,result):
+    root=root_path(root);facts=maintenance_artifacts(root,result)
+    require(facts['schema_version']=='worker-service-operation/2' and load_json(root/'receipt.json')==result
+        and result.get('checks',{}).get('literal_complete_native_state_and_noop') is True
+        and result.get('checks',{}).get('explicit_signed_source_bridge') is True,'completed source-bound native history required')
+    readback=load_json(root/'independent-readback/receipt.json');published=load_json(root/'observation-publication.json')
+    require(type(published) is list and len(published)==1,'one exact native publication required')
+    source=published[0]['source'];entry=source['artifacts']['capture-receipt.json'];capture_file=Path(entry['path']).absolute();capture=capture_file.parent
+    require(capture_file.name=='capture-receipt.json' and capture.parent==root/'precondition'
+        and capture.name.startswith('completed') and hash_file(capture_file)['sha256']==entry['sha256']
+        and source['capture_sha256']==readback['graph_capture_sha256']
+        and readback['backend_state']['sha256']==result['state_sha256']
+        and readback['manifest_sha256']==result['manifest_sha256'],'source-bound fresh capture/readback linkage')
+    return {'job_root':facts['job_root'],'policy_path':facts['policy_path'],'capture_root':str(capture),'store_root':str(root.parent/'store'),'state_raw':None,
+        'native_receipt_path':str(root/'receipt.json'),'native_receipt_sha256':hash_file(root/'receipt.json')['sha256'],'expected_schema':facts['schema_version'],
+        'files':{str(path):hash_file(path) for path in (root/'receipt.json',root/'independent-readback/receipt.json',root/'independent-readback/observed-state.raw',root/'observation-publication.json')},
+        'capture_files':inventory(capture),'store_files':inventory(root.parent/'store')}
+
+
+def release_artifacts(root):
+    root = root_path(root)
+    files = {name:hash_file(path_under(root,name)) for name in ('selected-manifest.json','selected-approval.json','trust/policy.json')}
+    manifest = load_json(root/'selected-manifest.json')
+    require(manifest.get('schema_version') in ('adoption-native-lease-recovery-operation/1','adoption-plan-native-lease-recovery-operation/1'), 'release artifact schema')
+    facts = manifest['observation']['original']
+    return {'files':files,'receiving_fixture':str(root/'fixture'),'receiving_files':inventory(root/'fixture'),
+        'original_operation_id':facts['operation_id'],'phase_operation_id':facts.get('phase_operation_id'),
+        'recovery_operation_id':manifest['operation_id'],'manifest_sha256':hashlib.sha256(canonical(manifest)).hexdigest()}
+
+
+def phase_artifacts(root, result):
+    root = root_path(root)
+    command = load_json(root/'cli-prepare.json'); argv = command.get('argv')
+    require(set(command) == {'argv','exit_code'} and command['exit_code'] == 0 and type(argv) is list
+        and len(argv) == 13 and all(type(item) is str for item in argv)
+        and argv[1] == '-B' and argv[3:5] == ['adoption','recovery-plan-prepare']
+        and argv[5::2] == ['--job-root','--policy','--manifest','--original-job-root']
+        and argv[10] == str(root/'manifest.json')
+        and argv[12] == str(root_path(result['original_seed'])/'jobs/adoption'), 'exact Plan preparation command linkage')
+    job = root_path(argv[6]); policy = Path(argv[8]).absolute()
+    require(result.get('job_root',str(job)) == str(job) and result.get('policy_path',str(policy)) == str(policy),
+        'Plan result path contradicts recorded preparation')
+    manifest = load_json(job/'manifest.json')
+    require(manifest == load_json(root/'manifest.json') and manifest.get('operation_id') == result.get('operation_id')
+        and manifest.get('schema_version') in ('native-adoption-recovery-plan/1','native-adoption-recovery-plan/2','native-adoption-recovery-plan/3')
+        and manifest.get('original_operation_id') == result.get('original_operation_id')
+        and hashlib.sha256(canonical(manifest)).hexdigest() == result.get('manifest_sha256'), 'Plan artifact manifest linkage')
+    receiving = root_path(result['receiving_fixture'])
+    no_lease=result.get('checks',{}).get('native_lease_request_journal_empty') is True
+    if no_lease:require(load_json(root/'native-lease-requests.json')==[],'exact empty native lease journal evidence required')
+    return {'job_root':str(job),'policy_path':str(policy),'receiving_fixture':str(receiving),
+        'operation_id':manifest['operation_id'],'original_operation_id':result['original_operation_id'],
+        'files':{str(path):hash_file(path) for path in (job/'manifest.json',job/'approval.json',policy,root/'signed-approval.json',root/'cli-prepare.json')+((root/'native-lease-requests.json',) if no_lease else ())},
+        'receiving_files':inventory(receiving),'source_files':inventory(root/'source'),'control_files':inventory(root/'control')}
+
+
+
+def phase_history_artifacts(root, result):
+    """Closed receipt-derived readonly inputs, never caller-selected authority."""
+    root=root_path(root);facts=phase_artifacts(root,result)
+    require(result.get('status')=='PASS' and result.get('checks',{}).get('actual_no_change_proof') is True
+        and result.get('checks',{}).get('exact_capture_published') is True,
+        'history requires independently completed native Plan and publication')
+    native=load_json(root/'receipt.json');require(native==result,'native receipt and portable scenario differ')
+    observation=load_json(root/'post-plan-completion/observation.json')
+    capture=root/'post-plan-completion/adoption-graph';state=root/'post-plan-completion/state.raw';store=root/'store'
+    require(observation.get('adoption_capture',{}).get('path')==str(capture)
+        and observation.get('state_artifact_sha256')==hash_file(state)['sha256']
+        and observation.get('state',{}).get('sha256')==result.get('state_sha256')
+        and observation.get('locked') is False and observation.get('metadata')=={},'final native capture/state linkage')
+    manifest=load_json(Path(facts['job_root'])/'manifest.json')
+    return {'job_root':facts['job_root'],'policy_path':facts['policy_path'],'capture_root':str(capture),'store_root':str(store),'state_raw':str(state),
+        'native_receipt_path':str(root/'receipt.json'),'native_receipt_sha256':hash_file(root/'receipt.json')['sha256'],
+        'expected_schema':manifest['schema_version'],
+        'files':{str(path):hash_file(path) for path in (root/'receipt.json',root/'post-plan-completion/observation.json',state)},
+        'capture_files':inventory(capture),'store_files':inventory(store)}
+
+
+def history_inputs(profile, root, output):
+    selected,receipt=prior_receipt(profile,root,('phase-plan','import-plan','unacquired-plan','source-maintenance'))
+    result=receipt['scenario_result']
+    if receipt['action']=='source-maintenance':
+        phase=maintenance_artifacts(selected,result);facts=source_history_artifacts(selected,result);artifact_field='maintenance_operation_artifacts'
+    else:
+        phase=phase_artifacts(selected,result);facts=phase_history_artifacts(selected,result);artifact_field='phase_operation_artifacts'
+    require(receipt.get(artifact_field)==phase and receipt.get('history_operation_artifacts')==facts,
+        'exact completed native history artifacts changed')
+    policy=load_json(Path(facts['policy_path']));manifest=load_json(Path(facts['job_root'])/'manifest.json')
+    roots=[selected,profile.project,profile.evidence,Path(policy['authority_root']),Path(policy['jobs_root']),
+        Path(facts['capture_root']),Path(facts['store_root']),Path(manifest['host_spec']['source_root'])]
+    output=Path(output).absolute()
+    require('..' not in output.parts and output.parent.is_dir(), 'safe existing history output parent required')
+    require(all(output!=p and p not in output.parents and output not in p.parents for p in roots),
+        'history output must not alter any source namespace')
+    return {key:facts[key] for key in ('job_root','policy_path','capture_root','store_root','state_raw','native_receipt_path','native_receipt_sha256','expected_schema')}
+
+
+def prior_receipt(profile, root, actions):
+    require(root is not None, 'prior qualified action root required')
+    selected = root_path(root); receipt = load_json(selected / 'PORTABLE-QUALIFICATION.json')
+    receipt_binding(profile, selected, receipt, actions)
+    return selected, receipt
+
+
+def selected_plan(profile, root, original_id):
+    selected,receipt = prior_receipt(profile,root,('phase-plan',))
+    result = receipt['scenario_result']
+    facts = phase_artifacts(selected,result)
+    require(receipt.get('phase_operation_artifacts') == facts and facts['original_operation_id'] == original_id
+        and result.get('checks',{}).get('single_unknown_cancelled_plan') is True,
+        'selected Plan must retain exact qualified interrupted operation and receiving artifacts')
+    return facts
+
+
+
+def unacquired_plan_inputs(profile,root,original_id):
+    selected,receipt=prior_receipt(profile,root,('phase-plan-prebackend',));result=receipt['scenario_result'];facts=phase_artifacts(selected,result)
+    required=('single_unknown_cancelled_plan','native_discovery_attempt_only','native_backend_attempt_absent','no_native_lease_acquired',
+        'lock_metadata_remains_empty','state_byte_exact','graph_exact','original_reservation_retained','native_host_cleaned',
+        'native_lease_request_journal_empty','no_native_plan_output','no_controller_plan_archive')
+    require(receipt.get('phase_operation_artifacts')==facts and facts['original_operation_id']==original_id and result.get('status')=='PASS'
+        and all(result.get('checks',{}).get(key) is True for key in required),
+        'no-acquisition continuation requires exact fresh qualified stopped no-backend operation')
+    return facts
+
+
+def continuation(profile, root, allowed_actions):
+    selected, receipt = prior_receipt(profile, root, allowed_actions)
+    require(receipt.get('operation_artifacts') == adoption_artifacts(selected), 'original operation artifacts or authority linkage changed')
+    # Evidence linkage only. Actual helpers independently reacquire observations,
+    # authority capabilities and fresh signed operations; no old apply is replayed.
+    return selected
+
+
+
+def ordinary_artifacts(root, result, *, action, seed_root, previous_root, previous_facts=None):
+    """Integrity of a closed external test result, never mutation authority."""
+    root = root_path(root)
+    require(action in ORDINARY_PREDECESSORS and type(result) is dict and result.get('status') == 'PASS',
+            'ordinary scenario result required')
+    linkage = load_json(root / 'qualification-linkage.json')
+    fields = {'schema_version', 'action', 'source_revision', 'kind', 'seed_root', 'previous_root',
+              'operation_id', 'manifest_sha256', 'job_root', 'policy_path', 'receiving_fixture', 'artifacts'}
+    require(type(linkage) is dict and set(linkage) == fields and linkage == result.get('qualification_linkage')
+            and linkage['schema_version'] == 'ordinary-native-qualification-linkage/1'
+            and linkage['action'] == action and type(linkage['source_revision']) is str
+            and re.fullmatch('[0-9a-f]{40}', linkage['source_revision']) is not None
+            and linkage['seed_root'] == str(seed_root)
+            and linkage['previous_root'] == (str(previous_root) if previous_root is not None else None),
+            'ordinary exact action and predecessor linkage required')
+    fixture = root / 'fixture'
+    require(linkage['receiving_fixture'] == str(fixture), 'ordinary receiving fixture must be own fixed directory')
+    declared = linkage['artifacts']
+    require(type(declared) is dict and 1 <= len(declared) <= 512
+            and not {'qualification-linkage.json', 'PORTABLE-QUALIFICATION.json'} & set(declared),
+            'ordinary bounded artifact set required')
+    files = {}
+    for name, expected in declared.items():
+        require(type(expected) is dict and set(expected) == {'bytes', 'sha256'}
+                and type(expected['bytes']) is int and 0 <= expected['bytes'] <= MAX_FILE
+                and type(expected['sha256']) is str and re.fullmatch('[0-9a-f]{64}', expected['sha256']) is not None,
+                'ordinary artifact pin fields')
+        files[name] = hash_file(path_under(root, name))
+        require(files[name] == expected, 'ordinary artifact bytes changed')
+    facts = {'linkage': linkage, 'linkage_file': hash_file(root / 'qualification-linkage.json'),
+             'files': files, 'receiving_files': inventory(fixture)}
+    selected = ('operation_id', 'manifest_sha256', 'job_root', 'policy_path')
+    if action == 'ordinary-prepare':
+        require(linkage['kind'] == 'preparation' and all(linkage[key] is None for key in selected),
+                'native Plan preparation cannot invent a service operation')
+        return facts
+    require(linkage['kind'] == 'operation' and all(type(linkage[key]) is str for key in selected),
+            'ordinary selected operation fields')
+    require(re.fullmatch('[0-9a-f]{64}', linkage['manifest_sha256']) is not None, 'ordinary manifest digest')
+    job = root_path(linkage['job_root']); policy = Path(linkage['policy_path']).absolute()
+    require('..' not in policy.parts and not any(p.is_symlink() for p in (policy, *policy.parents)),
+            'ordinary policy path unsafe')
+    roots = [root, seed_root] + ([previous_root] if previous_root is not None else [])
+    prior_linkage = previous_facts.get('linkage', {}) if previous_facts is not None else {}
+    require(any(job == value or value in job.parents for value in roots)
+            or str(job) == prior_linkage.get('job_root'), 'ordinary job outside pinned input roots')
+    require(any(value in policy.parents for value in roots)
+            or str(policy) == prior_linkage.get('policy_path'), 'ordinary policy outside pinned input roots')
+    manifest = load_json(job / 'manifest.json')
+    require(manifest.get('schema_version') in ('worker-service-operation/1', 'worker-service-operation/2')
+            and manifest.get('operation_id') == linkage['operation_id']
+            and hashlib.sha256(canonical(manifest)).hexdigest() == linkage['manifest_sha256'],
+            'ordinary actual service manifest linkage changed')
+    facts['selected_job_files'] = {str(path): hash_file(path) for path in
+                                 (job / 'manifest.json', job / 'policy-binding.json', policy)}
+    facts['source_files'] = inventory(root_path(manifest['host_spec']['source_root']))
+    facts['control_files'] = inventory(root_path(manifest['host_spec']['control_root']))
+    return facts
+
+
+def ordinary_preparation(profile, root):
+    selected, receipt = prior_receipt(profile, root, ('ordinary-prepare',))
+    stored = receipt.get('ordinary_operation_artifacts')
+    require(type(stored) is dict and type(stored.get('linkage')) is dict,
+            'ordinary prepared seed receipt required')
+    adopted = continuation(profile, stored['linkage']['seed_root'], ('adoption',))
+    facts = ordinary_artifacts(selected, receipt['scenario_result'], action='ordinary-prepare',
+                               seed_root=adopted, previous_root=None)
+    require(facts == stored and facts['linkage']['source_revision'] == profile.source_revision
+            and receipt.get('ordinary_input_artifacts') == {'seed': adoption_artifacts(adopted), 'previous': None},
+            'ordinary prepared seed or adoption artifacts changed')
+    return selected, facts
+
+
+def ordinary_inputs(profile, args, output):
+    previous = None; previous_facts = None
+    if args.action == 'ordinary-prepare':
+        require(args.ordinary_seed_root is None and args.ordinary_result_root is None,
+                'ordinary prepare takes only completed adoption seed')
+        seed = continuation(profile, args.adoption_root, ('adoption',)); seed_facts = adoption_artifacts(seed)
+    else:
+        require(args.adoption_root is None, 'ordinary subsequent action uses prepared seed, not adoption root')
+        seed, seed_facts = ordinary_preparation(profile, args.ordinary_seed_root)
+        if args.ordinary_result_root == profile.reuse['first_recovery']['fault_root']:
+            previous, previous_facts = fault_recovery_input(profile, args, output)
+        else:
+            previous, receipt = prior_receipt(profile, args.ordinary_result_root, ORDINARY_PREDECESSORS[args.action])
+            result = receipt['scenario_result']; stored = receipt.get('ordinary_operation_artifacts')
+            expected_seed = Path(seed_facts['linkage']['seed_root']) if receipt['action'] == 'ordinary-prepare' else seed
+            require(type(stored) is dict and stored.get('linkage', {}).get('seed_root') == str(expected_seed),
+                    'ordinary predecessor must use this exact prepared seed')
+            if receipt['action'] == 'ordinary-prepare':
+                require(previous == seed, 'first ordinary operation requires exact selected prepared seed')
+            ancestry = receipt.get('ordinary_input_artifacts', {}).get('previous')
+            prior_root = stored['linkage']['previous_root']
+            previous_facts = ordinary_artifacts(previous, result, action=receipt['action'], seed_root=expected_seed,
+                previous_root=Path(prior_root) if prior_root is not None else None, previous_facts=ancestry)
+            require(stored == previous_facts and stored['linkage']['source_revision'] == profile.source_revision,
+                    'ordinary predecessor artifact census changed')
+    protected = [seed, profile.project, profile.evidence] + ([previous] if previous is not None else [])
+    if previous_facts is not None and previous_facts['linkage']['job_root'] is not None:
+        job = Path(previous_facts['linkage']['job_root']); policy = load_json(Path(previous_facts['linkage']['policy_path']))
+        manifest = load_json(job / 'manifest.json')
+        protected += [Path(policy['authority_root']), Path(policy['jobs_root']),
+                      Path(manifest['host_spec']['source_root']), Path(manifest['host_spec']['control_root'])]
+    require(all(output != value and value not in output.parents and output not in value.parents for value in protected),
+            'ordinary output overlaps protected source namespace')
+    return seed, previous, {'seed': seed_facts, 'previous': previous_facts}
+
+
+def main(argv=None):
+    args = parser().parse_args(argv)
+    os.umask(0o077)
+    require(sys.dont_write_bytecode, 'run with python -I -B')
+    require(sys.flags.isolated, 'isolated interpreter required')
+    profile = Profile(args)
+    output = Path(args.output).absolute()
+    require('..' not in output.parts, 'output traversal forbidden')
+    require(not output.exists() and profile.project not in output.parents and profile.evidence not in output.parents, 'fresh external output required')
+    require(not any(p.is_symlink() for p in output.parents), 'unsafe output parent')
+    selected_route = continuation_route(profile, args, output)
+    ordinary_selection = ordinary_inputs(profile, args, output) if args.action in ORDINARY_PREDECESSORS else None
+    if args.action != 'history':
+        output.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    # The selected external helper tree is exact-pinned before import. Ambient
+    # PYTHONPATH/site startup is excluded by -I; no fallback package is added.
+    sys.path[:0] = [str(profile.evidence / 'helpers'), str(profile.project)]
+    from qualification_context import install
+    install(profile)
+    os.environ['INTUNE_TEST_VALIDATOR_LIBRARY'] = profile.tool('validator')
+    started = time.time()
+    result = None
+    error = None
+    try:
+        if args.action in ORDINARY_PREDECESSORS:
+            seed, previous, inputs = ordinary_selection
+            result = importlib.import_module('native_ordinary_qualification').run(args.action, output, previous_root=previous, seed_root=seed)
+        elif args.action == 'validate':
+            output.mkdir(mode=0o700)
+            result = {'status': 'PASS', 'native_dispatches': 0, 'fixture_requests': 0}
+        elif args.action == 'prepare':
+            fixture = importlib.import_module('native_adoption_fixture').NativeAdoptionFixture(output)
+            try:
+                requests = fixture.fixture.requests
+                require(not any(row['method'] in ('PUT', 'POST', 'PATCH', 'DELETE') and row['host'] != 'login.microsoftonline.com' for row in requests), 'preparation unexpectedly mutated fixture')
+                require(fixture.fixture.state_bytes() == fixture.initial_state and fixture.fixture.graph_snapshot() == fixture.initial_graph, 'preparation changed initial service data')
+                result = {'status': 'PASS', 'native_dispatches': 0, 'fixture_requests': len(requests), 'contract_sha256': hashlib.sha256(canonical(fixture.contract.binding())).hexdigest()}
+            finally:
+                fixture.close()
+        elif args.action == 'adoption':
+            result = importlib.import_module('native_adoption_journey').run(output)
+        elif args.action == 'maintenance':
+            seed=continuation(profile,args.adoption_root,('adoption',))
+            require(args.adoption_root is not None, 'existing qualified adoption root required')
+            require(output == Path(args.adoption_root).absolute() / 'maintenance', 'maintenance output must be the selected adoption child')
+            prior = load_json(Path(args.adoption_root).absolute() / 'PORTABLE-QUALIFICATION.json')
+            receipt_binding(profile, seed, prior, ('adoption',))
+            result = importlib.import_module('native_adoption_maintenance').run(args.adoption_root)
+        elif args.action == 'source-maintenance':
+            seed=continuation(profile,args.adoption_root,('adoption',))
+            require(output==seed/'source-bound-maintenance','source correction output must be exact adoption child')
+            previous,prior=prior_receipt(profile,seed/'maintenance',('maintenance',))
+            require(prior.get('maintenance_operation_artifacts')==maintenance_artifacts(previous,prior['scenario_result']), 'exact previous maintenance/state/intent artifacts required')
+            result=importlib.import_module('native_source_bound_maintenance').run(seed)
+        elif args.action == 'cancel-first-plan':
+            result = importlib.import_module('native_adoption_first_plan_cancel').run(output)
+        elif args.action == 'recover-import':
+            seed = continuation(profile, args.adoption_root, ('cancel-acquisition', 'cancel-state'))
+            result = importlib.import_module('qualify_adoption_recovery_native').run(seed, output, args.recovery_mode)
+        elif args.action == 'recover-initial-plan':
+            seed = continuation(profile, args.adoption_root, ('cancel-first-plan',))
+            result = importlib.import_module('qualify_adoption_plan_recovery_native').run(seed, output, args.recovery_mode)
+        elif args.action == 'recover-stopped-plan':
+            seed = continuation(profile,args.adoption_root,('cancel-first-plan',))
+            original_id = adoption_artifacts(seed)['operation_id']
+            plan = selected_plan(profile,args.plan_result_root,original_id)
+            result = importlib.import_module('qualify_adoption_plan_recovery_native').run(seed,output,args.recovery_mode,
+                plan_root=plan['job_root'],policy_path=plan['policy_path'],receiving_root=plan['receiving_fixture'])
+        elif args.action == 'import-plan':
+            seed = continuation(profile,args.adoption_root,('cancel-state',)); original = adoption_artifacts(seed)
+            released,prior = prior_receipt(profile,args.released_root,('recover-import',)); release = release_artifacts(released)
+            require(prior.get('release_operation_artifacts') == release and release['original_operation_id'] == original['operation_id']
+                and release['phase_operation_id'] is None, 'exact original-import release linkage required')
+            selected = load_json(released/'selected-manifest.json')
+            require(selected['observation']['adoption_state_proof']['classification'] == 'approved_adoption_successor',
+                'successor Plan requires the independently observed imported state')
+            result = importlib.import_module('native_recovery_plan').run(seed,released,output)
+        elif args.action == 'history':
+            inputs=history_inputs(profile,args.plan_result_root,output)
+            result=importlib.import_module('native_worker_history').run(output,**inputs)
+        elif args.action == 'unacquired-plan':
+            seed=continuation(profile,args.adoption_root,('cancel-first-plan',));original=adoption_artifacts(seed)
+            prior=unacquired_plan_inputs(profile,args.plan_result_root,original['operation_id'])
+            result=importlib.import_module('native_plan3').run(seed,prior['receiving_fixture'],output,
+                prior_plan_root=prior['job_root'],policy_path=prior['policy_path'])
+        elif args.action in ('phase-plan','phase-plan-prebackend'):
+            seed = continuation(profile,args.adoption_root,('cancel-first-plan',)); original = adoption_artifacts(seed)
+            released,prior = prior_receipt(profile,args.released_root,('recover-initial-plan','recover-stopped-plan'))
+            release = release_artifacts(released)
+            require(prior.get('release_operation_artifacts') == release and release['original_operation_id'] == original['operation_id'],
+                'exact release artifact and original authority linkage required')
+            plan = selected_plan(profile,args.plan_result_root,original['operation_id']) if args.plan_result_root else None
+            require(release['phase_operation_id'] == (plan['operation_id'] if plan else original['verification_operation_id']),
+                'release must select this exact prior Plan phase')
+            if args.action=='phase-plan-prebackend':
+                require(plan is not None,'prebackend control requires the already recovered first successor Plan')
+                result=importlib.import_module('native_phase_plan_prebackend').run(seed,released,output,
+                    prior_plan_root=plan['job_root'],policy_path=plan['policy_path'],cancel_before_backend=True)
+            else:
+                result = importlib.import_module('native_phase_plan').run(seed,released,output,
+                    prior_plan_root=plan['job_root'] if plan else None,policy_path=plan['policy_path'] if plan else None,
+                    cancel_after_acquire=args.cancel_after_acquire)
+
+        else:
+            result = importlib.import_module('native_adoption_cancel').run(output, 'acquisition' if args.action == 'cancel-acquisition' else 'state-commit')
+        require(result.get('status') == 'PASS', 'scenario did not pass')
+    except BaseException as exc:
+        error = exc
+        raise
+    finally:
+        if output.exists():
+            receipt = {'schema_version': CONTINUATION_RECEIPT_SCHEMA, 'reuse_sha256': profile.value['inputs']['inputs/continuation-reuse.json']['sha256'], 'continuation_route_id': selected_route['id'], 'continuation_route': selected_route, 'status': 'FAIL' if error else 'PASS', 'action': args.action, 'profile_sha256': profile.sha256, 'loader_sha256': profile.value['loader_sha256'], 'source_revision': profile.source_revision, 'source_linkage': profile.value['source_linkage'], 'project_root': str(profile.project), 'package_inventory_sha256': hashlib.sha256(canonical(profile.value['package'])).hexdigest(), 'elapsed_seconds': time.time() - started, 'native_platform_qualified': False, 'production_approved': False, 'fixture_scope': 'nonforwarding synthetic local Graph and Azure only', 'scenario_result': result, 'error': type(error).__name__ if error else None}
+            try:
+                if error is None and args.action in ORDINARY_PREDECESSORS:
+                    seed, previous, inputs = ordinary_selection
+                    receipt['ordinary_input_artifacts'] = inputs
+                    receipt['ordinary_operation_artifacts'] = ordinary_artifacts(output, result, action=args.action, seed_root=seed, previous_root=previous, previous_facts=inputs['previous'])
+                    require(receipt['ordinary_operation_artifacts']['linkage']['source_revision'] == profile.source_revision, 'ordinary source revision changed')
+                if error is None and args.action in ('adoption','cancel-acquisition','cancel-state','cancel-first-plan'):
+                    receipt['operation_artifacts'] = adoption_artifacts(output)
+                if error is None and args.action in ('recover-import','recover-initial-plan','recover-stopped-plan'):
+                    receipt['release_operation_artifacts'] = release_artifacts(output)
+                if error is None and args.action in ('maintenance','source-maintenance'):
+                    receipt['maintenance_operation_artifacts']=maintenance_artifacts(output,result)
+                    if args.action=='source-maintenance':
+                        receipt['history_operation_artifacts']=source_history_artifacts(output,result)
+                if error is None and args.action in ('phase-plan','import-plan','phase-plan-prebackend','unacquired-plan'):
+                    receipt['phase_operation_artifacts'] = phase_artifacts(output,result)
+                    if result.get('checks',{}).get('actual_no_change_proof') is True:
+                        receipt['history_operation_artifacts'] = phase_history_artifacts(output,result)
+                receipt['continuation_roots'] = {key:getattr(args,key) for key in ('adoption_root','released_root','plan_result_root','ordinary_result_root','ordinary_seed_root') if getattr(args,key) is not None}
+                receipt['imported_package_sources'] = profile.recheck()
+                target = output / 'PORTABLE-QUALIFICATION.json'
+                with target.open('xb') as stream:
+                    stream.write(canonical(receipt))
+            except BaseException as secondary:
+                if error is not None:
+                    error.add_note('Secondary portable receipt/integrity failure: ' + type(secondary).__name__)
+                    if isinstance(secondary, (KeyboardInterrupt, SystemExit)):
+                        raise secondary from error
+                else:
+                    raise
+    print(json.dumps({'status': 'PASS', 'output': str(output), 'action': args.action}))
+
+
+if __name__ == '__main__':
+    main()

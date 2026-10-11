@@ -1,0 +1,23 @@
+{
+  "schema_version": "native-stopped-fault-recovery-input-witness-public/1",
+  "status": "PASS_METADATA_ONLY_RECOVERY_INPUT",
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "original_profile_sha256": "214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774",
+  "operation_id": "3cf040b7-afb9-40bd-840f-9aed03efeb93",
+  "manifest_sha256": "8bb64814df24e930fe29e679048d31a0c5a2eb2f57eab84461307cdc4386dbee",
+  "saved_plan_sha256": "8af3bcb75acfa3ecae99c9b387fb8c788903f0ea91141b666befdb9c5410c23f",
+  "witness": {
+    "bytes": 54512,
+    "sha256": "d7163ce9e21e061bf6bb59d560624924a7ea0b249abaa97c0e7e1efc0f94cea1"
+  },
+  "scope": "Independent historical public-key approval verification, copied raw SQL and original held-state admission. This does not repair portable FAIL, release leases, perform recovery, replay apply or admit a fresh approval.",
+  "assertions": 57,
+  "public_key_only_crypto_commands": 6,
+  "metadata_reader_negative_controls": 10,
+  "original_files_unchanged": true,
+  "original_SQLite_connections": 0,
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_suitable": true,
+  "public_omissions": "Raw original state/plan/captures/keys/approval bytes/SQL/lease identifier/nonce and private machine-local paths excluded explicitly."
+}

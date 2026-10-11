@@ -1,0 +1,44 @@
+{
+  "schema_version": "independent-companion-current-reader-repair-public/1",
+  "status": "PASS_SCOPED_METADATA_READER_REPAIR",
+  "candidate_reader": {
+    "bytes": 28882,
+    "sha256": "0b8ea305089a9f1dd724ddfb528f697b7c26c448790b53082da6b373bbabfe5f"
+  },
+  "original_reader_sha256": "f3a2aa31c0c13ef39bfff435a1fb8ba61cfe59944f426610e9a0f4f22d86164d",
+  "actual_positive_checkpoints": [
+    27,
+    28
+  ],
+  "actual_documentation_commits": [
+    "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+    "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4"
+  ],
+  "unchanged_engine_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "repair": "Exactly one review-linkage block: original C27 complete RESULT descriptor retained; C28+ exact whole supplied public delta digest must match root commit review_sha256. Precursor mechanical admission cannot substitute.",
+  "case_count": 24,
+  "positive_cases": 2,
+  "negative_cases": 22,
+  "independent_raw_Git_files": 48,
+  "earlier_actual_failure_preserved": true,
+  "stage_main_called": false,
+  "prefix_modified": false,
+  "source_changes": 0,
+  "product_or_native_execution": 0,
+  "new_HTTP_or_publication": 0,
+  "counts_nonadditive": true,
+  "result": {
+    "bytes": 61635,
+    "sha256": "6109780b96d3e594f269188506f143c240d3b5baf62b35db54ee44582ed23c2e"
+  },
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_suitable": true,
+  "public_omissions": "Machine-local receipt/argv/input paths, detached negative JSON payloads and source contents omitted; no raw tenant/state/plan/capture/key evidence included.",
+  "limitations": [
+    "This admits a metadata reader capability, not staged companion content, publication/delivery, native routes or product tests.",
+    "C28 root commit binds complete public admission d731; ed67 remains precursor review rather than root authority. C27 retains different original full-RESULT descriptor semantics.",
+    "Original native STOPPED/FAIL, storage reserve blocker, missing historical raw, platform/device/host/security/organizational gates remain untouched.",
+    "No public package download or complete recovery reconstruction is rerun here. Exact C25 source/runtime package identity remains unchanged."
+  ]
+}
