@@ -1,3 +1,23 @@
+# Current C30 operating-profile addendum — 2026-10-11
+
+The proposed organizational pilot remains unapproved. The current engineering candidate is an exact integrated working tree on C29 `571e06ba015a9b94208e4c88538246c97e3816e4`, with core/source/runbook byte pins in [applied-admission.json](continuation-evidence/20261011/checkpoint30/core/applied-admission.json). Actual commit/tree/new source/runtime packages and final gates are pending. C25e3bdefe/b18ddsource/7ca39runtime are preserved historical artifacts. Their2307strict/performance/modeled-runtime64checks/34commands/10PTY cannot establish the changed candidate's final qualification.
+
+Implementation now includes the distinct sealed known-host-completed/no-release restart readback factory and reopened service reconciliation. Exact original known status and outcome remain guarded; current observer inventory is checked; no exceptionalrelease is synthesized.123unique local changed-interface methods passed with modeled previoushost/recordedobservation; the receiving native host/Graph/Azure/device claims remain absent. Capture is retained before reconciliation. A recording failure after committed host success stays known success-awaiting-service-readback with original evidence, including compound failure where a late error event may be absent; it is not relabeled held-lease unknown.
+
+Ordinary timing03 helper/control and timing4 source/profile contracts are implemented/admitted preparation at exact original C25seed/engine/tool bytes. Four native acquisition/policyresponse/archive/compound timing cases remain NOT_STARTED, as do newcore native restart/readback/reconcile/nochange/history. Normal32 and additional32 preparation admissions are also complete in their original scopes. New final-source bindings/gates are required rather than rerunning old reviews or silently mixing engine versions. The initial fixture management mapping remains unsupported; raw capture does not qualify authoritative repository-source management or every visual label.
+
+C29source50 and companion129files now have actual anonymous exactbyte/hashreadback. Original companion push failed after remote write due inherited R3-only fetch projection; isolated localtracking repair succeeded without a secondpush/fetch. Those public records contain suitable source/metadata and old C25packages only, not fullprivatecorpus or pendingC30artifacts. Actual native run01FAIL/heldstate/tworeservations,265historicalroots/39refs, actor/helper/unexpected-file provenance and G13automaticapprovaldenial remain.
+
+Native capacity is blocked below32MiB+64KiB; storageowner/root need existingauthorizedprivate receivingfilesystem>=256MiBfree plus exactreadback/newconfigurationadmission/fresh applicableapproval/currentstate/rootGO. Genericconnector tool availability is not selected storage/authenticatedservice. Do not erase archives/history, weaken gates or provision credentials/services.
+
+The declared required route still includes nativeWindows/GitBash/mintty/actual chosen terminal and PowerShell7, exactruntime/OpenTofu1.13.1/Atmos1.230.1/provider pins, protected organizationalexecution choice, authenticrole-separatedGraph/Azurebackend identities, persistentOScollection and representative enrolledpilotdevices. The exact original table and procedures below remain authoritative requiredprofile scope; none is excluded to manufacture PASS. LinuxlocalAPI tests do not qualify those externalroutes or hostileprocess/powerloss/AppSec/keycustody. Wally remains optional/read-only with all negative/inconclusive history preserved.
+
+Outcomes are **laboratory IMPLEMENTED/incomplete; platform BLOCKED; organizational production approval BLOCKED**. Finalnewsource/package/native evidence, realprofile/device/security gate results and accountable approval remain separate. No production deployment or tenantwrite is authorized by this profile.
+
+---
+
+## Historical C29 document — retained byte-exact
+
 Current C29 operating-profile addendum — 2026-10-11
 
 Earlier C28 profile text below remains exact historical prose. Unchanged testedengine is C25 e3bdefe and exact b18dd source/7ca39 runtime. Exact2307strict source, boundedLinuxperformance and modeledruntime64checks/34commands/10PTY are local scopes only. Current normal32 loader6105/profilefb35/outer70fd is independently admitted executable preparation with0native dispatch; required native qualification remains BLOCKED by persistent capacity and fresh recovery approval/currentreadback/rootGO. Originalnative run01 FAIL, policy204/assignment403/state13/outcome_unknown/heldlease/tworeservations remain. New tuple/receipt/input/type guards are scoped independent controls, not platform or service success.

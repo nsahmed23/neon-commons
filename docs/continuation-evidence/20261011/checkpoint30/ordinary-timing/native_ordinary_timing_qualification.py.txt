@@ -1,0 +1,515 @@
+"""Separate prepared ordinary acquisition/policy/archive timing qualification.
+
+All receiving services are explicitly synthetic, nonforwarding TLS fixtures.
+Native Atmos/Tofu/provider, protected worker/CLI, identities, signatures and
+persistent authority are actual local application routes. No live claim.
+The original 28 helpers and 32-action profile remain unchanged. This new helper
+requires its own reviewed exact profile/action pins and root native GO.
+"""
+from pathlib import Path
+from dataclasses import asdict
+import copy, hashlib, json, os, shutil, sqlite3, subprocess, sys, time, uuid
+from qualification_context import profile
+Q = profile()
+from intune_iac import worker_provider as wp, worker_host as wh, worker_service as service, worker_service_readback as readback
+from intune_iac import worker_state as state, worker_precondition as precondition, worker_broker as broker
+from intune_iac import observation_reader as reader, identity_binding as ib
+from intune_iac.io import AppError, canonical, digest, write_json
+from intune_iac.workbench_store import WorkbenchStore
+from plugin_tests.signing_fixture import verifier_pin
+from native_service_fixture import TENANT, OBJECT, STATE_PATH, ACCOUNT
+from native_service_fixture_strict_metadata import StrictMetadataFixture
+from native_service_policy import build_native_policy
+from native_adoption_journey import signed
+from native_maintenance_oracle import assert_convergence
+import native_ordinary_support as support
+from ordinary_fault_controls import STAGES,RECORDING_MODES,receiving_effect,recording_fault,exception_facts,state_content_commit
+
+RESOURCE='microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json'
+
+
+def _record_failure(root,receipt,primary):
+    """Archive failure without bypassing cleanup or replacing its primary."""
+    try:write_json(Path(root)/'receipt.json',receipt)
+    except BaseException as secondary:
+        if isinstance(secondary,(KeyboardInterrupt,SystemExit)):
+            secondary.__cause__=primary
+            return secondary
+        primary.add_note('Secondary failure receipt recording: '+str(getattr(secondary,'code',type(secondary).__name__)))
+    return primary
+
+
+def prepare(output,adoption_root):
+    root=Path(output);root.mkdir(mode=0o700);adoption_root=Path(adoption_root)
+    prior=json.loads((adoption_root/'receipt.json').read_bytes());assert prior['status']=='PASS'
+    fixture=support.copied_fixture(adoption_root,root);handles=support.new_handles();primary=None;result=None
+    try:
+        original=(adoption_root/'source/project'/wp.PROJECT/'main.tf.json').read_bytes()
+        manifest=json.loads((adoption_root/'manifest.json').read_bytes())
+        assert support.sha(original)==manifest['provider_binding']['source_sha256']
+        state_raw=fixture.state_bytes();graph=fixture.graph_snapshot()
+        assert graph['policy']['description']=='Fixture only' and graph['policy']['id']==OBJECT
+        desired=copy.deepcopy(json.loads(original)['resource'][RESOURCE]['selected']);desired['description']='Fixture intentionally corrected'
+        adapter=support.adapter_for(desired,state_raw,(adoption_root/'source/project'/wp.PROJECT/'.terraform.lock.hcl').read_bytes())
+        prepared=support.plan_preparation(root,fixture,adapter,handles,expected_exit=2)
+        shown=json.loads(prepared['plan_json']);assert not shown.get('resource_drift')
+        assert fixture.state_bytes()==state_raw and fixture.graph_snapshot()==graph
+        write_json(root/'source-change-review.json',{'adoption_root':str(adoption_root),'adoption_operation_id':prior['operation_id'],
+            'source_sha256_before':support.sha(original),'source_sha256_after':adapter.spec.source_sha256,
+            'field':'description','before':'Fixture only','after':'Fixture intentionally corrected','scope':'single copied synthetic fixture policy; protected source-authoring bridge qualified separately','no_change_claimed':False})
+        result=dict(prepared['receipt'],kind='preparation',adoption_operation_id=prior['operation_id'],prepared=str(root/'prepared'))
+        write_json(root/'receipt.json',result)
+    except BaseException as error:primary=_record_failure(root,{'status':'FAIL','error':getattr(error,'code',type(error).__name__),'platform_qualified':False},error)
+    support.close_all(root,primary,handles,fixture)
+    return result
+
+
+def _cli(root,action,job_root,policy_path,*extra,expected=0,stem=None):
+    argv=[Q.tool('python'),'-B',str(Q.project/'scripts/intune-iac.py'),'service',action,'--job-root',str(job_root),'--policy',str(policy_path),*extra]
+    result=subprocess.run(argv,cwd=Q.project,capture_output=True,timeout=30)
+    stem=stem or ('cli-'+action);(root/(stem+'.stdout')).write_bytes(result.stdout);(root/(stem+'.stderr')).write_bytes(result.stderr)
+    write_json(root/(stem+'.json'),{'argv':argv,'exit_code':result.returncode});assert result.returncode==expected,(action,result.stderr.decode())
+    return json.loads(result.stdout)
+
+
+def _fault_fixture(root,stage):
+    if stage not in STAGES:raise ValueError('Closed ordinary timing stage required')
+    fired=[]
+    class FaultFixture(StrictMetadataFixture):
+        def _dispatch(self,method,host,path,query,headers,raw):
+            response=super()._dispatch(method,host,path,query,headers,raw)
+            # Preserve original raw URI/body evidence. These additional fields
+            # are the actual receiving callback's parsed path/query values.
+            self.requests[-1]['path_component']=path
+            self.requests[-1]['query']=copy.deepcopy(query)
+            if receiving_effect(stage,method=method,host=host,path=path,query=query,headers=headers,response_status=response[0],
+                                account=ACCOUNT,state_path=STATE_PATH,object_id=OBJECT) and not fired:
+                fired.append({'phase':'receiving_response','stage':stage,'lease_id':self.blobs[STATE_PATH]['lease'],
+                              'metadata':copy.deepcopy(self.blobs[STATE_PATH]['metadata']),'response_status':response[0],
+                              'state_sha256':support.sha(self.state_bytes()),'policy_description':self.graph['policy']['description']})
+                write_json(root/'fault-injection-before-cancel.json',fired)
+                _cli(root,'cancel',root/'jobs/approved',root/'trust/policy.json',stem='cancel-after-'+stage)
+            return response
+    return FaultFixture,fired
+
+
+def _trust(root,manifest,*,reuse=None):
+    if reuse is None:
+        key=root/'trust/synthetic-approver.pem';subprocess.run([Q.tool('openssl'),'genpkey','-algorithm','ED25519','-out',str(key)],check=True,capture_output=True)
+        public=subprocess.run([Q.tool('openssl'),'pkey','-in',str(key),'-pubout','-outform','DER'],check=True,capture_output=True).stdout[-32:]
+        pin=verifier_pin(Path(Q.tool('openssl')),Q.value['tools']['openssl']['sha256'])
+        policy={'schema_version':'worker-service-policy/1','authority_root':str(root/'trust/authority'),'jobs_root':str(root/'jobs'),
+            'verifier':{k:str(v) if isinstance(v,Path) else v for k,v in asdict(pin).items()},
+            'approvers':[{'issuer':'local-native-fixture','key_id':'local-key','approver_id':'independent-local-signature-fixture','public_key_hex':public.hex(),'profiles':['native_docker_laboratory_protocol']}],
+            'admitted_manifest_sha256':[digest(manifest)]}
+        path=root/'trust/policy.json';job_root=root/'jobs/approved'
+    else:
+        link=json.loads((Path(reuse)/'qualification-linkage.json').read_bytes());old_path=Path(link['policy_path']);policy=json.loads(old_path.read_bytes())
+        policy['admitted_manifest_sha256']=[*policy['admitted_manifest_sha256'],digest(manifest)]
+        key=old_path.parent/'synthetic-approver.pem';assert key.is_file()
+        path=old_path.parent/('policy-restoration-'+manifest['operation_id']+'.json')
+        job_root=Path(policy['jobs_root'])/('restoration-'+manifest['operation_id'])
+    write_json(path,policy);write_json(root/'selected-authority.json',{'policy_path':str(path),'job_root':str(job_root),'original_policy':str(Path(reuse)/'qualification-linkage.json') if reuse else None})
+    return path,job_root,key
+
+
+def _typed_literal_equal(actual,expected):
+    if type(actual) is not type(expected):return False
+    if type(actual) is dict:
+        return set(actual)==set(expected) and all(_typed_literal_equal(actual[key],expected[key]) for key in expected)
+    if type(actual) is list:
+        return len(actual)==len(expected) and all(_typed_literal_equal(a,b) for a,b in zip(actual,expected))
+    return actual==expected
+
+
+def _raw_assignments_equal(actual,expected):
+    if type(actual) is not list or type(expected) is not list or len(actual)!=len(expected):return False
+    if any(type(row) is not dict or type(row.get('id')) is not str for row in actual+expected):return False
+    a={row['id']:row for row in actual};b={row['id']:row for row in expected}
+    return len(a)==len(actual) and len(b)==len(expected) and _typed_literal_equal(a,b)
+
+
+def _timing_checks(stage,mode,*,root,job,outcome,run_error,fired,initial,after,graph_before,graph,blobs,
+                   calls,writes,attempts,owners,consumed,authority,events,expected_description):
+    host_result=outcome['outcome']['host'];blob=blobs[STATE_PATH]
+    state_writes=[r for r in calls if state_content_commit(r,account=ACCOUNT,state_path=STATE_PATH)]
+    acquire=[r for r in calls if r['host']==ACCOUNT and r['headers'].get('x-ms-lease-action')=='acquire' and r['status']==201]
+    releases=[r for r in calls if r['host']==ACCOUNT and r['headers'].get('x-ms-lease-action')=='release']
+    checks={'one_consumed_dispatch':outcome['dispatches']==1 and consumed==1,
+            'one_exact_authority_job':len(authority)==1 and authority[0][0]==job.identifier,
+            'scopes_retained':owners==2,'immutable_policy_id':graph['policy']['id']==OBJECT,
+            'literal_settings_preserved':_typed_literal_equal(graph['settings'],graph_before['settings']),
+            'assignment_ids_targets_exclusions_filters_nulls_preserved':_raw_assignments_equal(graph['assignments'],graph_before['assignments']),
+            'scope_tags_preserved':_typed_literal_equal(graph['policy']['roleScopeTagIds'],graph_before['policy']['roleScopeTagIds']),
+            'host_removed_and_stopped':host_result['cleanup']['removed'] and not host_result['cleanup']['stopped_state']['Running'],
+            'no_false_reconciliation_artifact':not (root/'service-reconciled.json').exists(),
+            'no_reconciliation_event':not any(row[1]=='independent_state_reconciled' for row in events),
+            'one_receiving_acquisition':len(acquire)==1,
+            'known_manifest_identity':outcome['operation_id']==job.identifier and outcome['manifest_sha256']==job.sha256}
+    if stage in ('acquisition','policy-response'):
+        target='lease-acquire' if stage=='acquisition' else 'policy-write'
+        cancel=json.loads((root/('cancel-after-'+stage+'.json')).read_bytes())
+        checks.update(actual_cancel_cli=cancel['exit_code']==0,
+                      one_exact_cancel_boundary=len(fired)==1 and fired[0]['stage']==stage,
+                      cancel_and_unknown_preserved=outcome['cancel_requested'] is True and outcome['status']=='outcome_unknown',
+                      broker_selected_response_uncertain=(target,'outcome_unknown',None) in attempts,
+                      native_lease_preserved=bool(fired) and blob['lease'] is not None and blob['lease']==fired[0]['lease_id'],
+                      no_automatic_release=not releases,
+                      state_exact_baseline13=after==initial and json.loads(after)['serial']==13,
+                      no_successful_state_content_write=not state_writes,
+                      no_service_success=not outcome['status'].startswith('service_state_converged'))
+        if stage=='acquisition':
+            checks.update(entire_graph_unchanged=_typed_literal_equal(graph,graph_before),no_Graph_write=not writes,
+                          no_state_write_broker_attempt=not any(row[0]=='state-write' for row in attempts),
+                          actual_early_metadata_preserved=_typed_literal_equal(blob['metadata'],fired[0]['metadata']))
+        else:
+            checks.update(one_receiving_policy_success=[(row['method'],row['status']) for row in writes]==[('PUT',204)],
+                          reviewed_policy_effect=graph['policy']['description']==expected_description,
+                          policy_fields_except_reviewed_description_exact=set(graph['policy'])==set(graph_before['policy']) and
+                              all(_typed_literal_equal(graph['policy'][key],graph_before['policy'][key]) for key in graph_before['policy'] if key not in ('description','lastModifiedDateTime')),
+                          actual_apply_metadata_retained=_typed_literal_equal(blob['metadata'],fired[0]['metadata']) and bool(blob['metadata'].get('terraformlockid')))
+        return checks
+    parsed=json.loads(after);old=json.loads(initial)
+    db_outcome=json.loads(authority[0][4])
+    before_attributes=old['resources'][0]['instances'][0]['attributes']
+    after_attributes=parsed['resources'][0]['instances'][0]['attributes']
+    expected_phases=['service_receipt_archive'] if mode=='archive-interruption' else ['service_receipt_archive','receipt_failure_event']
+    facts=exception_facts(run_error)
+    actual_failure=facts.get('actual_service_failure_record',{}) if facts else {}
+    checks.update(actual_archive_interruption=type(run_error) is KeyboardInterrupt,
+                  exact_recording_phases=[row['phase'] for row in fired]==expected_phases,
+                  known_authority_result_preserved=authority[0][1]=='host_completed_service_unverified' and outcome['status']=='host_completed_service_unverified',
+                  authoritative_outcome_known=db_outcome['operation_outcome']=='host_completed_service_unverified' and db_outcome['host']['status']=='complete',
+                  no_cancel_invented=outcome['cancel_requested'] is False and authority[0][2]==0,
+                  successful_actual_native_host=host_result['status']=='complete' and host_result['container_exit_code']==0,
+                  receiving_put_then_assignment=[(row['method'],row['status']) for row in writes]==[('PUT',204),('POST',204)],
+                  one_receiving_state_commit=len(state_writes)==1,
+                  exact_state14_and_lineage=parsed['serial']==14 and old['serial']==13 and parsed['lineage']==old['lineage'],
+                  state_immutable_object_and_description=len(parsed['resources'])==1 and parsed['resources'][0]['instances'][0]['attributes']['id']==OBJECT and
+                      parsed['resources'][0]['instances'][0]['attributes']['description']==expected_description,
+                  state_configuration_fields_preserved=set(after_attributes)==set(before_attributes) and
+                      all(_typed_literal_equal(after_attributes[key],before_attributes[key]) for key in before_attributes if key not in ('description','last_modified_date_time')),
+                  state_server_timestamp_matches_receiving=type(after_attributes['last_modified_date_time']) is str and after_attributes['last_modified_date_time']==graph['policy']['lastModifiedDateTime'],
+                  reviewed_policy_description=graph['policy']['description']==expected_description,
+                  policy_fields_except_reviewed_description_exact=set(graph['policy'])==set(graph_before['policy']) and
+                      all(_typed_literal_equal(graph['policy'][key],graph_before['policy'][key]) for key in graph_before['policy'] if key not in ('description','lastModifiedDateTime')),
+                  normal_native_lease_released=blob['lease'] is None and len(releases)==1 and releases[0]['status']==200,
+                  normal_native_lock_metadata_cleared=not blob['metadata'],
+                  archive_artifact_absent=not (job.root/'service-receipt.json').exists(),
+                  actual_service_failure_phases=[row['phase'] for row in actual_failure.get('recording_failures',[])]==expected_phases,
+                  known_failure_record_outcome=actual_failure.get('operation_outcome')=='host_completed_service_unverified')
+    if mode=='archive-interruption':
+        checks.update(primary_interruption_without_invented_cause=run_error.__cause__ is None,
+                      archive_failure_event_persisted=sum(row[1]=='receipt_archive_failed' for row in events)==1)
+    else:
+        checks.update(primary_archive_error_cause_preserved=isinstance(run_error.__cause__,AppError) and run_error.__cause__.code=='fixture_apply_service_receipt_recording',
+                      secondary_event_recording_interruption_preserved=actual_failure['recording_failures'][1]['error']=='KeyboardInterrupt',
+                      failure_event_absence_is_preserved=sum(row[1]=='receipt_archive_failed' for row in events)==0)
+    return checks
+
+
+def apply(output,seed_root,*,stage,recording_mode='archive-interruption',prepared_dir=None,fixture_root=None,reuse_authority=None):
+    if stage not in STAGES or recording_mode not in RECORDING_MODES:raise ValueError('Closed timing stage/mode required')
+    if stage!='evidence-recording' and recording_mode!='archive-interruption':raise ValueError('Recording mode requires recording stage')
+    if prepared_dir is not None or fixture_root is not None or reuse_authority is not None:raise ValueError('Timing controls require fresh exact ordinary preparation/authority')
+    root=Path(output);root.mkdir(mode=0o700,exist_ok=prepared_dir is not None);seed_root=Path(seed_root)
+    prep=Path(prepared_dir) if prepared_dir else seed_root/'prepared'
+    adapter=support.load_adapter(prep);fixture_class,fired=_fault_fixture(root,stage)
+    fixture=support.copied_fixture(fixture_root or seed_root,root,fixture_class)
+    handles=support.new_handles();primary=None;result=None
+    receipt={'schema_version':'final-ordinary-native-operation/1','status':'STARTED','scope':'synthetic TLS native protected worker','platform_qualified':False,'production_approved':False}
+    try:
+        for name in ('trust','jobs','job'):(root/name).mkdir(mode=0o700)
+        write_json(root/'receipt.json',receipt)
+        initial=fixture.state_bytes();graph_before=fixture.graph_snapshot();start=len(fixture.requests)
+        assert initial==(prep/'state-before-apply.json').read_bytes()
+        assert graph_before==json.loads((prep/'graph-before-apply.json').read_bytes())
+        assert json.loads(initial)['serial']==13 and graph_before['policy']['description']=='Fixture only'
+        (root/'raw-before-state.bin').write_bytes(initial);write_json(root/'raw-before-graph.json',graph_before)
+        binding,secret,collector=support.fresh_binding(fixture,adapter,handles,reader=True);preimage=collector.capture(OBJECT,root/'preimage')
+        put,assign=support.approved_bodies(adapter.spec.desired['description'])
+        saved=(prep/'approved.plan').read_bytes();shown=(prep/'approved-plan.json').read_bytes();identifier=str(uuid.uuid4());expires=int(time.time())+300
+        execution=digest({'operation_id':identifier,'provider_binding':adapter.binding(),'saved_plan_sha256':support.sha(saved),'plan_json_sha256':support.sha(shown),'expires_at':expires,'scope':'final_local_native_protocol_fixture'})
+        gate=precondition.create_laboratory_precondition(reader=collector,preimage=preimage,execution_binding_sha256=execution,approved_policy_body=put,approved_assignment_body=assign,evidence_root=root/'precondition');handles.append(gate)
+        contract=state.ComputedNativeStateWriteContract(baseline_raw=initial,plan_json_raw=shown,saved_plan_sha256=support.sha(saved),execution_binding_sha256=execution,preimage=preimage,precondition=gate)
+        credentials=broker.broker_credentials(binding=binding,backend_credential=secret,execution_binding_sha256=execution);handles.append(credentials)
+        policy=build_native_policy(operation_id=identifier,execution_binding_sha256=execution,expires_at=expires,contract=contract,exact_put_bytes=put,exact_assign_bytes=assign,credentials=credentials)
+        wp.publish_files(root/'source',adapter.source_files());controls=adapter.control_files('apply',saved_plan=saved,credentials=credentials);controls['broker-ca.pem']=fixture.certificate.read_bytes();wp.publish_files(root/'control',controls)
+        proxy=Q.scratch/('ordinary-'+uuid.uuid4().hex[:12]);proxy.mkdir(mode=0o700)
+        host=wh.HostSpec(Q.tool('docker'),str(root/'source'),wh.directory_binding(root/'source')['sha256'],str(root/'control'),wh.directory_binding(root/'control')['sha256'],str(root/'job'),tools=support.tools(),broker_root=str(proxy),broker_ca_sha256=support.sha(fixture.certificate.read_bytes()),timeout_seconds=90,output_limit=4*1024*1024)
+        facts={'schema_version':'service-run-context/1','repository':'https://github.com/nsahmed23/neon-commons','source_revision':adapter.spec.source_revision,'source_sha256':adapter.spec.source_sha256,'workflow_revision':Q.source_revision,'verifier_revision':Q.source_revision,'run_id':'final-ordinary-'+identifier,'run_attempt':1,'protected_ref':'refs/heads/continuation/r4-20261007','effective_inputs_sha256':adapter.binding()['effective_input_sha256'],'provider_lock_sha256':adapter.binding()['lockfile_sha256'],'stack':'worker','component':'intune-policy'}
+        run=service.trusted_run_binding(facts,recheck=lambda:None);storage=support.storage()
+        manifest=service.make_manifest(operation_id=identifier,profile='native_docker_laboratory_protocol',expires_at=expires,execution_binding_sha256=execution,host_spec=host,broker_policy=policy,run_binding_sha256=run.sha256,run_context=facts,storage_binding_sha256=storage.sha256,tenant_id=TENANT,object_ids=[OBJECT],backend_scope_sha256=digest(adapter.binding()['backend']),provider_binding=adapter.binding(),saved_plan_sha256=support.sha(saved),identity_binding_sha256=binding.evidence()['binding_sha256'],state_contracts={'state-write':contract.binding()},precondition_binding=gate.binding())
+        write_json(root/'manifest.json',manifest);write_json(root/'contract.json',contract.binding())
+        policy_path,job_root,key=_trust(root,manifest,reuse=reuse_authority)
+        _cli(root,'prepare',job_root,policy_path,'--manifest',str(root/'manifest.json'));_cli(root,'review',job_root,policy_path)
+        job=service.ServiceJob(job_root,policy_path)
+        approver=json.loads(policy_path.read_bytes())['approvers'][0]
+        payload={'schema_version':'signed-worker-service-approval/1','issuer':approver['issuer'],'key_id':approver['key_id'],'approver_id':approver['approver_id'],'operation_id':identifier,'manifest_sha256':digest(manifest),'issued_at':int(time.time()),'expires_at':expires,'nonce':uuid.uuid4().hex}
+        approval=signed(root,key,payload,service.SIGNATURE_DOMAIN,'ordinary-approval');write_json(root/'signed-approval.json',approval)
+        upstream=broker.LaboratoryUpstream(fixture.port,fixture.certificate)
+        runtime=service.laboratory_runtime(native_protocol=True,run=run,storage=storage,upstream=upstream,certificate=fixture.certificate,private_key=fixture.root/'private-key.pem',prewrite=lambda:None,binding=binding,credentials=credentials,state_contracts={'state-write':contract},precondition=gate)
+        before_dispatch=len(fixture.requests)
+        try:job.run({'approved':True},runtime=runtime);raise AssertionError('boolean approval accepted')
+        except AppError as error:receipt['negative_boolean_approval']=error.code
+        assert job.status()['dispatches']==0 and len(fixture.requests)==before_dispatch
+        run_error=None
+        try:
+            with recording_fault(stage,recording_mode,job=job,protected=service.protected,app_error=AppError,fired=fired):
+                outcome=job.run(approval,runtime=runtime)
+        except BaseException as error:
+            run_error=error;outcome=job.status()
+        write_json(root/'service-after-host.json',outcome)
+        if run_error is not None:
+            write_json(root/'native-primary-error.json',exception_facts(run_error))
+            if stage!='evidence-recording' and isinstance(run_error,(KeyboardInterrupt,SystemExit)):raise run_error
+        calls=fixture.requests[start:];graph=fixture.graph_snapshot();after=fixture.state_bytes()
+        writes=[r for r in calls if r['host']=='graph.microsoft.com' and r['method'] in ('PUT','POST','PATCH','DELETE')]
+        with job.policy.connection() as db:
+            owners=db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(identifier,)).fetchone()[0]
+            consumed=db.execute('SELECT COUNT(*) FROM consumed WHERE operation_id=?',(identifier,)).fetchone()[0]
+        if stage in STAGES:
+            with sqlite3.connect(job_root/'broker.sqlite3') as db:attempts=list(db.execute('SELECT route,status,response_code FROM attempts ORDER BY sequence'))
+            (root/'raw-after-state.bin').write_bytes(after);write_json(root/'raw-after-graph.json',graph)
+            write_json(root/'raw-after-blobs.json',fixture.blobs);write_json(root/'raw-requests.json',fixture.requests)
+            write_json(root/'raw-broker-attempts.json',[list(row) for row in attempts])
+            with job.policy.connection() as db:
+                authority=list(db.execute('SELECT id,status,cancelled,dispatches,outcome,controller_pid,controller_start FROM jobs ORDER BY id'))
+                events=list(db.execute('SELECT sequence,kind,payload FROM events WHERE job=? ORDER BY sequence',(identifier,)))
+            write_json(root/'raw-authority-rows.json',[list(row) for row in authority]);write_json(root/'raw-authority-events.json',[list(row) for row in events])
+            checks=_timing_checks(stage,recording_mode,root=root,job=job,outcome=outcome,run_error=run_error,fired=fired,
+                initial=initial,after=after,graph_before=graph_before,graph=graph,blobs=fixture.blobs,
+                calls=calls,writes=writes,attempts=attempts,owners=owners,consumed=consumed,authority=authority,events=events,
+                expected_description=adapter.spec.desired['description'])
+            assert all(checks.values()),checks
+            receipt.update(status='PASS',classification='ordinary_native_timing_control',stage=stage,recording_mode=recording_mode,
+                           actual_operation_status=outcome['status'],assertions=checks,injection=fired,broker_attempts=[list(row) for row in attempts],
+                           raw_exception=exception_facts(run_error),controller_receipt_exists=(job_root/'service-receipt.json').exists(),
+                           scope='Actual native host/provider/ServiceJob after root GO; cancellation receiving times and exact archive/event failures are explicitly synthetic local controls. No native Windows/live/platform/production claim.')
+            write_json(root/'NEGATIVE-CONTROL-RECEIPT.json',receipt)
+        else:
+            assert outcome['status']=='host_completed_service_unverified',outcome
+            completion=gate.completion();cap=readback.collect_laboratory(manifest,binding=binding,backend_credential=secret,completion=completion,state_contract=contract,storage=storage,upstream=upstream,output=root/'independent-readback')
+            converged=job.reconcile(cap);write_json(root/'service-reconciled.json',converged);_cli(root,'attach',job_root,policy_path)
+            current_adapter=support.rebind_adapter(adapter,after)
+            second=support.plan_preparation(root/'second-plan',fixture,current_adapter,handles,expected_exit=0)
+            oracle=assert_convergence(after,second['plan_json'],graph,description=adapter.spec.desired['description'],serial=json.loads(initial)['serial']+1);write_json(root/'independent-noop.json',oracle)
+            store=WorkbenchStore.create(root/'store',TENANT);publication=reader.publish_batch(store,[completion.verified()['capture']],job_id=uuid.UUID(identifier).hex,attempt_id=uuid.uuid4().hex);write_json(root/'published-observation.json',publication)
+            for action,extra in [('service-link',['--job-root',str(job_root),'--policy',str(policy_path)]),('views',[])]:
+                argv=[Q.tool('python'),'-B',str(Q.project/'scripts/intune-iac.py'),'workbench',action,'--root',str(root/'store'),'--object',OBJECT,*extra]
+                output_cli=subprocess.run(argv,cwd=Q.project,capture_output=True,timeout=30);(root/('workbench-'+action+'.stdout')).write_bytes(output_cli.stdout);(root/('workbench-'+action+'.stderr')).write_bytes(output_cli.stderr);assert output_cli.returncode==0
+            visible=json.loads((root/'workbench-views.stdout').read_bytes())
+            count=len(fixture.requests)
+            try:job.run(approval,runtime=runtime);raise AssertionError('consumed apply replay accepted')
+            except AppError as error:receipt['negative_replay']=error.code
+            assert len(fixture.requests)==count
+            with job.policy.connection() as db:released=db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(identifier,)).fetchone()[0]==0
+            checks={'one_consumed_dispatch':consumed==1 and converged['dispatches']==1,'actual_put_then_assign':[r['method'] for r in writes]==['PUT','POST'],
+                'settings_preserved':graph['settings']==graph_before['settings'],'assignments_preserved':support.assignment_parity(graph['assignments'],graph_before['assignments']),
+                'policy_except_reviewed_fields':set(graph['policy'])==set(graph_before['policy']) and all(canonical(graph['policy'][k])==canonical(graph_before['policy'][k]) for k in graph_before['policy'] if k not in ('description','lastModifiedDateTime')),
+                'scope_tags_exact':graph['policy']['roleScopeTagIds']==graph_before['policy']['roleScopeTagIds'],'native_noop_literal':bool(oracle),'state_advanced_once':json.loads(after)['serial']==json.loads(initial)['serial']+1,
+                'state_lineage_exact':json.loads(after)['lineage']==json.loads(initial)['lineage'],'scopes_released':released,'service_converged':converged['status']=='service_state_converged',
+                'visible_exact_plan':visible['proposed']['saved_plan_sha256']==support.sha(saved),'observed_deployment_journal':visible['proposed']['journal_status']=='service_state_converged',
+                'endpoint_unestablished':converged['outcome']['endpoint_effectiveness']=='unestablished','saved_plan_exact':(root/'control/approved.plan').read_bytes()==saved}
+            assert all(checks.values()),checks
+            receipt.update(status='PASS',assertions=checks,graph_capture_sha256=completion.verified()['capture_sha256'],mapping_status=completion.verified()['capture'].verified()[0]['status'])
+        receipt.update(operation_id=identifier,manifest_sha256=digest(manifest),job_root=str(job_root),policy_path=str(policy_path),state_sha256=support.sha(after),saved_plan_sha256=support.sha(saved),requests_new=len(fixture.requests)-start,request_count=len(fixture.requests),source_revision=Q.source_revision)
+        write_json(root/'receipt.json',receipt);result=receipt
+    except BaseException as error:
+        receipt.update(status='FAIL',error=getattr(error,'code',type(error).__name__));primary=_record_failure(root,receipt,error)
+    support.close_all(root,primary,handles,fixture)
+    return result
+
+
+def committed_recovery(output,previous_root,seed_root,*,description=False):
+    from intune_iac import worker_committed_state as observer_api, worker_committed_recovery as recovery
+    from intune_iac import worker_committed_readback, worker_lease_recovery as ordinary, capture_adapter
+    root=Path(output);root.mkdir(mode=0o700);previous=Path(previous_root);seed=Path(seed_root)
+    fixture=support.copied_fixture(previous,root);handles=support.new_handles();primary=None;result=None
+    receipt={'schema_version':'final-ordinary-committed-recovery/1','status':'STARTED','platform_qualified':False,'production_approved':False}
+    try:
+        write_json(root/'receipt.json',receipt)
+        selected=json.loads((previous/'qualification-linkage.json').read_bytes())
+        original=service.ServiceJob(selected['job_root'],selected['policy_path']);before_status=original.status();write_json(root/'original-status-before.json',before_status)
+        assert before_status['status']=='outcome_unknown' and before_status['dispatches']==1
+        initial=fixture.state_bytes();graph=fixture.graph_snapshot();blob=copy.deepcopy(fixture.blobs[STATE_PATH]);start=len(fixture.requests)
+        prepared=previous/'preparation/prepared' if description else seed/'prepared'
+        prior=support.load_adapter(prepared);adapter=support.rebind_adapter(prior,initial)
+        binding,secret,collector=support.fresh_binding(fixture,adapter,handles,reader=True)
+        put,assign=support.approved_bodies(prior.spec.desired['description'])
+        preimage=canonical(capture_adapter.load_capture(previous/'preimage',TENANT)['source']['raw_observed'])
+        baseline=(prepared/'state-before-apply.json').read_bytes();shown=(prepared/'approved-plan.json').read_bytes();saved=(prepared/'approved.plan').read_bytes()
+        def make_observer(current_reader):
+            return observer_api.laboratory_observer(job=original,reader=current_reader,preimage_raw=preimage,policy_body=put,assignment_body=assign,baseline_raw=baseline,plan_json_raw=shown,saved_plan_raw=saved)
+        observer=make_observer(collector);storage=support.storage();upstream=broker.LaboratoryUpstream(fixture.port,fixture.certificate)
+        negative={}
+        try:ordinary.laboratory_context(job=original,binding=binding,backend_credential=secret,storage=storage,upstream=upstream);raise AssertionError('original baseline release admitted advanced state')
+        except AppError as error:negative['ordinary_original_state_denied']=error.code
+        assert negative['ordinary_original_state_denied']=='lease_recovery_backend_identity'
+        context=recovery.laboratory_context(job=original,binding=binding,backend_credential=secret,storage=storage,upstream=upstream,observer=observer)
+        observation=context.observe(root/'initial');manifest=recovery.prepare(observation,operation_id=str(uuid.uuid4()),expires_at=int(time.time())+240);write_json(root/'manifest.json',manifest)
+        trust=root/'trust';trust.mkdir(mode=0o700);key=trust/'synthetic-committed-recovery.pem'
+        subprocess.run([Q.tool('openssl'),'genpkey','-algorithm','ED25519','-out',str(key)],check=True,capture_output=True)
+        public=subprocess.run([Q.tool('openssl'),'pkey','-in',str(key),'-pubout','-outform','DER'],check=True,capture_output=True).stdout[-32:]
+        pin=verifier_pin(Path(Q.tool('openssl')),Q.value['tools']['openssl']['sha256'])
+        policy_value={'schema_version':'committed-state-lease-recovery-policy/1','authority_root':str(trust/'authority'),
+            'verifier':{k:str(v) if isinstance(v,Path) else v for k,v in asdict(pin).items()},
+            'approvers':[{'issuer':'local-final-committed-recovery','key_id':'recovery-key','approver_id':'synthetic-committed-recovery-reviewer','public_key_hex':public.hex(),'profiles':['laboratory_committed_state_lease_recovery']}],
+            'admitted_manifest_sha256':[digest(manifest)]}
+        write_json(trust/'policy.json',policy_value);policy=recovery.CommittedRecoveryPolicy(trust/'policy.json')
+        payload={'schema_version':'signed-committed-state-lease-recovery-approval/1','issuer':'local-final-committed-recovery','key_id':'recovery-key','approver_id':'synthetic-committed-recovery-reviewer','operation_id':manifest['operation_id'],'manifest_sha256':digest(manifest),'issued_at':int(time.time()),'expires_at':manifest['expires_at'],'nonce':uuid.uuid4().hex}
+        approval=signed(root,key,payload,recovery.SIGNATURE_DOMAIN,'committed-release');write_json(root/'signed-approval.json',approval)
+        def owners():
+            with original.policy.connection() as db:return db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(original.identifier,)).fetchone()[0]
+        before_owners=owners();assert before_owners==2
+        def reject(name,fn):
+            count=len(fixture.requests)
+            try:fn()
+            except AppError as error:negative[name]=error.code
+            else:raise AssertionError(name+' accepted')
+            assert owners()==before_owners and not any(r['method']=='PUT' for r in fixture.requests[count:])
+            write_json(root/'negative-controls.json',negative)
+        reject('boolean_approval',lambda:recovery.execute(manifest,{'approved':True},context=context,policy=policy,output=root/'negative-boolean'))
+        reject('ordinary_apply_domain',lambda:recovery.execute(manifest,signed(root,key,payload,service.SIGNATURE_DOMAIN,'wrong-apply-domain'),context=context,policy=policy,output=root/'negative-apply-domain'))
+        reject('original_state_release_domain',lambda:recovery.execute(manifest,signed(root,key,payload,ordinary.SIGNATURE_DOMAIN,'wrong-original-domain'),context=context,policy=policy,output=root/'negative-original-domain'))
+        release_start=len(fixture.requests)
+        released=recovery.execute(manifest,approval,context=context,policy=policy,output=root/'release');write_json(root/'release-result.json',released)
+        release_calls=[r for r in fixture.requests[release_start:] if r['host']==ACCOUNT and r['method']=='PUT']
+        assert len(release_calls)==1 and release_calls[0]['path']==STATE_PATH+'?comp=lease'
+        assert release_calls[0]['headers'].get('x-ms-lease-action')=='release'
+        assert release_calls[0]['headers'].get('x-ms-lease-id')==manifest['observation']['lease_id']
+        assert release_calls[0]['headers'].get('if-match')==manifest['observation']['state']['etag']
+        with original.policy.connection() as db:
+            once=[list(row) for row in db.execute('SELECT original_operation,recovery_operation,issuer,nonce,manifest_sha256,status,response_code FROM native_lease_recoveries WHERE original_operation=?',(original.identifier,))]
+        expected_once=[original.identifier,manifest['operation_id'],payload['issuer'],payload['nonce'],digest(manifest),'release_observed',200]
+        assert once==[expected_once],once
+        write_json(root/'independent-release-once.json',{'rows':once,'conditional_requests':release_calls,'expected_row':expected_once})
+        assert fixture.blobs[STATE_PATH]['lease'] is None and fixture.state_bytes()==initial and fixture.graph_snapshot()==graph
+        reject('release_replay',lambda:recovery.execute(manifest,approval,context=context,policy=policy,output=root/'negative-replay'))
+        retained=recovery.completion(manifest,context=context,policy=policy,output=root/'metadata-completion');write_json(root/'metadata-completion.json',retained.verified())
+        reject('metadata_blocks_reconciliation',lambda:worker_committed_readback.collect(original.manifest,completion=retained,output=root/'negative-metadata-readback'))
+        assert negative['metadata_blocks_reconciliation']=='committed_readback_backend_lock_remaining'
+        # A normal Plan gets/clears/releases its own native lock, no content PUT.
+        second=support.plan_preparation(root/'second-plan',fixture,adapter,handles,expected_exit=0)
+        assert fixture.state_bytes()==initial and fixture.graph_snapshot()==graph
+        # Metadata operations change ETag: new receiving identity and reader,
+        # not replay of the consumed release or cached pre-Plan identity.
+        binding,secret,collector=support.fresh_binding(fixture,adapter,handles,reader=True)
+        context=recovery.laboratory_context(job=original,binding=binding,backend_credential=secret,storage=storage,upstream=upstream,observer=make_observer(collector))
+        completion=recovery.completion(manifest,context=context,policy=policy,output=root/'fresh-completion');facts=completion.verified();write_json(root/'completion.json',facts)
+        reject('json_completion',lambda:worker_committed_readback.collect(original.manifest,completion=facts,output=root/'negative-json-readback'))
+        altered=copy.deepcopy(original.manifest);altered['saved_plan_sha256']='0'*64;write_json(root/'negative-changed-manifest.json',altered)
+        reject('changed_plan',lambda:worker_committed_readback.collect(altered,completion=completion,output=root/'negative-changed-plan'))
+        tampered=worker_committed_readback.collect(original.manifest,completion=completion,output=root/'tampered-readback');raw=root/'tampered-readback/observed-state.raw';raw.write_bytes(raw.read_bytes()+b'\n')
+        reject('changed_readback_bytes',lambda:original.reconcile(tampered));assert negative['changed_readback_bytes']=='committed_readback_artifact_changed'
+        sealed=worker_committed_readback.collect(original.manifest,completion=completion,output=root/'reconciliation-readback')
+        reject('json_reconciliation',lambda:original.reconcile(facts))
+        capture=completion.captured_observation()  # retain sealed read before reconciliation releases original scopes
+        reconciled=original.reconcile(sealed);write_json(root/'reconciled.json',reconciled);_cli(root,'attach',original.root,original.policy.path)
+        store=WorkbenchStore.create(root/'store',TENANT)
+        write_json(root/'published-observation.json',reader.publish_batch(store,[capture],job_id=uuid.UUID(original.identifier).hex,attempt_id=uuid.uuid4().hex))
+        calls=fixture.requests[start:]
+        checks={'state_byte_exact':fixture.state_bytes()==initial,'entire_graph_exact':fixture.graph_snapshot()==graph,
+            'no_graph_replay':not any(r['host']=='graph.microsoft.com' and r['method'] in ('PUT','POST','PATCH','DELETE') for r in calls),
+            'no_state_content_replay':not any(r['host']==ACCOUNT and r['method']=='PUT' and r['path']==STATE_PATH for r in calls),
+            'separate_new_release':manifest['operation_id']!=original.identifier,'one_exact_common_once_row':once==[expected_once],'one_conditional_exceptional_release':len(release_calls)==1,'lease_unlocked':fixture.blobs[STATE_PATH]['lease'] is None,
+            'metadata_empty':not fixture.blobs[STATE_PATH]['metadata'],'no_op_literal':bool(json.loads((root/'second-plan/independent-noop.json').read_bytes())),
+            'original_dispatch_one':reconciled['dispatches']==1,'execution_unknown_preserved':reconciled['status']=='service_state_converged_execution_unknown' and reconciled['outcome']['execution_provenance']=='unresolved',
+            'old_failed_outcome_retained':reconciled['outcome']['previous_outcome']==before_status['outcome'],'owners_released_only_final':owners()==0,
+            'historical_fixture_bytes_unchanged':(previous/'fixture/state.bin').read_bytes()==initial and json.loads((previous/'fixture/graph.json').read_bytes())==graph and json.loads((previous/'fixture/blobs.json').read_bytes())[STATE_PATH]==blob,
+            'endpoint_unestablished':reconciled['outcome']['endpoint_effectiveness']=='unestablished','production_unapproved':reconciled['outcome']['production_approved'] is False}
+        if description:
+            proof=facts['fresh_observation']['committed_state_proof']['description_contract_linkage'];contract=original.manifest['state_contracts']['state-write']
+            checks.update(description_contract_schema=contract['schema_version']=='description-recovery-native-state-contract/1',description_contract_profile=contract['profile']=='settings-catalog-description-recovery/1',inner_link_exact=proof['inner_contract_sha256']==contract['inner_contract_sha256'],outer_link_exact=proof['original_contract_sha256']==digest(contract))
+        assert all(checks.values()),checks
+        receipt.update(status='PASS',checks=checks,negative_codes=negative,operation_id=original.identifier,manifest_sha256=digest(original.manifest),job_root=str(original.root),policy_path=str(original.policy.path),recovery_operation_id=manifest['operation_id'],recovery_manifest_sha256=digest(manifest),state_sha256=support.sha(initial),requests_new=len(calls),source_revision=Q.source_revision)
+        write_json(root/'receipt.json',receipt);result=receipt
+    except BaseException as error:receipt.update(status='FAIL',error=getattr(error,'code',type(error).__name__));primary=_record_failure(root,receipt,error)
+    support.close_all(root,primary,handles,fixture)
+    return result
+
+
+def _authority_rows(policy_path):
+    value=json.loads(Path(policy_path).read_bytes());path=Path(value['authority_root'])/'service.sqlite3'
+    with sqlite3.connect('file:'+str(path)+'?mode=ro',uri=True) as db:
+        names=[r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")]
+        return {name:[list(row) for row in db.execute('SELECT * FROM "'+name.replace('"','""')+'" ORDER BY rowid')] for name in names}
+
+
+def _job_files(root):
+    result={}
+    def denied(error):raise error
+    for parent,dirs,names in os.walk(root,followlinks=False,onerror=denied):
+        for name in dirs+names:assert not (Path(parent)/name).is_symlink()
+        for name in names:
+            path=Path(parent)/name;result[path.relative_to(root).as_posix()]={'bytes':path.stat().st_size,'sha256':support.sha(path.read_bytes())}
+    return result
+
+
+def restore(output,previous_root,seed_root):
+    root=Path(output);root.mkdir(mode=0o700);previous=Path(previous_root);seed=Path(seed_root)
+    # Preparation copy is explicit and records its source. Actual restoration
+    # then reopens those exact prepared receiving bytes under a NEW approval.
+    prep_root=root/'preparation';prep_root.mkdir(mode=0o700)
+    selected=json.loads((previous/'qualification-linkage.json').read_bytes());old_rows=_authority_rows(selected['policy_path']);old_files=_job_files(Path(selected['job_root']))
+    write_json(root/'previous-authority-rows.json',old_rows);write_json(root/'previous-job-files.json',old_files)
+    fixture=support.copied_fixture(previous,prep_root);handles=support.new_handles();primary=None
+    try:
+        prior=json.loads((previous/'receipt.json').read_bytes());assert prior['status']=='PASS'
+        assert fixture.graph['policy']['description']=='Fixture intentionally corrected'
+        assert fixture.blobs[STATE_PATH]['lease'] is None and not fixture.blobs[STATE_PATH]['metadata']
+        adapter=support.rebind_adapter(support.load_adapter(seed/'prepared'),fixture.state_bytes(),description='Fixture only')
+        planned=support.plan_preparation(prep_root,fixture,adapter,handles,expected_exit=2)
+        assert not json.loads(planned['plan_json']).get('resource_drift')
+        assert planned['receipt']['saved_plan_sha256']!=prior['saved_plan_sha256']
+        write_json(root/'restoration-review.json',{'new_reviewed_plan_sha256':planned['receipt']['saved_plan_sha256'],'previous_plan_sha256':prior['saved_plan_sha256'],'before':'Fixture intentionally corrected','after':'Fixture only','new_approval_required':True,'same_authority':json.loads((previous/'qualification-linkage.json').read_bytes())['policy_path']})
+    except BaseException as error:primary=error
+    support.close_all(prep_root,primary,handles,fixture)
+    result=apply(root,seed,prepared_dir=prep_root/'prepared',fixture_root=prep_root,reuse_authority=previous)
+    rows=_authority_rows(selected['policy_path']);files=_job_files(Path(selected['job_root']))
+    checks={'prior_authority_rows_preserved':all(name in rows and all(canonical(row) in [canonical(item) for item in rows[name]] for row in prior_rows) for name,prior_rows in old_rows.items()),'prior_job_files_preserved':files==old_files,'new_restoration_operation':result['operation_id']!=selected['operation_id']}
+    write_json(root/'previous-history-after.json',{'rows':rows,'files':files,'checks':checks})
+    result['restoration_history_assertions']=checks
+    if not all(checks.values()):result['status']='FAIL'
+    write_json(root/'receipt.json',result)
+    assert all(checks.values()),checks
+    return result
+
+
+def _emit_timing_linkage(action,output,result,previous,seed,recording_mode):
+    from native_ordinary_linkage import literal_path,pin,load_json,canonical as closed_canonical,artifact_census
+    if type(result) is not dict or result.get('status')!='PASS':raise ValueError('Passing actual timing receipt required')
+    root=literal_path(output);policy=literal_path(result['policy_path']);job=literal_path(result['job_root'])
+    manifest=load_json(job/'manifest.json');receipt=load_json(root/'receipt.json')
+    if manifest['operation_id']!=result['operation_id'] or digest(manifest)!=result['manifest_sha256']:raise ValueError('Actual selected timing manifest differs')
+    if closed_canonical(receipt)!=closed_canonical(result):raise ValueError('Exact returned timing receipt differs')
+    for path in (job/'manifest.json',job/'policy-binding.json',policy):pin(path)
+    files=artifact_census(root)
+    link={'schema_version':'ordinary-native-fault-timing-linkage/1','action':action,'recording_mode':recording_mode,
+          'source_revision':Q.source_revision,'kind':'operation','seed_root':str(seed),'previous_root':str(previous),
+          **{key:result[key] for key in ('operation_id','manifest_sha256','job_root','policy_path')},
+          'receiving_fixture':str(root/'fixture'),'artifacts':files,
+          'artifact_scope':'Selected immutable helper outputs only; full receiving/job/authority/host evidence requires the separately inventoried private owned capsule.'}
+    target=root/'qualification-linkage.json'
+    fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+    with os.fdopen(fd,'wb') as stream:stream.write(closed_canonical(link));stream.flush();os.fsync(stream.fileno())
+    if artifact_census(root)!=files:raise ValueError('Timing artifacts changed while linking')
+    return {**result,'qualification_linkage':link}
+
+
+def run(action, output, *, previous_root, seed_root, recording_mode='archive-interruption'):
+    os.umask(0o077)
+    choices={'ordinary-fault-acquisition':'acquisition','ordinary-fault-policy-response':'policy-response','ordinary-fault-apply-recording':'evidence-recording'}
+    if action not in choices or recording_mode not in RECORDING_MODES:raise ValueError('Closed new timing action/mode required')
+    stage=choices[action]
+    if stage!='evidence-recording' and recording_mode!='archive-interruption':raise ValueError('Recording mode cannot alter cancellation action')
+    from native_ordinary_linkage import literal_path,load_json
+    output=literal_path(output);seed=literal_path(seed_root);previous=literal_path(previous_root)
+    if previous!=seed or output.exists() or not seed.is_dir():raise ValueError('Fresh timing output and exact ordinary seed required')
+    for protected in (seed,Q.project,Q.evidence):
+        if output==protected or protected in output.parents or output in protected.parents:raise ValueError('Timing output overlaps protected input')
+    receipt=load_json(seed/'receipt.json')
+    if receipt.get('status')!='PASS' or receipt.get('kind')!='preparation':raise ValueError('Qualified exact ordinary preparation required')
+    if not (seed/'prepared/approved.plan').is_file():raise ValueError('Exact reviewed native saved plan required')
+    result=apply(output,seed,stage=stage,recording_mode=recording_mode)
+    return _emit_timing_linkage(action,output,result,previous,seed,recording_mode)

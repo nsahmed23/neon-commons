@@ -1,0 +1,21 @@
+{
+  "schema": "verified-source-branch-publication/1",
+  "status": "PASS",
+  "candidate": "571e06ba015a9b94208e4c88538246c97e3816e4",
+  "previous": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "target": "refs/heads/continuation/r4-20261007",
+  "main_before": "4ba077d93fecbf5f893ee13ef972c839cf13883d",
+  "review_receipt": "independent/checkpoint29-public-docs-delta-01/PUBLIC-DOCS-DELTA.json",
+  "review_receipt_sha256": "c8ce43315a3b57ea50e5cc2fbcdc0e1dbe8a85e1ba14e286f0dacc54b4119ac9",
+  "independent_commit_binding_sha256": "400ac01900dcb98a57f8671c8b11de7c3b60bb05e72b7f03e0dcbc3e1530b739",
+  "scope": "Exact independently admitted50-path documentation/inventory checkpoint on the dedicated source branch. No main mutation, workflow dispatch, deployment, tenant mutation or raw private evidence publication.",
+  "published_at": "2026-10-11T22:43:24.926826+00:00",
+  "remote_after": {
+    "refs/heads/continuation/r4-20261007": "571e06ba015a9b94208e4c88538246c97e3816e4",
+    "refs/heads/main": "4ba077d93fecbf5f893ee13ef972c839cf13883d"
+  },
+  "working_tree_after": "",
+  "url": "https://github.com/nsahmed23/neon-commons/tree/571e06ba015a9b94208e4c88538246c97e3816e4",
+  "branch_url": "https://github.com/nsahmed23/neon-commons/tree/continuation/r4-20261007",
+  "driver_sha256": "bc42906f9243ec71a9a57f032541ca98ad60b46c01cd90ad58a0f2c0cdc0fdfc"
+}

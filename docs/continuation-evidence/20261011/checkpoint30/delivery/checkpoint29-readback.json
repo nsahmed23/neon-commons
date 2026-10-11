@@ -1,0 +1,511 @@
+{
+  "schema": "anonymous-source-documentation-readback/1",
+  "status": "PASS",
+  "commit": "571e06ba015a9b94208e4c88538246c97e3816e4",
+  "recorded_at": "2026-10-11T22:43:26.809579+00:00",
+  "files": [
+    {
+      "path": "docs/CONTINUATION-R4-LEDGER.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/CONTINUATION-R4-LEDGER.json",
+      "authorization_header_supplied": false,
+      "bytes": 1781043,
+      "sha256": "eed95cc1a1e90cf767224606c0db187e5e9a184a091012d6c477c0eba84827b7",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/CONTINUATION-R4-LEDGER.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "authorization_header_supplied": false,
+      "bytes": 112902,
+      "sha256": "9efe2439901b8b6585146275a782114bf5eb4006c7ec07e09469aa46098f2982",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/EXECUTION-SEQUENCE-R4.md",
+      "authorization_header_supplied": false,
+      "bytes": 30657,
+      "sha256": "46303b9b144f9865e9343f6605ea92eadf68e2688f22363c348171675326e3fe",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/EXECUTION-SEQUENCE-R4.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/OPERATING-PROFILE-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/OPERATING-PROFILE-R4.md",
+      "authorization_header_supplied": false,
+      "bytes": 28815,
+      "sha256": "c574336c2c6914e49ec32c734d190cb737dc35166b1b8c69c21ae268b8622c29",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/OPERATING-PROFILE-R4.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/EXTERNAL-GATES-R4.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/EXTERNAL-GATES-R4.md",
+      "authorization_header_supplied": false,
+      "bytes": 63373,
+      "sha256": "dc0ac6169e0d312e23ae160390d808a070e5f997f89cc546fca239c22664693f",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/EXTERNAL-GATES-R4.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-loader.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-loader.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 60974,
+      "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-loader.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-outer.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-outer.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 63040,
+      "sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-outer.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/normal32/README.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/README.md",
+      "authorization_header_supplied": false,
+      "bytes": 2586,
+      "sha256": "603ce904acd484b6f0707ea84d08c21dc3032bc642f460c9694d013b83f7b628",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/README.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/normal32/SOURCE-DISPOSITION.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/SOURCE-DISPOSITION.json",
+      "authorization_header_supplied": false,
+      "bytes": 2038,
+      "sha256": "7256b80cb0ae24aa460910aa8959580ad2f1df6c68eabd029838cb7f4e509f8a",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32/SOURCE-DISPOSITION.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-repair.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-repair.md",
+      "authorization_header_supplied": false,
+      "bytes": 2966,
+      "sha256": "45e3499bef17b7b453a251d3bada16b662a269e356e94ad1c6b79be6d13e0109",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-repair.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-source-disposition.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-source-disposition.json",
+      "authorization_header_supplied": false,
+      "bytes": 4146,
+      "sha256": "0341a213c4125709906c3904e203a5d11d98daed174628ac0982683dedabd894",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-source-disposition.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-commit.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-commit.json",
+      "authorization_header_supplied": false,
+      "bytes": 5367,
+      "sha256": "7003124ea80340f207e71e1519d21c002111412d83740a46baadc6796a404123",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-commit.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-publication.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-publication.json",
+      "authorization_header_supplied": false,
+      "bytes": 1242,
+      "sha256": "8462f1bdcaa91651647455edc13c28a4e4fd8cee66de3ea33f642dced5e957ec",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-publication.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-readback.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-readback.json",
+      "authorization_header_supplied": false,
+      "bytes": 11894,
+      "sha256": "3ad2c4511b4f413861914fe9a5a8ea801163c9685069a22c21cec721fbb1eb15",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-readback.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-independent-commit-binding.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-independent-commit-binding.json",
+      "authorization_header_supplied": false,
+      "bytes": 9190,
+      "sha256": "6c089914c910808c8816400182c23170b7efdb96f8eb6d61e2f8fa95274bff52",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/checkpoint28-independent-commit-binding.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/historical-recovery-input-witness.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/historical-recovery-input-witness.json",
+      "authorization_header_supplied": false,
+      "bytes": 1303,
+      "sha256": "6916e9040afdc2c5b8cadcd895d3d6640d00ff3788f524d0c616b82288af797b",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/historical-recovery-input-witness.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional-native-modes-prepared.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional-native-modes-prepared.json",
+      "authorization_header_supplied": false,
+      "bytes": 3249,
+      "sha256": "63c49f4258bc99b1a3e1c70ceb149a31f601ee0ca0471f79257ee9685a574586",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional-native-modes-prepared.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional-convergence-history-prepared.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional-convergence-history-prepared.json",
+      "authorization_header_supplied": false,
+      "bytes": 2028,
+      "sha256": "f60d0a545ccba885a323de5be2b38f2bd34391e31253ac4d6422351305a992a4",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional-convergence-history-prepared.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/normal32-admission.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32-admission.json",
+      "authorization_header_supplied": false,
+      "bytes": 3780,
+      "sha256": "59cd0d80ba7495b5c6383ea055e92d394c93551a5fe0f7d79a1b45fbdbf88c93",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32-admission.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/normal32-public-source-review.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32-public-source-review.json",
+      "authorization_header_supplied": false,
+      "bytes": 5220,
+      "sha256": "96d2e0a3249aeb174f8dec375a642551bdf8f4fc4d3e1791bc60cb7bab07e1a1",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/normal32-public-source-review.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/closed-controls-index.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/closed-controls-index.json",
+      "authorization_header_supplied": false,
+      "bytes": 4204,
+      "sha256": "c4f62b09db11c40d5f70afa9c856e84a2d0b6ef61bfc0c2d7250c2542d38fa50",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/closed-controls-index.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/companion-reader-repair.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/companion-reader-repair.json",
+      "authorization_header_supplied": false,
+      "bytes": 2210,
+      "sha256": "983d1e7055646682ed80cc5221f98a6ddadad799b0af0997b6cef1f915fd07b0",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/companion-reader-repair.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/companion-C28-stage-admission.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/companion-C28-stage-admission.json",
+      "authorization_header_supplied": false,
+      "bytes": 29346,
+      "sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/companion-C28-stage-admission.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/companion-C28-prior-interface.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/companion-C28-prior-interface.json",
+      "authorization_header_supplied": false,
+      "bytes": 1515,
+      "sha256": "c7d09b69efd36fc5745de6d8790993d8ba0e49cb8362b3e6674d2d3d665924e5",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/companion-C28-prior-interface.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/external-readiness.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/external-readiness.json",
+      "authorization_header_supplied": false,
+      "bytes": 618,
+      "sha256": "535e0d7809646fe50c3ef05b5a8f63914ed33170e075195875777243f644bd14",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/external-readiness.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/external-readiness-time-correction.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/external-readiness-time-correction.json",
+      "authorization_header_supplied": false,
+      "bytes": 814,
+      "sha256": "896f9cd9193329374dd71e0187704741f104885742080a16958fcf39a369567a",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/external-readiness-time-correction.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/before-closure-01.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/before-closure-01.json",
+      "authorization_header_supplied": false,
+      "bytes": 2145,
+      "sha256": "9b8d7e5e8ea9ccec4c8d32d7952de5a3d513b169d5b8ef66e8c0b276bfc65532",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/before-closure-01.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-02.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-02.json",
+      "authorization_header_supplied": false,
+      "bytes": 2174,
+      "sha256": "f6c3f523c4341e200c7c12cdcf695af5d2daa338c5f5bb0e9e5f0d133a5d1eaa",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-02.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/before-route-types-03.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/before-route-types-03.json",
+      "authorization_header_supplied": false,
+      "bytes": 1206,
+      "sha256": "db2124fae33bbe53f70537b35a72236bd41402303c06a87ab078ced42925ae0e",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/before-route-types-03.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/after-route-types-04.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/after-route-types-04.json",
+      "authorization_header_supplied": false,
+      "bytes": 1201,
+      "sha256": "83ee3f5de93571b32dee68ab4308cc83aa545152fa269c2f2b22c18638a3cdbd",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/after-route-types-04.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-04.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-04.json",
+      "authorization_header_supplied": false,
+      "bytes": 2234,
+      "sha256": "72ee2452fe33ad7c66ba6b697dfd52976b26955c792a8ce03ad5223283155c33",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-04.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/profile-admission-04.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/profile-admission-04.json",
+      "authorization_header_supplied": false,
+      "bytes": 5352,
+      "sha256": "854ecbf75c6a0800e14f4be65d7d1618efbfb266f6ce6f52546184d27a11ea50",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/profile-admission-04.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/outer-preparation-05.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/outer-preparation-05.json",
+      "authorization_header_supplied": false,
+      "bytes": 5167,
+      "sha256": "95e065e6e0ef1c22c314291d61237769d8f830ebd5764e5c76b5a109ddbb5d27",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/outer-preparation-05.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/snapshot-order-before-after-05.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/snapshot-order-before-after-05.json",
+      "authorization_header_supplied": false,
+      "bytes": 1588,
+      "sha256": "7d8bfbf890607c03acddee26b6b718a7e717ec310b4dc0df674a5344fe65bd00",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/snapshot-order-before-after-05.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/outer-admission-contract-05.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/outer-admission-contract-05.json",
+      "authorization_header_supplied": false,
+      "bytes": 2489,
+      "sha256": "718046cc1a94fe63470602fe5cd2f346ccae8164e5a712f5cd8dc79d3f3ba589",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/outer-admission-contract-05.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/delivery-source/refresh-companion-current.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/delivery-source/refresh-companion-current.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 28882,
+      "sha256": "0b8ea305089a9f1dd724ddfb528f697b7c26c448790b53082da6b373bbabfe5f",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/delivery-source/refresh-companion-current.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/private-preparation-public-disposition.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/private-preparation-public-disposition.json",
+      "authorization_header_supplied": false,
+      "bytes": 1592,
+      "sha256": "f8bbd67e5fda305fa5e763e894c1753142c60d0dbfcf7cd7941cc544ef0e2747",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/private-preparation-public-disposition.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/selected-delivery-source-review.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/selected-delivery-source-review.json",
+      "authorization_header_supplied": false,
+      "bytes": 3582,
+      "sha256": "b7a07b7022d95471e215430d7295d221007de5531241ebfd2e9b815872facc72",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/selected-delivery-source-review.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional32/README.md",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/README.md",
+      "authorization_header_supplied": false,
+      "bytes": 2472,
+      "sha256": "f2f689d170e273cb67e01437c284ece2aead6c7995b50c13a655df6f13c947a2",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/README.md",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-loader.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-loader.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 52893,
+      "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-loader.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-outer.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-outer.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 60627,
+      "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-outer.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional32/SOURCE-DISPOSITION.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/SOURCE-DISPOSITION.json",
+      "authorization_header_supplied": false,
+      "bytes": 2014,
+      "sha256": "530f58268dd962cee85680280ad72d63868b1bc35eadf1285e20b5d1f9a69c2e",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32/SOURCE-DISPOSITION.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional32-admission.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32-admission.json",
+      "authorization_header_supplied": false,
+      "bytes": 9246,
+      "sha256": "a665e0c0cb23ee436f0535f41117bbd426f99f7b34eb6fe823a1fce6586a52bc",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32-admission.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/additional32-candidate02-fail.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32-candidate02-fail.json",
+      "authorization_header_supplied": false,
+      "bytes": 3840,
+      "sha256": "5f3b971f890cada14fc3c61b72cb668edb0aa97363abba9f51714c6806b4fc6d",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/additional32-candidate02-fail.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/delivery-source/publish-admitted-companion.py.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/delivery-source/publish-admitted-companion.py.txt",
+      "authorization_header_supplied": false,
+      "bytes": 14929,
+      "sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/delivery-source/publish-admitted-companion.py.txt",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/publisher04-admission.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/publisher04-admission.json",
+      "authorization_header_supplied": false,
+      "bytes": 5256,
+      "sha256": "d219e05359f9326f9e2992bf30b2dbddffa916532053111426a06c2a15aef672",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/publisher04-admission.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/publisher-before-02.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/publisher-before-02.json",
+      "authorization_header_supplied": false,
+      "bytes": 4655,
+      "sha256": "906471b911c2ee6507a3ce38af3820f130afc5e625e0bdc31a57964162581c23",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/publisher-before-02.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/publisher-after-04.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/publisher-after-04.json",
+      "authorization_header_supplied": false,
+      "bytes": 4957,
+      "sha256": "9d71aed78288cd9cf0420322752568c3a1fc778643cf3bb8d59eff0f2dbd1c2c",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/publisher-after-04.json",
+      "status": "PASS"
+    },
+    {
+      "path": "docs/continuation-evidence/20261011/checkpoint29/controls/publisher-paths-before-after-04.json",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/publisher-paths-before-after-04.json",
+      "authorization_header_supplied": false,
+      "bytes": 4405,
+      "sha256": "4e39d8d0d6fc2a76c2419a53c5d061f4e2e73ec38d43c79dc32249106fb30796",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/docs/continuation-evidence/20261011/checkpoint29/controls/publisher-paths-before-after-04.json",
+      "status": "PASS"
+    },
+    {
+      "path": "release-source-files.txt",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/release-source-files.txt",
+      "authorization_header_supplied": false,
+      "bytes": 272142,
+      "sha256": "3fc8172aca24f34d55f0e235d5bea8226bd474c59e9b9ee434a903acaa3478e3",
+      "http_status": 200,
+      "final_url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/571e06ba015a9b94208e4c88538246c97e3816e4/release-source-files.txt",
+      "status": "PASS"
+    }
+  ],
+  "review_sha256": "c8ce43315a3b57ea50e5cc2fbcdc0e1dbe8a85e1ba14e286f0dacc54b4119ac9",
+  "scope": "Anonymous normal-TLS HTTPS exact-byte readback of all 50 reviewed C29 documentation/inventory paths. Source branch ref/main identity verified separately. No whole private-corpus, native, external platform or production claim.",
+  "driver_sha256": "c5a239a35d9ce420409ca4ccfea6c6ddbb757618944fc339f4f2b8d152a3261b"
+}

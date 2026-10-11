@@ -1,0 +1,68 @@
+{
+  "admission": {
+    "bytes": 12817,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/known-completion-core-review-20261011-01/ADMISSION.json",
+    "sha256": "1a24ed465859bf41cf69f44a4e58aa7ef665caf12d359b464836aaa5476fb12f"
+  },
+  "applied_files": [
+    {
+      "bytes": 58296,
+      "path": "/workspace/intune-continuation/work/projects/intune/intune_iac/worker_service.py",
+      "sha256": "40f6caf0c30f21ba3ff79f2ecf2823fbccd9de2929e88d94d3a74d4d1a2e499a"
+    },
+    {
+      "bytes": 14304,
+      "path": "/workspace/intune-continuation/work/projects/intune/intune_iac/worker_completed_readback.py",
+      "sha256": "edfe6e78224b7a557479b5f6ca7208af71f2e6cdd1c63ce3b75cd674617e36f8"
+    },
+    {
+      "bytes": 25298,
+      "path": "/workspace/intune-continuation/work/projects/intune/plugin_tests/test_worker_completed_readback_r4.py",
+      "sha256": "41658847cfd8618338f60e98f226b64a0248b8b863a3906ca953e5ff8ce7d9b3"
+    }
+  ],
+  "capacity_available_bytes": 22880256,
+  "capacity_required_bytes": 8758738,
+  "files": [
+    {
+      "bytes": 58296,
+      "path": "/tmp/intune-c25-known-completion-recovery-20261011-02/candidate/intune_iac/worker_service.py",
+      "repository_relative_path": "intune_iac/worker_service.py",
+      "sha256": "40f6caf0c30f21ba3ff79f2ecf2823fbccd9de2929e88d94d3a74d4d1a2e499a"
+    },
+    {
+      "bytes": 14304,
+      "path": "/tmp/intune-c25-known-completion-recovery-20261011-02/candidate/intune_iac/worker_completed_readback.py",
+      "repository_relative_path": "intune_iac/worker_completed_readback.py",
+      "sha256": "edfe6e78224b7a557479b5f6ca7208af71f2e6cdd1c63ce3b75cd674617e36f8"
+    },
+    {
+      "bytes": 25298,
+      "path": "/tmp/intune-c25-known-completion-recovery-20261011-02/candidate/plugin_tests/test_worker_completed_readback_r4.py",
+      "repository_relative_path": "plugin_tests/test_worker_completed_readback_r4.py",
+      "sha256": "41658847cfd8618338f60e98f226b64a0248b8b863a3906ca953e5ff8ce7d9b3"
+    }
+  ],
+  "inventory_additions": [
+    "intune_iac/worker_completed_readback.py",
+    "plugin_tests/test_worker_completed_readback_r4.py"
+  ],
+  "inventory_after": {
+    "bytes": 272232,
+    "path": "/workspace/intune-continuation/work/projects/intune/release-source-files.txt",
+    "sha256": "caf7461098d7699bf368851c76b281fbd4c8e5fca7ff0443c70b56255057f969"
+  },
+  "inventory_before": {
+    "bytes": 272142,
+    "path": "/workspace/intune-continuation/work/projects/intune/release-source-files.txt",
+    "sha256": "3fc8172aca24f34d55f0e235d5bea8226bd474c59e9b9ee434a903acaa3478e3"
+  },
+  "native_actions": 0,
+  "native_storage_gate_waived": false,
+  "recorded_at": "2026-10-11T22:56:27.318760+00:00",
+  "schema": "intune-known-completion-C30-application/1",
+  "scope": "Exact independently admitted three-file core repair and two preservation-only inventory additions. No new qualification, dispatch, native write, deployment, package or original evidence alteration.",
+  "source_parent": "571e06ba015a9b94208e4c88538246c97e3816e4",
+  "status": "PASS_SCOPED_EXACT_SOURCE_APPLICATION",
+  "working_tree": "M intune_iac/worker_service.py\n M release-source-files.txt\n?? intune_iac/worker_completed_readback.py\n?? plugin_tests/test_worker_completed_readback_r4.py"
+}

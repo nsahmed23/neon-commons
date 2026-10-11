@@ -779,8 +779,10 @@ class ServiceJob:
         from .worker_service_readback import LiveServiceReadback, LaboratoryServiceReadback
         self._check(expiry=False)
         from .worker_committed_readback import LiveCommittedServiceReadback, LaboratoryCommittedServiceReadback
-        expected = ((LiveServiceReadback, LiveCommittedServiceReadback) if self.manifest['profile'] == 'azure_public_pilot' else
-                    (LaboratoryServiceReadback, LaboratoryCommittedServiceReadback))
+        from .worker_completed_readback import LiveKnownCompletedServiceReadback, LaboratoryKnownCompletedServiceReadback
+        known_completed = (LiveKnownCompletedServiceReadback, LaboratoryKnownCompletedServiceReadback)
+        expected = ((LiveServiceReadback, LiveCommittedServiceReadback, LiveKnownCompletedServiceReadback) if self.manifest['profile'] == 'azure_public_pilot' else
+                    (LaboratoryServiceReadback, LaboratoryCommittedServiceReadback, LaboratoryKnownCompletedServiceReadback))
         if type(readback) not in expected: _fail('service_readback_capability_required')
         facts = readback.verified(self.manifest)
         with self.policy.connection() as db:
@@ -792,6 +794,9 @@ class ServiceJob:
                     or row[3] is not None or consumed != (self.sha256,) or owners != _scopes(self.manifest)):
                 _fail('service_reconciliation_not_ready')
             previous = parse_json(row[2]) if row[2] else None
+            if (type(readback) in known_completed and
+                    (row[0] != 'host_completed_service_unverified' or digest(previous) != facts['original_outcome_sha256'])):
+                _fail('service_known_completed_outcome_changed')
             if previous and previous.get('host') and not previous['host'].get('cleanup', {}).get('removed'):
                 _fail('service_host_cleanup_unconfirmed')
             host_record = self.root / 'host-run/journal.json'

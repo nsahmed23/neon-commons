@@ -1,0 +1,31 @@
+{
+  "status": "PASS_SCOPED_EXACT_METADATA_RECEIVING_READBACK",
+  "files": [
+    {
+      "source": "/tmp/integrate-intune-known-completion-C30-20261011.py",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/known-completion-C30-application-20261011-01/apply-source.py",
+      "bytes": 4878,
+      "sha256": "0757b72a78d0c08cd3451607721cea39ba0d113fcbfddcefaa34dc05ffcf31e5"
+    },
+    {
+      "source": "/tmp/verify-intune-C30-changed-scope-20261011.py",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/known-completion-C30-application-20261011-01/verify-changed-scope.py",
+      "bytes": 3227,
+      "sha256": "716e8e1d5b054e89758c2cb49d36193abb73a8e269b66cf5e3190235eddda473"
+    },
+    {
+      "source": "/tmp/intune-C30-changed-scope-20261011-01/RESULT.json",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/known-completion-C30-application-20261011-01/CHANGED-SCOPE-RESULT.json",
+      "bytes": 18403,
+      "sha256": "f224b903758b692796f63813f96f0dfbdf32771423afd59ba41869c4e8d20df2"
+    },
+    {
+      "source": "/tmp/intune-C30-changed-scope-20261011-01/test-log.txt",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/known-completion-C30-application-20261011-01/CHANGED-SCOPE-test-log.txt",
+      "bytes": 23659,
+      "sha256": "c0b709c104e67fd6393fb3bbbad2e50b0829f41b4631f1f23adefaf2b3852723"
+    }
+  ],
+  "raw_fixture_recovery": "separately required private capsule; not claimed complete by this metadata receipt",
+  "native_actions": 0
+}

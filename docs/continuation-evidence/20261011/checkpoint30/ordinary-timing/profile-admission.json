@@ -1,0 +1,173 @@
+{
+  "actual_capacity_order": "Full actual outer configuration validation passes with final in-memory decision fixture only. Actual run() stops at temporary or persistent capacity denial before either output directory, metadata or process activation. First qualified fault snapshot remains between actions; guarded finalization/exception handlers and typed census/capsule primitives AST equal already admitted cae6702; no native/capsule rerun.",
+  "actual_profile_metadata_closure": {
+    "helpers": 30,
+    "inputs": 11,
+    "package_files": 3355,
+    "tools": 9
+  },
+  "base_command": {
+    "bytes": 705,
+    "path": "/tmp/intune-c25-native-ordinary-timing-profile-20261011-01/base-command.json",
+    "sha256": "8d0a461dc3397a852396328922b23fd2e89d5f211ff10a006f812ffab6974fa7"
+  },
+  "blocker_owners": {
+    "core_restart_factory": "Separate C30 source author/reviewer; cannot use C25 admission.",
+    "external_and_org_profile": "Native host, service/CI/backend/device, AppSec/keycustody and accountable organizational owners.",
+    "native_activation_and_evidence": "Root local-lab execution coordinator and independent raw reader.",
+    "persistent_capacity": "Workspace/recovery custodian; existing private durable storage, unchanged32MiB reserve."
+  },
+  "complete_private_recovery": false,
+  "configuration": {
+    "bytes": 2145,
+    "path": "/tmp/intune-c25-native-ordinary-timing-orchestration-20261011-01/CONFIGURATION.json",
+    "sha256": "b62aace497fd230a363809e8899dc2466619dba456f53d0eb962e9285e1d6d9a"
+  },
+  "convergence_or_history_qualified": false,
+  "counts_nonadditive": "Metadata/source/route/typed seed checks only. Author and prior readers overlap; no suite/native/provider/service/performance/device count is added. Expected statuses/serials are future native oracles, not observed outcomes.",
+  "current_capacity_sample": {
+    "available_bytes": 23257088,
+    "minimum_start_bytes": 33619968,
+    "native_dispatch_authorized": false,
+    "workspace_reserve_bytes": 33554432
+  },
+  "execution_admission_created": false,
+  "full_review": {
+    "bytes": 55423,
+    "path": "/tmp/intune-c25-timing4-independent-01/RESULT.json",
+    "sha256": "e6867989a79cc029c3b8d0c977c90f9679682c5032e72c5394e229f472d152ac"
+  },
+  "global_laboratory_complete": false,
+  "helper_main_calls": 0,
+  "helper_source_API_admission": {
+    "bytes": 11104,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/ordinary-timing-source-review-20261011-01/ADMISSION.json",
+    "sha256": "ab62805b33561d2e0fb3e1c691db1822293c14322a6acf0a2d29404a17dd8e07"
+  },
+  "historical_raw_loss_closed": false,
+  "independent_metadata_assertions": 263,
+  "loader": {
+    "bytes": 27877,
+    "path": "/tmp/intune-c25-native-ordinary-timing-profile-20261011-01/loader/qualify_ordinary_timings.py",
+    "sha256": "ff1b4c8b9a58b9719dff93b4f1eda2201d3c924bbcbd69d9d9856c40e5c6f3e6"
+  },
+  "native_dispatches": 0,
+  "new_core_factory_qualified": false,
+  "next_action": "Preserve exact timing4 private preparations and approved public source-text pins. Four fault-only native cases remain NOT_STARTED/storage blocked; require fresh operation approvals, independently admitted exact configuration and explicit root local-lab GO after capacity. Independent raw assertions must then verify actual authority/state/Graph/native/cleanup outcomes. Recovery/convergence/history and newC30 core factory belong to separately qualified revisions/profiles.",
+  "original_PASS_seed_scope": {
+    "before_after_same": true,
+    "exact_original_capsule_members_matched": 127,
+    "literal_links_not_followed": 3,
+    "original_capsule": {
+      "bytes": 2361697,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/PRIVATE-RAW-CAPSULE.zip",
+      "sha256": "2163f1244942ef2c45e583c900b6f3fcdb0386a8aadfbef80388a5f38e533987"
+    },
+    "receipt": {
+      "bytes": 19705,
+      "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/journey/ordinary-prepare/PORTABLE-QUALIFICATION.json",
+      "sha256": "37bda48714c4a8b8e5a8835bf934e838a83e71dfc71c6f8ccc29d8e445103da4"
+    },
+    "regular_files": 84,
+    "saved_plan": {
+      "bytes": 5850,
+      "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/journey/ordinary-prepare/prepared/approved.plan",
+      "sha256": "8af3bcb75acfa3ecae99c9b387fb8c788903f0ea91141b666befdb9c5410c23f"
+    },
+    "typed_node_count": 127
+  },
+  "outer": {
+    "bytes": 48992,
+    "path": "/tmp/intune-c25-native-ordinary-timing-orchestration-20261011-01/orchestrate-ordinary-timings.py",
+    "sha256": "a36e2652e072e362ac02cf8954743bc816f63daebd4b577acf7fa6a0a23c6031"
+  },
+  "platform_qualified": false,
+  "prepared": {
+    "bytes": 34779,
+    "path": "/tmp/intune-c25-native-ordinary-timing-orchestration-20261011-01/PREPARED.json",
+    "sha256": "5927ed14097aa454e519374573d9ca4457478206adbfcf06ef5290c90636b1fc"
+  },
+  "prepared_route_scope": [
+    {
+      "expected_authority_status": "outcome_unknown",
+      "expected_state_serial": 13,
+      "id": "acquisition",
+      "native_status": "NOT_STARTED"
+    },
+    {
+      "expected_authority_status": "outcome_unknown",
+      "expected_state_serial": 13,
+      "id": "policy-response",
+      "native_status": "NOT_STARTED"
+    },
+    {
+      "expected_authority_status": "host_completed_service_unverified",
+      "expected_state_serial": 14,
+      "id": "apply-archive",
+      "native_status": "NOT_STARTED"
+    },
+    {
+      "expected_authority_status": "host_completed_service_unverified",
+      "expected_state_serial": 14,
+      "id": "apply-archive-compound",
+      "native_status": "NOT_STARTED"
+    }
+  ],
+  "private_raw_payloads_included": false,
+  "product_or_helper_imports": 0,
+  "production_approved": false,
+  "profile": {
+    "bytes": 672050,
+    "path": "/tmp/intune-c25-native-ordinary-timing-profile-20261011-01/profile.json",
+    "sha256": "54625684f541d8a9a5826aa8e4481dc872a86d771f98af6b2ce6989e8d052b71"
+  },
+  "public_metadata_suitable": true,
+  "public_text_selection": {
+    "files": {
+      "README.md": {
+        "bytes": 2360,
+        "path": "/tmp/intune-c25-ordinary-timing-public-source-20261011-01/README.md",
+        "sha256": "666d008687eb99cb66310480684597782cedb307b8af7384174c7c7ccb43669f"
+      },
+      "orchestrate-ordinary-timings.py.txt": {
+        "bytes": 48992,
+        "path": "/tmp/intune-c25-ordinary-timing-public-source-20261011-01/orchestrate-ordinary-timings.py.txt",
+        "sha256": "a36e2652e072e362ac02cf8954743bc816f63daebd4b577acf7fa6a0a23c6031"
+      },
+      "qualify-ordinary-timings.py.txt": {
+        "bytes": 27877,
+        "path": "/tmp/intune-c25-ordinary-timing-public-source-20261011-01/qualify-ordinary-timings.py.txt",
+        "sha256": "ff1b4c8b9a58b9719dff93b4f1eda2201d3c924bbcbd69d9d9856c40e5c6f3e6"
+      }
+    },
+    "private_payloads_cleared": false,
+    "runnable_complete_profile": false,
+    "status": "PASS_SCOPED_EXACT_THREE_SOURCE_TEXTS_ONLY"
+  },
+  "receiving_output_roots_created": false,
+  "recovery_qualified": false,
+  "rejected_metadata_controls": 55,
+  "remaining_required_evidence_and_limitations": [
+    "Four actual native faults remain NOT_STARTED/storage blocked. No recovery/convergence/history qualification or dispatch admission.",
+    "Acquisition may preserve empty lock metadata; policy cancellation must preserve actual partial policy/state13; archive modes must preserve known host completed/state14/normal released lease. These expectations require future independent raw outcomes.",
+    "Existing C25 helper/API admissionab628 is reused exactly; new C30 core restart factory changes source/artifacts and is outside this profile.",
+    "Only frozen outer invocation -B -I without PYTHONOPTIMIZE is admitted; ad hoc optimized/direct loader invocation is not reviewed.",
+    "No Windows/live Graph/Azure/protected CI/devices/installed scheduler/hostile host/keycustody/AppSec/organizational approval or historical265root/39reference closure.",
+    "Public code text/README excludes private profiles/maps/inputs/fixtures/rawstate/plans/keys/approvals/witness/capsules and cannot serve as complete recovery."
+  ],
+  "reviewer_script": {
+    "bytes": 29950,
+    "path": "/tmp/intune-c25-timing4-independent-01/review.py",
+    "sha256": "71d64b65c26ec999b210d0c5e54e431a7a1f458515ae57d2be035dc03fda3f16"
+  },
+  "root_GO_created": false,
+  "route_manifest": {
+    "bytes": 28537,
+    "path": "/tmp/intune-c25-native-ordinary-timing-profile-20261011-01/bundle/inputs/timing-routes.json",
+    "sha256": "90fb35e1f094b949c79dcb3940cda6131e5a09a30c05bfeb5b3ba8595336fca5"
+  },
+  "schema_version": "public-independent-C25-timing4-fault-only-preparation-admission/1",
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_READONLY_AND_DETACHED_TIMING4_PREPARATION",
+  "tool_dispatches": 0
+}

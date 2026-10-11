@@ -1,0 +1,79 @@
+{
+  "actual_commit_binding_sha256": "63c15e384c90fdde0c44fe0d45cd70e6fc51e7fbc2e39ca61f280dec88675f0c",
+  "actual_public_readback": {
+    "anonymous_HTTP200_exact_URL_byte_SHA_matches": 129,
+    "bytes": 115299,
+    "new_HTTP_requests_by_this_review": 0,
+    "returned_bytes": 24589195,
+    "sha256": "8f57e2d215aa20908b8097c2ad8421ce69741fad4354f88c28c257d5bd46d9e3",
+    "status": "PASS"
+  },
+  "artifacts": [
+    {
+      "HTTP_readback_status": "PASS",
+      "bytes": 17956520,
+      "path": "packages/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7c6515ac3e99f6a548d774805a905df0c44baf1/intune-workbench/r4-20261011/packages/Intune_IaC_Plugin_0.9.0_Source.zip"
+    },
+    {
+      "HTTP_readback_status": "PASS",
+      "bytes": 1520542,
+      "path": "packages/Intune_IaC_Plugin_0.9.0.zip",
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/b7c6515ac3e99f6a548d774805a905df0c44baf1/intune-workbench/r4-20261011/packages/Intune_IaC_Plugin_0.9.0.zip"
+    }
+  ],
+  "branch": "intune-atmos-wally-r4-20261011",
+  "commit": "b7c6515ac3e99f6a548d774805a905df0c44baf1",
+  "counts_nonadditive": true,
+  "documentation_commit": "571e06ba015a9b94208e4c88538246c97e3816e4",
+  "explicit_omissions": [
+    "Raw local Git configuration and reproduced process stdout/stderr; no credentials, profiles, witness, plan/state/capture/key/approval/GO/private archive payload.",
+    "Original full private corpus, missing265historical temporary roots/39pinned receipt references and future C30/package/native/platform/AppSec outcomes."
+  ],
+  "limitations": [
+    "The original push command still failed; scoped overall public delivery and later local tracking repair do not turn its historical FAIL into PASS.",
+    "Future clones of publisher04 need an explicit matching fetch-projection prerequisite before dispatch; the newly observed local upstream prerequisite is outside its earlier detached PUB01-04 guard test scope.",
+    "No new platform/device/CI/scheduler/AppSec/organizational approval and no whole private-corpus or265/39 provenance closure.",
+    "C25 package qualification remains separate from C29 documentation and pending C30 implementation/packages."
+  ],
+  "local_current_upstream_exact_commit_and_clean": true,
+  "new_native_or_platform_evidence": false,
+  "original_push_attempt": {
+    "bytes": 25997,
+    "failing_stage": "local upstream assignment after the remote write",
+    "original_record_rewritten": false,
+    "primary_error_type": "RuntimeError",
+    "sha256": "77f37bcd7683f590e25697128d87fd77a208468259441ba42af192a089e07024",
+    "status_verbatim": "FAIL"
+  },
+  "parent": "3bf60e3ed150ec1d147ef2c07b7bea88f7ad480e",
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "qualified_package_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "remote_refs": {
+    "refs/heads/intune-atmos-wally-r4-20261011": "b7c6515ac3e99f6a548d774805a905df0c44baf1",
+    "refs/heads/main": "4ba077d93fecbf5f893ee13ef972c839cf13883d"
+  },
+  "result_identity": {
+    "bytes": 11126,
+    "sha256": "0cef2ac3d13910fb2338ae8854a6021fc3b36d4cfdac13262ed278f18ddaeeda"
+  },
+  "schema": "public-independent-companion-C29-delivery-disposition/1",
+  "selection_admission_sha256": "fc93120514726c438095990cc047f6f9c970ef1df2f7d9697d2325c68f5e1387",
+  "selection_sha256": "708dc7d8d67f5684329f1edf61ee2a537392e92b0c69b632711e73d1d212e2e5",
+  "separate_tracking_repair": {
+    "after_exit0_and_current_upstream_exact_commit": true,
+    "before_exit128_and_exact114byte_stderr_reproduced": true,
+    "bytes": 1579,
+    "driver_sha256": "4c28277dac62c985e45be16e0204f646e8b8650f4e566675275254c2efe203d6",
+    "preserved_oldR3_added_onlyR4_projection_and_branch_tracking": true,
+    "remote_write_or_fetch_repeated": false,
+    "root_cause": "Inherited single R3 fetch refspec did not map the new R4 remote-tracking ref into an upstream branch.",
+    "sha256": "f004b134939b301695f353b834a6c576b48daeff6fda4b82790a03aaf43d22d6",
+    "status": "PASS_SCOPED_LOCAL_TRACKING_REPAIR_AFTER_VERIFIED_REMOTE_WRITE"
+  },
+  "status": "PASS_SCOPED_ACTUAL_PUBLIC_DELIVERY_AND_SEPARATE_LOCAL_TRACKING_REPAIR",
+  "tree": "643b49d2ac853876eeb1d2db170cfcf41b0cca06"
+}

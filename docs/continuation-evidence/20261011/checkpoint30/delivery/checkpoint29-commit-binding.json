@@ -1,0 +1,549 @@
+{
+  "admitted_document_delta": {
+    "bytes": 36739,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint29-public-docs-delta-01/PUBLIC-DOCS-DELTA.json",
+    "sha256": "c8ce43315a3b57ea50e5cc2fbcdc0e1dbe8a85e1ba14e286f0dacc54b4119ac9"
+  },
+  "commit": "571e06ba015a9b94208e4c88538246c97e3816e4",
+  "complete_private_recovery": false,
+  "engineering_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "engineering_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "exact_committed_file_pins_and_Git_blobs": [
+    {
+      "Git_blob": "ad771cd4a9675ee44e46d094aabf8536a5724f6a",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1781043,
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "sha256": "eed95cc1a1e90cf767224606c0db187e5e9a184a091012d6c477c0eba84827b7",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "61192cd55aa290282bc74d5d85b1c90027ba19d9",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 112902,
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "sha256": "9efe2439901b8b6585146275a782114bf5eb4006c7ec07e09469aa46098f2982",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "f691785d3ced353fc6aad07158b1cbdc84bf7a1f",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 30657,
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "sha256": "46303b9b144f9865e9343f6605ea92eadf68e2688f22363c348171675326e3fe",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "d49f3f72e409399b296122f1c68266d09dfc65f7",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 28815,
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "sha256": "c574336c2c6914e49ec32c734d190cb737dc35166b1b8c69c21ae268b8622c29",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "1fdb054c2837f309a2559e33c186eb55d4ba92d1",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 63373,
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "sha256": "dc0ac6169e0d312e23ae160390d808a070e5f997f89cc546fca239c22664693f",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "79ef6868830bae689b9905b2b58f6b655bed423a",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 60974,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-loader.py.txt",
+      "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "7a72e148d3588c1815b5d2c24318fb04f3697255",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 63040,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/closed-native-continuation-outer.py.txt",
+      "sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "cc8fa4c53c578cd14744539c68eb99e1ab567427",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2586,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/README.md",
+      "sha256": "603ce904acd484b6f0707ea84d08c21dc3032bc642f460c9694d013b83f7b628",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "19d15f5b1fb455b7d7df0af3bfb6553a5acb8ab4",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2038,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32/SOURCE-DISPOSITION.json",
+      "sha256": "7256b80cb0ae24aa460910aa8959580ad2f1df6c68eabd029838cb7f4e509f8a",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "e0bf75126f68a99f8940a3bf05df3ee9eaaab609",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2966,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-repair.md",
+      "sha256": "45e3499bef17b7b453a251d3bada16b662a269e356e94ad1c6b79be6d13e0109",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "955d7ff8aa35f5da00522776d633b4d46e7c82eb",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 4146,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/producer-repair/ordinary-fault-producer-source-disposition.json",
+      "sha256": "0341a213c4125709906c3904e203a5d11d98daed174628ac0982683dedabd894",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "bf3e0030e331fe5ac6e8f265568c819051d5b04d",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 5367,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-commit.json",
+      "sha256": "7003124ea80340f207e71e1519d21c002111412d83740a46baadc6796a404123",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "7c541b7ffc0c53b99c27726098b398eb018e8970",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1242,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-publication.json",
+      "sha256": "8462f1bdcaa91651647455edc13c28a4e4fd8cee66de3ea33f642dced5e957ec",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "54b331ec1f5f65f77e0698c9cf39a6f88f0e5273",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 11894,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-readback.json",
+      "sha256": "3ad2c4511b4f413861914fe9a5a8ea801163c9685069a22c21cec721fbb1eb15",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "f8747cb477613860cc907053380cb39c3cdf50ac",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 9190,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/checkpoint28-independent-commit-binding.json",
+      "sha256": "6c089914c910808c8816400182c23170b7efdb96f8eb6d61e2f8fa95274bff52",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "f0e16b613f8c5be8184bb2bec3bad2908def2653",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1303,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/historical-recovery-input-witness.json",
+      "sha256": "6916e9040afdc2c5b8cadcd895d3d6640d00ff3788f524d0c616b82288af797b",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "c39ee821601f3030f4ba4d76d1b4a340662d8628",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 3249,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional-native-modes-prepared.json",
+      "sha256": "63c49f4258bc99b1a3e1c70ceb149a31f601ee0ca0471f79257ee9685a574586",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "081d24bcc829172cf2f02b0b23a594853f957334",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2028,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional-convergence-history-prepared.json",
+      "sha256": "f60d0a545ccba885a323de5be2b38f2bd34391e31253ac4d6422351305a992a4",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "9ba1823a86edd7494282dfa0ada94e2b29948c23",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 3780,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32-admission.json",
+      "sha256": "59cd0d80ba7495b5c6383ea055e92d394c93551a5fe0f7d79a1b45fbdbf88c93",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "9172076bdab459d890d3467cd40e8e5650537a95",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 5220,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/normal32-public-source-review.json",
+      "sha256": "96d2e0a3249aeb174f8dec375a642551bdf8f4fc4d3e1791bc60cb7bab07e1a1",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "f4ac4186bc9d0ea0730990da05db79848ae22146",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 4204,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/closed-controls-index.json",
+      "sha256": "c4f62b09db11c40d5f70afa9c856e84a2d0b6ef61bfc0c2d7250c2542d38fa50",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "cc1909c5dc01a7f701914828e307f5db1d060db1",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2210,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/companion-reader-repair.json",
+      "sha256": "983d1e7055646682ed80cc5221f98a6ddadad799b0af0997b6cef1f915fd07b0",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "620265c81b25015927987f9cba59502245013f78",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 29346,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/companion-C28-stage-admission.json",
+      "sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "49f5ac31b2f7326c408f3281ddef00c7ab57955b",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1515,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/companion-C28-prior-interface.json",
+      "sha256": "c7d09b69efd36fc5745de6d8790993d8ba0e49cb8362b3e6674d2d3d665924e5",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "1e3f109f1d612d64e0e046effaac838047a01862",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 618,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/external-readiness.json",
+      "sha256": "535e0d7809646fe50c3ef05b5a8f63914ed33170e075195875777243f644bd14",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "cd074cd40fadb60e430e976e24c75f32a1653830",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 814,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/external-readiness-time-correction.json",
+      "sha256": "896f9cd9193329374dd71e0187704741f104885742080a16958fcf39a369567a",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "d67a77d6c4a7837b185f89a79a1ffce7bb405f12",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2145,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/before-closure-01.json",
+      "sha256": "9b8d7e5e8ea9ccec4c8d32d7952de5a3d513b169d5b8ef66e8c0b276bfc65532",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "7a92c952b8f2da3b73c6ebb6ceccdfa32a2120c8",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2174,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-02.json",
+      "sha256": "f6c3f523c4341e200c7c12cdcf695af5d2daa338c5f5bb0e9e5f0d133a5d1eaa",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "e88cc690beb145d0f527ee23d5cd3bd4db05af8a",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1206,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/before-route-types-03.json",
+      "sha256": "db2124fae33bbe53f70537b35a72236bd41402303c06a87ab078ced42925ae0e",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "733a9ea65145dd24951735ae70109b0c99b4fede",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1201,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/after-route-types-04.json",
+      "sha256": "83ee3f5de93571b32dee68ab4308cc83aa545152fa269c2f2b22c18638a3cdbd",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "bf46a444b9a0f9c064ed920638e61be5a3d26cda",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2234,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/after-closure-04.json",
+      "sha256": "72ee2452fe33ad7c66ba6b697dfd52976b26955c792a8ce03ad5223283155c33",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "b63c6c761ed4e3de8c504944b851611d98806e8f",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 5352,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/profile-admission-04.json",
+      "sha256": "854ecbf75c6a0800e14f4be65d7d1618efbfb266f6ce6f52546184d27a11ea50",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "9962f695a7bc938d2da60cee66598661796ec202",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 5167,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/outer-preparation-05.json",
+      "sha256": "95e065e6e0ef1c22c314291d61237769d8f830ebd5764e5c76b5a109ddbb5d27",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "3197ed0f34a6c61a59fd36dd2a62272598b818e8",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1588,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/snapshot-order-before-after-05.json",
+      "sha256": "7d8bfbf890607c03acddee26b6b718a7e717ec310b4dc0df674a5344fe65bd00",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "b3c9ac0bbe378a252c4088a03c85876458eb47f4",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2489,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/outer-admission-contract-05.json",
+      "sha256": "718046cc1a94fe63470602fe5cd2f346ccae8164e5a712f5cd8dc79d3f3ba589",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "4be8121b2f8946d89d4b310ccbb018a633306707",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 28882,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/delivery-source/refresh-companion-current.py.txt",
+      "sha256": "0b8ea305089a9f1dd724ddfb528f697b7c26c448790b53082da6b373bbabfe5f",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "0580672f531f5fd821be44fd4d9af7532952d95f",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 1592,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/private-preparation-public-disposition.json",
+      "sha256": "f8bbd67e5fda305fa5e763e894c1753142c60d0dbfcf7cd7941cc544ef0e2747",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "89f1ecaf9382ea467a6604d4243fd6935dcf1701",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 3582,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/selected-delivery-source-review.json",
+      "sha256": "b7a07b7022d95471e215430d7295d221007de5531241ebfd2e9b815872facc72",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "a349290d3d5b811da18a27840fd59d5f1738312e",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2472,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/README.md",
+      "sha256": "f2f689d170e273cb67e01437c284ece2aead6c7995b50c13a655df6f13c947a2",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "da8641d6e44329f4d436bd5df025435270f0564b",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 52893,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-loader.py.txt",
+      "sha256": "b98c4e489ada7aab8d906e31376da77776af342a7c7b62265eb05d1fd5d164f8",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "790b2b8fdabd4168a6bb886801fee7556a0b36ab",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 60627,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/fresh-recovery-modes-outer.py.txt",
+      "sha256": "966349bf22048bee64823772b808473f7312866176d1a7d63a2428d08c0f08f8",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "07d096d8a1157d49a89a9f52ae6910ddcef2054c",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 2014,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32/SOURCE-DISPOSITION.json",
+      "sha256": "530f58268dd962cee85680280ad72d63868b1bc35eadf1285e20b5d1f9a69c2e",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "29413fdbd20b1f1291b22e194a99da22ef8c87c2",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 9246,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32-admission.json",
+      "sha256": "a665e0c0cb23ee436f0535f41117bbd426f99f7b34eb6fe823a1fce6586a52bc",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "591b7eb8ab1a84f732c0a43127b3fb665e4890b7",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 3840,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/additional32-candidate02-fail.json",
+      "sha256": "5f3b971f890cada14fc3c61b72cb668edb0aa97363abba9f51714c6806b4fc6d",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "309175d2dffbadf062835770f5906c969701fa52",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 14929,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/delivery-source/publish-admitted-companion.py.txt",
+      "sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "1ad652ce0587548390e1653673c6af70701df6cd",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 5256,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/publisher04-admission.json",
+      "sha256": "d219e05359f9326f9e2992bf30b2dbddffa916532053111426a06c2a15aef672",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "fc7ba59e57354a71609712a37e96f2c662b12988",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 4655,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/publisher-before-02.json",
+      "sha256": "906471b911c2ee6507a3ce38af3820f130afc5e625e0bdc31a57964162581c23",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "47dc652a62ca008c17e12409a062c5b475964fe5",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 4957,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/publisher-after-04.json",
+      "sha256": "9d71aed78288cd9cf0420322752568c3a1fc778643cf3bb8d59eff0f2dbd1c2c",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "382ac952f59d708d669996ee06568942a31b7060",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 4405,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint29/controls/publisher-paths-before-after-04.json",
+      "sha256": "4e39d8d0d6fc2a76c2419a53c5d061f4e2e73ec38d43c79dc32249106fb30796",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "Git_blob": "cd358d768257048a1cd08040fbf9e1bdb7f99127",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "bytes": 272142,
+      "repository_path": "release-source-files.txt",
+      "sha256": "3fc8172aca24f34d55f0e235d5bea8226bd474c59e9b9ee434a903acaa3478e3",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    }
+  ],
+  "file_count": 50,
+  "full_review": {
+    "bytes": 47031,
+    "path": "/tmp/intune-checkpoint29-commit-binding-01/RESULT.json",
+    "sha256": "331967384ddffdeae4b6a0c8df1358fcd6ff99da34af1a17219a14cbcd4fda80"
+  },
+  "global_laboratory_complete": false,
+  "metadata_assertions": 166,
+  "native_dispatches": 0,
+  "parent": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "public_raw_payloads_included": false,
+  "publication_actions": 0,
+  "reader_probe_history": [
+    "An earlier functions.exec JavaScript wrapper had a missing-parenthesis SyntaxError before any command ran; corrected metadata probe read actual root receipt and reader schema. No candidate mutation or native activity."
+  ],
+  "retained_scope": "Original native38 run01 remains FAIL:5completed/6attempted/32unattempted; normal32/additional32 NOT_STARTED/capacity blocked; sourceC25 2307/archives/performance/runtime scopes unchanged; stagedC30 archive-restart factory is not admitted by this checkpoint.",
+  "reviewer_script": {
+    "bytes": 8368,
+    "path": "/tmp/intune-checkpoint29-commit-binding-01/review.py",
+    "sha256": "6ea10f9e05a39057bedeca1410231a1ecee19ee9a10333c0c588780b9622d78c"
+  },
+  "root_commit_receipt": {
+    "bytes": 13969,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-29.json",
+    "sha256": "95f6085893d0457b42197867c805299ddcc3cee1c525d6e746c9e1c839d018ec"
+  },
+  "root_documentation_counter": null,
+  "schema": "intune-public-C29-commit-binding/1",
+  "scope": "Exact50 reviewed C29 documentation/source-text/inventory files are bound independently to actual raw Git blobs and literal working bytes. No text filtering/reencoding, engine/runtime change, native/provider/service/device/platform/production qualification inferred. Clean Git worktree does not close historic filesystem/provenance findings.",
+  "status": "PASS_SCOPED",
+  "test_counting": "Commit/file-identity metadata checks only, overlap prior50-file and precursor readers; no product/native/suite/performance total is increased.",
+  "tree": "1eff08bf2ed4f13c52b55839dae8c61dd1917214",
+  "working_tree_clean": true
+}

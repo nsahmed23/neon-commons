@@ -28,6 +28,28 @@ Native OpenTofu must acquire its own state-blob lease. Holding a separate `LiveB
 
 `worker_service_readback.collect_live(...)` and its distinct laboratory factory perform a fresh independent read of the exact bound state blob. They require a sealed fresh Graph completion proving approved policy/settings/assignments, the exact reviewed state contract, matching backend identity/target, a fully read response, an unlocked blob and absent Terraform lock metadata. The raw response remains evidence even on a negative result. `ServiceJob.reconcile(sealed_readback)` releases reservations only after these checks and confirmed host cleanup. It never writes or replays the plan. An interrupted execution remains explicitly `service_state_converged_execution_unknown` even if independent readback establishes the intended state; endpoint effectiveness and a second native no-change plan are separate evidence.
 
+For a restart after a known successful host execution whose final receipt could
+not be archived, `worker_completed_readback.collect(job_root=...,
+policy_path=..., observation=..., output=...)` consumes a fresh sealed
+`worker_committed_recovery.RecoveryObservation` collected with
+`require_locked=False`. It requires the original approved state, independently
+captured complete Graph evidence, an unlocked backend without lock metadata,
+the stopped and removed successful host, one consumed dispatch and the retained
+scope reservations. The original execution identity and the current observer
+implementation digest remain separate; the factory rechecks current observer
+code before accepting the capability. It does not require or fabricate an
+exceptional lease release after a normal release already occurred.
+
+Retain `capture = readback.captured_observation()` before calling the actual
+reopened `ServiceJob(...).reconcile(readback)`. The capture can then be published
+to the existing Workbench store and history. Reconciliation checks the original
+known outcome again inside the authority transaction and releases reservations
+only after valid independent readback. It preserves `host_completed` provenance,
+the original committed outcome and existing failure evidence; it does not reapply, create a new
+plan, establish endpoint effectiveness or replace the separate native second
+plan gate. The local controlled-host tests qualify the factory and real SQLite
+transition; native restart/backend/provider/CI qualification remains separate.
+
 The service preserves native lease recovery facts privately before forwarding consequential requests. Stopping a container does not prove an infinite Azure lease was released. Lease recovery requires a separately authorized exact recovery procedure; this controller does not automatically unlock it.
 
 ## Explicit successor after a partial failure

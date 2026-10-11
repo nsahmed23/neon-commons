@@ -1,0 +1,449 @@
+"""New attributed C25 fault-only ordinary timing loader over preserved engine bytes.
+
+The profile is an operator-supplied integrity contract, not service permission.
+Every allowed action targets newly allocated nonforwarding synthetic fixtures.
+No package module is imported before byte/file-set and tool verification.
+"""
+from pathlib import Path, PurePosixPath
+import argparse
+import hashlib
+import importlib
+import json
+import os
+import re
+import stat
+import sys
+import time
+
+MAX_FILE = 1024 * 1024 * 1024
+MAX_FILES = 40000
+ROLES = {'atmos', 'tofu', 'provider', 'relay', 'docker', 'openssl', 'git', 'validator', 'python'}
+ACTIONS = ('ordinary-fault-acquisition', 'ordinary-fault-policy-response', 'ordinary-fault-apply-recording')
+
+
+class ProfileError(ValueError):
+    pass
+
+
+def require(condition, message):
+    if not condition:
+        raise ProfileError(message)
+
+
+def canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode()
+
+
+def path_under(root, name):
+    require(type(name) is str and '\\' not in name and '\x00' not in name, 'invalid relative path')
+    rel = PurePosixPath(name)
+    require(not rel.is_absolute() and name == str(rel) and all(p not in ('', '.', '..') for p in rel.parts), 'invalid relative path')
+    result = root / name
+    require(not any(p.is_symlink() for p in (result, *result.parents)), 'symlink input denied')
+    return result
+
+
+def root_path(value):
+    path = Path(value).absolute()
+    require('..' not in path.parts and not any(p.is_symlink() for p in (path, *path.parents)), 'unsafe root')
+    require(path.is_dir(), 'missing root')
+    return path
+
+
+def hash_file(path, maximum=MAX_FILE):
+    info = path.lstat()
+    require(stat.S_ISREG(info.st_mode) and 0 <= info.st_size <= maximum, 'unsupported or oversized input')
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as stream:
+        before = os.fstat(stream.fileno())
+        value = hashlib.file_digest(stream, 'sha256').hexdigest()
+        after = os.fstat(stream.fileno())
+    identity = lambda s: (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+    require(identity(info) == identity(before) == identity(after) == identity(path.lstat()), 'input changed during verification')
+    return {'bytes': info.st_size, 'sha256': value}
+
+
+def inventory(root):
+    rows = {}
+    def traversal_failed(error):
+        raise ProfileError('input tree traversal failed: ' + str(error)) from error
+    for current, directories, files in os.walk(root, followlinks=False, onerror=traversal_failed):
+        for name in directories:
+            require(not (Path(current) / name).is_symlink(), 'directory symlink denied')
+        for name in files:
+            path = Path(current) / name
+            relative = path.relative_to(root).as_posix()
+            require(len(rows) < MAX_FILES, 'file count bound')
+            rows[relative] = hash_file(path)
+    require(rows, 'empty input tree')
+    return dict(sorted(rows.items()))
+
+
+def load_json(path, maximum=16 * 1024 * 1024):
+    hash_file(path, maximum)
+    def pairs(rows):
+        result = {}
+        for key, value in rows:
+            require(key not in result, 'duplicate JSON key')
+            result[key] = value
+        return result
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs)
+
+
+class Profile:
+    def __init__(self, args):
+        require(re.fullmatch('[0-9a-f]{64}', args.profile_sha256 or '') is not None, 'explicit profile pin required')
+        profile_path = Path(args.profile).absolute()
+        require(hash_file(profile_path)['sha256'] == args.profile_sha256, 'profile hash mismatch')
+        value = load_json(profile_path)
+        require(set(value) == {'schema_version', 'source_revision', 'source_linkage', 'package', 'helpers', 'inputs', 'tools', 'loader_sha256'}, 'profile fields')
+        require(value['schema_version'] == TIMING_PROFILE_SCHEMA, 'profile schema')
+        require(value['loader_sha256'] == hash_file(Path(__file__).absolute())['sha256'], 'loader implementation changed')
+        require(re.fullmatch('[0-9a-f]{40}', value['source_revision'] or '') is not None, 'source revision')
+        require(type(value['package']) is dict and type(value['helpers']) is dict and type(value['inputs']) is dict, 'inventory types')
+        self.project = root_path(args.project_root)
+        self.evidence = root_path(args.evidence_root)
+        self.tool_root = root_path(args.tool_root)
+        self.scratch = root_path(args.scratch_root)
+        scratch = self.scratch.stat()
+        require(scratch.st_uid == os.geteuid() and not scratch.st_mode & 0o077 and len(str(self.scratch)) <= 50, 'private short scratch root required')
+        self.source_revision = value['source_revision']
+        self.value = value
+        self.sha256 = args.profile_sha256
+        require(inventory(self.project) == value['package'], 'complete package file set or bytes differ')
+        for group in ('helpers', 'inputs'):
+            for name, expected in value[group].items():
+                require(hash_file(path_under(self.evidence, name)) == expected, group + ' input mismatch: ' + name)
+        require(value['helpers'] == {'helpers/' + name: row for name, row in inventory(self.evidence / 'helpers').items()}, 'helper file set mismatch')
+        require(value['inputs'] == {'inputs/' + name: row for name, row in inventory(self.evidence / 'inputs').items()}, 'input file set mismatch')
+        linkage = value['source_linkage']
+        require(type(linkage) is dict and set(linkage) == {'path', 'sha256'}, 'linkage fields')
+        require(linkage['path'] in value['inputs'] and value['inputs'][linkage['path']]['sha256'] == linkage['sha256'], 'unbound source linkage')
+        self.linkage = load_json(path_under(self.evidence, linkage['path']))
+        require(self.linkage.get('source_revision') == self.source_revision and self.linkage.get('package_inventory_sha256') == hashlib.sha256(canonical(value['package'])).hexdigest(), 'source linkage does not bind this package')
+        require(self.linkage.get('scope') == 'package bytes compared to specified source revision', 'linkage scope')
+        require(set(value['tools']) == ROLES, 'closed tool roles required')
+        locations = load_json(Path(args.tool_map).absolute())
+        require(set(locations) == ROLES, 'closed tool locations required')
+        self.paths = {}
+        for role, expected in value['tools'].items():
+            path = path_under(self.tool_root, locations[role])
+            require(hash_file(path) == expected, 'tool hash mismatch: ' + role)
+            info = path.stat()
+            require(info.st_nlink == 1 and info.st_uid in (0, os.geteuid()) and not info.st_mode & 0o022, 'tool identity denied: ' + role)
+            self.paths[role] = path
+        require(hash_file(Path(sys.executable).resolve()) == value['tools']['python'], 'running interpreter not selected pin')
+        self.tool_rows = [{'role': role, 'path': str(self.paths[role]), 'sha256': value['tools'][role]['sha256']} for role in ('atmos', 'tofu', 'provider', 'relay')]
+        self.fixture = json.loads(self.input('native-policy.json').read_bytes())
+        self.assert_import_origins()
+        self.timing = timing_contract(self, load_json(self.input('timing-routes.json')))
+
+    def input(self, name):
+        path = 'inputs/' + name
+        require(path in self.value['inputs'], 'unlisted fixture input')
+        return path_under(self.evidence, path)
+
+    def tool(self, name):
+        require(name in self.paths, 'unlisted tool')
+        return str(self.paths[name])
+
+    def assert_import_origins(self):
+        origins = {}
+        for name, module in tuple(sys.modules.items()):
+            if name == 'intune_iac' or name.startswith('intune_iac.') or name == 'plugin_tests' or name.startswith('plugin_tests.'):
+                source = getattr(module, '__file__', None)
+                require(source is not None, 'package module has no source origin')
+                path = Path(source).absolute()
+                require(self.project in path.parents and path.suffix == '.py', 'package module imported outside selected package')
+                relative = path.relative_to(self.project).as_posix()
+                require(relative in self.value['package'] and hash_file(path) == self.value['package'][relative], 'imported package module changed')
+                origins[name] = {'path': relative, **self.value['package'][relative]}
+            elif name in {Path(key).stem for key in self.value['helpers'] if key.endswith('.py')}:
+                source=getattr(module,'__file__',None)
+                require(source is not None,'helper module has no source origin')
+                path=Path(source).absolute();key='helpers/'+name+'.py'
+                require(path==self.evidence/key and key in self.value['helpers'] and hash_file(path)==self.value['helpers'][key],
+                    'helper imported outside exact selected bundle')
+                origins[name]={'external_helper':key,**self.value['helpers'][key]}
+        return origins
+
+    def recheck(self):
+        require(inventory(self.project) == self.value['package'], 'package changed during qualification')
+        require(self.value['helpers'] == {'helpers/' + name: row for name, row in inventory(self.evidence / 'helpers').items()}, 'helper file set changed during qualification')
+        require(self.value['inputs'] == {'inputs/' + name: row for name, row in inventory(self.evidence / 'inputs').items()}, 'input file set changed during qualification')
+        for group in ('helpers', 'inputs'):
+            for name, expected in self.value[group].items():
+                require(hash_file(path_under(self.evidence, name)) == expected, 'qualification dependency changed')
+        for role, path in self.paths.items():
+            require(hash_file(path) == self.value['tools'][role], 'tool changed during qualification')
+        require(hash_file(Path(__file__).absolute())['sha256'] == self.value['loader_sha256'], 'loader changed during qualification')
+        return self.assert_import_origins()
+
+
+TIMING_PROFILE_SCHEMA = 'c25-native-ordinary-timing-profile/1'
+TIMING_RECEIPT_SCHEMA = 'c25-native-ordinary-timing-receipt/1'
+TIMING_ARGUMENTS = ('ordinary_result_root', 'ordinary_seed_root', 'recording_mode')
+
+
+def typed_seed_inventory(root):
+    """Hash original completed input; retain literal tool links, never follow."""
+    root = root_path(root)
+    rows = {}
+    pending = [root]
+    while pending:
+        current = pending.pop()
+        info = current.lstat()
+        name = current.relative_to(root).as_posix()
+        require(len(rows) < 4096, 'bounded original seed namespace')
+        if stat.S_ISDIR(info.st_mode):
+            rows[name] = {'kind': 'directory', 'mode': stat.S_IMODE(info.st_mode)}
+            with os.scandir(current) as entries:
+                pending.extend(sorted((Path(row.path) for row in entries), reverse=True))
+        elif stat.S_ISREG(info.st_mode):
+            rows[name] = {'kind': 'file', 'mode': stat.S_IMODE(info.st_mode), **hash_file(current)}
+        elif stat.S_ISLNK(info.st_mode):
+            rows[name] = {'kind': 'symlink', 'literal_target': os.readlink(current)}
+        else:
+            raise ProfileError('original seed contains unsupported special node')
+    return dict(sorted(rows.items()))
+
+
+def artifact_pin(row):
+    require(type(row) is dict and set(row) == {'path', 'bytes', 'sha256'}
+            and type(row['path']) is str and Path(row['path']).is_absolute()
+            and '..' not in Path(row['path']).parts and type(row['bytes']) is int
+            and type(row['sha256']) is str and re.fullmatch('[0-9a-f]{64}', row['sha256']) is not None
+            and not any(path.is_symlink() for path in (Path(row['path']), *Path(row['path']).parents)),
+            'closed actual provenance pin required')
+    require(canonical(hash_file(Path(row['path']))) == canonical({key: row[key] for key in ('bytes', 'sha256')}),
+            'actual provenance bytes differ')
+    return Path(row['path'])
+
+
+def timing_contract(profile, value):
+    fields = {'schema_version', 'source_revision', 'run_root', 'original_profile', 'original_loader',
+              'helper_admission', 'helper_preparation', 'legacy_seed', 'producer_changes', 'new_helpers', 'routes'}
+    require(type(value) is dict and set(value) == fields
+            and value['schema_version'] == 'c25-native-ordinary-timing-routes/1'
+            and value['source_revision'] == profile.source_revision, 'closed timing contract')
+    for name in ('original_profile', 'original_loader', 'helper_admission', 'helper_preparation'):
+        artifact_pin(value[name])
+    original = load_json(Path(value['original_profile']['path']))
+    require(original.get('schema_version') == 'portable-native-adoption-qualification/1'
+            and original.get('loader_sha256') == value['original_loader']['sha256']
+            and original.get('source_revision') == profile.source_revision
+            and all(canonical(original[key]) == canonical(profile.value[key]) for key in ('package', 'tools', 'source_linkage')),
+            'timing source/engine/tool basis changed')
+    expected_helpers = dict(original['helpers'])
+    changes = value['producer_changes']
+    require(type(changes) is dict and set(changes) == {'helpers/native_ordinary_qualification.py', 'helpers/native_ordinary_partial.py'},
+            'only existing reviewed producer replacements admitted')
+    for name, row in changes.items():
+        require(type(row) is dict and set(row) == {'before', 'after'}
+                and canonical(row['before']) == canonical(original['helpers'][name]), 'original producer changed')
+        expected_helpers[name] = row['after']
+    added = value['new_helpers']
+    require(type(added) is dict and set(added) == {'helpers/native_ordinary_timing_qualification.py', 'helpers/ordinary_fault_controls.py'},
+            'closed new timing helper pair')
+    expected_helpers.update(added)
+    require(canonical(expected_helpers) == canonical(profile.value['helpers']), 'timing helper namespace differs')
+    require(canonical(original['inputs']) == canonical({key: row for key, row in profile.value['inputs'].items()
+            if key not in ('inputs/timing-routes.json', 'inputs/timing-helper-admission.json', 'inputs/timing-helper-preparation.json')}),
+            'existing fixture/input bytes changed')
+    review = load_json(Path(value['helper_admission']['path']))
+    preparation = load_json(Path(value['helper_preparation']['path']))
+    require(review.get('schema_version') == 'independent-ordinary-native-timing-source-admission/1'
+            and review.get('status') == 'PASS_SCOPED_SOURCE_AND_PURE_CONTROLS'
+            and review.get('source_revision') == profile.source_revision
+            and review.get('native_dispatches') == 0 and review.get('platform_qualified') is False
+            and review.get('production_approved') is False
+            and canonical({key: review['preparation'][key] for key in ('bytes', 'sha256')})
+                == canonical({key: value['helper_preparation'][key] for key in ('bytes', 'sha256')})
+            and preparation.get('source_revision') == profile.source_revision, 'exact helper source admission required')
+    admitted = {Path(row['path']).name: {key: row[key] for key in ('bytes', 'sha256')}
+                for row in review['actual_file_list_and_pins']}
+    require(canonical(admitted) == canonical({Path(name).name: row for name, row in added.items()}),
+            'timing helper bytes not admitted')
+    seed_info = value['legacy_seed']
+    require(type(seed_info) is dict and set(seed_info) == {'root', 'receipt', 'typed_inventory', 'saved_plan', 'original_raw_capsule'}
+            and type(seed_info['root']) is str and type(seed_info['typed_inventory']) is dict, 'closed original PASS seed')
+    seed = root_path(seed_info['root'])
+    require(artifact_pin(seed_info['receipt']) == seed / 'PORTABLE-QUALIFICATION.json'
+            and artifact_pin(seed_info['saved_plan']) == seed / 'prepared/approved.plan', 'original seed receipt/plan roots')
+    receipt = load_json(seed / 'PORTABLE-QUALIFICATION.json')
+    require(receipt.get('schema_version') == 'portable-native-adoption-qualification-receipt/1'
+            and receipt.get('status') == 'PASS' and receipt.get('action') == 'ordinary-prepare'
+            and receipt.get('profile_sha256') == value['original_profile']['sha256']
+            and receipt.get('loader_sha256') == value['original_loader']['sha256']
+            and receipt.get('source_revision') == profile.source_revision
+            and receipt.get('project_root') == str(profile.project)
+            and receipt.get('package_inventory_sha256') == hashlib.sha256(canonical(profile.value['package'])).hexdigest()
+            and type(receipt.get('scenario_result')) is dict and receipt['scenario_result'].get('status') == 'PASS'
+            and receipt['scenario_result'].get('kind') == 'preparation'
+            and receipt['scenario_result'].get('saved_plan_sha256') == seed_info['saved_plan']['sha256'],
+            'only exact original PASS ordinary preparation may be reused; no failed fallback')
+    require(canonical(typed_seed_inventory(seed)) == canonical(seed_info['typed_inventory']),
+            'original seed namespace/type/bytes changed')
+    artifact_pin(seed_info['original_raw_capsule'])
+    run = Path(value['run_root'])
+    require(type(value['run_root']) is str and run.is_absolute() and '..' not in run.parts
+            and run != seed and run not in seed.parents and seed not in run.parents, 'new timing run overlaps original seed')
+    routes = value['routes']
+    cases = review['entrypoint_contract']['closed_cases']
+    prepared_cases = preparation['cases']
+    require(type(routes) is list and len(routes) == len(cases) == len(prepared_cases) == 4,
+            'exact four reviewed timing cases')
+    outputs = set()
+    for route, case, prepared_case in zip(routes, cases, prepared_cases):
+        require(type(route) is dict and set(route) == {'id', 'action', 'output', 'arguments', 'depends_on'}
+                and route['id'] == prepared_case['id'] and route['action'] == case['action']
+                and route['depends_on'] == [] and type(route['output']) is str
+                and Path(route['output']) == run / 'journey' / route['id'] and route['output'] not in outputs,
+                'timing fixed case identity/action/output')
+        arguments = {'ordinary_result_root': str(seed), 'ordinary_seed_root': str(seed), 'recording_mode': case['recording_mode']}
+        require(type(route['arguments']) is dict and canonical(route['arguments']) == canonical(arguments),
+                'timing exact original PASS input and literal mode required')
+        kwargs = prepared_case['full_keyword_arguments']
+        require(kwargs['action'] == case['action'] and kwargs['previous_root'] == str(seed)
+                and kwargs['seed_root'] == str(seed) and kwargs['recording_mode'] == case['recording_mode'],
+                'reviewed helper kwargs changed; only output root rebinding is allowed')
+        outputs.add(route['output'])
+    return value
+
+
+def timing_route(profile, args, output):
+    routes = [row for row in profile.timing['routes'] if row['action'] == args.action and row['output'] == str(output)]
+    require(len(routes) == 1 and canonical({key: getattr(args, key) for key in TIMING_ARGUMENTS})
+            == canonical(routes[0]['arguments']), 'timing unlisted route/input/mode substitution')
+    return routes[0]
+
+
+def timing_artifacts(profile, root, result, route):
+    root = root_path(root)
+    require(type(result) is dict and result.get('status') == 'PASS'
+            and result.get('classification') == 'ordinary_native_timing_control'
+            and result.get('recording_mode') == route['arguments']['recording_mode'], 'actual timing result required')
+    linkage = load_json(root / 'qualification-linkage.json')
+    review = load_json(Path(profile.timing['helper_admission']['path']))
+    fields = {'schema_version', *review['linkage_contract']['required_fields']}
+    require(type(linkage) is dict and set(linkage) == fields
+            and canonical(linkage) == canonical(result.get('qualification_linkage'))
+            and linkage['schema_version'] == 'ordinary-native-fault-timing-linkage/1'
+            and linkage['action'] == route['action'] and linkage['recording_mode'] == route['arguments']['recording_mode']
+            and linkage['source_revision'] == profile.source_revision and linkage['kind'] == 'operation'
+            and linkage['seed_root'] == route['arguments']['ordinary_seed_root']
+            and linkage['previous_root'] == route['arguments']['ordinary_result_root']
+            and linkage['receiving_fixture'] == str(root / 'fixture')
+            and linkage['job_root'] == str(root / 'jobs/approved')
+            and linkage['policy_path'] == str(root / 'trust/policy.json'), 'timing actual route/operation roots differ')
+    require(all(type(linkage[key]) is str and result.get(key) == linkage[key]
+                for key in ('operation_id', 'manifest_sha256', 'job_root', 'policy_path'))
+            and re.fullmatch('[0-9a-f-]{36}', linkage['operation_id']) is not None
+            and re.fullmatch('[0-9a-f]{64}', linkage['manifest_sha256']) is not None, 'timing manifest identity fields')
+    receipt = load_json(root / 'receipt.json')
+    require(canonical(receipt) == canonical({key: value for key, value in result.items() if key != 'qualification_linkage'}),
+            'returned timing receipt changed from archived actual result')
+    manifest = load_json(root / 'jobs/approved/manifest.json')
+    require(manifest.get('operation_id') == linkage['operation_id']
+            and hashlib.sha256(canonical(manifest)).hexdigest() == linkage['manifest_sha256']
+            and manifest.get('saved_plan_sha256') == profile.timing['legacy_seed']['saved_plan']['sha256'],
+            'actual timing manifest/plan changed')
+    files = {}
+    declared = linkage['artifacts']
+    require(type(declared) is dict and 1 <= len(declared) <= 512
+            and {'receipt.json', 'raw-before-state.bin', 'raw-after-state.bin', 'raw-requests.json',
+                 'raw-broker-attempts.json', 'raw-authority-rows.json', 'raw-authority-events.json'} <= set(declared),
+            'actual timing raw outputs missing from selected immutable census')
+    for name, expected in declared.items():
+        require(type(expected) is dict and set(expected) == {'bytes', 'sha256'}
+                and type(expected['bytes']) is int and type(expected['sha256']) is str,
+                'typed timing artifact pin')
+        files[name] = hash_file(path_under(root, name))
+        require(canonical(files[name]) == canonical(expected), 'timing output substituted')
+    job_files = {str(path): hash_file(path) for path in
+                 (root / 'jobs/approved/manifest.json', root / 'jobs/approved/policy-binding.json', root / 'trust/policy.json')}
+    return {'linkage': linkage, 'linkage_file': hash_file(root / 'qualification-linkage.json'),
+            'selected_files': files, 'selected_job_files': job_files,
+            'full_private_owned_tree_preservation_and_independent_reader_still_required': True}
+
+
+def parser():
+    result = argparse.ArgumentParser(description=__doc__)
+    for key in ('profile', 'profile-sha256', 'project-root', 'evidence-root', 'tool-root', 'tool-map', 'scratch-root', 'output',
+                'ordinary-result-root', 'ordinary-seed-root'):
+        result.add_argument('--' + key, required=True)
+    result.add_argument('--action', choices=ACTIONS, required=True)
+    result.add_argument('--recording-mode', choices=('archive-interruption', 'compound-interruption'), default='archive-interruption')
+    return result
+
+
+def main(argv=None):
+    args = parser().parse_args(argv)
+    os.umask(0o077)
+    require(sys.dont_write_bytecode and sys.flags.isolated, 'run selected interpreter with -I -B')
+    profile = Profile(args)
+    output = Path(args.output).absolute()
+    route = timing_route(profile, args, output)
+    require(not output.exists() and not output.is_symlink()
+            and '..' not in output.parts and not any(path.is_symlink() for path in output.parents), 'fresh literal timing output required')
+    for root in (profile.project, profile.evidence, Path(profile.timing['legacy_seed']['root'])):
+        require(output != root and output not in root.parents and root not in output.parents, 'timing output overlaps input')
+    sys.path[:0] = [str(profile.evidence / 'helpers'), str(profile.project)]
+    from qualification_context import install
+    install(profile)
+    os.environ['INTUNE_TEST_VALIDATOR_LIBRARY'] = profile.tool('validator')
+    started = time.time()
+    result = None
+    facts = None
+    primary = None
+    try:
+        result = importlib.import_module('native_ordinary_timing_qualification').run(
+            args.action, output, previous_root=args.ordinary_result_root,
+            seed_root=args.ordinary_seed_root, recording_mode=args.recording_mode)
+        facts = timing_artifacts(profile, output, result, route)
+    except BaseException as error:
+        primary = error
+    finally:
+        try:
+            origins = profile.recheck()
+            require(canonical(typed_seed_inventory(Path(profile.timing['legacy_seed']['root'])))
+                    == canonical(profile.timing['legacy_seed']['typed_inventory']), 'original PASS seed changed during timing execution')
+        except BaseException as error:
+            origins = None
+            if primary is None:
+                primary = error
+            else:
+                primary.add_note('Secondary timing dependency recheck: ' + type(error).__name__)
+        if output.exists():
+            receipt = {
+                'schema_version': TIMING_RECEIPT_SCHEMA, 'status': 'FAIL' if primary else 'PASS',
+                'action': args.action, 'continuation_route_id': route['id'], 'continuation_route': route,
+                'action_plan_sha256': profile.value['inputs']['inputs/timing-routes.json']['sha256'],
+                'profile_sha256': profile.sha256, 'loader_sha256': profile.value['loader_sha256'],
+                'source_revision': profile.source_revision, 'project_root': str(profile.project),
+                'package_inventory_sha256': hashlib.sha256(canonical(profile.value['package'])).hexdigest(),
+                'elapsed_seconds': time.time() - started, 'scenario_result': result,
+                'timing_operation_artifacts': facts, 'imported_package_sources': origins,
+                'legacy_original_PASS_seed_sha256': profile.timing['legacy_seed']['receipt']['sha256'],
+                'error': type(primary).__name__ if primary else None,
+                'fixture_scope': 'nonforwarding synthetic local Graph and Azure only',
+                'native_platform_qualified': False, 'production_approved': False,
+            }
+            try:
+                raw = canonical(receipt)
+                fd = os.open(output / 'PORTABLE-QUALIFICATION.json', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                with os.fdopen(fd, 'wb') as stream:
+                    stream.write(raw); stream.flush(); os.fsync(stream.fileno())
+            except BaseException as error:
+                if primary is None:
+                    primary = error
+                else:
+                    primary.add_note('Secondary timing portable recording: ' + type(error).__name__)
+    if primary is not None:
+        raise primary
+    print(canonical({'status': 'PASS', 'profile_sha256': profile.sha256, 'source_revision': profile.source_revision,
+                     'action': args.action, 'output': str(output)}).decode())
+
+
+if __name__ == '__main__':
+    main()

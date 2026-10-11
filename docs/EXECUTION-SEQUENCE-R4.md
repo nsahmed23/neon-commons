@@ -1,3 +1,31 @@
+# C30 dependency-ordered execution sequence — 2026-10-11
+
+1. Freeze and independently review the exact currently integrated core02/runbook/source inventory and this C30evidence ledger. The actual local factory/reopened authority123unique-method scope has passed; preserve observer01failure and all contrary reader results. Commit/push/readback the dedicated continuation branch, then record real commit/tree identity. Root owns checkout/commit; this proposed document does not invent that future identity.
+2. Build source/runtime from that exact committed source, verify rawGit linkage and deterministic rebuild/type-aware extraction, and run required changed-source/package/application/runtime gates. Include the two new core paths. Historical C25source2307, performance and runtime64checks/34commands/10PTY remain exact old evidence, not a PASS for the newengine. Reuse unchanged dependencies explicitly; do not repeat completed tests without relevantchange or requiredgate.
+3. Prepare and independently bind the final-source helper/profile/outer/current-observer/control/tool/seed/recovery contract. Normal32/extra03 and timing03/timing4 source contracts have completed original C25 scopes; reuse them, and review only changed dependencies needed for the new source. The real new API is `worker_completed_readback.collect(*, job_root, policy_path, observation, output)` followed by actual reopened `ServiceJob.reconcile`. Retain the sealed capture BEFORE reconciliation. No exceptional release, replacement approved plan or consumed write replay.
+4. Obtain an existing authorized private persistent receiving filesystem>=256MiBfree. Verify ownership/no-follow/retention, exact selected capsule/dependency readback, configuration/admission and unchanged32MiB+64KiB reserve before output/snapshot/action. Fresh applicable recoveryapproval/current held-state readback and explicit rootGO remain mandatory. Generic upload APIs are not native receiving capacity. Owner: existing private storage coordinator/user and qualificationcustodian. No pruning/newpaidservice/privilege expansion.
+5. Execute the remaining actual native journey once under those exact gates. Original run01FAIL(5completed, attempted sixth,32unattempted) remains historical. Required normal32, additional8cohorts32actions and ordinary4timing cases are separate scopes, not independentcheck totals. Qualify final-source ordinary host completion/normal lease release/archivefailure restart/readback/reconcile, second native no-change plan and reopened signed Workbench history. Preserve fullowned private raw/state/service/journal/SQL/PTY/capsule evidence and independent expected values/negative controls; recording errors never invent rollback or favorable uncertainty.
+6. Record exact new package/journey outcomes and refresh final public companion only against the exact final branch. Prior C29source50 and companion129 anonymousbyte/hashreadbacks pass; original companion push remainsFAIL and later localtracking repair separate. Confirm clone fetch projection for R4 before any later publisher dispatch. Futureselection/admission/commit/push/HTTP are separate gates; public source/metadata/runtime is not complete private recovery.
+7. Continue independently prepared real Windows/GitBash/mintty/PowerShell, protectedCI/platformchoice, authenticGraph/Azure/backend/provider principal, disposablepolicy/devicecohort, persistentOSscheduler, crash/containment/keycustody/AppSec and accountable organizational approval procedures with their named owners. Required unsupported/blocked cases remain release blockers. Preserve G13deniedboundary and265roots/39reference/provenance gaps; no synthetic replacement or LLM risk approval.
+
+Current actual entrypoints: complete text/visual routes share existing engine; trusted worker `ServiceJob.run` dispatches approved operations, terminal prepares/reviews/attaches and does not own production apply. Ordinary fault preparation is `native_ordinary_timing_qualification.run(action, output, *, previous_root, seed_root, recording_mode='archive-interruption')`; those four native actions have not run. `ServiceJob.reconcile` is actual authority mutation only after sealed independent evidence. Commands and private approvals are inspected at exact binding; no new apply/native command is invented here.
+
+Inspect current source/evidence:
+
+```sh
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+cat docs/continuation-evidence/20261011/checkpoint30/core/changed-scope-result.json
+cat docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/profile-admission.json
+cat docs/EXTERNAL-GATES-R4.md
+```
+
+Laboratory completion is not declared; current123PASS is local changed-interface scope. Platform/production remain blocked. All earlier Markdown follows unchanged as historical instructions; this current sequence supersedes only stale next actions that would repeat completed review or describe implementedcore/timing source as absent.
+
+---
+
+## Historical C29 document — retained byte-exact
+
 C29 dependency-ordered continuation — 2026-10-11
 
 The exact C28 document below is retained as historical continuation prose; current steps are:

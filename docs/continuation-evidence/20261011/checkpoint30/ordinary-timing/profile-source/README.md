@@ -1,0 +1,11 @@
+# C25 ordinary timing fault-only preparation
+
+These two explicitly selected source texts are a separate attributed four-case local qualification preparation over unchanged C25 engine/source/package/tool bytes. The dedicated closed loader admits only the exact original PASS ordinary-prepare receipt, exact saved plan and fully typed seed namespace, retaining three literal tool links without following them. The four fresh cases are acquisition cancellation, policy-response cancellation, apply receipt-archive interruption, and compound receipt/event interruption. Existing normal32 and additional32 profiles remain frozen.
+
+Author metadata validation covers the actual 3,355 source files,30 helper files,11 input files,9 native tool roles, four parser/route arguments, and full outer contract with an in-memory decision fixture only. These are preparation controls, not product/native test counts, real platform evidence or execution approval. The author's initial test fixture referenced a nonexistent outer exception class; that failed fixture and exact repair are retained separately.
+
+No native timing action, recovery, convergence or history has been executed by this preparation. Cancellation cases are expected to preserve outcome_unknown/state13 with the actual held lease; archive cases are expected to preserve host_completed_service_unverified/state14 with normal released lease. Those are future independently asserted native expectations, not results. The separate completed-observation/no-release core proposal changes source/package/profile bindings and is not qualified or invoked here.
+
+The exact independently admitted helper/API source contract is ab62805b33561d2e0fb3e1c691db1822293c14322a6acf0a2d29404a17dd8e07. Native dispatch requires separately reviewed exact loader/profile/outer/configuration, root local lab GO, fresh signed operation approvals, and the unchanged persistent 32MiB receiving reserve. Current storage blocks native execution.
+
+Only the two code text files and this explanatory README are proposed for public source publication. Full profiles, inputs, raw captures, states, saved plans, credentials, keys, signed approvals, witness/capsule payloads and historical private corpus are excluded. Those private preparation layers are preserved separately; the public text selection is not a complete repository recovery.

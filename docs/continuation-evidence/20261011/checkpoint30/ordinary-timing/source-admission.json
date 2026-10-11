@@ -1,0 +1,211 @@
+{
+  "AppSec_admission": false,
+  "G13_provider_repair_touched": false,
+  "actual_file_list_and_pins": [
+    {
+      "bytes": 51288,
+      "path": "/tmp/intune-c25-ordinary-fault-stages-20261011-03/candidate/native_ordinary_timing_qualification.py",
+      "sha256": "e77c44371c28a12f595897e11e6f4c545b8aedc11389b6cf7ffebab9cba90b1a"
+    },
+    {
+      "bytes": 5178,
+      "path": "/tmp/intune-c25-ordinary-fault-stages-20261011-03/candidate/ordinary_fault_controls.py",
+      "sha256": "389538c904e9991e7d35dceb226cb817543cade851f454048c171ce361898ddf"
+    }
+  ],
+  "actual_public_source_text_selection": [
+    {
+      "bytes": 51288,
+      "path": "/tmp/intune-c25-ordinary-fault-stages-20261011-03/candidate/native_ordinary_timing_qualification.py",
+      "sha256": "e77c44371c28a12f595897e11e6f4c545b8aedc11389b6cf7ffebab9cba90b1a"
+    },
+    {
+      "bytes": 5178,
+      "path": "/tmp/intune-c25-ordinary-fault-stages-20261011-03/candidate/ordinary_fault_controls.py",
+      "sha256": "389538c904e9991e7d35dceb226cb817543cade851f454048c171ce361898ddf"
+    }
+  ],
+  "actual_worker_API": {
+    "AppError_constructor": "AppError(code: str, message: str)",
+    "AppError_module_pin": {
+      "bytes": 5598,
+      "path": "/tmp/intune-c25-restored-packages-20261011/extract-source/intune-iac-source/intune_iac/io.py",
+      "sha256": "cd274e84bec6622b1d51ed3b0900fa5ef20adb8638109ec56141ac7b89c2bc27"
+    },
+    "ServiceJob_constructor": "ServiceJob(root, policy_path)",
+    "ServiceJob_run": "run(signed_receipt, *, runtime)",
+    "ServicePolicy_event": "event(self, db, identifier, kind, payload)",
+    "protected_exclusive": "_exclusive(path, data, mode=0o600)",
+    "protected_module_pin": {
+      "bytes": 57644,
+      "path": "/tmp/intune-c25-restored-packages-20261011/extract-source/intune-iac-source/intune_iac/protected.py",
+      "sha256": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891"
+    },
+    "worker_service_source": {
+      "bytes": 57750,
+      "path": "/tmp/intune-c25-restored-packages-20261011/extract-source/intune-iac-source/intune_iac/worker_service.py",
+      "sha256": "6ae31f6a6aff97a48cce9547718cd0e10a1c3e5c4466fda3db734a5fecdcd29e"
+    }
+  },
+  "base_producer_repair": {
+    "bytes": 39726,
+    "independent_receipt_sha256": "f4155798eac5fa5eac13d442fcc045758e971beff2e5d6f09ab488624c843039",
+    "reuse_scope": "Only unchanged byte/AST scopes; original native portable FAIL remains FAIL.",
+    "sha256": "cd309fd3964deffc670157fcc2514cbcd1912e126e4b5dbe7330574d7ffc3a56"
+  },
+  "boundary_review": {
+    "archive": "Actual host success and authority COMMIT precede selected archive failure. Known host_completed_service_unverified/state14 and normal native lease release remain known; direct interruption preserves failure event, compound primary AppError plus secondary event KeyboardInterrupt preserves original cause/phases and uncertain event recording. No fabricated primary_error/outcome_unknown/held lease.",
+    "cancellation": "Actual receiving superclass effect precedes real cancel CLI and returned selected lease201/policyPUT204 response; raw URI/body retained and parsed annotations bound under fixture RLock. Acquisition metadata may be empty; any actual metadata must remain exact.",
+    "no_reconciliation_or_replay": "New accepted routes do not call reconcile, synthesize success, auto-unlock, discard reservations, replay the consumed operation, or reuse failed preparation/authority.",
+    "status": "PASS_SCOPED_SOURCE_ONLY"
+  },
+  "complete_owned_private_review_reports": {
+    "bytes": 79462,
+    "path": "/tmp/intune-three-stage-review-20261011-01-complete-owned-reports.zip",
+    "sha256": "e4e8fe6b5c858fa47f758e5dcbb3bfdcb87a1328c98cf8d058bcefdbca4e36d3"
+  },
+  "entrypoint_contract": {
+    "closed_cases": [
+      {
+        "action": "ordinary-fault-acquisition",
+        "expected_authority_status": "outcome_unknown",
+        "expected_state_serial": 13,
+        "recording_mode": "archive-interruption",
+        "stage": "acquisition"
+      },
+      {
+        "action": "ordinary-fault-policy-response",
+        "expected_authority_status": "outcome_unknown",
+        "expected_state_serial": 13,
+        "recording_mode": "archive-interruption",
+        "stage": "policy-response"
+      },
+      {
+        "action": "ordinary-fault-apply-recording",
+        "expected_authority_status": "host_completed_service_unverified",
+        "expected_state_serial": 14,
+        "recording_mode": "archive-interruption",
+        "stage": "evidence-recording"
+      },
+      {
+        "action": "ordinary-fault-apply-recording",
+        "expected_authority_status": "host_completed_service_unverified",
+        "expected_state_serial": 14,
+        "recording_mode": "compound-interruption",
+        "stage": "evidence-recording"
+      }
+    ],
+    "function": "run",
+    "input_rule": "Exact original independently PASS ordinary-prepare only, previous_root==seed_root, fresh nonoverlapping literal output; outer must pin all exact seed/input/helper/tool/package/profile/loader/driver bytes. Fresh separate jobs/authority/approvals; consumed original failures cannot fall back or replay.",
+    "module": "native_ordinary_timing_qualification",
+    "signature": "run(action, output, *, previous_root, seed_root, recording_mode='archive-interruption')"
+  },
+  "full_independent_review": {
+    "bytes": 47002,
+    "path": "/tmp/intune-three-stage-review-20261011-01/FINAL03-SOURCE-REVIEW.json",
+    "sha256": "23b766112667f18f34b92c430906c45427b193a74ed6694e3f08661c4d6da5ea"
+  },
+  "full_report_member_count": 131,
+  "independent_pure_controls": {
+    "entrypoint_and_linkage": {
+      "bytes": 5077,
+      "case_count": 30,
+      "path": "/tmp/intune-three-stage-review-20261011-01/final03-route-linkage-01/RESULT.json",
+      "sha256": "0d4f41200d5411b7de2f92866025b2ef7223498d0be2994afa51d61cf0ad61c8",
+      "status": "PASS_SCOPED_PURE_ENTRYPOINT_AND_LINKAGE_ONLY"
+    },
+    "raw_oracle": {
+      "bytes": 20411,
+      "case_count": 85,
+      "path": "/tmp/intune-three-stage-review-20261011-01/final03-pure-01/RESULT.json",
+      "sha256": "dfd4a0c1f6ecd601a78fca73e2f1bd08271164bf2d64fa7a0491b35575955b35",
+      "status": "PASS_SCOPED_PURE_ORACLES_ONLY"
+    },
+    "scope": "Detached AST-extracted functions, pure stdlib controls, owned synthetic raw models and route stubs only. Positive modeled expectations are not observed native results. These scopes overlap and are never added to product/source/runtime/native suite totals."
+  },
+  "linkage_contract": {
+    "future_receipt_classification": "ordinary_native_timing_control",
+    "kind": "operation",
+    "required_fields": [
+      "action",
+      "recording_mode",
+      "source_revision",
+      "kind",
+      "seed_root",
+      "previous_root",
+      "operation_id",
+      "manifest_sha256",
+      "job_root",
+      "policy_path",
+      "receiving_fixture",
+      "artifacts",
+      "artifact_scope"
+    ],
+    "schema_version": "ordinary-native-fault-timing-linkage/1",
+    "scope": "Exact actual returned receipt and actual manifest identity/digest, selected artifact census only. Full typed owned private capsule/member manifest and independent raw receiving/authority/broker/native-host reader remain mandatory.",
+    "strict_linker_sha256": "cf55b6dd103f510335b002ae9253059a660807326b0cddc6828fb2f0089c087b"
+  },
+  "native_dispatches": 0,
+  "native_qualification_status": "PREPARED_NOT_EXECUTED",
+  "native_storage_gate_waived": false,
+  "observed_checkout_HEAD": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "platform_qualified": false,
+  "preparation": {
+    "bytes": 14471,
+    "path": "/tmp/intune-c25-ordinary-fault-stages-20261011-03/PREPARATION.json",
+    "sha256": "d3d70bf5c36a408cd3a46e285acf73220c11ac0d7dfd6f1424212babfe153f14"
+  },
+  "preserved_contrary_evidence": {
+    "explanation": "Initial parsed-path classifier hypothesis was rejected against actual full-URI fixture shape. Typed selector gap was demonstrated only by deliberately malformed pure inputs, fixed narrowly in03. Reviewer first ZIP checker assumed no wrapper; exact failed checker/failure retained, corrected mapping binds all declared members. Prior author substring checker and capsule-count failures and versions01/02 are preserved.",
+    "rejected_initial_URI_hypothesis": {
+      "bytes": 2290,
+      "path": "/tmp/intune-three-stage-review-20261011-01/REJECTED-CLASSIFIER-HYPOTHESIS-01.json",
+      "sha256": "aadd9b665e9f11dad0e3528e684868d06cf14f3dc5e650a9ce570ed61a2a6bf5"
+    },
+    "reviewer_checker_archive_prefix_failure": {
+      "bytes": 698,
+      "path": "/tmp/intune-three-stage-review-20261011-01/FINAL03-CHECKER-FAILURE-01.json",
+      "sha256": "228e85ddad32d96d84cb18060158ea3e5413c50f6132de53b862ed704bd43b0a"
+    },
+    "version02_pure_type_contract_gap": {
+      "bytes": 2415,
+      "path": "/tmp/intune-three-stage-review-20261011-01/SELECTOR-CONTRACT-GAP-02.json",
+      "sha256": "facaf1e4e92513366c8055578454c656dd3c42ff34c10e990f6fa58aca122449"
+    }
+  },
+  "private_preparation_capsule": {
+    "archive": {
+      "bytes": 45960,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/ORDINARY-FAULT-PREPARATION-03.zip",
+      "sha256": "53d738f46b0af53fb4462528f27f3b330232b816334b3d9035c0c84874f63608"
+    },
+    "members": 8,
+    "receipt": {
+      "bytes": 2427,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/ORDINARY-FAULT-PREPARATION-03.json",
+      "sha256": "258d4a8d579be6c3214dc32d4cbb19c05ef90c638fb47dd3d3ae545aac0425de"
+    }
+  },
+  "product_suite_or_performance_reruns": 0,
+  "production_approved": false,
+  "public_selection_scope": "Only the two full exact source text files and this metadata are suitable. Future synthetic key generation is code, not actual keys or GO/host/profile/corpus payload. No private preparation capsule, original seed/state/Graph/SQL/capture/approval/key/host/profile/raw-result publication admission. Root controls actual branch selection/publication.",
+  "public_selection_status": "PASS_EXACT_SOURCE_TEXT_AND_THIS_SMALL_METADATA_ONLY",
+  "reported_author_pure_controls": {
+    "bytes": 7857,
+    "case_count": 78,
+    "path": "/tmp/intune-c25-ordinary-fault-stages-20261011-03/pure-control-01/RESULT.json",
+    "scope": "Exact source and existing receipt inspected/pinned; author qualification was not rerun.",
+    "sha256": "93d3a76b4246f8d69c4a2eafb003836e453a3c911056cf0c78b041ca58c5ef80"
+  },
+  "schema_version": "independent-ordinary-native-timing-source-admission/1",
+  "separate_pending_gates": [
+    "New closed timing4 executable profile/outer exact-byte review",
+    "Root storage-qualified native GO with final private capsule save available",
+    "Actual native four-case execution and independent raw-reader admission"
+  ],
+  "source_and_preservation_guard_count": 170,
+  "source_or_original_input_mutations": 0,
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_SOURCE_AND_PURE_CONTROLS",
+  "worker_or_profile_or_helper_module_imports": 0
+}

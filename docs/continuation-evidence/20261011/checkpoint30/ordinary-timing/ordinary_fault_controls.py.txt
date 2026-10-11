@@ -1,0 +1,99 @@
+"""Pure timing selectors and narrowly scoped recording hooks, no worker dispatch.
+
+These controls do not create/replace a ServiceJob outcome. The qualified caller
+must invoke the actual worker and inspect its real authority/receiving artifacts.
+"""
+from contextlib import contextmanager
+from pathlib import Path
+from urllib.parse import urlsplit,parse_qs
+
+STAGES=('acquisition','policy-response','evidence-recording')
+RECORDING_MODES=('archive-interruption','compound-interruption')
+
+
+def validate_http_query(status,query):
+    if type(status) is not int or not 100<=status<=599:
+        raise ValueError('Exact integer HTTP response status required')
+    if (type(query) is not dict or any(type(key) is not str or type(values) is not list
+            or any(type(value) is not str for value in values) for key,values in query.items())):
+        raise ValueError('Exact parsed query dict[str,list[str]] required')
+
+
+def state_content_commit(request,*,account,state_path):
+    if (type(request) is not dict or type(request.get('query')) is not dict
+            or type(request.get('path_component')) is not str or type(request.get('path')) is not str):
+        raise ValueError('Actual receiving callback path/query evidence required')
+    validate_http_query(request.get('status'),request['query'])
+    parsed=urlsplit(request['path']);query=parse_qs(parsed.query,keep_blank_values=True)
+    if parsed.scheme or parsed.netloc or parsed.fragment or request['path_component']!=parsed.path or request['query']!=query:
+        raise ValueError('Receiving callback path/query does not match preserved raw URI')
+    return (request['host']==account and request['method']=='PUT' and request['path_component']==state_path
+            and request['query']=={} and request['status']==201)
+
+
+def receiving_effect(stage,*,method,host,path,query,headers,response_status,account,state_path,object_id):
+    if stage not in STAGES:
+        raise ValueError('Closed ordinary fault stage required')
+    validate_http_query(response_status,query)
+    if stage=='acquisition':
+        return (host==account and method=='PUT' and path==state_path
+                and query.get('comp')==['lease'] and headers.get('x-ms-lease-action')=='acquire'
+                and response_status==201)
+    if stage=='policy-response':
+        return (host=='graph.microsoft.com' and method=='PUT'
+                and path=="/beta/deviceManagement/configurationPolicies('"+object_id+"')"
+                and response_status==204)
+    return False
+
+
+@contextmanager
+def recording_fault(stage,mode,*,job,protected,app_error,fired):
+    if stage not in STAGES or mode not in RECORDING_MODES:
+        raise ValueError('Closed ordinary fault stage/recording mode required')
+    if stage!='evidence-recording':
+        if mode!='archive-interruption':
+            raise ValueError('Recording-only mode cannot alter cancellation stage')
+        yield
+        return
+    selected=Path(job.root)/'service-receipt.json'
+    fault_mode=mode
+    archive_original=protected._exclusive
+    event_original=job.policy.event
+    def archive(path,raw,mode=0o600):
+        if Path(path)==selected and not any(row['phase']=='service_receipt_archive' for row in fired):
+            fired.append({'phase':'service_receipt_archive','path':str(selected),'operation_id':job.identifier,'mode':fault_mode})
+            if fault_mode=='compound-interruption':
+                raise app_error('fixture_apply_service_receipt_recording','Selected ordinary-apply receipt archive failed after the actual worker result.')
+            raise KeyboardInterrupt('Selected ordinary-apply receipt archive interruption')
+        return archive_original(path,raw,mode=mode)
+    def event(db,identifier,kind,payload):
+        if (mode=='compound-interruption' and identifier==job.identifier and kind=='receipt_archive_failed'
+                and any(row['phase']=='service_receipt_archive' for row in fired)
+                and not any(row['phase']=='receipt_failure_event' for row in fired)):
+            fired.append({'phase':'receipt_failure_event','kind':kind,'operation_id':identifier,'mode':mode})
+            raise KeyboardInterrupt('Selected ordinary-apply archive-failure event interruption')
+        return event_original(db,identifier,kind,payload)
+    protected._exclusive=archive
+    job.policy.event=event
+    try:
+        yield
+    finally:
+        protected._exclusive=archive_original
+        job.policy.event=event_original
+
+
+def exception_facts(error):
+    if error is None:
+        return None
+    result={'type':type(error).__name__,'code':getattr(error,'code',None),
+            'message':str(error),'notes':list(getattr(error,'__notes__',[]))}
+    cause=error.__cause__
+    if cause is not None:
+        result['cause']={'type':type(cause).__name__,'code':getattr(cause,'code',None),
+                         'message':str(cause),'notes':list(getattr(cause,'__notes__',[]))}
+    record=getattr(error,'service_failure_record',None)
+    if record is None and cause is not None:
+        record=getattr(cause,'service_failure_record',None)
+    if record is not None:
+        result['actual_service_failure_record']=record
+    return result
