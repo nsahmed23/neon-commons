@@ -1,0 +1,98 @@
+{
+  "all_new_history_blobs_utf8": true,
+  "all_same_path_same_literal_as_reviewed_current_fixture": true,
+  "baseline": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "deployment_or_live_mutation_authorized": false,
+  "finished_at": 1791750936.1276176,
+  "full_original_or_R4_evidence_corpus_reviewed_or_uploaded": false,
+  "history_credential_shaped_matches": 17,
+  "lab_complete": false,
+  "limitations": [
+    "Bounded content/provenance review, not universal secret absence or organizational AppSec/production approval.",
+    "No suite, provider RPC, runtime execution, CI dispatch or remote push performed in this lane.",
+    "Source/runtime ZIP suitability follows exact equality to reviewed committed payloads plus byte-identical historical public baseline payloads; synthetic source fixture state/plan JSON is explicitly identified.",
+    "Historical saved-plan and archive research files are unchanged at the same paths from the verified public R3 source; their prior evidence scope is reused, not rerun.",
+    "Dangling Git objects, raw .git filesystem metadata, untracked private evidence, keys, captures and state are excluded from this exact reachable source scope.",
+    "A later docs-only continuation commit needs separate exact changed-blob review before its push.",
+    "Historical provenance, unavailable /tmp raw qualification files and rejected provider-repair findings remain open."
+  ],
+  "new_history_private_key_or_high_signal_token_literal_identified": false,
+  "new_reachable_blob_bytes": 35770050,
+  "new_reachable_objects": 704,
+  "object_types": {
+    "blob": 555,
+    "commit": 25,
+    "tree": 124
+  },
+  "outputs": [
+    {
+      "bytes": 158557,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/history-packages-01/REACHABLE-OBJECTS.json",
+      "sha256": "c1785d12692c7961e865202bd8e0654255e607ca3cdda625d60124df515455c3"
+    },
+    {
+      "bytes": 6316,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/history-packages-01/HISTORY-CREDENTIAL-CONTEXTS.json",
+      "sha256": "c66c7c7e87390e2005f84e49ad369ac97ed9e53946e68a0dce8bd67f5ab2e1b8"
+    },
+    {
+      "bytes": 815842,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/history-packages-01/PACKAGE-MEMBERS.json",
+      "sha256": "9a9ec71c5950fd527e4de31c350b7df6788d65995d9f097bff7a630f30d2a980"
+    }
+  ],
+  "packages": [
+    {
+      "all_payloads_equal_reviewed_C25_Git_source": true,
+      "archive_bytes_unchanged": true,
+      "bytes": 17956520,
+      "crc_types_members_and_manifests": "PASS",
+      "generated_SHA256SUMS_independently_validated": true,
+      "kind": "source",
+      "members": 3355,
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e"
+    },
+    {
+      "all_payloads_equal_reviewed_C25_Git_source": true,
+      "archive_bytes_unchanged": true,
+      "bytes": 1520542,
+      "crc_types_members_and_manifests": "PASS",
+      "generated_SHA256SUMS_independently_validated": true,
+      "kind": "runtime",
+      "members": 300,
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0.zip",
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d"
+    }
+  ],
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_source_and_named_packages_suitable_for_requested_bounded_branch_update": true,
+  "replay": [
+    "python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_history_packages.py",
+    "--repository",
+    "/workspace/intune-continuation/work/projects/intune",
+    "--packages",
+    "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011",
+    "--source-review",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01",
+    "--output",
+    "NEW_OUTPUT_DIRECTORY"
+  ],
+  "schema_version": "source-history-exact-package-publication-review/1",
+  "scope": "Exact C25 committed source/current inventory, newly reachable Git push history and exact source/runtime ZIP contents; applicable reviewed bytes only.",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_history_packages.py",
+    "sha256": "4d3afcd1eff06767d096ce803d151397b9659c9c36e291e66bd2165108c4cbe4"
+  },
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_review": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/RESULT.json",
+    "sha256": "7f05762d77e9822e1c7838a196e8d15f2e970d894325edb683156f4c4faca07b"
+  },
+  "source_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "started_at": 1791750932.485955,
+  "status": "PASS_BOUNDED_SOURCE_AND_PACKAGE_REVIEW"
+}

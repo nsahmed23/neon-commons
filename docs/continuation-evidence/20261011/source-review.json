@@ -1,0 +1,87 @@
+{
+  "all_delta_utf8": true,
+  "all_findings_explicit_fixture_context_reviewed": true,
+  "baseline": "289ee9477372825aad848f4482cf681c2ff43b02",
+  "branch": "continuation/r4-20261007",
+  "credential_shaped_literals": 16,
+  "delta_counts": {
+    "added": 267,
+    "modified": 25
+  },
+  "delta_files": 292,
+  "extra_tracked_file": {
+    "path": "SHA256SUMS",
+    "reason": "Historical tracked manifest; package producer regenerates it. Not a current C25 file-set authority."
+  },
+  "finished_at": 1791750801.6738703,
+  "full_evidence_corpus_public_clearance": false,
+  "git_raw_object_and_working_bytes_match": true,
+  "historical_binary_or_plan_named_payloads_reused": 22,
+  "inventory_paths": 3354,
+  "inventory_sha256": "56f7a39a0322c3df1c10163af46af85845278d2f9cf5cce2c57465292211acdd",
+  "limitations": [
+    "Source publication content review only: exact Git bytes, explicit inventory, baseline equality, focused changed-text pattern/context inspection.",
+    "Not an independent AppSec review or a universal proof of secret absence; no product suite/provider/deployment was executed.",
+    "Whole R4 evidence publication has an explicit pending final frozen-delta review in the preserved prior record.",
+    "C25 package receipt is retained, but referenced /tmp archives/extractions/qualification outputs are unavailable in this resumed environment; no new package qualification is claimed.",
+    "Only committed source is covered; raw .git metadata, dangling objects, untracked corpus and private/evidence layers are outside this source-only review.",
+    "Historical actor-attribution, unexplained-file and stopped-provider findings remain open."
+  ],
+  "new_private_key_pem_or_high_signal_token_literal_identified": false,
+  "new_qualification_runs": 0,
+  "outputs": [
+    {
+      "bytes": 1278307,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/TRACKED-CENSUS.json",
+      "sha256": "a5f0bbe4c3031803e214f2501be1945801fbaea481d9505af423d46ae92fcad5"
+    },
+    {
+      "bytes": 120728,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/R3-TO-C25-DELTA.json",
+      "sha256": "b1983183bbb84624763910e16c4d51ebb6422794f0de4a300ae1f88ec16ecf43"
+    },
+    {
+      "bytes": 9339,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/HISTORICAL-BINARY-REUSE.json",
+      "sha256": "38474f4d0fd89d0c54915f95903f8b44fdff94acb7e94a3cc25fcc953a4e56d7"
+    },
+    {
+      "bytes": 6300,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/CREDENTIAL-CONTEXTS.json",
+      "sha256": "002eebf4c088a0b2c162c5f926772dd7cb5abf7c67f4e7bcc04f1b0eb9c25d14"
+    },
+    {
+      "bytes": 6174,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/COMMANDS.json",
+      "sha256": "a58cd664ea9f3a33f6a3d28651b3c6d37fa3f6a8685791eccb92645f0c1f6706"
+    },
+    {
+      "bytes": 1386,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/result-01/PRIOR-RECORDS.json",
+      "sha256": "9354e6cf5c24a0c273698db511151a05c5bde8dfd2f89b1a75e10ee26280d450"
+    }
+  ],
+  "platform_qualified": false,
+  "production_approved": false,
+  "replay": [
+    "python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_source.py",
+    "--repository",
+    "/workspace/intune-continuation/work/projects/intune",
+    "--output",
+    "NEW_REVIEW_DIRECTORY"
+  ],
+  "repository": "/workspace/intune-continuation/work/projects/intune",
+  "schema_version": "independent-committed-source-publication-review/1",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_source.py",
+    "sha256": "51e0954b5102dd83dff43d4f8917e68333cf511bdf4384ac6eb52c34cfce2247"
+  },
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "started_at": 1791750800.3038008,
+  "status": "PASS_BOUNDED_SOURCE_REVIEW",
+  "tracked_blobs": 3355,
+  "working_tree_clean_before_after": true
+}

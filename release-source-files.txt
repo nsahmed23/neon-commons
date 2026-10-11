@@ -290,6 +290,15 @@ docs/WORKER-SOURCE-INTENT-R4.md
 docs/WORKER-STATE-R4.md
 docs/WORKFLOW-IMPLEMENTATION-REPORT.md
 docs/WORKFLOW.md
+docs/continuation-evidence/20261011/PUBLICATION-DISPOSITION.md
+docs/continuation-evidence/20261011/available-roots.json
+docs/continuation-evidence/20261011/current-package-inputs.json
+docs/continuation-evidence/20261011/ledger-availability.json
+docs/continuation-evidence/20261011/reconstructed-package-verification.json
+docs/continuation-evidence/20261011/reconstructed-packages.json
+docs/continuation-evidence/20261011/source-history-packages-review.json
+docs/continuation-evidence/20261011/source-review.json
+docs/continuation-evidence/20261011/workspace-availability.json
 docs/superpowers/plans/2026-09-30-atmos-adoption-lab.md
 docs/superpowers/plans/2026-09-30-critical-audit.md
 docs/superpowers/plans/2026-09-30-enterprise-execution.md

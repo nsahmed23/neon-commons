@@ -1,70 +1,56 @@
-# R4 continuation sequence
+# R4 execution sequence — resumed 2026-10-11
 
-Start from the latest `integration/COMMIT-*.json` and this branch's
-`CONTINUATION-R4-CHECKPOINT.md`, then reconcile `CONTINUATION-R4-LEDGER.json`.
-The recovered 0.8.0 baseline is commit
-`289ee9477372825aad848f4482cf681c2ff43b02`; newer valid work must be retained.
-Checkpoint11 is `8fb914a36651b0bd79e3e4f2d342294613682685`, with3271-file
-Git-object linkage. Checkpoint12 records integrated protected adoption/native
-intent/navigation; read `integration/COMMIT-12.json` for its exact commit.
-Checkpoint13 records that native connected result and its preserved failures. Checkpoint14 retains the initial plan-reader finding; checkpoint15 integrates its local repair and worker-v2 source binding. Checkpoint16 is `705ad727d17e8864602a467ac447f8dfcb2190c3`: its native import recovery and new approved no-change Plan are preserved in the C16 indexes. Checkpoint17 integrates stopped-Plan recovery, portable signed history and the inode identity repair; its exact revision is in `integration/COMMIT-17.json` when committed.
-Checkpoint10 `b7eae48ed943e14fa2aac2e17d2c337999aa671a` has an82-test
-detached changed scope is separate from checkpoint9's162 tests and3248-file
-Git-object linkage, checkpoint8's98 tests and historical1,242/1,141 results.
-Checkpoint11 adds native current-source reading and fixed-byte relocatable
-qualification tools; its exact commit is recorded in `integration/COMMIT-11.json`.
+Resume C25 `e3bdefe0b1ac0c58e46f9af3360970f8e47ae393`, tree
+`0bdbdeb3556acce23c8390abb20e835184880b27`, on
+`continuation/r4-20261007`. The strict contract, all six work threads, original
+inputs and retained negative evidence remain authoritative. C25 source/runtime
+ZIPs have been freshly reconstructed with the original exact hashes. Fresh safe extraction,3354-file Git linkage and exact rebuilds are also
+recorded in the package-verification receipt. These scopes establish integrity
+only; no C25 suite/native/platform/production outcome is inferred.265 mapped
+scratch roots/39 pinned receipts are unavailable;27/28 native members are
+recoverable, with `native_recovery_plan.py` still missing.
+C24's2304/2304 result remains a historical attestation with missing original
+scratch logs; the C25 strict03 outcome has not been observed. No entire
+historical1,141/1,242 suite is repeated for this documentation update.
 
-Checkpoint18 source-bound maintenance and its signed persistent history passed
-scoped native laboratory checks. The new recovery Plan2 FAILED in a watchdog
-before backend acquisition; its approval remains consumed and outcome unknown.
-Checkpoint19 integrated the read-only phase opener; checkpoint20 integrates the
-distinct sealed no-acquisition assessment. Checkpoint21 integrates the /3
-successor, portable history and public read-only reattachment. Checkpoint22
-records the NEW approved Plan3 PASS with exact state13/Graph/no-change proof,
-independent raw review, signed history and actual mixed-chain Linux PTY.
-Historical Plan2 stays consumed/unknown; no lease release was invented and no
-old Plan was replayed. Next qualify exact reproducible source/runtime packages,
-the required strict gate and fresh closed-profile native recovery journeys.
-
-Checkpoint23 records C22's required strict FAIL:2300 planned/2213 run/2086 passes,
-5 failures and130 errors (including8 class-setup failures and87 unexecuted
-methods). Exact package bytes and the runtime connected journey remain valid
-within their scopes. First repair the demonstrated isolated-test, five-layer
-staging and source-edit fixture issues; do not relax any product gate. Rebuild
-a new committed source and qualify it. Preserve all C22 artifacts and failures.
-
-Checkpoint24 integrates those three repairs with focused before/after and
-independent controls. Build a NEW exact source/runtime pair, run its required
-strict gate, then complete runtime and closed-profile native journeys. The
-prior failed C22 packages remain immutable; no security gate or test is waived.
-
-Checkpoint25: C24 required strict2304/2304 and runtime journeys passed. A narrow
-doctor reporting correction now requires C25 exact packages and their required
-gate. The admitted27-helper native profile must use the new extracted source;
-ordinary-prepare precedes maintenance. All earlier failures remain preserved.
-
-| Order | Actual entrypoint and remaining behavior | Qualification and prerequisite |
+| Order | Actual entrypoint and missing behavior/evidence | Verification and prerequisite |
 | --- | --- | --- |
-| 1 | `workbench views`, `workbench workspace` and the same text engine expose repository, observed, proposed and coverage evidence. Native object/current-source readers are integrated; native intent import/proposal are integrated; bounded source editing/recovery is integrated; finish authenticated portable worker evidence without opening unsupported POSIX journals. | Retain actual Linux CLI/PTY evidence and recorded-Win32 controls. Real Windows/Git Bash/mintty remains a host-owner gate. |
-| 2 | `service prepare`, `service review`, `service status`, `service attach`, `service cancel`, `service recover`; execution is `ServiceJob.run` in the trusted controller, not a terminal `service run` command. `adoption prepare/review/status/attach/cancel/recover` and `AdoptionJob.run` now implement the separate signed state-only route. Native import and same-authority correction/readback/no-op are locally qualified at checkpoint12. Initial-import recovery, strict plan-output repair and explicit source-intent binding are integrated; finish common Plan-phase recovery, then freeze and qualify new native runs; `provider prepare` remains the legacy network-denied route. | Separate import approval/state mutation/recovery from exact saved-plan apply. Exercise native import, first no-change plan, bounded change, readback, convergence and interruption. Existing signed apply and both committed-state recovery scopes remain valid at their exact bytes. |
-| 3 | `workbench observer-create`, `observer-run`, `observer-status`, `observer-scheduler` connect the typed reader and durable store. Inactive native Windows components use `scripts/intune-windows-observer.py create/run/status/prepare-task`. | Preserve denied/partial/duplicate/out-of-order and atomic-publication evidence. Actual Linux cron attempts did not start observers; Windows tasks remain unregistered. Native host and existing authorized collector identity are required for closed-terminal platform qualification. |
-| 4 | Complete the shared visual workspace, navigation context and native command coverage. Preserve the complete reference text interface. | Actual input/state assertions accompany captures. Unsupported journal or mutation routes must remain explicit; screenshots or recorded Win32 effects do not establish native host support. |
-| 5 | Freeze the exact source and reviewed inventory; use `scripts/build-release.py`, `verify-release-artifact.py`, `verify-source-linkage.py` and `verify-plugin.py --include-core --output NEW_DIRECTORY`. | Follow `PACKAGE-QUALIFICATION-R4.md`: two byte-identical builds, safe extraction, exact Git-object linkage, required final gate and separate connected/native journeys. Never add overlapping counts. |
-| 6 | Freeze all nine declared recovery layers: both R4 evidence supplements and the separately stopped provider candidate join the preserved baseline and exact source/runtime packages. Verify each new layer and read back the specifically reviewed delivery. | Preserve all failures, literal negative-test links and provenance findings. Current capacity cannot hold a fresh simultaneous complete reconstruction; earlier exact-layer evidence remains separately reusable. Platform owners and AppSec/operations must supply their declared evidence and accountable approval. |
+| 1 | Preserve C25 ancestry and the available exact ZIPs; checkpoint the resumed evidence availability and publish the authorized continuation branch. | `git status --short` and `git log -5 --oneline`; new exact checkpoint/branch readback receipt. Source publication is not full recovery or CI deployment. Historical raw scratch logs are not recreated. |
+| 2 | Qualify the reconstructed **exact C25** source/runtime independently. Current files are in `work/releases/continuation-0.9.0-r4-c25-restored-20261011/`. | `scripts/verify-release-artifact.py --archive ARCHIVE --sha256 PIN --extract NEW_ROOT`; `verify-source-linkage.py` with the actual pinned Git executable and every selected source byte; rebuild extracted source with `build-release.py --output-dir NEW_ROOT` and compare exact hashes. Keep new receipts distinct from the missing original package receipt. |
+| 3 | Restore/recheck actual qualification-tool context, then finish the required exact-source gate and actual runtime journeys. | `scripts/verify-plugin.py --include-core --output NEW_OUTPUT` from the extracted C25 source; gate requires planned=run=passed and zero failures/errors/skips/xfails/unexpected successes. `qualify-workflow.py`, `qualify-terminal.py` and `qualify-workbench-connected.py --plugin EXACT_RUNTIME --output NEW_OUTPUT` exercise the actual delivered runtime. The original strict driver is recovered with a reviewed path-only resumed wrapper and actual pinned tool context; a NEW gate awaits the current quiet performance window and branch publication. Missing old logs stay unavailable. Preserve every new failure. |
+| 4 | Recover the missing exact `native_recovery_plan.py` member or prepare an attributable independently qualified replacement, then reconstruct the admitted closed profile using complete extracted C25 source. Drive new protected adoption, intentional source change, exact signed apply, independent readback/convergence, interruption recovery, ordinary assignment partial failure, committed-state recovery and reverse-description restoration. | Retained admission: `work/evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/ADMISSION-01.json`; actual helper sequence is `worker-provider/ordinary-final-staging/EXECUTION-SEQUENCE.md`. Build a new profile/bundle with exact source/helper/tool byte pins, then actual native worker interfaces. **Fresh adoption → ordinary-prepare immediately → maintenance/source-maintenance.** No active-checkout fallback, old plan replay or invented lease release. Native synthetic TLS protocols remain local evidence, not real Azure/Graph/CI. |
+| 5 | Open current signed history, inspection/ownership/coverage, exact plan and recovery from the actual text/visual workspace; verify state/files independently. | `workbench views/workspace`; `service prepare/review/status/attach/cancel/recover`; `adoption prepare/review/status/attach/cancel/recover`. Actual mutation is the trusted `ServiceJob.run`/`AdoptionJob.run` controller API, with process-held authority; no terminal `run` command exists. Use real key sequences/captures and independent SQL/operation assertions. Retain non-color/no-TTY/resize/injection/terminal-restoration controls. |
+| 6 | Finish independently scheduled observation and quiet performance/capacity evidence for the exact artifact profile. | `workbench observer-create/run/status/scheduler`, collection/history/health; `qualify-workbench-performance.py --prepare/--run` and capacity equivalents use fresh bound outputs and a documented quiet window. Existing BusyBox scheduler attempts launched zero observers; native Windows tasks remain inactive. A finite modeled timer or new helper success cannot establish OS-scheduled/authenticated collection. Missing native host capability is a G06 gate; continue other local work. |
+| 7 | Freeze original/R2/R3 plus exact R4 source/runtime, both R4 evidence supplements and the stopped provider candidate under the complete nine-layer manifest. | `build-release.py`, type-aware archive/extraction checks, independent complete member/hash assertions, public suitability and saved/public download readback. Preserve raw Intune Git history, unselected inputs/bytecode, negative-test symlinks, failures and explicit IPC omissions.265 historical scratch roots currently cannot be supplied; F03/F09 areBLOCKED pending attributable exact restoration, not a fabricated replacement corpus. New source-branch publication does not satisfy this full-corpus gate. |
+| 8 | Execute the bounded real operating profile and accountable review on supplied environments. | G01–G13 in `EXTERNAL-GATES-R4.md` specify owners, scope manifest, authorization, actual entrypoints, expected evidence and recovery. GitHub vs Azure DevOps protected-platform choice is unresolved. Native Windows/Git Bash/mintty/PowerShell, real Azure/Graph/CI/devices, installed collection, key custody and AppSec/production decision remain required. No production mutation or administration is authorized here. |
 
-Parser help was inspected and retained in
-`evidence/epoch-20261007-r4/integration/ENTRYPOINTS-09.json`. From the project
-directory, these are safe discovery commands using the verified local runtime:
+Parser definitions and preserved help receipts confirm these names. Safe
+current discovery from the project directory is:
 
 ```sh
 /workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench views --help
 /workspace/intune-runtime/bin/python -B scripts/intune-iac.py service prepare --help
+/workspace/intune-runtime/bin/python -B scripts/intune-iac.py adoption review --help
 /workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench observer-create --help
-/workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench workspace --help
+/workspace/intune-runtime/bin/python -B scripts/verify-source-linkage.py --help
 ```
 
-`EXTERNAL-GATES-R4.md` identifies each required environment, owner, procedure,
-expected evidence and release consequence. The malformed-provider-error repair
-remains stopped following automatic review rejection; successful conformant
-native runs do not close that finding. No production mutation, task activation,
-credential provisioning or privilege expansion is authorized by this sequence.
+Library/API procedures require the declared reviewed controller; listing one
+never creates authority. Use fresh explicit output names and retain independent
+assertions, exact source/artifact identities, negative results and replay argv.
+The new92-row matrix and receipt-availability audit distinguish historical
+reuse, current implementation, new qualification and external approval.
+
+Automatic approval review rejected the isolated malformed-error provider repair,
+citing possible cybersecurity risk, with no specific command/reason exposed.
+G13 remains blocked; preserve the unbuilt candidate and do not bypass its denied
+lane. Wally remains optional and read-only. Laboratory completion, platform
+qualification and organizational production approval remain separate unfinished
+outcomes.
+
+Metadata suitable for the resumed source branch is linked from
+`continuation-evidence/20261011/workspace-availability.json`,
+`reconstructed-packages.json`, `reconstructed-package-verification.json`,
+`source-review.json` and `source-history-packages-review.json`. The coordinator
+supplies their reviewed exact bytes and checks branch readback. Public metadata
+links do not make a selected source branch complete private recovery.

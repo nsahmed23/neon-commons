@@ -1,15 +1,34 @@
 {
   "schema_version": "intune-continuation-requirements/1.0",
-  "recorded_at": "2026-10-08T02:13:58.111970+00:00",
+  "recorded_at": "2026-10-11T20:38:04.762214+00:00",
   "purpose": "Dependency-ordered R4 implementation and scoped evidence map; no overall finish line established.",
   "source_authority": {
     "base_commit": "289ee9477372825aad848f4482cf681c2ff43b02",
     "branch": "continuation/r4-20261007",
-    "current_candidate_commit": null,
-    "new_artifacts": [],
-    "latest_completed_checkpoint": "07b747247c01ac291011bb666d328c5bbd66e8f6",
-    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-25.json",
-    "candidate_disposition": "REPORT_ONLY_REPAIR_PENDING_NEW_EXACT_PACKAGES",
+    "current_candidate_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "new_artifacts": [
+      {
+        "kind": "source",
+        "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "bytes": 17956520,
+        "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+        "scope": "Exact original package bytes reconstructed on2026-10-11; no recovered old raw test logs or new suite/native PASS."
+      },
+      {
+        "kind": "runtime",
+        "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0.zip",
+        "bytes": 1520542,
+        "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+        "scope": "Exact original package bytes reconstructed on2026-10-11; no recovered old raw test logs or new suite/native PASS."
+      }
+    ],
+    "latest_completed_checkpoint": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-26.json",
+    "candidate_disposition": "EXACT_C25_PACKAGES_RECONSTRUCTED_REQUIRED_FINAL_GATES_INCOMPLETE",
     "retained_candidate_artifacts": [
       {
         "source_commit": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
@@ -84,7 +103,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "C24 exact package strict2304/2304 and actual runtime journeys pass. Narrow doctor reporting defect repaired and independently qualified; new C25 exact package gates, fresh native fault/restoration, performance and verified delivery remain. Platform/security/production approval remain blocked."
+    "explanation": "Exact original C25 source/runtime ZIPs are reconstructed, safely extracted, linked to3354 selected Git source files and reproduced byte-identically. Old C24 test attestations remain historical;39 pinned scratch receipts and265 mapped /tmp roots are unavailable, exact1/28 closed helpers missing. C25 strict03 result unobserved. New full strict/runtime/native/fault/history/PTY/performance gates, full recovery delivery and required real platform/organizational approval remain incomplete."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -473,6 +492,12 @@
         "laboratory": "PASS",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -1020,6 +1045,12 @@
             "sha256": "219e0f988de28cc3eba7d8ad0b1017e4a8ee96f1af8112dd7146bc5397a754b5"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -1126,6 +1157,12 @@
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -1135,8 +1172,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A03",
       "evidence_path": [
@@ -1706,7 +1743,18 @@
             "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "A04",
@@ -1842,6 +1890,12 @@
             "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -1916,6 +1970,12 @@
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -1991,6 +2051,12 @@
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -2000,8 +2066,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A07",
       "evidence_path": [
@@ -2572,7 +2638,18 @@
             "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "A08",
@@ -2633,7 +2710,13 @@
           "path": "evidence/epoch-20261007-r4/independent/views-cli-03/RESULT.json",
           "sha256": "08f9a398d689fbe9e8c4fcb5022fccee239ce854e30fbb27ff48267a72d3a277"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "A09",
@@ -2858,6 +2941,12 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -3068,6 +3157,12 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -3077,8 +3172,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-A11",
       "evidence_path": [
@@ -3499,7 +3594,18 @@
             "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "A12",
@@ -3662,7 +3768,13 @@
           "path": "evidence/epoch-20261007-r4/independent/native-adoption-maintenance-04/RESULT.json",
           "sha256": "8f2cbc9a53abfad46e12e3ca22e44a027532fae585299275296190f2dc84f695"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "A13",
@@ -3954,6 +4066,12 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-19.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -4122,6 +4240,12 @@
             "sha256": "219e0f988de28cc3eba7d8ad0b1017e4a8ee96f1af8112dd7146bc5397a754b5"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -4185,7 +4309,13 @@
           "path": "evidence/epoch-20261007-r4/independent/backend-01/RESULT.json",
           "sha256": "1ac09464d47747d4a4ff984ed34f30e68984b827d87fca68bb25c33d98a53ec1"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "B02",
@@ -4244,7 +4374,13 @@
           "path": "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
           "sha256": "478db0b5eeba5c2d56535ca3b6e499c308e8b05cc2151bad2631246fe2402d26"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "B03",
@@ -4837,6 +4973,12 @@
             "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -4846,8 +4988,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B04",
       "evidence_path": [
@@ -5475,7 +5617,18 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-19.json"
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "B05",
@@ -5484,8 +5637,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B05",
       "evidence_path": [
@@ -6529,7 +6682,18 @@
             "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "B06",
@@ -6897,6 +7061,12 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-19.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -7295,6 +7465,12 @@
         ],
         "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -7304,8 +7480,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-B08",
       "evidence_path": [
@@ -8696,6 +8872,33 @@
             "sha256": "a849838b4469b6812a9425936b9528440916696ca75049da56ceadfb6bfe08bc"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred.",
+      "final_native_profile_gap26": {
+        "status": "BLOCKED",
+        "scope": "27/28 closed members recoverable at exact pins; native_recovery_plan.py not found in bounded retained source. Final protected native sequence cannot be claimed complete until exact helper recovered or attributable new replacement independently qualified with retained failure/history limitations.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
+          }
+        ]
       }
     },
     {
@@ -8838,6 +9041,12 @@
         ],
         "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
         "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -8961,7 +9170,13 @@
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "B11",
@@ -9078,7 +9293,13 @@
         }
       ],
       "source_scope": "R4 working tree beyond observed parent; exact per-file hashes and receipt scopes below; final applicable commit pending",
-      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification."
+      "native_composition_scope": "PASS local pinned Atmos/OpenTofu/provider through protected signed Docker/relay/nonforwarding TLS Azure protocol, exact saved-plan apply, independent Graph/backend readback and no-change second plan. Complete raw capture has explicit unsupported management mapping. No live CI/Azure/Graph/device/production qualification.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "B12",
@@ -9143,7 +9364,13 @@
           "path": "evidence/epoch-20261007-r4/independent/vault-parent-race-after-01/RESULT.json",
           "sha256": "a2ec7f1bad11f0f0f2fcac0b656c6ba07b9a9938690c88adb88ad6587cd6b982"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "B13",
@@ -9454,6 +9681,12 @@
         ],
         "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -9499,6 +9732,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -9620,6 +9859,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -9726,6 +9971,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -9847,6 +10098,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -9963,6 +10220,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -10070,6 +10333,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -10181,6 +10450,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -10190,8 +10465,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-C07",
       "evidence_path": [
@@ -10640,7 +10915,18 @@
             "sha256": "2a10e27e0ecc7e0f7aa432ac37f42a23bb2e83cd9ed08f15d29e5c8d57086aec"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "C08",
@@ -10698,7 +10984,13 @@
           "path": "evidence/epoch-20261007-r4/dictionary-taxonomy/raw-cli-01/RESULT.json",
           "sha256": "e5b1d5a6f093a4dd26622b11941d1152f3cd038d0cb478f887bec4bdf0227e9f"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "C09",
@@ -10766,7 +11058,13 @@
           "sha256": "6ab6e9d2761c27b0903eb212bf64600ffc17090147e4099aebe7989339298902"
         }
       ],
-      "remaining_local_evidence": "Actual healthCLI on native successfulservice store passes5 independent assertions: endpointhealth/outcome/approval unknown, alldevicedenominators null, norolloutauthority, exactdatabaseunchanged. Releasedartifact linkage pending; enrolleddeviceevidence blocked."
+      "remaining_local_evidence": "Actual healthCLI on native successfulservice store passes5 independent assertions: endpointhealth/outcome/approval unknown, alldevicedenominators null, norolloutauthority, exactdatabaseunchanged. Releasedartifact linkage pending; enrolleddeviceevidence blocked.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "C10",
@@ -10881,6 +11179,12 @@
         "scope": "57 scoped local/recorded-Win32/actual SQLite methods; independent compound-failure, retention and cancellation controls overlap. Existing credential reader and disabled task preparation only.",
         "native_host_qualified": false,
         "task_registered_or_activated": false
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11122,6 +11426,12 @@
         ],
         "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11169,6 +11479,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11353,6 +11669,12 @@
         "scope": "Distinct readonly adoption navigation survives reopen and drives review/execution tabs; legacy help retained. Independent14 actualLinuxPTY controls on disposable prepared journal;17 presentation methods overlap. Before help/context/back failures preserved.",
         "limitations": "Prepared journal,0native dispatch in these PTYs; successful native fixture and final exact-package replay still required. No nativeWindows qualification.",
         "next_action": "Replay actual investigation/history/recovery keys on newly qualified native journal and final packages."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11411,7 +11733,13 @@
           "path": "evidence/epoch-20261007-r4/terminal-interrupt/DEVELOPMENT-RECEIPT-01.json",
           "sha256": "3f514f3f7d487d24f0e3106a587386a9802d0c819bd36cf05f3d58101d8d953a"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "D03",
@@ -11509,6 +11837,12 @@
         "status": "IMPLEMENTED",
         "scope": "Same engine, exact native store reader and real shared-terminal key sequences under recorded Win32 effects;48 selected repository cases and14 independent controls overlap. Distinct baselines/raw targeting/unknowns and zero SQL mutation. Unsupported execution journals never opened.",
         "limitations": "Native current authoritative-source reader still staged; stored revision claim is not Git/source revalidation. Protected worker host journal authentication/portable signed evidence remains separate. Actual Windows qualification absent."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11769,6 +12103,12 @@
         ],
         "limitation": "108 changed-scope methods overlap shared earlier tests. Recorded Win32/Linux crypto is not native Windows. State-only adoption/recovery never establishes Graph deployment. Portable Planv2 and final packages pending.",
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11891,6 +12231,12 @@
         "scope": "Actual native intent-import and immutable bounded proposal routes use existing literal resolver/render/shared impact engine;90 selected owner methods and12 independent controls overlap. Actual files/SQLite/shared text terminal with recorded Win32 boundaries.",
         "limitations": "No nativeWindows/Git authentication, source mutation, native pipeline or production approval. Reviewed native source writer/recovery still staged.",
         "next_action": "Complete explicit source editing and recovery; qualify actual native host separately."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -11900,8 +12246,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D06",
       "evidence_path": [
@@ -12335,7 +12681,18 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "D07",
@@ -12344,8 +12701,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D07",
       "evidence_path": [
@@ -12842,7 +13199,18 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "D08",
@@ -12851,8 +13219,8 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "scoped-local-implementation-and-candidate-qualification",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "R4-D08",
       "evidence_path": [
@@ -13923,7 +14291,18 @@
             "sha256": "219e0f988de28cc3eba7d8ad0b1017e4a8ee96f1af8112dd7146bc5397a754b5"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     },
     {
       "id": "D09",
@@ -14285,6 +14664,12 @@
             "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -14358,7 +14743,13 @@
           "path": "evidence/epoch-20261007-r4/independent/windows-workspace-02/RESULT.json",
           "sha256": "a0247b5f7a93dcb88cfe3689209bde55ef626cda86e123ee060e26bd48af06dd"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "D11",
@@ -14681,6 +15072,12 @@
         "scope": "Distinct readonly adoption navigation survives reopen and drives review/execution tabs; legacy help retained. Independent14 actualLinuxPTY controls on disposable prepared journal;17 presentation methods overlap. Before help/context/back failures preserved.",
         "limitations": "Prepared journal,0native dispatch in these PTYs; successful native fixture and final exact-package replay still required. No nativeWindows qualification.",
         "next_action": "Replay actual investigation/history/recovery keys on newly qualified native journal and final packages."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -14761,6 +15158,12 @@
         "scope": "Distinct readonly adoption navigation survives reopen and drives review/execution tabs; legacy help retained. Independent14 actualLinuxPTY controls on disposable prepared journal;17 presentation methods overlap. Before help/context/back failures preserved.",
         "limitations": "Prepared journal,0native dispatch in these PTYs; successful native fixture and final exact-package replay still required. No nativeWindows qualification.",
         "next_action": "Replay actual investigation/history/recovery keys on newly qualified native journal and final packages."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -14894,6 +15297,12 @@
             "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15016,7 +15425,13 @@
           "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
           "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E03",
@@ -15242,6 +15657,12 @@
             "sha256": "219e0f988de28cc3eba7d8ad0b1017e4a8ee96f1af8112dd7146bc5397a754b5"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15313,7 +15734,13 @@
           "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
           "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E05",
@@ -15523,6 +15950,12 @@
         "source_scope": "Exact inserted source hashes in applied receipts; native first connected adoption/change/fault runs are next, not established by these gates.",
         "limitations": "No Graph deployment or last-apply promotion from adoption; no global writer absence or organizational sole-writer approval. Fresh-process adoption recovery and source-to-execution association bridge remain staged.",
         "next_action": "Freeze this checkpoint; run real native adoption\u2192first no-op\u2192same authority correction/readback/convergence and separate stopped-operation fixtures."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15562,6 +15995,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15602,6 +16041,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15675,7 +16120,13 @@
           "path": "evidence/epoch-20261007-r4/external-gates/ci-validator-01/WORKFLOW-STEP-CONSUMER-01.json",
           "sha256": "478db0b5eeba5c2d56535ca3b6e499c308e8b05cc2151bad2631246fe2402d26"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E09",
@@ -15714,6 +16165,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15753,6 +16210,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -15762,9 +16225,9 @@
       "required_profile": "local-implementation-and-independent-qualification",
       "status": "IMPLEMENTED",
       "evidence_class": "new-local-evidence-required",
-      "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
-      "applicable_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
-      "artifact_sha256": "a97968ccc4a86f4549c7ab31f7f0467692609bb2e1177a66a7754e8433689b87",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
       "test_procedure_id": "R4-F01",
       "evidence_path": [
         "evidence/epoch-20261007-r4/source-linkage/RECEIPT-01.json",
@@ -15818,7 +16281,7 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "C24 required strict gate2304/2304 PASS retained; report-only doctor correction changes candidate bytes. New C25 exact packages and required gate pending. C22 failed candidate remains preserved.",
-      "next_action": "Build C25 exact source/runtime packages, verify linkage/reproducibility, then run required extracted-source gate and actual runtime/native/performance journeys. No historical result relabeling.",
+      "next_action": "Verify safely extracted reconstructed C25 ZIPs and raw Git linkage/rebuild, run the required gate with actual qualification-tool pins, then actual runtime/closed native/quiet performance/full delivery. Lost historical scratch logs remain unavailable; no C25 suite PASS inferred.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -16271,7 +16734,36 @@
             "sha256": "005a2e93d424106be9ebd3aaeea13bfdaa70ce33ed5b221946a23c5564cdcd16"
           }
         ]
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "reconstruction26": {
+        "status": "PASS",
+        "scope": "Exact C25 source/runtime original bytes reconstructed, safe extraction,3354 selected files linked to Git and exact rebuilds. No product suite/native/platform qualification inferred.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/RECONSTRUCTION-RECEIPT.json",
+            "bytes": 2603,
+            "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/VERIFICATION-RECEIPT.json",
+            "bytes": 1663,
+            "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e"
+          }
+        ]
+      },
+      "historical_primary_fields_before26": {
+        "observed_source_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "applicable_revision": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
+        "artifact_sha256": "a97968ccc4a86f4549c7ab31f7f0467692609bb2e1177a66a7754e8433689b87",
+        "next_action": "Build C25 exact source/runtime packages, verify linkage/reproducibility, then run required extracted-source gate and actual runtime/native/performance journeys. No historical result relabeling."
+      },
+      "primary_field_scope26": "Fresh package reconstruction identity only, not final test qualification. C22/C24 exact historical fields/statuses retained separately."
     },
     {
       "id": "F02",
@@ -16491,6 +16983,39 @@
             "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "reconstruction26": {
+        "status": "PASS",
+        "scope": "Exact C25 source/runtime bytes reconstructed only; required source/runtime/native qualification not inferred.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/RECONSTRUCTION-RECEIPT.json",
+            "bytes": 2603,
+            "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b"
+          }
+        ]
+      },
+      "final_native_profile_gap26": {
+        "status": "BLOCKED",
+        "scope": "27/28 closed members recoverable at exact pins; native_recovery_plan.py not found in bounded retained source. Final protected native sequence cannot be claimed complete until exact helper recovered or attributable new replacement independently qualified with retained failure/history limitations.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
+          }
+        ]
       }
     },
     {
@@ -16498,7 +17023,7 @@
       "description": "Reproducible builds, type-aware extraction, complete recovery manifests and independent public/saved readback preserve exact bytes/hashes.",
       "milestone": "F",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "IMPLEMENTED",
+      "status": "BLOCKED",
       "evidence_class": "new-local-evidence-required",
       "observed_source_revision": "2b0bcb998fbba49a8a232174c1858da162639957",
       "applicable_revision": null,
@@ -16550,8 +17075,8 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
-      "next_action": "After final package/evidence freeze, finalize explicit roots, archive each new layer, independently verify, review public delta and read back authorized delivery. Reuse baseline exact-layer receipts separately.",
-      "blocker_owner": null,
+      "next_action": "Recover the exact missing historical raw roots/receipts from an attributable retained archive/host backup, preserve discrepancy receipts and verify full selected manifest. Continue exact current-source qualification and specifically reviewed source publication separately; do not regenerate historical outputs or claim complete recovery.",
+      "blocker_owner": "Release/corpus custodian and environment-storage owner; independent artifact verifier confirms recovered bytes.",
       "depends_on": [
         "F01",
         "F02",
@@ -16570,7 +17095,7 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "IMPLEMENTED",
+        "laboratory": "BLOCKED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
       },
@@ -17010,6 +17535,45 @@
             "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "reconstruction26": {
+        "status": "PASS",
+        "scope": "Exact C25 source/runtime original bytes reconstructed, safe extraction,3354 selected files linked to Git and exact rebuilds. No product suite/native/platform qualification inferred.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/RECONSTRUCTION-RECEIPT.json",
+            "bytes": 2603,
+            "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/VERIFICATION-RECEIPT.json",
+            "bytes": 1663,
+            "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e"
+          }
+        ]
+      },
+      "historical_status_before26": "IMPLEMENTED",
+      "required_raw_evidence_loss26": {
+        "status": "FAIL",
+        "scope": "265 explicit mapped scratch roots and39 exact ledger-referenced receipts are unavailable. Preserved summaries/hashes and fresh source/runtime reconstruction do not constitute complete R4 raw-corpus closure.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
+          }
+        ]
       }
     },
     {
@@ -17189,6 +17753,28 @@
             "sha256": "4350485175d216e7d678051b25cf6cc6cb426a8315fd0f7ed77a73ab5649f8d8"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "reconstruction26": {
+        "status": "PASS",
+        "scope": "Exact C25 source/runtime original bytes reconstructed, safe extraction,3354 selected files linked to Git and exact rebuilds. No product suite/native/platform qualification inferred.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/RECONSTRUCTION-RECEIPT.json",
+            "bytes": 2603,
+            "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/VERIFICATION-RECEIPT.json",
+            "bytes": 1663,
+            "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e"
+          }
+        ]
       }
     },
     {
@@ -17331,6 +17917,12 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-21.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -17389,7 +17981,13 @@
           "bytes": 3057,
           "sha256": "c58a8e0997c828da06557b3e1bd417fc5ec923b93563167bab347a334e026ba7"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "F07",
@@ -17484,6 +18082,12 @@
           "path": "evidence/epoch-20261007-r4/packaging/TRANSFER-ADMISSION-24.json",
           "sha256": "0e733b079d98f020cc45eea22833e216bd17629ce6d4ba394e1546703162522e"
         }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -17753,6 +18357,12 @@
             "sha256": "43923c3849362cb08c488ff61e9cd50dd6df528d575bf4c9490c9e5127d87e6a"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -17760,7 +18370,7 @@
       "description": "Preserve original full corpus, all six threads, valid evidence, failures/skips/unresolved findings and optional read-only Wally negatives.",
       "milestone": "F",
       "required_profile": "local-implementation-and-independent-qualification",
-      "status": "IMPLEMENTED",
+      "status": "BLOCKED",
       "evidence_class": "new-local-evidence-required",
       "observed_source_revision": "2b0bcb998fbba49a8a232174c1858da162639957",
       "applicable_revision": null,
@@ -17802,8 +18412,8 @@
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
       "limitation": "Final artifacts, public-content disposition and readback pending. Volume cannot hold complete13GB simultaneous reconstruction. Scanner transitive dependency failure retained; local repair is not public clearance.",
-      "next_action": "After final package/evidence freeze, finalize explicit roots, archive each new layer, independently verify, review public delta and read back authorized delivery. Reuse baseline exact-layer receipts separately.",
-      "blocker_owner": null,
+      "next_action": "Recover the exact missing historical raw roots/receipts from an attributable retained archive/host backup, preserve discrepancy receipts and verify full selected manifest. Continue exact current-source qualification and specifically reviewed source publication separately; do not regenerate historical outputs or claim complete recovery.",
+      "blocker_owner": "Release/corpus custodian and environment-storage owner; independent artifact verifier confirms recovered bytes.",
       "depends_on": [
         "R00"
       ],
@@ -17820,7 +18430,7 @@
       "new_verification_commands": [],
       "evidence_reuse": [],
       "outcomes": {
-        "laboratory": "IMPLEMENTED",
+        "laboratory": "BLOCKED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
       },
@@ -18158,6 +18768,29 @@
             "sha256": "43923c3849362cb08c488ff61e9cd50dd6df528d575bf4c9490c9e5127d87e6a"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_status_before26": "IMPLEMENTED",
+      "required_raw_evidence_loss26": {
+        "status": "FAIL",
+        "scope": "265 explicit mapped scratch roots and39 exact ledger-referenced receipts are unavailable. Preserved summaries/hashes and fresh source/runtime reconstruction do not constitute complete R4 raw-corpus closure.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
+          }
+        ]
       }
     },
     {
@@ -18213,6 +18846,12 @@
         "laboratory": "NOT_STARTED",
         "platform": "BLOCKED",
         "organizational_production_approval": "BLOCKED"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -18628,7 +19267,13 @@
         "entry": "FAULT-01"
       },
       "remaining_local_evidence": "Requalify composed service/native profile after final binding changes.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-02",
@@ -19252,6 +19897,12 @@
           }
         ],
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-19.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -20006,6 +20657,12 @@
             "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -20364,7 +21021,13 @@
         "entry": "FAULT-04"
       },
       "remaining_local_evidence": "Changed computed-state/native backend composition needs exact stale-state rejection.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-05",
@@ -20798,6 +21461,12 @@
         ],
         "limitation": "Native tools against nonforwarding local Azure/Graph TLS fixtures and synthetic identities; no real Azure or Intune. New Plan-phase chain requires native qualification.",
         "source_commit_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-17.json"
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -21171,7 +21840,13 @@
         "entry": "FAULT-06"
       },
       "remaining_local_evidence": "Composed native correction must stop before mutation after denied/partial fresh read.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-07",
@@ -21508,7 +22183,13 @@
         "entry": "FAULT-07"
       },
       "remaining_local_evidence": "No new isolated gap found; replay only if reader dependencies changed.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-08",
@@ -21843,6 +22524,12 @@
         ],
         "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
         "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -22499,6 +23186,28 @@
             "sha256": "7f23e236dff9c4b0e6ee6c6d4748141d99c94e962c4f9818f5b30a08a7d2ee8b"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "final_native_profile_gap26": {
+        "status": "BLOCKED",
+        "scope": "27/28 closed members recoverable at exact pins; native_recovery_plan.py not found in bounded retained source. Final protected native sequence cannot be claimed complete until exact helper recovered or attributable new replacement independently qualified with retained failure/history limitations.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
+          }
+        ]
       }
     },
     {
@@ -22661,6 +23370,12 @@
             "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -24057,6 +24772,28 @@
             "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
           }
         ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "final_native_profile_gap26": {
+        "status": "BLOCKED",
+        "scope": "27/28 closed members recoverable at exact pins; native_recovery_plan.py not found in bounded retained source. Final protected native sequence cannot be claimed complete until exact helper recovered or attributable new replacement independently qualified with retained failure/history limitations.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
+          }
+        ]
       }
     },
     {
@@ -24196,6 +24933,12 @@
         ],
         "observed_parent": "5388c7adc138e1ea8ef88db36e4fba61812e6760",
         "applicable_revision": "Exact selected source snapshots in indexed receipts; final package requalification pending."
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
       }
     },
     {
@@ -24447,6 +25190,28 @@
             "path": "evidence/epoch-20261007-r4/independent/ordinary-export-membership-01/RESULT.json",
             "bytes": 16661,
             "sha256": "42ac1d03e81adb23ad0be9ae8a54d1c71c85a06e8d13257af021e00226276dcf"
+          }
+        ]
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "final_native_profile_gap26": {
+        "status": "BLOCKED",
+        "scope": "27/28 closed members recoverable at exact pins; native_recovery_plan.py not found in bounded retained source. Final protected native sequence cannot be claimed complete until exact helper recovered or attributable new replacement independently qualified with retained failure/history limitations.",
+        "receipts": [
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+            "bytes": 3347,
+            "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+          },
+          {
+            "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CHECKPOINT-RECEIPT-02.json",
+            "bytes": 25933,
+            "sha256": "934d553a7279fee4fc548a8dc22483f539c9ab67ddfe422b95087f535c4b9afb"
           }
         ]
       }
@@ -24858,7 +25623,13 @@
         "entry": "FAULT-14"
       },
       "remaining_local_evidence": "Explicit unauthorized ref and privileged workflow-content substitution through final strict run_context policy admission require new tests; local input binding does not qualify GitHub protections.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-15",
@@ -25256,7 +26027,13 @@
         "entry": "FAULT-15"
       },
       "remaining_local_evidence": "New service UI final bytes require changed presentation smoke; native Windows/Git Bash escaping remains blocked.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-16",
@@ -25342,7 +26119,13 @@
         "entry": "FAULT-16"
       },
       "remaining_local_evidence": "Independent visual-native-after-02 verifies two separately captured same-name objects and actual PTY up/down/Enter immutableID selection, against exactUI hashes. Finalpackage linkage pending.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-17",
@@ -25520,7 +26303,13 @@
           "path": "evidence/epoch-20261007-r4/windows-source-edit/native-repository-blocked01/RESULT.json",
           "sha256": "4de063ca97d6ff337763e4407fd08c87ff88c5f5e63533e8880ae0f0d7aa8ed8"
         }
-      ]
+      ],
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "E-FAULT-18",
@@ -25925,7 +26714,13 @@
         "entry": "FAULT-18"
       },
       "remaining_local_evidence": "Actual healthCLI on native successfulservice store passes5 independent assertions: endpointhealth/outcome/approval unknown, alldevicedenominators null, norolloutauthority, exactdatabaseunchanged. Releasedartifact linkage pending; enrolleddeviceevidence blocked.",
-      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures."
+      "external_gate": "Real declared host/CI/Graph/Azure/device route as applicable remains distinct and not established by these local fixtures.",
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      }
     },
     {
       "id": "B-NOOP-01",
@@ -25934,8 +26729,8 @@
       "required_profile": "local-native-protocol-and-declared-pilot",
       "status": "IMPLEMENTED",
       "evidence_class": "repaired-local-contract-with-independent-negative-controls",
-      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
-      "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending.",
+      "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313",
+      "applicable_revision": null,
       "artifact_sha256": null,
       "test_procedure_id": "adoption-recovery-plan-artifact-before-01",
       "evidence_path": [
@@ -26342,8 +27137,96 @@
         ],
         "limitation": "No native phase-v2 run on these final dependencies yet. Component/signature/SQLite controls do not establish native Windows or real service qualification.",
         "next_action": "Freeze checkpoint18, execute retained source-v2 proposal and original initial-Plan/new-Plan recovery chain with new approvals, then qualify exact final packages."
-      }
+      },
+      "current_candidate_target26": {
+        "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "scope": "Target to qualify. All historical revision/artifact/status fields and receipts below retain their original applicability; no automatic evidence reuse or changed-source PASS."
+      },
+      "historical_primary_revision_notes_before26": {
+        "observed_source_revision": "db664140ad067be839e12eaf8ef7746670dba313 plus integrated proposal a44285488b895b982884b359f28c8df44c939b29351f5f23965a817a633bd9b3",
+        "applicable_revision": "Exact committed source in integration/COMMIT-18.json; final native and package qualification pending."
+      },
+      "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     }
   ],
-  "checkpoint_increment": 25
+  "checkpoint_increment": 26,
+  "environment_resumption26": {
+    "candidate_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "candidate_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+    "recorded_at": "2026-10-11T20:33:28.280065+00:00",
+    "audit": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/branch-resume-20261011/ledger-reconciliation-01/REFERENCE-AVAILABILITY-03.json",
+      "sha256": "86c82d7d0f7835779f9658fcde3117187b2edf717927c05ad87dc2d5629f9792"
+    },
+    "matrix": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/branch-resume-20261011/ledger-reconciliation-01/REQUIREMENT-MATRIX-C25-RESUME-03.json",
+      "bytes": 1469922,
+      "sha256": "38f842a8abac963136cf2642430087b056d8310f2eba05cf7fe9c15c7c45e071"
+    },
+    "reconstructed_artifacts": [
+      {
+        "kind": "source",
+        "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "bytes": 17956520,
+        "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+        "scope": "Exact original package bytes reconstructed on2026-10-11; no recovered old raw test logs or new suite/native PASS."
+      },
+      {
+        "kind": "runtime",
+        "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0.zip",
+        "bytes": 1520542,
+        "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+        "tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+        "scope": "Exact original package bytes reconstructed on2026-10-11; no recovered old raw test logs or new suite/native PASS."
+      }
+    ],
+    "reconstruction_receipt": {
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/RECONSTRUCTION-RECEIPT.json",
+      "bytes": 2603,
+      "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b"
+    },
+    "required_gate_observation": "C25 strict03 outcome not available; no PASS inferred.",
+    "old_scratch_availability": "39 canonical referenced path/hash pairs are missing; historical values/statuses retained verbatim.",
+    "laboratory_complete": false,
+    "platform_qualified": false,
+    "organizational_production_approved": false,
+    "selected_recovery_root_availability": {
+      "ABSENT": 265,
+      "PRESENT": 95
+    },
+    "missing_selected_namespace": "265 literal mapped /tmp roots are absent. Absence directly observed; deletion actor/environment-replacement root cause not independently proved.",
+    "closed_native_helper_availability": {
+      "NOT_FOUND_IN_BOUNDED_RETAINED_SOURCE": 1,
+      "RECOVERABLE_EXACT_BYTES": 27
+    },
+    "missing_native_helper": "native_recovery_plan.py exact admitted bytes not found in bounded retained source; alternative helper or regenerated history cannot silently replace it.",
+    "fresh_package_verification": {
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/VERIFICATION-RECEIPT.json",
+      "bytes": 1663,
+      "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e"
+    },
+    "workspace_discrepancy_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/RESULT.json",
+      "bytes": 3347,
+      "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+    },
+    "wrapper_recovery_addendum": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/NATIVE-INPUTS-AND-WRAPPER-ADDENDUM-01.json",
+      "bytes": 3095,
+      "sha256": "ecb962d6506a43d008a7e2247e897345b68eb15eca383820127f4c56237bfae9"
+    },
+    "public_metadata_evidence_destinations": [
+      "docs/continuation-evidence/20261011/workspace-availability.json",
+      "docs/continuation-evidence/20261011/reconstructed-packages.json",
+      "docs/continuation-evidence/20261011/reconstructed-package-verification.json"
+    ],
+    "public_destination_scope": "Root-supplied explicit metadata-only publication destinations. Prepared staged bytes below; no branch readback success claimed.",
+    "strict_gate_status": "Exact C25 full gate remains unobserved; restored wrapper/tools enable a NEW qualified run only after quiet performance and source-branch review/publication.",
+    "performance_status": "Coordinator reports source/runtime quiet measurements active; no result asserted in this reconciliation."
+  }
 }

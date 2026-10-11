@@ -1,3 +1,134 @@
+# Current R4 continuation checkpoint — 2026-10-11
+
+The engineering candidate is **0.9.0, C25**,
+`e3bdefe0b1ac0c58e46f9af3360970f8e47ae393`, tree
+`0bdbdeb3556acce23c8390abb20e835184880b27`, on the dedicated
+`continuation/r4-20261007` branch. The exact source is descended from verified
+0.8.0 `289ee9477372825aad848f4482cf681c2ff43b02`. Do not overwrite C25 with an
+older snapshot. The root coordinator owns the new documentation checkpoint and
+its branch publication; no remote success is asserted before checked readback.
+A documentation checkpoint after C25 does not relabel older tested artifacts.
+
+Increment26 reconciles the resumed environment. The retained current ledger has
+92 rows:1 PASS for baseline recovery,75 IMPLEMENTED,15 BLOCKED and1 UNSUPPORTED.
+F03/F09 are nowBLOCKED on observed missing raw recovery evidence; their earlier
+IMPLEMENTED values and all original nested statuses/contrary evidence remain
+verbatim in preserved records. The latest
+candidate/current artifact fields are corrected independently of historical
+qualification applicability. Read the new C25 requirement matrix and direct
+reference audit under
+`work/evidence/epoch-20261007-r4/branch-resume-20261011/ledger-reconciliation-01/`.
+The audit examined2,932 references/318 canonical path-hash pairs:279 exact
+available matches,39 missing original `/tmp` targets, zero byte mismatches.
+The independently recorded workspace audit found265 of360 mapped roots absent,
+all under `/tmp`, and95 present under `/workspace`. This is a material full-R4
+corpus preservation gap. The absence is observed; deletion actor/cause is not
+independently established.27 of28 closed native helper members are recoverable
+at their exact pins; `native_recovery_plan.py` is not found in bounded retained
+source. No clean file-set closure or complete new-native profile is claimed.
+
+Initial audit01's two work/docs namespace false-missings are explicitly
+corrected in audit02/03.108 of219 primary source-dependency records match the
+current bytes;111 differ. Many primary records predate later scoped receipts;
+these figures neither discard later evidence nor establish transitive reuse.
+
+C25 source and runtime ZIPs were freshly reconstructed on2026-10-11 into
+`work/releases/continuation-0.9.0-r4-c25-restored-20261011/`. The source is
+17,956,520 bytes, SHA-256
+`b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e`;
+the runtime is1,520,542 bytes, SHA-256
+`7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d`.
+Their bytes match the retained original C25 package record. The new
+`RECONSTRUCTION-RECEIPT.json` records actual argv and exact source/tree linkage.
+This restores package availability only. New independent verification records safe source/runtime extraction,3354
+selected Git-linked source files,3355 sourceZIP/300runtimeZIP members and exact
+rebuilds. Its receipt SHA-256 is
+`25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e`.
+These are package integrity scopes; no suite/native outcome is inferred.
+
+C24's2304/2304 required gate and CLI/PTY/connected results remain recorded
+historical attestations in C25, the independent package review and prior ledger
+integrity record. Their original raw `/tmp` receipts/logs are currently missing.
+The prior C25 strict03 run's final result has not been observed. **No C25 strict,
+complete native journey, performance or full-delivery PASS is claimed.** Missing
+scratch evidence is a preservation gap, not a newly observed failed test; do not
+manufacture or reconstruct historical logs from expected outcomes. Preserve the
+C22 failure, all repair-before/after records and the exact old artifact pins.
+
+The earlier descendant cleanup blocker has explicit preserved root cause and
+repair evidence. The old runner sent SIGKILL then waited only for the exited
+direct child, returning before descendant termination was confirmed. The
+repair establishes bounded nonexecuting process/task state while group identity
+remains anchored, then reaps the direct child. Original repeated R!=Z failure,
+independent44-case before/15 failures,48-case after/zero failures and20 original
+passing repeats are retained. `HISTORICAL-REUSE-READBACK-01.json` checks exact
+existing receipt bytes without replay. Preserve the1,141-test0.7.0 and1,242-test
+0.8.0 results at their own revisions. Neither old cleanup proof nor those
+results qualify changed C25 supervisor bytes or native Windows.
+
+The first remaining local dependency is qualification of the available exact
+C25 artifacts, after restoring the required pinned qualification-tool context.
+Use the discovered scripts in `EXECUTION-SEQUENCE-R4.md`. The exact original
+strict-driver bytes were recovered and an attributable path-only adaptation
+with existing qualification-tool pins was prepared/negatively checked. A NEW
+full C25 gate remains required after the current quiet performance window and
+reviewed source publication. The recovered wrapper does not recover old logs.
+After the required gate is quiet and passes, construct a new exact-source
+closed native profile from its retained admission, first recovering the exact
+missing helper or preparing/independently qualifying an attributable new
+replacement; its narrower provenance scope must remain explicit. Include ordinary
+partial/committed-state/reverse-description fault routes. Fresh adoption is
+followed immediately by ordinary-prepare, before maintenance changes that
+fixture. Preserve consumed unknown operations; no old approval or saved plan
+is replayed. Finish signed history/PTY and preregistered quiet performance, then
+complete nine-layer evidence/delivery verification. Source publication alone
+does not deliver the complete recovery corpus.
+
+Public branch metadata is prepared at these explicit relative destinations:
+[workspace availability](continuation-evidence/20261011/workspace-availability.json),
+[reconstructed packages](continuation-evidence/20261011/reconstructed-packages.json),
+[package verification](continuation-evidence/20261011/reconstructed-package-verification.json),
+[source review](continuation-evidence/20261011/source-review.json) and
+[source/history/package review](continuation-evidence/20261011/source-history-packages-review.json).
+The coordinator copies specifically reviewed metadata into this checkpoint;
+those receipts contain no raw tenant captures, credentials, state or plans.
+These links make the public continuation evidence reviewable, and do not claim
+public full-corpus delivery or a successful remote upload before readback.
+
+**Outcomes:** laboratory completion remains incomplete; required platform
+qualification remains blocked; organizational production approval is absent.
+G01–G13 in `EXTERNAL-GATES-R4.md` give specific environments, authorizations,
+procedures, expected evidence, recovery and owners. Native Windows/Git Bash/
+mintty/PowerShell, installed protected CI/service, real Graph/Azure identities/
+state, OS-scheduled collection, devices, destructive containment, key custody
+and AppSec/accountable approval keep distinct gates. Existing source-publication
+authority grants no deployment, tenant mutation, credential provisioning,
+privilege expansion or production decision. Wally remains optional/read-only;
+87 completed reviews, nine timeouts and no demonstrated benefit are preserved.
+The three original unexpected files/reappearance, actor attribution and later
+helper/bytecode provenance findings remain open.
+
+Automatic approval review rejected the isolated malformed-error provider repair,
+citing possible cybersecurity risk; no specific command or more detailed reason
+was exposed. Its unbuilt candidate and failures stay preserved. G13 remains a
+release blocker, and this reconciliation grants no alternate repair route.
+
+Resume the exact available candidate without starting work from scratch:
+
+```sh
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+git log -5 --oneline
+cat docs/EXECUTION-SEQUENCE-R4.md
+cat /workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/RECONSTRUCTION-RECEIPT.json
+```
+
+The following original checkpoint prose is retained historical context. The
+current scope and availability statements above supersede its runnable `/tmp`
+paths and any older continuation claims.
+
+---
+
 # R4 initial reconciliation checkpoint
 
 This is a continuation checkpoint, not a completed milestone or release.
