@@ -1,0 +1,83 @@
+{
+  "schema": "intune-public-C25-native-run01-failure-summary/1",
+  "status": "FAIL",
+  "producer_status_verbatim": "STOPPED_UNEXPECTED_FAILURE",
+  "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "engineering_artifacts": {
+    "source_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+    "runtime_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d"
+  },
+  "profile_sha256": "214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774",
+  "driver": {
+    "bytes": 50011,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/orchestrate.py",
+    "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403"
+  },
+  "configuration_sha256": "3589fcc1818b9b6c74d3202a5081e3fbdfa1627df0df04fd1cda21fc46c772ee",
+  "source_result_receipt_sha256": "7bdc4bb056373f2741b9a6da20063b7c157b2fc2cb0f3b8382561c93a1b526df",
+  "planned_native_action_count": 38,
+  "completed_action_ids": [
+    "validate",
+    "adoption",
+    "ordinary-prepare",
+    "ordinary-service",
+    "ordinary-restore"
+  ],
+  "failed_attempted_action": "ordinary-fault-assignment",
+  "later_unexecuted_action_count": 32,
+  "producer_not_started_list_includes_attempted_failure": true,
+  "original_not_started_list_retained_privately": true,
+  "observed_subreceipts": {
+    "scenario_final_status": "PASS",
+    "scenario_final_sha256": "010ddec318e3280d078348c7556395e85fd140939c701849afefad50117d5715",
+    "cleanup_sha256": "9396c99d49ee3c11ffc6390d574d682b1ca589c4559660742b6b1acfc86957d4",
+    "portable_status": "FAIL",
+    "portable_error": "ValueError",
+    "portable_sha256": "7bc88e270de69ba63d93c31ea988e56f106c96e619887f9d4d67010e8a64cc05",
+    "loader_exit_code": 1,
+    "loader_exit_sha256": "8f45c7eb35b022a80c7c36e77a27f6523f7c6da280dd950ebb9fa58ba2d16e9b",
+    "traceback_sha256": "7e8fb5067210225fd724f391143dbaae948f4da84b4f5ec41395ad83406392ea"
+  },
+  "failure": "External native_ordinary_linkage.py closed/canonical linkage serialization raised ValueError unsupported qualification JSON value after scenario finalization. Exact value/contract repair and independent frozen-metadata reconciliation are pending; do not infer fullnativePASS.",
+  "private_capsule": {
+    "bytes": 2361697,
+    "sha256": "2163f1244942ef2c45e583c900b6f3fcdb0386a8aadfbef80388a5f38e533987",
+    "entries": 1547,
+    "literal_links": 27,
+    "runtime_socket_metadata_markers": 9,
+    "receipt_sha256": "22bafd679c38c8f0ac4d34f3a9c138096e812cc1995b624ee5b463ef177930e1",
+    "durable_delivery_status": "PASS_EXACT_DURABLE_PRIVATE_CAPSULE",
+    "runnable_restore": false,
+    "public_payload": false,
+    "omissions": [
+      "Existing source/runtime packages and external native tool binaries remain in their separately pinned preserved locations, not copied into this raw capsule.",
+      "Capsule, its external census/receipt and subsequent final status cannot contain their own final bytes; they remain alongside it.",
+      "Runtime Unix sockets are explicit metadata-only typed markers: no live connection/peer state is serializable or restored. Every regular tool/source copy inside selected raw trees remains included byte-exact; no content deduplication or pruning occurs."
+    ]
+  },
+  "local_scope": "Actual pinned Atmos/OpenTofu/provider processes against nonforwarding synthetic local Graph/Azure qualification endpoints. Independent full native journey admission not complete.",
+  "count_policy": "38 plannedactions,5completed/1attemptedfailed/32laterunexecuted; not38checks/independentassertions. No source/runtime/native/PTY/performance/reviewer count addition.",
+  "platform_qualified": false,
+  "production_approved": false,
+  "historical_raw_loss_closed": false,
+  "automatic_retry": false,
+  "public_payload": "Metadata only: no rawservicecapture/state/savedplan/approval/journal/key/processenvironment/PTY payload; original private failure/capsules retained.",
+  "next_action": "Review exact external-helper contract repair and independently reconcile frozen raw metadata without repeating native mutation; admit any new helper/profile separately before remaining actions.",
+  "independent_stopped_prefix_admission": {
+    "public_metadata_sha256": "3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101",
+    "private_result_sha256": "c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c",
+    "independent_reader_assertions": 111,
+    "scope": "Stopped native FAIL boundary, not complete nativePASS; exact public metadata provides limitations."
+  },
+  "failed_operation_observation": {
+    "status": "outcome_unknown",
+    "policy_HTTP_status": 204,
+    "assignment_HTTP_status": 403,
+    "state_serial": 13,
+    "state_unchanged": true,
+    "held_lease": true,
+    "active_reservations": 2,
+    "cleanup_does_not_release_or_reconcile": true
+  }
+}

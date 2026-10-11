@@ -3445,3 +3445,16 @@ docs/continuation-evidence/20261011/source-branch-publication.json
 docs/continuation-evidence/20261011/source-documentation-readback.json
 docs/continuation-evidence/20261011/source-gate-attempt-01.json
 docs/continuation-evidence/20261011/source-gate-attempt-02.json
+
+# C28 specifically reviewed metadata and coordinator source text; runtime remains C25.
+docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json
+docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json
+docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json
+docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json
+docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json
+docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json
+docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md
+docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json
+docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt
+docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json
+docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json

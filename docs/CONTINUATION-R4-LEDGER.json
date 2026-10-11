@@ -26,9 +26,9 @@
         "scope": "Exact original C25 archive bytes reconstructed and verified on2026-10-11. New scoped source strict gate02 and bounded source/runtime performance are recorded independently; no missing historical logs recovered and no full runtime/native/platform approval inferred."
       }
     ],
-    "latest_completed_checkpoint": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+    "latest_completed_checkpoint": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
     "current_checkpoint_receipt": "evidence/epoch-20261007-r4/integration/COMMIT-27.json",
-    "candidate_disposition": "C25_EXACT_SOURCE_STRICT_PACKAGE_PERFORMANCE_AND_INDEPENDENT_SCOPED_RUNTIME_PASS_FULL_NATIVE_FAULT_RECOVERY_HISTORY_DELIVERY_PLATFORM_PENDING",
+    "candidate_disposition": "C25_SOURCE_STRICT_PACKAGE_PERFORMANCE_SCOPED_RUNTIME_PASS_NATIVE_RUN01_STOPPED_EXTERNAL_QUALIFICATION_FAILURE_REMAINING_NATIVE_RECOVERY_HISTORY_DELIVERY_PLATFORM_PENDING",
     "retained_candidate_artifacts": [
       {
         "source_commit": "8b219a1614bd8e7533d83500d511ae6f9e0295ab",
@@ -103,7 +103,7 @@
     "laboratory": "IMPLEMENTED",
     "platform": "BLOCKED",
     "organizational_production_approval": "BLOCKED",
-    "explanation": "Laboratory completion is not globally declared: C25 exact source strict gate02 passed2,307planned/run/passed with zero failures/errors/skips/xfails/unexpected successes and complete core. Firstgate01FAIL(2,298passed/9requiredskips) and attributablefixturecopy/target9PASS remain distinct preserved, overlapping attempts. Exact C25 packages/rebuilds and independently admitted bounded Linux performance pass; C26 sourcebranch and anonymous13path readback are exact. All three exact-runtime producer procedures exited0 and a complete owned-output capsule is verified; independent36-assertion runtime admission passes the precise actual modeled-service scope(64namedchecks/34commands/10LinuxPTY), with explicit deletedtemporaryrawomissions; exact native/fault/history qualification remains pending;265historical audit root absences/39missing receipts and original helper/provenance remain unresolved. Required real host/CI/service/backend/device and accountable production approval remain blocked."
+    "explanation": "Laboratory completion is not globally established. Exact C25 source gate02 (2,307 planned/run/passed, zero exceptions), bounded Linux performance and independently admitted modeled runtime scopes remain preserved; no rerun or additive count. Actual native run01 stopped after five completed of 38 planned actions; the sixth assignment-fault scenario finalized, but external portable linkage rejected an unsupported qualification JSON value. Independent stopped-prefix admission has 111 nonadditive reader assertions: policy PUT204, assignment403, unchanged state serial13, outcome_unknown, held lease and two reservations are preserved. Full native run01 remains FAIL; 32 later actions, external helper repair/frozen metadata reconciliation and explicit reviewed recovery/history remain required. Complete owned private capsules do not restore missing historical corpus, and actual platform/device/OS scheduler/security/accountable approval remain blocked."
   },
   "historical_ledger": {
     "path": "docs/CONTINUATION-ACCEPTANCE-20261007-R3.json",
@@ -16560,8 +16560,8 @@
         "evidence/epoch-20261007-r4/independent/doctor-adoption-02/RESULT.json"
       ],
       "environment": "Linux local disposable fixtures; no production credentials",
-      "limitation": "C25 exact source gate02 passes2,307planned/run/passed with complete core and zero failures/errors/skips/xfails/unexpected successes. Firstgate01FAIL and target9PASS remain independently preserved; counts are not added. Exact delivered-runtime cooperative Linux modeled-service routes are independently admitted:36readerassertions/64connectedchecks/34commands/10PTY, with deletedworkflow/wizardTemporaryDirectory raw intermediates explicitly omitted. Full closed native/fault/recovery/signed-history release routes, realCI/profile evidence and complete corpus/package delivery remain separate pending gates.",
-      "next_action": "Preserve exact gate02 and independently admitted runtime proof without rerunning absent relevant change/required gate. Complete the exact closed native protected lifecycle/planned38-check fault route/recovery/signed-history qualification, then complete layered recovery/package delivery/readback and declared external gates.",
+      "limitation": "Exact C25 sourcegate02 and independently admitted cooperative modeled-runtime/performance scopes pass with unchanged dependencies; counts overlap and are neveradded. Actual native run01 stopped after5completedof38plannedactions at attempted ordinary-fault-assignment externalportable metadata failure. Its scenarioFINALPASS/cleanup completion do not establish whole native qualification. Originalfailedportable/outer receipts and complete privatecapsule remain preserved. Exact helpercontract repair/independent frozenmetadata reconciliation, later32actions and realexternal/corpusdelivery gates remain required.",
+      "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
       "blocker_owner": null,
       "depends_on": [
         "A14",
@@ -27638,7 +27638,7 @@
       "revision_reconciliation26": "Historical prose retained verbatim above. Unknown final applicability stays null; no C25 qualification inferred."
     }
   ],
-  "checkpoint_increment": 27,
+  "checkpoint_increment": 28,
   "environment_resumption26": {
     "candidate_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
     "candidate_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
@@ -27898,7 +27898,7 @@
           "sha256": "9185188deb897c5fb76b8e9ee92a09c473fa5ac563dce1ad26ec6e144b11ddb1"
         }
       ],
-      "remaining": "Exact closed native protected lifecycle, planned 38-check fault route, interruption/partial/committed-state recovery and signed-history qualification remain pending. Independently admitted exact-runtime connected scope already passed64namedchecks/34commands/10LinuxPTY with36readerassertions; no repeat without relevant change/required gate. Complete recovery/public/saved package delivery and F03/F09 historical raw-corpus blockers remain; required actual platform evidence and accountable approval remain blocked. Counts overlap and are not added.",
+      "remaining": "Whole native qualification is FAIL for attemptedrun01, with5completed/1attemptedfailed/32laterunexecutedof38plannedactions; independent full nativeadmission remains incomplete. Exacthelperrepair/frozenmetadata reconciliation and remainingnative/recovery/history qualification, capacity/completeownedcapsules, complete layeredrecovery/package/public-saved delivery/readback and F03/F09 historicalcorpus remain. Sourcegate/performance/modeledruntime and actualC27sourcepublication pass only their precise scopes; realexternal profile/AppSec/approval remainblocked.",
       "source_strict_portion": "PASS",
       "source_strict_receipt": {
         "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/RECEIPT.json",
@@ -27916,14 +27916,14 @@
     "G05": {
       "status": "BLOCKED",
       "implementation_scope": "Protected adoption/import recovery, source-v2 maintenance binding, no-acquisition observation, Plan /3 successor and portable mixed history integrated; code matches exact C25 source package. Historical checkpoint12/19 pending prose does not mean those code paths are absent.",
-      "remaining_local": "Actual source gate02 and exact-runtime modeled-service application routes are independently admitted in their precise local scopes. Complete the exact closed C25 protected native lifecycle, planned38-check fault route, interruption/partial/committed-state recovery and signed-history qualification using the new attributed specifically reviewed replacement helper and complete pinned profile. Original missing helper/raw evidence remains unavailable; new replacement/profile does not recover historical bytes or close provenance.",
+      "remaining_local": "Native run01 completed5of38plannedactions, then ordinary-fault-assignment loader exited1 after scenarioFINALPASS/cleanup, because externallinkage canonical encoding rejected a qualificationJSONvalue. Preserve originalfailure and independently qualify focused helperrepair/frozenmetadata reconciliation without repeating mutation. Then separately admit changed helper/profile and complete remaining32actions/fault/recovery/signedhistory scope. 38is totalactions, not38faultchecks or independentassertions. Originalmissinghelper/rawhistory/provenance remain separate blockers.",
       "remaining_external": "Organizational protected platform choice and accountable service owner, actual protected CI authorization/run, native Windows and real Azure/Graph/provider/identity/device scopes; provider malformed-error blocker remains.",
       "blocker_owner": "Execution/service and tenant/backend/device owners; native qualification maintainer and release/corpus custodian for exact closed helper; AppSec/provider disposition owner for stopped repair.",
       "no_external_pass": true
     },
     "G07": {
       "status": "BLOCKED",
-      "source_branch_publication": "PASS_EXACT_C26_SCOPE",
+      "source_branch_publication": "PASS_EXACT_C27_SCOPE",
       "scope": "Git ref and anonymous source documentation publication only. Existing failed zero-job baseline runs remain; no protected CI dispatch/run or administration was performed.",
       "blocker_owner": "Organizational execution-platform owner and repository/platform administrator"
     }
@@ -27990,7 +27990,7 @@
     },
     "environment": "Linux x86_64 CPython3.12; exact extracted C25 package, restored independently pinned native fixture, local synthetic/API-shaped HTTP fixtures.",
     "limitation": "Exact source strict gate only. Not full native Atmos/Intune lifecycle, exact runtime connected journeys, native Windows, live Graph/Azure/CI/device, installation or production approval. Counts overlap targeted/component/previous scopes and are not added.",
-    "next_action": "Preserve completed exact source gate02 and independent modeled-service runtime admission. Complete exact closed native protected lifecycle/planned38-check fault route/recovery/signed-history qualification, layered recovery/delivery/readback and required external gates. No source/runtime rerun without relevant change or required gate.",
+    "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
     "blocker_owner": null,
     "public_metadata_path": "docs/continuation-evidence/20261011/source-gate-attempt-02.json"
   },
@@ -28169,7 +28169,7 @@
       },
       "environment": "Linux x86_64 CPython3.12; exact extracted C25 package, restored independently pinned native fixture, local synthetic/API-shaped HTTP fixtures.",
       "limitation": "Exact source strict gate only. Not full native Atmos/Intune lifecycle, exact runtime connected journeys, native Windows, live Graph/Azure/CI/device, installation or production approval. Counts overlap targeted/component/previous scopes and are not added.",
-      "next_action": "Preserve completed exact source gate02 and independent modeled-service runtime admission. Complete exact closed native protected lifecycle/planned38-check fault route/recovery/signed-history qualification, layered recovery/delivery/readback and required external gates. No source/runtime rerun without relevant change or required gate.",
+      "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
       "blocker_owner": null,
       "public_metadata_path": "docs/continuation-evidence/20261011/source-gate-attempt-02.json"
     }
@@ -28198,7 +28198,7 @@
     "seconds": 49.844,
     "environment": "Existing pinned OpenTofu1.13.1 bytes copied to anewdeclaredlegacyfixturepath; no product/gate/provider code change.",
     "limitation": "Exactly9previouslyskipped nativeoutput-only methods; overlapsfullgate and not added tostrictcount. Historical1.10.0tool/brokerscratch/actorprovenanceare notrestored orclosed.",
-    "next_action": "Preserve target9PASS, priorgate01FAIL and completed required gate02PASS separately without adding counts. Gate02 and independent exact-runtime route admission are complete in their stated scopes; continue exact closed native/fault/recovery/signed-history qualification, full recovery/delivery and required real external procedures. Do not rerun completed source/runtime gates without relevant change or required gate.",
+    "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
     "blocker_owner": null
   },
   "replacement_recovery_helper27": {
@@ -28529,5 +28529,470 @@
     ],
     "row_integrity_scope": "All92rowIDs/statuses preserved. Current limitation/next_action fields are updated; complete historical old rows remain in immutable C26 Git, changed draft06 values are retained here, and D12/E01 prior next_action literals are copied from actual C26 Git. No claim all current row fields are unchanged.",
     "attribution_correction": "Current overwritten literals are attributed to exact applied draft06 bytes. Only D12/E01 historical next_action additions were actually read from pinned C26 Git; C26 is not falsely attributed as the source of other updated draft06 literals."
+  },
+  "historical_current_guidance28": {
+    "source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+    "source_ledger_pin": {
+      "path": "/workspace/intune-continuation/work/projects/intune/docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1670440,
+      "sha256": "1908b695fe738fc99a7c1e52af56e2330ad00fda1786c41d1eccb65cf00df918"
+    },
+    "source_url": "https://github.com/nsahmed23/neon-commons/blob/3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8/docs/CONTINUATION-R4-LEDGER.json",
+    "scope": "Exact previous C27 literals below remain expressly historical. All92 IDs/statuses preserved; current guidance changed only as recorded, not a claim every row field is unchanged. Complete prior ledger/Markdown retained in immutableGit and previous documents.",
+    "changes": [
+      {
+        "field": "checkpoint_increment",
+        "old_value": 27,
+        "new_value": 28,
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "source_authority.latest_completed_checkpoint",
+        "old_value": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+        "new_value": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "source_authority.candidate_disposition",
+        "old_value": "C25_EXACT_SOURCE_STRICT_PACKAGE_PERFORMANCE_AND_INDEPENDENT_SCOPED_RUNTIME_PASS_FULL_NATIVE_FAULT_RECOVERY_HISTORY_DELIVERY_PLATFORM_PENDING",
+        "new_value": "C25_SOURCE_STRICT_PACKAGE_PERFORMANCE_SCOPED_RUNTIME_PASS_NATIVE_RUN01_STOPPED_EXTERNAL_QUALIFICATION_FAILURE_REMAINING_NATIVE_RECOVERY_HISTORY_DELIVERY_PLATFORM_PENDING",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "outcomes.explanation",
+        "old_value": "Laboratory completion is not globally declared: C25 exact source strict gate02 passed2,307planned/run/passed with zero failures/errors/skips/xfails/unexpected successes and complete core. Firstgate01FAIL(2,298passed/9requiredskips) and attributablefixturecopy/target9PASS remain distinct preserved, overlapping attempts. Exact C25 packages/rebuilds and independently admitted bounded Linux performance pass; C26 sourcebranch and anonymous13path readback are exact. All three exact-runtime producer procedures exited0 and a complete owned-output capsule is verified; independent36-assertion runtime admission passes the precise actual modeled-service scope(64namedchecks/34commands/10LinuxPTY), with explicit deletedtemporaryrawomissions; exact native/fault/history qualification remains pending;265historical audit root absences/39missing receipts and original helper/provenance remain unresolved. Required real host/CI/service/backend/device and accountable production approval remain blocked.",
+        "new_value": "Laboratory completion is not globally established. Exact C25 source gate02 (2,307 planned/run/passed, zero exceptions), bounded Linux performance and independently admitted modeled runtime scopes remain preserved; no rerun or additive count. Actual native run01 stopped after five completed of 38 planned actions; the sixth assignment-fault scenario finalized, but external portable linkage rejected an unsupported qualification JSON value. Independent stopped-prefix admission has 111 nonadditive reader assertions: policy PUT204, assignment403, unchanged state serial13, outcome_unknown, held lease and two reservations are preserved. Full native run01 remains FAIL; 32 later actions, external helper repair/frozen metadata reconciliation and explicit reviewed recovery/history remain required. Complete owned private capsules do not restore missing historical corpus, and actual platform/device/OS scheduler/security/accountable approval remain blocked.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "rows.63.limitation",
+        "old_value": "C25 exact source gate02 passes2,307planned/run/passed with complete core and zero failures/errors/skips/xfails/unexpected successes. Firstgate01FAIL and target9PASS remain independently preserved; counts are not added. Exact delivered-runtime cooperative Linux modeled-service routes are independently admitted:36readerassertions/64connectedchecks/34commands/10PTY, with deletedworkflow/wizardTemporaryDirectory raw intermediates explicitly omitted. Full closed native/fault/recovery/signed-history release routes, realCI/profile evidence and complete corpus/package delivery remain separate pending gates.",
+        "new_value": "Exact C25 sourcegate02 and independently admitted cooperative modeled-runtime/performance scopes pass with unchanged dependencies; counts overlap and are neveradded. Actual native run01 stopped after5completedof38plannedactions at attempted ordinary-fault-assignment externalportable metadata failure. Its scenarioFINALPASS/cleanup completion do not establish whole native qualification. Originalfailedportable/outer receipts and complete privatecapsule remain preserved. Exact helpercontract repair/independent frozenmetadata reconciliation, later32actions and realexternal/corpusdelivery gates remain required.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "rows.63.next_action",
+        "old_value": "Preserve exact gate02 and independently admitted runtime proof without rerunning absent relevant change/required gate. Complete the exact closed native protected lifecycle/planned38-check fault route/recovery/signed-history qualification, then complete layered recovery/package delivery/readback and declared external gates.",
+        "new_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "c25_required_gate27.next_action",
+        "old_value": "Preserve completed exact source gate02 and independent modeled-service runtime admission. Complete exact closed native protected lifecycle/planned38-check fault route/recovery/signed-history qualification, layered recovery/delivery/readback and required external gates. No source/runtime rerun without relevant change or required gate.",
+        "new_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "required_source_gate_attempts27.1.next_action",
+        "old_value": "Preserve completed exact source gate02 and independent modeled-service runtime admission. Complete exact closed native protected lifecycle/planned38-check fault route/recovery/signed-history qualification, layered recovery/delivery/readback and required external gates. No source/runtime rerun without relevant change or required gate.",
+        "new_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "external_gate_progress27.G05.remaining_local",
+        "old_value": "Actual source gate02 and exact-runtime modeled-service application routes are independently admitted in their precise local scopes. Complete the exact closed C25 protected native lifecycle, planned38-check fault route, interruption/partial/committed-state recovery and signed-history qualification using the new attributed specifically reviewed replacement helper and complete pinned profile. Original missing helper/raw evidence remains unavailable; new replacement/profile does not recover historical bytes or close provenance.",
+        "new_value": "Native run01 completed5of38plannedactions, then ordinary-fault-assignment loader exited1 after scenarioFINALPASS/cleanup, because externallinkage canonical encoding rejected a qualificationJSONvalue. Preserve originalfailure and independently qualify focused helperrepair/frozenmetadata reconciliation without repeating mutation. Then separately admit changed helper/profile and complete remaining32actions/fault/recovery/signedhistory scope. 38is totalactions, not38faultchecks or independentassertions. Originalmissinghelper/rawhistory/provenance remain separate blockers.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "external_gate_progress27.G11.remaining",
+        "old_value": "Exact closed native protected lifecycle, planned 38-check fault route, interruption/partial/committed-state recovery and signed-history qualification remain pending. Independently admitted exact-runtime connected scope already passed64namedchecks/34commands/10LinuxPTY with36readerassertions; no repeat without relevant change/required gate. Complete recovery/public/saved package delivery and F03/F09 historical raw-corpus blockers remain; required actual platform evidence and accountable approval remain blocked. Counts overlap and are not added.",
+        "new_value": "Whole native qualification is FAIL for attemptedrun01, with5completed/1attemptedfailed/32laterunexecutedof38plannedactions; independent full nativeadmission remains incomplete. Exacthelperrepair/frozenmetadata reconciliation and remainingnative/recovery/history qualification, capacity/completeownedcapsules, complete layeredrecovery/package/public-saved delivery/readback and F03/F09 historicalcorpus remain. Sourcegate/performance/modeledruntime and actualC27sourcepublication pass only their precise scopes; realexternal profile/AppSec/approval remainblocked.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "external_gate_progress27.G07.source_branch_publication",
+        "old_value": "PASS_EXACT_C26_SCOPE",
+        "new_value": "PASS_EXACT_C27_SCOPE",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      },
+      {
+        "field": "qualification_context_repair27.next_action",
+        "old_value": "Preserve target9PASS, priorgate01FAIL and completed required gate02PASS separately without adding counts. Gate02 and independent exact-runtime route admission are complete in their stated scopes; continue exact closed native/fault/recovery/signed-history qualification, full recovery/delivery and required real external procedures. Do not rerun completed source/runtime gates without relevant change or required gate.",
+        "new_value": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+        "old_value_observed_source_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+        "old_value_observed_source_path": "docs/CONTINUATION-R4-LEDGER.json"
+      }
+    ]
+  },
+  "source_branch_publication28": {
+    "status": "PASS",
+    "scope_only": true,
+    "observed_docs_revision": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+    "tree": "87f00c173c7a30d2d8eabf91bce4e39fae5c50f4",
+    "branch": "continuation/r4-20261007",
+    "commit_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-27.json",
+      "bytes": 8428,
+      "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89"
+    },
+    "publication_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/source-branch-publication-20261011-02/RECEIPT.json",
+      "bytes": 1242,
+      "sha256": "45bd001d57ddff524ace0621ce366d0ba45c7e79987ac48d2d34d83e90fafe64"
+    },
+    "anonymous31path_readback": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/source-branch-publication-20261011-02/PUBLIC-DOCUMENTATION-READBACK.json",
+      "bytes": 20977,
+      "sha256": "98d3a6bf2838e3f51458727eba582c01b7ca9ae7d834ea88f7a3c541e95f7233"
+    },
+    "public_metadata_paths": [
+      "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json"
+    ],
+    "limitation": "PASS only actualC27 docs/inventory sourcepublication; C28own commit/publication/readback remains pending; no protectedCI or fullprivatecorpus delivery."
+  },
+  "native_orchestration_admission28": {
+    "status": "PASS",
+    "scope_only": true,
+    "evidence_class": "exact_outer_driver_config_detached_metadata_and_proof_presence_negative_controls",
+    "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "artifact_sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403",
+    "test_procedure_id": "NATIVE-OUTER-ADMISSION-04",
+    "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-outer-admission-04/RESULT.json",
+    "receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-outer-admission-04/RESULT.json",
+      "bytes": 4653,
+      "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6"
+    },
+    "driver": {
+      "bytes": 50011,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/orchestrate.py",
+      "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403"
+    },
+    "configuration": {
+      "bytes": 1981,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/CONFIGURATION-04.json",
+      "sha256": "3589fcc1818b9b6c74d3202a5081e3fbdfa1627df0df04fd1cda21fc46c772ee"
+    },
+    "fixed_action_plan": {
+      "bytes": 10902,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/ACTION-PLAN-01.json",
+      "sha256": "45b70b8943b3e7fd9dfec8167319555f815ea869a20480dd1693449a229f24ed"
+    },
+    "fixed_plan_semantic_digest": "09eb28cc6de004c29227a4e8ec0e9f21f31c351b987065062c0fe1616f31f470",
+    "planned_action_count": 38,
+    "environment": "Local detachedsource/metadata fixtures before rootlocal-lab controlledactivation",
+    "limitation": "Bounded outercontrol/source admission only, not product/nativejourney/AppSec/platform/production qualification; originalNO01-NO04/beforeafter failures preserved and publication source suitability controlled by authorreview.",
+    "next_action": "Preserve exactadmitted outerdriver and stoppedrun failure; review focused externalhelper change/independent frozenmetadata repair separately before any newnativeprofile dispatch.",
+    "blocker_owner": null
+  },
+  "native_journey_attempts28": [
+    {
+      "status": "FAIL",
+      "producer_status_verbatim": "STOPPED_UNEXPECTED_FAILURE",
+      "required_profile": "Exact closed C25 Atmos/OpenTofu/provider Linux native local-syntheticGraph/Azure lifecycle/fault/recovery/history",
+      "evidence_class": "actual_native_process_worker_application_attempt_and_complete_private_capsule_producer_receipts",
+      "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+      "artifact_sha256": "214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774",
+      "test_procedure_id": "C25-NATIVE-JOURNEY-RESUMED-20261011-01",
+      "evidence_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/RESULT.json",
+      "receipt": {
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/RESULT.json",
+        "bytes": 3093,
+        "sha256": "7bdc4bb056373f2741b9a6da20063b7c157b2fc2cb0f3b8382561c93a1b526df"
+      },
+      "source_runtime_artifacts": {
+        "source": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "runtime": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d"
+      },
+      "driver": {
+        "bytes": 50011,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/orchestrate.py",
+        "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403"
+      },
+      "configuration": {
+        "bytes": 1981,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/CONFIGURATION-04.json",
+        "sha256": "3589fcc1818b9b6c74d3202a5081e3fbdfa1627df0df04fd1cda21fc46c772ee"
+      },
+      "planned_action_count": 38,
+      "completed_action_ids": [
+        "validate",
+        "adoption",
+        "ordinary-prepare",
+        "ordinary-service",
+        "ordinary-restore"
+      ],
+      "attempted_failed_action": "ordinary-fault-assignment",
+      "later_unexecuted_action_ids": [
+        "ordinary-partial-recovery",
+        "ordinary-fault-state",
+        "ordinary-committed-recovery",
+        "ordinary-fault-assignment-2",
+        "description-fault-state",
+        "description-committed-recovery",
+        "maintenance",
+        "source-maintenance",
+        "history-source",
+        "cancel-acquisition",
+        "recover-acquisition",
+        "cancel-state",
+        "recover-state",
+        "import-plan",
+        "history-import",
+        "initial-plan-cancel",
+        "initial-plan-release",
+        "initial-plan-complete",
+        "history-initial-plan",
+        "stopped-plan-cancel",
+        "stopped-plan-release",
+        "stopped-plan-successor",
+        "stopped-plan-successor-release",
+        "stopped-plan-complete",
+        "history-stopped-plan",
+        "prebackend-cancel",
+        "prebackend-release",
+        "prebackend-stopped-successor",
+        "prebackend-successor-release",
+        "prebackend-cancelled",
+        "unacquired-plan",
+        "history-unacquired"
+      ],
+      "original_producer_not_started_ids_verbatim": [
+        "ordinary-fault-assignment",
+        "ordinary-partial-recovery",
+        "ordinary-fault-state",
+        "ordinary-committed-recovery",
+        "ordinary-fault-assignment-2",
+        "description-fault-state",
+        "description-committed-recovery",
+        "maintenance",
+        "source-maintenance",
+        "history-source",
+        "cancel-acquisition",
+        "recover-acquisition",
+        "cancel-state",
+        "recover-state",
+        "import-plan",
+        "history-import",
+        "initial-plan-cancel",
+        "initial-plan-release",
+        "initial-plan-complete",
+        "history-initial-plan",
+        "stopped-plan-cancel",
+        "stopped-plan-release",
+        "stopped-plan-successor",
+        "stopped-plan-successor-release",
+        "stopped-plan-complete",
+        "history-stopped-plan",
+        "prebackend-cancel",
+        "prebackend-release",
+        "prebackend-stopped-successor",
+        "prebackend-successor-release",
+        "prebackend-cancelled",
+        "unacquired-plan",
+        "history-unacquired"
+      ],
+      "classification_limitation": "Original producer not_started_action_ids includes attemptedfailedsixthaction; preservedverbatim. Current reconciliation separates5completed/1attemptedfailed/32laterunexecuted, not33unstarted.",
+      "failed_action_subreceipts": {
+        "scenario_final": {
+          "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/journey/ordinary-fault-assignment/FINAL-QUALIFICATION.json",
+          "bytes": 88,
+          "sha256": "010ddec318e3280d078348c7556395e85fd140939c701849afefad50117d5715"
+        },
+        "scenario_final_status": "PASS",
+        "cleanup": {
+          "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/journey/ordinary-fault-assignment/cleanup.json",
+          "bytes": 31,
+          "sha256": "9396c99d49ee3c11ffc6390d574d682b1ca589c4559660742b6b1acfc86957d4"
+        },
+        "cleanup_result": {
+          "failures": [],
+          "primary": null
+        },
+        "portable": {
+          "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/journey/ordinary-fault-assignment/PORTABLE-QUALIFICATION.json",
+          "bytes": 9633,
+          "sha256": "7bc88e270de69ba63d93c31ea988e56f106c96e619887f9d4d67010e8a64cc05"
+        },
+        "portable_status": "FAIL",
+        "loader_exit": {
+          "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/control/command-006-ordinary-fault-assignment/EXIT.json",
+          "bytes": 56,
+          "sha256": "8f45c7eb35b022a80c7c36e77a27f6523f7c6da280dd950ebb9fa58ba2d16e9b"
+        },
+        "loader_exit_code": 1,
+        "stderr_traceback": {
+          "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/control/command-006-ordinary-fault-assignment/stderr.bin",
+          "bytes": 1669,
+          "sha256": "7e8fb5067210225fd724f391143dbaae948f4da84b4f5ec41395ad83406392ea"
+        }
+      },
+      "complete_owned_capsule": {
+        "receipt": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/CAPSULE-RECEIPT.json",
+          "bytes": 1552,
+          "sha256": "22bafd679c38c8f0ac4d34f3a9c138096e812cc1995b624ee5b463ef177930e1"
+        },
+        "artifact_bytes": 2361697,
+        "artifact_sha256": "2163f1244942ef2c45e583c900b6f3fcdb0386a8aadfbef80388a5f38e533987",
+        "entries": 1547,
+        "literal_links": 27,
+        "runtime_socket_metadata": 9,
+        "durable_delivery": {
+          "bytes": 2361697,
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/PRIVATE-RAW-CAPSULE.zip",
+          "sha256": "2163f1244942ef2c45e583c900b6f3fcdb0386a8aadfbef80388a5f38e533987",
+          "status": "PASS_EXACT_DURABLE_PRIVATE_CAPSULE"
+        },
+        "omissions": [
+          "Existing source/runtime packages and external native tool binaries remain in their separately pinned preserved locations, not copied into this raw capsule.",
+          "Capsule, its external census/receipt and subsequent final status cannot contain their own final bytes; they remain alongside it.",
+          "Runtime Unix sockets are explicit metadata-only typed markers: no live connection/peer state is serializable or restored. Every regular tool/source copy inside selected raw trees remains included byte-exact; no content deduplication or pruning occurs."
+        ],
+        "runnable_restore": false,
+        "public_suitable": false
+      },
+      "environment": "nonforwarding synthetic local Graph/Azure native laboratory only",
+      "limitation": "The independently admitted stopped prefix contains five controller-completed actions and an attempted sixth; whole 38-action native qualification remains FAIL. Sixth scenario finalization/cleanup does not resolve its outcome_unknown operation, held lease or two reservations. Independent partial-fault assertions validate expected actual policy204/assignment403/unchanged state13 while portable linkage and outer failure remain. Initial fixture mapping is unsupported; this prefix does not qualify an authoritative source-authoring bridge. The first capsule has two completed actions; the final capsule covers the retained attempted prefix, not later32actions or historical missing corpus. Local synthetic Graph/Azure endpoints do not qualify actual Windows/identity/backend/CI/device evidence. Explicit reviewed recovery is separate; no automatic retry or consumed apply replay.",
+      "next_action": "Preserve completed source/performance/modeled-runtime proofs without reruns absent relevantchange/requiredgate. Review exact external qualification-helper repair and independently reconcile existing frozen rawscenario/linkage metadata without nativeoperation replay. Only after separately admitted new helper/profile/action prerequisites complete remaining plannednative fault/recovery/signedhistory actions, independent rawadmission, exactdelivery and required realexternal gates.",
+      "blocker_owner": "Externalqualificationhelper maintainer/independent reviewer; nativecoordinator for separately admitted remaining actions; corpus/storage and external owners for remaining gates.",
+      "public_metadata_path": "docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "platform_qualified": false,
+      "production_approved": false,
+      "historical_raw_loss_closed": false,
+      "full_native_independent_admission": "FAIL",
+      "stopped_prefix_independent_evidence_admission": {
+        "status": "PASS",
+        "scope_only": true,
+        "producer_native_journey_status": "STOPPED_UNEXPECTED_FAILURE",
+        "receipt": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/stopped-admission-04/RESULT.json",
+          "bytes": 54219,
+          "sha256": "c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c"
+        },
+        "public_metadata": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/stopped-admission-04/PUBLIC-METADATA.json",
+          "bytes": 5224,
+          "sha256": "3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101"
+        },
+        "public_repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+        "independent_reader_assertions": 111,
+        "native_dispatches_by_reviewer": 0,
+        "scope": "Independent admission of retained sixattempt/fivecompleted stopped native prefix and its precise originalFAIL boundary; no whole38native/globalLab/platform/productionPASS.",
+        "counts": {
+          "planned_actions": 38,
+          "attempted_actions": 6,
+          "completed_actions": 5,
+          "not_attempted_actions": 32,
+          "outer_not_started_includes_attempted_failure": true,
+          "new_product_test_count": 0,
+          "counts_are_nonadditive": true
+        },
+        "limitations": [
+          "C25 Linux cooperative nonforwarding synthetic Graph/Azure native protocol only; no Windows/Git Bash/mintty, actual live identity/service/backend/CI/device, installed OS scheduler, power-loss/hostile-process containment, external AppSec/key custody or organizational approval.",
+          "Initial supported native fixture mapping remains unsupported; raw collection and readback are not provider management mapping qualification.",
+          "No source-authoring bridge qualification in this stopped prefix; changes are copied single fixture source and an independent new restoration plan.",
+          "First capsule represents only two finished actions and pre-capacity-sample journal; final capsule admits all retained attempted prefix only, not remaining32actions.",
+          "Runtime socket markers preserve namespace/type metadata without serializable connections/peers. Literal symlinks are retained without following; capsule is not runnable restoration.",
+          "Pinned external tools/source/runtime archives remain separately preserved, not contents of this raw capsule. Census/receipt/finalstatus are separate to avoid self-reference.",
+          "Historical missing265roots/39pins, unexplained files, actor attribution, failed candidates, review/timeouts and denied provider repair remain unresolved; this owned-prefix membership closure does not close full corpus provenance.",
+          "Actual application signature/replay error codes are retained in harness receipts; in-process negative calls do not have separate raw CLI child output. No cryptographic native verifier rerun by independent reader.",
+          "Authority adoption verification_status remains first_plan_host_completed_unverified while its job is adopted_verified; they are distinct preserved fields. Service authority SQL contains both original and later restoration rows at final snapshot, not an unaltered earlier SQL snapshot.",
+          "Outer not_started list includes sixth action despite actual dispatch; admission exposes attempted6/completed5/not_attempted32 and never reports native38PASS."
+        ],
+        "contrary_reader_controls_receipt": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/reader-history-controls-01/RESULT.json",
+          "bytes": 6889,
+          "sha256": "140dfec760b5cac026c2b17f999d273bb145d6ad2b74fad380ea08bcaa8e11e9"
+        },
+        "contrary_reader_controls": 15,
+        "counts_policy": "111readerassertions,15contrarycontrols,12classificationassertions and3preservedreadererrors overlapother evidence; no additive product/native/strictsuite total."
+      },
+      "operation_status_after_sixth_fault": "outcome_unknown",
+      "independent_partial_fault_observation": {
+        "policy_HTTP_status": 204,
+        "assignment_HTTP_status": 403,
+        "state_serial": 13,
+        "state_unchanged": true,
+        "backend_lease": "held",
+        "active_reservations": 2,
+        "scope": "Readerreported literalrawfault outcome; cleanup doesnot mean state/operationreconciled or lease/reservations released."
+      },
+      "adoption_stage_classification": {
+        "status": "PASS",
+        "scope_only": true,
+        "public_receipt": {
+          "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/c25-native-resumed-20261011-01/adoption-stage-classification-01/PUBLIC-METADATA.json",
+          "bytes": 5489,
+          "sha256": "ff9f9181648c435f0f9d30f44bf5072bbe4afe2508f1056fd78bb45654f49456"
+        },
+        "public_repository_path": "docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+        "independent_metadata_reader_assertions": 12,
+        "scope": "Intentional first-plan hostverification status differs from adopted_verified job/guarded independent_completion; reopenedhistory records independent adoption/exactcapture. No staleauthority defect shown; genericverification label remains presentationambiguity and not everyvisualTUIlabel qualified."
+      }
+    }
+  ],
+  "qualification_helper_repair28": {
+    "status": "NOT_STARTED",
+    "required_profile": "Externalnative qualificationhelper canonical/linkage contract and pure frozen-evidence reconciliation",
+    "evidence_class": "actual_failure_preserved_repair_and_independent_fixture_admission_pending",
+    "observed_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "applicable_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+    "artifact_sha256": null,
+    "test_procedure_id": "EXTERNAL-ORDINARY-LINKAGE-FOCUSED-REPAIR-PENDING",
+    "evidence_path": "/tmp/intune-c25-native-journey-resumed-20261011-01/control/command-006-ordinary-fault-assignment/stderr.bin",
+    "original_traceback": {
+      "path": "/tmp/intune-c25-native-journey-resumed-20261011-01/control/command-006-ordinary-fault-assignment/stderr.bin",
+      "bytes": 1669,
+      "sha256": "7e8fb5067210225fd724f391143dbaae948f4da84b4f5ec41395ad83406392ea"
+    },
+    "implementation_candidate": null,
+    "independent_repair_admission": null,
+    "pure_metadata_reconciliation": null,
+    "environment": "Read-onlydetached externalhelper controls/frozenrawartifactsexclusively; no nativeoperation replay",
+    "limitation": "Authorhasbeenaskedto prepare focusedrepair; exactcandidate/rootcause/valuecontract/source-suitabilityandindependentreadback not supplied yet. Do not manufacturePASS/dropfields/weakenknownbad controls, overwrite profile214b or reinterpret oldFAIL as nativePASS. Independent stoppedprefix admission validates actualpartialfault outcome, but original PORTABLE/outerFAIL remains. Frozenmetadata repair must not resolve unknownoperation, release heldlease/tworeservations or authorize repeatedmutation; actualexplicit reviewed recovery remains separate.",
+    "next_action": "Supply exactold/newhelperbytes and rootcause; independentlyassert allowedJSONtypes/unknownbadvalues and existingrawmetadata equivalence, preserve oldFAIL. Newhelpersource maybepublishedonlyafter specificreview; admit newclosedprofile separately before laternativeactions.",
+    "blocker_owner": "Helperauthor and independentqualifier/source reviewer"
+  },
+  "pending_journeys28": {
+    "status": "IMPLEMENTED",
+    "source_strict": "PASS",
+    "bounded_performance": "PASS",
+    "modeled_runtime": "PASS",
+    "whole_native_run01": "FAIL",
+    "external_helper_repair": "NOT_STARTED",
+    "remaining_native_recovery_history": "NOT_STARTED",
+    "complete_private_recovery_delivery": "BLOCKED",
+    "required_real_platform": "BLOCKED",
+    "organizational_production_approval": "BLOCKED",
+    "count_policy": "38plannednativeactionsnotindependentchecks; failedattempt/targetedrepair/source/runtime/performance/PTY/reviewcounts overlap and cannot beadded."
+  },
+  "native_orchestration_public_source28": {
+    "status": "PASS",
+    "scope_only": true,
+    "classification": "Specifically reviewed external coordinator documentation-only source text",
+    "staging_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-public-source-staging-20261011-01/STAGING-RECEIPT.json",
+      "bytes": 927,
+      "sha256": "965e54f9e2bd26d52e4e3b919323db95f522a8ed31fc53d2e77d3afa3237f964"
+    },
+    "review_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-outer-admission-04/RESULT.json",
+      "bytes": 4653,
+      "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6"
+    },
+    "source_bytes": 50011,
+    "source_sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403",
+    "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+    "README_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+    "disposition_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+    "source_filename_alias": "Original staged native-lab-orchestration.py bytes copied exactly as.py.txt; SOURCE-DISPOSITION retains original source-relative filename, not executable runtime inclusion.",
+    "limitation": "No privateconfig/profile/rawhost/GO/nonce/capture/state/plan/approval/journal/capsule clearance. Fullnative stoppedFAIL and independentexternal/profile/AppSec/production blockers remain."
   }
 }

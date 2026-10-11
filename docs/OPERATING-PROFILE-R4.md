@@ -133,3 +133,47 @@ See [current checkpoint](CONTINUATION-R4-CHECKPOINT.md), [ledger](CONTINUATION-R
 [public helper text/review](continuation-evidence/20261011/recovery-helper-public-text-review.json)
 and [explicit omissions](continuation-evidence/20261011/publication-scope-27.md).
 No private raw tenant captures/state/plans/credentials are proposed for publication.
+
+
+## Current increment28 — native failure, exact profile remains unqualified
+
+C25engineering/source/runtime bytes are unchanged; completed source/performance and independent modeled-runtime scopes remain valid only for exact measured dependencies. C27 reviewed source checkpoint3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8 is published/readback all 31 paths. Native preparedprofile214b/drivercae6702/config04sha3589 has bounded detachedcontrol admission, not complete native or production qualification.
+
+Actual run01STOPPED_UNEXPECTED_FAILURE records5 completedof 38 plannedactions, followed by attemptedordinary-fault-assignment loaderexit1. ScenarioFINALPASS/cleanup completion and PORTABLEFAIL are preserved together. The remaining32actions/native fault/recovery/signed history require exactexternalhelpercontract repair, independent frozenmetadata reconciliation and separately admitted newhelper/profile before further mutations. 38is actioncount, notfaultcheck/independentassertioncount. Full native laboratory completion is absent; complete2,361,697byteownedprivate capsule is preserved but neither public nor standalone runnable or full historical recovery.
+
+Ordinary Windows Workbench staysUNSUPPORTED; real Windows/GitBash/mintty/PowerShell, protectedCI/platformchoice, authenticGraph/Azure/backend/provider principal and enrolleddevice routes remain unqualified. Independently installedOScollection, containment/keycustody/AppSec and accountable organizationalapproval remain externalgates. Localservice fixtures do not establish actual platform/device acceptance. ProviderG13 stoppedrepair and F03/F09 historicalmissing/provenance remain blockers.
+
+See [current failure checkpoint](CONTINUATION-R4-CHECKPOINT.md), [exact failure summary](continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json) and [current sequence](EXECUTION-SEQUENCE-R4.md). Allprior profile prose above retains its original scope as historical; current pending or failedscope cannot be interpreted as passed from older tests.
+
+Independent stopped-prefix evidence admission now validates the precise original
+FAIL boundary, with **111 nonadditive reader assertions**. [Its public metadata](continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json)
+is SHA `3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101`;
+the full private result is SHA `c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c`.
+The sixth action actually returned policy PUT204 and assignment403, left state
+serial13 unchanged, and recorded `outcome_unknown` with a held lease and two
+reservations. Expected partial-fault assertions pass; portable linkage and whole
+native run01 remain FAIL. Host cleanup does not release those reservations or
+resolve the uncertain operation. Metadata repair cannot authorize repeating its
+consumed apply; explicit reviewed recovery remains a separate required route.
+
+The initial fixture mapping remains unsupported, and this stopped prefix does
+not qualify the authoritative source-authoring bridge. The first capsule covers
+two completed actions; the final capsule covers retained attempted evidence,
+not32 later actions or complete historical recovery. [Adoption stage classification](continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json)
+separately preserves first-plan host verification versus adopted_verified job
+and guarded independent completion. Reopened history records independent
+adoption/exact capture; no stale authority defect is demonstrated. Generic
+verification labeling remains a presentation ambiguity, without a claim about
+every visual TUI label. Twelve classification assertions,15 contrary reader
+controls and three preserved reader errors remain separate and overlap other
+counts; none increases a product or native test total.
+
+The [exact coordinator source text](continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt)
+is specifically reviewed qualification-only documentation,50,011 bytes/SHA
+`cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403`.
+[Its source disposition](continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json)
+retains NO01–NO04 root causes and failing-before/passing-after detached controls.
+The exact original source bytes are copied as.py.txt, outside the C25 runtime.
+Private config/profile/host/GO/nonce/raw captures/state/plans/approvals/journals
+and capsules remain omitted. Public source suitability is bounded and does not
+establish AppSec, actual complete native qualification or organizational approval.

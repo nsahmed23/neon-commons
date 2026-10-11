@@ -228,3 +228,49 @@ production clearance. Prior failed/unknown operations, original strict03,
 unexpected files/reappearance, actor/helper gaps and raw loss remain preserved.
 No publication authority grants production changes, control administration,
 credential provisioning, paid services or privilege expansion.
+
+
+## Current increment28 — failed native attempt and unchanged external owners
+
+| Gate | Actual new evidence | Remaining requirement/owner |
+| --- | --- | --- |
+| G05 Native connected maintenance | Run01five controller-completedactions; sixthassignment-fault scenarioFINALPASS/cleanup, externalPORTABLEFAIL; originalwhole runSTOPPED_UNEXPECTED_FAILURE. Completeownedprivate capsule has exactdurable readback. | FAIL for wholeattempt, not externalnative/livetenantevidence. Externalqualificationhelper author and independentreviewer repair/reconcile frozenmetadata without mutationreplay; nativecoordinator admits changedhelper/profile and32 later actions/recovery/history. Realplatform/tenant/backend/device owners still supply approvedauth/environment and execution-platform choice. |
+| G07 Protected CI | Actual C27sourcecheckpoint published oncontinuationref, mainunchanged, all 31reviewedsourcepaths anonymouslyreadback exact. | BLOCKED. Sourcepublication is not protectedCI/runtimeidentity/permission/approvalor deployment. Both oldzerojobCI failures remain; repository/platformadministrator and independentapprover supply actualapproved platform/ref/run/control evidence. |
+| G11 Exact delivery | ExactC25archive/sourcegate/performance/modeled runtime scopes retained; originalfailednativeattempt and complete ownedprivate capsule retained. | BLOCKED. Full nativeprofile/fault/recovery/history, independentlyinstalledOScollection and complete layeredrecovery/package/public-saved readback remain. Corpus/storagecustodians recover actualmissingbytes/disposition; currentcapacity must preserve oldevidence, not lowerlimits or deleteproof. Finalsourcecompanion refreshed only after finalactual sourcecommit/readback. |
+| G01–G04/G06/G08–G10/G12 | Existing preparations/negativecontrols retain their exactscope. | Required actualWindows/host, protectedservice/identity/backend, OSscheduler/devices, containment/keycustody/AppSec and accountableapproval owners/procedures remain as above. TwoBusyBoxattempts launchedzeroobservers; finite modeledschedule is not persistentOSqualification. |
+| G13 Provider malformederror | Originalnativefailure/unbuiltcandidate and automaticexecutionrejection preserved. | BLOCKED. Providermaintainer/execution-policy/AppSecowner must establish an allowedreviewed repairroute; no alternative wording/rerun/bypass or nativebinary substitution. |
+
+No requiredcase disappears from the gate by being excluded or blocked. 38 plannedactions and per-scope independentchecks/counts must remain separate; local, platform and organizational outcomes stay distinct. Source/text publiccopies require exactsuitability; raw capsules/profileinputs/plans/state/approvals/journals/credentials remain private. Prior register/prose is retainedunchanged as historical and linked to its actualsource revision; fullcurrent details are in [the ledger](CONTINUATION-R4-LEDGER.json) and [failure checkpoint](CONTINUATION-R4-CHECKPOINT.md).
+
+Independent stopped-prefix evidence admission now validates the precise original
+FAIL boundary, with **111 nonadditive reader assertions**. [Its public metadata](continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json)
+is SHA `3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101`;
+the full private result is SHA `c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c`.
+The sixth action actually returned policy PUT204 and assignment403, left state
+serial13 unchanged, and recorded `outcome_unknown` with a held lease and two
+reservations. Expected partial-fault assertions pass; portable linkage and whole
+native run01 remain FAIL. Host cleanup does not release those reservations or
+resolve the uncertain operation. Metadata repair cannot authorize repeating its
+consumed apply; explicit reviewed recovery remains a separate required route.
+
+The initial fixture mapping remains unsupported, and this stopped prefix does
+not qualify the authoritative source-authoring bridge. The first capsule covers
+two completed actions; the final capsule covers retained attempted evidence,
+not32 later actions or complete historical recovery. [Adoption stage classification](continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json)
+separately preserves first-plan host verification versus adopted_verified job
+and guarded independent completion. Reopened history records independent
+adoption/exact capture; no stale authority defect is demonstrated. Generic
+verification labeling remains a presentation ambiguity, without a claim about
+every visual TUI label. Twelve classification assertions,15 contrary reader
+controls and three preserved reader errors remain separate and overlap other
+counts; none increases a product or native test total.
+
+The [exact coordinator source text](continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt)
+is specifically reviewed qualification-only documentation,50,011 bytes/SHA
+`cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403`.
+[Its source disposition](continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json)
+retains NO01–NO04 root causes and failing-before/passing-after detached controls.
+The exact original source bytes are copied as.py.txt, outside the C25 runtime.
+Private config/profile/host/GO/nonce/raw captures/state/plans/approvals/journals
+and capsules remain omitted. Public source suitability is bounded and does not
+establish AppSec, actual complete native qualification or organizational approval.

@@ -1,3 +1,62 @@
+# R4 execution sequence — increment28 native failure continuation
+
+Preserve exact C25 engine/runtime identity and completed2307source/performance/modeled runtime gates. C27source publication/all 31anonymouspaths actually pass. Native run01 stopped after5 completedof 38 plannedactions at attemptedordinary-fault-assignment externalportable metadata failure. 38counts actions, not independentchecks;32 later actions remain unexecuted. OriginalscenarioFINALPASS/cleanup and PORTABLEFAIL stay distinct; no whole native journey PASS or original operationreplay.
+
+| Order | Actual missing behavior/evidence and entrypoint | Required boundary |
+| --- | --- | --- |
+| 1 | Helperauthor repairs external native_ordinary_linkage.py closed/canonical receipt contract, then independentreader reconciles frozen captured result/FINAL/cleanup/PORTABLE/traceback metadata. Exactcandidate/controls/argv wait actual author receipts. | No nativeoperation or provider mutation replay. Preserve oldFAIL and raw capsule. Reject unknownbad values/type changes; do not drop fields or weaken preservation. Originalprofile214b stays immutable; helper/source publictext requires exactreview. |
+| 2 | Bind any changed helper/loader/newclosedprofile and exact successor actionmanifest, actual package/source/tool/context/capacity/approval checks. Root controls trusted `AdoptionJob.run`/`ServiceJob.run`; terminal has no runcommand. | Exact independent repairedhelper/profile admission before any remaining nativeaction. Closingterminal detaches; no duplicate/requeue or consumedplan replay. Storagecustodian supplies suitable existing capacity; preserve priorraw evidence/limits. |
+| 3 | Complete required laternative partial/committedstate recovery, authoritative source maintenance, cancellations, successors and portable signed history/realPTY reopening. Use actual frozenloader/actionplan commands only after renewed exactadmission. | Run01 first five/attemptedsixth and original38actionlist remain distinct. The32 later unexecuted actions are required; do not manufacture a unioncount as wholepass. Nonforwarding localservice protocols are laboratory only. |
+| 4 | Independently assert actual receivingpolicy/settings/assignment/state/journal/history results and negativecontrols, preserve complete ownedraw capsules and exact readback. | Exit0/source suite/scenarioFINALPASS alone cannot close required nativefailures. Socketmetadata is not runnable restoredstate. Historical265roots/39receipts and actor/helper findings remain unresolved. |
+| 5 | Commit consequentialfailure checkpoint, publish/readback specificallyreviewed source/metadata on continuation branch; laterfinal native outcomes may become C29. Refresh final companion once after final reviewedbranch commit. | C28own publication remainspending; source/public metadata companion is not completeprivatecorpus. Root owns sourceinventory/publicsuitability/commit/push/readback; defaultmain/Neon remain untouched. |
+| 6 | Execute G01–G13 actual approved nativehost/platform/service/backend/device/scheduler/security/organizational procedures. | No tenantmutation/deployment/controladmin/paidservice/credential/privilegeexpansion authority added. ProviderG13 denial preserved; Wally optional. |
+
+Inspect exact stopped receipts without replaying operations:
+
+```sh
+cat /workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/RESULT.json
+cat /workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/CAPSULE-RECEIPT.json
+```
+
+The failed attempt's exact argv is preserved privately at `/tmp/intune-c25-native-journey-resumed-20261011-01/control/command-006-ordinary-fault-assignment/COMMAND.json` and in the full ownedcapsule. It is replay evidence, not authorization to reexecute a consumed native mutation. No new repaired-helper/native command is invented before actual help/receipt admission. Do not rerun completedgate02/performance/runtime routes absent relevant change or required gate.
+
+Independent stopped-prefix evidence admission now validates the precise original
+FAIL boundary, with **111 nonadditive reader assertions**. [Its public metadata](continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json)
+is SHA `3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101`;
+the full private result is SHA `c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c`.
+The sixth action actually returned policy PUT204 and assignment403, left state
+serial13 unchanged, and recorded `outcome_unknown` with a held lease and two
+reservations. Expected partial-fault assertions pass; portable linkage and whole
+native run01 remain FAIL. Host cleanup does not release those reservations or
+resolve the uncertain operation. Metadata repair cannot authorize repeating its
+consumed apply; explicit reviewed recovery remains a separate required route.
+
+The initial fixture mapping remains unsupported, and this stopped prefix does
+not qualify the authoritative source-authoring bridge. The first capsule covers
+two completed actions; the final capsule covers retained attempted evidence,
+not32 later actions or complete historical recovery. [Adoption stage classification](continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json)
+separately preserves first-plan host verification versus adopted_verified job
+and guarded independent completion. Reopened history records independent
+adoption/exact capture; no stale authority defect is demonstrated. Generic
+verification labeling remains a presentation ambiguity, without a claim about
+every visual TUI label. Twelve classification assertions,15 contrary reader
+controls and three preserved reader errors remain separate and overlap other
+counts; none increases a product or native test total.
+
+The [exact coordinator source text](continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt)
+is specifically reviewed qualification-only documentation,50,011 bytes/SHA
+`cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403`.
+[Its source disposition](continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json)
+retains NO01–NO04 root causes and failing-before/passing-after detached controls.
+The exact original source bytes are copied as.py.txt, outside the C25 runtime.
+Private config/profile/host/GO/nonce/raw captures/state/plans/approvals/journals
+and capsules remain omitted. Public source suitability is bounded and does not
+establish AppSec, actual complete native qualification or organizational approval.
+
+---
+
+## Prior increment27 — preserved unchanged historical scope
+
 # R4 execution sequence — increment27, 2026-10-11
 
 C25 engineering/source packages remain `e3bdefe0b1ac0c58e46f9af3360970f8e47ae393`.

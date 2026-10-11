@@ -1,0 +1,112 @@
+{
+  "schema_version": "independent-adoption-host-aggregate-status-classification/1",
+  "status": "PASS_SCOPED_STATUS_CLASSIFICATION",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "classification": "INTENTIONAL_RETAINED_HOST_PHASE_WITH_RECONCILED_AGGREGATE",
+  "authoritative_stale_status_bug_demonstrated": false,
+  "expected_contract": "verification_status/verification_outcome in adoption_operations retain first-plan native host stage; jobs.status/outcome and the adoption_reconciled event record independent whole-operation completion. Consumers must display and interpret both scopes separately.",
+  "actual_UI": "Reopened history journal_status=adopted_verified, qualification=recorded_independent_adoption, exact_capture_published=true; raw adoption_journal.verification_status=first_plan_host_completed_unverified remains visible.",
+  "ownership_implication": "owned_here comes from one declared-scope fresh local state scan with caller-declared tenant binding and cloud_authority=false. Releasing adoption reservations follows verified independent completion, not native host phase alone.",
+  "presentation_limitation": "Generic verification_status naming can be misread as overall verification; a future label should say first-plan host phase. This narrow actual JSON projection does not independently qualify every visual TUI label.",
+  "checks": [
+    {
+      "id": "intune_iac/worker_adoption.py-exact-C25",
+      "status": "PASS",
+      "scope": "Read-only exact Git/source linkage, not a product test."
+    },
+    {
+      "id": "intune_iac/workbench_adoption_views.py-exact-C25",
+      "status": "PASS",
+      "scope": "Read-only exact Git/source linkage, not a product test."
+    },
+    {
+      "id": "host-phase-explicit",
+      "status": "PASS",
+      "scope": "Source dispatch explicitly records native host completion pending independent proof in phase table."
+    },
+    {
+      "id": "aggregate-proof-transaction",
+      "status": "PASS",
+      "scope": "Reconciliation preserves raw phase outcome and records separate sealed independent aggregate completion."
+    },
+    {
+      "id": "guarded-reconciliation",
+      "status": "PASS",
+      "scope": "Aggregate completion is guarded by phase, consumption, fresh capability and literal artifact/readback invariants before releasing reservations."
+    },
+    {
+      "id": "UI-contract-distinct",
+      "status": "PASS",
+      "scope": "History projection uses aggregate job status and guarded independent completion, not host phase alone."
+    },
+    {
+      "id": "actual-separated-authority-status",
+      "status": "PASS",
+      "scope": "Actual final SQL retains aggregate and host phase as separate literal fields, without disguising unverified phase text."
+    },
+    {
+      "id": "one-aggregate-completion-event",
+      "status": "PASS",
+      "scope": "One reconciliation event exactly matches persisted aggregate report; original host outcome embedded unchanged."
+    },
+    {
+      "id": "actual-reopened-UI",
+      "status": "PASS",
+      "scope": "Actual reopened CLI history reports aggregate independent completion and preserves host phase; no phantom dispatch."
+    },
+    {
+      "id": "actual-independent-proof-and-lease",
+      "status": "PASS",
+      "scope": "Real retained first-plan/native state/independent Graph proof and released reservations, not self-report from source alone."
+    },
+    {
+      "id": "actual-ownership-scope",
+      "status": "PASS",
+      "scope": "Ownership is a separate fresh local native-state scan; not authentic global tenant ownership proof or state-only inference of deployment."
+    },
+    {
+      "id": "actual-no-platform-inflation",
+      "status": "PASS",
+      "scope": "Aggregate adoption completion is only local scoped state adoption/readback, with unsupported mapping and endpoint/platform/production gates explicit."
+    }
+  ],
+  "source_and_evidence_pins": [
+    {
+      "source": "intune_iac/worker_adoption.py",
+      "bytes": 61194,
+      "sha256": "c40f708fcc434dcf9b63d455dddacedf53a872e4cd3b35bf5f59075696963836"
+    },
+    {
+      "source": "intune_iac/workbench_adoption_views.py",
+      "bytes": 10360,
+      "sha256": "e90b79ccc1cf8296e3391c22b37799c6ecee4f1846a8f6dec30b08555d60f772"
+    },
+    {
+      "capsule_member": "journey_raw/main-adoption/trust/authority/service.sqlite3",
+      "bytes": 102400,
+      "sha256": "635ea034a20a6d8d93295ad317cdb86467500804447ec3092c69ebb8d781e8d1"
+    },
+    {
+      "capsule_member": "journey_raw/main-adoption/workbench-adoption-history.stdout",
+      "bytes": 164532,
+      "sha256": "6870a07862b2c2720eb22070d65bb19832752a9f85059f9700b9172731acc852"
+    },
+    {
+      "capsule_member": "journey_raw/main-adoption/workbench-views.stdout",
+      "bytes": 355264,
+      "sha256": "a2812b0d8431a5e1be2046843543fff006cacb5865c771d2b9c7a812c086baac"
+    }
+  ],
+  "independent_reader_assertions": 12,
+  "product_tests_rerun": 0,
+  "native_engine_dispatches": 0,
+  "global_laboratory_complete": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "historical_raw_loss_closed": false,
+  "public_suitable": true,
+  "raw_payloads_included": false,
+  "bounded_reader_path_probe_failures": [
+    "An initial guessed test_worker_adoption.py path was absent; discovered reconcile/phase files were used instead. Two guessed history filenames were absent; actual workbench_adoption_views.py contains the projection. No absence was treated as acceptance evidence."
+  ]
+}

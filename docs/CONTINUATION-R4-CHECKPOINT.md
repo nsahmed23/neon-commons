@@ -1,3 +1,70 @@
+# Increment28 — native qualification stopped; original failure preserved
+
+The exact engineering candidate remains C25 `e3bdefe0b1ac0c58e46f9af3360970f8e47ae393`, tree `0bdbdeb3556acce23c8390abb20e835184880b27`. Source 17,956,520bytes / SHA `b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e` and runtime 1,520,542bytes / SHA `7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d` retain their tested identities. Completed source gate02(2,307planned/run/passed, zero exceptions), bounded Linux performance and independent actual modeled runtime64checks/34commands/10LinuxPTY remain precise unchanged scopes; no suite/timing/runtime replay or additivecount is requested.
+
+C27 `3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8`, tree `87f00c173c7a30d2d8eabf91bce4e39fae5c50f4`, is actually committed/published on `continuation/r4-20261007`, main unchanged, and all 31 reviewed sourcepaths have anonymous exact-byte readback. [The C27 publication](continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json) and [readback](continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json) record that scope. This proposed C28 needs its own commit/publication/readback; it cannot borrow C27 success.
+
+New actual native run01 **FAIL / STOPPED_UNEXPECTED_FAILURE**, receipt SHA `7bdc4bb056373f2741b9a6da20063b7c157b2fc2cb0f3b8382561c93a1b526df`. The outercontroller records five completed actions: validate, adoption, ordinary-prepare, ordinary-service and ordinary-restore. The sixth ordinary-fault-assignment action was attempted and exited1: scenarioFINAL-QUALIFICATION saysPASS and cleanup has no recorded failure, but external native_ordinary_linkage.py closed/canonical encoding raised `ValueError: unsupported qualification JSON value`; the PORTABLE-QUALIFICATION receipt remainsFAIL. These contrary subreceipts are preserved; scenario completion/cleanup does not establish full portable/native acceptance.
+
+There are **38 planned native actions**, not38faultchecks or independent assertions: five controller-completed, one attempted failure and32 later unexecuted. The original producer `not_started_action_ids` includes the attemptedfailed sixth action; its list is retained verbatim with an explicit current classification, not silently corrected. Firstfive scopes and every eventual independent assertion count remain distinct from source/runtime/performance/PTY totals. [Failure metadata](continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json) includes exact source/profile/driver/portable/error/capsule pins.
+
+The complete owned private raw capsule is durably preserved with readback: **2,361,697bytes**, SHA `2163f1244942ef2c45e583c900b6f3fcdb0386a8aadfbef80388a5f38e533987`,1,547typedentries,27literal links and nineSocketmetadata markers. Capsule receipt SHA `22bafd679c38c8f0ac4d34f3a9c138096e812cc1995b624ee5b463ef177930e1`. The earlier after-adoption capsule1,025,940bytes / SHA f2f405bd49053f5e399866106ed2d4877fe313831d282b6e0082ca94e5547dcb is retained separately. Capsules are private evidence, not publicly suitable or standalone runnable restores. Existing source/runtime/toolbytes remain separately pinned, Socketpeer state is not serializable, and external receipt/census/finalstatus remain alongside. These complete owned outputs do not recover265audit-absent historical roots/39unavailable receipts or close actor/helper/unexpected-file provenance.
+
+The final outerdriver `cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403`, config04 `3589fcc1818b9b6c74d3202a5081e3fbdfa1627df0df04fd1cda21fc46c772ee` and profile `214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774` have bounded predispatch detached admission `eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6`. NO01–NO04/original failed candidates and beforeafter controls remain retained; detached admission is not actual full journey PASS or organizational approval. Specific outer/source public copies are controlled by author/independentreview and are not assumed from this proposal.
+
+The next dependency is a **focused external qualificationhelper contract repair**, then independent reconciliation of existing frozen rawmetadata with no repeated nativeoperation. Exact candidate/valuecontract/independent controls/publicsuitability are pending author receipts. Preserve the originalFAIL; never drop fields, loosen knownbad gates or replay consumed operations to get PASS. A changed helper requires a separately bound closedprofile before remaining actual actions. Resume remaining native fault/recovery/signed history and independently admit rawstate/service/operation evidence only after those exact prerequisites. The actual operating entrypoints remain trusted `AdoptionJob.run`/`ServiceJob.run`; the terminal has no run CLI. [The execution sequence](EXECUTION-SEQUENCE-R4.md) retains precise next steps.
+
+**Outcomes:** laboratory completion is not globally established; required whole native run01 failed and laternative/OSschedule/corpusdelivery remain. Platformqualification isBLOCKED; organizationalapproval isabsent. G01–G13 retain actual Windows/GitBash/mintty/PowerShell, protectedplatformchoice/CI, authenticGraph/Azure/backend/provider identities, enrolleddevices, installed independentOScollection, containment/keycustody/AppSec and accountableowners. Synthetic local Graph/Azure endpoints do not prove real tenant/service/device evidence. Wally remains optional/read-only; preserve87completed/ninetimeouts/no demonstratedbenefit and all original sixthreads/inputs/failures/qualification gaps.
+
+Automaticapproval review rejected the isolated malformed-error providerrepair, citing possiblecybersecurityrisk without an exposed specificcommand/detail. Its unbuiltcandidate and nativefailures remain preserved; G13 staysblocked and no alternate repairroute is authorized.
+
+Read-only resume:
+
+```sh
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+git log -5 --oneline
+cat docs/EXECUTION-SEQUENCE-R4.md
+cat /workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-native-journey-resumed-20261011-01/RESULT.json
+```
+
+Independent stopped-prefix evidence admission now validates the precise original
+FAIL boundary, with **111 nonadditive reader assertions**. [Its public metadata](continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json)
+is SHA `3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101`;
+the full private result is SHA `c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c`.
+The sixth action actually returned policy PUT204 and assignment403, left state
+serial13 unchanged, and recorded `outcome_unknown` with a held lease and two
+reservations. Expected partial-fault assertions pass; portable linkage and whole
+native run01 remain FAIL. Host cleanup does not release those reservations or
+resolve the uncertain operation. Metadata repair cannot authorize repeating its
+consumed apply; explicit reviewed recovery remains a separate required route.
+
+The initial fixture mapping remains unsupported, and this stopped prefix does
+not qualify the authoritative source-authoring bridge. The first capsule covers
+two completed actions; the final capsule covers retained attempted evidence,
+not32 later actions or complete historical recovery. [Adoption stage classification](continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json)
+separately preserves first-plan host verification versus adopted_verified job
+and guarded independent completion. Reopened history records independent
+adoption/exact capture; no stale authority defect is demonstrated. Generic
+verification labeling remains a presentation ambiguity, without a claim about
+every visual TUI label. Twelve classification assertions,15 contrary reader
+controls and three preserved reader errors remain separate and overlap other
+counts; none increases a product or native test total.
+
+The [exact coordinator source text](continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt)
+is specifically reviewed qualification-only documentation,50,011 bytes/SHA
+`cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403`.
+[Its source disposition](continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json)
+retains NO01–NO04 root causes and failing-before/passing-after detached controls.
+The exact original source bytes are copied as.py.txt, outside the C25 runtime.
+Private config/profile/host/GO/nonce/raw captures/state/plans/approvals/journals
+and capsules remain omitted. Public source suitability is bounded and does not
+establish AppSec, actual complete native qualification or organizational approval.
+
+---
+
+## Prior increment27 — preserved unchanged historical scope
+
 # Increment27 — exact C25 source gate, bounded performance and verified source publication
 
 The engineering candidate remains **0.9.0, C25**,

@@ -1,0 +1,76 @@
+{
+  "changed_function": {
+    "after_ast_sha256": "af3abfad4d91eb56668aa01db413b0838d78cae531106cc8b78b8cfd83c4e935",
+    "before_ast_sha256": "af701fcf89f22d8e26d78ba369f29b5a7b8712d4d6e6f8aa45420dfb7f1018e6",
+    "name": "inspect_portable"
+  },
+  "configuration": {
+    "bytes": 1981,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/CONFIGURATION-04.json",
+    "sha256": "3589fcc1818b9b6c74d3202a5081e3fbdfa1627df0df04fd1cda21fc46c772ee"
+  },
+  "driver": {
+    "bytes": 50011,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-orchestration-preparation-20261011-01/orchestrate.py",
+    "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403"
+  },
+  "evidence_reuse": {
+    "all_other_function_and_class_asts_unchanged": true,
+    "configuration04_is_byte_exact_configuration03": true,
+    "prior40_controls_and22_historical_controls_and14_finalization_controls_not_repeated_or_added_to_application_counts": true,
+    "prior_admission_sha256": "2467a847fafb799cbef21ede0cf9dd559e7ad8ccce8c3cbd477c3311fdd0f079",
+    "prior_admission_superseded_only_for_NO04_presence_defect": true,
+    "single_literal_source_replacement_verified": true
+  },
+  "exact_change": "Only the proof-presence condition adds a literal-link check before exists(); the existing nofollow type check rejects present literal links.",
+  "fixed_action_count": 38,
+  "historical_failures": [
+    "NO01 finalization journal failure",
+    "NO02 equal fresh output roots",
+    "NO03 missing/UNKNOWN cleanup proof",
+    "Incorrect default-route prose, corrected to actual explicit worker route",
+    "Two reviewer fixture construction mistakes preserved separately in finalization02/03",
+    "NO04 dangling proof-link skip; original READY03 superseded and retained"
+  ],
+  "limitations": [
+    "Not production execution authorization, CI, native Windows, hostile-host containment or platform qualification",
+    "Actual38 outcomes and independently verified durable raw capture remain pending",
+    "Post-check socket/daemon changes remain a non-atomic race; frozen worker also validates actual containers",
+    "Workspace durable capacity remains measured per action/capsule; no all38 capacity promise",
+    "Historical missing helper/tmp evidence and provenance findings remain open"
+  ],
+  "native_dispatches": 0,
+  "new_finding": {
+    "description": "Existing proof-presence guard skipped dangling literal links for four known optional evidence filenames.",
+    "failing_before_receipt_sha256": "7d2582f17dbbbf263c691050ae8a6429c90798b70e9ae35b3fc8309db69c8491",
+    "id": "NO04",
+    "independent_detached_controls_per_candidate": 13,
+    "passing_after_receipt_sha256": "229aa95f86a246e2b1a99488383d1aca2a5e0c2e08dc7dfe389a831d59cecffb",
+    "status": "REPAIRED"
+  },
+  "profile_sha256": "214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774",
+  "public_source_text": "PASS_SCOPED for exact corrected driver documentation-only text copies when explicitly selected. The one-expression source change introduces no captures, credentials, state or plan payloads. No raw profile, capsule, fixture corpus or daemon host identifiers clearance.",
+  "read_only_receiving_evidence": {
+    "actual_frozen_worker_source_sha256": "c8e448b52e77681b8ec9002696eabadd6992f65bc3835c64da5c231c64629fea",
+    "canonical_socket": "/run/docker.sock",
+    "container_mutations": 0,
+    "explicit_endpoint": "unix:///var/run/docker.sock",
+    "new_real_daemon_queries_by_this_reviewer": 0,
+    "raw_stdout_sha256": "07b1986156c9be409857c1b49ec98aee5adb3660c33443727d352f64857ca89c",
+    "receipt_sha256": "c7f877498ec94eac820e45d5540744560a50f595fc2b988cfdefe7862e561a84",
+    "same_socket_identity_verified_read_only": true
+  },
+  "remaining_observed_findings": [],
+  "replay": [
+    "python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/bind_native_proof_presence_repair.py",
+    "--output",
+    "NEW_ABSOLUTE_OUTPUT_DIRECTORY"
+  ],
+  "schema": "independent-native-outer-presence-repair-admission/1",
+  "scope": "Bounded detached metadata controls and exact source/config/AST identity only. Root must make its separate exact local-lab decision and qualify actual outcomes. No organizational, platform or production approval.",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_profile_admission_sha256": "92b023ef820285d3c30fe6102993d71dfe3f9114f97c871b7f58cd71a3b11282",
+  "status": "PASS_SCOPED_READY_FOR_ROOT_LOCAL_LAB_DECISION"
+}

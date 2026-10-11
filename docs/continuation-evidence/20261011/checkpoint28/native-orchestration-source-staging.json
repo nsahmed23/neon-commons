@@ -1,0 +1,27 @@
+{
+  "files": [
+    {
+      "bytes": 2492,
+      "relative_path": "README.md",
+      "sha256": "c3bc51324ffb097a1683415edf18ee643438bb52070148a2be6c38b469a8f73a"
+    },
+    {
+      "bytes": 4137,
+      "relative_path": "SOURCE-DISPOSITION.json",
+      "sha256": "d44dc3646562154c7a8ca66d12ad51bd3d72cd0774c7dd9f49fcaa2f103fba1f"
+    },
+    {
+      "bytes": 50011,
+      "relative_path": "native-lab-orchestration.py",
+      "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403"
+    }
+  ],
+  "independent_review_sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6",
+  "native_results_included": false,
+  "origin": "integration/native-orchestration-preparation-20261011-01",
+  "published": false,
+  "raw_private_payloads_included": false,
+  "schema_version": "native-outer-public-source-staging/1",
+  "source_branch_mutated": false,
+  "status": "PREPARED_REVIEWED_SOURCE_TEXT_ONLY"
+}
