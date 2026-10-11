@@ -1,0 +1,496 @@
+{
+  "companion_base": "3bf60e3ed150ec1d147ef2c07b7bea88f7ad480e",
+  "companion_prefix": "intune-workbench/r4-20261011/",
+  "documentation_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+  "documentation_tree": "87f00c173c7a30d2d8eabf91bce4e39fae5c50f4",
+  "evidence_reuse": {
+    "C25_packages": "Exact trusted archive hashes rechecked; previous member/type/Git linkage/rebuild/public-suitability review reused without unpacking or executing.",
+    "C27_doc_delta": "Exact admitted public31-path delta and compact commit binding independently linked to actual Git blobs; raw private reviewer RESULT not selected.",
+    "prior_companion_review_sha256": "6c2e482730d7cd288ebca287968cea5b44be7c5bec636c6c2d9172ff39860698",
+    "published_source_readback": "Root existing real anonymous31-path readback and branch/main receipt checked against exact selections; no new network claims."
+  },
+  "explicit_omissions": [
+    "Complete current private R4 corpus and265historical missing temporary roots/39pinned receipt gaps",
+    "Raw qualification/native/performance capsules, state, captures, binary/exported plans, approvals/journals, private keys and credentials",
+    "Native closed profile, other27external helpers, fixture bundle and tool binaries",
+    "FutureC28native/fault/recovery outcomes and refreshed source/companion linkage",
+    "Workflow/wizard deleted TemporaryDirectory intermediates"
+  ],
+  "files": [
+    {
+      "bytes": 2665,
+      "path": "BASELINE-RECOVERY-LINKS.json",
+      "prospective_Git_blob": "00bf95ab9f703ee1031611735d305a3bf0372337",
+      "sha256": "69645cfa372fa14a0c1ce0a43636484f3f96b29282caf75b5dbc1bc39f2328a0",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 5309,
+      "path": "README.md",
+      "prospective_Git_blob": "6f852045b3b1358840356bbb47b16267479f25c7",
+      "sha256": "bd1d472e7a64191080bc08fdd113624837f7410260e8262e1d5a3eb7ed40c755",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 5438,
+      "path": "guides/PERFORMANCE-REPLAY.md",
+      "prospective_Git_blob": "a96be70b4d57337ba3dfd543ff763c3e164c185d",
+      "sha256": "004dd6c55046e8bbc4eecb71dd34eaaa166f70015f44c3c9e76d09f50e0be448",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 1520542,
+      "path": "packages/Intune_IaC_Plugin_0.9.0.zip",
+      "prospective_Git_blob": "1e9adb7be4b1a4f51112cbbeb3b89fbb5a838337",
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 17956520,
+      "path": "packages/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "prospective_Git_blob": "c8cd42faa58bcb3b03085ed32fb5399e88ddfb52",
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 2340,
+      "path": "receipts/COMMIT-26.json",
+      "prospective_Git_blob": "8fe53ca0511261511dba29fe4ae2431bf6fb98ea",
+      "sha256": "881fb412d849a2f17cd0c70f0d41436361ac8971cc2333db71224bdefd12fa2b",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 8428,
+      "path": "receipts/COMMIT-27.json",
+      "prospective_Git_blob": "c1883d374ada3afdc7abd20a9ea3276a398f0315",
+      "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 2112,
+      "path": "receipts/DOCUMENTATION-COMMIT-BINDING-26.json",
+      "prospective_Git_blob": "f2a0e6ed6a96d9cb51a8f748930c699aeaedc070",
+      "sha256": "6749907349a1f4d85399fd76f2ae2061c309ea512da587c750aa73dd388b2c1b",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 14529,
+      "path": "receipts/DOCUMENTATION-COMMIT-BINDING-27.json",
+      "prospective_Git_blob": "f8f8ae19276d70773878298543df81415079fe0e",
+      "sha256": "744ed4f7214a6b0367307fe2a39ebff78fa9f3e479c27130cd92b75152a25874",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 7578,
+      "path": "receipts/DOCUMENTATION-REVIEW-26.json",
+      "prospective_Git_blob": "e1ca2b9edc5b63441cf3a1f1beda76f92e761432",
+      "sha256": "6dff429b82d575146df9088dacb73326a88e3c72c657c6216521ba9ff9925858",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 12455,
+      "path": "receipts/DOCUMENTATION-REVIEW-27.json",
+      "prospective_Git_blob": "e9e9b0bb5f30c83555046bddb90973d0168ca84a",
+      "sha256": "90b5bc7e172dbcb2e81e64c71ff562a0acfc86ef597da4cdd560c5cffb93e9d4",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 1640,
+      "path": "receipts/PACKAGE-RECEIPT.json",
+      "prospective_Git_blob": "fbdd0a8fa5f394c13b26f8a143ed01bb5ec36e73",
+      "sha256": "d366a41ea6751b0dde12f5da80ad628f1c5bf67c7490f553f3021f1b334a0886",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 26683,
+      "path": "receipts/PERFORMANCE-SUMMARY.json",
+      "prospective_Git_blob": "85bc765b95bc965d461bf78d117cfad75f97b147",
+      "sha256": "9185188deb897c5fb76b8e9ee92a09c473fa5ac563dce1ad26ec6e144b11ddb1",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 2603,
+      "path": "receipts/RECONSTRUCTION-RECEIPT.json",
+      "prospective_Git_blob": "d4a74eb4cb66e4704de147f1ed4c977ba3afa24f",
+      "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 1242,
+      "path": "receipts/SOURCE-BRANCH-READBACK-27.json",
+      "prospective_Git_blob": "c0f195055c09c66725dc8d5f30ed9f385c94c960",
+      "sha256": "45bd001d57ddff524ace0621ce366d0ba45c7e79987ac48d2d34d83e90fafe64",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 1140,
+      "path": "receipts/SOURCE-BRANCH-READBACK.json",
+      "prospective_Git_blob": "293f83c10fc1acb446056580ee06615cf57ff4e9",
+      "sha256": "3e3661d4de15e440c0fc93099d8e26d555b3a1ac19278b2a0e764e5e5a74b310",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 20977,
+      "path": "receipts/SOURCE-DOCUMENTATION-READBACK-27.json",
+      "prospective_Git_blob": "70fadd4731b963580b4ef8ca41f08b9c55944382",
+      "sha256": "98d3a6bf2838e3f51458727eba582c01b7ca9ae7d834ea88f7a3c541e95f7233",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 1578409,
+      "path": "receipts/SOURCE-LINKAGE-20261011.json",
+      "prospective_Git_blob": "4ee81054a4c15df5e0ee464d19969781e14ef69b",
+      "sha256": "01f24b0c41388a6a7fd20ae525716ef40051b2cb5f40efb01586967357f8614a",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 1663,
+      "path": "receipts/VERIFICATION-RECEIPT.json",
+      "prospective_Git_blob": "e6ade84b41afee88adf57de9feb3655b53b0007c",
+      "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 4760,
+      "path": "receipts/source-review/PUBLICATION-DISPOSITION.md",
+      "prospective_Git_blob": "b79509ae5e79b3cb186ba15fb17caddf7e6e9769",
+      "sha256": "a0cac5808bc61e1fc0c938765db82050952b7c6d63db30a100231d0bf1eb5144",
+      "source_git_blob": "b79509ae5e79b3cb186ba15fb17caddf7e6e9769"
+    },
+    {
+      "bytes": 235120,
+      "path": "receipts/source-review/available-roots.json",
+      "prospective_Git_blob": "4d7cd06cccceb11aa8c62a9d63f92932ec06533e",
+      "sha256": "61be84ba2900b00c38a41ce623e12bddc4212206d9cdba0627c344932d7d7176",
+      "source_git_blob": "4d7cd06cccceb11aa8c62a9d63f92932ec06533e"
+    },
+    {
+      "bytes": 1640,
+      "path": "receipts/source-review/current-package-inputs.json",
+      "prospective_Git_blob": "fbdd0a8fa5f394c13b26f8a143ed01bb5ec36e73",
+      "sha256": "d366a41ea6751b0dde12f5da80ad628f1c5bf67c7490f553f3021f1b334a0886",
+      "source_git_blob": "fbdd0a8fa5f394c13b26f8a143ed01bb5ec36e73"
+    },
+    {
+      "bytes": 1294,
+      "path": "receipts/source-review/historical-namespace-distinction.json",
+      "prospective_Git_blob": "08a2b741a48efb42a2d66b1542449f73b3ed5e93",
+      "sha256": "822d6b9fd7f46476f01d4fd83cddfb5ca87524a58ec21723c59ea3a2bf3059d9",
+      "source_git_blob": "08a2b741a48efb42a2d66b1542449f73b3ed5e93"
+    },
+    {
+      "bytes": 164415,
+      "path": "receipts/source-review/ledger-availability.json",
+      "prospective_Git_blob": "c99e0781d2a3dbab3ffebb4b6d2ecce9b3eaed89",
+      "sha256": "564fa07f48d1ce644e70e0e719eb2fc4c3c5af49184e1209b1c32b6322d8eb72",
+      "source_git_blob": "c99e0781d2a3dbab3ffebb4b6d2ecce9b3eaed89"
+    },
+    {
+      "bytes": 28860,
+      "path": "receipts/source-review/native-recovery-plan-qualifier.py.txt",
+      "prospective_Git_blob": "12172776bee163305a7b75adceaa3c160df280b0",
+      "sha256": "aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100",
+      "source_git_blob": "12172776bee163305a7b75adceaa3c160df280b0"
+    },
+    {
+      "bytes": 2960,
+      "path": "receipts/source-review/performance-independent-review-delivery.json",
+      "prospective_Git_blob": "a79ea7a9d03ff8a5d2177d15ee7c6900c2bb9431",
+      "sha256": "593e3c1e6032844facb27a81dbbf0af854f9d8651a3746a3bd2029597d8e7011",
+      "source_git_blob": "a79ea7a9d03ff8a5d2177d15ee7c6900c2bb9431"
+    },
+    {
+      "bytes": 9567,
+      "path": "receipts/source-review/performance-independent-review.json",
+      "prospective_Git_blob": "e959a70d6790f150b50d9b5b0ce6a39ff0cd708f",
+      "sha256": "c07c09e714d54a0c79746c0ca49f5fb48769014b491a8a4c3bf9de7b44ee2ca0",
+      "source_git_blob": "e959a70d6790f150b50d9b5b0ce6a39ff0cd708f"
+    },
+    {
+      "bytes": 5438,
+      "path": "receipts/source-review/performance-replay.md",
+      "prospective_Git_blob": "a96be70b4d57337ba3dfd543ff763c3e164c185d",
+      "sha256": "004dd6c55046e8bbc4eecb71dd34eaaa166f70015f44c3c9e76d09f50e0be448",
+      "source_git_blob": "a96be70b4d57337ba3dfd543ff763c3e164c185d"
+    },
+    {
+      "bytes": 26683,
+      "path": "receipts/source-review/performance-summary.json",
+      "prospective_Git_blob": "85bc765b95bc965d461bf78d117cfad75f97b147",
+      "sha256": "9185188deb897c5fb76b8e9ee92a09c473fa5ac563dce1ad26ec6e144b11ddb1",
+      "source_git_blob": "85bc765b95bc965d461bf78d117cfad75f97b147"
+    },
+    {
+      "bytes": 3607,
+      "path": "receipts/source-review/publication-scope-27.md",
+      "prospective_Git_blob": "e89c5f6f83a8925f2df4dff12ec2ba3345d13270",
+      "sha256": "ccea76df85900f49a2203731f2c644d934197400145e778b2c257e78342fb850",
+      "source_git_blob": "e89c5f6f83a8925f2df4dff12ec2ba3345d13270"
+    },
+    {
+      "bytes": 1078,
+      "path": "receipts/source-review/qualification-context-targeted-nine.json",
+      "prospective_Git_blob": "c1001c2860386fbfc8612077d3ae91ab90b61a02",
+      "sha256": "7da9b46990b8860a02184e4174e88b7a89a55063dae966bf3fe8b3f3875f4b04",
+      "source_git_blob": "c1001c2860386fbfc8612077d3ae91ab90b61a02"
+    },
+    {
+      "bytes": 1062,
+      "path": "receipts/source-review/qualification-wrapper-before-preservation.json",
+      "prospective_Git_blob": "6d77b940fff2d2094e16904d33755ec5b6906964",
+      "sha256": "51811f4d03fd75415f8f3ba996bfae328559da3343d7016ee9abc4c43f330108",
+      "source_git_blob": "6d77b940fff2d2094e16904d33755ec5b6906964"
+    },
+    {
+      "bytes": 4875,
+      "path": "receipts/source-review/qualification-wrapper-pin-assertions.json",
+      "prospective_Git_blob": "02cb0c8244c871de0250101be2d6682591d10179",
+      "sha256": "77157c2bc4a66a2f13dfedd318bf9175bec73718ea3f3874cdbe5cff843cc056",
+      "source_git_blob": "02cb0c8244c871de0250101be2d6682591d10179"
+    },
+    {
+      "bytes": 21647,
+      "path": "receipts/source-review/qualification-wrapper-repaired-review.json",
+      "prospective_Git_blob": "653641542895deaf68f0cace80e6336b969e6683",
+      "sha256": "c214a73cddd9a9919d0c5ff3708dc1c9233c4db4259ba81133e0e0aa7acfcb57",
+      "source_git_blob": "653641542895deaf68f0cace80e6336b969e6683"
+    },
+    {
+      "bytes": 4701,
+      "path": "receipts/source-review/qualification-wrapper-review-before.json",
+      "prospective_Git_blob": "2948a530f621ef00e47074479a5d2156f96635ff",
+      "sha256": "bb237d9a3f5332ce0cff3b6baa6da3d9567acc08bd4c333c34287d897c228737",
+      "source_git_blob": "2948a530f621ef00e47074479a5d2156f96635ff"
+    },
+    {
+      "bytes": 5746,
+      "path": "receipts/source-review/qualifiers/c25_package_binding.py.txt",
+      "prospective_Git_blob": "3edb5af900b42c32aa8b9c93bb26d004679bd662",
+      "sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053",
+      "source_git_blob": "3edb5af900b42c32aa8b9c93bb26d004679bd662"
+    },
+    {
+      "bytes": 10891,
+      "path": "receipts/source-review/qualifiers/prepare-c25-native-resumed-20261011.py.txt",
+      "prospective_Git_blob": "ed8dff970030a9bb39de1d42ac9fab160c7bf97e",
+      "sha256": "c46e6fecf617cad13d3a3cff429154edf56a983d8b7ad294b95d1418166bef3e",
+      "source_git_blob": "ed8dff970030a9bb39de1d42ac9fab160c7bf97e"
+    },
+    {
+      "bytes": 7154,
+      "path": "receipts/source-review/qualifiers/qualify-c25-runtime-resumed-20261011.py.txt",
+      "prospective_Git_blob": "9d2c000efef64701857029f234e34c75f2ea6511",
+      "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468",
+      "source_git_blob": "9d2c000efef64701857029f234e34c75f2ea6511"
+    },
+    {
+      "bytes": 1663,
+      "path": "receipts/source-review/reconstructed-package-verification.json",
+      "prospective_Git_blob": "e6ade84b41afee88adf57de9feb3655b53b0007c",
+      "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e",
+      "source_git_blob": "e6ade84b41afee88adf57de9feb3655b53b0007c"
+    },
+    {
+      "bytes": 2603,
+      "path": "receipts/source-review/reconstructed-packages.json",
+      "prospective_Git_blob": "d4a74eb4cb66e4704de147f1ed4c977ba3afa24f",
+      "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b",
+      "source_git_blob": "d4a74eb4cb66e4704de147f1ed4c977ba3afa24f"
+    },
+    {
+      "bytes": 3905,
+      "path": "receipts/source-review/recovery-helper-api-review.json",
+      "prospective_Git_blob": "2b4d181856159fe0062cc6f141e98aef837c620f",
+      "sha256": "29197c509213802bbd368f6657c154d9dd5b8beeda87f0c1e1ea235ff8eaec95",
+      "source_git_blob": "2b4d181856159fe0062cc6f141e98aef837c620f"
+    },
+    {
+      "bytes": 2921,
+      "path": "receipts/source-review/recovery-helper-label-review.json",
+      "prospective_Git_blob": "4b9dd937a3cb92388d7858e5eb2b11147a68c723",
+      "sha256": "30409695c0ba623365a563757159c89b286a672011928f3147fd088a6755140a",
+      "source_git_blob": "4b9dd937a3cb92388d7858e5eb2b11147a68c723"
+    },
+    {
+      "bytes": 3589,
+      "path": "receipts/source-review/recovery-helper-public-text-review.json",
+      "prospective_Git_blob": "5e7405ad708e7b031a91041bd680385a790c264d",
+      "sha256": "210401ac070df098df78534d7732c04d156255a055950945590ee6c1bdbb718b",
+      "source_git_blob": "5e7405ad708e7b031a91041bd680385a790c264d"
+    },
+    {
+      "bytes": 2974,
+      "path": "receipts/source-review/runtime-independent-admission.json",
+      "prospective_Git_blob": "5c18c9da8faf784362d9ba45a980bafe7d31e195",
+      "sha256": "43c3cdfa19d53f210535e16a8cb4b000a412d50895eaf4549e27b7b8cc102c74",
+      "source_git_blob": "5c18c9da8faf784362d9ba45a980bafe7d31e195"
+    },
+    {
+      "bytes": 1020,
+      "path": "receipts/source-review/runtime-journey-producer.json",
+      "prospective_Git_blob": "fc6369729763a5a1915d2217aabfa7ab2af88caa",
+      "sha256": "c5b8a28507eb270c9c259c957bbff3095c24417ffa7d1929288c0e346832398d",
+      "source_git_blob": "fc6369729763a5a1915d2217aabfa7ab2af88caa"
+    },
+    {
+      "bytes": 463,
+      "path": "receipts/source-review/runtime-owned-capsule.json",
+      "prospective_Git_blob": "f889eb906daaf8dd874c2bdfe17baed109dba11a",
+      "sha256": "c454a1168fe8e5062117faed33bf24718c90bf08bb2774fe1b6667c2db24bcf7",
+      "source_git_blob": "f889eb906daaf8dd874c2bdfe17baed109dba11a"
+    },
+    {
+      "bytes": 1140,
+      "path": "receipts/source-review/source-branch-publication.json",
+      "prospective_Git_blob": "293f83c10fc1acb446056580ee06615cf57ff4e9",
+      "sha256": "3e3661d4de15e440c0fc93099d8e26d555b3a1ac19278b2a0e764e5e5a74b310",
+      "source_git_blob": "293f83c10fc1acb446056580ee06615cf57ff4e9"
+    },
+    {
+      "bytes": 8234,
+      "path": "receipts/source-review/source-documentation-readback.json",
+      "prospective_Git_blob": "06d305d99d2146649ef3c227fe68dc5181e7afcb",
+      "sha256": "2912e4fc10972162a7e72a98071efb1356757d7516a06f76436deba352fb8816",
+      "source_git_blob": "06d305d99d2146649ef3c227fe68dc5181e7afcb"
+    },
+    {
+      "bytes": 1768,
+      "path": "receipts/source-review/source-gate-attempt-01.json",
+      "prospective_Git_blob": "051a412e738216cb346c31fea08d8f6ee7442970",
+      "sha256": "60b262d0f709fa7cfbb9bf641422357dfb2667fd16960a94f810deb009a34bc3",
+      "source_git_blob": "051a412e738216cb346c31fea08d8f6ee7442970"
+    },
+    {
+      "bytes": 1767,
+      "path": "receipts/source-review/source-gate-attempt-02.json",
+      "prospective_Git_blob": "430077832105f989768a0c81c9fd4733b06db5a8",
+      "sha256": "cb3c66aebfc2a81aa31c7d31a8e19eca510e55f167a2f8c1fae5e4ba297ed88d",
+      "source_git_blob": "430077832105f989768a0c81c9fd4733b06db5a8"
+    },
+    {
+      "bytes": 5270,
+      "path": "receipts/source-review/source-history-packages-review.json",
+      "prospective_Git_blob": "412e4e20f4ceb11e3ec51308078ed1bfb15c1590",
+      "sha256": "66bb44b04a9c6ce06bea07833ff6a1033aa969af4a21874eeea4f6ffe1406006",
+      "source_git_blob": "412e4e20f4ceb11e3ec51308078ed1bfb15c1590"
+    },
+    {
+      "bytes": 4480,
+      "path": "receipts/source-review/source-review.json",
+      "prospective_Git_blob": "1fd140785e4df117220a43c6fd5d178ae4cb89dd",
+      "sha256": "7f05762d77e9822e1c7838a196e8d15f2e970d894325edb683156f4c4faca07b",
+      "source_git_blob": "1fd140785e4df117220a43c6fd5d178ae4cb89dd"
+    },
+    {
+      "bytes": 3347,
+      "path": "receipts/source-review/workspace-availability.json",
+      "prospective_Git_blob": "76f269a44721df536ac6ac9d3d63f1bdefb9cb98",
+      "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b",
+      "source_git_blob": "76f269a44721df536ac6ac9d3d63f1bdefb9cb98"
+    },
+    {
+      "bytes": 28860,
+      "path": "tools/native_recovery_plan.py",
+      "prospective_Git_blob": "12172776bee163305a7b75adceaa3c160df280b0",
+      "sha256": "aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100",
+      "source_git_blob": "12172776bee163305a7b75adceaa3c160df280b0"
+    },
+    {
+      "bytes": 4518,
+      "path": "tools/verify-release-artifact.py",
+      "prospective_Git_blob": "6ff4727f0e355c3ed171e4c2c16d966565c3470e",
+      "sha256": "9f824268dbaf475e990e6dd09a77ebd2657bfe8f7a55b477bb97b9ee6172aaad",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 8331,
+      "path": "work/docs/COMPLETE-LAYER-RESTORATION-R4.md",
+      "prospective_Git_blob": "57ed85080993673a75dc907495e20bf4cef67b89",
+      "sha256": "1dc96e209cd6ef312327700a180147c1b304b7191b9c41df54ee6c37c7af6bea",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 94591,
+      "path": "work/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "prospective_Git_blob": "5febce509886efc3dca5b8221f2b0fdc91c4c089",
+      "sha256": "237708ad715aa2561fa2afe7a89dab1409b229e9c374a04fab31611d725ef5ee",
+      "source_git_blob": "5febce509886efc3dca5b8221f2b0fdc91c4c089"
+    },
+    {
+      "bytes": 1670440,
+      "path": "work/docs/CONTINUATION-R4-LEDGER.json",
+      "prospective_Git_blob": "701b60c0fcb96d5a6294875b5bccbb93b1e87b59",
+      "sha256": "1908b695fe738fc99a7c1e52af56e2330ad00fda1786c41d1eccb65cf00df918",
+      "source_git_blob": "701b60c0fcb96d5a6294875b5bccbb93b1e87b59"
+    },
+    {
+      "bytes": 7772,
+      "path": "work/docs/EVIDENCE-RESTORATION-R4.md",
+      "prospective_Git_blob": "d590298356d2691e9d143a3b3daa9d428ebaac71",
+      "sha256": "a5983df902ec6feab896b0e3a9e30b5840074111cf00a987d25acb43cf8486e5",
+      "source_git_blob": null
+    },
+    {
+      "bytes": 19594,
+      "path": "work/docs/EXECUTION-SEQUENCE-R4.md",
+      "prospective_Git_blob": "d35400558c798ef05a89df6fc3fda8373ff5537c",
+      "sha256": "229039819e556587fa29131c2a59d43b58a350aa76be8352c27cc9b88212d1ce",
+      "source_git_blob": "d35400558c798ef05a89df6fc3fda8373ff5537c"
+    },
+    {
+      "bytes": 52182,
+      "path": "work/docs/EXTERNAL-GATES-R4.md",
+      "prospective_Git_blob": "90570ad278f11d0fca05d31497f6ca221864e36d",
+      "sha256": "4a63b9938541c5f5b599f89d4bc272bac163d9b424b400b7a5d5ae6df6aaa924",
+      "source_git_blob": "90570ad278f11d0fca05d31497f6ca221864e36d"
+    },
+    {
+      "bytes": 19641,
+      "path": "work/docs/OPERATING-PROFILE-R4.md",
+      "prospective_Git_blob": "40b1d6652316edd68bd9db67e52ca822187814a0",
+      "sha256": "4400c3600e0ca5337ba78b23457c3751d9aa02164423f985e1fea17bfb678751",
+      "source_git_blob": "40b1d6652316edd68bd9db67e52ca822187814a0"
+    }
+  ],
+  "independent_full_receipt": {
+    "bytes": 151527,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/companion-stage-C27-01/RESULT.json",
+    "sha256": "3f32e72e52ee03a01b987afb721718b344d73c78530e866c212b8c1888a85a41"
+  },
+  "limitations": [
+    "Historical provenance gaps remain open; a successful new native run cannot close them.",
+    "This is public suitability and fixed-source linkage review, not platform/production approval or whole-corpus recovery.",
+    "Read-only Git assertions overlap prior source/doc reviews and are not counted as additional product tests."
+  ],
+  "native_or_product_dispatches": 0,
+  "origins_sha256": "64a61887ed3605607ae70dfb703b490faef6e51fd9999a9347bae675d9ee1f62",
+  "payload_scope": "Public file identities, source linkage, scopes and omissions only. No raw private capture/state/plan/approval/journal/credential/profile/capsule/SQL/PTY or daemon host-identity payload.",
+  "prior_selection_delta": {
+    "added_files": 31,
+    "changed_files": 6,
+    "changed_paths": [
+      "README.md",
+      "work/docs/CONTINUATION-R4-CHECKPOINT.md",
+      "work/docs/CONTINUATION-R4-LEDGER.json",
+      "work/docs/EXECUTION-SEQUENCE-R4.md",
+      "work/docs/EXTERNAL-GATES-R4.md",
+      "work/docs/OPERATING-PROFILE-R4.md"
+    ],
+    "unchanged_files": 25
+  },
+  "public_suitability": "PASS_SCOPED for exact selected bytes only. Existing reviewed public lab package fixtures and newly attributed helper/source text remain explicitly lab inputs; metadata carries identities/scopes/file paths, not raw private state/capture/plan/credential/profile/capsule payloads. No universal secret absence or organizational AppSec approval.",
+  "remaining_release_gates": [
+    "Apply only the final reviewed selection; then commit/push/read back exact companion bytes using existing scoped authority",
+    "Any C28/outcome refresh requires new exact selection and narrow independent review",
+    "Actual native outcomes, missing platform evidence, security review and organizational approval remain independent"
+  ],
+  "remote_mutations": 0,
+  "repository_mutations": 0,
+  "schema": "public-independent-companion-C27-stage-admission/1",
+  "scope": "Exact inert 62-file C27 companion snapshot and unchanged prior16 explicitly reused rows, origins, raw Git source linkage, public metadata and declared omissions. No future C28/native outcome refresh admitted.",
+  "selected_bytes": 23664844,
+  "selected_files": 62,
+  "selection_sha256": "bb128a342c1c808d811e4cd3db1e25ba9c681c6e891d239fdd8eb483ee333f80",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_FIXED_C27_SELECTION"
+}

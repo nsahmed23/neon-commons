@@ -1,0 +1,88 @@
+{
+  "attribution": "Environment replacement is parent session context, not independently proven deletion/actor root cause. Absence is directly observed at the literal paths.",
+  "clean_file_set_closure": false,
+  "closed_helper_counts": {
+    "NOT_FOUND_IN_BOUNDED_RETAINED_SOURCE": 1,
+    "RECOVERABLE_EXACT_BYTES": 27
+  },
+  "historical_pass_records_preserved": true,
+  "limitations": [
+    "Explicit selected paths only; no search of unavailable machine storage.",
+    "New successful runs cannot close lost historical raw evidence.",
+    "No full corpus integrity, platform or production approval is inferred."
+  ],
+  "outputs": [
+    {
+      "availability": "PRESENT",
+      "bytes": 176001,
+      "mode": "0o600",
+      "mtime_ns": "1791750701880427328",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/CLOSED-HELPER-RECOVERY-AVAILABILITY.json",
+      "read_stable": true,
+      "sha256": "b59e9e31de16293fef92dc82947e632e687ed2d14cd16278c681aa0cde230574",
+      "type": "file"
+    },
+    {
+      "availability": "PRESENT",
+      "bytes": 1230,
+      "mode": "0o600",
+      "mtime_ns": "1791750701880709362",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/EXACT-FINAL-ENTRYPOINT-AVAILABILITY.json",
+      "read_stable": true,
+      "sha256": "24b0ec57ba2172da05999c47cee9e5d6bcaa3e376e1e1ee774a368ae562af7ab",
+      "type": "file"
+    },
+    {
+      "availability": "PRESENT",
+      "bytes": 235120,
+      "mode": "0o600",
+      "mtime_ns": "1791750695143801736",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/EXPLICIT-ROOT-AVAILABILITY.json",
+      "read_stable": true,
+      "sha256": "61be84ba2900b00c38a41ce623e12bddc4212206d9cdba0627c344932d7d7176",
+      "type": "file"
+    },
+    {
+      "availability": "PRESENT",
+      "bytes": 164415,
+      "mode": "0o600",
+      "mtime_ns": "1791750695167165966",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/PREVIOUS-LEDGER-REFERENCE-AVAILABILITY.json",
+      "read_stable": true,
+      "sha256": "564fa07f48d1ce644e70e0e719eb2fc4c3c5af49184e1209b1c32b6322d8eb72",
+      "type": "file"
+    },
+    {
+      "availability": "PRESENT",
+      "bytes": 3826,
+      "mode": "0o600",
+      "mtime_ns": "1791750695185495995",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/workspace-resume-20261011-01/SOURCE-C25-RESUME-IDENTITY.json",
+      "read_stable": true,
+      "sha256": "877c80e779bcf7d3e12e3f9c3d98060fc1acfc155f556020b63221afdc3fafd9",
+      "type": "file"
+    }
+  ],
+  "receipt_availability_counts": {
+    "MATCH": 279,
+    "UNAVAILABLE": 39
+  },
+  "recorded_at": "2026-10-11T20:31:35.115434+00:00",
+  "root_map_counts": {
+    "ABSENT": 265,
+    "PRESENT": 95
+  },
+  "root_map_namespaces": {
+    "/tmp": {
+      "ABSENT": 265
+    },
+    "/workspace": {
+      "PRESENT": 95
+    }
+  },
+  "schema_version": "bounded-workspace-resume-discrepancy/1",
+  "source_clean": true,
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "status": "FAIL_REQUIRED_RAW_TEMPORARY_EVIDENCE_UNAVAILABLE"
+}

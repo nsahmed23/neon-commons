@@ -1,0 +1,70 @@
+{
+  "classification": {
+    "laboratory_complete": false,
+    "platform_qualified": false,
+    "production_approved": false
+  },
+  "evidence_class": "LOCAL_CONTRACT_DETACHED",
+  "execution_status": "Root-owned actual local laboratory dispatch has begun separately; no new native result is asserted by this source-text delivery.",
+  "findings": [
+    {
+      "artifact_sha256": "cdf7c4d6db596381b4f686409463029cdce74f5a2781672b9ddde315e8877319",
+      "description": "Final recording/close failures could replace primary and skip capsule attempts.",
+      "evidence_path": "independent/branch-source-publication-20261011-01/native-outer-finalization-repair-04/RESULT.json",
+      "id": "NO01",
+      "scope": "14 detached exact-run fault cases, no real process. Reused through unchanged run AST except read-only daemon callback name; counts not added to application/strict/native totals.",
+      "status": "PASS",
+      "test_procedure_id": "independent-detached-outer-finalization-controls/1"
+    },
+    {
+      "description": "Equal fresh run/durable namespaces escaped the overlap filter.",
+      "id": "NO02",
+      "scope": "Explicit equality rejected before mutation; independent scoped review linked in final review.",
+      "status": "PASS"
+    },
+    {
+      "description": "Existing final qualification with absent or UNKNOWN status could be graded complete.",
+      "failing_before_sha256": "badd1873192ca5329004c6bacdd17ebd5de2396151e3657d4d241d3196c173e3",
+      "id": "NO03",
+      "scope": "Actual helper schemas require explicit scoped final PASS and typed empty failure lists; cancellation primary errors remain preserved. Final independent review reuses bounded controls.",
+      "status": "PASS"
+    },
+    {
+      "description": "Dangling literal links at optional proof names were skipped by exists().",
+      "failing_before_sha256": "7d2582f17dbbbf263c691050ae8a6429c90798b70e9ae35b3fc8309db69c8491",
+      "id": "NO04",
+      "passing_after_sha256": "229aa95f86a246e2b1a99488383d1aca2a5e0c2e08dc7dfe389a831d59cecffb",
+      "scope": "13 detached controls per candidate. Actual valid/no-proof schemas pass; all four dangling/ordinary proof links reject. No actual native/helper process.",
+      "status": "PASS"
+    }
+  ],
+  "independent_review": {
+    "bytes": 4653,
+    "evidence_path": "independent/branch-source-publication-20261011-01/native-outer-admission-04/RESULT.json",
+    "precise_scope": "Bounded detached metadata controls and exact source/config/AST identity only. Root must make its separate exact local-lab decision and qualify actual outcomes. No organizational, platform or production approval.",
+    "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6"
+  },
+  "next_action": "Root independently qualifies actual fixed journeys and raw preservation. This source disposition does not satisfy native/platform/production gates.",
+  "preserved_history": {
+    "265_historical_temporary_roots_unavailable": true,
+    "39_historical_reference_receipts_unavailable": true,
+    "new_runs_close_historical_loss": false,
+    "prior_candidates_and_failures_retained": true
+  },
+  "publication_omissions": [
+    "Raw Graph/tenant captures, state, saved plans, exported plan JSON and receipts with captured identities.",
+    "Prepared common profile, tool/source private corpus and workflow signing/approval material.",
+    "Daemon host identity/readiness raw responses.",
+    "Root GO decision/admission/process logs and any nonce.",
+    "Native raw trees, capsules and original contrary evidence; these remain separately retained private evidence."
+  ],
+  "schema_version": "native-lab-orchestration-source-disposition/1",
+  "source_file": {
+    "bytes": 50011,
+    "relative_path": "native-lab-orchestration.py",
+    "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403"
+  },
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_text_suitability": "Independent scoped review admits exact corrected driver documentation-only text. No captured host identities or raw profile/capsule/test corpus are included.",
+  "status": "IMPLEMENTED"
+}

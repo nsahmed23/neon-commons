@@ -1,0 +1,50 @@
+{
+  "schema": "intune-exact-package-reconstruction/1",
+  "status": "PASS",
+  "at": "2026-10-11T20:30:51.269040+00:00",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "actual_build_argv": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "scripts/build-release.py",
+    "--output-dir",
+    "/tmp/intune-c25-restored-packages-20261011/build-a"
+  ],
+  "cwd": "/workspace/intune-continuation/work/projects/intune",
+  "prior_record_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/CANDIDATE-25-PACKAGED.json",
+  "prior_record_sha256": "a5ee3de3016784f6967841b4a5ea3dd13558784bf7225059f0f69df31bb62937",
+  "archives": [
+    {
+      "kind": "source",
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "bytes": 17956520,
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+      "recorded_original": {
+        "path": "/tmp/intune-r4-final-packages-03/build-a/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "bytes": 17956520,
+        "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+        "extracted": "/tmp/intune-r4-final-packages-03/extract-source/intune-iac-source",
+        "rebuild_path": "/tmp/intune-r4-final-packages-03/build-b/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "byte_identical_rebuild": true
+      },
+      "status": "EXACT_BYTES_RECONSTRUCTED"
+    },
+    {
+      "kind": "runtime",
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0.zip",
+      "bytes": 1520542,
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+      "recorded_original": {
+        "path": "/tmp/intune-r4-final-packages-03/build-a/Intune_IaC_Plugin_0.9.0.zip",
+        "bytes": 1520542,
+        "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+        "extracted": "/tmp/intune-r4-final-packages-03/extract-runtime/intune-iac",
+        "rebuild_path": "/tmp/intune-r4-final-packages-03/build-b/Intune_IaC_Plugin_0.9.0.zip",
+        "byte_identical_rebuild": true
+      },
+      "status": "EXACT_BYTES_RECONSTRUCTED"
+    }
+  ],
+  "scope": "Fresh deterministic package reconstruction matches retained exact original hashes. Prior raw logs/receipts in missing /tmp are not reconstructed, and their qualification results are not manufactured. New extraction/linkage/rebuild verification follows separately."
+}

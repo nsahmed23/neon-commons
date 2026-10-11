@@ -1,0 +1,26 @@
+{
+  "schema_version": "intune-checkpoint-commit/1",
+  "status": "PASS",
+  "recorded_at": "2026-10-11T20:43:13.238306+00:00",
+  "commit": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "parent": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "tree": "cbb79f68dc3e2f66a9fbdc3a7233f4b6a70da11a",
+  "paths": {
+    "docs/CONTINUATION-R4-CHECKPOINT.md": "592d16667528cc95c151864892583621f3de2f26209adb62d2ef360a2e0db8f9",
+    "docs/CONTINUATION-R4-LEDGER.json": "cd335c7814214542134a542717759b2a3b22c139f7a7fadba993b3e5e3bb52a6",
+    "docs/EXECUTION-SEQUENCE-R4.md": "1c672157887107230f7292114ccf5c1cbbb11c09e53ede2a0522249a0ae9b78a",
+    "docs/continuation-evidence/20261011/PUBLICATION-DISPOSITION.md": "a0cac5808bc61e1fc0c938765db82050952b7c6d63db30a100231d0bf1eb5144",
+    "docs/continuation-evidence/20261011/available-roots.json": "61be84ba2900b00c38a41ce623e12bddc4212206d9cdba0627c344932d7d7176",
+    "docs/continuation-evidence/20261011/current-package-inputs.json": "d366a41ea6751b0dde12f5da80ad628f1c5bf67c7490f553f3021f1b334a0886",
+    "docs/continuation-evidence/20261011/ledger-availability.json": "564fa07f48d1ce644e70e0e719eb2fc4c3c5af49184e1209b1c32b6322d8eb72",
+    "docs/continuation-evidence/20261011/reconstructed-package-verification.json": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e",
+    "docs/continuation-evidence/20261011/reconstructed-packages.json": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b",
+    "docs/continuation-evidence/20261011/source-history-packages-review.json": "66bb44b04a9c6ce06bea07833ff6a1033aa969af4a21874eeea4f6ffe1406006",
+    "docs/continuation-evidence/20261011/source-review.json": "7f05762d77e9822e1c7838a196e8d15f2e970d894325edb683156f4c4faca07b",
+    "docs/continuation-evidence/20261011/workspace-availability.json": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b",
+    "release-source-files.txt": "89cd0e2773e9f2213a1f6d515d339228d9cdb0f1a1a23bca43467148efaf3bf5"
+  },
+  "working_tree_after": "",
+  "qualified_package_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "scope": "Documentation-only checkpoint; all engine/runtime/provider code unchanged. ExactC25 archives reconstructed and integrity/rebuild verified. Old raw/tmp loss retained; final required gate/native/delivery/platform/production remain incomplete."
+}

@@ -1,0 +1,599 @@
+{
+  "detached_control_count": 46,
+  "detached_controls": [
+    {
+      "error": "Gate receipt differs from the root-admitted exact bytes.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G01-counterfeit-receipt-with-observed-pin",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate is not a successful exact C25 run.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G02-wrong-revision",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate source archive differs from trusted C25.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G03-wrong-archive-sha",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate source archive differs from trusted C25.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G04-wrong-archive-size",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate is not a successful exact C25 run.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G05-failed-status",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate is not a successful exact C25 run.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G06-boolean-exit-code",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required complete suite did not succeed.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G07-no-core",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate source binding is incomplete.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G08-changed-source",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Gate source binding is incomplete.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G09-file-set-change",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required suite count is not exact.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-count-planned",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required suite count is not exact.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-count-bool-planned",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required suite count is not exact.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-count-tests",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required suite count is not exact.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-count-bool-tests",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required suite count is not exact.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-count-passed",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required suite count is not exact.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-count-bool-passed",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required strict suite has a nonzero outcome.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-nonzero-failures",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required strict suite has a nonzero outcome.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-nonzero-errors",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required strict suite has a nonzero outcome.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-nonzero-skipped",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required strict suite has a nonzero outcome.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-nonzero-expected_failures",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Required strict suite has a nonzero outcome.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-nonzero-unexpected_successes",
+      "observed": "REJECT"
+    },
+    {
+      "error": "An observed root-admitted gate receipt pin is required.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "G-invalid-unobserved-pin",
+      "observed": "REJECT"
+    },
+    {
+      "expected": "ACCEPT",
+      "id": "P00-small-exact-archive-extraction",
+      "observed": "ACCEPT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P01-stable-altered-file",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P02-extra-file",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P03-extra-directory",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P04-file-to-symlink",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P05-extra-link",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P06-file-to-directory",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P07-directory-to-file",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Input path type differs from its declared type.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P08-root-link",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Input ancestor must be a literal directory.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P09-ancestor-link",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Initial extracted source namespace/types/bytes differ from exact ZIP.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P10-missing-file",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Archive bytes differ from trusted C25 pin.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P11-altered-archive",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Package identity differs from C25.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P12-wrong-commit",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Package identity differs from C25.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P13-wrong-tree",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Unexpected package role set.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P14-unexpected-role",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Declared archive pin differs from trusted C25 pin.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P15-wrong-declared-pin",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Trusted package receipt bytes changed.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "P16-counterfeit-package-receipt",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Duplicate ZIP member.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z01-duplicate-member",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Unexpected archive namespace.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z02-traversal",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Package members must be typed regular files.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z03-untyped-file",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Package members must be typed regular files.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z04-link-member",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Exact package manifest is missing.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z05-manifest-missing",
+      "observed": "REJECT"
+    },
+    {
+      "error": "ZIP file shadows a directory.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z06-file-directory-shadow",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Unexpected archive namespace.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z07-backslash",
+      "observed": "REJECT"
+    },
+    {
+      "error": "Unexpected archive namespace.",
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "Z08-wrong-root",
+      "observed": "REJECT"
+    }
+  ],
+  "dispatches": 0,
+  "fixture_scope": "Exact utility function bodies on tiny synthetic packages with fixture-only artifact/receipt pins; gate rejection schema/identity controls. Counts are not product/native/suite tests.",
+  "historical_failure": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-primary-error-probe-02-01/RESULT.json",
+  "not_established": [
+    "Live/provider/native platform qualification",
+    "Complete laboratory completion",
+    "Organizational AppSec/risk/production approval",
+    "Absence of all secrets outside exact reviewed text"
+  ],
+  "observed_gate_binding": {
+    "command": {
+      "bytes": 1489,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/COMMAND.json",
+      "sha256": "24cc341b97d9b019eda94fab3fb2ff420d40a553200ecf1c5a9e04d48992570f"
+    },
+    "not_established": [
+      "Live Graph authenticity or service semantics",
+      "Provider-backed import/no-change plan",
+      "Full native Atmos runtime configuration parity",
+      "Native Windows/PowerShell behavior",
+      "Native host installation",
+      "CLM learned-model quality, calibration or latency"
+    ],
+    "raw_suite": {
+      "bytes": 759,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/strict-suite/result.json",
+      "sha256": "14a8b622ae42da3159596440fbd078ec46b89e7d03c3eb3a713c29593612ef39"
+    },
+    "raw_suite_equals_receipt": true,
+    "receipt": {
+      "bytes": 1767,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/RECEIPT.json",
+      "sha256": "cb3c66aebfc2a81aa31c7d31a8e19eca510e55f167a2f8c1fae5e4ba297ed88d"
+    },
+    "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+    "source_after": {
+      "bytes": 769215,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/SOURCE-AFTER.json",
+      "sha256": "36bd870fbab4759b2c3740ec4cc5aab6cc8068d1cd3f6d452b1c34a8c03c215d"
+    },
+    "source_before": {
+      "bytes": 769215,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/SOURCE-BEFORE.json",
+      "sha256": "36bd870fbab4759b2c3740ec4cc5aab6cc8068d1cd3f6d452b1c34a8c03c215d"
+    },
+    "source_censuses_byte_identical": true,
+    "status": "PASS",
+    "stderr": {
+      "bytes": 156,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/stderr",
+      "sha256": "79dbb8d111d64fc3a11e4133538c32b4a2f9ccc69ca630e7a9e91caf41e18129"
+    },
+    "stdout": {
+      "bytes": 828,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/stdout",
+      "sha256": "8e503c2e6dc17c186e9f7dcd1f6073304e3bf12edbced5c85131510ef11b21ba"
+    },
+    "suite_reexecuted": false,
+    "test_log": {
+      "bytes": 416654,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-strict-resumed-20261011-02/strict-suite/test-log.txt",
+      "sha256": "21968693457b822aa2374bd6978b4b4bb0ad7b340267f50818078ede2be56df3"
+    },
+    "tests": 2307
+  },
+  "omissions": [
+    "27 older native helper source members",
+    "Fixture capture/state/saved-plan inputs",
+    "All raw private qualification output/capsules",
+    "Missing original helper bytes and 265 historical /tmp roots",
+    "Full R4 evidence corpus"
+  ],
+  "primary_failure_control_count": 8,
+  "primary_failure_controls": [
+    {
+      "candidate": "before",
+      "candidate_pin": {
+        "bytes": 7003,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepared-wrapper-revisions-03/runtime-before-failure-record-guard.py.txt",
+        "sha256": "815ccf952ad11e4124255c47c455851ca7cc40f72e09ce056920f5c5589ea72e"
+      },
+      "capsule_denied": false,
+      "expected_preserved": true,
+      "failure_receipt_denied": false,
+      "notes": [],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    },
+    {
+      "candidate": "before",
+      "candidate_pin": {
+        "bytes": 7003,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepared-wrapper-revisions-03/runtime-before-failure-record-guard.py.txt",
+        "sha256": "815ccf952ad11e4124255c47c455851ca7cc40f72e09ce056920f5c5589ea72e"
+      },
+      "capsule_denied": false,
+      "expected_preserved": false,
+      "failure_receipt_denied": true,
+      "notes": [],
+      "original_known_bad": true,
+      "primary_preserved": false,
+      "primary_type": "AssertionError",
+      "raised_type": "OSError"
+    },
+    {
+      "candidate": "before",
+      "candidate_pin": {
+        "bytes": 7003,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepared-wrapper-revisions-03/runtime-before-failure-record-guard.py.txt",
+        "sha256": "815ccf952ad11e4124255c47c455851ca7cc40f72e09ce056920f5c5589ea72e"
+      },
+      "capsule_denied": true,
+      "expected_preserved": true,
+      "failure_receipt_denied": false,
+      "notes": [
+        "Secondary capsule preservation/verification failure: OSError: SYNTHETIC_CAPSULE_RECORDING_DENIED"
+      ],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    },
+    {
+      "candidate": "before",
+      "candidate_pin": {
+        "bytes": 7003,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepared-wrapper-revisions-03/runtime-before-failure-record-guard.py.txt",
+        "sha256": "815ccf952ad11e4124255c47c455851ca7cc40f72e09ce056920f5c5589ea72e"
+      },
+      "capsule_denied": true,
+      "expected_preserved": true,
+      "failure_receipt_denied": true,
+      "notes": [
+        "Secondary capsule preservation/verification failure: OSError: SYNTHETIC_CAPSULE_RECORDING_DENIED"
+      ],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    },
+    {
+      "candidate": "after",
+      "candidate_pin": {
+        "bytes": 7154,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-repaired-03-01/candidates/qualify-c25-runtime-resumed-20261011.py",
+        "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468"
+      },
+      "capsule_denied": false,
+      "expected_preserved": true,
+      "failure_receipt_denied": false,
+      "notes": [],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    },
+    {
+      "candidate": "after",
+      "candidate_pin": {
+        "bytes": 7154,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-repaired-03-01/candidates/qualify-c25-runtime-resumed-20261011.py",
+        "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468"
+      },
+      "capsule_denied": false,
+      "expected_preserved": true,
+      "failure_receipt_denied": true,
+      "notes": [
+        "Secondary failure receipt recording error: OSError: SYNTHETIC_FAILURE_RECORDING_DENIED"
+      ],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    },
+    {
+      "candidate": "after",
+      "candidate_pin": {
+        "bytes": 7154,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-repaired-03-01/candidates/qualify-c25-runtime-resumed-20261011.py",
+        "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468"
+      },
+      "capsule_denied": true,
+      "expected_preserved": true,
+      "failure_receipt_denied": false,
+      "notes": [
+        "Secondary capsule preservation/verification failure: OSError: SYNTHETIC_CAPSULE_RECORDING_DENIED"
+      ],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    },
+    {
+      "candidate": "after",
+      "candidate_pin": {
+        "bytes": 7154,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/wrapper-repaired-03-01/candidates/qualify-c25-runtime-resumed-20261011.py",
+        "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468"
+      },
+      "capsule_denied": true,
+      "expected_preserved": true,
+      "failure_receipt_denied": true,
+      "notes": [
+        "Secondary failure receipt recording error: OSError: SYNTHETIC_FAILURE_RECORDING_DENIED",
+        "Secondary capsule preservation/verification failure: OSError: SYNTHETIC_CAPSULE_RECORDING_DENIED"
+      ],
+      "original_known_bad": false,
+      "primary_preserved": true,
+      "primary_type": "AssertionError",
+      "raised_type": "AssertionError"
+    }
+  ],
+  "public_source_text": [
+    {
+      "bytes": 5746,
+      "embedded_byte_payloads": 0,
+      "high_signal_findings": [],
+      "name": "c25_package_binding.py",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25_package_binding.py",
+      "scope": "Full source text manually inspected; local absolute paths and public artifact digests are metadata, not raw tenant/state/plan payloads.",
+      "sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053",
+      "utf8": true
+    },
+    {
+      "bytes": 7154,
+      "embedded_byte_payloads": 0,
+      "high_signal_findings": [],
+      "name": "qualify-c25-runtime-resumed-20261011.py",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/qualify-c25-runtime-resumed-20261011.py",
+      "scope": "Full source text manually inspected; local absolute paths and public artifact digests are metadata, not raw tenant/state/plan payloads.",
+      "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468",
+      "utf8": true
+    },
+    {
+      "bytes": 10891,
+      "embedded_byte_payloads": 0,
+      "high_signal_findings": [],
+      "name": "prepare-c25-native-resumed-20261011.py",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/prepare-c25-native-resumed-20261011.py",
+      "scope": "Full source text manually inspected; local absolute paths and public artifact digests are metadata, not raw tenant/state/plan payloads.",
+      "sha256": "c46e6fecf617cad13d3a3cff429154edf56a983d8b7ad294b95d1418166bef3e",
+      "utf8": true
+    }
+  ],
+  "remaining_findings": [],
+  "repaired_findings": [
+    "WR01 exact extraction namespace/type/bytes versus hard-pinned ZIP",
+    "WR02 exact receipt/module/creator/context and typed observed gate binding",
+    "WR03 final RESULT follows capsule verification and capsule secondary preserves primary",
+    "WR04 guard failure receipt recording to preserve original application error"
+  ],
+  "replay": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_repaired_wrappers.py"
+  ],
+  "schema": "independent-wrapper-repair-review/1",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_suitability": "PASS_SCOPED: exact three source texts may be copied to explicitly selected .py.txt documentation; not runtime or complete private harness/corpus clearance.",
+  "static_observations": [
+    {
+      "file": "qualify-c25-runtime-resumed-20261011.py",
+      "observed_gate_before_packages_or_dispatch": true,
+      "pin_before_import": true
+    },
+    {
+      "file": "prepare-c25-native-resumed-20261011.py",
+      "observed_gate_before_packages_or_dispatch": true,
+      "pin_before_import": true
+    }
+  ],
+  "status": "PASS_SCOPED"
+}

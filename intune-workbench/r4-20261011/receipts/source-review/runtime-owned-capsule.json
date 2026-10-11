@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "archive": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/c25-runtime-resumed-20261011-01/complete-runtime-evidence.zip",
+  "bytes": 46179244,
+  "sha256": "1268bd9197d0354e3b1520b841c3cb1ec23a9494a905683376de34cba4ff454c",
+  "full_namespace_and_bytes": true,
+  "scratch_root": "/tmp/intune-c25-runtime-resumed-20261011-01",
+  "scratch_preserved": true,
+  "literal_links_not_followed": true,
+  "members": 284
+}

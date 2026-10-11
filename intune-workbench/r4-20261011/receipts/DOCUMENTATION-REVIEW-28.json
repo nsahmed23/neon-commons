@@ -1,0 +1,585 @@
+{
+  "schema": "intune-public-C28-docs-delta-admission/1",
+  "status": "PUBLIC_DOCS_DELTA_PASS",
+  "recorded_at": "2026-10-11T21:59:48.340973+00:00",
+  "base_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+  "engineering_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "engineering_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "scope": "Exact17-path actual public documentation/source-inventory delta before commit. All16 immutable stage03 candidates copied byte-exact; root inventory adds exactly11 approved public paths while preserving all prior bytes/comments. Engine/runtime/provider/test/scripts remain unchanged. No new native/global laboratory/platform/production qualification.",
+  "file_count": 17,
+  "exact_file_list_and_pins": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1708390,
+      "sha256": "d1da9c9574121754a434d490dd8009e951efa11b559bf4b0f21d8c16605ce541",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "bytes": 103434,
+      "sha256": "ed94fa04ab031b7596bd866ede8602cdfa6797be40ffd17ad4dd1fe7f8d2522e",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "bytes": 26318,
+      "sha256": "50f7ef9bcdac69c44e87e1bb7dfe962b50b2076dde19bc20d7207c3af4fcda67",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "bytes": 24280,
+      "sha256": "909da31459773fc61958229f05e0f88e3d596ae0ced0bdf256c5b5fa843b6dd2",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "bytes": 57746,
+      "sha256": "c9f7a58c71afffea85e28d25da84485561dc09c35f5a03aac111b441b5bea328",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "bytes": 4991,
+      "sha256": "02a244e7cff15b2333354fcc30e5e059928f778cbc4287a54410d8a886b19f37",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "bytes": 1242,
+      "sha256": "45bd001d57ddff524ace0621ce366d0ba45c7e79987ac48d2d34d83e90fafe64",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "bytes": 20977,
+      "sha256": "98d3a6bf2838e3f51458727eba582c01b7ca9ae7d834ea88f7a3c541e95f7233",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "bytes": 8428,
+      "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "bytes": 5224,
+      "sha256": "3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "bytes": 5489,
+      "sha256": "ff9f9181648c435f0f9d30f44bf5072bbe4afe2508f1056fd78bb45654f49456",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "bytes": 2492,
+      "sha256": "c3bc51324ffb097a1683415edf18ee643438bb52070148a2be6c38b469a8f73a",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "bytes": 4137,
+      "sha256": "d44dc3646562154c7a8ca66d12ad51bd3d72cd0774c7dd9f49fcaa2f103fba1f",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "bytes": 50011,
+      "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "bytes": 927,
+      "sha256": "965e54f9e2bd26d52e4e3b919323db95f522a8ed31fc53d2e77d3afa3237f964",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "bytes": 4653,
+      "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6",
+      "regular_file": true
+    },
+    {
+      "repository_path": "release-source-files.txt",
+      "bytes": 268255,
+      "sha256": "9709a90f636a6efa13bcf97d19321b16cf1ca2e4506c675fedba7df5e574fcb1",
+      "regular_file": true
+    }
+  ],
+  "actual_file_list_and_pins": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1708390,
+      "sha256": "d1da9c9574121754a434d490dd8009e951efa11b559bf4b0f21d8c16605ce541",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "bytes": 103434,
+      "sha256": "ed94fa04ab031b7596bd866ede8602cdfa6797be40ffd17ad4dd1fe7f8d2522e",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "bytes": 26318,
+      "sha256": "50f7ef9bcdac69c44e87e1bb7dfe962b50b2076dde19bc20d7207c3af4fcda67",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "bytes": 24280,
+      "sha256": "909da31459773fc61958229f05e0f88e3d596ae0ced0bdf256c5b5fa843b6dd2",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "bytes": 57746,
+      "sha256": "c9f7a58c71afffea85e28d25da84485561dc09c35f5a03aac111b441b5bea328",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "bytes": 4991,
+      "sha256": "02a244e7cff15b2333354fcc30e5e059928f778cbc4287a54410d8a886b19f37",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "bytes": 1242,
+      "sha256": "45bd001d57ddff524ace0621ce366d0ba45c7e79987ac48d2d34d83e90fafe64",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "bytes": 20977,
+      "sha256": "98d3a6bf2838e3f51458727eba582c01b7ca9ae7d834ea88f7a3c541e95f7233",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "bytes": 8428,
+      "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "bytes": 5224,
+      "sha256": "3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "bytes": 5489,
+      "sha256": "ff9f9181648c435f0f9d30f44bf5072bbe4afe2508f1056fd78bb45654f49456",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "bytes": 2492,
+      "sha256": "c3bc51324ffb097a1683415edf18ee643438bb52070148a2be6c38b469a8f73a",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "bytes": 4137,
+      "sha256": "d44dc3646562154c7a8ca66d12ad51bd3d72cd0774c7dd9f49fcaa2f103fba1f",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "bytes": 50011,
+      "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "bytes": 927,
+      "sha256": "965e54f9e2bd26d52e4e3b919323db95f522a8ed31fc53d2e77d3afa3237f964",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "bytes": 4653,
+      "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6",
+      "regular_file": true
+    },
+    {
+      "repository_path": "release-source-files.txt",
+      "bytes": 268255,
+      "sha256": "9709a90f636a6efa13bcf97d19321b16cf1ca2e4506c675fedba7df5e574fcb1",
+      "regular_file": true
+    }
+  ],
+  "review_receipt": {
+    "path": "/tmp/intune-checkpoint28-delta-review/DELIVERY-28-03-MECHANICAL-REVIEW.json",
+    "bytes": 66423,
+    "sha256": "ed67d2a26bd3e7f392127ce1289e880b10280eb63f979afc41f7f806d6fa60ca"
+  },
+  "precursor_review": {
+    "path": "/tmp/intune-checkpoint28-delta-review/PRECURSOR-APPLICATION-ADMISSION.json",
+    "bytes": 12188,
+    "sha256": "5d96b30c733fcb76a30690229da4ecefdbf721a9ad13aa3271db13cfef567f35"
+  },
+  "precursor_durable_delivery": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint28-public-docs-delta-01/PRECURSOR-DELIVERY.json",
+    "bytes": 1577,
+    "sha256": "03b0276b23ecce6c1f64193e779a4ed176a588ef0785b33c8e844e5fc51f5595"
+  },
+  "initial_failed_reconciliation_receipt": {
+    "path": "/tmp/intune-checkpoint28-delta-review/DELIVERY-28-02-MECHANICAL-REVIEW.json",
+    "bytes": 66647,
+    "sha256": "f2c768f1832fa8be5de2cbf952e623a7b42214f1aee8d8a9a926537e3d43f7ae"
+  },
+  "reviewer_check_correction": {
+    "path": "/tmp/intune-checkpoint28-delta-review/REVIEWER-CHECK-CORRECTION.json",
+    "bytes": 831,
+    "sha256": "cd4462cf8a5a43800f516797f5dfdd7b884ad0c657947f68549df9d84b7e40c3"
+  },
+  "apply": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/CHECKPOINT-28-APPLICATION.json",
+    "bytes": 4544,
+    "sha256": "254bfd71e6911d78bfe5266a08f93c99a483cc3891a35f931d1045054c6139b6"
+  },
+  "delivery": {
+    "path": "/tmp/intune-c28-failure-docs-proposal-20261011-03/DELIVERY-28-03.json",
+    "bytes": 14004,
+    "sha256": "b67dd6a3d09d72276c8ab251fb4167547c107b1f4bddc6108eaf22b2f7018d87"
+  },
+  "original_Markdown_preservation": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "old_bytes": 94591,
+      "old_sha256": "237708ad715aa2561fa2afe7a89dab1409b229e9c374a04fab31611d725ef5ee",
+      "contiguous_offset": 8843,
+      "occurrences": 1
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "old_bytes": 19594,
+      "old_sha256": "229039819e556587fa29131c2a59d43b58a350aa76be8352c27cc9b88212d1ce",
+      "contiguous_offset": 6724,
+      "occurrences": 1
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "old_bytes": 19641,
+      "old_sha256": "4400c3600e0ca5337ba78b23457c3751d9aa02164423f985e1fea17bfb678751",
+      "contiguous_offset": 0,
+      "occurrences": 1
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "old_bytes": 52182,
+      "old_sha256": "4a63b9938541c5f5b599f89d4bc272bac163d9b424b400b7a5d5ae6df6aaa924",
+      "contiguous_offset": 0,
+      "occurrences": 1
+    }
+  ],
+  "ledger_preservation": "All92IDs/statuses unchanged. Twelve changed prior leaf values exactly preserved as old/new C27 guidance; historical ledgers/reuse/recovery/findings, retained failures and source/runtime/performance scopes unchanged. Original native FAIL remains5completed/1attemptedfailed/32unexecutedof38plannedactions; bounded111readerassertions do not qualify all38 or add product tests.",
+  "inventory": {
+    "old_selected_unique": 3388,
+    "new_selected_unique": 3399,
+    "added_metadata_or_text_files": 11,
+    "removed": 0,
+    "prior_bytes_and_comments_preserved": true,
+    "runtime_payload_unchanged": true,
+    "bytes": 268255,
+    "sha256": "9709a90f636a6efa13bcf97d19321b16cf1ca2e4506c675fedba7df5e574fcb1"
+  },
+  "documentation_assertions": 58,
+  "precursor_documentation_assertions": 179,
+  "checks": [
+    {
+      "id": "exact_stage03_manifest",
+      "passed": true
+    },
+    {
+      "id": "HEAD_C27_before_commit",
+      "passed": true
+    },
+    {
+      "id": "dedicated_continuation_branch",
+      "passed": true
+    },
+    {
+      "id": "exact17_actual_changed_or_new_paths",
+      "passed": true,
+      "details": {
+        "actual_paths": [
+          "docs/CONTINUATION-R4-CHECKPOINT.md",
+          "docs/CONTINUATION-R4-LEDGER.json",
+          "docs/EXECUTION-SEQUENCE-R4.md",
+          "docs/EXTERNAL-GATES-R4.md",
+          "docs/OPERATING-PROFILE-R4.md",
+          "docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+          "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+          "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+          "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+          "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+          "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+          "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+          "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+          "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+          "docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+          "docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+          "release-source-files.txt"
+        ],
+        "extra": [],
+        "missing": []
+      }
+    },
+    {
+      "id": "applied_exact_candidate:docs/CONTINUATION-R4-LEDGER.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/CONTINUATION-R4-LEDGER.json",
+      "passed": true
+    },
+    {
+      "id": "exactC27_base_identity:docs/CONTINUATION-R4-LEDGER.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/CONTINUATION-R4-CHECKPOINT.md",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/CONTINUATION-R4-CHECKPOINT.md",
+      "passed": true
+    },
+    {
+      "id": "exactC27_base_identity:docs/CONTINUATION-R4-CHECKPOINT.md",
+      "passed": true
+    },
+    {
+      "id": "actual_original_markdown_contiguous:docs/CONTINUATION-R4-CHECKPOINT.md",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/EXECUTION-SEQUENCE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/EXECUTION-SEQUENCE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "exactC27_base_identity:docs/EXECUTION-SEQUENCE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "actual_original_markdown_contiguous:docs/EXECUTION-SEQUENCE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/OPERATING-PROFILE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/OPERATING-PROFILE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "exactC27_base_identity:docs/OPERATING-PROFILE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "actual_original_markdown_contiguous:docs/OPERATING-PROFILE-R4.md",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/EXTERNAL-GATES-R4.md",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/EXTERNAL-GATES-R4.md",
+      "passed": true
+    },
+    {
+      "id": "exactC27_base_identity:docs/EXTERNAL-GATES-R4.md",
+      "passed": true
+    },
+    {
+      "id": "actual_original_markdown_contiguous:docs/EXTERNAL-GATES-R4.md",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "passed": true
+    },
+    {
+      "id": "applied_exact_candidate:docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "passed": true
+    },
+    {
+      "id": "actual_literal_ancestors:docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "passed": true
+    },
+    {
+      "id": "source_inventory_full_original_bytes_preserved",
+      "passed": true
+    },
+    {
+      "id": "source_inventory_3388_to3399",
+      "passed": true
+    },
+    {
+      "id": "source_inventory_exact11_additions_no_removals",
+      "passed": true
+    },
+    {
+      "id": "source_inventory_literal_relative_paths",
+      "passed": true
+    },
+    {
+      "id": "source_inventory_new_block_sorted_exact",
+      "passed": true
+    },
+    {
+      "id": "source_inventory_new_comment_scope_exact",
+      "passed": true
+    },
+    {
+      "id": "root_application_receipt_exact",
+      "passed": true
+    },
+    {
+      "id": "root_application_manifest_and_base",
+      "passed": true
+    },
+    {
+      "id": "root_application_precursor_exact",
+      "passed": true
+    },
+    {
+      "id": "root_application_all17_file_pins_exact",
+      "passed": true
+    },
+    {
+      "id": "precursor_public_suitability_and179checks_reused_exact",
+      "passed": true
+    },
+    {
+      "id": "git_head_guard_after",
+      "passed": true
+    },
+    {
+      "id": "git_diff_path_guard_after",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "test_counting": "Documentation/identity reader assertions only; precursor and actual phases overlap and are not added to product suites, commands, samples or native journey totals.",
+  "public_suitability": "Bounded exact selected metadata/qualification source-text admission. Selected candidates and current inventory contain no raw Graph/state/plan/approval/journal/key/SQL/PTY/private-capsule payload or original GO/receiving host identity. No universal secret-absence or organizational AppSec claim.",
+  "explicit_omissions": [
+    "Private original/R4 corpus and265unavailable historical roots/39missing pinned receipts",
+    "Raw native profiles/config/admission/GO/nonce/host IDs, captures/state/plans/approvals/journals/SQL/PTY/key/capsule payload",
+    "Other native helper source/private fixtures/tools and newly repaired producer/continuation profile lanes",
+    "Deleted historical temporary intermediates and accountable external approval"
+  ],
+  "not_established": [
+    "C28commit/push/public-readback success",
+    "All-required native journey/global laboratory completion",
+    "NativeWindows/liveGraph/Azure/backend/CI/device/OSscheduler/platform qualification",
+    "Universal secret absence/organizational AppSec/security risk acceptance",
+    "Accountable organizational production approval",
+    "Repair producer/frozen metadata reconciliation/newcontinuation profile final admission outside frozenC28",
+    "Sufficient workspace capacity for a new final native durable capsule"
+  ],
+  "capacity": {
+    "workspace_available_bytes_at_review": 33169408,
+    "native_capsule_minimum_reserve_bytes": 33554432,
+    "reserve_currently_met": false,
+    "final_review_delivery": "Scratch/tmp only; no additional durable review write permitted unless compressed report plus32MiB reserve fits. Precursor full owned review is already durable."
+  },
+  "product_native_or_timing_reruns": 0,
+  "repository_mutations_by_reviewer": 0,
+  "remote_mutations": 0,
+  "reviewer_driver": {
+    "path": "/tmp/intune-checkpoint28-delta-review/review_actual_checkout.py",
+    "bytes": 9862,
+    "sha256": "9da4d97c8748a78c39094f68227329dc8adb8e23602c9161be68b60b4d04af17"
+  }
+}

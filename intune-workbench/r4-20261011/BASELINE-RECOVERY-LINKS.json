@@ -1,0 +1,44 @@
+{
+  "schema": "preserved-recovery-links/1",
+  "complete_current_R4_recovery": false,
+  "reason": "265 historical /tmp evidence roots and39 pinned receipts are unavailable in this resumed environment. Original/R2/R3 layers remain retained. This selected package handoff is not a substitute for the full corpus.",
+  "original": {
+    "release": "https://github.com/nsahmed23/neon-commons/releases/tag/intune-full-handoff-20261004",
+    "attachment": "Intune_Atmos_Wally_Repository_All_Threads.zip",
+    "bytes": 1156114547,
+    "sha256": "5a16fc491944d1e8b73295d26ab8f4399f1156c0c7f1847e3faca7d3a68cc214",
+    "restore_helper": "https://raw.githubusercontent.com/nsahmed23/neon-commons/8a09d1ad153e21c0d3b5979534432fa4a4d56b03/intune-workbench/restore_release.py",
+    "restore_helper_sha256": "81ba5c122c0f44e998217d2d957475410ebca9a2684e6f8ed05f0b5c068edf37"
+  },
+  "complete_R2": {
+    "release": "https://github.com/nsahmed23/neon-commons/releases/tag/intune-r2-handoff-20261007",
+    "manifest": "https://raw.githubusercontent.com/nsahmed23/neon-commons/5141cb88e1b42c3cf17922848932f3ddf77ee396/intune-workbench/r2-20261005/R2-DISTRIBUTION-MANIFEST.json",
+    "bytes": 2289864715,
+    "sha256": "7117ab67ce6ae1912aa2c984774e6370216f3eb28be1510d0c6814cb4c295d0b",
+    "manifest_sha256": "8f766c149362ceb44f2e78f6d923a2a57c28d7895a5420f6473d79bf1b141d75"
+  },
+  "R3": {
+    "release": "https://github.com/nsahmed23/neon-commons/releases/tag/intune-r3-handoff-20261007",
+    "handoff_commit": "3bf60e3ed150ec1d147ef2c07b7bea88f7ad480e",
+    "distribution_manifest": "https://raw.githubusercontent.com/nsahmed23/neon-commons/99a850d27178f02931a278396147068ca4116a2c/intune-workbench/r3-20261007/R3-DISTRIBUTION-MANIFEST.json",
+    "source": {
+      "bytes": 16627882,
+      "sha256": "4a0e56e4e01dd58e911a7fd0ad87c8f0be851630f3beb9c40d7ccc0b1b4c8590"
+    },
+    "runtime": {
+      "bytes": 513895,
+      "sha256": "cce47f620f5e1e7d3dbdab1e030624fae3991cbf88376737a4eda07e6c703515"
+    },
+    "evidence": {
+      "bytes": 1013682416,
+      "sha256": "a133c651f2df19885d8b1706944bd953f5a5be67960955ee7021600707b62a35"
+    },
+    "distribution_manifest_sha256": "9be1b6c30f744d7222a979a42051f9f61a774fa88f0a6cfe7f4d7d637852a544"
+  },
+  "requirements": [
+    "Verify explicitly ordered distribution paths, exact sizes and SHA-256 before safe extraction into NEW directories.",
+    "Preserve all original inputs,6 saved work threads, failed attempts and literal negative-test symlinks without following them.",
+    "Do not use GitHub automatic Source code ZIP as the full handoff.",
+    "The later source branch is not the historical full private recovery corpus."
+  ]
+}

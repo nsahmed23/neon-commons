@@ -1,0 +1,69 @@
+{
+  "actual_native_executed": false,
+  "admission_scope": "Bounded exact /1 construction/API/output review supports building a newly attributed helper bundle; a reviewed new label delta and closed dependency/profile manifest still required before coordinator native GO.",
+  "api_working_bytes_equal_exact_C25": true,
+  "ast_contract_checks": 10,
+  "candidate": {
+    "helper": {
+      "bytes": 28565,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/native-recovery-plan-candidate-01-reviewed.py",
+      "sha256": "d414842dad97300c10dd9f8a756423fea11ef1fa52ddffb6005fad0054b530db"
+    },
+    "loader": {
+      "bytes": 45453,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-provider/adoption-portable/ordinary-recovery-extension-staging/qualify_portable.py",
+      "sha256": "0e161f5706b5ab2ac68b93f989b4d57a6d862f81fbd9cc440160f411c46ec043"
+    },
+    "oracle": {
+      "bytes": 5628,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/phase-harness-review-01/native_phase_plan_oracle.py",
+      "sha256": "94a32bb72009a6ad138d73339ff7aadd97f9665f42485e867e6282ebfb2f5366"
+    }
+  },
+  "count_scope": "Detached source/AST and synthetic JSON artifact oracle checks only; overlaps remain separate and are not added to strict/connected/native test counts.",
+  "findings": [
+    {
+      "detail": "receiving_graph_byte_exact is complete typed Graph dictionary equality through generic canonical JSON, not original HTTP bytes. Rename to receiving_graph_typed_exact; raw state remains byte-exact and recorded raw HTTP captures stay separate. No assertion weakening.",
+      "id": "RH01",
+      "severity": "scope-label correction before admission",
+      "status": "IMPLEMENTED"
+    }
+  ],
+  "historical_evidence_loss_closed": false,
+  "json_oracle_artifact_controls": 30,
+  "old_unavailable_helper_restored": false,
+  "outputs": [
+    {
+      "bytes": 2526,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/recovery-helper-api-artifacts-01/API-SOURCE-PINS.json",
+      "sha256": "ec691fb5c16c4f2acf10700f9de630d3c9444523994a6f3679cdb0a5f651ccc7"
+    },
+    {
+      "bytes": 1339,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/recovery-helper-api-artifacts-01/AST-CONTRACTS.json",
+      "sha256": "ce195947e296148956275959c678ea78bca82ede3ef3a7e209a12f066c06f6df"
+    },
+    {
+      "bytes": 4189,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/recovery-helper-api-artifacts-01/NEGATIVE-CONTROLS.json",
+      "sha256": "524348463dd9bbc6d10c064dc9b89811c34fd3ba342f2fdd4767ced9a460c877"
+    }
+  ],
+  "platform_qualified": false,
+  "product_module_imported": false,
+  "production_approved": false,
+  "qualification_profile_activated": false,
+  "remaining": [
+    "New helper label/metadata delta must be independently rebound; exact old candidate retained.",
+    "Closed bundle census/profile/tool/source binding and coordinator GO required.",
+    "Native run, three actual worker rejection controls, post-native raw state/Graph evidence, no-op result and durable reopen/history assertion not yet executed for this replacement.",
+    "Prior missing helper and raw evidence gaps remain unresolved."
+  ],
+  "schema": "independent-recovery-helper-api-artifact-review/1",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_recovery_helper.py",
+    "sha256": "04e380eda2a2327306547e3dbdd52f0c958a738ecc03cce564db4f45af03632b"
+  },
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED"
+}

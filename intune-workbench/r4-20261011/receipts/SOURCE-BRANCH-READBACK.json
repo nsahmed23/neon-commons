@@ -1,0 +1,19 @@
+{
+  "schema": "verified-source-branch-publication/1",
+  "status": "PASS",
+  "candidate": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "target": "refs/heads/continuation/r4-20261007",
+  "main_before": "4ba077d93fecbf5f893ee13ef972c839cf13883d",
+  "review_receipt": "independent/branch-source-publication-20261011-01/docs-delta-26-02/RESULT.json",
+  "review_receipt_sha256": "6dff429b82d575146df9088dacb73326a88e3c72c657c6216521ba9ff9925858",
+  "scope": "Only specifically reviewed source branch; no default branch, workflow dispatch, deployment, tenant mutation or raw private evidence publication.",
+  "published_at": "2026-10-11T20:43:40.874770+00:00",
+  "remote_after": {
+    "refs/heads/continuation/r4-20261007": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+    "refs/heads/main": "4ba077d93fecbf5f893ee13ef972c839cf13883d"
+  },
+  "working_tree_after": "",
+  "url": "https://github.com/nsahmed23/neon-commons/tree/b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "branch_url": "https://github.com/nsahmed23/neon-commons/tree/continuation/r4-20261007",
+  "driver_sha256": "9a4767193480da2f6cd4e96dd5906ebeb6aff03d23b82789e23d5bcd5eb498a0"
+}

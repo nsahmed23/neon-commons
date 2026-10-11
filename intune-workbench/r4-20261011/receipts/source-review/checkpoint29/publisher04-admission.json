@@ -1,0 +1,80 @@
+{
+  "actual_git_http_native_calls_by_this_review": 0,
+  "consequential_delivery_gates": [
+    "Coordinator supplies exact independently admitted final selection+admission bytes and final checkpoint identity.",
+    "Apply, commit, push and anonymous HTTP readback remain separate actual actions with new success/failure receipts.",
+    "Expected-absent target lease and unchanged main/ref/path/byte checks remain mandatory; receipt on a failure does not authorize retry or rollback."
+  ],
+  "counts": "12 detached PUB01-03 successor cases and8 literal path before/after fixtures, nonadditive metadata guard scope only. Replayed repaired wrapper on04; no product/native/suite total added.",
+  "exact_publisher": {
+    "bytes": 14929,
+    "path": "/tmp/intune-r4-companion-refresh-20261011/publish_admitted_companion04.py",
+    "sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e"
+  },
+  "explicit_omissions": [
+    "Actual private profiles/creators/tool maps/inputs/witness/keys/approvals/GO/raw state/plan/captures/SQL/capsules.",
+    "Full current private corpus or proof closing265 missing historical roots/39 pinned receipt gaps.",
+    "Any future changed helper/pin/selection, actual publication success or deployment/native/platform/AppSec/organizational decision."
+  ],
+  "failing_before": {
+    "bytes": 4655,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/publisher-before-02.json",
+    "sha256": "906471b911c2ee6507a3ce38af3820f130afc5e625e0bdc31a57964162581c23"
+  },
+  "full_source_and_string_byte_literals_reviewed": true,
+  "limitations": [
+    "Guard evidence is detached and metadata scoped. It does not establish actual Git mutation, public HTTP readback or hostile-process atomic containment.",
+    "The root existing validator is read-only; this admission does not assert that a branch or upload has succeeded.",
+    "Frozen scripts/fixtures remain temporary; durable small receipts do not imply complete recovery of private preparation."
+  ],
+  "literal_count": 325,
+  "organizational_production_approved": false,
+  "platform_qualified": false,
+  "public_source_scope": "Only this exact14929-byte root-owned helper as documentation-only .py.txt, with explicit no-runtime/private omissions. Not blanket clearance for its inputs or any future selection.",
+  "public_source_text_suitable": true,
+  "raw_credentials_or_private_capture_state_plan_input_literals_found": false,
+  "records": [
+    {
+      "bytes": 4957,
+      "observed_origin": "/tmp/intune-companion-publisher-independent-after-04/RESULT.json",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/publisher-after-04.json",
+      "sha256": "9d71aed78288cd9cf0420322752568c3a1fc778643cf3bb8d59eff0f2dbd1c2c"
+    },
+    {
+      "bytes": 4405,
+      "observed_origin": "/tmp/intune-companion-publisher-paths-before-after-04/RESULT.json",
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/selected-delivery-source-review-01/publisher-paths-before-after-04.json",
+      "sha256": "4e39d8d0d6fc2a76c2419a53c5d061f4e2e73ec38d43c79dc32249106fb30796"
+    }
+  ],
+  "repaired_guards": [
+    "PUB01: denied failure-report write preserves original RuntimeError and KeyboardInterrupt with secondary notes.",
+    "PUB02: inherited Git repository/index/config/trace variables removed, receiving git-dir/work-tree fixed and process stderr represented by exit/hash/byte count.",
+    "PUB03: exact single effective fetch and push origin URLs required; wrong/multiple destinations and wrong repository identity reject before output.",
+    "PUB04: every Git call rejects literal receiving root/.git/ancestor links; destination guard checks all ancestors above fixed prefix and rejects non-directory ancestors."
+  ],
+  "repository_or_remote_mutations_by_this_review": 0,
+  "root_actual_existing_read_only_validation_reuse": {
+    "admission_sha256": "a3c3f0520da1b893e272d2d20a35f57cc638d7391818abbf74d6f4e92978e95b",
+    "checkpoint": 28,
+    "driver_sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e",
+    "mode": "validate",
+    "prepared": {
+      "bytes": 15467,
+      "path": "/tmp/intune-companion-delivery-validate-C28-04/PREPARED.json",
+      "sha256": "9116f60bac01d2e0a6e1c4b953677506600b1893aa253ff166ec5d4cee58aeed"
+    },
+    "receipt": {
+      "bytes": 15463,
+      "path": "/tmp/intune-companion-delivery-validate-C28-04/RECEIPT.json",
+      "sha256": "aae7b304a790bcc85adc4eb5f5b351ef37eb653076474a7d4c69a8ed872e1441"
+    },
+    "scope": "Root-owned existing exact physical/admitted/prospective-Git-byte validation. Reused unchanged; this reviewer did not repeat actual validator or selected ZIP qualification.",
+    "selected_files": 79,
+    "selection_sha256": "b2802d75f367b89adc6903f22d49a9d36e2290bde0249d60bd7f61473fc06ea1",
+    "status": "PASS"
+  },
+  "schema": "independent-companion-publisher-final-admission/1",
+  "source_runtime_packages_changed": false,
+  "status": "PASS_SCOPED_DELIVERY_GUARDS_AND_SOURCE_TEXT_ONLY"
+}

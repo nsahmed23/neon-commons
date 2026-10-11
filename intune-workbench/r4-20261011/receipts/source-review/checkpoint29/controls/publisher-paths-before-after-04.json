@@ -1,0 +1,162 @@
+{
+  "actual_git_network_native_calls": 0,
+  "controls": [
+    {
+      "id": "PUB04-literal-repository",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03",
+          "error_type": null,
+          "recording_process_stub_called": true
+        },
+        {
+          "accepted": true,
+          "candidate": "after04",
+          "error_type": null,
+          "recording_process_stub_called": true
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-receiving-root-link",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03",
+          "error_type": null,
+          "recording_process_stub_called": true
+        },
+        {
+          "accepted": false,
+          "candidate": "after04",
+          "error_type": "RuntimeError",
+          "recording_process_stub_called": false
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-receiving-git-link",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03",
+          "error_type": null,
+          "recording_process_stub_called": true
+        },
+        {
+          "accepted": false,
+          "candidate": "after04",
+          "error_type": "RuntimeError",
+          "recording_process_stub_called": false
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-receiving-git-dangling-link",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03",
+          "error_type": null,
+          "recording_process_stub_called": true
+        },
+        {
+          "accepted": false,
+          "candidate": "after04",
+          "error_type": "RuntimeError",
+          "recording_process_stub_called": false
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-receiving-parent-link",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03",
+          "error_type": null,
+          "recording_process_stub_called": true
+        },
+        {
+          "accepted": false,
+          "candidate": "after04",
+          "error_type": "RuntimeError",
+          "recording_process_stub_called": false
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-prefix-root-link",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03"
+        },
+        {
+          "accepted": false,
+          "candidate": "after04"
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-prefix-ancestor-link",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03"
+        },
+        {
+          "accepted": false,
+          "candidate": "after04"
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    },
+    {
+      "id": "PUB04-prefix-ancestor-file",
+      "outcomes": [
+        {
+          "accepted": true,
+          "candidate": "before03"
+        },
+        {
+          "accepted": false,
+          "candidate": "after04"
+        }
+      ],
+      "status": "PASS_EXPECTED_BEFORE_AFTER"
+    }
+  ],
+  "limitations": [
+    "These point-in-time path guards do not establish atomic hostile-process containment or production security approval.",
+    "No symlink target payload, actual Git index/ref/object or real publication worktree was changed.",
+    "Before observations reproduce guard omissions without asserting that the actual root-owned receiving repository was linked."
+  ],
+  "replay": [
+    "/workspace/intune-runtime/bin/python",
+    "-B",
+    "-I",
+    "/tmp/review_publisher_path_binding_20261011.py",
+    "--output",
+    "NEW_ABSOLUTE_TMP_OUTPUT"
+  ],
+  "repository_or_remote_mutations": 0,
+  "schema": "independent-publisher-literal-path-before-after/1",
+  "scope": "Exact Git wrapper and destination path guard, literal small filesystem fixtures, recording-only process stub. Ordinary fixture receiving directories are not actual Git repositories.",
+  "source_after": {
+    "bytes": 14929,
+    "sha256": "3f13aa52c54ec057ffb72ce0943a77e4f77078eba5c83a9a2fdf383a3bac0d4e"
+  },
+  "source_before": {
+    "bytes": 14564,
+    "sha256": "d605fff169a1470592585685ced1411440914864eb8fce880522f34612fcc0b9"
+  },
+  "status": "PASS_SCOPED_PUB04_REPAIR"
+}

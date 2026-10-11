@@ -1,0 +1,88 @@
+{
+  "artifact_sha256": {
+    "runtime": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+    "source": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e"
+  },
+  "files": [
+    {
+      "bytes": 945,
+      "path": "EXPLORATORY-PROBE-FAILURES.json",
+      "sha256": "57be281b0b9f1ec0a8d32932cface31e9caedbe1d8d0b7b5f0154d5b95190712"
+    },
+    {
+      "bytes": 740,
+      "path": "LINKAGE-PROBE-CORRECTION-01.json",
+      "sha256": "21a4f3b1b9a0ae89f00a6d3f17961b1063e33db5138a5d2189041c9d52c4fe26"
+    },
+    {
+      "bytes": 1217,
+      "path": "ORACLE-REPAIR-01.json",
+      "sha256": "43dc7d7a25453fd89e7343efc37b83318dcae9fd1cecb105981656229b643882"
+    },
+    {
+      "bytes": 4356,
+      "path": "REPLAY.md",
+      "sha256": "3b47acf9e34faafc21dafdd2d0decd6d7d71f4756b73decc9bdd82b0022e2024"
+    },
+    {
+      "bytes": 9567,
+      "path": "RESULT.json",
+      "sha256": "c07c09e714d54a0c79746c0ca49f5fb48769014b491a8a4c3bf9de7b44ee2ca0"
+    },
+    {
+      "bytes": 1007,
+      "path": "SOURCE-LINKAGE-AND-MEASUREMENT-01.json",
+      "sha256": "7847b99dfc0dcb02cdd1ec9a9ebc286a74bc7a977911c7854c1453d7315f3ed9"
+    },
+    {
+      "bytes": 36491,
+      "path": "SOURCE-LINKAGE-AND-MEASUREMENT-02.json",
+      "sha256": "7ba5c7bf753c26d7ce9a4b718f7e914345e1d2425db82fddf8f6eb22d04e8cf2"
+    },
+    {
+      "bytes": 13494,
+      "path": "attempt-01-result.json",
+      "sha256": "3ef3c7f4fbb1df5d02783e5001f28523ab7ac0d80db6593bab16fb206615c449"
+    },
+    {
+      "bytes": 15243,
+      "path": "attempt-02-result.json",
+      "sha256": "97c3f4a8eaa2b7e79954a2a8d93c282e0ab9d2c92840f05bb22909fe9cff8348"
+    },
+    {
+      "bytes": 0,
+      "path": "git-cat-file.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 5397,
+      "path": "linkage-measurements-v2.py",
+      "sha256": "1e4cc0cfeb445b8702fcef5028b48cc36ede0da86d313fe103b2282c1133586f"
+    },
+    {
+      "bytes": 5369,
+      "path": "linkage-measurements.py",
+      "sha256": "aa980a349d4b6dc913ef09038cecf573ea4614e5b3439108d9154cb9c1105581"
+    },
+    {
+      "bytes": 27570,
+      "path": "review-v2.py",
+      "sha256": "280437776696cf766f29878de65fa820ec0deee75713b8d02bb92d4693814393"
+    },
+    {
+      "bytes": 25516,
+      "path": "review.py",
+      "sha256": "90ae0b8189de84d8624f5123d019be76eb6795e3ed9843aa7abd3a4a9d7186df"
+    }
+  ],
+  "organizational_production_approval": false,
+  "platform_qualified": false,
+  "preserved_failed_review_attempts": 2,
+  "product_or_timing_reruns": 0,
+  "reviewer": "/root/performance_independent_review",
+  "schema": "intune-independent-c25-performance-review-delivery/1",
+  "scope": "Independent admission of preserved local C25 measurement/capsule/CLI/SQLite evidence. Exact qualification and limitation scope in RESULT.json.",
+  "source_changes": [],
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED"
+}

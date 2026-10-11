@@ -1,0 +1,160 @@
+{
+  "admission": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/DOCS-ADMISSION-26.json",
+    "sha256": "0a3e808d10b39e6ef971ce9202ce1d9580e392e725124cce0d191d1059c73a97"
+  },
+  "all_nine_metadata_copies_exact_to_originals": true,
+  "base_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "deployment_authorized": false,
+  "file_count": 13,
+  "files": [
+    {
+      "bytes": 79718,
+      "class": "documentation_or_inventory",
+      "git_blob_if_committed": "a026571ecfe62aa0ee1c09e57c5df95f81424eb9",
+      "path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "sha256": "592d16667528cc95c151864892583621f3de2f26209adb62d2ef360a2e0db8f9"
+    },
+    {
+      "bytes": 1583358,
+      "class": "documentation_or_inventory",
+      "git_blob_if_committed": "1c48d3601f9f33ba10d30780057fd87130143271",
+      "path": "docs/CONTINUATION-R4-LEDGER.json",
+      "sha256": "cd335c7814214542134a542717759b2a3b22c139f7a7fadba993b3e5e3bb52a6"
+    },
+    {
+      "bytes": 7887,
+      "class": "documentation_or_inventory",
+      "git_blob_if_committed": "49ca2b386df1947fd9eecb9da3d1337412e34150",
+      "path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "sha256": "1c672157887107230f7292114ccf5c1cbbb11c09e53ede2a0522249a0ae9b78a"
+    },
+    {
+      "bytes": 4760,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "b79509ae5e79b3cb186ba15fb17caddf7e6e9769",
+      "path": "docs/continuation-evidence/20261011/PUBLICATION-DISPOSITION.md",
+      "sha256": "a0cac5808bc61e1fc0c938765db82050952b7c6d63db30a100231d0bf1eb5144"
+    },
+    {
+      "bytes": 235120,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "4d7cd06cccceb11aa8c62a9d63f92932ec06533e",
+      "path": "docs/continuation-evidence/20261011/available-roots.json",
+      "sha256": "61be84ba2900b00c38a41ce623e12bddc4212206d9cdba0627c344932d7d7176"
+    },
+    {
+      "bytes": 1640,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "fbdd0a8fa5f394c13b26f8a143ed01bb5ec36e73",
+      "path": "docs/continuation-evidence/20261011/current-package-inputs.json",
+      "sha256": "d366a41ea6751b0dde12f5da80ad628f1c5bf67c7490f553f3021f1b334a0886"
+    },
+    {
+      "bytes": 164415,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "c99e0781d2a3dbab3ffebb4b6d2ecce9b3eaed89",
+      "path": "docs/continuation-evidence/20261011/ledger-availability.json",
+      "sha256": "564fa07f48d1ce644e70e0e719eb2fc4c3c5af49184e1209b1c32b6322d8eb72"
+    },
+    {
+      "bytes": 1663,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "e6ade84b41afee88adf57de9feb3655b53b0007c",
+      "path": "docs/continuation-evidence/20261011/reconstructed-package-verification.json",
+      "sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e"
+    },
+    {
+      "bytes": 2603,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "d4a74eb4cb66e4704de147f1ed4c977ba3afa24f",
+      "path": "docs/continuation-evidence/20261011/reconstructed-packages.json",
+      "sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b"
+    },
+    {
+      "bytes": 5270,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "412e4e20f4ceb11e3ec51308078ed1bfb15c1590",
+      "path": "docs/continuation-evidence/20261011/source-history-packages-review.json",
+      "sha256": "66bb44b04a9c6ce06bea07833ff6a1033aa969af4a21874eeea4f6ffe1406006"
+    },
+    {
+      "bytes": 4480,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "1fd140785e4df117220a43c6fd5d178ae4cb89dd",
+      "path": "docs/continuation-evidence/20261011/source-review.json",
+      "sha256": "7f05762d77e9822e1c7838a196e8d15f2e970d894325edb683156f4c4faca07b"
+    },
+    {
+      "bytes": 3347,
+      "class": "public_selected_metadata",
+      "git_blob_if_committed": "76f269a44721df536ac6ac9d3d63f1bdefb9cb98",
+      "path": "docs/continuation-evidence/20261011/workspace-availability.json",
+      "sha256": "fd751df22cbf550406d551e16402e636122b05dec970a5389097c887bd68de1b"
+    },
+    {
+      "bytes": 265411,
+      "class": "documentation_or_inventory",
+      "git_blob_if_committed": "cb7e8c41c8bdd4a224e1b2400650fd6df7956ac2",
+      "path": "release-source-files.txt",
+      "sha256": "89cd0e2773e9f2213a1f6d515d339228d9cdb0f1a1a23bca43467148efaf3bf5"
+    }
+  ],
+  "final_commit": null,
+  "finished_at": 1791751378.237536,
+  "high_signal_literal_findings": [],
+  "laboratory_complete": false,
+  "limitations": [
+    "Exact metadata/content/provenance review, not organizational AppSec or universal secret-absence proof.",
+    "Independent structural comparison preserves historical row/ledger evidence; newly normalized applicability fields explicitly remain unknown when unproven.",
+    "Only13 reviewed documentation/inventory paths; C25 engine/runtime/test source unchanged and no code/suite/provider/push executed.",
+    "C25 package identity stays separate from the later docs-only branch commit. No missing historical raw logs or full corpus were restored by this update.",
+    "Copied prior disposition is a historical C25-scoped record; this separate review closes its documentation-delta prerequisite only.",
+    "Final source ref and companion handoff still require exact commit/tree selection, remote push and anonymous byte readback by the coordinator."
+  ],
+  "metadata_files": 9,
+  "new_statuses": {
+    "BLOCKED": 15,
+    "IMPLEMENTED": 75,
+    "PASS": 1,
+    "UNSUPPORTED": 1
+  },
+  "old_statuses": {
+    "BLOCKED": 13,
+    "IMPLEMENTED": 77,
+    "PASS": 1,
+    "UNSUPPORTED": 1
+  },
+  "original_92_requirement_ids_order_and_historical_nested_evidence_preserved": true,
+  "outputs": [
+    {
+      "bytes": 3814,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/docs-delta-26-02/EXACT-DOCUMENTATION-PINS.json",
+      "sha256": "fbf0a2963f041413c7a71d43ae6a057c5747a34bf05b0ab268708638fd78ba00"
+    },
+    {
+      "bytes": 11081,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/docs-delta-26-02/LEDGER-CHANGES.json",
+      "sha256": "fede3a724af684d107e7b7845a37cd87ea572e7f9639c157c5aa221ededaf613"
+    }
+  ],
+  "pending_commit_scope": "Root will commit exactly these reviewed bytes; subsequent commit identity must be independently rebound.",
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_source_update_suitable_at_reviewed_byte_scope": true,
+  "raw_tenant_or_credential_state_plan_payloads_present_in_selected_metadata": false,
+  "reviewed_new_resume_discrepancy_scope": "265 mapped /tmp roots and39 pinned receipts unavailable,27/28 exact native helpers recoverable; no attributable actor/cause or clean closure claimed.",
+  "schema": "independent-documentation-publication-delta/1",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_docs_delta.py",
+    "sha256": "0e75fbfa92ef4fa3af1b83f03aa2194dbcad7ea046115b25dcadf60383b12d11"
+  },
+  "selection": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/SOURCE-BRANCH-METADATA-SELECTION-20261011.json",
+    "sha256": "dd00c5b139daa77b7d5454c4dffe05ae404b237fc7f6979f040412959a447b0d"
+  },
+  "source_inventory_additions_only": 9,
+  "source_inventory_entries": 3363,
+  "started_at": 1791751377.9600484,
+  "status": "PASS_DOCUMENTATION_PUBLICATION_REVIEW"
+}

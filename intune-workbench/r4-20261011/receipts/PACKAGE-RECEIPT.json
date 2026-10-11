@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "at": "2026-10-11T20:37:00.996776+00:00",
+  "artifacts": {
+    "source": {
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "bytes": 17956520,
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+      "extracted": "/tmp/intune-c25-restored-packages-20261011/extract-source/intune-iac-source",
+      "rebuild_path": "/tmp/intune-c25-restored-packages-20261011/build-b/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "byte_identical_rebuild": true
+    },
+    "runtime": {
+      "path": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0.zip",
+      "bytes": 1520542,
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+      "extracted": "/tmp/intune-c25-restored-packages-20261011/extract-runtime/intune-iac",
+      "rebuild_path": "/tmp/intune-c25-restored-packages-20261011/build-b/Intune_IaC_Plugin_0.9.0.zip",
+      "byte_identical_rebuild": true
+    }
+  },
+  "reconstruction_receipt_sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b",
+  "verification_receipt_sha256": "25c6c039c2d48ceb0455b7d5858e07b44b2e4ee4042cada0ac4124cd3f0b6d8e",
+  "scope": "Fresh exact old-C25-byte reconstruction, safe extraction, all selected Git source linkage and source rebuild only. Required gate/native/performance/complete recovery/platform/production remain independent."
+}

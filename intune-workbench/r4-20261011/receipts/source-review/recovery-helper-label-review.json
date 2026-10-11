@@ -1,0 +1,48 @@
+{
+  "admission_scope": "Exact corrected helper suitable for newly attributed closed local qualifier bundle; validate its complete helper/tool/profile/source manifest and obtain coordinator GO before native execution.",
+  "all_23_native_assertion_expressions_unchanged": true,
+  "correction_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-recovery-plan-replacement-20261011-01/SCOPE-LABEL-CORRECTION-01.json",
+    "sha256": "d3997ae578477424bb8829f9dea2b73dca627e24ba9b3d5c37d86347c1614f6d"
+  },
+  "evidence_reuse": "Prior10 C25/API AST observations and30 detached JSON/portable-artifact oracle controls remain applicable; no native/runtime claim or new test count.",
+  "exact_three_literal_changes_only": true,
+  "finding_RH01": "REPAIRED_SCOPE_LABEL_WITHOUT_WEAKENING_COMPARISON",
+  "graph_comparison_label_corrected": true,
+  "historical_evidence_loss_closed": false,
+  "native_executed": false,
+  "old_unavailable_helper_restored": false,
+  "original_candidate_preserved": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-recovery-plan-replacement-20261011-01/before-scope-label/native_recovery_plan.py",
+    "sha256": "d414842dad97300c10dd9f8a756423fea11ef1fa52ddffb6005fad0054b530db"
+  },
+  "platform_qualified": false,
+  "prior_review": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/recovery-helper-api-artifacts-01/RESULT.json",
+    "sha256": "29197c509213802bbd368f6657c154d9dd5b8beeda87f0c1e1ea235ff8eaec95"
+  },
+  "product_imported": false,
+  "production_approved": false,
+  "proposal": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-recovery-plan-replacement-20261011-01/PROPOSAL-02.json",
+    "sha256": "4cdfcf98e9dc36ef81a4462cef3172b8318179e2c1a3bf1c8e6c59dc4360b5db"
+  },
+  "qualified_five_pure_ASTs_unchanged": true,
+  "remaining": [
+    "Closed dependency/profile/tool/source pins must be independently checked.",
+    "Actual new native run and worker/fixture negative controls are pending.",
+    "Missing historical helper and raw evidence gaps remain open."
+  ],
+  "reviewed_helper": {
+    "bytes": 28860,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-recovery-plan-replacement-20261011-01/native_recovery_plan.py",
+    "sha256": "aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100"
+  },
+  "schema": "independent-recovery-helper-label-rebinding/1",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/bind_recovery_helper_label.py",
+    "sha256": "f802a20fb249bd7ca671afb1482776ba7271c7a5f95f695eb599678963b2c3c1"
+  },
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED"
+}

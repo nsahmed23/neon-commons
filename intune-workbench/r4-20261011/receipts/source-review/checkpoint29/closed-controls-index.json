@@ -1,0 +1,58 @@
+{
+  "counts": "Detached controls overlap and are not additional native/application/suite tests.",
+  "first_reviewer_attempt": "First probe invocation used absent /tmp/intune-continuation-independent parent and failed before output creation; corrected to a new direct /tmp directory without source/guard change. Not a product defect.",
+  "historical_findings_preserved": true,
+  "outer_admission": "Pending exact final capacity reservation repair; profile admission alone grants no native/organizational approval.",
+  "receipts": [
+    {
+      "bytes": 2145,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/before-closure-01.json",
+      "id": "before-closure-01",
+      "large_fixture_copy": "Not copied to workspace; exact candidate/fixtures retained at observed /tmp roots. No full private recovery claim.",
+      "observed_path": "/tmp/intune-closed-guards-before-01/RESULT.json",
+      "sha256": "9b8d7e5e8ea9ccec4c8d32d7952de5a3d513b169d5b8ef66e8c0b276bfc65532"
+    },
+    {
+      "bytes": 2174,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/after-closure-02.json",
+      "id": "after-closure-02",
+      "large_fixture_copy": "Not copied to workspace; exact candidate/fixtures retained at observed /tmp roots. No full private recovery claim.",
+      "observed_path": "/tmp/intune-closed-guards-after-02/RESULT.json",
+      "sha256": "f6c3f523c4341e200c7c12cdcf695af5d2daa338c5f5bb0e9e5f0d133a5d1eaa"
+    },
+    {
+      "bytes": 1206,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/before-route-types-03.json",
+      "id": "before-route-types-03",
+      "large_fixture_copy": "Not copied to workspace; exact candidate/fixtures retained at observed /tmp roots. No full private recovery claim.",
+      "observed_path": "/tmp/intune-route-type-before-03/RESULT.json",
+      "sha256": "db2124fae33bbe53f70537b35a72236bd41402303c06a87ab078ced42925ae0e"
+    },
+    {
+      "bytes": 1201,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/after-route-types-04.json",
+      "id": "after-route-types-04",
+      "large_fixture_copy": "Not copied to workspace; exact candidate/fixtures retained at observed /tmp roots. No full private recovery claim.",
+      "observed_path": "/tmp/intune-route-type-after-04/RESULT.json",
+      "sha256": "83ee3f5de93571b32dee68ab4308cc83aa545152fa269c2f2b22c18638a3cdbd"
+    },
+    {
+      "bytes": 2234,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/after-closure-04.json",
+      "id": "after-closure-04",
+      "large_fixture_copy": "Not copied to workspace; exact candidate/fixtures retained at observed /tmp roots. No full private recovery claim.",
+      "observed_path": "/tmp/intune-closed-guards-after-04/RESULT.json",
+      "sha256": "72ee2452fe33ad7c66ba6b697dfd52976b26955c792a8ce03ad5223283155c33"
+    },
+    {
+      "bytes": 5352,
+      "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/closed-continuation-controls-04/profile-admission-04.json",
+      "id": "profile-admission-04",
+      "large_fixture_copy": "Not copied to workspace; exact candidate/fixtures retained at observed /tmp roots. No full private recovery claim.",
+      "observed_path": "/tmp/intune-closed-profile-independent-04/RESULT.json",
+      "sha256": "854ecbf75c6a0800e14f4be65d7d1618efbfb266f6ce6f52546184d27a11ea50"
+    }
+  ],
+  "schema": "independent-closed-continuation-durable-small-receipts/1",
+  "workspace_capacity_limitation": "Parent observed less than32MiB reserve; no native GO. Only small review receipts persisted. Larger private prep/fixtures stay/tmp and remain an explicit delivery gap."
+}

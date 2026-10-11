@@ -1,0 +1,215 @@
+{
+  "schema": "intune-public-C28-commit-binding/1",
+  "status": "PASS_SCOPED",
+  "recorded_at": "2026-10-11T22:01:56.736556+00:00",
+  "commit": "94bfbcc2de93f498ecaedb43b2a9fea5e36b9db4",
+  "parent": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+  "tree": "9ceaa3d87f7ce68d72c215c73d79b8cf9bd0be4f",
+  "engineering_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "scope": "Exact C28 commit binds all17 previously admitted documentation/inventory files to raw Git blobs and current clean working copy. All other tracked source/engine/runtime/provider/test/script bytes are unchanged from C27; native run01 remains FAIL.",
+  "exact_committed_file_pins_and_Git_blobs": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1708390,
+      "sha256": "d1da9c9574121754a434d490dd8009e951efa11b559bf4b0f21d8c16605ce541",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "3c2b476d62fd1d2615c36f18e1c7d72c675faece",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "bytes": 103434,
+      "sha256": "ed94fa04ab031b7596bd866ede8602cdfa6797be40ffd17ad4dd1fe7f8d2522e",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "81b4c72b4d46f41f4714a8cb2c284f00ab2c9d4f",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "bytes": 26318,
+      "sha256": "50f7ef9bcdac69c44e87e1bb7dfe962b50b2076dde19bc20d7207c3af4fcda67",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "4c3cd035f1fefb045d096685bc11058a55ee4093",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "bytes": 24280,
+      "sha256": "909da31459773fc61958229f05e0f88e3d596ae0ced0bdf256c5b5fa843b6dd2",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "4fcd91c9e1723b68408ed84d2c31e5d47b62a29b",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "bytes": 57746,
+      "sha256": "c9f7a58c71afffea85e28d25da84485561dc09c35f5a03aac111b441b5bea328",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "bd2ee89f162adc148792aef9e94495bbc3801629",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-run01-failure-summary.json",
+      "bytes": 4991,
+      "sha256": "02a244e7cff15b2333354fcc30e5e059928f778cbc4287a54410d8a886b19f37",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "6d0b7134bb81fb924273f64c5755b6cd5f476b03",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-publication.json",
+      "bytes": 1242,
+      "sha256": "45bd001d57ddff524ace0621ce366d0ba45c7e79987ac48d2d34d83e90fafe64",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "c0f195055c09c66725dc8d5f30ed9f385c94c960",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-readback.json",
+      "bytes": 20977,
+      "sha256": "98d3a6bf2838e3f51458727eba582c01b7ca9ae7d834ea88f7a3c541e95f7233",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "70fadd4731b963580b4ef8ca41f08b9c55944382",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/checkpoint27-commit.json",
+      "bytes": 8428,
+      "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "c1883d374ada3afdc7abd20a9ea3276a398f0315",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-stopped-independent-admission.json",
+      "bytes": 5224,
+      "sha256": "3b0d883d8d8a6ba41f358f4dc6980429500f4bf51c5fb60ba84b00c004f08101",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "71740582cbd426914ffdfb92fc1d285737055ec0",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/adoption-stage-classification.json",
+      "bytes": 5489,
+      "sha256": "ff9f9181648c435f0f9d30f44bf5072bbe4afe2508f1056fd78bb45654f49456",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "ecee1e32e9e6d68964958f9ca17da41c36e7e6a2",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/README.md",
+      "bytes": 2492,
+      "sha256": "c3bc51324ffb097a1683415edf18ee643438bb52070148a2be6c38b469a8f73a",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "9934a7abddb07fa95796afa9b6f5b0338eaea352",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/SOURCE-DISPOSITION.json",
+      "bytes": 4137,
+      "sha256": "d44dc3646562154c7a8ca66d12ad51bd3d72cd0774c7dd9f49fcaa2f103fba1f",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "7d3e43f70614bb9625bf786868276345e6d0ca2d",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration/native-lab-orchestration.py.txt",
+      "bytes": 50011,
+      "sha256": "cae6702be2fe4e1fa5736a69d1673403a5e91d198961101fef12ae5f17d45403",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "fa857cae1307381437c89068c628faa1ab22e4b0",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-source-staging.json",
+      "bytes": 927,
+      "sha256": "965e54f9e2bd26d52e4e3b919323db95f522a8ed31fc53d2e77d3afa3237f964",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "1e70fd7ddfe140aaf485412e918fcc0f6ab8aa7f",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint28/native-orchestration-detached-admission.json",
+      "bytes": 4653,
+      "sha256": "eac249c565788beb611b89d40ad43f0fb81be8f4723f38d79c8ac0842f1048a6",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "f6f3b840ffb3b5c875ed632965e362bcc49993ac",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "release-source-files.txt",
+      "bytes": 268255,
+      "sha256": "9709a90f636a6efa13bcf97d19321b16cf1ca2e4506c675fedba7df5e574fcb1",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "782162b4eb8b629170324e08ce53c7571968ac80",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    }
+  ],
+  "independent_receipt": {
+    "path": "/tmp/intune-checkpoint28-delta-review/commit-binding-01/RESULT.json",
+    "bytes": 13935,
+    "sha256": "ed269ee2934d710cbf5226fc0a3ca9c1e8b578a19df69076ccabd1b92123599e"
+  },
+  "admitted_document_delta": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint28-public-docs-delta-01/PUBLIC-DOCS-DELTA.json",
+    "bytes": 23027,
+    "sha256": "d731c98333ba8fbd62c4037b52749d0aa4f34bea217137885466690cca95d1c4"
+  },
+  "root_commit_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-28.json",
+    "bytes": 5367,
+    "sha256": "7003124ea80340f207e71e1519d21c002111412d83740a46baadc6796a404123"
+  },
+  "assertions": 51,
+  "count_scope": "Read-only commit/metadata assertions; overlap documentation review and are not product test or journey counts.",
+  "inventory_unique": 3399,
+  "working_tree_clean": true,
+  "public_metadata_suitable": true,
+  "payload_scope": "File identities/commit linkage/scopes only. No raw service/state/plan/approval/journal/key/SQL/PTY/private capsule/profile/GO/host identity payload.",
+  "not_established": [
+    "Remote branch/public readback of C28",
+    "Full private-corpus/final-native-capsule delivery",
+    "Global laboratory completion or all38native outcomes",
+    "NativeWindows/liveGraph/Azure/backend/CI/device/OSscheduler qualification",
+    "Independent organizational AppSec or production approval",
+    "Human commit actor attribution beyond configured Git metadata",
+    "Enough workspace capacity for new final native capsule plus32MiB reserve"
+  ],
+  "product_or_native_or_timing_reruns": 0,
+  "repository_mutations": 0,
+  "remote_mutations": 0
+}

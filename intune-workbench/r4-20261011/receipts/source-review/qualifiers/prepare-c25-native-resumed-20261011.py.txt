@@ -1,0 +1,103 @@
+"""Prepare a newly attributable exact-source native lab profile; dispatch nothing."""
+from pathlib import Path
+import argparse,ast,difflib,hashlib,importlib.util,json,os,shutil,stat,subprocess,sys
+
+r4=Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4')
+staged=r4/'worker-provider/adoption-portable/ordinary-recovery-extension-staging'
+selection=r4/'integration/workspace-resume-20261011-01/AVAILABLE-HELPER-SOURCE-SELECTION.json'
+replacement=r4/'integration/native-recovery-plan-replacement-20261011-01/native_recovery_plan.py'
+packages=Path('/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011')
+out=Path('/tmp/intune-c25-native-resumed-20261011-01')
+durable=r4/'integration/c25-native-profile-resumed-20261011-01'
+scratch=Path('/tmp/iwr4native-20261011')
+def sha(path):
+ with Path(path).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+def pin(path):return {'bytes':Path(path).stat().st_size,'sha256':sha(path)}
+def write(path,value):
+ with Path(path).open('x') as f:json.dump(value,f,indent=2);f.write('\n')
+def main():
+ os.umask(0o077)
+ parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--gate-receipt-sha256',required=True);arguments=parser.parse_args()
+ binding_path=Path(__file__).with_name('c25_package_binding.py')
+ assert stat.S_ISREG(binding_path.lstat().st_mode) and sha(binding_path)=='964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053'
+ spec=importlib.util.spec_from_file_location('root_c25_package_binding',binding_path);binding=importlib.util.module_from_spec(spec);spec.loader.exec_module(binding)
+ gate=r4/'integration/c25-strict-resumed-20261011-02/RECEIPT.json';binding.verify_gate(gate,arguments.gate_receipt_sha256)
+ assert sha(staged/'qualify_portable.py')=='0e161f5706b5ab2ac68b93f989b4d57a6d862f81fbd9cc440160f411c46ec043'
+ assert sha(staged/'create_profile.py')=='bf6470ef137ba7a8c4b2e124b9d5ea81c2c78e8c289df2465d17e344f813c458'
+ assert sha(staged/'qualification_context.py')=='8c59404e959916715ad72e38f436f4bf4f205bf90f5c93f640696cd7a973dc7b'
+ assert sha(staged/'export_helpers.py')=='36a5f79a3611aebf62718627d836da289bddb9f8f49142a3622d4f0f301b06e0'
+ assert sha(replacement)=='aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100'
+ assert sha(selection)=='ef6913e797d772d95c8159c45e119af6abfe33fb092e1cc7498dc8204d7713be'
+ package,package_before=binding.verify_packages(packages/'PACKAGE-RECEIPT.json');source=Path(package['artifacts']['source']['extracted'])
+ assert binding.sha(packages/'SOURCE-LINKAGE-20261011.json')==binding.SOURCE_LINKAGE_SHA256
+ helper_review=r4/'independent/branch-source-publication-20261011-01/recovery-helper-label-02-01/RESULT.json'
+ assert binding.sha(helper_review)=='30409695c0ba623365a563757159c89b286a672011928f3147fd088a6755140a'
+ for path in [out,durable,scratch]:assert not path.exists() and not path.is_symlink();path.mkdir(mode=0o700)
+ code=out/'loader';code.mkdir(mode=0o700)
+ for name in ['qualify_portable.py','create_profile.py','qualification_context.py']:
+  shutil.copyfile(staged/name,code/name)
+ spec=importlib.util.spec_from_file_location('attributed_helper_transformer',staged/'export_helpers.py')
+ exporter=importlib.util.module_from_spec(spec);spec.loader.exec_module(exporter)
+ loader_spec=importlib.util.spec_from_file_location('verified_native_profile_loader',code/'qualify_portable.py')
+ loader=importlib.util.module_from_spec(loader_spec);loader_spec.loader.exec_module(loader)
+ canonical,inventory=loader.canonical,loader.inventory
+ bundle=out/'bundle';bundle.mkdir(mode=0o700)
+ for name in ['helpers','inputs','originals','diffs']:(bundle/name).mkdir(mode=0o700)
+ rows=json.loads(selection.read_bytes())['rows'];records={}
+ assert len(rows)==28 and sum(row['status']=='RECOVERABLE_EXACT_BYTES' for row in rows)==27
+ for row in rows:
+  name=row['name']
+  if row['status']=='RECOVERABLE_EXACT_BYTES':
+   selected=row['selected'];origin=Path(selected['source']['path']);raw=origin.read_bytes()
+   assert pin(origin)=={'bytes':selected['source']['bytes'],'sha256':selected['source']['sha256']}
+   if selected['method']=='EXACT_RETAINED_PORTABLE_BYTES':portable=raw;changes=[]
+   else:
+    assert selected['method']=='EXACT_REVIEWED_TEXT_TRANSFORMATION'
+    text,changes=exporter.transform(name,raw.decode());portable=text.encode()
+   assert {'bytes':len(portable),'sha256':hashlib.sha256(portable).hexdigest()}==row['required_pin']
+   provenance='EXACT_RETAINED_OR_REVIEWED_TRANSFORMED_BYTES'
+  else:
+   assert name=='native_recovery_plan.py';origin=replacement;raw=portable=origin.read_bytes();changes=[]
+   provenance='NEW_ATTRIBUTABLE_REPLACEMENT_NOT_HISTORICAL_BYTE_RECOVERY'
+  (bundle/'helpers'/name).write_bytes(portable);(bundle/'originals'/name).write_bytes(raw)
+  (bundle/'diffs'/(name+'.patch')).write_text(''.join(difflib.unified_diff(raw.decode().splitlines(True),portable.decode().splitlines(True),fromfile='retained/'+name,tofile='portable/'+name)))
+  records[name]={'origin':str(origin),'origin_pin':pin(origin),'portable_pin':pin(bundle/'helpers'/name),'provenance':provenance,'historical_required_pin':row['required_pin'],'transformations':changes}
+ names={p.stem for p in (bundle/'helpers').iterdir()};dependencies={}
+ for p in sorted((bundle/'helpers').iterdir()):
+  imported=set()
+  for node in ast.walk(ast.parse(p.read_bytes(),filename=p.name)):
+   if isinstance(node,ast.ImportFrom) and node.module:imported.add(node.module.split('.')[0])
+   elif isinstance(node,ast.Import):imported.update(n.name.split('.')[0] for n in node.names)
+  selected=sorted(n for n in imported if n.startswith(('native_','qualify_adoption_')) or n=='qualification_context')
+  assert set(selected)<=names;dependencies[p.name]=selected
+ provider=r4/'worker-provider'
+ inputs={'service-fixture.json':source/'labs/provider-contract/synthetic-rpc/fixture.json','native-policy-source.json':source/'labs/provider-contract/synthetic-rpc/main.tf.json.txt','provider.lock.hcl':provider/'native-provider-offline-01/components/terraform/intune-policy/.terraform.lock.hcl','native-provider-requests.json':provider/'native-oauth-capture-07/provider/requests.json','historical-native-tool-receipt.json':provider/'native-service-prepare-01/receipt.json'}
+ input_rows={}
+ for name,p in inputs.items():
+  shutil.copyfile(p,bundle/'inputs'/name);assert pin(p)==pin(bundle/'inputs'/name);input_rows[name]={'origin':str(p),**pin(p)}
+ configuration=json.loads((bundle/'inputs/native-policy-source.json').read_bytes())
+ literal=configuration['resource']['microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json']['fixture']
+ (bundle/'inputs/native-policy.json').write_bytes(canonical(literal))
+ write(bundle/'inputs/relocation-receipt.json',{'schema_version':'new-attributed-native-helper-profile/1','helpers':records,'closed_helper_dependencies':dependencies,'fixture_inputs':input_rows,'original_historical_helper_recovered':False,'native_dispatches':0,'runtime_source_modified':False,'prior_selection':{'path':str(selection),**pin(selection)},'scope':'27 byte-exact available entries plus one new independently admitted qualifier; not reconstruction of unavailable historical bundle/evidence.'})
+ original_linkage=json.loads((packages/'SOURCE-LINKAGE-20261011.json').read_bytes())
+ assert original_linkage['status']=='PASS' and original_linkage['source_commit']==package['commit']
+ for row in original_linkage['files']:assert pin(source/row['path'])=={'bytes':row['bytes'],'sha256':row['sha256']}
+ package_rows=inventory(source)
+ assert len(package_rows)==3355 and len(original_linkage['files'])==3354
+ linkage={'scope':'package bytes compared to specified source revision','source_revision':package['commit'],'source_tree':package['tree'],'package_inventory_sha256':hashlib.sha256(canonical(package_rows)).hexdigest(),'comparison_receipt':{'path':str(packages/'SOURCE-LINKAGE-20261011.json'),**pin(packages/'SOURCE-LINKAGE-20261011.json')},'source_archive':package['artifacts']['source'],'selected_git_bytes_verified':3354,'generated_manifest_sha256':sha(source/'SHA256SUMS'),'publisher_authenticated':False}
+ write(out/'source-linkage.json',linkage)
+ tools={'atmos':r4/'worker-provider/tools/atmos_1.230.1_linux_amd64','tofu':Path('/workspace/intune-recovery/native-reprobe/tools/tofu'),'provider':Path('/workspace/intune-recovery/native-reprobe/tools/terraform-provider-microsoft365'),'relay':r4/'worker-broker/relay/intune-worker-relay-v3','docker':Path('/usr/local/bin/docker'),'openssl':Path('/usr/bin/openssl'),'git':Path('/usr/bin/git'),'validator':Path('/workspace/intune-continuation/work/evidence/epoch-20261005/approval-prerequisite/libsodium.so.23.3.0'),'python':Path(sys.executable).resolve()}
+ tool_map={k:v.resolve().relative_to('/').as_posix() for k,v in tools.items()}
+ write(out/'tool-map.json',tool_map)
+ argv=[str(Path(sys.executable)), '-B',str(code/'create_profile.py'),'--project-root',str(source),'--evidence-root',str(bundle),'--tool-root','/','--tool-map',str(out/'tool-map.json'),'--source-linkage',str(out/'source-linkage.json'),'--output',str(out/'profile.json')]
+ env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1');env.pop('PYTHONPATH',None);env.pop('PYTHONHOME',None)
+ p=subprocess.run(argv,capture_output=True,env=env)
+ (durable/'create-profile.stdout').write_bytes(p.stdout);(durable/'create-profile.stderr').write_bytes(p.stderr);assert p.returncode==0
+ (bundle/'BUNDLE-INVENTORY.json').write_bytes(canonical(inventory(bundle)))
+ base=['/workspace/intune-runtime/bin/python','-B','-I',str(code/'qualify_portable.py'),'--profile',str(out/'profile.json'),'--profile-sha256',sha(out/'profile.json'),'--project-root',str(source),'--evidence-root',str(bundle),'--tool-root','/','--tool-map',str(out/'tool-map.json'),'--scratch-root',str(scratch)]
+ write(durable/'base-command.json',base)
+ for name in ['profile.json','source-linkage.json','tool-map.json']:shutil.copyfile(out/name,durable/name)
+ _,package_after=binding.verify_packages(packages/'PACKAGE-RECEIPT.json');assert package_before==package_after
+ write(durable/'PREPARED.json',{'status':'PREPARED_NOT_NATIVE_QUALIFIED','source_commit':package['commit'],'out':str(out),'scratch':str(scratch),'profile':pin(out/'profile.json'),'helpers':records,'tools':{k:{'path':str(v.resolve()),**pin(v.resolve())} for k,v in tools.items()},'loader_pin':pin(code/'qualify_portable.py'),'source_linkage':pin(out/'source-linkage.json'),'base_command':pin(durable/'base-command.json'),'driver':pin(__file__),'binding':pin(binding_path),'both_initial_extractions_match_exact_archives':True,'package_bytes_unchanged':True,'strict_gate':pin(gate),'helper_review':pin(helper_review),'native_dispatches':0,'full_R4_corpus_restored':False})
+ print(json.dumps({'status':'PREPARED_NOT_NATIVE_QUALIFIED','output':str(durable),'profile':pin(out/'profile.json')}))
+if __name__=='__main__':main()

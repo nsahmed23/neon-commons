@@ -1,0 +1,10 @@
+{
+  "schema": "intune-current-external-readiness-time-correction/1",
+  "recorded_at": "2026-10-11 22:19:44 UTC",
+  "receipt": "integration/EXTERNAL-READINESS-20261011-22.json",
+  "receipt_sha256": "535e0d7809646fe50c3ef05b5a8f63914ed33170e075195875777243f644bd14",
+  "original_timestamp_literal": "2026-10-11T22:19:00Z",
+  "limitation": "The original observed_at is an estimated timestamp and must not be represented as a measured tool observation time. The actual read-only tool call occurred after the measured 2026-10-11 22:18:05 UTC clock and before this correction's recorded_at. Original receipt and observed configuration facts are unchanged; this records the truthful measured interval.",
+  "observation_interval_start": "2026-10-11 22:18:05 UTC",
+  "observation_interval_end": "2026-10-11 22:19:44 UTC"
+}

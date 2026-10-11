@@ -1,0 +1,35 @@
+{
+  "schema_version": "independent-C25-additional-native-fault-convergence-procedures/1",
+  "status": "PREPARED_NOT_EXECUTED",
+  "source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "baseline_profile_sha256": "214b7365fa5c6683be89887d36350305cf59e4b855fcf81d35dae4bf146a6774",
+  "procedures": {
+    "bytes": 108973,
+    "sha256": "64b60e90f003bebb2b9a938083a30e728d5653424974ba60e4be8e910822adca"
+  },
+  "prior_procedures_sha256": "42215fd8fa6d29bcea6cc1dae5a074e4cea9d22f800a2b444139d3947a217adc",
+  "fault_cases": 8,
+  "release_and_seed_actions": 20,
+  "convergence_and_history_actions": 12,
+  "total_prepared_native_actions": 32,
+  "existing_routes": [
+    "import-plan",
+    "phase-plan",
+    "history"
+  ],
+  "termination": "Six successor cases add a separately approved native no-change Plan, independent sealed reconciliation and signed history. Two acquisition-baseline cases retain typed no-adoption disposition.",
+  "dispatches": 0,
+  "new_product_tests": 0,
+  "counts_nonadditive": true,
+  "global_laboratory_complete": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_suitable": true,
+  "limitations": [
+    "This appendix is preparation; no native execution or acceptance PASS exists for these new cases.",
+    "The baseline command is the inspected original loader/profile contract. A repaired/extended loader/profile/outer must be independently pinned and admitted, with literal recovery-mode serialization and exact once-only predecessor guards, before dispatch.",
+    "Three additional ordinary acquisition/policy/evidence-recording stages remain outside the current closed helper actions; this32-action preparation does not close them.",
+    "Original38normal-mode journey, current source tests, old actual failed candidates and missing raw evidence retain separate scopes. No summed qualification count or general corpus closure."
+  ],
+  "public_omissions": "Full machine-local argv/paths, raw state/plans/captures/SQL/keys/approval payloads excluded explicitly."
+}

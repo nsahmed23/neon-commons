@@ -1,0 +1,33 @@
+{
+  "schema": "intune-restored-package-verification/1",
+  "status": "PASS",
+  "recorded_at": "2026-10-11T20:33:47.955968+00:00",
+  "commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "reconstruction_receipt_sha256": "6c211e80ea69b06c7d5c5cd1acf8577a5f0465e28ba656f5c0800b93ad62281b",
+  "source_linkage_receipt": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/SOURCE-LINKAGE-20261011.json",
+  "source_linkage_sha256": "01f24b0c41388a6a7fd20ae525716ef40051b2cb5f40efb01586967357f8614a",
+  "source_files_bound_to_git": 3354,
+  "source_zip_members": 3355,
+  "runtime_zip_members": 300,
+  "type_aware_extraction": {
+    "source": "/tmp/intune-c25-restored-packages-20261011/extract-source",
+    "runtime": "/tmp/intune-c25-restored-packages-20261011/extract-runtime"
+  },
+  "exact_rebuilds": [
+    {
+      "kind": "source",
+      "bytes": 17956520,
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+      "rebuild_path": "/tmp/intune-c25-restored-packages-20261011/build-b/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "exact_bytes_reproduced": true
+    },
+    {
+      "kind": "runtime",
+      "bytes": 1520542,
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+      "rebuild_path": "/tmp/intune-c25-restored-packages-20261011/build-b/Intune_IaC_Plugin_0.9.0.zip",
+      "exact_bytes_reproduced": true
+    }
+  ],
+  "scope": "Fresh source/runtime safe extraction, all3354 selected Git source linkage, exact reproducible reconstruction. Earlier qualification logs remain unavailable; strict/live/native profile/platform/production gates not established."
+}

@@ -1,0 +1,422 @@
+#!/usr/bin/env python3
+"""Stage a bounded exact next-checkpoint refresh; never execute, commit or publish.
+
+The next checkpoint requires five original exact commit/review/readback receipts
+and a matching checkpoint integer. Previous admitted source bytes and original
+claims remain historical evidence, never rewritten into fresh success. Applying
+a selection is left to the coordinator after independent review. The unchanged
+two C25 ZIPs are referenced in place, never duplicated here.
+"""
+from pathlib import Path, PurePosixPath
+from datetime import datetime, timezone
+import argparse
+import hashlib
+import json
+import os
+import re
+import stat
+import subprocess
+
+BASE = Path(__file__).resolve().parent
+REPO = Path('/workspace/intune-continuation/work/projects/intune')
+DEST = Path('/tmp/intune-r4-publication-isolated-20261011/intune-workbench/r4-20261011')
+PRIOR = BASE/'final-01/SELECTION.json'
+PRIOR_SHA = 'bb128a342c1c808d811e4cd3db1e25ba9c681c6e891d239fdd8eb483ee333f80'
+PRIOR_ADMISSION = Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/companion-stage-C27-01/PUBLIC-STAGE-REVIEW.json')
+PRIOR_ADMISSION_SHA = 'd3288ca8b04a47f5acd4525c17933473a62b63e4a8842146d0df6787e7b13759'
+ENGINE = 'e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'
+TREE = '0bdbdeb3556acce23c8390abb20e835184880b27'
+META = 'docs/continuation-evidence/20261011'
+DOCS = ['CONTINUATION-R4-CHECKPOINT.md', 'CONTINUATION-R4-LEDGER.json',
+        'EXECUTION-SEQUENCE-R4.md', 'EXTERNAL-GATES-R4.md', 'OPERATING-PROFILE-R4.md']
+EXACT_TEXT = {
+ 'native-recovery-plan-qualifier.py.txt': (28860,'aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100'),
+ 'qualifiers/c25_package_binding.py.txt': (5746,'964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053'),
+ 'qualifiers/prepare-c25-native-resumed-20261011.py.txt': (10891,'c46e6fecf617cad13d3a3cff429154edf56a983d8b7ad294b95d1418166bef3e'),
+ 'qualifiers/qualify-c25-runtime-resumed-20261011.py.txt': (7154,'c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468'),
+}
+
+
+def digest(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def require(ok, detail):
+    if not ok:
+        raise ValueError(detail)
+
+
+def safe_relative(name):
+    require(isinstance(name,str) and name and '\\' not in name, 'Unsafe relative path')
+    path = PurePosixPath(name)
+    require(not path.is_absolute() and all(x not in ('','.','..') for x in name.split('/')), 'Unsafe relative path')
+    return name
+
+
+def safe_file(path, limit=8*1024*1024):
+    path = Path(path).absolute()
+    for parent in [path,*path.parents]:
+        require(not parent.is_symlink(), 'Symlink ancestor: '+str(parent))
+    require(stat.S_ISREG(path.lstat().st_mode), 'Non-regular file: '+str(path))
+    require(path.stat().st_size <= limit, 'File size bound: '+str(path))
+    return path.read_bytes()
+
+
+def dump(path, value):
+    path = Path(path)
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with path.open('xb') as out:
+        out.write(json.dumps(value, indent=2, sort_keys=True).encode()+b'\n')
+    path.chmod(0o600)
+
+
+def write(path, raw):
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with path.open('xb') as out:
+        out.write(raw)
+    path.chmod(0o600)
+
+
+def raw_git(commit, path):
+    git = Path('/usr/bin/git')
+    require(git.is_file() and digest(git.read_bytes()) == '356db14e102d68a1a37d8a1ac577dfd678d45d46e92f468bef8b7154e7bfdc60', 'Git pin differs')
+    argv = [str(git),'--no-optional-locks','-c','core.hooksPath=/dev/null','-c','core.fsmonitor=false',
+            '-c','core.autocrlf=false','cat-file','blob',commit+':'+path]
+    completed = subprocess.run(argv,cwd=REPO,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=30,
+        env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','LC_ALL':'C.UTF-8','GIT_CONFIG_NOSYSTEM':'1',
+             'GIT_CONFIG_GLOBAL':'/dev/null','GIT_CONFIG_SYSTEM':'/dev/null','GIT_NO_LAZY_FETCH':'1',
+             'GIT_TERMINAL_PROMPT':'0','GIT_ALLOW_PROTOCOL':''})
+    require(completed.returncode==0, 'Exact committed source blob unavailable: '+path)
+    return completed.stdout
+
+
+def public_files():
+    root = REPO / META
+    found = []
+    def denied(error):
+        raise error
+    for parent, dirs, files in os.walk(root,followlinks=False,onerror=denied):
+        for name in dirs:
+            require(stat.S_ISDIR((Path(parent)/name).lstat().st_mode), 'Unsupported metadata directory type')
+        for name in files:
+            path = Path(parent)/name
+            relative = safe_relative(path.relative_to(root).as_posix())
+            require(relative.endswith(('.json','.md','.py.txt')), 'Unselected metadata extension: '+relative)
+            # Every source text is checked against the actual latest reviewed
+            # delta or exact previous public-admitted bytes before it is copied.
+            found.append((relative,path))
+    require(1 <= len(found) <= 100, 'Bounded public metadata census failed')
+    return sorted(found)
+
+
+def readme(commit, checkpoint, helper_size, helper_sha):
+    identity = ('`'+commit+'`' if commit else '**PENDING: no final documentation commit supplied**')
+    return f'''# Intune Workbench R4 — bounded continuation handoff
+
+This handoff contains exact C25 source/runtime packages, selected public
+documentation and reviewed qualification metadata/source texts. It is **not the
+complete R4 recovery corpus**. Reuse the pinned original/R2/R3 recovery links in
+BASELINE-RECOVERY-LINKS.json. The resumed environment has 265 unavailable mapped
+historical temporary roots and 39 pinned receipt gaps; original failures,
+unexplained files and actor-attribution findings remain open. No missing raw logs
+or historical helper bytes were manufactured.
+
+The 0.9.0 engine package source is `{ENGINE}`, tree `{TREE}`.
+The later documentation checkpoint C{checkpoint} is {identity} on
+`continuation/r4-20261007`. Its commit/review/readback receipts are separate.
+Do not relabel the unchanged C25 archives as packages built from that checkpoint.
+
+| Artifact | Bytes | SHA-256 |
+| --- | ---: | --- |
+| packages/Intune_IaC_Plugin_0.9.0_Source.zip | 17,956,520 | b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e |
+| packages/Intune_IaC_Plugin_0.9.0.zip | 1,520,542 | 7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d |
+
+The supplied bounded ZIP verifier is the exact reviewed C25 source tool for the
+available Linux laboratory route. It does not execute archive code. Verify the
+trusted size/hash first, extract into NEW directories with no symlink ancestors,
+and retain the archives unchanged. Native Windows extraction remains unqualified.
+
+```sh
+python -B tools/verify-release-artifact.py --archive packages/Intune_IaC_Plugin_0.9.0_Source.zip --sha256 b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e --extract NEW_SOURCE_DIRECTORY
+python -B tools/verify-release-artifact.py --archive packages/Intune_IaC_Plugin_0.9.0.zip --sha256 7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d --extract NEW_RUNTIME_DIRECTORY
+```
+
+Read work/docs/CONTINUATION-R4-CHECKPOINT.md, CONTINUATION-R4-LEDGER.json,
+EXECUTION-SEQUENCE-R4.md, OPERATING-PROFILE-R4.md and EXTERNAL-GATES-R4.md, then the
+selected receipts/source-review/ metadata. C25 package integrity, exact Git
+linkage and byte-identical rebuild are verified. The required exact extracted
+source gate passed 2,307/2,307 with zero failures, errors, skips, expected failures
+or unexpected successes. Its first failed resumed attempt and repair records
+remain selected. Historical 1,141-test 0.7.0, 1,242-test 0.8.0 and C24 results
+retain their original local scopes; counts are not summed.
+
+The exact C25 runtime connected laboratory journey has 64 named checks, 34 actual
+commands and 10 Linux PTYs with independently checked modeled service/SQL
+postconditions. Collection after closing the terminal uses a finite invoked
+modeled scheduler; it does not qualify an independently activated native OS
+schedule. Workflow/wizard harnesses deleted TemporaryDirectory intermediates;
+selected metadata explicitly records that limitation. These routes do not
+establish authenticated Graph, Azure, device or protected CI qualification.
+
+Bounded performance admission covers the unchanged preregistered workload and
+2s/5s/15s wall ceilings with CPU/RSS bounds: source 1,037 CLI commands/22 checks/37
+gated samples, runtime 48 commands/10 checks/48 gated samples. The runtime pages
+return all 1,000 independently known objects; an unpaged 1,000-object overview
+still rejects its byte limit. Three samples are descriptive, OS caches remain
+uncontrolled, and no comparative speedup or fleet SLA is claimed. Independent
+review and replay are included as metadata; raw performance capsules are omitted.
+
+The qualification-only source texts under receipts/source-review/qualifiers/
+are external reviewed drivers, outside C25 runtime. They require unoptimized
+Python, exact package/tool/source pins and the separately reviewed local profile.
+The optional tools/native_recovery_plan.py is the exact {helper_size:,}-byte source text,
+SHA {helper_sha}.
+It is a newly attributed replacement, not recovered historical helper bytes or a
+standalone recovery bundle. Its other 27 external helpers, fixture inputs,
+native tool binaries and closed profile are excluded. Copying/reviewing these
+texts does not run a qualifier or authorize a worker/tenant mutation.
+
+**This selection does not assert a fresh native PASS or overall laboratory
+completion. Read the exact current checkpoint/ledger for new failures, repairs,
+qualified scopes and remaining gaps. Earlier successful receipts retain only
+their original source, artifact and procedure scopes. Platform qualification
+remains blocked; organizational production approval is absent.**
+Required Windows/Git Bash/mintty/
+PowerShell, authenticated Graph/Azure, chosen protected CI, enrolled devices,
+activated scheduler, encryption/key recovery, AppSec and accountable-owner gates
+retain their own procedures and blockers. Wally remains optional and read-only;
+its negative/inconclusive results remain preserved.
+
+This public selection excludes raw state, service/device captures, saved binary
+or exported plans, private keys/credentials, approvals/journals, raw qualification
+capsules and the complete private evidence corpus. Existing reviewed source
+package fixtures remain explicitly laboratory inputs. Publishing this handoff
+performs no deployment or tenant mutation and grants no production approval.
+'''.encode()
+
+
+def final_inputs(path, expected_sha, checkpoint):
+    require(type(checkpoint) is int and checkpoint >= 27, 'Explicit integer checkpoint>=27 required')
+    raw = safe_file(path)
+    require(digest(raw)==expected_sha, 'Final input manifest substituted')
+    value = json.loads(raw)
+    require(set(value)=={'schema','checkpoint','documentation_commit','receipts'}, 'Final input manifest fields')
+    require(value['schema']=='intune-companion-final-inputs/2' and type(value['checkpoint']) is int
+            and value['checkpoint']==checkpoint, 'Pinned manifest checkpoint does not match explicit request')
+    commit = value['documentation_commit']
+    require(re.fullmatch('[0-9a-f]{40}',commit or '') is not None, 'Exact final commit required')
+    require(set(value['receipts'])=={'commit','diff_review','commit_binding','source_readback','branch_publication'},
+            'Five exact original receipt roles required')
+    receipts = {}
+    for role, row in value['receipts'].items():
+        require(set(row)=={'path','bytes','sha256'}, 'Receipt pin fields')
+        data = safe_file(row['path'])
+        require(len(data)==row['bytes'] and digest(data)==row['sha256'], 'Receipt substituted: '+role)
+        receipts[role]=(row,json.loads(data),data)
+    commit_receipt = receipts['commit'][1]
+    require(commit_receipt.get('schema_version')=='intune-checkpoint-commit/1' and commit_receipt.get('status')=='PASS',
+            'Original successful C27 commit receipt required')
+    require(commit_receipt.get('commit')==commit and commit_receipt.get('qualified_package_source')==ENGINE, 'C27 commit/package linkage')
+    review = receipts['diff_review'][1]
+    require(review.get('schema')==f'intune-public-C{checkpoint}-docs-delta-admission/1' and review.get('status')=='PUBLIC_DOCS_DELTA_PASS',
+            'Checkpoint-tagged public documentation delta admission absent')
+    require(review.get('engineering_source')==ENGINE and review.get('engineering_tree')==TREE, 'Reviewed engine identity differs')
+    require(isinstance(review.get('public_suitability'),str) and bool(review['public_suitability']), 'Public receipt scope absent')
+    require(review.get('base_commit')==commit_receipt.get('parent'), 'Reviewed parent does not match C27 commit')
+    if checkpoint == 27:
+        require(review.get('review_receipt',{}).get('sha256') == commit_receipt.get('review_sha256'),
+                'Original C27 complete-review linkage differs')
+    else:
+        # C28 and later commits bind the complete public delta admission itself.
+        # Its precursor/mechanical descriptor remains distinct historical proof.
+        require(receipts['diff_review'][0]['sha256'] == commit_receipt.get('review_sha256'),
+                'Current checkpoint must bind the exact whole public delta admission')
+    count=review.get('file_count')
+    require(type(count) is int and 1 <= count <= 100, 'Bounded actual reviewed file_count required')
+    if checkpoint == 27:
+        require(count == 31, 'Original C27 exact31 scope changed')
+    def pins(rows, name, key='repository_path'):
+        require(isinstance(rows,list) and len(rows)==count, 'Exact reviewed file evidence absent: '+name)
+        result={}
+        for row in rows:
+            relative=safe_relative(row.get(key))
+            require(relative not in result, 'Duplicate admitted path: '+name)
+            require(isinstance(row.get('bytes'),int) and row['bytes']>0 and row['bytes']<=8*1024*1024,
+                    'Invalid file byte size: '+name)
+            require(re.fullmatch('[0-9a-f]{64}',row.get('sha256') or '') is not None, 'Invalid exact file digest: '+name)
+            result[relative]=(row['bytes'],row['sha256'])
+        return result
+    reviewed_pins=pins(review.get('exact_file_list_and_pins'),'public documentation delta')
+    require(review.get('file_count')==count and all(row.get('regular_file') is True for row in review['exact_file_list_and_pins']),
+            'Reviewed file count/type evidence differs')
+    require(pins(commit_receipt.get('files'),'root commit')==reviewed_pins, 'Root commit file pins do not match reviewed delta')
+    binding = receipts['commit_binding'][1]
+    require(binding.get('schema')==f'intune-public-C{checkpoint}-commit-binding/1' and binding.get('status')=='PASS_SCOPED',
+            'Specifically public admitted compact commit binding absent')
+    require(binding.get('commit')==commit and binding.get('engineering_source')==ENGINE, 'Exact independent committed-document binding absent')
+    require(binding.get('parent')==commit_receipt.get('parent') and binding.get('tree')==commit_receipt.get('tree'), 'Independent commit tree differs')
+    require(binding.get('public_metadata_suitable') is True and binding.get('working_tree_clean') is True, 'Compact binding scope/cleanliness absent')
+    require(pins(binding.get('exact_committed_file_pins_and_Git_blobs'),'compact independent binding')==reviewed_pins,
+            'Independent commit file pins differ')
+    require(all(row.get('Git_mode')=='100644' and row.get('Git_type')=='blob' and row.get('working_bytes_equal') is True
+                and row.get('working_regular_file') is True for row in binding['exact_committed_file_pins_and_Git_blobs']),
+            'Independent raw Git blob/type evidence differs')
+    for role,field in [('diff_review','admitted_document_delta'),('commit','root_commit_receipt')]:
+        admitted=binding.get(field,{})
+        require(admitted.get('bytes')==receipts[role][0]['bytes'] and admitted.get('sha256')==receipts[role][0]['sha256'],
+                'Compact binding original receipt pin differs: '+role)
+    readback = receipts['source_readback'][1]
+    require(readback.get('schema')=='anonymous-source-documentation-readback/1' and readback.get('status')=='PASS'
+            and readback.get('commit')==commit, 'Anonymous exact-commit documentation HTTP readback absent')
+    require(readback.get('review_sha256')==commit_receipt.get('review_sha256'), 'HTTP readback independent review linkage differs')
+    require(pins(readback.get('files'),'anonymous HTTP readback',key='path')==reviewed_pins, 'HTTP returned bytes do not match exact reviewed file set')
+    for row in readback['files']:
+        expected_url='https://raw.githubusercontent.com/nsahmed23/neon-commons/'+commit+'/'+row['path']
+        require(row.get('status')=='PASS' and row.get('http_status')==200 and row.get('authorization_header_supplied') is False
+                and row.get('url')==expected_url and row.get('final_url')==expected_url, 'Anonymous exact-commit normal-destination HTTP evidence differs')
+    publication = receipts['branch_publication'][1]
+    require(publication.get('schema')=='verified-source-branch-publication/1' and publication.get('status')=='PASS'
+            and publication.get('candidate')==commit, 'Observed source branch publication absent')
+    require(publication.get('target')=='refs/heads/continuation/r4-20261007'
+            and publication.get('remote_after',{}).get('refs/heads/continuation/r4-20261007')==commit, 'Remote final source branch mismatch')
+    require(publication.get('main_before')=='4ba077d93fecbf5f893ee13ef972c839cf13883d'
+            and publication.get('remote_after',{}).get('refs/heads/main')==publication.get('main_before'), 'Unrelated main changed')
+    require(publication.get('previous')==commit_receipt.get('parent')
+            and publication.get('review_receipt_sha256')==receipts['diff_review'][0]['sha256'], 'Publication exact reviewed parent/delta linkage differs')
+    return value,receipts
+
+
+def admitted_prior(path, expected_sha, review_path, review_sha):
+    raw=safe_file(path);review_raw=safe_file(review_path)
+    require(digest(raw)==expected_sha and digest(review_raw)==review_sha, 'Prior selection/admission substituted')
+    value=json.loads(raw);review=json.loads(review_raw)
+    require(value.get('base_commit')=='3bf60e3ed150ec1d147ef2c07b7bea88f7ad480e'
+            and value.get('source_commit')==ENGINE, 'Prior engine/base identity differs')
+    require(review.get('selection_sha256')==expected_sha and review.get('source_commit')==ENGINE
+            and review.get('documentation_commit')==value.get('documentation_commit'), 'Exact prior public admission linkage absent')
+    tag=re.fullmatch(r'public-independent-companion-C([0-9]+)-stage-admission/1',review.get('schema') or '')
+    require(tag is not None and int(tag.group(1))>=27
+            and review.get('status')==f'PASS_SCOPED_FIXED_C{tag.group(1)}_SELECTION', 'Exact checkpoint-specific public prior admission absent')
+    if 'checkpoint' in value:
+        require(value['checkpoint']==int(tag.group(1)), 'Prior manifest/admission checkpoint differs')
+    require(review.get('companion_base')==value['base_commit'] and review.get('companion_prefix')==value.get('prefix'),
+            'Prior admitted companion namespace differs')
+    rows={safe_relative(row['path']):row for row in value['files']}
+    admitted={safe_relative(row['path']):row for row in review['files']}
+    require(1 <= len(rows) <= 200 and len(rows)==len(value['files'])==review.get('selected_files')==len(admitted)
+            and set(rows)==set(admitted), 'Prior exact admitted file set differs')
+    for relative,row in rows.items():
+        require((row['bytes'],row['sha256'])==(admitted[relative]['bytes'],admitted[relative]['sha256']), 'Prior selected member pin differs')
+        source=Path(row['physical_path'])
+        require(not source.is_symlink() and source.is_file() and source.stat().st_size==row['bytes'], 'Prior selected member type/size differs')
+        if not relative.startswith('packages/'):
+            require(digest(safe_file(source))==row['sha256'], 'Prior selected public text bytes changed')
+    return value,raw,review,review_raw,rows,int(tag.group(1))
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--checkpoint',type=int,required=True)
+    parser.add_argument('--output',type=Path,help='NEW immediate stage beneath this owned directory')
+    parser.add_argument('--final-inputs',type=Path,required=True)
+    parser.add_argument('--final-inputs-sha256',required=True)
+    parser.add_argument('--validate-only',action='store_true',help='Read only five original receipts; no stage created')
+    parser.add_argument('--prior-selection',type=Path,default=PRIOR)
+    parser.add_argument('--prior-selection-sha256',default=PRIOR_SHA)
+    parser.add_argument('--prior-admission',type=Path,default=PRIOR_ADMISSION)
+    parser.add_argument('--prior-admission-sha256',default=PRIOR_ADMISSION_SHA)
+    args=parser.parse_args()
+    value,receipts=final_inputs(args.final_inputs,args.final_inputs_sha256,args.checkpoint)
+    if args.validate_only:
+        require(args.output is None, 'Validate-only does not accept stage output')
+        print(json.dumps({'status':'PASS_SCOPED_RECEIPT_READER_ONLY','checkpoint':args.checkpoint,
+                          'commit':value['documentation_commit'],'receipt_roles':sorted(receipts),
+                          'product_or_native_execution':0,'prefix_modified':False}))
+        return
+    require(args.output is not None, 'New stage output required')
+    output=args.output.absolute()
+    require(output.parent==BASE and not output.exists() and not output.is_symlink(), 'New immediate owned stage directory required')
+    require(not DEST.exists() and not any(p.is_symlink() for p in [DEST,*DEST.parents]),
+            'Coordinator isolated prefix must remain fresh with no symlink ancestors')
+    prior,prior_raw,prior_review,prior_review_raw,prior_rows,previous_checkpoint=admitted_prior(
+        args.prior_selection,args.prior_selection_sha256,args.prior_admission,args.prior_admission_sha256)
+    # Prior independent admission rehashed the exact ZIPs. This stage verifies
+    # type/size and reuses that clearance without copying/rebuilding any ZIP.
+    commit=value['documentation_commit'];checkpoint=value['checkpoint']
+    covered={row['repository_path']:row for row in receipts['diff_review'][1]['exact_file_list_and_pins']}
+    old_hashes={row['sha256'] for row in prior_rows.values()}
+    output.mkdir(mode=0o700)
+    payload=output/'payload';payload.mkdir(mode=0o700)
+    history=output/'prior-admitted-revision';history.mkdir(mode=0o700)
+    write(history/'SELECTION.json',prior_raw)
+    write(history/'PUBLIC-STAGE-REVIEW.json',prior_review_raw)
+    entries={name:dict(row,final_destination=str(DEST/name),action='REUSE_EXACT_PREVIOUS_ADMITTED_SELECTION') for name,row in prior_rows.items()}
+    changes=[]
+    def stage(origin,relative,classification,source_path=None,data=None):
+        relative=safe_relative(relative)
+        raw=safe_file(origin) if data is None else data
+        raw.decode('utf-8')
+        require(len(raw)<=8*1024*1024, 'Selected text size bound')
+        reuse=None
+        if source_path:
+            require(raw_git(commit,source_path)==raw, 'Selected source differs from exact final Git blob: '+source_path)
+            require(source_path in covered or digest(raw) in old_hashes, 'Selected source path lacks exact reviewed delta/reuse: '+source_path)
+            if source_path in covered:
+                require(covered[source_path]['sha256']==digest(raw) and covered[source_path]['bytes']==len(raw), 'Reviewed delta pin mismatch')
+                reuse='LATEST_EXACT_PUBLIC_DELTA_AND_GIT_BLOB'
+            else:
+                reuse='PREVIOUS_ADMITTED_EXACT_BYTES_AND_LATEST_GIT_BLOB'
+        target=payload/relative
+        write(target,raw)
+        old=prior_rows.get(relative)
+        if old and old['sha256']!=digest(raw):
+            before=safe_file(old['physical_path'])
+            require((len(before),digest(before))==(old['bytes'],old['sha256']), 'Previous changed bytes differ before preservation')
+            write(history/relative,before)
+            changes.append({'path':relative,'before_bytes':len(before),'before_sha256':digest(before),
+                            'after_bytes':len(raw),'after_sha256':digest(raw),'prior_bytes_preserved':str(history/relative)})
+        entries[relative]={'path':relative,'physical_path':str(target),'final_destination':str(DEST/relative),
+                          'bytes':len(raw),'sha256':digest(raw),'origin':str(origin),'classification':classification,
+                          'action':'STAGED_TEXT_REPLACEMENT' if old else 'STAGED_TEXT_ADDITION',
+                          'observed_documentation_commit':commit if source_path else None,'source_path':source_path,
+                          'evidence_reuse':reuse}
+    for name in DOCS:
+        stage(REPO/'docs'/name,'work/docs/'+name,'exact_latest_reviewed_documentation','docs/'+name)
+    found=public_files()
+    for relative,path in found:
+        raw=safe_file(path)
+        stage(path,'receipts/source-review/'+relative,'public_selected_metadata_or_exact_qualification_source_text',META+'/'+relative,raw)
+    helper=REPO/META/'native-recovery-plan-qualifier.py.txt'
+    stage(helper,'tools/native_recovery_plan.py','optional_exact_qualification_text_not_standalone_bundle',META+'/native-recovery-plan-qualifier.py.txt')
+    role_names={'commit':f'COMMIT-{checkpoint}.json','diff_review':f'DOCUMENTATION-REVIEW-{checkpoint}.json',
+                'commit_binding':f'DOCUMENTATION-COMMIT-BINDING-{checkpoint}.json','source_readback':f'SOURCE-DOCUMENTATION-READBACK-{checkpoint}.json',
+                'branch_publication':f'SOURCE-BRANCH-READBACK-{checkpoint}.json'}
+    for role,(row,value,raw) in receipts.items():
+        stage(row['path'],'receipts/'+role_names[role],'bounded_final_commit_review_readback_metadata_pending_companion_review',data=raw)
+    stage(args.prior_admission,f'receipts/COMPANION-STAGE-REVIEW-{previous_checkpoint}.json','exact_public_previous_selection_admission',data=prior_review_raw)
+    helper_raw=safe_file(helper)
+    stage('attributable_new_next_checkpoint_summary','README.md','bounded_current_scope_summary_PENDING_COMPANION_REVIEW',
+          data=readme(commit,checkpoint,len(helper_raw),digest(helper_raw)))
+    require(entries['BASELINE-RECOVERY-LINKS.json']['sha256']=='69645cfa372fa14a0c1ce0a43636484f3f96b29282caf75b5dbc1bc39f2328a0', 'Pinned baseline recovery links changed')
+    selection={**{k:v for k,v in prior.items() if k not in {'files','documentation_commit','revision','status','prior_selection_sha256'}},
+        'status':'STAGED_LATEST_INPUTS_NOT_APPLIED_NOT_PUBLISHED','checkpoint':checkpoint,
+        'revision':f'after-admitted-C{previous_checkpoint}','documentation_commit':commit,
+        'prior_selection_sha256':args.prior_selection_sha256,'prior_admission_sha256':args.prior_admission_sha256,
+        'destination_prefix':str(DEST),'files':[entries[name] for name in sorted(entries)],
+        'prepared_at':datetime.now(timezone.utc).isoformat(),'staging_driver_sha256':digest(Path(__file__).read_bytes()),
+        'current_public_metadata_files':len(found),'prefix_modified':False,'zip_bytes_clearance_reused_without_copy':True,
+        'limitations':['Inert staging only. No commit/push/HTTP publication/deployment/worker execution performed.',
+                       'Previous public-admitted selected bytes and exact selection/review preserved; original sources and stages unchanged.',
+                       'Final source/companion publication and exact ZIP byte recheck remain coordinator/independent-review gates.',
+                       'No raw state/capture/plan/private key/profile/27-other-helper bundle/raw capsule or complete current R4 corpus selected.']}
+    dump(output/'SELECTION.json',selection)
+    dump(history/'CHANGES.json',{'schema':'companion-prior-admitted-revision-preservation/2',
+                               'prior_selection_sha256':args.prior_selection_sha256,'prior_admission_sha256':args.prior_admission_sha256,
+                               'changes':changes,'prefix_modified':False,'ZIP_copies':0})
+    dump(output/'FULL-PATHS-AND-ORIGINS.json',{'selection_sha256':digest((output/'SELECTION.json').read_bytes()),'files':selection['files']})
+    print(json.dumps({'stage':str(output),'selection_sha256':digest((output/'SELECTION.json').read_bytes()),'files':len(entries),
+                      'public_metadata_files':len(found),'changed_prior_files_preserved':len(changes),'status':selection['status']}))
+
+
+if __name__=='__main__':
+    main()

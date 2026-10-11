@@ -1,0 +1,100 @@
+{
+  "explicit_omissions": [
+    "Full27otherhelper corpus and complete helper sources touched by minimal patch",
+    "Original/new profiles, creator scripts with private recovery bindings, tool maps and dependency inputs",
+    "Witness payload, raw Graph/state/binary/exported plans, private keys/credentials, signatures/approvals/GO and raw logs/SQL/PTY/capsules",
+    "Missing265historical temporary roots/39reference receipts and their actor/provenance closure",
+    "Future native/abnormal-mode/platform/security/organizational qualification"
+  ],
+  "files": [
+    {
+      "bytes": 60974,
+      "classification": "DOCUMENTATION_ONLY_REVIEWABLE_QUALIFICATION_SOURCE",
+      "path": "/tmp/intune-c25-continuation-public-source-20261011-03/closed-native-continuation-loader.py.txt",
+      "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3"
+    },
+    {
+      "bytes": 63040,
+      "classification": "DOCUMENTATION_ONLY_REVIEWABLE_QUALIFICATION_SOURCE",
+      "path": "/tmp/intune-c25-continuation-public-source-20261011-03/closed-native-continuation-outer.py.txt",
+      "sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b"
+    },
+    {
+      "bytes": 2586,
+      "classification": "PUBLIC_SCOPE_AND_OMISSIONS",
+      "path": "/tmp/intune-c25-continuation-public-source-20261011-03/README.md",
+      "sha256": "603ce904acd484b6f0707ea84d08c21dc3032bc642f460c9694d013b83f7b628"
+    },
+    {
+      "bytes": 2038,
+      "classification": "metadata only",
+      "path": "/tmp/intune-c25-continuation-public-source-20261011-03/SOURCE-DISPOSITION.json",
+      "sha256": "7256b80cb0ae24aa460910aa8959580ad2f1df6c68eabd029838cb7f4e509f8a"
+    },
+    {
+      "bytes": 2966,
+      "classification": "minimal source delta or scoped metadata only",
+      "path": "/tmp/intune-r4-companion-refresh-20261011/producer-patch-preparation-01/ordinary-fault-producer-repair.md",
+      "sha256": "45e3499bef17b7b453a251d3bada16b662a269e356e94ad1c6b79be6d13e0109"
+    },
+    {
+      "bytes": 4146,
+      "classification": "minimal source delta or scoped metadata only",
+      "path": "/tmp/intune-r4-companion-refresh-20261011/producer-patch-preparation-01/ordinary-fault-producer-source-disposition.json",
+      "sha256": "0341a213c4125709906c3904e203a5d11d98daed174628ac0982683dedabd894"
+    }
+  ],
+  "helper_or_product_or_native_dispatches": 0,
+  "limitations": [
+    "Exact text suitability is not full private-corpus delivery, a standalone executable profile or independent organizational AppSec approval.",
+    "Source review does not establish actual remaining32 outcomes or release/platform/production approval.",
+    "Any later changed file/pin or refreshed publication selection requires a narrow new review."
+  ],
+  "literal_inspection": [
+    {
+      "file": "closed-native-continuation-loader.py.txt",
+      "literal_inventory_scope": "Field keys, error/help/source scope strings, fixed laboratory paths and source/tool identity hashes. No credential/key/capture/plan/state literal payload found.",
+      "string_and_byte_literals_inspected": 1231
+    },
+    {
+      "file": "closed-native-continuation-outer.py.txt",
+      "literal_inventory_scope": "Field keys, error/help/source scope strings, fixed laboratory paths and source/tool identity hashes. No credential/key/capture/plan/state literal payload found.",
+      "string_and_byte_literals_inspected": 1156
+    }
+  ],
+  "minimal_patch": {
+    "author_recommendation": {
+      "bytes": 838,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/MINIMAL-PRODUCER-PUBLIC-AUTHOR-RECOMMENDATION.json",
+      "sha256": "b45f31dd20d918971b161b5e9dc2ea4201bb336710446fdcf0b5cbac464c2762"
+    },
+    "bytes": 1668,
+    "changed_source_lines": 2,
+    "sha256": "626e5fc68cab04e8be288f96da71d021f9eb672e323d56362d162a584fb64c46",
+    "zero_context_patch_rederived_from_frozen_exact_originals_and_candidates": true
+  },
+  "pattern_matches": [],
+  "replay": [
+    "python",
+    "-B",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_closed_public_text.py",
+    "--output",
+    "NEW_ABSOLUTE_OUTPUT_DIRECTORY"
+  ],
+  "repository_or_remote_mutations": 0,
+  "schema": "independent-closed-continuation-public-text-review/1",
+  "scope": "Only exact loader04/outer05 documentation-only source text, associated readme/disposition, two-line producer repair markdown and source metadata. Complete source bytes/literals, new implementation differences and omissions inspected; no core/native execution.",
+  "scope_separation": {
+    "actual_current_capacity": "BLOCKED_PRIVATE_DURABLE_SPACE",
+    "new_native_execution_qualified": false,
+    "organizational_production_approval": false,
+    "platform_qualified": false,
+    "source_runtime_packages_changed": false
+  },
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_identity": {
+    "loader": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3",
+    "outer": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b"
+  },
+  "status": "PASS_SCOPED_SELECTED_SOURCE_TEXT_AND_MINIMAL_PATCH"
+}

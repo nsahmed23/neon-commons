@@ -1,0 +1,354 @@
+{
+  "schema": "intune-public-C27-commit-binding/1",
+  "status": "PASS_SCOPED",
+  "recorded_at": "2026-10-11T21:34:29.798164+00:00",
+  "commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+  "parent": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "tree": "87f00c173c7a30d2d8eabf91bce4e39fae5c50f4",
+  "engineering_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "scope": "Exact C27 commit binds all31previously admitted documentation/inventory files to raw Git blobs and current clean working copy. No implementation/test/runtime bytes changed.",
+  "exact_committed_file_pins_and_Git_blobs": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1670440,
+      "sha256": "1908b695fe738fc99a7c1e52af56e2330ad00fda1786c41d1eccb65cf00df918",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "701b60c0fcb96d5a6294875b5bccbb93b1e87b59",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "bytes": 94591,
+      "sha256": "237708ad715aa2561fa2afe7a89dab1409b229e9c374a04fab31611d725ef5ee",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "5febce509886efc3dca5b8221f2b0fdc91c4c089",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "bytes": 19594,
+      "sha256": "229039819e556587fa29131c2a59d43b58a350aa76be8352c27cc9b88212d1ce",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "d35400558c798ef05a89df6fc3fda8373ff5537c",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "bytes": 19641,
+      "sha256": "4400c3600e0ca5337ba78b23457c3751d9aa02164423f985e1fea17bfb678751",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "40b1d6652316edd68bd9db67e52ca822187814a0",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "bytes": 52182,
+      "sha256": "4a63b9938541c5f5b599f89d4bc272bac163d9b424b400b7a5d5ae6df6aaa924",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "90570ad278f11d0fca05d31497f6ca221864e36d",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-summary.json",
+      "bytes": 26683,
+      "sha256": "9185188deb897c5fb76b8e9ee92a09c473fa5ac563dce1ad26ec6e144b11ddb1",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "85bc765b95bc965d461bf78d117cfad75f97b147",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-branch-publication.json",
+      "bytes": 1140,
+      "sha256": "3e3661d4de15e440c0fc93099d8e26d555b3a1ac19278b2a0e764e5e5a74b310",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "293f83c10fc1acb446056580ee06615cf57ff4e9",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-documentation-readback.json",
+      "bytes": 8234,
+      "sha256": "2912e4fc10972162a7e72a98071efb1356757d7516a06f76436deba352fb8816",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "06d305d99d2146649ef3c227fe68dc5181e7afcb",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-replay.md",
+      "bytes": 5438,
+      "sha256": "004dd6c55046e8bbc4eecb71dd34eaaa166f70015f44c3c9e76d09f50e0be448",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "a96be70b4d57337ba3dfd543ff763c3e164c185d",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-independent-review.json",
+      "bytes": 9567,
+      "sha256": "c07c09e714d54a0c79746c0ca49f5fb48769014b491a8a4c3bf9de7b44ee2ca0",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "e959a70d6790f150b50d9b5b0ce6a39ff0cd708f",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-independent-review-delivery.json",
+      "bytes": 2960,
+      "sha256": "593e3c1e6032844facb27a81dbbf0af854f9d8651a3746a3bd2029597d8e7011",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "a79ea7a9d03ff8a5d2177d15ee7c6900c2bb9431",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-gate-attempt-01.json",
+      "bytes": 1768,
+      "sha256": "60b262d0f709fa7cfbb9bf641422357dfb2667fd16960a94f810deb009a34bc3",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "051a412e738216cb346c31fea08d8f6ee7442970",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-context-targeted-nine.json",
+      "bytes": 1078,
+      "sha256": "7da9b46990b8860a02184e4174e88b7a89a55063dae966bf3fe8b3f3875f4b04",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "c1001c2860386fbfc8612077d3ae91ab90b61a02",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/historical-namespace-distinction.json",
+      "bytes": 1294,
+      "sha256": "822d6b9fd7f46476f01d4fd83cddfb5ca87524a58ec21723c59ea3a2bf3059d9",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "08a2b741a48efb42a2d66b1542449f73b3ed5e93",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/recovery-helper-api-review.json",
+      "bytes": 3905,
+      "sha256": "29197c509213802bbd368f6657c154d9dd5b8beeda87f0c1e1ea235ff8eaec95",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "2b4d181856159fe0062cc6f141e98aef837c620f",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/recovery-helper-label-review.json",
+      "bytes": 2921,
+      "sha256": "30409695c0ba623365a563757159c89b286a672011928f3147fd088a6755140a",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "4b9dd937a3cb92388d7858e5eb2b11147a68c723",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-gate-attempt-02.json",
+      "bytes": 1767,
+      "sha256": "cb3c66aebfc2a81aa31c7d31a8e19eca510e55f167a2f8c1fae5e4ba297ed88d",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "430077832105f989768a0c81c9fd4733b06db5a8",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/recovery-helper-public-text-review.json",
+      "bytes": 3589,
+      "sha256": "210401ac070df098df78534d7732c04d156255a055950945590ee6c1bdbb718b",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "5e7405ad708e7b031a91041bd680385a790c264d",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/native-recovery-plan-qualifier.py.txt",
+      "bytes": 28860,
+      "sha256": "aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "12172776bee163305a7b75adceaa3c160df280b0",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-review-before.json",
+      "bytes": 4701,
+      "sha256": "bb237d9a3f5332ce0cff3b6baa6da3d9567acc08bd4c333c34287d897c228737",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "2948a530f621ef00e47074479a5d2156f96635ff",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-before-preservation.json",
+      "bytes": 1062,
+      "sha256": "51811f4d03fd75415f8f3ba996bfae328559da3343d7016ee9abc4c43f330108",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "6d77b940fff2d2094e16904d33755ec5b6906964",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/publication-scope-27.md",
+      "bytes": 3607,
+      "sha256": "ccea76df85900f49a2203731f2c644d934197400145e778b2c257e78342fb850",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "e89c5f6f83a8925f2df4dff12ec2ba3345d13270",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualifiers/c25_package_binding.py.txt",
+      "bytes": 5746,
+      "sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "3edb5af900b42c32aa8b9c93bb26d004679bd662",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualifiers/qualify-c25-runtime-resumed-20261011.py.txt",
+      "bytes": 7154,
+      "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "9d2c000efef64701857029f234e34c75f2ea6511",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualifiers/prepare-c25-native-resumed-20261011.py.txt",
+      "bytes": 10891,
+      "sha256": "c46e6fecf617cad13d3a3cff429154edf56a983d8b7ad294b95d1418166bef3e",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "ed8dff970030a9bb39de1d42ac9fab160c7bf97e",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-repaired-review.json",
+      "bytes": 21647,
+      "sha256": "c214a73cddd9a9919d0c5ff3708dc1c9233c4db4259ba81133e0e0aa7acfcb57",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "653641542895deaf68f0cace80e6336b969e6683",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-pin-assertions.json",
+      "bytes": 4875,
+      "sha256": "77157c2bc4a66a2f13dfedd318bf9175bec73718ea3f3874cdbe5cff843cc056",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "02cb0c8244c871de0250101be2d6682591d10179",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/runtime-journey-producer.json",
+      "bytes": 1020,
+      "sha256": "c5b8a28507eb270c9c259c957bbff3095c24417ffa7d1929288c0e346832398d",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "fc6369729763a5a1915d2217aabfa7ab2af88caa",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/runtime-owned-capsule.json",
+      "bytes": 463,
+      "sha256": "c454a1168fe8e5062117faed33bf24718c90bf08bb2774fe1b6667c2db24bcf7",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "f889eb906daaf8dd874c2bdfe17baed109dba11a",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/runtime-independent-admission.json",
+      "bytes": 2974,
+      "sha256": "43c3cdfa19d53f210535e16a8cb4b000a412d50895eaf4549e27b7b8cc102c74",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "5c18c9da8faf784362d9ba45a980bafe7d31e195",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    },
+    {
+      "repository_path": "release-source-files.txt",
+      "bytes": 267220,
+      "sha256": "ed807d863f786180a04cc03b725ea82750bce64518647e0f2a20196182800e0a",
+      "Git_mode": "100644",
+      "Git_type": "blob",
+      "Git_blob": "868717c27dcbee46983c48ced39382d0b6a800e8",
+      "working_bytes_equal": true,
+      "working_regular_file": true
+    }
+  ],
+  "independent_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint27-public-docs-delta-01/commit-binding-01/RESULT.json",
+    "bytes": 39213,
+    "sha256": "dd2dd8a3ce8b08021a3d182ce29b570512abd6dbb06ac44e911c2afe72dabef7"
+  },
+  "admitted_document_delta": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint27-public-docs-delta-01/PUBLIC-DOCS-DELTA.json",
+    "bytes": 12455,
+    "sha256": "90b5bc7e172dbcb2e81e64c71ff562a0acfc86ef597da4cdd560c5cffb93e9d4"
+  },
+  "root_commit_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-27.json",
+    "bytes": 8428,
+    "sha256": "7e5d9cd807c7e3b3661ae55ffb8dbe96e1fe0bbc6c4e3a47235a10b3fc1a6f89"
+  },
+  "assertions": 38,
+  "count_scope": "Read-only commit/metadata assertions; overlap documentation review and are not product test or journey counts.",
+  "inventory_unique": 3388,
+  "working_tree_clean": true,
+  "public_metadata_suitable": true,
+  "payload_scope": "File identities/commit linkage/scopes only. No raw service/state/plan/approval/journal/key/SQL/PTY/private capsule payload.",
+  "not_established": [
+    "Remote branch/public readback of C27",
+    "Full private-corpus delivery",
+    "Global laboratory completion",
+    "NativeWindows/liveGraph/Azure/CI/device qualification",
+    "Independent organizational AppSec or production approval",
+    "Human commit actor attribution beyond configured Git metadata"
+  ],
+  "product_or_native_or_timing_reruns": 0,
+  "repository_mutations": 0,
+  "remote_mutations": 0
+}

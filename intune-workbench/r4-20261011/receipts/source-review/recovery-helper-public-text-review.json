@@ -1,0 +1,54 @@
+{
+  "UTF8_source_only": true,
+  "applicable_engine_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "copy_admission": "Each proposed copy must remain exact to this SHA-256 and be included in its separately reviewed explicit selection/final Git commit. This receipt does not assert that either future copy already exists or is published.",
+  "direct_external_imports": [
+    "native_adoption_journey",
+    "native_adoption_policy",
+    "native_phase_plan_oracle",
+    "native_service_fixture",
+    "native_service_fixture_strict_metadata",
+    "qualification_context"
+  ],
+  "evidence_reuse": {
+    "API_and_oracle_review": "recovery-helper-api-artifacts-01/RESULT.json",
+    "no_new_native_claim": true,
+    "scope_label_rebinding": "recovery-helper-label-02-01/RESULT.json"
+  },
+  "high_signal_literal_findings": [],
+  "limitations": [
+    "Bounded exact source-text review, not organizational AppSec approval or universal secret-absence proof.",
+    "No whole capsule, dependency bundle, public link, complete recovery, native test, CI, tenant or production clearance.",
+    "Local activation requires the reviewed closed helper/tool/profile/source contract and coordinator scheduling approval. Live authorization is separate."
+  ],
+  "literal_private_payload_found": false,
+  "manual_content_scope": "Full corrected source text, string/byte literal census, import/API/credential references; source code contains no embedded credential/private key, raw tenant capture, state or saved-plan payload.",
+  "native_executed": false,
+  "omissions": [
+    "27 other historical external portable helper sources are not granted publication clearance by this single-file review.",
+    "Fixture inputs, qualification profile/tool binaries, private signer/certificate bytes and operation artifacts are not included.",
+    "Raw captures, state bytes, binary/exported plans, approvals/journals and raw qualification capsules are excluded.",
+    "The complete R4/private evidence corpus is not delivered; 265 historical temporary roots and39 referenced receipt gaps plus original missing helper remain unresolved."
+  ],
+  "platform_qualified": false,
+  "production_approved": false,
+  "proposed_exact_copies": [
+    "docs/continuation-evidence/20261011/native-recovery-plan-qualifier.py.txt",
+    "intune-workbench/r4-20261011/tools/native_recovery_plan.py"
+  ],
+  "public_source_text_suitable": true,
+  "runtime_included": false,
+  "schema": "independent-public-qualifier-source-text-review/1",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_helper_public_text.py",
+    "sha256": "cb454dd9b2f034934877478663dc4770aff6829b2057aa2db7b95c89bea1825c"
+  },
+  "source": {
+    "bytes": 28860,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-recovery-plan-replacement-20261011-01/native_recovery_plan.py",
+    "sha256": "aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100"
+  },
+  "source_context": "New attributable external qualification helper. Existing C25 engine/runtime is unchanged; this source-text helper is not an executable runtime payload, standalone complete harness, reviewed complete external profile or historical original-helper reconstruction.",
+  "status": "PASS_SCOPED",
+  "synthetic_credential_scope": "Only SYNTHETIC-import-recovery-plan- plus provider/backend/reader roles is constructed. Synthetic private signer/certificate references are filenames resolved in fresh local fixture roots, not published key bytes."
+}

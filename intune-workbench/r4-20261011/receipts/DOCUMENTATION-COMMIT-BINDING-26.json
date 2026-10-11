@@ -1,0 +1,38 @@
+{
+  "candidate_artifact_source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "checkpoint_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/COMMIT-26.json",
+    "sha256": "881fb412d849a2f17cd0c70f0d41436361ac8971cc2333db71224bdefd12fa2b"
+  },
+  "documentation_paths_bound": 13,
+  "files": {
+    "bytes": 5114,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/docs-commit-26-01/EXACT-COMMITTED-DOCUMENTATION.json",
+    "sha256": "0e2f2c9c21d40723625864c2e1f395e7fb11c6782aca21d95f51cea577530dda"
+  },
+  "limitation": "Exact reviewed documentation content binding only; preserves separate C25 artifact identity and historical evidence gaps. No remote readback, AppSec or production authorization is inferred.",
+  "new_qualification_tests_run": 0,
+  "no_engine_runtime_test_script_changes": true,
+  "only_reviewed_paths_changed": true,
+  "parent": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_source_branch_update_suitable_at_reviewed_commit": true,
+  "raw_commit_tree_blob_identity_verified": true,
+  "recorded_at": 1791751438.5583975,
+  "regular_100644_blobs": true,
+  "remote_push_performed": false,
+  "review": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/docs-delta-26-02/RESULT.json",
+    "sha256": "6dff429b82d575146df9088dacb73326a88e3c72c657c6216521ba9ff9925858"
+  },
+  "schema": "independent-reviewed-documentation-commit-binding/1",
+  "script": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/bind_docs_commit.py",
+    "sha256": "9245a68481f4ed6e36a7bd851f4af0a600a3a4386c518151c805d8b15cd6e99a"
+  },
+  "source_branch_commit": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "source_branch_tree": "cbb79f68dc3e2f66a9fbdc3a7233f4b6a70da11a",
+  "status": "PASS_EXACT_DOCUMENTATION_COMMIT_BINDING",
+  "worktree_clean_before_after": true
+}

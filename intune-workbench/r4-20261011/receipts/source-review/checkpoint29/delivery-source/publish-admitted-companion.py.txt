@@ -1,0 +1,236 @@
+"""Root-owned exact-byte delivery; separate apply, commit, push and readback gates."""
+from pathlib import Path, PurePosixPath
+import argparse, concurrent.futures, datetime, hashlib, json, os, stat, subprocess
+import urllib.parse, urllib.request
+
+REPO = Path('/tmp/intune-r4-publication-isolated-20261011')
+PREFIX = 'intune-workbench/r4-20261011/'
+BASE = '3bf60e3ed150ec1d147ef2c07b7bea88f7ad480e'
+BRANCH = 'intune-atmos-wally-r4-20261011'
+MAIN = '4ba077d93fecbf5f893ee13ef972c839cf13883d'
+# Preserve the managed proxy/CA and existing credential environment while
+# removing every Git routing/config/trace override before a fixed invocation.
+ENV = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+ENV['GIT_TERMINAL_PROMPT'] = '0'
+ORIGIN = 'https://github.com/nsahmed23/neon-commons.git'
+JOURNAL = None
+
+def require(ok, message):
+    if not ok:
+        raise RuntimeError(message)
+
+def digest(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+def regular(path):
+    require(stat.S_ISREG(path.lstat().st_mode), 'not a literal regular file: ' + str(path))
+    return path.read_bytes()
+
+def load(path, expected):
+    raw = regular(path)
+    require(digest(raw) == expected, 'input pin mismatch: ' + str(path))
+    return json.loads(raw)
+
+def literal_repository():
+    for directory in (REPO, REPO / '.git'):
+        for node in (*reversed(directory.parents), directory):
+            require(stat.S_ISDIR(node.lstat().st_mode), 'repository directory or ancestor is not literal')
+
+
+def git(*args, data=None):
+    literal_repository()
+    process = subprocess.run(['/usr/bin/git', '--git-dir=' + str(REPO / '.git'), '--work-tree=' + str(REPO),
+                              '-c', 'core.hooksPath=/dev/null', *args],
+                             cwd=REPO, env=ENV, input=data, capture_output=True)
+    require(process.returncode == 0, 'git failed: ' + args[0] + ' (exit ' + str(process.returncode)
+            + ', stderr_sha256=' + digest(process.stderr) + ', stderr_bytes=' + str(len(process.stderr)) + ')')
+    return process.stdout
+
+def names(*args):
+    return {p.decode('utf-8') for p in git(*args).split(b'\0') if p}
+
+def no_link_ancestors(path, floor):
+    require(path.is_relative_to(floor), 'destination escapes fixed prefix')
+    for parent in (path, *path.parents):
+        if parent.exists() or parent.is_symlink():
+            require(not parent.is_symlink(), 'symlink ancestor: ' + str(parent))
+            if parent != path:
+                require(stat.S_ISDIR(parent.lstat().st_mode), 'destination ancestor is not a literal directory')
+
+def exact_checkout(rows):
+    target = REPO / PREFIX
+    wanted = {row['path']: row for row in rows}
+    actual = {}
+    for path in target.rglob('*'):
+        no_link_ancestors(path, target)
+        if path.is_dir():
+            continue
+        raw = regular(path)
+        actual[path.relative_to(target).as_posix()] = (len(raw), digest(raw))
+    require(set(actual) == set(wanted), 'checkout file set differs from admission')
+    for name, row in wanted.items():
+        require(actual[name] == (row['bytes'], row['sha256']), 'checkout bytes differ: ' + name)
+
+def bound_origin():
+    require(git('remote', 'get-url', '--all', 'origin').decode().splitlines() == [ORIGIN], 'origin fetch URL differs from reviewed repository')
+    require(git('remote', 'get-url', '--push', '--all', 'origin').decode().splitlines() == [ORIGIN], 'origin push URL differs from reviewed repository')
+
+
+def remote_refs():
+    bound_origin()
+    return {line.split('\t')[1]: line.split('\t')[0]
+            for line in git('ls-remote', 'origin', 'refs/heads/main', 'refs/heads/' + BRANCH).decode().splitlines()}
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--selection', type=Path, required=True)
+    parser.add_argument('--selection-sha256', required=True)
+    parser.add_argument('--admission', type=Path, required=True)
+    parser.add_argument('--admission-sha256', required=True)
+    parser.add_argument('--mode', choices=['validate', 'apply', 'commit', 'push', 'readback'], required=True)
+    parser.add_argument('--commit', default='')
+    parser.add_argument('--output', type=Path, required=True)
+    args = parser.parse_args()
+    selection = load(args.selection, args.selection_sha256)
+    admission = load(args.admission, args.admission_sha256)
+    require(admission['selection_sha256'] == args.selection_sha256, 'admission refers to another selection')
+    checkpoint = selection['checkpoint']
+    require(type(checkpoint) is int and 28 <= checkpoint <= 40, 'unreviewed checkpoint range')
+    require(admission['status'] == 'PASS_SCOPED_FIXED_C' + str(checkpoint) + '_SELECTION', 'selection not independently admitted')
+    require(selection['base_commit'] == admission['companion_base'] == BASE, 'wrong companion base')
+    require(selection['documentation_commit'] == admission['documentation_commit'], 'wrong source documentation revision')
+    require(selection['source_commit'] == admission['source_commit'] == 'e3bdefe0b1ac0c58e46f9af3360970f8e47ae393', 'wrong qualified engine')
+    require(selection['destination_prefix'] == str(REPO / PREFIX), 'wrong destination')
+    require(admission['companion_prefix'] == PREFIX, 'wrong admitted prefix')
+    require(git('rev-parse', '--show-toplevel').decode().strip() == str(REPO), 'wrong repository identity')
+    bound_origin()
+    require(git('branch', '--show-current').decode().strip() == BRANCH, 'wrong local branch')
+    rows = selection['files']
+    require(type(rows) is list and 1 <= len(rows) <= 200, 'selection exceeds reviewed size bound')
+    pins = {row['path']: row for row in admission['files']}
+    require(len(pins) == len(rows) == admission['selected_files'], 'duplicate or incomplete admission')
+    seen = set()
+    for row in rows:
+        name = row['path']
+        path = PurePosixPath(name)
+        require(type(name) is str and name == path.as_posix() and not path.is_absolute()
+                and '..' not in path.parts and '\\' not in name and all(part not in ('', '.') for part in path.parts), 'unsafe path')
+        require(name not in seen and name in pins, 'duplicate or unadmitted selection path')
+        seen.add(name)
+        require(type(row['bytes']) is int and row['bytes'] >= 0, 'invalid size')
+        require((row['bytes'], row['sha256']) == (pins[name]['bytes'], pins[name]['sha256']), 'admission byte mismatch')
+        require(row['final_destination'] == str(REPO / PREFIX / name), 'row destination mismatch')
+        raw = regular(Path(row['physical_path']))
+        require((len(raw), digest(raw)) == (row['bytes'], row['sha256']), 'selected physical bytes changed: ' + name)
+        prospective = digest_blob(raw)
+        require(pins[name]['prospective_Git_blob'] == prospective, 'prospective Git blob differs')
+    require(sum(row['bytes'] for row in rows) == admission['selected_bytes'], 'total byte count differs')
+    require(not args.output.exists() and not args.output.is_symlink(), 'output already exists')
+    result = {'schema': 'admitted-companion-delivery/1', 'mode': args.mode, 'status': 'PREPARED',
+              'checkpoint': checkpoint, 'selection_sha256': args.selection_sha256,
+              'admission_sha256': args.admission_sha256, 'documentation_commit': selection['documentation_commit'],
+              'source_commit': selection['source_commit'], 'prefix': PREFIX, 'base_commit': BASE,
+              'branch': BRANCH, 'files': [{'path': row['path'], 'bytes': row['bytes'], 'sha256': row['sha256']} for row in rows],
+              'recorded_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'driver_sha256': digest(Path(__file__).read_bytes()),
+              'scope': 'Specifically admitted public packages/source text/metadata only. No complete private-corpus, tenant, platform or production claim.'}
+    global JOURNAL
+    args.output.mkdir(mode=0o700)
+    JOURNAL = (args.output, result)
+    (args.output / 'PREPARED.json').write_text(json.dumps(result, indent=2) + '\n')
+    if args.mode == 'apply':
+        require(git('rev-parse', 'HEAD').decode().strip() == BASE, 'companion HEAD advanced')
+        require(not git('status', '--porcelain'), 'pre-existing changes')
+        require(not (REPO / PREFIX).exists(), 'prefix already exists')
+        require(os.statvfs('/tmp').f_bavail * os.statvfs('/tmp').f_frsize >= admission['selected_bytes'] + 128 * 1024 * 1024, 'temporary capacity insufficient')
+        for row in rows:
+            destination = REPO / PREFIX / row['path']
+            no_link_ancestors(destination, REPO / PREFIX)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with destination.open('xb') as stream:
+                stream.write(regular(Path(row['physical_path'])))
+        exact_checkout(rows)
+        require(names('ls-files', '--others', '--exclude-standard', '-z') == {PREFIX + row['path'] for row in rows}, 'unexpected applied file set')
+        require(not git('diff', '--name-only') and not git('diff', '--cached', '--name-only'), 'tracked paths changed during application')
+    elif args.mode == 'commit':
+        require(git('rev-parse', 'HEAD').decode().strip() == BASE, 'wrong pre-commit HEAD')
+        exact_checkout(rows)
+        require(not git('diff', '--cached', '--name-only') and not git('diff', '--name-only'), 'pre-existing tracked changes')
+        require(names('ls-files', '--others', '--exclude-standard', '-z') == {PREFIX + row['path'] for row in rows}, 'unexpected untracked paths')
+        for row in rows:
+            raw = regular(REPO / PREFIX / row['path'])
+            blob = git('hash-object', '-w', '--stdin', data=raw).decode().strip()
+            require(blob == pins[row['path']]['prospective_Git_blob'], 'raw Git object differs')
+            git('update-index', '--add', '--cacheinfo', '100644', blob, PREFIX + row['path'])
+        require(names('diff', '--cached', '--name-only', '-z') == {PREFIX + row['path'] for row in rows}, 'staged scope differs')
+        git('diff', '--cached', '--check')
+        git('commit', '-m', 'Deliver reviewed R4 continuation packages, recovery preparation and evidence')
+        args.commit = git('rev-parse', 'HEAD').decode().strip()
+        require(git('rev-parse', 'HEAD^').decode().strip() == BASE, 'commit parent differs')
+    if args.mode in ('commit', 'push', 'readback'):
+        require(len(args.commit) == 40 and all(c in '0123456789abcdef' for c in args.commit), 'exact commit required')
+        require(git('rev-parse', 'HEAD').decode().strip() == args.commit, 'wrong post-commit HEAD')
+        require(git('rev-parse', 'HEAD^').decode().strip() == BASE, 'wrong commit parent')
+        require(names('diff-tree', '--no-commit-id', '--name-only', '-r', '-z', args.commit) == {PREFIX + row['path'] for row in rows}, 'commit changed unrelated paths')
+        for row in rows:
+            raw = git('cat-file', 'blob', args.commit + ':' + PREFIX + row['path'])
+            require((len(raw), digest(raw)) == (row['bytes'], row['sha256']), 'committed raw bytes differ')
+        require(not git('status', '--porcelain'), 'post-commit working tree not clean')
+        result['commit'] = args.commit
+    if args.mode == 'push':
+        before = remote_refs()
+        require(before == {'refs/heads/main': MAIN}, 'remote target exists or unrelated main advanced')
+        git('push', '--porcelain', '--force-with-lease=refs/heads/' + BRANCH + ':', 'origin', args.commit + ':refs/heads/' + BRANCH)
+        after = remote_refs()
+        require(after == {'refs/heads/main': MAIN, 'refs/heads/' + BRANCH: args.commit}, 'remote identities differ')
+        git('update-ref', 'refs/remotes/origin/' + BRANCH, args.commit)
+        git('branch', '--set-upstream-to=origin/' + BRANCH, BRANCH)
+        result.update(remote_before=before, remote_after=after, main_unchanged=True)
+    if args.mode == 'readback':
+        require(remote_refs() == {'refs/heads/main': MAIN, 'refs/heads/' + BRANCH: args.commit}, 'remote identity changed')
+        def fetch(row):
+            url = 'https://raw.githubusercontent.com/nsahmed23/neon-commons/' + args.commit + '/' + urllib.parse.quote(PREFIX + row['path'], safe='/')
+            entry = {'path': row['path'], 'url': url, 'authorization_header_supplied': False}
+            try:
+                with urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'intune-public-exact-byte-readback'}), timeout=30) as response:
+                    hasher = hashlib.sha256()
+                    count = 0
+                    while True:
+                        block = response.read(min(1024 * 1024, row['bytes'] + 1 - count))
+                        if not block:
+                            break
+                        count += len(block)
+                        hasher.update(block)
+                        require(count <= row['bytes'], 'remote response exceeds admitted size')
+                    entry.update(bytes=count, sha256=hasher.hexdigest(), http_status=response.status, final_url=response.url)
+                entry['status'] = 'PASS' if entry['http_status'] == 200 and entry['final_url'] == url and (entry['bytes'], entry['sha256']) == (row['bytes'], row['sha256']) else 'FAIL'
+            except Exception as error:
+                entry.update(status='FAIL', error_type=type(error).__name__, error=str(error))
+            return entry
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+            result['readback'] = list(pool.map(fetch, rows))
+        result['status'] = 'PASS' if all(row['status'] == 'PASS' for row in result['readback']) else 'FAIL'
+    else:
+        result['status'] = 'PASS'
+    (args.output / 'RECEIPT.json').write_text(json.dumps(result, indent=2) + '\n')
+    print(json.dumps({key: value for key, value in result.items() if key not in ('files', 'readback')}))
+    require(result['status'] == 'PASS', 'anonymous readback failed; receipt preserved')
+
+def digest_blob(raw):
+    return hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+
+if __name__ == '__main__':
+    try:
+        main()
+    except BaseException as error:
+        if JOURNAL is not None:
+            output, result = JOURNAL
+            result.update(status='FAIL', primary_error_type=type(error).__name__, primary_error=str(error),
+                          limitation='Failed delivery attempt remains preserved; inspect actual Git/ref/files before retry. No automatic cleanup or rollback.')
+            try:
+                with (output / 'FAILURE.json').open('x') as stream:
+                    stream.write(json.dumps(result, indent=2) + '\n')
+            except BaseException as secondary:
+                error.add_note('Secondary delivery failure journal error retained: ' + type(secondary).__name__)
+                error.add_note('The original delivery error remains primary; inspect PREPARED.json and actual Git/ref/files.')
+        raise

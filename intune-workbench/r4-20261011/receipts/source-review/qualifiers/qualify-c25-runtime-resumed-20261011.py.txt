@@ -1,0 +1,96 @@
+"""Exact-package outer binding for three existing application qualification routes."""
+from pathlib import Path
+import argparse,datetime,hashlib,importlib.util,json,os,stat,subprocess,zipfile
+
+r4=Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4')
+package=Path('/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/PACKAGE-RECEIPT.json')
+out=r4/'integration/c25-runtime-resumed-20261011-01'
+scratch=Path('/tmp/intune-c25-runtime-resumed-20261011-01')
+python='/workspace/intune-runtime/bin/python'
+def sha(path):
+ with Path(path).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+def write(path,value):
+ with Path(path).open('x') as f:json.dump(value,f,indent=2);f.write('\n')
+def tree(root):
+ result={}
+ def denied(error):raise error
+ for parent,dirs,files in os.walk(root,followlinks=False,onerror=denied):
+  for name in sorted(dirs+files):
+   p=Path(parent)/name;s=p.lstat();key=p.relative_to(root).as_posix()
+   if stat.S_ISDIR(s.st_mode):row={'kind':'directory'}
+   elif stat.S_ISREG(s.st_mode):row={'kind':'file','bytes':s.st_size,'sha256':sha(p)}
+   elif stat.S_ISLNK(s.st_mode):row={'kind':'symlink','target':os.readlink(p)}
+   else:raise ValueError('special evidence/input path')
+   result[key]=row
+ return result
+def main():
+ parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--gate-receipt-sha256',required=True);arguments=parser.parse_args()
+ binding_path=Path(__file__).with_name('c25_package_binding.py')
+ assert stat.S_ISREG(binding_path.lstat().st_mode) and sha(binding_path)=='964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053'
+ spec=importlib.util.spec_from_file_location('root_c25_package_binding',binding_path);binding=importlib.util.module_from_spec(spec);spec.loader.exec_module(binding)
+ gate=r4/'integration/c25-strict-resumed-20261011-02/RECEIPT.json'
+ binding.verify_gate(gate,arguments.gate_receipt_sha256)
+ receipt,before=binding.verify_packages(package)
+ assert not out.exists() and not scratch.exists();out.mkdir(mode=0o700);scratch.mkdir(mode=0o700)
+ source=Path(receipt['artifacts']['source']['extracted']);runtime=Path(receipt['artifacts']['runtime']['extracted'])
+ for v in receipt['artifacts'].values():assert Path(v['path']).stat().st_size==v['bytes'] and sha(v['path'])==v['sha256']
+ write(out/'PACKAGE-BEFORE.json',before)
+ env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1');env.pop('PYTHONPATH',None);env.pop('PYTHONHOME',None)
+ names=['qualify-workflow.py','qualify-terminal.py','qualify-workbench-connected.py']
+ actions=[]
+ write(out/'PREPARED.json',{'schema':'exact-c25-runtime-journey-binding/1','status':'PREPARED','commit':receipt['commit'],'package_receipt_sha256':sha(package),'strict_gate_receipt_sha256':sha(gate),'driver_sha256':sha(__file__),'binding_sha256':sha(binding_path),'both_initial_extractions_match_exact_archives':True,'started_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'scope':'Existing actual packaged application routes and Linux PTY with local modeled fixtures; no live service, Windows or production claim. Counts overlap required suite.'})
+ primary_error=None
+ try:
+  for name in names:
+   lane=scratch/name.removesuffix('.py');script=source/'scripts'/name
+   argv=[python,'-B',str(script),'--plugin',str(runtime),'--output',str(lane)]
+   if name=='qualify-workbench-connected.py':argv+=['--python',python]
+   write(out/(name+'.COMMAND.json'),{'argv':argv,'cwd':str(source),'driver_sha256':sha(script),'environment_overrides':{'PYTHONDONTWRITEBYTECODE':'1','PYTHONNOUSERSITE':'1'}})
+   with (out/(name+'.stdout')).open('xb') as so,(out/(name+'.stderr')).open('xb') as se:
+    p=subprocess.run(argv,cwd=source,env=env,stdout=so,stderr=se)
+   artifacts=tree(lane) if lane.exists() else {}
+   actions.append({'procedure':name,'exit_code':p.returncode,'raw_output':str(lane),'inventory':artifacts})
+   assert p.returncode==0,name+' failed; preserve output and stop new dispatch'
+  after={k:tree(Path(v['extracted'])) for k,v in receipt['artifacts'].items()}
+  write(out/'PACKAGE-AFTER.json',after);assert after==before
+  for v in receipt['artifacts'].values():assert Path(v['path']).stat().st_size==v['bytes'] and sha(v['path'])==v['sha256']
+  completed_result={'schema':'exact-c25-runtime-journey-binding/1','status':'PASS','commit':receipt['commit'],'source_runtime_bytes_unchanged':True,'both_initial_extractions_match_exact_archives':True,'actions':[{k:v for k,v in a.items() if k!='inventory'} for a in actions],'finished_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'scope':'Successful existing workflow/wizard/connected laboratory routes; independent raw assertions/admission still required, not global laboratory completion, external qualification or organizational approval.'}
+ except BaseException as e:
+  primary_error=e
+  try:
+   write(out/'FAILURE.json',{'status':'FAIL','error_type':type(e).__name__,'error':str(e),'completed_actions':[{k:v for k,v in a.items() if k!='inventory'} for a in actions],'no_further_dispatch':True})
+  except BaseException as secondary:
+   e.add_note('Secondary failure receipt recording error: '+type(secondary).__name__+': '+str(secondary))
+  raise
+ finally:
+  try:
+   preserve_capsule(out,scratch)
+  except BaseException as secondary:
+   if primary_error is not None:
+    primary_error.add_note('Secondary capsule preservation/verification failure: '+type(secondary).__name__+': '+str(secondary))
+    raise primary_error from secondary
+   raise
+ write(out/'RESULT.json',completed_result)
+ print(json.dumps({'status':'PASS','output':str(out),'receipt_sha256':sha(out/'RESULT.json'),'capsule_receipt_sha256':sha(out/'CAPSULE-RECEIPT.json')}))
+def preserve_capsule(out,scratch):
+  raw=tree(scratch);write(out/'RAW-EVIDENCE-MEMBERS.json',raw)
+  archive=out/'complete-runtime-evidence.zip'
+  with zipfile.ZipFile(archive,'x',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+   for key,row in sorted(raw.items()):
+    p=scratch/key
+    if row['kind']=='directory':z.mkdir(key+'/');continue
+    info=zipfile.ZipInfo(key);info.create_system=3
+    if row['kind']=='file':info.external_attr=(stat.S_IFREG|0o600)<<16;z.writestr(info,p.read_bytes(),compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
+    else:info.external_attr=(stat.S_IFLNK|0o777)<<16;z.writestr(info,row['target'].encode())
+  checks={}
+  with zipfile.ZipFile(archive) as z:
+   assert z.testzip() is None
+   for item in z.infolist():
+    kind=stat.S_IFMT(item.external_attr>>16);key=item.filename.rstrip('/')
+    if item.is_dir():checks[key]={'kind':'directory'}
+    elif kind==stat.S_IFLNK:checks[key]={'kind':'symlink','target':z.read(item).decode()}
+    else:
+     data=z.read(item);checks[key]={'kind':'file','bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+  assert checks==raw and tree(scratch)==raw
+  write(out/'CAPSULE-RECEIPT.json',{'status':'PASS','archive':str(archive),'bytes':archive.stat().st_size,'sha256':sha(archive),'full_namespace_and_bytes':True,'scratch_root':str(scratch),'scratch_preserved':True,'literal_links_not_followed':True,'members':len(raw)})
+if __name__=='__main__':main()

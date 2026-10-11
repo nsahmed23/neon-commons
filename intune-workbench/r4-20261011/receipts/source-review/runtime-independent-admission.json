@@ -1,0 +1,46 @@
+{
+  "artifact_sha256": {
+    "runtime": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+    "source": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e"
+  },
+  "connected_route": {
+    "Linux_PTYS": 10,
+    "actual_commands": 34,
+    "independent_postconditions": [
+      "Stable identity/assignments/exclusions/filter settings preserved across adoption and bounded setting change.",
+      "Exact modeled plan approval digest and journal chain; wrong approval and replay reject.",
+      "Two total modeled writes; delayed-read interruption recovery resolves with independent model/SQL readback and no-change plan.",
+      "Persistent SQL history/denied last-good state and finite modeled collection after terminal closes.",
+      "Targeted/reporting health denominator distinction; migrations preserve original populated data."
+    ],
+    "named_checks": 64
+  },
+  "counting": "Reader assertions, commands, PTYs, named checks and suite tests overlap; no additive test total.",
+  "evidence_class": "stdlib_capsule_raw_cli_SQL_PTY_literal_readback",
+  "evidence_receipt_sha256": "7085b2281bd14931835e941a3518aea23fc09316d01d44ad8546b6ad5c84792e",
+  "full_historical_corpus_recovery_claim": false,
+  "full_laboratory_completion": false,
+  "independent_reader_assertions": 36,
+  "independently_activated_native_OS_scheduler_qualified": false,
+  "limitations": [
+    "Same-user cooperative modeled service and injected GET/device/reference/workflow fixtures.",
+    "No native Windows, actual Graph/Azure/backend/CI/device, hostile-host, crash/power-loss or organizational approval.",
+    "Closed-terminal collection is a finite invoked modeled scheduler.",
+    "Complete capsule covers preserved owned result directories; deleted temporary state and missing historical scratch corpus are excluded explicitly."
+  ],
+  "organizational_production_approval": false,
+  "other_routes": {
+    "wizard": "One actual Linux PTY transcript plus reported verifier exit; session/generated state/verify streams deleted by TemporaryDirectory.",
+    "workflow": "Eight retained parsed CLI results plus three harness invariants; generated state and individual raw child streams deleted by TemporaryDirectory."
+  },
+  "outer_result_sha256": "c5b8a28507eb270c9c259c957bbff3095c24417ffa7d1929288c0e346832398d",
+  "platform_qualified": false,
+  "private_capsule_sha256": "1268bd9197d0354e3b1520b841c3cb1ec23a9494a905683376de34cba4ff454c",
+  "private_evidence_omission_explicit": true,
+  "public_payload": "Reviewable metadata only; no raw service capture/state/saved plan/approval/receipt journal/credential/process environment/PTY payload included.",
+  "schema": "intune-public-c25-runtime-qualification-summary/1",
+  "scope": "Exact C25 local Linux runtime application routes only; retained evidence limits stated.",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "status": "PASS"
+}

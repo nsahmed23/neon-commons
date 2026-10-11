@@ -1,0 +1,286 @@
+{
+  "schema": "intune-public-C27-docs-delta-admission/1",
+  "status": "PUBLIC_DOCS_DELTA_PASS",
+  "recorded_at": "2026-10-11T21:30:07.531598+00:00",
+  "base_commit": "b7aedfa6b8e521aa09dbce7540d4770b4cfdbfad",
+  "engineering_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "engineering_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "scope": "Exact31-path public documentation/source-inventory continuation delta before commit. Engine/runtime/provider/test/scripts unchanged from C25; no new product or platform qualification.",
+  "file_count": 31,
+  "exact_file_list_and_pins": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "bytes": 1670440,
+      "sha256": "1908b695fe738fc99a7c1e52af56e2330ad00fda1786c41d1eccb65cf00df918",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "bytes": 94591,
+      "sha256": "237708ad715aa2561fa2afe7a89dab1409b229e9c374a04fab31611d725ef5ee",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "bytes": 19594,
+      "sha256": "229039819e556587fa29131c2a59d43b58a350aa76be8352c27cc9b88212d1ce",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "bytes": 19641,
+      "sha256": "4400c3600e0ca5337ba78b23457c3751d9aa02164423f985e1fea17bfb678751",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "bytes": 52182,
+      "sha256": "4a63b9938541c5f5b599f89d4bc272bac163d9b424b400b7a5d5ae6df6aaa924",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-summary.json",
+      "bytes": 26683,
+      "sha256": "9185188deb897c5fb76b8e9ee92a09c473fa5ac563dce1ad26ec6e144b11ddb1",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-branch-publication.json",
+      "bytes": 1140,
+      "sha256": "3e3661d4de15e440c0fc93099d8e26d555b3a1ac19278b2a0e764e5e5a74b310",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-documentation-readback.json",
+      "bytes": 8234,
+      "sha256": "2912e4fc10972162a7e72a98071efb1356757d7516a06f76436deba352fb8816",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-replay.md",
+      "bytes": 5438,
+      "sha256": "004dd6c55046e8bbc4eecb71dd34eaaa166f70015f44c3c9e76d09f50e0be448",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-independent-review.json",
+      "bytes": 9567,
+      "sha256": "c07c09e714d54a0c79746c0ca49f5fb48769014b491a8a4c3bf9de7b44ee2ca0",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/performance-independent-review-delivery.json",
+      "bytes": 2960,
+      "sha256": "593e3c1e6032844facb27a81dbbf0af854f9d8651a3746a3bd2029597d8e7011",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-gate-attempt-01.json",
+      "bytes": 1768,
+      "sha256": "60b262d0f709fa7cfbb9bf641422357dfb2667fd16960a94f810deb009a34bc3",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-context-targeted-nine.json",
+      "bytes": 1078,
+      "sha256": "7da9b46990b8860a02184e4174e88b7a89a55063dae966bf3fe8b3f3875f4b04",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/historical-namespace-distinction.json",
+      "bytes": 1294,
+      "sha256": "822d6b9fd7f46476f01d4fd83cddfb5ca87524a58ec21723c59ea3a2bf3059d9",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/recovery-helper-api-review.json",
+      "bytes": 3905,
+      "sha256": "29197c509213802bbd368f6657c154d9dd5b8beeda87f0c1e1ea235ff8eaec95",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/recovery-helper-label-review.json",
+      "bytes": 2921,
+      "sha256": "30409695c0ba623365a563757159c89b286a672011928f3147fd088a6755140a",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/source-gate-attempt-02.json",
+      "bytes": 1767,
+      "sha256": "cb3c66aebfc2a81aa31c7d31a8e19eca510e55f167a2f8c1fae5e4ba297ed88d",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/recovery-helper-public-text-review.json",
+      "bytes": 3589,
+      "sha256": "210401ac070df098df78534d7732c04d156255a055950945590ee6c1bdbb718b",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/native-recovery-plan-qualifier.py.txt",
+      "bytes": 28860,
+      "sha256": "aec945b139e94ab303fb52e4ca8129590cdb5cd58dbe7b05698343ffffef2100",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-review-before.json",
+      "bytes": 4701,
+      "sha256": "bb237d9a3f5332ce0cff3b6baa6da3d9567acc08bd4c333c34287d897c228737",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-before-preservation.json",
+      "bytes": 1062,
+      "sha256": "51811f4d03fd75415f8f3ba996bfae328559da3343d7016ee9abc4c43f330108",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/publication-scope-27.md",
+      "bytes": 3607,
+      "sha256": "ccea76df85900f49a2203731f2c644d934197400145e778b2c257e78342fb850",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualifiers/c25_package_binding.py.txt",
+      "bytes": 5746,
+      "sha256": "964ae8cded75ed1b5f06dcd49d911a7618b4e63a2b48a250697467d2e6ad5053",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualifiers/qualify-c25-runtime-resumed-20261011.py.txt",
+      "bytes": 7154,
+      "sha256": "c2e099f6c07e77bc9427e87cd4cff023112ae9b4ca2e2ef6874b25390ecf7468",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualifiers/prepare-c25-native-resumed-20261011.py.txt",
+      "bytes": 10891,
+      "sha256": "c46e6fecf617cad13d3a3cff429154edf56a983d8b7ad294b95d1418166bef3e",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-repaired-review.json",
+      "bytes": 21647,
+      "sha256": "c214a73cddd9a9919d0c5ff3708dc1c9233c4db4259ba81133e0e0aa7acfcb57",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/qualification-wrapper-pin-assertions.json",
+      "bytes": 4875,
+      "sha256": "77157c2bc4a66a2f13dfedd318bf9175bec73718ea3f3874cdbe5cff843cc056",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/runtime-journey-producer.json",
+      "bytes": 1020,
+      "sha256": "c5b8a28507eb270c9c259c957bbff3095c24417ffa7d1929288c0e346832398d",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/runtime-owned-capsule.json",
+      "bytes": 463,
+      "sha256": "c454a1168fe8e5062117faed33bf24718c90bf08bb2774fe1b6667c2db24bcf7",
+      "regular_file": true
+    },
+    {
+      "repository_path": "docs/continuation-evidence/20261011/runtime-independent-admission.json",
+      "bytes": 2974,
+      "sha256": "43c3cdfa19d53f210535e16a8cb4b000a412d50895eaf4549e27b7b8cc102c74",
+      "regular_file": true
+    },
+    {
+      "repository_path": "release-source-files.txt",
+      "bytes": 267220,
+      "sha256": "ed807d863f786180a04cc03b725ea82750bce64518647e0f2a20196182800e0a",
+      "regular_file": true
+    }
+  ],
+  "review_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint27-public-docs-delta-01/attempt-02/RESULT.json",
+    "bytes": 102803,
+    "sha256": "ff233b5a13ea9596f26dc8c983bef4cf7e458abd1794de13aed6e73d62e4b8ca"
+  },
+  "initial_failed_reconciliation_receipt": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint27-public-docs-delta-01/attempt-01/RESULT.json",
+    "bytes": 101272,
+    "sha256": "79d8f0ac9c9a1f1ff6aa08762b02ee7be7782efef4de1e4ccf8e27482fd7ce9b"
+  },
+  "apply": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/APPLY-CHECKPOINT-27.json",
+    "bytes": 8510,
+    "sha256": "de76d45b16f2117fcdb6082dd862beb702943364aebd894b1f93dc703d29a3e5"
+  },
+  "delivery": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/branch-resume-20261011/supplemental-checkpoint27-staging-06/DELIVERY-27-06.json",
+    "bytes": 26076,
+    "sha256": "e15986369921828530235b48727b0bdf4e95b9af096a7a271321d35ad35d7a2d"
+  },
+  "overlay_apply": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/APPLY-CHECKPOINT-27-08.json",
+    "bytes": 819,
+    "sha256": "38591bf9163309433aabcd81d8316cc291a75df53522501961b6a61da2185dfb"
+  },
+  "overlay_delivery": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/branch-resume-20261011/supplemental-checkpoint27-staging-08/DELIVERY-27-08.json",
+    "bytes": 3143,
+    "sha256": "e98e16f8e7891ff4c12b38d5bc0e83a860045d5a65f0f3bcb93d37a71ea2bf84"
+  },
+  "original_Markdown_preservation": [
+    {
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "old_bytes": 79718,
+      "old_sha256": "592d16667528cc95c151864892583621f3de2f26209adb62d2ef360a2e0db8f9",
+      "contiguous_offset": 14873,
+      "occurrences": 1
+    },
+    {
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "old_bytes": 7887,
+      "old_sha256": "1c672157887107230f7292114ccf5c1cbbb11c09e53ede2a0522249a0ae9b78a",
+      "contiguous_offset": 11707,
+      "occurrences": 1
+    },
+    {
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "old_bytes": 14695,
+      "old_sha256": "4a8e3bfe669993701576bdf96811492d034bea6cbbd6472d4e744b48ef97b0c5",
+      "contiguous_offset": 306,
+      "occurrences": 1
+    },
+    {
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "old_bytes": 47270,
+      "old_sha256": "43bb8b4218348619cdd70fd3f79b6c617b376b0ec7e9a09946438d4c0a419f7f",
+      "contiguous_offset": 309,
+      "occurrences": 1
+    }
+  ],
+  "ledger_preservation": "All92IDs/statuses, outcomes and historical ledger/reuse/recovery/findings unchanged. Three current row limitation/next_action pairs are deliberately updated; full originals retained at exactC26. Changed draft06 literals and C26 next_action additions explicitly and accurately attributed. Literal current row equality is not claimed.",
+  "inventory": {
+    "old_selected_unique": 3363,
+    "new_selected_unique": 3388,
+    "added_metadata_or_text_files": 25,
+    "removed": 0,
+    "runtime_payload_unchanged": true
+  },
+  "documentation_assertions": 89,
+  "test_counting": "Documentation reader assertions only; not product tests and not added to suite, command, sample or journey totals.",
+  "public_suitability": "This receipt contains file identities, provenance, scopes and limitations only. The reviewed new selection is metadata plus four exact specifically admitted qualification source-text copies. No raw Graph/state/plan/approval/journal/key/SQL/PTY/private-capsule payload included.",
+  "explicit_omissions": [
+    "Whole original/R4 private corpus and265unavailable historical roots/39missing pinned receipts",
+    "27other native helper sources and complete closed qualification profile",
+    "Credentials/signers/certificates/tool binaries and activation material",
+    "Raw service captures/state/saved plans/approvals/journals/SQL/PTY/privatecapsules",
+    "Deletedworkflow/wizardTemporaryDirectory intermediates"
+  ],
+  "not_established": [
+    "C27commit/push/public-readback success",
+    "All-required laboratory completion",
+    "NativeWindows/liveGraph/Azure/CI/device/platform qualification",
+    "Universal secret absence or independent organizational AppSec approval",
+    "Accountable organizational production approval"
+  ],
+  "product_native_or_timing_reruns": 0,
+  "repository_mutations": 0,
+  "remote_mutations": 0
+}

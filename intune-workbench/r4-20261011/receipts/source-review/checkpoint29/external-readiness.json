@@ -1,0 +1,13 @@
+{
+  "schema": "intune-current-external-readiness/1",
+  "observed_at": "2026-10-11T22:19:00Z",
+  "actual_tool": "cloud_environment.environment_status",
+  "observations_current": true,
+  "spec_revision": "114",
+  "observed_phase": "running",
+  "capabilities": [],
+  "secrets": [],
+  "outbound_identities": [],
+  "runtime_variables": [],
+  "limitation": "Managed configuration still provides no declared native Windows capability or Graph/Azure/CI/device credentials or identities. Network connectivity does not qualify receiving service/tenant context. No credential activation, tenant write or deployment performed."
+}

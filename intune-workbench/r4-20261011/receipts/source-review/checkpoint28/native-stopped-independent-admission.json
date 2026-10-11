@@ -1,0 +1,85 @@
+{
+  "schema_version": "independent-C25-stopped-native-evidence/1",
+  "recorded_at": "2026-10-11T21:47:27.989379+00:00",
+  "status": "PASS_SCOPED_EVIDENCE_ADMISSION_WITH_NATIVE_STOPPED_FAIL",
+  "native_journey_status": "STOPPED_UNEXPECTED_FAILURE",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "documentation_commit": "3b9ec8e703e846605e7af4fe86191b7ac9e6fcd8",
+  "source_artifact_sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e",
+  "runtime_artifact_sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d",
+  "independent_reader_assertions": 111,
+  "native_dispatches_by_reviewer": 0,
+  "network_or_container_mutations_by_reviewer": 0,
+  "suite_or_performance_reruns_by_reviewer": 0,
+  "global_laboratory_complete": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "limitations": [
+    "C25 Linux cooperative nonforwarding synthetic Graph/Azure native protocol only; no Windows/Git Bash/mintty, actual live identity/service/backend/CI/device, installed OS scheduler, power-loss/hostile-process containment, external AppSec/key custody or organizational approval.",
+    "Initial supported native fixture mapping remains unsupported; raw collection and readback are not provider management mapping qualification.",
+    "No source-authoring bridge qualification in this stopped prefix; changes are copied single fixture source and an independent new restoration plan.",
+    "First capsule represents only two finished actions and pre-capacity-sample journal; final capsule admits all retained attempted prefix only, not remaining32actions.",
+    "Runtime socket markers preserve namespace/type metadata without serializable connections/peers. Literal symlinks are retained without following; capsule is not runnable restoration.",
+    "Pinned external tools/source/runtime archives remain separately preserved, not contents of this raw capsule. Census/receipt/finalstatus are separate to avoid self-reference.",
+    "Historical missing265roots/39pins, unexplained files, actor attribution, failed candidates, review/timeouts and denied provider repair remain unresolved; this owned-prefix membership closure does not close full corpus provenance.",
+    "Actual application signature/replay error codes are retained in harness receipts; in-process negative calls do not have separate raw CLI child output. No cryptographic native verifier rerun by independent reader.",
+    "Authority adoption verification_status remains first_plan_host_completed_unverified while its job is adopted_verified; they are distinct preserved fields. Service authority SQL contains both original and later restoration rows at final snapshot, not an unaltered earlier SQL snapshot.",
+    "Outer not_started list includes sixth action despite actual dispatch; admission exposes attempted6/completed5/not_attempted32 and never reports native38PASS."
+  ],
+  "public_suitable": true,
+  "public_omissions": "Raw captures/state/plans/keys/approvals/SQL/command streams, private capsule contents and machine-local source paths excluded explicitly.",
+  "result": {
+    "bytes": 54219,
+    "sha256": "c4b0993f6c18645c79d7213fcceabd3d1ecfbed35eeeaf8e1988cd2af7e71f8c"
+  },
+  "capsules": [
+    {
+      "label": "first-adoption",
+      "bytes": 1025940,
+      "sha256": "f2f405bd49053f5e399866106ed2d4877fe313831d282b6e0082ca94e5547dcb",
+      "entry_count": 461,
+      "regular_files": 346,
+      "regular_file_bytes": 3258298,
+      "literal_links": 6,
+      "runtime_socket_metadata": 2,
+      "closed_original_roots_checked": false,
+      "runnable_restore": false,
+      "public_suitable": false,
+      "census_before_sha256": "ca71839a976680d19cecc1ef687220151af0edc93b26f0436c68cf3194c3b923",
+      "census_after_sha256": "ca71839a976680d19cecc1ef687220151af0edc93b26f0436c68cf3194c3b923"
+    },
+    {
+      "label": "final-stopped",
+      "bytes": 2361697,
+      "sha256": "2163f1244942ef2c45e583c900b6f3fcdb0386a8aadfbef80388a5f38e533987",
+      "entry_count": 1547,
+      "regular_files": 1073,
+      "regular_file_bytes": 7322583,
+      "literal_links": 27,
+      "runtime_socket_metadata": 9,
+      "closed_original_roots_checked": true,
+      "runnable_restore": false,
+      "public_suitable": false,
+      "census_before_sha256": "87ca1ee79b4e4219607aa18e356b2d63aef2886784c3b5f949372eae00a9c28d",
+      "census_after_sha256": "87ca1ee79b4e4219607aa18e356b2d63aef2886784c3b5f949372eae00a9c28d"
+    }
+  ],
+  "counts": {
+    "planned_actions": 38,
+    "attempted_actions": 6,
+    "completed_actions": 5,
+    "not_attempted_actions": 32,
+    "outer_not_started_includes_attempted_failure": true,
+    "new_product_test_count": 0,
+    "counts_are_nonadditive": true
+  },
+  "failed_action": {
+    "id": "ordinary-fault-assignment",
+    "operation_status": "outcome_unknown",
+    "native_partial_assertions": "PASS scoped to literal fault outcome",
+    "portable_qualification": "FAIL",
+    "outer": "STOPPED_UNEXPECTED_FAILURE",
+    "automatic_retry": false,
+    "next_action": "Repair/admit external linkage helper in a fresh candidate without replaying consumed failed apply; recover original uncertain operation only through explicit reviewed recovery."
+  }
+}

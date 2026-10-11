@@ -1,0 +1,37 @@
+{
+  "candidate": {
+    "bytes": 60873,
+    "sha256": "3082e18a3eb4450aaf9d3f9ce4c7d1a3607df9e766ee758e9bfc4f1fbbf2279d"
+  },
+  "controls": [
+    {
+      "canonical_bytes_differ_from_expected": false,
+      "expected": "ACCEPT",
+      "id": "valid-boolean-false",
+      "observed": "ACCEPT",
+      "substituted_type": "bool"
+    },
+    {
+      "canonical_bytes_differ_from_expected": true,
+      "expected": "ACCEPT",
+      "id": "invalid-integer-zero",
+      "observed": "ACCEPT",
+      "substituted_type": "int"
+    },
+    {
+      "canonical_bytes_differ_from_expected": true,
+      "expected": "ACCEPT",
+      "id": "invalid-float-zero",
+      "observed": "ACCEPT",
+      "substituted_type": "float"
+    }
+  ],
+  "finding": {
+    "description": "Python dictionary equality can accept stored cancel_after_acquire false substituted with integer0 or float0.0; JSON types differ.",
+    "id": "NC03"
+  },
+  "native_or_product_or_external_process_calls": 0,
+  "schema": "independent-continuation-stored-route-type-probe/1",
+  "scope": "Detached exact new receipt_binding with synthetic metadata. No receiving state, profile activation or native execution.",
+  "status": "FAIL_KNOWN_BOOL_INTEGER_ROUTE_ALIAS"
+}

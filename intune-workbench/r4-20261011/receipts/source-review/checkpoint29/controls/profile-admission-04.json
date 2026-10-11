@@ -1,0 +1,169 @@
+{
+  "actual_read_only_interfaces": [
+    "Profile.__init__ exact source3355/helper28/input9/tool9 checks",
+    "continuation_route exact first declared argv",
+    "fault_recovery_input exact original metadata/DB-file hashes only; no SQLite opens",
+    "prior_receipt generic FAIL rejection"
+  ],
+  "attribution": "New actual loader/schema/profile with two explicit producer patches. Historical frozen0e/profile214b and failed run remain unchanged.",
+  "controls": [
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-unknown-field",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-wrong-source",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-wrong-original-loader-pin",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-wrong-producer-after-pin",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-unallowlisted-legacy-action",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-first-route-original-apply-replay",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-missing-route",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-duplicate-output",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-cancel-flag-wrong-integer-type",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-recovery-mode-substitution",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-immutable-pin-float-byte-count",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "reuse-mutation-boundary-relative-path",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "witness-portable-FALSE-PASS",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "witness-dispatch-boolean-alias",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "witness-replay-allowed",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "witness-no-fresh-approval",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "witness-wrong-original-fault",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "generic-original-fault-FAIL-never-reused",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "first-selector-never-original-apply",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ProfileError",
+      "expected": "REJECT",
+      "id": "first-selector-output-substitution",
+      "observed": "REJECT"
+    }
+  ],
+  "first_route": "ordinary-partial-recovery",
+  "limitations": [
+    "No native/helper/main dispatch or fresh receiving approval/readback performed.",
+    "Actual32 outcomes, outer driver fault controls and private durable capacity remain separate dependencies.",
+    "Cache reuses already verified immutable pins for semantic negatives only; no additional native/test totals.",
+    "Missing historical raw corpus and production/platform/AppSec gates remain open."
+  ],
+  "loader": {
+    "bytes": 60974,
+    "path": "/tmp/intune-c25-native-closed-profile-20261011-04/loader/qualify_continuation.py",
+    "sha256": "61053f920d569d5091bd64c0f7a7219d7119a7064fa0adb1c42ad6abb36f8fd3"
+  },
+  "native_dispatches": 0,
+  "original_metadata_mutations": 0,
+  "original_portable_status": "FAIL",
+  "profile": {
+    "path": "/tmp/intune-c25-native-closed-profile-20261011-04/profile.json",
+    "sha256": "fb35b21001e4e25073bbe6cffb66db037cc62105a0a0e4fbb116ff0736993d8c"
+  },
+  "public_suitability": "Private profile/reuse/witness/raw inputs are NOT cleared by this admission.",
+  "remaining_routes": 32,
+  "replay": [
+    "python",
+    "-B",
+    "-I",
+    "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/review_closed_continuation_profile.py",
+    "--output",
+    "NEW_ABSOLUTE_OUTPUT_DIRECTORY"
+  ],
+  "reuse": {
+    "path": "/tmp/intune-c25-native-closed-profile-20261011-04/bundle/inputs/continuation-reuse.json",
+    "sha256": "86722a4dddace883d655d5fae0eec79f895a13e9e9fd350e3d6647911a9f0f3b"
+  },
+  "schema": "independent-closed-continuation-profile-admission/1",
+  "semantic_negative_pin_cache_explicit": true,
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "status": "PASS_SCOPED_PROFILE_AND_SELECTION_NOT_NATIVE_GO",
+  "witness_sha256": "d7163ce9e21e061bf6bb59d560624924a7ea0b249abaa97c0e7e1efc0f94cea1"
+}

@@ -1,0 +1,878 @@
+{
+  "artifacts": {
+    "runtime": {
+      "archive": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0.zip",
+      "bytes": 1520542,
+      "census_sha256": "b741084a844a7caf9b4d41cb7ae78882e9177254507baa3c6476395638dd8cc3",
+      "directories": 20,
+      "extraction": "/tmp/intune-c25-restored-packages-20261011/extract-runtime/intune-iac",
+      "regular_files": 300,
+      "sha256": "7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d"
+    },
+    "source": {
+      "archive": "/workspace/intune-continuation/work/releases/continuation-0.9.0-r4-c25-restored-20261011/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "bytes": 17956520,
+      "census_sha256": "e3b67eaf50b8e32273f0987b54f57eaf2332498b3f4f712979761e576a7cad48",
+      "directories": 623,
+      "extraction": "/tmp/intune-c25-restored-packages-20261011/extract-source/intune-iac-source",
+      "regular_files": 3355,
+      "sha256": "b18dd90c742e8082fef635c08807985ba631eb7634a2e4386c307daa3527917e"
+    }
+  },
+  "at": "2026-10-11T20:42:24.187091+00:00",
+  "evidence_class": "local_linux_fresh_cli_process_and_pty_with_independent_sqlite_json_assertions",
+  "finalizer_sha256": "2d9627afec64d20f7d0079fd358c772954dab0c61d81fc2aaa7046737fec862c",
+  "harness_pins_sha256": "aaeaa07f7111930f2c25957ada97952e9f204f16fcdfe511cfdee11647f43caf",
+  "lanes": {
+    "runtime": {
+      "capsule_index": {
+        "bytes": 18378,
+        "directories": 3,
+        "files": 101,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/runtime-CAPSULE-MEMBERS.json",
+        "sha256": "2d9d79f819a840e831e98e026e3f3e177de0831fb0e2dc398ef0772c2b150f56"
+      },
+      "checks": [
+        {
+          "id": "all_1000_paginated_objects_exact_once",
+          "passed": true
+        },
+        {
+          "id": "search_finds_outside_initial_page",
+          "passed": true
+        },
+        {
+          "id": "denied_last_good_and_unknown_pending_are_distinct",
+          "passed": true
+        },
+        {
+          "id": "actual_pty_all_navigation_completed",
+          "passed": true
+        },
+        {
+          "id": "actual_pty_no_masked_query_error",
+          "passed": true
+        },
+        {
+          "id": "actual_pty_selected_last_object_visible",
+          "passed": true
+        },
+        {
+          "id": "actual_pty_continuation_metadata_visible",
+          "passed": true
+        },
+        {
+          "id": "actual_pty_preregistered_thresholds",
+          "passed": true
+        },
+        {
+          "id": "all_original_and_copied_database_bytes_unchanged",
+          "passed": true
+        },
+        {
+          "id": "product_and_independent_graders_unchanged",
+          "passed": true
+        }
+      ],
+      "commands": 48,
+      "evidence_capsule": {
+        "bytes": 2898639,
+        "directories": 3,
+        "durable_archive": true,
+        "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/runtime-evidence-complete.zip",
+        "durable_sha256": "76102658fd7c10469d84e4f39705e65817b1c7dca4ba114b802ec7c4cba47410",
+        "exact_full_namespace_and_bytes_readback": true,
+        "expanded_bytes": 60852973,
+        "files": 101,
+        "scratch_archive": "/tmp/intune-r4-c25-performance-resumed-20261011/runtime-evidence-complete.zip",
+        "sha256": "76102658fd7c10469d84e4f39705e65817b1c7dca4ba114b802ec7c4cba47410",
+        "source_evidence_unchanged": true
+      },
+      "gated_samples": 48,
+      "measurements": {
+        "bounded-references": {
+          "cpu_seconds": {
+            "maximum": 0.169843,
+            "median": 0.169843
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.1714897670008213,
+            "median": 0.1714897670008213
+          }
+        },
+        "denied-pending-page": {
+          "cpu_seconds": {
+            "maximum": 0.483315,
+            "median": 0.483315
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.4870690690004267,
+            "median": 0.4870690690004267
+          }
+        },
+        "global-setting-search-last-page": {
+          "cpu_seconds": {
+            "maximum": 0.637549,
+            "median": 0.637549
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.6397273439997662,
+            "median": 0.6397273439997662
+          }
+        },
+        "global-unique-search": {
+          "cpu_seconds": {
+            "maximum": 0.6046649999999999,
+            "median": 0.6046649999999999
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.6057584780010075,
+            "median": 0.6057584780010075
+          }
+        },
+        "inspect-1": {
+          "cpu_seconds": {
+            "maximum": 0.22857899999999998,
+            "median": 0.200857
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.23000402099933126,
+            "median": 0.20179539400123758
+          }
+        },
+        "inspect-1000": {
+          "cpu_seconds": {
+            "maximum": 0.197214,
+            "median": 0.191383
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.19751627199912036,
+            "median": 0.19237760800024262
+          }
+        },
+        "inspect-never-complete": {
+          "cpu_seconds": {
+            "maximum": 0.174332,
+            "median": 0.174332
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.17594353500135185,
+            "median": 0.17594353500135185
+          }
+        },
+        "invalid-page-limit": {
+          "cpu_seconds": {
+            "maximum": 0.17489999999999997,
+            "median": 0.1746585
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952.0
+          },
+          "samples": 2,
+          "wall_seconds": {
+            "maximum": 0.1766203380011575,
+            "median": 0.1764896670010785
+          }
+        },
+        "invalid-page-offset": {
+          "cpu_seconds": {
+            "maximum": 0.16944299999999998,
+            "median": 0.16944299999999998
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.1700154560003284,
+            "median": 0.1700154560003284
+          }
+        },
+        "literal-wildcard-search": {
+          "cpu_seconds": {
+            "maximum": 0.595885,
+            "median": 0.595885
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.5965162549982779,
+            "median": 0.5965162549982779
+          }
+        },
+        "overview-complete-union": {
+          "cpu_seconds": {
+            "maximum": 0.5955280000000001,
+            "median": 0.5440535
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952.0
+          },
+          "samples": 20,
+          "wall_seconds": {
+            "maximum": 0.5968611810003495,
+            "median": 0.5445166079998671
+          }
+        },
+        "overview-page-0": {
+          "cpu_seconds": {
+            "maximum": 0.587673,
+            "median": 0.582955
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.5892024679997121,
+            "median": 0.5835218089996488
+          }
+        },
+        "overview-page-950": {
+          "cpu_seconds": {
+            "maximum": 0.531335,
+            "median": 0.48991199999999996
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.5332732700007909,
+            "median": 0.4916914449986507
+          }
+        },
+        "paged-dictionary": {
+          "cpu_seconds": {
+            "maximum": 0.49957399999999996,
+            "median": 0.49957399999999996
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.5019019819992536,
+            "median": 0.5019019819992536
+          }
+        },
+        "pending-only-final-page": {
+          "cpu_seconds": {
+            "maximum": 0.411904,
+            "median": 0.411904
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.4141535440012376,
+            "median": 0.4141535440012376
+          }
+        },
+        "retain-unpaged-byte-bound": {
+          "cpu_seconds": {
+            "maximum": 1.107055,
+            "median": 1.107055
+          },
+          "peak_rss_kib": {
+            "maximum": 49628,
+            "median": 49628
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 1.108375163999881,
+            "median": 1.108375163999881
+          }
+        },
+        "scoped-dictionary": {
+          "cpu_seconds": {
+            "maximum": 0.193306,
+            "median": 0.193306
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.1945217729989963,
+            "median": 0.1945217729989963
+          }
+        },
+        "scoped-health": {
+          "cpu_seconds": {
+            "maximum": 0.228359,
+            "median": 0.228359
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.23912840000048163,
+            "median": 0.23912840000048163
+          }
+        },
+        "scoped-settings": {
+          "cpu_seconds": {
+            "maximum": 0.192019,
+            "median": 0.192019
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.1928429360013979,
+            "median": 0.1928429360013979
+          }
+        },
+        "terminal-pty": {
+          "cpu_seconds": {
+            "maximum": 1.927179,
+            "median": 1.927179
+          },
+          "peak_rss_kib": {
+            "maximum": 45952,
+            "median": 45952
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 1.9630196610014536,
+            "median": 1.9630196610014536
+          }
+        }
+      },
+      "named_checks": 10,
+      "product_receipt_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/runtime-run-01/product-receipt.json",
+      "product_receipt_sha256": "a443a1f312510189f9501127404aa6f289983adb45e748b4caac6a4b0b7c38b9",
+      "pty_inputs": [
+        "next",
+        "previous",
+        "search Performance capture 1000",
+        "select 90000000-0000-4000-8000-0000000003e8",
+        "inspect",
+        "settings",
+        "dictionary",
+        "health",
+        "quit"
+      ],
+      "result_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/runtime-run-01/RESULT.json",
+      "result_sha256": "029fcce4b8465702b9e336ba1a2942b9d3c9ab35166af7ea67a3c1f22343e07c"
+    },
+    "source": {
+      "capsule_index": {
+        "bytes": 1464312,
+        "directories": 2008,
+        "files": 8096,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/source-CAPSULE-MEMBERS.json",
+        "sha256": "fdd6cd7398d9db3126047b77babc9e61235a9ab61c7981c725de7219d0a650dc"
+      },
+      "checks": [
+        {
+          "id": "oracle_negative_controls",
+          "passed": true
+        },
+        {
+          "id": "startup_help",
+          "passed": true
+        },
+        {
+          "id": "startup_help",
+          "passed": true
+        },
+        {
+          "id": "startup_help",
+          "passed": true
+        },
+        {
+          "id": "model_1_complete",
+          "passed": true
+        },
+        {
+          "id": "raw_store_model-store-1",
+          "passed": true
+        },
+        {
+          "id": "model_8_complete",
+          "passed": true
+        },
+        {
+          "id": "raw_store_model-store-8",
+          "passed": true
+        },
+        {
+          "id": "ninth_object_creates_no_service",
+          "passed": true
+        },
+        {
+          "id": "overlimit_source_no_published_attempt",
+          "passed": true
+        },
+        {
+          "id": "seeded_history_count_1000",
+          "passed": true
+        },
+        {
+          "id": "seeded_history_count_1001",
+          "passed": true
+        },
+        {
+          "id": "raw_store_imported-store",
+          "passed": true
+        },
+        {
+          "id": "imported_100_authority_not_promoted",
+          "passed": true
+        },
+        {
+          "id": "imported_100_authority_not_promoted",
+          "passed": true
+        },
+        {
+          "id": "imported_100_authority_not_promoted",
+          "passed": true
+        },
+        {
+          "id": "backup_file_exists",
+          "passed": true
+        },
+        {
+          "id": "raw_store_imported-100-restored",
+          "passed": true
+        },
+        {
+          "id": "backup_bytes_unchanged_after_restore",
+          "passed": true
+        },
+        {
+          "id": "raw_store_imported-store",
+          "passed": true
+        },
+        {
+          "id": "all_1000_imports_durably_recorded",
+          "passed": true
+        },
+        {
+          "id": "source_unchanged_during_final_run",
+          "passed": true
+        }
+      ],
+      "commands": 1037,
+      "evidence_capsule": {
+        "bytes": 8074556,
+        "directories": 2008,
+        "durable_archive": true,
+        "durable_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/source-evidence-complete.zip",
+        "durable_sha256": "5592e3ba0a97a376235bbbae020cc3b8e98050dc4dab9baf573a40555d0a6fd3",
+        "exact_full_namespace_and_bytes_readback": true,
+        "expanded_bytes": 68093670,
+        "files": 8096,
+        "scratch_archive": "/tmp/intune-r4-c25-performance-resumed-20261011/source-evidence-complete.zip",
+        "sha256": "5592e3ba0a97a376235bbbae020cc3b8e98050dc4dab9baf573a40555d0a6fd3",
+        "source_evidence_unchanged": true
+      },
+      "explicit_capacity_limits": [
+        {
+          "objects": 1000,
+          "qualified_complete_inventory": false,
+          "reason": "workbench_query_limit",
+          "route": "overview"
+        },
+        {
+          "objects": 1000,
+          "qualified_complete_inventory": false,
+          "reason": "workbench_query_limit",
+          "route": "overview"
+        },
+        {
+          "objects": 1000,
+          "qualified_complete_inventory": false,
+          "reason": "workbench_query_limit",
+          "route": "overview"
+        }
+      ],
+      "gated_samples": 37,
+      "measurements": {
+        "backup-100": {
+          "cpu_seconds": {
+            "maximum": 0.177667,
+            "median": 0.177667
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.17954929400002584,
+            "median": 0.17954929400002584
+          }
+        },
+        "collection-history-1000": {
+          "cpu_seconds": {
+            "maximum": 0.21837099999999998,
+            "median": 0.21434199999999998
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58252
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.21934488099941518,
+            "median": 0.21482999900035793
+          }
+        },
+        "history-1000": {
+          "cpu_seconds": {
+            "maximum": 0.333041,
+            "median": 0.32287999999999994
+          },
+          "peak_rss_kib": {
+            "maximum": 58252,
+            "median": 45580
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.3343976369997108,
+            "median": 0.3238152430003538
+          }
+        },
+        "history-explicit-last-page": {
+          "cpu_seconds": {
+            "maximum": 0.16641099999999998,
+            "median": 0.16641099999999998
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.16671034099999815,
+            "median": 0.16671034099999815
+          }
+        },
+        "history-page-overlimit": {
+          "cpu_seconds": {
+            "maximum": 0.16023899999999996,
+            "median": 0.16023899999999996
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.16170582300037495,
+            "median": 0.16170582300037495
+          }
+        },
+        "history-unpaged-overlimit": {
+          "cpu_seconds": {
+            "maximum": 0.321266,
+            "median": 0.321266
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.32353125599911436,
+            "median": 0.32353125599911436
+          }
+        },
+        "import-capture": {
+          "cpu_seconds": {
+            "maximum": 0.184584,
+            "median": 0.16103099999999998
+          },
+          "peak_rss_kib": {
+            "maximum": 60332,
+            "median": 58376
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.18548118299986527,
+            "median": 0.16282830800082593
+          }
+        },
+        "imported-100-dictionary": {
+          "cpu_seconds": {
+            "maximum": 0.29047599999999996,
+            "median": 0.29047599999999996
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.2910452659998555,
+            "median": 0.2910452659998555
+          }
+        },
+        "imported-100-inspect": {
+          "cpu_seconds": {
+            "maximum": 0.162771,
+            "median": 0.162771
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.16321898600108398,
+            "median": 0.16321898600108398
+          }
+        },
+        "imported-100-overview": {
+          "cpu_seconds": {
+            "maximum": 0.261305,
+            "median": 0.260835
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.26270168399969407,
+            "median": 0.2626816990014049
+          }
+        },
+        "imported-1000-overview": {
+          "cpu_seconds": {
+            "maximum": 1.1163249999999998,
+            "median": 1.094163
+          },
+          "peak_rss_kib": {
+            "maximum": 66272,
+            "median": 66272
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 1.1179923990002862,
+            "median": 1.0969852230009565
+          }
+        },
+        "lab-create": {
+          "cpu_seconds": {
+            "maximum": 0.18273299999999998,
+            "median": 0.17450849999999998
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312.0
+          },
+          "samples": 2,
+          "wall_seconds": {
+            "maximum": 0.1839887269998144,
+            "median": 0.1752744179993897
+          }
+        },
+        "model-1-overview": {
+          "cpu_seconds": {
+            "maximum": 0.187729,
+            "median": 0.173535
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.1880075620010757,
+            "median": 0.17518805799954862
+          }
+        },
+        "model-8-overview": {
+          "cpu_seconds": {
+            "maximum": 0.183466,
+            "median": 0.16392099999999998
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.18563157399876218,
+            "median": 0.16443665999941004
+          }
+        },
+        "model-collect": {
+          "cpu_seconds": {
+            "maximum": 0.192523,
+            "median": 0.1813975
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312.0
+          },
+          "samples": 2,
+          "wall_seconds": {
+            "maximum": 0.1933117000007769,
+            "median": 0.18241748699983873
+          }
+        },
+        "ninth-object-rejection": {
+          "cpu_seconds": {
+            "maximum": 0.169663,
+            "median": 0.169663
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.17139446100009081,
+            "median": 0.17139446100009081
+          }
+        },
+        "restore-100": {
+          "cpu_seconds": {
+            "maximum": 0.300104,
+            "median": 0.300104
+          },
+          "peak_rss_kib": {
+            "maximum": 58376,
+            "median": 58376
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.3020752430002176,
+            "median": 0.3020752430002176
+          }
+        },
+        "source-byte-limit": {
+          "cpu_seconds": {
+            "maximum": 0.173939,
+            "median": 0.173939
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312
+          },
+          "samples": 1,
+          "wall_seconds": {
+            "maximum": 0.17487209199862264,
+            "median": 0.17487209199862264
+          }
+        },
+        "startup": {
+          "cpu_seconds": {
+            "maximum": 0.122921,
+            "median": 0.11986999999999999
+          },
+          "peak_rss_kib": {
+            "maximum": 45312,
+            "median": 45312
+          },
+          "samples": 3,
+          "wall_seconds": {
+            "maximum": 0.13781171499977063,
+            "median": 0.12107059500158357
+          }
+        }
+      },
+      "named_checks": 22,
+      "product_receipt_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/source-run-01/product-receipt.json",
+      "product_receipt_sha256": "e2308d5f1ba97972593d4f54c32769995e164d56190a488f12044e2b6410bf4b",
+      "result_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/source-run-01/RESULT.json",
+      "result_sha256": "e488ca5c1113a2a4017abd2d79232f7e9d3622db5c4a0fc76739fae913a4a5b0"
+    }
+  },
+  "limitations": [
+    "No native Windows/Git Bash/mintty/PowerShell, real Graph/CI/backend/device qualification or production approval.",
+    "History rows after one real modeled collection and denied/pending variants are explicitly independent SQL fixtures.",
+    "Three samples are descriptive, not percentile/confidence, comparative acceleration or fleet SLA evidence.",
+    "CPU/RSS cover each fresh child; page caches remain uncontrolled and background host activity cannot be excluded.",
+    "Original R3 timings and missing old /tmp preparations remain separate historical records; no byte recovery or original timing claim is fabricated.",
+    "Command, named-check and sample counts describe overlapping evidence scopes and must not be added to the strict suite or connected-journey test count."
+  ],
+  "organizational_production_approval": false,
+  "platform_qualified": false,
+  "preparation_receipt_sha256": "4167e5288c8d30b125ade9a3a1722be252976857ef8f53df95d91e2cc7253b32",
+  "replay_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/REPLAY.md",
+  "replay_sha256": "004dd6c55046e8bbc4eecb71dd34eaaa166f70015f44c3c9e76d09f50e0be448",
+  "required_profile": "Linux CPython3.12 actual packaged Workbench library/text-terminal route, caller-asserted fixtures only",
+  "requirement_scope": {
+    "D12": "Workload-specific local performance portion only; visual/host cases retain their own evidence and gates.",
+    "E01": "Demonstrated local scale envelope: 100 complete unpaged objects; 1000 complete via explicit 50-object pages; full unpaged 1000 overview rejects byte bound.",
+    "G11": "Exact C25 package performance qualification portion only; full release delivery and independent required gates remain separately recorded."
+  },
+  "schema": "intune-c25-performance-delivery/1",
+  "source_commit": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "source_tree": "0bdbdeb3556acce23c8390abb20e835184880b27",
+  "status": "PASS_SCOPED",
+  "thresholds": {
+    "capacity": {
+      "cpu_seconds": 12.0,
+      "peak_rss_kib": 786432,
+      "wall_seconds": 15.0
+    },
+    "ordinary": {
+      "cpu_seconds": 4.0,
+      "peak_rss_kib": 524288,
+      "wall_seconds": 5.0
+    },
+    "startup": {
+      "cpu_seconds": 1.5,
+      "peak_rss_kib": 262144,
+      "wall_seconds": 2.0
+    }
+  }
+}

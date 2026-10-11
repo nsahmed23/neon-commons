@@ -1,0 +1,85 @@
+{
+  "actual_capacity": "Still BLOCKED by parent-observed private durable reserve.",
+  "configuration_sha256": "c0974c00fc8bd70b62d890c324a4315015ef64ce4e6792ab52b8c2667c3c59e4",
+  "controls": [
+    {
+      "expected": "ACCEPT",
+      "id": "actual-pinned-normal32-contract-metadata-only",
+      "observed": "ACCEPT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "expired-admission",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "boolean-expiry",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "driver-substitution",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "profile-substitution",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "wrong-GO-binding",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "wrong-source-revision",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "wrong-fixed-plan",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "weak-durable-reserve",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "float-resource-limit",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "output-root-overlap",
+      "observed": "REJECT"
+    },
+    {
+      "error_type": "ValueError",
+      "expected": "REJECT",
+      "id": "linked-output-ancestor",
+      "observed": "REJECT"
+    }
+  ],
+  "count_scope": "Metadata guard controls overlap earlier profile/capacity controls; no new native/application/suite count.",
+  "driver_sha256": "70fd24ad0340bdc0a1f8788786770677d2109980f6233058acbb4c115a37c90b",
+  "native_or_product_dispatches": 0,
+  "original_files_mutated": 0,
+  "real_coordinator_decision_or_GO": false,
+  "schema": "independent-outer05-exact-admission-contract/1",
+  "scope": "Actual validate_contract against the real fixed32 profile/base/prepared/tool/daemon metadata, using explicitly synthetic local admission fixtures; no run(), main(), daemon or worker calls.",
+  "status": "PASS_SCOPED_METADATA_CONTRACT_NOT_EXECUTION_AUTHORITY"
+}
