@@ -1,0 +1,19 @@
+{
+  "limitations": [
+    "This disposition is public-text suitability only and does not constitute independent security review or a new executable gate.",
+    "Independent exact packages and all new strict/runtime journey evidence remain their separately pinned scopes. No raw private run directories are selected.",
+    "Future execution must independently review contemporary source/tool authority and exact unchanged prerequisites; publishing text grants no production authorization."
+  ],
+  "public_source_text_suitable": true,
+  "recorded_at": "2026-10-12T00:08:33.007690+00:00",
+  "review_scope": "Fixed local repository/tool/work paths and package-only subprocess arguments, archive/digest/receipt handling and explicit qualification limits. No tenant captures, credential values, saved plans, state, approvals, private raw evidence or external write identity in text. Inert source documentation only; no application/CI activation or execution.",
+  "reviewer": "Root release engineer, full 8,857-byte text inspection; original driver author, therefore owner disposition rather than an independent security review",
+  "schema_version": "C30-package-driver-inert-public-disposition/1",
+  "selected_inert_file": "/tmp/intune-C30-package-public-source-20261012-01/qualify-intune-C30-packages-20261011.py.txt",
+  "source": {
+    "bytes": 8857,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/C30-package-preparation-20261011-01/qualify-intune-C30-packages-20261011.py",
+    "sha256": "ab22cd7e58c2e503b4bed9c43b7d564821a22e2cfcc4b81eda44b4e7d502903b"
+  },
+  "status": "PASS_SCOPED_PUBLIC_SOURCE_SUITABILITY"
+}

@@ -1,0 +1,687 @@
+#!/usr/bin/env python3
+"""Exact-package local application journey; prior host/context are modeled.
+
+Preparation only until a separately reviewed exact package contract is frozen.
+This program never executes a provider, native host, Graph/backend request,
+lease operation, CI, saved plan, or production mutation. It exercises actual
+packaged readback/reconciliation/publication and read-only text interfaces.
+"""
+from __future__ import annotations
+
+import argparse
+import ast
+import copy
+import hashlib
+import importlib
+import inspect
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import sqlite3
+import stat
+import subprocess
+import sys
+import textwrap
+import time
+import traceback
+from types import SimpleNamespace
+from unittest.mock import patch
+import zipfile
+
+SOURCE_COMMIT = '39cc77618a0f7f2734599fbfed224b47c333293f'
+PACKAGE_PINS = {
+    'source': (18454404, '09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7'),
+    'runtime': (1630724, '356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891'),
+}
+LINEAGE_PIN = (7532, 'eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a')
+CORE_PINS = {
+    'intune_iac/worker_service.py': (58296, '40f6caf0c30f21ba3ff79f2ecf2823fbccd9de2929e88d94d3a74d4d1a2e499a'),
+    'intune_iac/worker_completed_readback.py': (14304, 'edfe6e78224b7a557479b5f6ca7208af71f2e6cdd1c63ce3b75cd674617e36f8'),
+}
+FIXTURE_PIN = (25298, '41658847cfd8618338f60e98f226b64a0248b8b863a3906ca953e5ff8ce7d9b3')
+SCOPE = 'Actual new-package local APIs/text commands; explicitly modeled prior host, historical registration and observation context; no native or authenticated-service qualification.'
+MAX_FILE = 64 * 1024 * 1024
+
+
+def dump(path, value):
+    raw = (json.dumps(value, ensure_ascii=True, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, 'wb') as stream:
+        stream.write(raw)
+        stream.flush()
+        os.fsync(stream.fileno())
+    return {'path': str(path), 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+
+
+def exact_equal(left, right):
+    if type(left) is not type(right):
+        return False
+    if type(left) is dict:
+        return set(left) == set(right) and all(exact_equal(left[key], right[key]) for key in left)
+    if type(left) in (list, tuple):
+        return len(left) == len(right) and all(exact_equal(a, b) for a, b in zip(left, right))
+    return left == right
+
+
+def anchored(path, *, directory=False):
+    path = Path(path)
+    if not path.is_absolute() or '..' in path.parts:
+        raise ValueError('Absolute nontraversing path required')
+    for parent in reversed(path.parents):
+        if parent.is_symlink() or not parent.is_dir():
+            raise ValueError('Linked or missing ancestor')
+    info = path.lstat()
+    if directory and not stat.S_ISDIR(info.st_mode) or not directory and not stat.S_ISREG(info.st_mode):
+        raise ValueError('Wrong path type')
+    return path
+
+
+def file_pin(path):
+    path = anchored(path)
+    before = path.stat()
+    with path.open('rb') as stream:
+        value = hashlib.file_digest(stream, 'sha256').hexdigest()
+    after = path.stat()
+    fields = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns')
+    if any(getattr(before, key) != getattr(after, key) for key in fields):
+        raise ValueError('Pinned file changed during read')
+    return {'path': str(path), 'bytes': before.st_size, 'sha256': value}
+
+
+def admit_pin(value):
+    if (type(value) is not dict or set(value) != {'path', 'bytes', 'sha256'}
+            or type(value['bytes']) is not int or value['bytes'] < 1
+            or type(value['sha256']) is not str or not re.fullmatch('[0-9a-f]{64}', value['sha256'])):
+        raise ValueError('Exact file pin required')
+    actual = file_pin(value['path'])
+    if not exact_equal(value, actual):
+        raise ValueError('Pinned bytes differ')
+    return actual
+
+
+def lookup(value, pointer):
+    if type(pointer) is not str or not pointer.startswith('/') or len(pointer) > 1024:
+        raise ValueError('Bound receipt pointer required')
+    for part in pointer[1:].split('/'):
+        if re.search(r'~(?![01])', part):
+            raise ValueError('Invalid receipt pointer')
+        key = part.replace('~1', '/').replace('~0', '~')
+        if type(value) is dict:
+            value = value[key]
+        elif type(value) is list and re.fullmatch('0|[1-9][0-9]*', key):
+            value = value[int(key)]
+        else:
+            raise ValueError('Receipt pointer does not resolve')
+    return value
+
+
+def secondary_note(primary, secondary, phase):
+    """Recording/cleanup cannot replace the primary application exception."""
+    try:
+        primary.add_note('Secondary qualifier failure during ' + phase + ': ' + type(secondary).__name__)
+    except BaseException:
+        # The original exception still propagates even if annotation fails.
+        pass
+
+
+def finish_fixture(fixture, output, primary, *, app_error):
+    errors = []
+    graph_success = outer_success = reader_closed = token_cleared = credential_closed = False
+    # The original fixture registers graph.doCleanups inside outer doCleanups.
+    # unittest ignores a nested False return, so observe that result explicitly
+    # first. Its second invocation by the unchanged outer cleanup is empty.
+    try:
+        graph_success = fixture.graph.doCleanups()
+        if graph_success is not True:
+            errors.append(('nested Graph fixture cleanup', AssertionError('Nested Graph fixture cleanup did not succeed')))
+    except BaseException as error:
+        errors.append(('nested Graph fixture cleanup', error))
+    try:
+        outer_success = fixture.doCleanups()
+        if outer_success is not True:
+            errors.append(('outer fixture cleanup', AssertionError('Outer fixture cleanup did not succeed')))
+    except BaseException as error:
+        errors.append(('outer fixture cleanup', error))
+    try:
+        reader_closed = fixture.reader._closed is True
+        token_cleared = fixture.reader._token == ''
+        try:
+            fixture.reader._credential._get()
+        except app_error as error:
+            credential_closed = type(error) is app_error and error.code == 'identity_credential_unavailable'
+        if not reader_closed or not token_cleared or not credential_closed:
+            errors.append(('reader and credential closed-state check', AssertionError('Recorded reader/credential handles remain usable or closure is unverified')))
+    except BaseException as error:
+        errors.append(('reader and credential closed-state check', error))
+    success = graph_success is True and outer_success is True and reader_closed and token_cleared and credential_closed and not errors
+    detail = {'reader_and_credential_cleanup_success': success,
+        'nested_graph_cleanup_success': graph_success, 'outer_cleanup_success': outer_success,
+        'reader_closed': reader_closed, 'reader_token_cleared': token_cleared, 'credential_unavailable_after_close': credential_closed,
+        'raw_owned_directories_retained': True, 'native_host_cleanup_executed': False,
+        'primary_failure_in_flight': primary is not None,
+        'cleanup_errors': [{'phase': phase, 'exception_type': type(error).__name__} for phase, error in errors]}
+    try:
+        dump(output / 'FIXTURE-CLEANUP.json', detail)
+    except BaseException as recording:
+        if primary is not None:
+            secondary_note(primary, recording, 'fixture-cleanup receipt')
+        else:
+            errors.append(('fixture-cleanup receipt', recording))
+    if errors:
+        if primary is not None:
+            for phase, error in errors:
+                secondary_note(primary, error, phase)
+        else:
+            phase, first = errors[0]
+            for other_phase, error in errors[1:]:
+                secondary_note(first, error, other_phase)
+            raise first
+
+
+def record_failure(output, primary):
+    try:
+        dump(output / 'FAILURE.json', {'status': 'FAIL_SCOPED_ATTEMPT', 'scope': SCOPE,
+             'exception_type': type(primary).__name__, 'message': str(primary), 'traceback': traceback.format_exc(),
+             'secondary_notes': list(getattr(primary, '__notes__', ())),
+             'native_dispatches': 0, 'platform_qualified': False, 'production_approved': False})
+    except BaseException as recording:
+        secondary_note(primary, recording, 'failure receipt')
+
+
+def import_origins(source, runtime):
+    origins = {}
+    for name, module in list(sys.modules.items()):
+        if name == 'intune_iac' or name.startswith('intune_iac.'):
+            path = Path(module.__file__).resolve()
+            if not path.is_relative_to(runtime / 'intune_iac'):
+                raise ValueError('Product import escaped exact runtime')
+            origins[name] = file_pin(path)
+        elif name == 'plugin_tests' or name.startswith('plugin_tests.'):
+            path = Path(module.__file__).resolve()
+            if not path.is_relative_to(source / 'plugin_tests'):
+                raise ValueError('Fixture import escaped exact source')
+            origins[name] = file_pin(path)
+    return origins
+
+
+def package_census(package):
+    if type(package) is not dict or set(package) != {'archive', 'root', 'zip_prefix'}:
+        raise ValueError('Closed package declaration required')
+    admit_pin(package['archive'])
+    root = anchored(package['root'], directory=True)
+    prefix = package['zip_prefix']
+    if type(prefix) is not str or prefix != root.name or not re.fullmatch('[A-Za-z0-9_.-]+', prefix):
+        raise ValueError('Exact wrapper/root identity required')
+    expected = {}
+    with zipfile.ZipFile(package['archive']['path']) as archive:
+        for item in archive.infolist():
+            name = item.filename
+            relative = PurePosixPath(name)
+            if ('\\' in name or ':' in name or name.startswith('/') or
+                    any(part in ('', '.', '..') for part in name.rstrip('/').split('/')) or
+                    relative.parts[0] != prefix):
+                raise ValueError('Unsafe or unexpected ZIP member')
+            if len(relative.parts) == 1:
+                if not item.is_dir():
+                    raise ValueError('Wrapper is not directory')
+                continue
+            key = '/'.join(relative.parts[1:])
+            if key in expected:
+                raise ValueError('Duplicate ZIP member')
+            mode = item.external_attr >> 16
+            kind = stat.S_IFMT(mode)
+            target = root.joinpath(*relative.parts[1:])
+            for parent in target.parents:
+                if parent == root:
+                    break
+                if parent.is_symlink() or not parent.is_dir():
+                    raise ValueError('ZIP destination ancestor is linked/missing')
+            info = target.lstat()
+            if item.is_dir():
+                if not stat.S_ISDIR(info.st_mode):
+                    raise ValueError('ZIP directory mismatch')
+                expected[key] = {'type': 'directory'}
+            elif kind == stat.S_IFLNK:
+                if not stat.S_ISLNK(info.st_mode) or item.file_size > 8192:
+                    raise ValueError('ZIP literal link mismatch')
+                raw = archive.read(item)
+                if os.readlink(target).encode('utf-8') != raw:
+                    raise ValueError('ZIP literal link bytes mismatch')
+                expected[key] = {'type': 'literal_symlink', 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+            elif kind in (0, stat.S_IFREG):
+                if not stat.S_ISREG(info.st_mode) or item.file_size > MAX_FILE or item.file_size != info.st_size:
+                    raise ValueError('ZIP regular-file size/type mismatch')
+                with archive.open(item) as stream:
+                    sha = hashlib.file_digest(stream, 'sha256').hexdigest()
+                actual = file_pin(target)
+                if actual['sha256'] != sha:
+                    raise ValueError('ZIP/extraction bytes mismatch')
+                expected[key] = {'type': 'regular', 'bytes': actual['bytes'], 'sha256': sha}
+            else:
+                raise ValueError('Unsupported ZIP member type')
+    actual_files = set()
+    actual_directories = set()
+    for current, directories, names in os.walk(root, followlinks=False):
+        for name in list(directories):
+            path = Path(current) / name
+            if path.is_symlink():
+                directories.remove(name)
+                actual_files.add(path.relative_to(root).as_posix())
+            else:
+                actual_directories.add(path.relative_to(root).as_posix())
+        actual_files.update((Path(current) / name).relative_to(root).as_posix() for name in names)
+    expected_files = {key for key, value in expected.items() if value['type'] != 'directory'}
+    if actual_files != expected_files:
+        raise ValueError('Exact extraction file-set mismatch')
+    expected_directories = {key for key, value in expected.items() if value['type'] == 'directory'}
+    for key in expected:
+        expected_directories.update(parent.as_posix() for parent in PurePosixPath(key).parents if parent.as_posix() != '.')
+    if actual_directories != expected_directories:
+        raise ValueError('Exact extraction directory-set mismatch')
+    return {'root': str(root), 'archive': package['archive'], 'members': expected,
+            'regular_files': sum(row['type'] == 'regular' for row in expected.values()),
+            'literal_links': sum(row['type'] == 'literal_symlink' for row in expected.values())}
+
+
+def bindings(contract):
+    fields = {'schema_version', 'source_commit', 'source', 'runtime', 'lineage_receipt',
+              'lineage_pointers', 'python', 'openssl', 'validator', 'execution_profile'}
+    if (type(contract) is not dict or set(contract) != fields or
+            contract['schema_version'] != 'known-completed-packaged-journey/1' or
+            contract['source_commit'] != SOURCE_COMMIT or contract['execution_profile'] != 'local_modeled_previous_host_and_context'):
+        raise ValueError('Exact new-source scoped execution contract required')
+    for role in ('python', 'openssl', 'validator', 'lineage_receipt'):
+        admit_pin(contract[role])
+    if (contract['lineage_receipt']['bytes'], contract['lineage_receipt']['sha256']) != LINEAGE_PIN:
+        raise ValueError('The independently frozen C30 package receipt is required')
+    for role, pin in PACKAGE_PINS.items():
+        archive = contract[role]['archive']
+        if (type(archive['bytes']) is not int or (archive['bytes'], archive['sha256']) != pin):
+            raise ValueError('The exact new C30 artifact bytes are required')
+    if Path(sys.executable).resolve() != Path(contract['python']['path']):
+        raise ValueError('Unexpected interpreter')
+    expected = {'source_commit': SOURCE_COMMIT,
+        'source_sha256': contract['source']['archive']['sha256'], 'source_bytes': contract['source']['archive']['bytes'],
+        'runtime_sha256': contract['runtime']['archive']['sha256'], 'runtime_bytes': contract['runtime']['archive']['bytes']}
+    pointers = contract['lineage_pointers']
+    if type(pointers) is not dict or set(pointers) != set(expected) or len(set(pointers.values())) != len(expected):
+        raise ValueError('Exact independently reviewed lineage roles required')
+    raw = Path(contract['lineage_receipt']['path']).read_bytes()
+    receipt = json.loads(raw)
+    if receipt.get('schema') != 'intune-C30-exact-package-qualification/1' or receipt.get('status') != 'PASS':
+        raise ValueError('Pinned package receipt scope is not the admitted construction/linkage receipt')
+    for key, value in expected.items():
+        if not exact_equal(lookup(receipt, pointers[key]), value):
+            raise ValueError('Published package/source lineage mismatch: ' + key)
+    # Observing module bytes are pinned separately in both exact packages.
+    for package in ('source', 'runtime'):
+        for relative, (size, sha) in CORE_PINS.items():
+            pin = file_pin(Path(contract[package]['root']) / relative)
+            if (pin['bytes'], pin['sha256']) != (size, sha):
+                raise ValueError('New observing core bytes mismatch')
+    fixture = file_pin(Path(contract['source']['root']) / 'plugin_tests/test_worker_completed_readback_r4.py')
+    if (fixture['bytes'], fixture['sha256']) != FIXTURE_PIN:
+        raise ValueError('Exact nineteen-test fixture source required')
+    if Path('/usr/bin/openssl').resolve() != Path(contract['openssl']['path']):
+        raise ValueError('Fixture verifier differs from pinned environment')
+
+
+def sql_snapshot(path, tables):
+    path = anchored(path)
+    with sqlite3.connect(path.as_uri() + '?mode=ro', uri=True) as db:
+        db.execute('PRAGMA query_only=ON')
+        names = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        return {table: {'columns': [row[1] for row in db.execute('PRAGMA table_info(' + table + ')')],
+                        'rows': db.execute('SELECT * FROM ' + table + ' ORDER BY 1').fetchall()}
+                for table in tables if table in names}
+
+
+def fixture_producer(module, execution_root):
+    """Derive only fixture setup; never modify historical product/source files."""
+    retained = execution_root / 'fixtures'
+    retained.mkdir(mode=0o700)
+    counter = [0]
+    class FixtureDirectory:
+        def __init__(self, *args, **kwargs):
+            if args or set(kwargs) - {'prefix', 'suffix', 'dir', 'ignore_cleanup_errors', 'delete'}:
+                raise ValueError('Unexpected fixture lifetime call')
+            counter[0] += 1
+            self.name = str(retained / ('fixture-' + str(counter[0])))
+            Path(self.name).mkdir(mode=0o700)
+        def cleanup(self):
+            # Owned raw evidence is retained; this is not product host cleanup.
+            pass
+    old = module.KnownCompletedReadbackTests.setUp
+    setup = ast.parse(textwrap.dedent(inspect.getsource(old)))
+    function = setup.body[0]
+    if type(function) is not ast.FunctionDef or function.name != 'setUp':
+        raise ValueError('Unexpected retained fixture producer')
+    target = [index for index, node in enumerate(function.body)
+              if type(node) is ast.Assign and len(node.targets) == 1 and
+              type(node.targets[0]) is ast.Attribute and node.targets[0].attr == 'manifest_sha' and
+              type(node.targets[0].value) is ast.Name and node.targets[0].value.id == 'self']
+    if len(target) != 1:
+        raise ValueError('Manifest pre-registration insertion point changed')
+    additions = ast.parse("self.manifest['action'] = 'apply_saved_plan'\nself.manifest['expires_at'] = int(time.time()) - 1\n").body
+    function.body[target[0]:target[0]] = additions
+    # Retain raw captures using an otherwise unchanged graph fixture setup.
+    original_graph = module.state_fixtures.WorkerStateTests
+    graph_setup = original_graph.setUp
+    graph_ast = ast.parse(textwrap.dedent(inspect.getsource(graph_setup)))
+    graph_globals = dict(graph_setup.__globals__)
+    graph_globals['tempfile'] = SimpleNamespace(TemporaryDirectory=FixtureDirectory)
+    exec(compile(ast.fix_missing_locations(graph_ast), 'exact-source-graph-fixture-with-retained-lifetime', 'exec'), graph_globals)
+    graph_type = type('RetainedGraphFixture', (original_graph,), {'setUp': graph_globals['setUp']})
+    globals_copy = dict(old.__globals__)
+    globals_copy['tempfile'] = SimpleNamespace(TemporaryDirectory=FixtureDirectory)
+    globals_copy['state_fixtures'] = SimpleNamespace(WorkerStateTests=graph_type)
+    exec(compile(ast.fix_missing_locations(setup), 'exact-source-known-fixture-with-two-pre-registration-descriptors', 'exec'), globals_copy)
+    derived = type('PackagedApplicationFixture', (module.KnownCompletedReadbackTests,), {'setUp': globals_copy['setUp']})
+    dump(execution_root / 'FIXTURE-DERIVATION.json', {
+        'scope': 'Modeled historical prior host/authority and observation context, not native evidence.',
+        'original_fixture': file_pin(module.__file__),
+        'original_setUp_AST_sha256': hashlib.sha256(ast.dump(ast.parse(textwrap.dedent(inspect.getsource(old)))).encode()).hexdigest(),
+        'derived_setUp_AST_sha256': hashlib.sha256(ast.dump(setup).encode()).hexdigest(),
+        'changes_before_digest_and_registration': ["action='apply_saved_plan'", 'expires_at=now-1 (historical expired fixture)'],
+        'raw_evidence_lifetime': 'Retain owned fixture directories; actual reader/credential cleanup still executes.',
+        'original_package_files_mutated': False,
+        'limitations': ['Retained fixture lacks a full dispatch-admissible manifest; history is inserted as an explicit local fixture.',
+                       'CLI observation does not reattest an approved historical controller or authorize execution.']})
+    value = derived('test_actual_factory_reopens_authority_and_reconciles_known_provenance')
+    value.setUp()
+    value.inventory.stop()  # Genuine NEW runtime inventory; no static fixture substitution on positive path.
+    return value
+
+
+def application(contract, output):
+    source, runtime = Path(contract['source']['root']), Path(contract['runtime']['root'])
+    if any(name == 'intune_iac' or name.startswith('intune_iac.') or name == 'plugin_tests' or name.startswith('plugin_tests.') for name in sys.modules):
+        raise ValueError('Package was imported before exact isolation')
+    sys.path.insert(0, str(runtime))
+    import intune_iac
+    # Only the fixture namespace comes from source; product imports stay runtime.
+    sys.path.append(str(source))
+    from plugin_tests import test_worker_completed_readback_r4 as fixtures
+    from intune_iac import worker_service as service, worker_completed_readback as completed
+    from intune_iac import observation_reader as reader, worker_evidence, workbench_service_views
+    from intune_iac.io import AppError
+    from intune_iac.workbench_store import WorkbenchStore
+    # Preload actual reconciliation modules before binding the observing inventory.
+    for name in ('worker_service_readback', 'worker_committed_readback', 'worker_completed_readback',
+                 'workbench_views', 'workbench_service_views', 'worker_evidence'):
+        importlib.import_module('intune_iac.' + name)
+    dump(output / 'IMPORT-ORIGINS.json', import_origins(source, runtime))
+    fixture = fixture_producer(fixtures, output)
+    assertions = []
+    commands = []
+    negative = []
+    def check(identifier, value):
+        if value is not True:
+            raise AssertionError(identifier)
+        assertions.append(identifier)
+    def authority(label):
+        value = sql_snapshot(fixture.job.policy.database, ('jobs', 'ownership', 'consumed', 'events', 'native_lease_recoveries'))
+        dump(output / ('AUTHORITY-' + label + '.json'), value)
+        return value
+    def rejected(identifier, callback, expected):
+        # Preserve independent raw authority pairs per control. None explicitly
+        # records a table absent from this modeled fixture; no lease row is made.
+        tables = ('jobs', 'ownership', 'consumed', 'events', 'native_lease_recoveries')
+        observed = sql_snapshot(fixture.job.policy.database, tables)
+        before = {table: observed.get(table) for table in tables}
+        before_record = dump(output / ('NEGATIVE-' + identifier + '-BEFORE.json'), before)
+        def record_after(error, *, accepted):
+            observed = sql_snapshot(fixture.job.policy.database, tables)
+            after = {table: observed.get(table) for table in tables}
+            after_record = dump(output / ('NEGATIVE-' + identifier + '-AFTER.json'), after)
+            exception_record = dump(output / ('NEGATIVE-' + identifier + '-EXCEPTION.json'), {
+                'schema_version': 'intune-local-negative-authority-pair/1',
+                'id': identifier, 'expected_error_code': expected,
+                'callback_accepted': accepted,
+                'exception_type': type(error).__module__ + '.' + type(error).__qualname__,
+                'error_code': getattr(error, 'code', None), 'message': str(error),
+                'cause_type': None if error.__cause__ is None else type(error.__cause__).__module__ + '.' + type(error.__cause__).__qualname__,
+                'notes': list(getattr(error, '__notes__', [])),
+                'authority_tables': list(tables),
+                'authority_before': before_record, 'authority_after': after_record,
+                'scope': 'Private direct read-only SQLite columns/rows; not native host, service or lease evidence.'})
+            return after, after_record, exception_record
+        try:
+            callback()
+        except BaseException as error:
+            recording_failed = False
+            try:
+                after, after_record, exception_record = record_after(error, accepted=False)
+            except BaseException as recording:
+                secondary_note(error, recording, 'per-negative authority/exception receipt')
+                recording_failed = True
+            if recording_failed:
+                # Re-raise the active callback after the recording handler;
+                # its original cause/context remain attributable evidence.
+                raise
+            if not isinstance(error, AppError):
+                raise
+            if error.code != expected:
+                raise AssertionError(identifier + ': unexpected error ' + error.code) from error
+            check(identifier + ':authority_unchanged', exact_equal(before, after))
+            negative.append({'id': identifier, 'error_code': error.code, 'authority_unchanged': True,
+                'authority_before': before_record, 'authority_after': after_record,
+                'exception': exception_record})
+        else:
+            error = AssertionError(identifier + ': accepted')
+            try:
+                record_after(error, accepted=True)
+            except BaseException as recording:
+                secondary_note(error, recording, 'per-negative accepted-callback receipt')
+            raise error
+    child_env = {'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8',
+                 'PYTHONNOUSERSITE': '1', 'PYTHONDONTWRITEBYTECODE': '1'}
+    def cli(label, args, *, parse=True):
+        argv = [str(Path(sys.executable)), '-B', str(runtime / 'scripts/intune-iac.py'), *args]
+        run = subprocess.run(argv, cwd=output, env=child_env, capture_output=True, timeout=30)
+        if len(run.stdout) + len(run.stderr) > 4 * 1024 * 1024:
+            raise ValueError('Bounded text receipt exceeded')
+        (output / (label + '.stdout')).write_bytes(run.stdout)
+        (output / (label + '.stderr')).write_bytes(run.stderr)
+        receipt = {'id': label, 'argv': argv, 'cwd': str(output), 'exit_code': run.returncode,
+                   'stdout': file_pin(output / (label + '.stdout')), 'stderr': file_pin(output / (label + '.stderr'))}
+        dump(output / (label + '.json'), receipt)
+        commands.append(receipt)
+        if run.returncode != 0:
+            raise AssertionError(label + ': actual text command failed')
+        return json.loads(run.stdout) if parse else run.stdout.decode('utf-8')
+    primary = None
+    report = None
+    try:
+        for label, args in [('service-help', ['service', '--help']),
+                            ('service-status-help', ['service', 'status', '--help']),
+                            ('service-attach-help', ['service', 'attach', '--help']),
+                            ('workbench-history-help', ['workbench', 'history', '--help'])]:
+            help_text = cli(label, args, parse=False)
+            check(label + ':actual_help', 'usage:' in help_text)
+        service_args = ['--job-root', str(fixture.job_root), '--policy', str(fixture.policy_path)]
+        before = authority('before')
+        initial = cli('service-status-before', ['service', 'status', *service_args])
+        attached = cli('service-attach-before', ['service', 'attach', *service_args])
+        check('before:known_modeled_outcome', initial['status'] == attached['status'] == 'host_completed_service_unverified')
+        check('before:one_dispatch', type(initial['dispatches']) is int and initial['dispatches'] == 1)
+        check('before:original_observer_mismatch_honest', initial['implementation_matches_reviewed'] is False)
+        check('before:no_terminal_mutation', initial['terminal_dispatches_mutation'] is False and attached['terminal_dispatches_mutation'] is False)
+        check('before:read_only_CLI_preserves_authority', exact_equal(before, authority('after-read-only')))
+        fixture.observation.created -= 31
+        rejected('stale_sealed_observation', lambda: fixture.collect(name='rejected-stale'), 'lease_recovery_observation_changed_or_stale')
+        fixture.observation.created += 31
+        capability = completed.collect(job_root=fixture.job_root, policy_path=fixture.policy_path,
+                                       observation=fixture.observation, output=fixture.root / 'readback')
+        facts = capability.verified(fixture.manifest)
+        dump(output / 'READBACK-FACTS.json', facts)
+        check('factory:genuine_current_runtime_inventory', facts['observing_implementation_sha256'] == hashlib.sha256(
+            json.dumps(service.implementation_binding(), ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest())
+        check('factory:historical_and_current_digests_distinct', facts['original_implementation_sha256'] != facts['observing_implementation_sha256'])
+        check('factory:no_exceptional_release', facts['exceptional_lease_release_performed'] is False)
+        check('factory:no_scope_transition', exact_equal(before, authority('after-factory')))
+        rejected('json_readback_not_capability', lambda: fixture.job.reconcile(facts), 'service_readback_capability_required')
+        original_inventory = service.implementation_binding()
+        changed_inventory = dict(original_inventory)
+        selected = sorted(changed_inventory)[0]
+        changed_inventory[selected] = '0' * 64 if changed_inventory[selected] != '0' * 64 else '1' * 64
+        with patch.object(service, 'implementation_binding', return_value=changed_inventory):
+            rejected('modeled_observer_inventory_substitution', lambda: service.ServiceJob(fixture.job_root, fixture.policy_path).reconcile(capability),
+                     'completed_readback_observer_implementation_changed')
+        with fixture.job.policy.connection() as db:
+            original_outcome = db.execute('SELECT outcome FROM jobs WHERE id=?', (fixture.identifier,)).fetchone()[0]
+            changed = json.loads(original_outcome)
+            changed['host']['container_exit_code'] = 1
+            db.execute('UPDATE jobs SET outcome=? WHERE id=?', (json.dumps(changed), fixture.identifier))
+        authority('deliberately-bad-modeled-outcome')
+        rejected('changed_modeled_host_outcome', lambda: fixture.job.reconcile(capability), 'completed_readback_known_host_result_required')
+        with fixture.job.policy.connection() as db:
+            db.execute('UPDATE jobs SET outcome=? WHERE id=?', (original_outcome, fixture.identifier))
+        # Capture while reservations still exist. The accessor intentionally
+        # becomes unusable after successful authority convergence.
+        captured = capability.captured_observation()
+        batch, capture_source = captured.verified()
+        raw = batch['source']['raw_observed']
+        check('raw:exact_reviewed_description', raw['policy']['description'] == 'Reviewed correction')
+        check('raw:one_setting_and_literal_id', len(raw['settings']) == 1 and raw['settings'][0]['id'] == '0')
+        instance = raw['settings'][0]['settingInstance']
+        check('raw:exact_setting_definition', instance['settingDefinitionId'] == 'device_vendor_msft_policy_config_privacy_letappsaccesslocation')
+        check('raw:explicit_template_nulls', instance['settingInstanceTemplateReference'] is None and
+              instance['choiceSettingValue']['settingValueTemplateReference'] is None)
+        check('raw:ordered_empty_children', type(instance['choiceSettingValue']['children']) is list and instance['choiceSettingValue']['children'] == [])
+        check('raw:include_exclusion_filters_preserved', sorted(row['target']['@odata.type'] for row in raw['assignments']) ==
+              ['#microsoft.graph.exclusionGroupAssignmentTarget', '#microsoft.graph.groupAssignmentTarget', '#microsoft.graph.groupAssignmentTarget'] and
+              sorted(row['target']['deviceAndAppManagementAssignmentFilterType'] for row in raw['assignments']) == ['include', 'none', 'none'])
+        check('raw:non_live_reader_assurance', capture_source['evidence_class'] == 'graph_reader_laboratory' and capture_source['source_authenticity_verified'] is False)
+        dump(output / 'RAW-PROJECTION.json', raw)
+        state_raw = (fixture.observation_root / 'state.raw').read_bytes()
+        state = json.loads(state_raw)
+        check('state:actual_fixture_serial_three', type(state['serial']) is int and state['serial'] == 3)
+        check('state:literal_lineage', state['lineage'] == 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee')
+        check('state:private_native_field_preserved', state['resources'][0]['instances'][0]['private'] == 'cHJpdmF0ZQ==')
+        check('state:readback_bytes_exact', (capability.root / 'observed-state.raw').read_bytes() == state_raw)
+        result = service.ServiceJob(fixture.job_root, fixture.policy_path).reconcile(capability)
+        dump(output / 'ACTUAL-RECONCILIATION.json', result)
+        check('reconcile:known_host_provenance', result['status'] == 'service_state_converged' and result['outcome']['execution_provenance'] == 'host_completed')
+        check('reconcile:original_modeled_outcome_retained', exact_equal(result['outcome']['previous_outcome'], fixture.outcome))
+        check('reconcile:no_mutation_or_production_inference', result['outcome']['mutation_replayed'] is False and
+              result['outcome']['production_approved'] is False and result['outcome']['endpoint_effectiveness'] == 'unestablished')
+        after = authority('after-reconcile')
+        check('reconcile:owner_reservations_released_once', len(before['ownership']['rows']) == 2 and after['ownership']['rows'] == [])
+        check('reconcile:consumed_nonce_exactly_retained', exact_equal(before['consumed'], after['consumed']) and len(after['consumed']['rows']) == 1)
+        check('reconcile:no_exceptional_table_created', 'native_lease_recoveries' not in after)
+        event_rows = after['events']['rows']
+        check('reconcile:one_actual_event', len(event_rows) == 1 and event_rows[0][2] == 'independent_state_reconciled')
+        rejected('reconcile_replay_rejected', lambda: service.ServiceJob(fixture.job_root, fixture.policy_path).reconcile(capability), 'completed_readback_known_host_authority_required')
+        rejected('post_convergence_capture_accessor_rejected', capability.captured_observation, 'completed_readback_known_host_authority_required')
+        store = WorkbenchStore.create(output / 'store', fixture.manifest['tenant_id'])
+        published = reader.publish_batch(store, [captured], job_id='a' * 32, attempt_id='b' * 32)
+        dump(output / 'ACTUAL-COLLECTION.json', published)
+        store_before = sql_snapshot(store.path, ('collection_runs', 'observations', 'snapshots', 'run_details', 'collection_coverage'))
+        dump(output / 'STORE-before-reopen.json', store_before)
+        check('collection:one_complete_local_reader_batch', len(published) == 1 and published[0]['status'] == 'complete' and
+              published[0]['evidence_class'] == 'graph_reader_laboratory' and published[0]['assurance']['source_authenticity_verified'] is False)
+        check('collection:idempotent_same_attempt', exact_equal(reader.publish_batch(store, [captured], job_id='a' * 32, attempt_id='b' * 32), published))
+        check('collection:idempotent_SQL', exact_equal(store_before, sql_snapshot(store.path, tuple(store_before))))
+        oid = fixture.manifest['object_ids'][0]
+        reopened_store = WorkbenchStore(output / 'store', fixture.manifest['tenant_id'])
+        history = reopened_store.history(oid)
+        dump(output / 'ACTUAL-HISTORY.json', history)
+        check('history:reopened_one_literal_snapshot', len(history) == 1 and history[0]['body']['description'] == 'Reviewed correction')
+        check('history:non_live_scope_retained', history[0]['evidence_class'] == 'graph_reader_laboratory' and history[0]['cloud_authority'] is False)
+        final_status = cli('service-status-after', ['service', 'status', *service_args])
+        final_attach = cli('service-attach-after', ['service', 'attach', *service_args])
+        check('after:actual_CLI_attaches_same_operation', final_status['operation_id'] == final_attach['operation_id'] == fixture.identifier and
+              final_status['status'] == final_attach['status'] == 'service_state_converged' and final_attach['dispatches'] == 1)
+        cli('workbench-service-link', ['workbench', 'service-link', '--root', str(store.root), '--object', oid, *service_args])
+        actual_history = cli('workbench-history', ['workbench', 'history', '--root', str(store.root), '--object', oid])
+        views = cli('workbench-views', ['workbench', 'views', '--root', str(store.root), '--object', oid])
+        if type(actual_history) is dict:
+            actual_history = actual_history['history']
+        check('history:actual_text_reopen', len(actual_history) == 1 and actual_history[0]['object_id'] == oid)
+        check('views:exact_operation_and_capture', views['proposed']['operation_id'] == fixture.identifier and
+              views['deployment']['baseline_admissible'] is True and views['deployment']['proof']['capture_sha256'] == facts['graph_capture_sha256'])
+        check('views:separate_native_and_endpoint_gates', views['deployment']['platform_qualified'] is False and
+              views['deployment']['endpoint_effectiveness'] == 'unestablished' and
+              views['deployment']['second_plan_convergence'] == 'separate_native_plan_evidence_required')
+        deployment, event, evidence_class = worker_evidence.deployment_state(fixture.manifest,
+            service.ServiceJob(fixture.job_root, fixture.policy_path).status(), fixture.identifier, fixture.manifest_sha)
+        check('deployment:actual_v1_event_scope', evidence_class == 'laboratory_service_state_convergence' and event['kind'] == 'independent_state_reconciled' and
+              deployment['recovery_kind'] == completed.KIND)
+        check('final:read_only_commands_did_not_redispatch', exact_equal(after, authority('final')))
+        dump(output / 'RECORDED-READER-REQUESTS.json', fixture.transport.requests)
+        check('requests:reader_only_after_modeled_token', all(row['method'] == 'GET' for row in fixture.transport.requests[2:]))
+        check('requests:no_provider_or_backend_write', all(row['host'] in ('login.microsoftonline.com', 'graph.microsoft.com') for row in fixture.transport.requests))
+        dump(output / 'NEGATIVE-CONTROLS.json', negative)
+        dump(output / 'COMMANDS.json', commands)
+        report = {'status': 'PROVISIONAL_APPLICATION_ASSERTIONS_COMPLETE_NOT_FINAL_ACCEPTANCE',
+            'source_commit': SOURCE_COMMIT, 'scope': SCOPE, 'assertions': assertions, 'assertion_count': len(assertions),
+            'actual_text_commands': len(commands), 'negative_controls': negative, 'packages': {role: contract[role]['archive'] for role in ('source', 'runtime')},
+            'count_scope': 'Application assertions overlap prior19/123 methods; do not add these as independent suite tests.',
+            'modeled_dependencies': ['Prior historical job and consumed nonce are inserted by local source fixture.',
+                'Known prior host completion and native cleanup are fixture outcomes; no host/container ran.',
+                'RecoveryObservation context.check is explicitly controlled, not native host/backend authentication.',
+                'Graph OAuth/principal/capture transport consists of recorded local responses.',
+                'Observer substitution negative models inventory return data; positive inventory hashes actual runtime.'],
+            'native_dispatches': 0, 'platform_qualified': False, 'production_approved': False,
+            'lab_complete_global': False, 'retained_execution_root': str(output)}
+        dump(output / 'PROVISIONAL-RESULT.json', report)
+    except BaseException as error:
+        primary = error
+        raise
+    finally:
+        finish_fixture(fixture, output, primary, app_error=AppError)
+    return report
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--contract', required=True, type=Path)
+    parser.add_argument('--contract-sha256', required=True)
+    parser.add_argument('--output', required=True, type=Path)
+    args = parser.parse_args()
+    contract_path = anchored(args.contract)
+    if file_pin(contract_path)['sha256'] != args.contract_sha256:
+        raise ValueError('Frozen contract bytes differ')
+    contract = json.loads(contract_path.read_bytes())
+    output = args.output
+    if (not output.is_absolute() or '..' in output.parts or output.parent != Path('/tmp') or
+            not output.name.startswith('known-completed-packaged-journey-') or output.exists() or output.is_symlink()):
+        raise ValueError('Fresh owned /tmp execution root required')
+    # Pin/extraction validation and source identity are independent of product APIs.
+    bindings(contract)
+    output.mkdir(mode=0o700)
+    try:
+        original_script = file_pin(Path(__file__).absolute())
+        dump(output / 'CONTRACT-READBACK.json', {'contract': file_pin(contract_path), 'value': contract, 'scope': SCOPE})
+        before_census = {}
+        for role in ('source', 'runtime'):
+            before_census[role] = package_census(contract[role])
+            dump(output / ('PACKAGE-CENSUS-' + role + '.json'), before_census[role])
+        os.environ['INTUNE_TEST_VALIDATOR_LIBRARY'] = contract['validator']['path']
+        os.environ.pop('INTUNE_COMPLETED_READBACK_TEST_EVIDENCE', None)
+        report = application(contract, output)
+        # Final acceptance is delayed until actual handles have closed and
+        # both archive bytes, extraction file/directory sets, all loaded
+        # product/fixture origins, contract/receipt/tool/core pins remain exact.
+        bindings(contract)
+        for role in ('source', 'runtime'):
+            after_census = package_census(contract[role])
+            dump(output / ('PACKAGE-CENSUS-' + role + '-after.json'), after_census)
+            if not exact_equal(before_census[role], after_census):
+                raise ValueError('Post-application exact package identity changed')
+        dump(output / 'IMPORT-ORIGINS-after.json', import_origins(Path(contract['source']['root']), Path(contract['runtime']['root'])))
+        if not exact_equal(file_pin(Path(__file__).absolute()), original_script) or file_pin(contract_path)['sha256'] != args.contract_sha256:
+            raise ValueError('Journey source or frozen contract changed')
+        report['status'] = 'PASS_SCOPED_LOCAL_PACKAGED_APPLICATION_JOURNEY'
+        report['final_acceptance'] = 'Actual fixture handle cleanup and post-application archive/extraction/origin/contract/pin verification complete.'
+        report['outer_capsule_owner'] = 'Root release engineer; this script records raw files but does not itself make or admit a whole-run capsule.'
+        dump(output / 'RESULT.json', report)
+    except BaseException as error:
+        record_failure(output, error)
+        raise
+
+
+if __name__ == '__main__':
+    main()

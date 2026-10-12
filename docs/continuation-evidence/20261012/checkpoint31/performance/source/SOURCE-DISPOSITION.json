@@ -1,0 +1,48 @@
+{
+  "byte_edits_or_redactions": false,
+  "complete_private_corpus_claim": false,
+  "independent_public_suitability": "PENDING_ROOT_REVIEW",
+  "measured_product_commands": 0,
+  "new_performance_qualified": false,
+  "not_standalone": true,
+  "original_C25_results_reclassified": false,
+  "platform_qualified": false,
+  "privacy_review_author_observation": "Exact helper texts contain pinned local path/source/artifact/negative-test constants and use only clean lab environments. No tenant raw capture, state or saved-plan payload, credential, token, private key or live organizational identity value is embedded in the selected source. Pinned fixture database contents and authority raw outputs are excluded.",
+  "production_approved": false,
+  "publication_permission": "Source text recommendation only. Root owns independent public suitability/admission, final metadata selection, actual commit/push/public readback. This author stage does not publish anything.",
+  "qualification_status": "BLOCKED_G11",
+  "schema_version": "C30-performance-public-source-author-disposition/1",
+  "selected": {
+    "README.md": {
+      "bytes": 2664,
+      "role": "Publication scope and explicit exclusions.",
+      "sha256": "863de089f2377e88d3f319868eebf14802b6e1d90f8f0847e0ab1cd95509b035"
+    },
+    "prepare.py.txt": {
+      "bytes": 16052,
+      "origin": "/tmp/intune-C30-performance-preparation-20261011-01/prepare.py",
+      "origin_bytes_exact": true,
+      "role": "Inert complete qualification-helper source text, not runnable runtime or complete recovery corpus.",
+      "sha256": "c4ebe211bd4260ccb53220b655c719c090578042ec29b9bf982674c3441fd465"
+    },
+    "qualify_pure_controls.py.txt": {
+      "bytes": 4215,
+      "origin": "/tmp/intune-C30-performance-preparation-20261011-01/qualify_pure_controls.py",
+      "origin_bytes_exact": true,
+      "role": "Inert complete qualification-helper source text, not runnable runtime or complete recovery corpus.",
+      "sha256": "d32d3392b9acbbb144066f58eb95a2ed0d9d7fc77fe1c8b21aff736dd875070c"
+    },
+    "run-prepared.py.txt": {
+      "bytes": 12334,
+      "origin": "/tmp/intune-C30-performance-preparation-20261011-01/run-prepared.py",
+      "origin_bytes_exact": true,
+      "role": "Inert complete qualification-helper source text, not runnable runtime or complete recovery corpus.",
+      "sha256": "b625852df373123d2a3f2ed0ee26e70facd4bc14c522119309736db5cebe2c69"
+    }
+  },
+  "selection_scope": "Exactly three complete inert .py.txt source texts and this README plus author disposition. No raw data/contract/fixture/preregistration/prepared stores/private capsule/runtime binary is selected.",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "status": "AUTHOR_RECOMMENDED_EXACT_SOURCE_TEXT_ONLY",
+  "timing_samples": 0,
+  "unchanged_performance_durable_reserve_bytes": 33554432
+}

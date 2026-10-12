@@ -1,0 +1,33 @@
+{
+  "actual_origin_byte_equal": true,
+  "actual_recorded_origin": {
+    "bytes": 8857,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/C30-package-preparation-20261011-01/qualify-intune-C30-packages-20261011.py",
+    "sha256": "ab22cd7e58c2e503b4bed9c43b7d564821a22e2cfcc4b81eda44b4e7d502903b"
+  },
+  "artifact_relabel_permitted": false,
+  "full_source_read": true,
+  "limits": [
+    "Inert .py.txt only; future executable invocation requires its own concrete source/input/environment admission.",
+    "Packaging receipt and subsequent strict/application evidence retain separate scopes; this text is not their verification.",
+    "No native/live service/CI/backend/Windows/device/AppSec/organizational approval."
+  ],
+  "observed_product_source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "omissions": [
+    "Generated package outputs and private qualification logs",
+    "Tool executables and extracted repositories",
+    "Raw private state, saved plans, captures, keys and credentials",
+    "Private preparation/full recovery corpus and root authorizations"
+  ],
+  "platform_qualified": false,
+  "production_approved": false,
+  "review_scope": "Complete exact8857-byte package-construction/extraction/rawGit-linkage/rebuild controller source. Contains generic pinned-argument procedures and metadata repository/output paths; no literal credentials, restricted raw tenant capture, binary saved plan or state payloads. Source suitability only; no execution, reproduced packaging or strict/application qualification by this review.",
+  "reviewer_execution_count": 0,
+  "schema": "independent-public-C30-package-driver-source-disposition/1",
+  "selected_source": {
+    "bytes": 8857,
+    "path": "/tmp/intune-C30-package-public-source-20261012-01/qualify-intune-C30-packages-20261011.py.txt",
+    "sha256": "ab22cd7e58c2e503b4bed9c43b7d564821a22e2cfcc4b81eda44b4e7d502903b"
+  },
+  "status": "PASS_PUBLIC_INERT_SOURCE_TEXT_ONLY"
+}

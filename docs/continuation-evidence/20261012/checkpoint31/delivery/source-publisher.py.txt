@@ -1,0 +1,95 @@
+"""Publish and independently read back only the admitted C30 continuation source."""
+from pathlib import Path
+import argparse, datetime, hashlib, json, os, stat, subprocess, urllib.parse, urllib.request
+
+repo = Path('/workspace/intune-continuation/work/projects/intune')
+evidence = repo.parents[1] / 'evidence/epoch-20261007-r4'
+out = evidence / 'integration/source-branch-publication-C30-20261011-01'
+candidate = '39cc77618a0f7f2734599fbfed224b47c333293f'
+previous = '571e06ba015a9b94208e4c88538246c97e3816e4'
+tree = 'f8bff355322c7c50e46790171c12a5e1a7cb80aa'
+target = 'refs/heads/continuation/r4-20261007'
+main = '4ba077d93fecbf5f893ee13ef972c839cf13883d'
+env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+env['GIT_TERMINAL_PROMPT'] = '0'
+
+
+def require(ok, message):
+    if not ok:
+        raise RuntimeError(message)
+
+
+def git(*args):
+    require(stat.S_ISDIR((repo / '.git').lstat().st_mode), 'literal Git directory required')
+    run = subprocess.run(['/usr/bin/git', '--git-dir=' + str(repo / '.git'), '--work-tree=' + str(repo), '-c', 'core.hooksPath=/dev/null', *args], cwd=repo, env=env, stdin=subprocess.DEVNULL, capture_output=True)
+    require(run.returncode == 0, 'Git command failed: exit=' + str(run.returncode) + ' stderr_sha256=' + hashlib.sha256(run.stderr).hexdigest())
+    return run.stdout.decode()
+
+
+def dump(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2)
+        f.write('\n')
+        f.flush()
+        os.fsync(f.fileno())
+
+
+def refs(raw):
+    rows = [line.split('\t') for line in raw.splitlines()]
+    require(all(len(row) == 2 for row in rows) and len(rows) == len({row[1] for row in rows}), 'invalid ref response')
+    return {ref: sha for sha, ref in rows}
+
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--commit-binding', type=Path, required=True)
+parser.add_argument('--commit-binding-sha256', required=True)
+args = parser.parse_args()
+raw = args.commit_binding.read_bytes()
+require(hashlib.sha256(raw).hexdigest() == args.commit_binding_sha256, 'independent commit binding changed')
+binding = json.loads(raw)
+require(binding['schema'] == 'independent-C30-public-commit-binding/1' and binding['status'] == 'PASS_SCOPED', 'independent binding absent')
+require(binding['commit'] == candidate and binding['parent'] == previous and binding['tree'] == tree and binding['working_tree_clean'] is True and binding['public_metadata_suitable'] is True and binding['failures'] == [], 'wrong independent binding')
+require(binding['file_count'] == 28 and len(binding['actual_file_list_and_pins']) == 28, 'wrong admitted scope')
+commit_raw = (evidence / 'integration/COMMIT-30.json').read_bytes()
+require(binding['root_commit_receipt']['sha256'] == hashlib.sha256(commit_raw).hexdigest() and binding['root_commit_receipt']['bytes'] == len(commit_raw), 'root receipt differs')
+require(git('rev-parse', 'HEAD').strip() == candidate and git('rev-parse', 'HEAD^').strip() == previous and git('rev-parse', 'HEAD^{tree}').strip() == tree, 'HEAD linkage differs')
+require(not git('status', '--porcelain'), 'working tree not clean')
+origin = 'https://github.com/nsahmed23/neon-commons.git'
+require(git('remote', 'get-url', '--all', 'origin').splitlines() == [origin] and git('remote', 'get-url', '--push', '--all', 'origin').splitlines() == [origin], 'unexpected origin URL')
+before = refs(git('ls-remote', 'origin', 'refs/heads/main', target))
+require(before == {'refs/heads/main': main, target: previous}, 'remote advanced or main differs')
+for row in binding['actual_file_list_and_pins']:
+    path = repo / row['repository_path']
+    require(stat.S_ISREG(path.lstat().st_mode), 'source path changed type')
+    content = path.read_bytes()
+    require(len(content) == row['bytes'] and hashlib.sha256(content).hexdigest() == row['sha256'], 'source bytes changed')
+out.mkdir(mode=0o700, exist_ok=False)
+result = {'schema': 'verified-C30-source-publication/1', 'status': 'PREPARED', 'candidate': candidate, 'previous': previous, 'tree': tree, 'target': target, 'main_before': main, 'independent_commit_binding_sha256': args.commit_binding_sha256, 'scope': 'Exactly28 independently admitted engine/test/runbook/public metadata/inventory paths. No default-branch mutation, workflow dispatch, deployment, tenant change, private capture/state/plan publication or platform/production approval.'}
+dump(out / 'PREPARED.json', result)
+try:
+    git('push', '--porcelain', '--force-with-lease=' + target + ':' + previous, 'origin', candidate + ':' + target)
+    after = refs(git('ls-remote', 'origin', 'refs/heads/main', target))
+    require(after == {'refs/heads/main': main, target: candidate}, 'remote ref readback differs')
+    git('update-ref', 'refs/remotes/origin/continuation/r4-20261007', candidate)
+    git('branch', '--set-upstream-to=origin/continuation/r4-20261007', 'continuation/r4-20261007')
+    require(not git('status', '--porcelain'), 'working tree changed')
+    published = dict(result, status='PASS_SOURCE_BRANCH', published_at=datetime.datetime.now(datetime.timezone.utc).isoformat(), remote_after=after, working_tree_after='', driver_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), url='https://github.com/nsahmed23/neon-commons/tree/' + candidate)
+    dump(out / 'RECEIPT.json', published)
+    checks = []
+    for row in binding['actual_file_list_and_pins']:
+        url = 'https://raw.githubusercontent.com/nsahmed23/neon-commons/' + candidate + '/' + urllib.parse.quote(row['repository_path'], safe='/')
+        with urllib.request.urlopen(url, timeout=30) as response:
+            require(response.status == 200 and response.geturl() == url, 'unexpected anonymous readback destination/status')
+            content = response.read(row['bytes'] + 1)
+        require(len(content) == row['bytes'] and hashlib.sha256(content).hexdigest() == row['sha256'], 'anonymous public bytes differ')
+        checks.append(dict(row, url=url, http_status=200))
+        dump(out / ('READBACK-' + str(len(checks)).zfill(2) + '.json'), checks[-1])
+    readback = {'schema': 'C30-public-source-byte-readback/1', 'status': 'PASS', 'source_commit': candidate, 'scope': 'Normal TLS anonymous HTTP200 readback of exactly28 admitted paths. No private corpus or external qualification claim.', 'file_count': len(checks), 'files': checks, 'remote_after': after}
+    dump(out / 'PUBLIC-SOURCE-READBACK.json', readback)
+    print(json.dumps({'commit': candidate, 'source_publication': published['status'], 'public_byte_readbacks': len(checks), 'receipt': str(out / 'RECEIPT.json'), 'readback': str(out / 'PUBLIC-SOURCE-READBACK.json')}))
+except BaseException as primary:
+    try:
+        dump(out / 'FAILURE.json', {'status': 'FAIL_SOURCE_PUBLICATION_OR_READBACK', 'error_type': type(primary).__name__, 'error': str(primary), 'candidate': candidate, 'scope': 'Preserve successful push if any and independent per-file readbacks; do not silently retry or alter refs.'})
+    except BaseException as secondary:
+        primary.add_note('Secondary failure record: ' + type(secondary).__name__)
+    raise

@@ -1,0 +1,26 @@
+{
+  "schema": "public-independent-C30-source-publisher-text-disposition/1",
+  "status": "PASS_SCOPED_EXACT_INERT_SOURCE_TEXT_ONLY",
+  "selected_source": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/source-publisher-C30-01/REVIEWED-SOURCE-PUBLISHER.py.txt",
+    "bytes": 7094,
+    "sha256": "895bfda67ca3e6c6d108d6fb566df33a185aac979e9a531569b18803185f4b39"
+  },
+  "prior_whole_source_precondition_admission": {
+    "bytes": 12583,
+    "sha256": "c7d3b17c932976cffd0629c62e274475c661d0cf76cde1dbe588775c5c051333"
+  },
+  "prior_actual_delivery_reconciliation": {
+    "bytes": 26279,
+    "sha256": "50c12839118b6861f74a89beecf08cf711bc8d74d04360347d6b5541ff920dd9"
+  },
+  "public_scope": "Only exact full publisher source7094/895bf text, using public commit/ref/repository metadata, normal TLS source readback and hashed stderr. Read complete source/literals, no actual tenant capture/state/plan/credential/key payload found. No private generated receipts, raw configuration/transport credentials or broader corpus are selected.",
+  "execution_scope": "This text describes already admitted/published exact C30 only. Source clearance does not admit a changed future publisher, request new writes, transfer artifact qualification or approve any platform/organizational production action.",
+  "source_revision_bound": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "package_driver_ab22_public_clearance": "NOT_REVIEWED_IN_THIS_LANE",
+  "source_only": true,
+  "reviewer_new_publication_mutations": 0,
+  "organizational_AppSec_approval": false,
+  "platform_qualified": false,
+  "production_approved": false
+}

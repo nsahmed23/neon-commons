@@ -1,0 +1,187 @@
+{
+  "schema_version": "intune-checkpoint-commit/1",
+  "status": "PASS",
+  "recorded_at": "2026-10-11T23:15:33.016709+00:00",
+  "commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "parent": "571e06ba015a9b94208e4c88538246c97e3816e4",
+  "tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "files": [
+    {
+      "bytes": 121655,
+      "regular_file": true,
+      "repository_path": "docs/CONTINUATION-R4-CHECKPOINT.md",
+      "sha256": "a0538d5288b2a6c17c7d13b23a8378f7cb1abbd0ff117ca23ca82502013ea504"
+    },
+    {
+      "bytes": 1846200,
+      "regular_file": true,
+      "repository_path": "docs/CONTINUATION-R4-LEDGER.json",
+      "sha256": "32d7d49c5dc3ce93184cac700aeacb69d89eed40ed8709d43e07d25f1bea0a76"
+    },
+    {
+      "bytes": 35690,
+      "regular_file": true,
+      "repository_path": "docs/EXECUTION-SEQUENCE-R4.md",
+      "sha256": "deec7e59c70ad5c0a1895d313e727a628cf601d1789a4c0fdc9ab9c285e6ed3f"
+    },
+    {
+      "bytes": 68340,
+      "regular_file": true,
+      "repository_path": "docs/EXTERNAL-GATES-R4.md",
+      "sha256": "0a5221c5de9c3ca482b47002dc04cd5d6fc13ce085d315801877ebbdb69f17a9"
+    },
+    {
+      "bytes": 32754,
+      "regular_file": true,
+      "repository_path": "docs/OPERATING-PROFILE-R4.md",
+      "sha256": "f83dbd251e5783ba8284457d80227000a9870bc6f78a6dce7c1755b60dd5571d"
+    },
+    {
+      "bytes": 15745,
+      "regular_file": true,
+      "repository_path": "docs/WORKER-SERVICE-R4.md",
+      "sha256": "2068c4cb21cfaba23c229212a3252a1213f66b8f8eebc9641803c1f6f6a71bcf"
+    },
+    {
+      "bytes": 3276,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/core/application.json",
+      "sha256": "948676bfb5ff2b22e9021a575276f3d0eb413d7cf273ed8b041d8f5bd18ae6c3"
+    },
+    {
+      "bytes": 6469,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/core/applied-admission.json",
+      "sha256": "149e81461f04ef0797e341f927cf0a624cab7d2498963eb1a0d32a8658e01321"
+    },
+    {
+      "bytes": 1616,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/core/changed-scope-preservation.json",
+      "sha256": "7a66c7ca3e618040fb4e310efa391748f61a752cd4c4dc2d3ef94f0ecbef115c"
+    },
+    {
+      "bytes": 18403,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/core/changed-scope-result.json",
+      "sha256": "f224b903758b692796f63813f96f0dfbdf32771423afd59ba41869c4e8d20df2"
+    },
+    {
+      "bytes": 12817,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/core/proposed-admission.json",
+      "sha256": "1a24ed465859bf41cf69f44a4e58aa7ef665caf12d359b464836aaa5476fb12f"
+    },
+    {
+      "bytes": 23364,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/delivery/checkpoint29-commit-binding.json",
+      "sha256": "400ac01900dcb98a57f8671c8b11de7c3b60bb05e72b7f03e0dcbc3e1530b739"
+    },
+    {
+      "bytes": 13969,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/delivery/checkpoint29-commit.json",
+      "sha256": "95f6085893d0457b42197867c805299ddcc3cee1c525d6e746c9e1c839d018ec"
+    },
+    {
+      "bytes": 4410,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/delivery/checkpoint29-companion-delivery.json",
+      "sha256": "baff91f8ad55500d23d9dfeb344983711fe5f14eb1ab7f9dc05659f0243bee04"
+    },
+    {
+      "bytes": 36739,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/delivery/checkpoint29-public-delta.json",
+      "sha256": "c8ce43315a3b57ea50e5cc2fbcdc0e1dbe8a85e1ba14e286f0dacc54b4119ac9"
+    },
+    {
+      "bytes": 1355,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/delivery/checkpoint29-publication.json",
+      "sha256": "b4aecb813823731d27b4420ef7c97361e5b248f0cc817f952771321d37346a80"
+    },
+    {
+      "bytes": 35707,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/delivery/checkpoint29-readback.json",
+      "sha256": "277d1c0171658de04c4165732d1076d644420f2dd894a030ec2f7ad32ea229a3"
+    },
+    {
+      "bytes": 51288,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/native_ordinary_timing_qualification.py.txt",
+      "sha256": "e77c44371c28a12f595897e11e6f4c545b8aedc11389b6cf7ffebab9cba90b1a"
+    },
+    {
+      "bytes": 5178,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/ordinary_fault_controls.py.txt",
+      "sha256": "389538c904e9991e7d35dceb226cb817543cade851f454048c171ce361898ddf"
+    },
+    {
+      "bytes": 8892,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/profile-admission.json",
+      "sha256": "26af2989a83a1bcf23adbf8d296b3da97d3f562d602755f433699016dfde5f8a"
+    },
+    {
+      "bytes": 2360,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/profile-source/README.md",
+      "sha256": "666d008687eb99cb66310480684597782cedb307b8af7384174c7c7ccb43669f"
+    },
+    {
+      "bytes": 48992,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/profile-source/orchestrate-ordinary-timings.py.txt",
+      "sha256": "a36e2652e072e362ac02cf8954743bc816f63daebd4b577acf7fa6a0a23c6031"
+    },
+    {
+      "bytes": 27877,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/profile-source/qualify-ordinary-timings.py.txt",
+      "sha256": "ff1b4c8b9a58b9719dff93b4f1eda2201d3c924bbcbd69d9d9856c40e5c6f3e6"
+    },
+    {
+      "bytes": 11104,
+      "regular_file": true,
+      "repository_path": "docs/continuation-evidence/20261011/checkpoint30/ordinary-timing/source-admission.json",
+      "sha256": "ab62805b33561d2e0fb3e1c691db1822293c14322a6acf0a2d29404a17dd8e07"
+    },
+    {
+      "bytes": 14304,
+      "regular_file": true,
+      "repository_path": "intune_iac/worker_completed_readback.py",
+      "sha256": "edfe6e78224b7a557479b5f6ca7208af71f2e6cdd1c63ce3b75cd674617e36f8"
+    },
+    {
+      "bytes": 58296,
+      "regular_file": true,
+      "repository_path": "intune_iac/worker_service.py",
+      "sha256": "40f6caf0c30f21ba3ff79f2ecf2823fbccd9de2929e88d94d3a74d4d1a2e499a"
+    },
+    {
+      "bytes": 25298,
+      "regular_file": true,
+      "repository_path": "plugin_tests/test_worker_completed_readback_r4.py",
+      "sha256": "41658847cfd8618338f60e98f226b64a0248b8b863a3906ca953e5ff8ce7d9b3"
+    },
+    {
+      "bytes": 273853,
+      "regular_file": true,
+      "repository_path": "release-source-files.txt",
+      "sha256": "615d749c608fd26786e7cca4411194feb02de12899be2040f9f56b5f9a5c9366"
+    }
+  ],
+  "review_path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/checkpoint30-public-docs-delta-01/PUBLIC-DOCS-DELTA.json",
+  "review_sha256": "f98097f659f6c4a9672ef4097a474ae63722c1643575e05f5ab1e7b0a1a4431d",
+  "working_tree_after": "",
+  "new_engine_source": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "qualified_package_source": null,
+  "new_exact_package_qualification": "NOT_STARTED",
+  "changed_scope_test_receipt_sha256": "f224b903758b692796f63813f96f0dfbdf32771423afd59ba41869c4e8d20df2",
+  "scope": "Exact independently admitted core02 plus historical-preserving C30 documentation checkpoint.123 unique affected local tests pass controlled-interface scope; new exact source/runtime package gates remain pending. OldC25 packages2307/runtime64/native38 scopes not transferred or summed. Original failures, provider denial, provenance findings and external gates remain. No whole laboratory/platform/production qualification.",
+  "driver_sha256": "3493269742fe11fd2cd7c8f701e56c40ec0fb58b267c31c885d49e9b99a002c8"
+}

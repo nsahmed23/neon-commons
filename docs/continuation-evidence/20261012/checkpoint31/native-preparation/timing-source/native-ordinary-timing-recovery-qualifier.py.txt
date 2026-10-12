@@ -1,0 +1,548 @@
+"""Signed service/native/reader composition against nonforwarding TLS fixtures.
+
+This uses the unchanged pinned provider and a conformant service fixture. It
+never builds or replays the stopped provider malformed-error repair lane.
+"""
+from pathlib import Path
+from dataclasses import asdict,replace
+import base64,copy,hashlib,json,os,shutil,sqlite3,subprocess,sys,time,uuid
+from qualification_context import profile
+Q=profile()
+from intune_iac import worker_provider as wp,worker_host as wh,worker_service as service,worker_service_readback as rb,worker_state as ws,worker_precondition as pc,worker_broker as broker,observation_reader as rd,identity_binding as ib,azure_backend as ab
+from intune_iac.io import AppError,canonical,digest,write_json
+from intune_iac import worker_state_recovery as recovery_state, worker_successor as successor, worker_lease_recovery as lease_recovery
+from intune_iac.workbench_store import WorkbenchStore
+from plugin_tests.signing_fixture import verifier_pin
+from native_service_fixture import ACCOUNT,TENANT,PROVIDER,OBJECT,BACKEND,BACK_OBJECT,READER,READER_OBJECT,STATE_PATH
+from native_service_fixture_strict_metadata import StrictMetadataFixture as StatefulFixture
+SOURCE=Q.project
+import native_ordinary_support as support
+from intune_iac import worker_committed_state as observer_api, worker_committed_recovery as committed, worker_completed_readback as completed, capture_adapter
+
+
+
+def _successor(root, *, seed, prep, release, route):
+ if route not in ('acquisition','policy-response'):raise ValueError('Closed cancellation recovery route required')
+ cancel_after_state=False
+ desired_description='Fixture intentionally corrected' if route=='acquisition' else 'Fixture only'
+ os.umask(0o077);root=Path(root).absolute()
+ assert root.is_dir() and not root.is_symlink()
+ shutil.copytree(prep/'fixture',root/'fixture')
+ armed={};fired=[]
+ class SelectedFixture(StatefulFixture):
+  def _dispatch(self,method,host,path,query,headers,raw):
+   response=super()._dispatch(method,host,path,query,headers,raw)
+   if cancel_after_state and armed and not fired and host==ACCOUNT and method=='PUT' and path==STATE_PATH and not query and response[0]==201:
+    fired.append({'lease_id':self.blobs[STATE_PATH]['lease'],'state_sha256':hashlib.sha256(self.state_bytes()).hexdigest(),'response_status':response[0]})
+    argv=[Q.tool('python'),'-B',str(SOURCE/'scripts/intune-iac.py'),'service','cancel','--job-root',str(armed['job_root']),'--policy',str(armed['policy'])]
+    result=subprocess.run(argv,cwd=SOURCE,capture_output=True,timeout=20)
+    (root/'cancel.stdout').write_bytes(result.stdout);(root/'cancel.stderr').write_bytes(result.stderr)
+    write_json(root/'cancel-command.json',{'argv':argv,'returncode':result.returncode})
+    assert result.returncode==0
+   return response
+ fixture=SelectedFixture(root/'fixture');adapter=support.load_adapter(prep/'prepared')
+ for name in ('trust','jobs','job'): (root/name).mkdir(mode=0o700)
+ provider_secret=ib.ClientSecretHandle('SYNTHETIC-provider-service-secret');backend_secret=ib.ClientSecretHandle('SYNTHETIC-backend-service-secret');reader_secret=ib.ClientSecretHandle('SYNTHETIC-reader-service-secret')
+ keep=[provider_secret,backend_secret,reader_secret]
+ receipt={'schema_version':'signed-native-timing-cancellation-recovery-successor/1','environment':'Linux_network_none_pinned_native_tools_nonforwarding_loopback_TLS','platform_qualified':False,'production_approved':False,'status':'started'}
+ write_json(root/'receipt.json',receipt)
+ try:
+  fixture.start()
+  identity=ib.BindingConfig(adapter.spec.identity,adapter.spec.backend.identity,adapter.spec.backend.backend)
+  binding=ib.bind_laboratory(identity,provider_credential=provider_secret,backend_credential=backend_secret,transport=fixture.transport,max_age=120)
+  reader=rd.bind_laboratory_reader(rd.ReaderSpec(TENANT,READER,READER_OBJECT,(OBJECT,)),credential=reader_secret,transport=fixture.transport,max_duration_seconds=120);keep.append(reader)
+  operation_start=len(fixture.requests)
+  preimage=reader.capture(OBJECT,root/'preimage');initial_graph=fixture.graph_snapshot();initial_state=fixture.state_bytes()
+  put,assign=support.approved_bodies(desired_description)
+  saved=(prep/'prepared/approved.plan').read_bytes();shown=(prep/'prepared/approved-plan.json').read_bytes();saved_sha=hashlib.sha256(saved).hexdigest()
+  identifier=str(uuid.uuid4());expires=int(time.time())+300
+  execution=digest({'operation_id':identifier,'provider_binding':adapter.binding(),'saved_plan_sha256':saved_sha,'plan_json_sha256':hashlib.sha256(shown).hexdigest(),'expires_at':expires,'scope':'local_native_protocol_fixture_only'})
+  gate=pc.create_laboratory_precondition(reader=reader,preimage=preimage,execution_binding_sha256=execution,approved_policy_body=put,approved_assignment_body=assign,evidence_root=root/'precondition');keep.append(gate)
+  contract_type=ws.ComputedNativeStateWriteContract if route=='acquisition' else recovery_state.DescriptionRecoveryStateWriteContract
+  contract=contract_type(baseline_raw=initial_state,plan_json_raw=shown,saved_plan_sha256=saved_sha,execution_binding_sha256=execution,preimage=preimage,precondition=gate)
+  credentials=broker.broker_credentials(binding=binding,backend_credential=backend_secret,execution_binding_sha256=execution);keep.append(credentials)
+  from native_recovery_policy import build_native_policy
+  policy=build_native_policy(operation_id=identifier,execution_binding_sha256=execution,expires_at=expires,contract=contract,exact_put_bytes=put,exact_assign_bytes=assign,credentials=credentials)
+  wp.publish_files(root/'source',adapter.source_files());controls=adapter.control_files('apply',saved_plan=saved,credentials=credentials);controls['broker-ca.pem']=fixture.certificate.read_bytes();wp.publish_files(root/'control',controls)
+  proxy=Q.scratch/('partial-'+uuid.uuid4().hex[:12]);proxy.mkdir(mode=0o700)
+  tools=tuple(wh.PinnedTool(**row) for row in json.loads((prep/'receipt.json').read_bytes())['tools'])
+  host=wh.HostSpec(Q.tool('docker'),str(root/'source'),wh.directory_binding(root/'source')['sha256'],str(root/'control'),wh.directory_binding(root/'control')['sha256'],str(root/'job'),tools=tools,broker_root=str(proxy),broker_ca_sha256=hashlib.sha256(fixture.certificate.read_bytes()).hexdigest(),timeout_seconds=90,output_limit=4*1024*1024)
+  facts={'schema_version':'service-run-context/1','repository':'https://github.com/nsahmed23/neon-commons','source_revision':adapter.spec.source_revision,'source_sha256':adapter.spec.source_sha256,'workflow_revision':adapter.spec.source_revision,'verifier_revision':adapter.spec.source_revision,'run_id':'native-local-'+identifier,'run_attempt':1,'protected_ref':'refs/heads/continuation/r4-20261007','effective_inputs_sha256':adapter.binding()['effective_input_sha256'],'provider_lock_sha256':adapter.binding()['lockfile_sha256'],'stack':'worker','component':'intune-policy'}
+  run_binding=service.trusted_run_binding(facts,recheck=lambda:None);storage=service.trusted_storage_binding({'profile':'laboratory_private_plaintext','production_encryption':False,'quota_qualified':False},recheck=lambda:None)
+  manifest=service.make_manifest(operation_id=identifier,profile='native_docker_laboratory_protocol',expires_at=expires,execution_binding_sha256=execution,host_spec=host,broker_policy=policy,run_binding_sha256=run_binding.sha256,run_context=facts,storage_binding_sha256=storage.sha256,tenant_id=TENANT,object_ids=[OBJECT],backend_scope_sha256=digest(adapter.binding()['backend']),provider_binding=adapter.binding(),saved_plan_sha256=saved_sha,identity_binding_sha256=binding.evidence()['binding_sha256'],state_contracts={'state-write':contract.binding()},precondition_binding=gate.binding())
+  write_json(root/'manifest.json',manifest);write_json(root/'contract.json',contract.binding())
+  key=root/'trust/synthetic-approver.pem';subprocess.run([Q.tool('openssl'),'genpkey','-algorithm','ED25519','-out',str(key)],check=True,capture_output=True)
+  public=subprocess.run([Q.tool('openssl'),'pkey','-in',str(key),'-pubout','-outform','DER'],check=True,capture_output=True).stdout[-32:]
+  pin=verifier_pin(Path(Q.tool('openssl')),Q.value['tools']['openssl']['sha256'])
+  temporary_manifest=copy.deepcopy(manifest);temporary_manifest['operation_id']=str(uuid.uuid4());temporary_manifest['broker_policy']['operation_id']=temporary_manifest['operation_id'];service.validate_manifest(temporary_manifest);write_json(root/'temporary-undispatched-manifest.json',temporary_manifest)
+  trust={'schema_version':'worker-service-policy/1','authority_root':str(seed/'trust/authority'),'jobs_root':str(seed/'jobs'),'verifier':{k:str(v) if isinstance(v,Path) else v for k,v in asdict(pin).items()},'approvers':[{'issuer':'local-native-fixture','key_id':'local-key','approver_id':'independent-local-signature-fixture','public_key_hex':public.hex(),'profiles':['native_docker_laboratory_protocol']}],'admitted_manifest_sha256':[digest(manifest),digest(temporary_manifest),digest(json.loads((seed/'manifest.json').read_bytes()))]}
+  trust_path=root/'trust/policy.json';write_json(trust_path,trust);job_root=seed/'jobs'/('successor-'+identifier)
+  def cli(action,*extra):
+   argv=[Q.tool('python'),'-B',str(SOURCE/'scripts/intune-iac.py'),'service',action,'--job-root',str(job_root),'--policy',str(trust_path),*extra]
+   result=subprocess.run(argv,cwd=SOURCE,capture_output=True,timeout=20)
+   (root/('cli-'+action+'.stdout')).write_bytes(result.stdout);(root/('cli-'+action+'.stderr')).write_bytes(result.stderr)
+   write_json(root/('cli-'+action+'.json'),{'argv':argv,'exit_code':result.returncode})
+   assert result.returncode==0,(action,result.stderr.decode());return result
+  prepare_successor(root=root, manifest=manifest, job_root=job_root, trust_path=trust_path, key=key, binding=binding, backend_secret=backend_secret, storage=storage, fixture=fixture, preimage=preimage, receipt=receipt, temporary_manifest=temporary_manifest, seed=seed, release=release)
+  cli('review');cli('status');cli('attach')
+  job=service.ServiceJob(job_root,trust_path)
+  payload={'schema_version':'signed-worker-service-approval/1','issuer':'local-native-fixture','key_id':'local-key','approver_id':'independent-local-signature-fixture','operation_id':identifier,'manifest_sha256':digest(manifest),'issued_at':int(time.time()),'expires_at':expires,'nonce':uuid.uuid4().hex}
+  (root/'trust/message.bin').write_bytes(service.SIGNATURE_DOMAIN+canonical(payload));signature=root/'trust/signature.bin'
+  subprocess.run([Q.tool('openssl'),'pkeyutl','-sign','-rawin','-inkey',str(key),'-in',str(root/'trust/message.bin'),'-out',str(signature)],check=True,capture_output=True)
+  signed={'payload':payload,'signature':base64.b64encode(signature.read_bytes()).decode()};write_json(root/'signed-approval.json',signed)
+  upstream=broker.LaboratoryUpstream(fixture.port,fixture.certificate)
+  runtime=service.laboratory_runtime(native_protocol=True,run=run_binding,storage=storage,upstream=upstream,certificate=fixture.certificate,private_key=fixture.root/'private-key.pem',prewrite=lambda:None,binding=binding,credentials=credentials,state_contracts={'state-write':contract},precondition=gate)
+  before_dispatch=len(fixture.requests)
+  try:job.run({'approved':True},runtime=runtime);raise AssertionError('boolean approval accepted')
+  except AppError as error:receipt['negative_boolean_approval']=error.code
+  assert job.status()['dispatches']==0 and len(fixture.requests)==before_dispatch
+  armed.update(job_root=job_root,policy=trust_path)
+  result=job.run(signed,runtime=runtime);write_json(root/'service-after-host.json',result)
+  if cancel_after_state:
+   return _cancelled_result(root,seed=seed,prep=prep,fixture=fixture,job=job,manifest=manifest,result=result,initial_graph=initial_graph,initial_state=initial_state,fired=fired,receipt=receipt,job_root=job_root,trust_path=trust_path)
+  assert result['status']=='host_completed_service_unverified',result
+  completion=gate.completion();readback=rb.collect_laboratory(manifest,binding=binding,backend_credential=backend_secret,completion=completion,state_contract=contract,storage=storage,upstream=upstream,output=root/'independent-readback')
+  converged=job.reconcile(readback);write_json(root/'service-reconciled.json',converged);cli('attach')
+  request_count=len(fixture.requests)
+  try:job.run(signed,runtime=runtime);raise AssertionError('operation replay accepted')
+  except AppError as error:receipt['negative_replay']=error.code
+  assert len(fixture.requests)==request_count
+  store=WorkbenchStore.create(root/'store',TENANT)
+  published=rd.publish_batch(store,[completion.verified()['capture']],job_id=uuid.UUID(identifier).hex,attempt_id=uuid.uuid4().hex);write_json(root/'published-observation.json',published)
+  for action,extra in [('service-link',['--job-root',str(job_root),'--policy',str(trust_path)]),('views',[])]:
+   argv=[Q.tool('python'),'-B',str(SOURCE/'scripts/intune-iac.py'),'workbench',action,'--root',str(root/'store'),'--object',OBJECT,*extra]
+   output=subprocess.run(argv,cwd=SOURCE,capture_output=True,timeout=20)
+   (root/('workbench-'+action+'.stdout')).write_bytes(output.stdout);(root/('workbench-'+action+'.stderr')).write_bytes(output.stderr)
+   write_json(root/('workbench-'+action+'.json'),{'argv':argv,'exit_code':output.returncode})
+   assert output.returncode==0,(action,output.stderr.decode())
+  views=json.loads((root/'workbench-views.stdout').read_bytes())
+  assert views['proposed']['saved_plan_sha256']==saved_sha
+  assert views['proposed']['journal_status']=='service_state_converged'
+  second=root/'second-plan';second.mkdir(mode=0o700);(second/'job').mkdir(mode=0o700)
+  second_before=fixture.state_bytes();second_graph=fixture.graph_snapshot();second_calls=len(fixture.requests)
+  second_proxy=Q.scratch/('second-'+uuid.uuid4().hex[:12]);fixture.start(second_proxy)
+  wp.publish_files(second/'source',adapter.source_files());second_controls=adapter.control_files('second',credentials=credentials)
+  second_script=second_controls['worker.sh'].decode()
+  second_prefix=next(line.split('/tools/atmos')[0] for line in second_script.splitlines() if line.startswith('env -i '))
+  second_script+=second_prefix+'/tools/atmos terraform show intune-policy -s worker -json /job/'+wp.PROJECT+'/second.plan --process-functions=false --process-templates=false > /job/second-plan.json\n'
+  second_controls.update({'worker.sh':second_script.encode(),'broker-ca.pem':fixture.certificate.read_bytes()});wp.publish_files(second/'control',second_controls)
+  second_host=wh.HostSpec(Q.tool('docker'),str(second/'source'),wh.directory_binding(second/'source')['sha256'],str(second/'control'),wh.directory_binding(second/'control')['sha256'],str(second/'job'),tools=tools,broker_root=str(second_proxy),broker_ca_sha256=hashlib.sha256(fixture.certificate.read_bytes()).hexdigest(),timeout_seconds=60,output_limit=4*1024*1024)
+  second_result=wh.launch(second_host,second/'host');write_json(second/'result.json',second_result)
+  assert second_result['status']=='complete' and second_result['container_exit_code']==0,second_result
+  second_plan_raw=(second/'job/second-plan.json').read_bytes()
+  second_source_raw=(second/'source/project'/wp.PROJECT/'main.tf.json').read_bytes()
+  noop_proof=_literal_noop(second_plan_raw,state_raw=second_before,source_raw=second_source_raw,effective_inputs_sha256=adapter.binding()['effective_input_sha256'])
+  write_json(second/'literal-noop-proof.json',noop_proof)
+  independent_noop=_independent_noop(second_before,second_plan_raw,fixture.graph_snapshot(),serial=json.loads(initial_state)['serial']+1,description=desired_description)
+  write_json(second/'independent-literal-noop-proof.json',independent_noop)
+  second_noop=noop_proof['before_after_planned_prior_values_equal_state'] is True
+  assert second_noop and fixture.state_bytes()==second_before and fixture.graph_snapshot()==second_graph
+  assert not any(row['host']=='graph.microsoft.com' and row['method'] in ('PUT','POST','PATCH','DELETE') for row in fixture.requests[second_calls:])
+  graph=fixture.graph_snapshot();state=json.loads(fixture.state_bytes());prior=json.loads(initial_state)
+  calls=fixture.requests[json.loads((prep/'receipt.json').read_bytes())['requests']:];writes=[r for r in calls if r['host']=='graph.microsoft.com' and r['method'] in ('PUT','PATCH','POST','DELETE')]
+  checks={'second_native_plan_noop':second_noop,'second_native_plan_preserves_state':fixture.state_bytes()==second_before,'one_dispatch':converged['dispatches']==1,'service_state_converged':converged['status']=='service_state_converged','actual_policy_put_then_assign':[r['method'] for r in writes]==['PUT','POST'],'immutable_object':graph['policy']['id']==OBJECT,'reviewed_description_exact':graph['policy']['description']==desired_description,'settings_exact':graph['settings']==initial_graph['settings'],'assignment_ids_targets_metadata_exact':_exact_assignments(graph['assignments'],initial_graph['assignments']),'scope_tags_exact':graph['policy']['roleScopeTagIds']==initial_graph['policy']['roleScopeTagIds'],'state_serial_advanced_once':state['serial']==prior['serial']+1,'state_lineage_retained':state['lineage']==prior['lineage'],'lease_released':fixture.blobs[STATE_PATH]['lease'] is None,'lock_metadata_removed':not fixture.blobs[STATE_PATH]['metadata'],'saved_plan_byte_exact':(root/'control/approved.plan').read_bytes()==saved,'endpoint_unestablished':converged['outcome']['endpoint_effectiveness']=='unestablished'}
+  with sqlite3.connect(seed/'trust/authority/service.sqlite3') as db:
+   checks['reservation_released']=db.execute('SELECT COUNT(*) FROM ownership').fetchone()[0]==0
+   old_status=db.execute('SELECT status,dispatches,outcome FROM jobs WHERE id=?',(receipt['original_operation_id'],)).fetchone()
+   checks['original_failure_not_rewritten']=old_status[0]=='outcome_unknown' and old_status[1]==1 and hashlib.sha256(old_status[2].encode()).hexdigest()==receipt['original_outcome_sha256']
+   checks['successor_is_new_operation']=identifier!=receipt['original_operation_id']
+   checks['same_authority_transfer_recorded']=db.execute('SELECT COUNT(*) FROM successor_transfers').fetchone()[0]==2
+  receipt.update(status='PASS' if all(checks.values()) else 'FAIL',assertions=checks,operation_id=identifier,execution_binding_sha256=execution,manifest_sha256=digest(manifest),saved_plan_sha256=saved_sha,request_count=len(fixture.requests),new_requests=len(calls),state_sha256=hashlib.sha256(fixture.state_bytes()).hexdigest(),graph_capture_sha256=completion.verified()['capture_sha256'],mapping_status=completion.verified()['capture'].verified()[0]['status'],job_root=str(job_root),policy_path=str(trust_path),second_plan='PASS native no-change actual pinned Atmos and Azure-backed plan',second_plan_sha256=hashlib.sha256((second/'job'/wp.PROJECT/'second.plan').read_bytes()).hexdigest())
+  write_json(root/'receipt.json',receipt);print(json.dumps({'status':receipt['status'],'root':str(root),'assertions':len(checks),'requests':len(fixture.requests)}));return receipt
+ except BaseException as error:
+  receipt.update(status='FAIL',error=getattr(error,'code',type(error).__name__),fixture_requests=len(fixture.requests));_record_failure(root/'receipt.json',receipt,error)
+  raise
+ finally:
+  _close_all([*reversed(keep),fixture],root)
+
+
+def prepare_successor(*,root,manifest,job_root,trust_path,key,binding,backend_secret,storage,fixture,preimage,receipt,temporary_manifest,seed,release):
+ original=service.ServiceJob(seed/'jobs/approved',trust_path)
+ before=original.status();assert before['policy_matches_reviewed'] is False;receipt['historical_policy_binding_preserved_current_policy_differs']=True;receipt['original_operation_id']=original.identifier;receipt['original_outcome_sha256']=digest(before['outcome'])
+ recovery_manifest=json.loads((release/'manifest.json').read_bytes())
+ recovery_policy=lease_recovery.RecoveryPolicy(release/'trust/policy.json')
+ context=lease_recovery.laboratory_context(job=original,binding=binding,backend_credential=backend_secret,storage=storage,upstream=broker.LaboratoryUpstream(fixture.port,fixture.certificate))
+ completion=lease_recovery.completion(recovery_manifest,context=context,policy=recovery_policy,output=root/'fresh-recovery-observation')
+ transfer=successor.prepare_transfer(original_job=original,successor_manifest=manifest,successor_job_root=job_root,recovery_completion=completion,service_preimage=preimage,transfer_id=str(uuid.uuid4()),expires_at=manifest['expires_at'])
+ write_json(root/'transfer-manifest.json',transfer)
+ payload={'schema_version':'signed-worker-service-successor/2','issuer':'local-native-fixture','key_id':'local-key','approver_id':'independent-local-signature-fixture','transfer_id':transfer['transfer_id'],'transfer_manifest_sha256':digest(transfer),'issued_at':int(time.time()),'expires_at':transfer['expires_at'],'nonce':uuid.uuid4().hex}
+ def sign(domain,payload=payload):
+  name=uuid.uuid4().hex;message=root/'trust'/(name+'.message');signature=root/'trust'/(name+'.signature');message.write_bytes(domain+canonical(payload))
+  subprocess.run([Q.tool('openssl'),'pkeyutl','-sign','-rawin','-inkey',str(key),'-in',str(message),'-out',str(signature)],check=True,capture_output=True)
+  return {'payload':copy.deepcopy(payload),'signature':base64.b64encode(signature.read_bytes()).decode()}
+ signed=sign(successor.SIGNATURE_DOMAIN);write_json(root/'transfer-signed-approval.json',signed)
+ negatives={}
+ def reject(name,action):
+  calls=len(fixture.requests)
+  with original.policy.connection() as db:owners_before=db.execute('SELECT scope,job FROM ownership ORDER BY scope').fetchall()
+  try:action()
+  except AppError as error:negatives[name]=error.code
+  else:raise AssertionError(name+' accepted')
+  with original.policy.connection() as db:assert db.execute('SELECT scope,job FROM ownership ORDER BY scope').fetchall()==owners_before
+  assert len(fixture.requests)==calls
+ reject('json_completion_denied',lambda:successor.prepare_transfer(original_job=original,successor_manifest=manifest,successor_job_root=job_root,recovery_completion=completion.verified(),service_preimage=preimage,transfer_id=str(uuid.uuid4()),expires_at=manifest['expires_at']))
+ reject('boolean_transfer_approval_denied',lambda:successor.execute_transfer(transfer,{'approved':True},original_job=original,successor_manifest=manifest,recovery_completion=completion,service_preimage=preimage))
+ reject('ordinary_apply_domain_denied',lambda:successor.execute_transfer(transfer,sign(service.SIGNATURE_DOMAIN),original_job=original,successor_manifest=manifest,recovery_completion=completion,service_preimage=preimage))
+ changed=copy.deepcopy(transfer);changed['successor']['manifest_sha256']='0'*64
+ reject('changed_successor_manifest_denied',lambda:successor.execute_transfer(changed,signed,original_job=original,successor_manifest=manifest,recovery_completion=completion,service_preimage=preimage))
+ # A separately signed, never-dispatched successor can be cancelled without
+ # dropping the predecessor's outstanding ownership or reviving an old nonce.
+ temporary_root=seed/'jobs'/('temporary-'+temporary_manifest['operation_id'])
+ temporary=successor.prepare_transfer(original_job=original,successor_manifest=temporary_manifest,successor_job_root=temporary_root,recovery_completion=completion,service_preimage=preimage,transfer_id=str(uuid.uuid4()),expires_at=manifest['expires_at'])
+ temp_payload={**payload,'transfer_id':temporary['transfer_id'],'transfer_manifest_sha256':digest(temporary),'nonce':uuid.uuid4().hex}
+ temp_signed=sign(successor.SIGNATURE_DOMAIN,temp_payload)
+ write_json(root/'temporary-transfer.json',temporary);write_json(root/'temporary-transfer-approval.json',temp_signed)
+ temp_result=successor.execute_transfer(temporary,temp_signed,original_job=original,successor_manifest=temporary_manifest,recovery_completion=completion,service_preimage=preimage);assert temp_result['status']=='prepared' and temp_result['dispatches']==0
+ argv=[Q.tool('python'),'-B',str(SOURCE/'scripts/intune-iac.py'),'service','cancel','--job-root',str(temporary_root),'--policy',str(trust_path)]
+ cancelled=subprocess.run(argv,cwd=SOURCE,capture_output=True,timeout=20);(root/'temporary-cancel.stdout').write_bytes(cancelled.stdout);(root/'temporary-cancel.stderr').write_bytes(cancelled.stderr);write_json(root/'temporary-cancel-command.json',{'argv':argv,'exit_code':cancelled.returncode})
+ assert cancelled.returncode==0;temp_status=service.ServiceJob(temporary_root,trust_path).status();assert temp_status['status']=='cancelled_before_dispatch' and temp_status['dispatches']==0
+ with original.policy.connection() as db:
+  assert db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(original.identifier,)).fetchone()[0]==2
+  assert db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(temporary_manifest['operation_id'],)).fetchone()[0]==0
+  assert db.execute('SELECT status FROM successor_transfers WHERE transfer_id=?',(temporary['transfer_id'],)).fetchone()[0]=='returned_without_dispatch'
+ receipt['undispatched_successor_cancel_restored_original_ownership']=True
+ transferred=successor.execute_transfer(transfer,signed,original_job=original,successor_manifest=manifest,recovery_completion=completion,service_preimage=preimage)
+ write_json(root/'transfer-result.json',transferred);write_json(root/'transfer-negative-controls.json',negatives)
+ assert transferred['status']=='prepared' and transferred['dispatches']==0
+ after=original.status();assert after['status']==before['status'] and after['outcome']==before['outcome'] and after['dispatches']==1
+ with original.policy.connection() as db:
+  assert db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(original.identifier,)).fetchone()[0]==0
+  assert db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(manifest['operation_id'],)).fetchone()[0]==2
+ receipt['successor_transfer_sha256']=digest(transfer);receipt['successor_negative_controls']=negatives
+
+
+def _release(output, *, seed, preparation):
+ os.umask(0o077);root=Path(output).absolute();root.mkdir(mode=0o700)
+ seed=Path(seed).absolute();original={name:hashlib.sha256((seed/'fixture'/name).read_bytes()).hexdigest() for name in ('state.bin','graph.json','blobs.json','requests.json')}
+ shutil.copytree(seed/'fixture',root/'fixture');fixture=StatefulFixture(root/'fixture')
+ provider=ib.ClientSecretHandle('SYNTHETIC-recovery-provider');backend=ib.ClientSecretHandle('SYNTHETIC-recovery-backend')
+ try:
+  fixture.start()
+  adapter=_historical_adapter(preparation/'prepared',json.loads((seed/'manifest.json').read_bytes()));binding=ib.bind_laboratory(ib.BindingConfig(adapter.spec.identity,adapter.spec.backend.identity,adapter.spec.backend.backend),provider_credential=provider,backend_credential=backend,transport=fixture.transport,max_age=120)
+  job=service.ServiceJob(seed/'jobs/approved',seed/'trust/policy.json');storage=service.trusted_storage_binding({'profile':'laboratory_private_plaintext','production_encryption':False,'quota_qualified':False},recheck=lambda:None)
+  context=lease_recovery.laboratory_context(job=job,binding=binding,backend_credential=backend,storage=storage,upstream=broker.LaboratoryUpstream(fixture.port,fixture.certificate))
+  observation=context.observe(root/'initial');manifest=lease_recovery.prepare(observation,operation_id=str(uuid.uuid4()),expires_at=int(time.time())+240)
+  (root/'manifest.json').write_bytes(canonical(manifest));trust=root/'trust';trust.mkdir(mode=0o700);key=trust/'synthetic-recovery-approver.pem'
+  subprocess.run([Q.tool('openssl'),'genpkey','-algorithm','ED25519','-out',str(key)],check=True,capture_output=True)
+  public=subprocess.run([Q.tool('openssl'),'pkey','-in',str(key),'-pubout','-outform','DER'],check=True,capture_output=True).stdout[-32:]
+  pin=verifier_pin(Path(Q.tool('openssl')),Q.value['tools']['openssl']['sha256'])
+  policy_data={'schema_version':'native-lease-recovery-policy/1','authority_root':str(trust/'authority'),'verifier':{k:str(v) if isinstance(v,Path) else v for k,v in asdict(pin).items()},'approvers':[{'issuer':'local-partial-recovery','key_id':'new-recovery-only','approver_id':'synthetic-independent-recovery-approver','public_key_hex':public.hex(),'profiles':['laboratory_native_lease_recovery']}],'admitted_manifest_sha256':[digest(manifest)]}
+  (trust/'policy.json').write_bytes(canonical(policy_data));policy=lease_recovery.RecoveryPolicy(trust/'policy.json')
+  payload={'schema_version':'signed-native-lease-recovery-approval/1','issuer':'local-partial-recovery','key_id':'new-recovery-only','approver_id':'synthetic-independent-recovery-approver','operation_id':manifest['operation_id'],'manifest_sha256':digest(manifest),'issued_at':int(time.time()),'expires_at':manifest['expires_at'],'nonce':uuid.uuid4().hex}
+  message=trust/'message.bin';signature=trust/'signature.bin';message.write_bytes(lease_recovery.SIGNATURE_DOMAIN+canonical(payload))
+  subprocess.run([Q.tool('openssl'),'pkeyutl','-sign','-rawin','-inkey',str(key),'-in',str(message),'-out',str(signature)],check=True,capture_output=True)
+  signed={'payload':payload,'signature':base64.b64encode(signature.read_bytes()).decode()};(root/'signed-approval.json').write_bytes(canonical(signed))
+  before_state=fixture.state_bytes();before_graph=canonical(fixture.graph_snapshot());before_meta=canonical(fixture.blobs[STATE_PATH]['metadata']);before_calls=len(fixture.requests)
+  before_status=job.status()
+  denied=[]
+  try:lease_recovery.execute(manifest,{'approved':True},context=context,policy=policy,output=root/'boolean-denied')
+  except AppError as error:denied.append(error.code)
+  else:raise AssertionError('boolean release approval accepted')
+  assert len(fixture.requests)==before_calls
+  result=lease_recovery.execute(manifest,signed,context=context,policy=policy,output=root/'execution')
+  after_calls=len(fixture.requests)
+  try:lease_recovery.execute(manifest,signed,context=context,policy=policy,output=root/'replay-denied')
+  except AppError as error:denied.append(error.code)
+  else:raise AssertionError('lease release replay accepted')
+  assert len(fixture.requests)==after_calls
+  after_status=job.status()
+  checks={'copied_fixture_lease_unlocked':fixture.blobs[STATE_PATH]['lease'] is None,'state_bytes_exact':fixture.state_bytes()==before_state,'graph_exact':canonical(fixture.graph_snapshot())==before_graph,'metadata_preserved':canonical(fixture.blobs[STATE_PATH]['metadata'])==before_meta,'original_fixture_unchanged':original=={name:hashlib.sha256((seed/'fixture'/name).read_bytes()).hexdigest() for name in original},'readiness_not_assumed':result['backend_ready_for_new_apply'] is False,'new_approval_and_replay_negatives':len(denied)==2,'original_status_outcome_dispatches_retained':all(after_status[k]==before_status[k] for k in ('status','outcome','dispatches')),'one_exact_release':sum(row['host']==ACCOUNT and row['method']=='PUT' and row['path']==STATE_PATH+'?comp=lease' and row['headers'].get('x-ms-lease-action')=='release' for row in fixture.requests[before_calls:])==1}
+  with job.policy.connection() as db:checks['original_ownership_retained']=db.execute('SELECT COUNT(*) FROM ownership WHERE job=?',(job.identifier,)).fetchone()[0]==2
+  receipt={'schema_version':'partial-native-lease-recovery-fixture/1','status':'PASS' if all(checks.values()) else 'FAIL','checks':checks,'negative_codes':denied,'result':result,'original_fixture_hashes':original,'recovery_source_sha256':hashlib.sha256(Path(lease_recovery.__file__).read_bytes()).hexdigest(),'original_operation_id':job.identifier,'requests_new':len(fixture.requests)-before_calls,'platform_qualified':False,'production_approved':False}
+  (root/'receipt.json').write_bytes(canonical(receipt));(root/'tested-recovery.py').write_bytes(Path(lease_recovery.__file__).read_bytes());print(json.dumps({'status':receipt['status'],'assertions':len(checks),'root':str(root)}));return receipt
+ finally:_close_all([fixture,provider,backend],root)
+
+
+def _prepare(output, recovered, *, preparation, original, route):
+ if route not in ('acquisition','policy-response'):raise ValueError('Closed cancellation preparation route required')
+ desired_description='Fixture intentionally corrected' if route=='acquisition' else 'Fixture only'
+ observed_description='Fixture only' if route=='acquisition' else 'Fixture intentionally corrected'
+ os.umask(0o077);root=Path(output).absolute();root.mkdir(mode=0o700);before=Path(recovered).absolute()
+ shutil.copytree(before/'fixture',root/'fixture');fixture=StatefulFixture(root/'fixture')
+ assert fixture.blobs[STATE_PATH]['lease'] is None
+ original_metadata=canonical(fixture.blobs[STATE_PATH]['metadata'])
+ original_state=fixture.state_bytes();parsed=json.loads(original_state);original_graph=fixture.graph_snapshot()
+ proof=json.loads((before/'receipt.json').read_bytes());assert proof['status']=='PASS' and proof['checks']['copied_fixture_lease_unlocked'] and proof['checks']['state_bytes_exact']
+ assert hashlib.sha256(original_state).hexdigest()==proof['original_fixture_hashes']['state.bin']
+ adapter=_historical_adapter(preparation/'prepared',json.loads((original/'manifest.json').read_bytes()))
+ assert original_graph['policy']['description']==observed_description
+ backend=replace(adapter.spec.backend.backend,state_lineage=parsed['lineage'],state_serial=parsed['serial'],state_sha256=hashlib.sha256(original_state).hexdigest())
+ revision=Q.source_revision
+ adapter=support.adapter_for({**adapter.spec.desired,'description':desired_description},original_state,adapter.lockfile)
+ wp.publish_files(root/'source',adapter.source_files());proxy=Q.scratch/('restore-prep-'+hashlib.sha256(str(root).encode()).hexdigest()[:12])
+ controls=adapter.control_files('init');script=controls['worker.sh'].decode()
+ from native_service_fixture import TENANT,BACKEND,SUBSCRIPTION
+ extras={'M365_CLIENT_SECRET':'intune-worker-placeholder-'+'a'*64+'-provider','ARM_CLIENT_SECRET':'intune-worker-placeholder-'+'a'*64+'-backend','ARM_TENANT_ID':TENANT,'ARM_CLIENT_ID':BACKEND,'ARM_SUBSCRIPTION_ID':SUBSCRIPTION,'ARM_USE_AZUREAD':'true','ARM_USE_CLI':'false','ARM_USE_MSI':'false','ARM_USE_OIDC':'false','ARM_USE_AKS_WORKLOAD_IDENTITY':'false'}
+ script=script.replace('SSL_CERT_FILE=/control/broker-ca.pem ','SSL_CERT_FILE=/control/broker-ca.pem '+' '.join(k+'='+v for k,v in extras.items())+' ')
+ prefix=next(line.split('/tools/atmos')[0] for line in script.splitlines() if line.startswith('env -i '));suffix=' --process-functions=false --process-templates=false'
+ script+='set +e\n'+prefix+'/tools/atmos terraform plan intune-policy -s worker -input=false -no-color -detailed-exitcode -out=approved.plan --init-mode=never'+suffix+'\ncode=$?\nset -e\n[ "$code" -eq 2 ] || exit 71\n'
+ script+=prefix+'/tools/atmos terraform show intune-policy -s worker -json /job/'+wp.PROJECT+'/approved.plan'+suffix+' > /job/approved-plan.json\n'
+ controls.update({'worker.sh':script.encode(),'broker-ca.pem':fixture.certificate.read_bytes()});wp.publish_files(root/'control',controls);(root/'job').mkdir(mode=0o700)
+ tools=tuple(wh.PinnedTool(**r) for r in Q.tool_rows)
+ host=wh.HostSpec(Q.tool('docker'),str(root/'source'),wh.directory_binding(root/'source')['sha256'],str(root/'control'),wh.directory_binding(root/'control')['sha256'],str(root/'job'),tools=tools,broker_root=str(proxy),broker_ca_sha256=hashlib.sha256(fixture.certificate.read_bytes()).hexdigest(),timeout_seconds=60,output_limit=4*1024*1024)
+ try:
+  fixture.start(proxy)
+  result=wh.launch(host,root/'host')
+ finally:_close_all([fixture],root)
+ receipt={'schema_version':'native-timing-cancellation-new-plan-preparation/1','native_host':result,'state_sha256':hashlib.sha256(original_state).hexdigest(),'state_serial':parsed['serial'],'state_lineage':parsed['lineage'],'state_etag':fixture.state_etag(),'requests':len(fixture.requests),'tools':[asdict(t) for t in tools],'production_approved':False,'platform_qualified':False,'prior_success_receipt_sha256':hashlib.sha256((before/'receipt.json').read_bytes()).hexdigest(),'evidence_reuse':'New exact-package failed-operation state and independently signed exact lease release; fresh actual native plan, no historical plan/authority fallback.'}
+ if result['status']!='complete' or result['container_exit_code']!=0:
+  receipt['status']='FAIL';(root/'receipt.json').write_bytes(canonical(receipt));print(receipt);return receipt
+ plan=(root/'job'/wp.PROJECT/'approved.plan').read_bytes();shown=(root/'job/approved-plan.json').read_bytes();document=json.loads(shown);change=document['resource_changes'][0]['change']
+ drift=document.get('resource_drift',[])
+ expected_drift=(not drift if route=='acquisition' else len(drift)==1 and drift[0]['change']['before']['description']=='Fixture only' and drift[0]['change']['after']['description']=='Fixture intentionally corrected')
+ checks={'persisted_state13_matches_original_fault':parsed['serial']==13 and original_state==(original/'raw-before-state.bin').read_bytes(),
+         'fresh_explicit_update':change['actions']==['update'],'before_current_observed_description':change['before']['description']==observed_description,
+         'after_new_reviewed_description':change['after']['description']==desired_description,'distinct_provider_refresh_baseline':expected_drift,
+         'state_byte_unchanged':fixture.state_bytes()==original_state,'graph_byte_unchanged':fixture.graph_snapshot()==original_graph,
+         'no_native_lease_left':fixture.blobs[STATE_PATH]['lease'] is None,'normal_plan_metadata_clear':not fixture.blobs[STATE_PATH]['metadata'],
+         'different_saved_plan':hashlib.sha256(plan).hexdigest()!=hashlib.sha256((preparation/'prepared/approved.plan').read_bytes()).hexdigest(),
+         'new_source_revision_explicit':adapter.spec.source_revision==Q.source_revision}
+ artifacts={'approved.plan':plan,'approved-plan.json':shown,'state-before-apply.json':original_state,'adapter-spec.json':canonical(asdict(adapter.spec)),'lockfile.hcl':adapter.lockfile,'provider-binding.json':canonical(adapter.binding()),'graph-before-apply.json':canonical(original_graph)};wp.publish_files(root/'prepared',artifacts)
+ receipt.update(status='PASS' if all(checks.values()) else 'FAIL',assertions=checks,artifacts={k:{'bytes':len(v),'sha256':hashlib.sha256(v).hexdigest()} for k,v in artifacts.items()});(root/'receipt.json').write_bytes(canonical(receipt));print(json.dumps({'status':receipt['status'],'assertions':len(checks),'root':str(root),'saved_plan_sha256':receipt['artifacts']['approved.plan']['sha256']}));return receipt
+
+
+def _close_all(items, root):
+ """Close every owned resource without replacing the primary exception."""
+ primary=sys.exc_info()[1];failures=[];first=None
+ for item in items:
+  try:item.close()
+  except BaseException as error:
+   if first is None:first=error
+   failures.append({'type':type(error).__name__,'code':getattr(error,'code',None)})
+ if failures:
+  try:write_json(root/('cleanup-failures-'+uuid.uuid4().hex+'.json'),{'primary':type(primary).__name__ if primary else None,'failures':failures,'status':'uncertain'})
+  except BaseException as error:
+   if first is None:first=error
+   sys.stderr.write(json.dumps({'cleanup_recording_failed':type(error).__name__})+'\n')
+  if primary is not None:
+   primary.add_note('Qualification cleanup also failed; retained bounded failure receipt when writable.')
+  else:raise first
+
+
+def _record_failure(path, value, primary):
+ try:write_json(path,value)
+ except BaseException as secondary:
+  primary.add_note('Qualification failure recording also failed; existing artifacts are retained.')
+  sys.stderr.write(json.dumps({'failure_recording_secondary':type(secondary).__name__,'primary':type(primary).__name__})+'\n')
+
+
+def _exact_assignments(actual, expected):
+ # Assignment order is a declared set by ID; duplicate IDs never collapse.
+ for rows in (actual,expected):
+  if type(rows) is not list:return False
+  if any(type(row) is not dict or type(row.get('id')) is not str or not row['id'] for row in rows):return False
+  if len({row['id'] for row in rows})!=len(rows):return False
+ return len(actual)==len(expected) and canonical(sorted(actual,key=lambda row:row['id']))==canonical(sorted(expected,key=lambda row:row['id']))
+
+
+def _literal_noop(plan_raw, *, state_raw, source_raw, effective_inputs_sha256):
+ from intune_iac.worker_plan_content import validate
+ return validate(plan_raw,state_raw=state_raw,source_raw=source_raw,object_id=OBJECT,
+  state_sha256=hashlib.sha256(state_raw).hexdigest(),source_sha256=hashlib.sha256(source_raw).hexdigest(),effective_inputs_sha256=effective_inputs_sha256)
+
+
+def _independent_noop(state_raw, plan_raw, graph, *, serial, description):
+ # Separately calibrated literal expected-value oracle, stdlib only. This is
+ # independent of product normalizers and the additional product content gate.
+ from native_maintenance_oracle import assert_convergence
+ return assert_convergence(state_raw,plan_raw,graph,description=description,serial=serial)
+
+
+def _historical_adapter(directory, manifest):
+ """Load exact historical inputs; never relabel them as current source."""
+ directory=Path(directory);value=json.loads((directory/'adapter-spec.json').read_bytes())
+ value['identity']=ib.IdentitySpec(**value['identity'])
+ value['backend']=ab.AzureBackendSpec(ib.IdentitySpec(**value['backend']['identity']),ib.BackendSpec(**value['backend']['backend']),value['backend']['coordination_key'])
+ adapter=wp.WorkerProviderAdapter(wp.ProviderSpec(**value),lockfile=(directory/'lockfile.hcl').read_bytes())
+ expected=manifest['provider_binding']
+ if canonical(adapter.binding())!=canonical(expected):raise ValueError('Historical adapter differs from original approved provider binding')
+ if adapter.spec.source_revision!=manifest['run_context']['source_revision']:raise ValueError('Historical source revision differs from original run')
+ if adapter.spec.source_sha256!=hashlib.sha256(adapter.source_files()['project/'+wp.PROJECT+'/main.tf.json']).hexdigest():raise ValueError('Historical source bytes differ')
+ if hashlib.sha256((directory/'approved.plan').read_bytes()).hexdigest()!=manifest['saved_plan_sha256']:raise ValueError('Historical plan bytes differ')
+ contract=manifest['state_contracts']['state-write']
+ if (hashlib.sha256((directory/'approved-plan.json').read_bytes()).hexdigest()!=contract['plan_json_sha256']
+     or hashlib.sha256((directory/'state-before-apply.json').read_bytes()).hexdigest()!=contract['baseline_sha256']):raise ValueError('Historical plan JSON/state bytes differ')
+ return adapter
+
+
+def _literal_equal(actual,expected):
+ if type(actual) is not type(expected):return False
+ if type(actual) is dict:return set(actual)==set(expected) and all(_literal_equal(actual[k],expected[k]) for k in expected)
+ if type(actual) is list:return len(actual)==len(expected) and all(_literal_equal(a,b) for a,b in zip(actual,expected))
+ return actual==expected
+
+
+def _arguments(action,output,*,previous_root,seed_root):
+ import stat
+ from native_ordinary_linkage import literal_path,load_json
+ routes={'ordinary-timing-acquisition-recovery':('ordinary-fault-acquisition','acquisition','outcome_unknown',13),
+         'ordinary-timing-policy-response-recovery':('ordinary-fault-policy-response','policy-response','outcome_unknown',13),
+         'ordinary-timing-known-completion-recovery':('ordinary-fault-apply-recording','known-completion','host_completed_service_unverified',14)}
+ if action not in routes:raise ValueError('Closed timing recovery action required')
+ previous,seed,root=literal_path(previous_root),literal_path(seed_root),literal_path(output)
+ if not previous.is_dir() or not seed.is_dir() or root.exists() or not root.parent.is_dir():raise ValueError('Exact prior roots and fresh private output required')
+ for protected in (previous,seed,Q.project,Q.evidence):
+  if root==protected or protected in root.parents or root in protected.parents:raise ValueError('Recovery output overlaps protected input')
+ if previous==seed or previous in seed.parents or seed in previous.parents:raise ValueError('Fault and preparation roots must be distinct')
+ info=root.parent.stat()
+ if info.st_uid!=os.geteuid() or stat.S_IMODE(info.st_mode)&0o077:raise ValueError('Private owned output parent required')
+ link=load_json(previous/'qualification-linkage.json');receipt=load_json(previous/'receipt.json');prep=load_json(seed/'receipt.json')
+ expected_action,route,expected_status,serial=routes[action]
+ if (link.get('schema_version')!='ordinary-native-fault-timing-linkage/1' or link.get('action')!=expected_action
+     or receipt.get('status')!='PASS' or not receipt.get('assertions') or any(value is not True for value in receipt['assertions'].values())
+     or prep.get('status')!='PASS' or prep.get('kind')!='preparation' or link.get('seed_root')!=str(seed)):
+  raise ValueError('Actual qualified exact timing fault and original preparation required')
+ job_root,policy_path=literal_path(link['job_root']),literal_path(link['policy_path'])
+ # Exact admitted timing03 producer always creates fresh default authority.
+ # Cancellation release/transfer helpers must never reopen a different job.
+ if job_root!=previous/'jobs/approved' or policy_path!=previous/'trust/policy.json':raise ValueError('Prior job layout differs from admitted timing producer')
+ manifest=load_json(previous/'manifest.json');registered=load_json(job_root/'manifest.json')
+ if (not _literal_equal(manifest,registered) or digest(manifest)!=link.get('manifest_sha256') or manifest.get('profile')!='native_docker_laboratory_protocol'
+     or link.get('source_revision')!=manifest['run_context']['source_revision'] or link.get('operation_id')!=manifest.get('operation_id')):
+  raise ValueError('Original registered manifest/source linkage differs')
+ original=service.ServiceJob(job_root,policy_path);status=original.status()
+ state=json.loads((previous/'fixture/state.bin').read_bytes())
+ if (status['status']!=expected_status or type(status.get('dispatches')) is not int or status['dispatches']!=1
+     or type(state.get('serial')) is not int or state['serial']!=serial):raise ValueError('Actual authority outcome/state does not match timing route')
+ _historical_adapter(seed/'prepared',manifest)
+ if route=='known-completion':
+  if link.get('recording_mode') not in ('archive-interruption','compound-interruption'):raise ValueError('Closed archive mode required')
+  blob=load_json(previous/'fixture/blobs.json')[STATE_PATH]
+  if blob['lease'] is not None or blob['metadata']!={}:raise ValueError('Known completion requires the already normal-unlocked backend')
+ elif link.get('recording_mode')!='archive-interruption':raise ValueError('Cancellation input mode differs from exact timing contract')
+ return root,previous,seed,route
+
+
+def _known_completion(root,previous,seed):
+ """Actual fresh post-restart reads; no exceptional release or apply."""
+ root=Path(root);fixture=support.copied_fixture(previous,root);handles=support.new_handles();primary=None;result=None
+ link=json.loads((previous/'qualification-linkage.json').read_bytes())
+ original=service.ServiceJob(Path(link['job_root']),Path(link['policy_path']))
+ before=original.status();manifest=original.manifest
+ immutable={str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in
+            (original.root/'manifest.json',original.root/'policy-binding.json',original.policy.path,seed/'prepared/approved.plan',seed/'prepared/approved-plan.json',seed/'prepared/lockfile.hcl')}
+ receipt={'schema_version':'native-known-completion-readonly-recovery/1','status':'STARTED','platform_qualified':False,'production_approved':False,
+          'historical_source_revision':manifest['run_context']['source_revision'],'observing_source_revision':Q.source_revision,
+          'original_implementation_matches_observer':before['implementation_matches_reviewed'],'old_execution_re_attested':False}
+ write_json(root/'receipt.json',receipt);write_json(root/'original-status-before.json',before)
+ try:
+  assert before['status']=='host_completed_service_unverified' and before['dispatches']==1
+  initial=fixture.state_bytes();graph=fixture.graph_snapshot();blob=copy.deepcopy(fixture.blobs[STATE_PATH]);start=len(fixture.requests)
+  assert blob['lease'] is None and blob['metadata']=={} and json.loads(initial)['serial']==14
+  prior=_historical_adapter(seed/'prepared',manifest)
+  adapter=support.rebind_adapter(prior,initial)
+  # Actual fresh native Plan is read-only except its own lock/metadata cycle.
+  second=support.plan_preparation(root/'second-plan',fixture,adapter,handles,expected_exit=0)
+  assert fixture.state_bytes()==initial and _literal_equal(fixture.graph_snapshot(),graph)
+  binding,secret,collector=support.fresh_binding(fixture,adapter,handles,reader=True)
+  put,assign=support.approved_bodies(prior.spec.desired['description'])
+  preimage=canonical(capture_adapter.load_capture(previous/'preimage',TENANT)['source']['raw_observed'])
+  baseline=(seed/'prepared/state-before-apply.json').read_bytes();shown=(seed/'prepared/approved-plan.json').read_bytes();saved=(seed/'prepared/approved.plan').read_bytes()
+  observer=observer_api.laboratory_observer(job=original,reader=collector,preimage_raw=preimage,policy_body=put,assignment_body=assign,
+      baseline_raw=baseline,plan_json_raw=shown,saved_plan_raw=saved)
+  context=committed.laboratory_context(job=original,binding=binding,backend_credential=secret,storage=support.storage(),
+      upstream=broker.LaboratoryUpstream(fixture.port,fixture.certificate),observer=observer)
+  original_lease_id=context.original['lease_id']
+  observation=context.observe(root/'fresh-original-committed-observation',require_locked=False)
+  facts=observation.verified();write_json(root/'fresh-observation.json',facts)
+  def owners():
+   with original.policy.connection() as db:return db.execute('SELECT scope,job FROM ownership WHERE job=? ORDER BY scope',(original.identifier,)).fetchall()
+  retained=owners();assert len(retained)==2
+  negatives={}
+  def reject(name,fn):
+   count=len(fixture.requests);before_owners=owners()
+   try:fn()
+   except AppError as error:negatives[name]=error.code
+   else:raise AssertionError(name+' accepted')
+   assert owners()==before_owners and len(fixture.requests)==count
+   write_json(root/'negative-controls.json',negatives)
+  reject('dict_observation',lambda:completed.collect(job_root=original.root,policy_path=original.policy.path,observation=facts,output=root/'negative-dict'))
+  sealed=completed.collect(job_root=original.root,policy_path=original.policy.path,observation=observation,output=root/'independent-readback')
+  proof=sealed.verified(manifest);write_json(root/'independent-proof.json',proof)
+  reject('dict_reconciliation',lambda:original.reconcile(proof))
+  changed=copy.deepcopy(manifest);changed['saved_plan_sha256']='0'*64
+  reject('changed_approved_plan',lambda:sealed.verified(changed))
+  # Capture must be obtained while known-host scopes remain reserved. Calling
+  # this accessor after reconcile is intentionally forbidden, not a retry.
+  capture=sealed.captured_observation()
+  reopened=service.ServiceJob(original.root,original.policy.path)
+  reconciled=reopened.reconcile(sealed);write_json(root/'service-reconciled.json',reconciled)
+  _actual_cli(root,'attach',original.root,original.policy.path)
+  try:sealed.captured_observation();raise AssertionError('Converged capability reused')
+  except AppError as error:negatives['after_reconcile_capability_reuse']=error.code
+  store=WorkbenchStore.create(root/'store',TENANT)
+  published=rd.publish_batch(store,[capture],job_id=uuid.UUID(original.identifier).hex,attempt_id=uuid.uuid4().hex);write_json(root/'published-observation.json',published)
+  for action,extra in [('service-link',['--job-root',str(original.root),'--policy',str(original.policy.path)]),('views',[])]:
+   argv=[Q.tool('python'),'-B',str(Q.project/'scripts/intune-iac.py'),'workbench',action,'--root',str(root/'store'),'--object',OBJECT,*extra]
+   output=subprocess.run(argv,cwd=Q.project,capture_output=True,timeout=20)
+   (root/('workbench-'+action+'.stdout')).write_bytes(output.stdout);(root/('workbench-'+action+'.stderr')).write_bytes(output.stderr)
+   write_json(root/('workbench-'+action+'.json'),{'argv':argv,'exit_code':output.returncode});assert output.returncode==0
+  views=json.loads((root/'workbench-views.stdout').read_bytes())
+  calls=fixture.requests[start:]
+  with original.policy.connection() as db:
+   used=[list(row) for row in db.execute('SELECT operation_id,manifest_sha256 FROM consumed WHERE operation_id=?',(original.identifier,))]
+   schema=db.execute("SELECT name FROM sqlite_master WHERE name='native_lease_recoveries'").fetchone()
+   release_rows=[] if schema is None else [list(row) for row in db.execute('SELECT original_operation FROM native_lease_recoveries WHERE original_operation=?',(original.identifier,))]
+  checks={'state14_byte_exact':fixture.state_bytes()==initial,'Graph_literal_exact':_literal_equal(fixture.graph_snapshot(),graph),
+          'no_Graph_mutation_replayed':not any(row['host']=='graph.microsoft.com' and row['method'] in ('PUT','POST','PATCH','DELETE') for row in calls),
+          'no_state_content_replayed':not any(row['host']==ACCOUNT and row['method']=='PUT' and row['path']==STATE_PATH for row in calls),
+          'no_exceptional_release_row':release_rows==[],'native_original_lease_never_released_again':all(row['headers'].get('x-ms-lease-id')!=original_lease_id for row in calls if row['headers'].get('x-ms-lease-action')=='release'),
+          'normal_plan_noop':bool(json.loads((root/'second-plan/independent-noop.json').read_bytes())),
+          'normal_native_lock_unlocked':fixture.blobs[STATE_PATH]['lease'] is None and not fixture.blobs[STATE_PATH]['metadata'],
+          'known_host_provenance_retained':reconciled['status']=='service_state_converged' and reconciled['outcome']['execution_provenance']=='host_completed',
+          'primary_known_outcome_retained':reconciled['outcome']['previous_outcome']==before['outcome'],
+          'old_dispatch_one_consumed_once':reconciled['dispatches']==1 and used==[[original.identifier,original.sha256]],
+          'ownership_released_only_reconcile':owners()==[],
+          'fresh_history_exact_plan':views['proposed']['saved_plan_sha256']==manifest['saved_plan_sha256'],
+          'reopened_journal_known_converged':views['proposed']['journal_status']=='service_state_converged',
+          'old_immutable_inputs_preserved':immutable=={name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in immutable},
+          'historical_fault_fixture_preserved':(previous/'fixture/state.bin').read_bytes()==initial and _literal_equal(json.loads((previous/'fixture/graph.json').read_bytes()),graph) and _literal_equal(json.loads((previous/'fixture/blobs.json').read_bytes())[STATE_PATH],blob),
+          'no_endpoint_or_production_inference':reconciled['outcome']['endpoint_effectiveness']=='unestablished' and reconciled['outcome']['production_approved'] is False}
+  assert all(checks.values()),checks
+  receipt.update(status='PASS',assertions=checks,negative_controls=negatives,operation_id=original.identifier,manifest_sha256=original.sha256,
+      job_root=str(original.root),policy_path=str(original.policy.path),source_revision=Q.source_revision,state_sha256=hashlib.sha256(initial).hexdigest(),
+      new_readback_module_sha256=hashlib.sha256(Path(completed.__file__).read_bytes()).hexdigest(),new_service_module_sha256=hashlib.sha256(Path(service.__file__).read_bytes()).hexdigest(),
+      saved_plan_sha256=manifest['saved_plan_sha256'],native_second_plan_sha256=second['receipt']['saved_plan_sha256'],observing_implementation_sha256=proof['observing_implementation_sha256'],
+      original_implementation_sha256=proof['original_implementation_sha256'],history_store=str(root/'store'),graph_capture_sha256=proof['graph_capture_sha256'])
+  write_json(root/'receipt.json',receipt);result=receipt
+ except BaseException as error:
+  receipt.update(status='FAIL',error=getattr(error,'code',type(error).__name__));_record_failure(root/'failure.json',receipt,error);primary=error
+ support.close_all(root,primary,handles,fixture)
+ return result
+
+
+def _actual_cli(root,action,job_root,policy_path):
+ argv=[Q.tool('python'),'-B',str(Q.project/'scripts/intune-iac.py'),'service',action,'--job-root',str(job_root),'--policy',str(policy_path)]
+ value=subprocess.run(argv,cwd=Q.project,capture_output=True,timeout=20)
+ (root/('service-'+action+'.stdout')).write_bytes(value.stdout);(root/('service-'+action+'.stderr')).write_bytes(value.stderr)
+ write_json(root/('service-'+action+'.json'),{'argv':argv,'exit_code':value.returncode});assert value.returncode==0
+ return value
+
+
+def run(action,output,*,previous_root,seed_root):
+ os.umask(0o077)
+ root,previous,seed,route=_arguments(action,output,previous_root=previous_root,seed_root=seed_root)
+ root.mkdir(mode=0o700)
+ if route=='known-completion':result=_known_completion(root,previous,seed)
+ else:
+  phase='explicit_fresh_lease_release'
+  try:
+   released=_release(root/'release',seed=previous,preparation=seed);assert released['status']=='PASS'
+   phase='new_reviewed_native_plan'
+   prepared=_prepare(root/'preparation',root/'release',preparation=seed,original=previous,route=route);assert prepared['status']=='PASS'
+   phase='separately_signed_successor_transfer_and_apply'
+   result=_successor(root,seed=previous,prep=root/'preparation',release=root/'release',route=route)
+   result.update(source_revision=Q.source_revision,historical_source_revision=json.loads((previous/'manifest.json').read_bytes())['run_context']['source_revision'],route=route)
+   write_json(root/'receipt.json',result)
+  except BaseException as error:
+   _record_failure(root/'recovery-failure.json',{'status':'FAIL','phase':phase,'error':getattr(error,'code',type(error).__name__),'platform_qualified':False,'production_approved':False},error)
+   raise
+ if type(result) is not dict or result.get('status')!='PASS':raise ValueError('Actual timing recovery did not qualify')
+ from native_ordinary_linkage import artifact_census,canonical as closed_canonical
+ link={'schema_version':'ordinary-native-timing-recovery-linkage/1','action':action,'route':route,'source_revision':Q.source_revision,
+       'historical_source_revision':result['historical_source_revision'],'previous_root':str(previous),'seed_root':str(seed),
+       **{key:result[key] for key in ('operation_id','manifest_sha256','job_root','policy_path')},'artifacts':artifact_census(root),
+       'scope':'Selected outputs only; full new receiving/job/authority/history/private raw evidence and original layers require coordinator typed capsule.'}
+ target=root/'qualification-linkage.json';fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+ with os.fdopen(fd,'wb') as stream:stream.write(closed_canonical(link));stream.flush();os.fsync(stream.fileno())
+ return {**result,'qualification_linkage':link}

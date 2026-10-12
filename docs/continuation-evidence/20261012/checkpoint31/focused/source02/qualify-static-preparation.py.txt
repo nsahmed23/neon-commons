@@ -1,0 +1,108 @@
+"""No product imports/dispatch: exact C30 local journey source/contract guards."""
+from pathlib import Path
+import ast
+import copy
+import hashlib
+import json
+import os
+import re
+import stat
+import sys
+
+ROOT = Path(__file__).absolute().parent
+SCRIPT = ROOT / 'qualify_packaged_completed_journey.py'
+CONTRACT = ROOT / 'EXECUTION-CONTRACT.json'
+tree = ast.parse(SCRIPT.read_text())
+compile(tree, str(SCRIPT), 'exec')
+selected = {'exact_equal', 'anchored', 'file_pin', 'admit_pin', 'lookup', 'bindings'}
+nodes = [node for node in tree.body if type(node) is ast.FunctionDef and node.name in selected]
+constants = [node for node in tree.body if type(node) is ast.Assign and any(type(target) is ast.Name and target.id in
+    {'SOURCE_COMMIT', 'CORE_PINS', 'FIXTURE_PIN', 'PACKAGE_PINS', 'LINEAGE_PIN'} for target in node.targets)]
+assert len(nodes) == len(selected)
+namespace = dict(Path=Path, ast=ast, hashlib=hashlib, os=os, re=re, stat=stat, sys=sys, json=json)
+exec(compile(ast.Module(body=constants + nodes, type_ignores=[]), str(SCRIPT) + ':pure guards only', 'exec'), namespace)
+contract = json.loads(CONTRACT.read_bytes())
+checks = []
+def check(name, value):
+    if value is not True:
+        raise AssertionError(name)
+    checks.append({'id': name, 'status': 'PASS'})
+def reject(name, callback):
+    try:
+        callback()
+    except (ValueError, KeyError, TypeError, FileNotFoundError):
+        checks.append({'id': name, 'status': 'PASS_KNOWN_BAD_REJECTED'})
+    else:
+        raise AssertionError(name + ': accepted')
+
+check('script_AST_compiles_without_product_import', True)
+namespace['bindings'](contract)
+check('actual_C30_receipt_and_new_core_and_fixture_pins_bind', True)
+for key, replacement in [('source_commit', 'e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'),
+                         ('execution_profile', 'azure_public_pilot'), ('schema_version', 'other/1')]:
+    wrong = copy.deepcopy(contract)
+    wrong[key] = replacement
+    reject('wrong_' + key, lambda wrong=wrong: namespace['bindings'](wrong))
+for role, field, value in [('runtime', 'bytes', True), ('runtime', 'bytes', 1630724.0),
+                           ('source', 'sha256', '0' * 64)]:
+    wrong = copy.deepcopy(contract)
+    wrong[role]['archive'][field] = value
+    reject('wrong_' + role + '_' + field + '_' + type(value).__name__, lambda wrong=wrong: namespace['bindings'](wrong))
+for role in ('lineage_receipt', 'python', 'validator'):
+    wrong = copy.deepcopy(contract)
+    wrong[role]['sha256'] = '0' * 64
+    reject('wrong_' + role + '_pin', lambda wrong=wrong: namespace['bindings'](wrong))
+wrong = copy.deepcopy(contract)
+wrong['lineage_pointers']['source_commit'] = '/schema'
+reject('wrong_actual_receipt_role_pointer', lambda: namespace['bindings'](wrong))
+wrong = copy.deepcopy(contract)
+wrong['lineage_pointers']['runtime_sha256'] = wrong['lineage_pointers']['source_sha256']
+reject('duplicate_actual_receipt_roles', lambda: namespace['bindings'](wrong))
+wrong = copy.deepcopy(contract)
+wrong['runtime']['root'] = '/tmp/intune-c25-restored-packages-20261011/extract-runtime/intune-iac'
+reject('older_runtime_cannot_borrow_new_factory_source_scope', lambda: namespace['bindings'](wrong))
+equal = namespace['exact_equal']
+check('typed_json_bool_int_float_null_absence_order_distinct', equal(1, True) is False and equal(1, 1.0) is False
+      and equal({'x': None}, {}) is False and equal([None, 1], [1, None]) is False and equal([1], (1,)) is False)
+check('exact_current_literal_equality', equal({'a': [None, False, 1, '1']}, {'a': [None, False, 1, '1']}) is True)
+
+fixture_path = Path(contract['source']['root']) / 'plugin_tests/test_worker_completed_readback_r4.py'
+fixture = ast.parse(fixture_path.read_text())
+klass = next(node for node in fixture.body if type(node) is ast.ClassDef and node.name == 'KnownCompletedReadbackTests')
+setup = next(node for node in klass.body if type(node) is ast.FunctionDef and node.name == 'setUp')
+old_predicate_matches = [i for i, node in enumerate(setup.body) if type(node) is ast.Assign and len(node.targets) == 1
+                        and ast.dump(node.targets[0]) == ast.dump(ast.parse('self.manifest_sha').body[0].value)]
+after_matches = [i for i, node in enumerate(setup.body) if type(node) is ast.Assign and len(node.targets) == 1
+                 and type(node.targets[0]) is ast.Attribute and node.targets[0].attr == 'manifest_sha'
+                 and type(node.targets[0].value) is ast.Name and node.targets[0].value.id == 'self']
+check('preserved_before_AST_Store_Load_selector_misses_actual_source', old_predicate_matches == [])
+check('repaired_selector_finds_one_actual_pre_registration_point', len(after_matches) == 1)
+changed = copy.deepcopy(setup)
+added = ast.parse("self.manifest['action'] = 'apply_saved_plan'\nself.manifest['expires_at'] = int(time.time()) - 1\n").body
+point = after_matches[0]
+changed.body[point:point] = added
+compile(ast.fix_missing_locations(ast.Module(body=[changed], type_ignores=[])), 'pure fixture derivative AST', 'exec')
+check('derivative_setup_AST_compiles_without_executing_fixture', True)
+check('exact_two_descriptors_precede_first_manifest_digest', changed.body[point:point + 2] == added and
+      type(changed.body[point + 2]) is ast.Assign and changed.body[point + 2].targets[0].attr == 'manifest_sha')
+del changed.body[point:point + 2]
+check('all_original_setup_AST_restored_after_removing_two_descriptors', ast.dump(changed) == ast.dump(setup))
+for source in ('other.manifest_sha = x', 'self.manifest = x', 'self.manifest_sha, other = x'):
+    node = ast.parse(source).body[0]
+    matches = (type(node) is ast.Assign and len(node.targets) == 1 and type(node.targets[0]) is ast.Attribute and
+        node.targets[0].attr == 'manifest_sha' and type(node.targets[0].value) is ast.Name and node.targets[0].value.id == 'self')
+    check('selector_known_bad_rejected_' + source, matches is False)
+
+result = {'status': 'PASS_SCOPED_PURE_PREPARATION', 'scope': 'AST/exact pins/input selectors only; actual factory, fixture, CLI, store and native helpers were not invoked.',
+    'script': namespace['file_pin'](SCRIPT), 'contract': namespace['file_pin'](CONTRACT),
+    'checks': checks, 'check_count': len(checks), 'source_commit': namespace['SOURCE_COMMIT'],
+    'product_imports': 0, 'application_journeys_executed': 0, 'native_dispatches': 0,
+    'count_scope': 'Qualifier guards, not product suite test additions; do not sum with prior19/123.',
+    'platform_qualified': False, 'production_approved': False,
+    'preserved_initial_static_failure': namespace['file_pin'](ROOT / 'STATIC-PREPARATION-FAILED-01.json')}
+out = ROOT / 'STATIC-PREPARATION-02.json'
+with out.open('x') as stream:
+    json.dump(result, stream, indent=2, sort_keys=True, ensure_ascii=True, allow_nan=False)
+    stream.write('\n')
+out.chmod(0o600)
+print(json.dumps(namespace['file_pin'](out), sort_keys=True))

@@ -1,0 +1,57 @@
+{
+  "administrative_exclusions": [
+    "docs/CONTINUATION-R4-CHECKPOINT.md",
+    "docs/CONTINUATION-R4-LEDGER.json",
+    "docs/EXECUTION-SEQUENCE-R4.md",
+    "docs/EXTERNAL-GATES-R4.md",
+    "docs/OPERATING-PROFILE-R4.md",
+    "release-source-files.txt"
+  ],
+  "archives": {
+    "runtime": {
+      "bytes": 1630724,
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+    },
+    "source": {
+      "bytes": 18454404,
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+    }
+  },
+  "artifact_relabel_permitted": false,
+  "checkout_clean_before_after": true,
+  "compact_author_metadata": {
+    "bytes": 3450,
+    "path": "/tmp/intune-C31-dependency-closure-20261012-01/PUBLIC-METADATA.json",
+    "sha256": "58c9f54bdcb6d2bc03fa7ad046908700775f1d5a43302b1031202cd10a7064f0"
+  },
+  "engine_Python_modules": 116,
+  "eventual_C31_condition": "C31 must only change five explicitly excluded administrative docs plus append-only inventory and independently admitted inert checkpoint31 prefix. All3457 original selected files stay byte-identical. Subsequent applied delta and rawGit commit require independent binding.",
+  "full_private_metadata_proof": {
+    "bytes": 1320057,
+    "path": "/tmp/intune-C31-dependency-closure-20261012-01/FULL-DEPENDENCY-CLOSURE.json",
+    "sha256": "925bc98fbd10123162caf8780443203f11d5d33249ae05298875fcf5b9c62094"
+  },
+  "future_C31_source_runtime_qualified": false,
+  "global_laboratory_complete": false,
+  "independent_method": "Raw original Git tree modes/blob IDs and exact cat-file bytes; original inventory minus exactlysix administration exclusions; current literal regular checkout and both exactC30 ZIP member bytes. No product imports or tests/native/publication.",
+  "native_dispatches": 0,
+  "original_source_inventory_count": 3463,
+  "platform_qualified": false,
+  "plugin_test_Python_files": 173,
+  "product_test_runs": 0,
+  "production_approved": false,
+  "public_suitable": "This compact independent descriptor only; full proof contains metadata identities, no clearance for payload/private corpus.",
+  "remote_actions": 0,
+  "review_lookup_note": "First reviewer-only metadata inspection assumed runtime flag existed on every record and raisedKeyError; discovered schema intentionally omits it for3162 nonruntime records. Both branch cases now strictly checked, no author/proof/application/source edits.",
+  "reviewer": {
+    "bytes": 7617,
+    "path": "/tmp/review_C31_dependency_closure_20261012.py",
+    "sha256": "01dc3e35daca4441c20230ab3bde4958bedc6d7738f2db59d6e346174e2022ee"
+  },
+  "schema": "independent-public-C31-original-engine-dependency-closure/1",
+  "selected_original_runtime_payload_files": 295,
+  "selected_original_source_files": 3457,
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_ORIGINAL_C30_BYTES_ONLY_FUTURE_ADMIN_DELTA_PENDING"
+}

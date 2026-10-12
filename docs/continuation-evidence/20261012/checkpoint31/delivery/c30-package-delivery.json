@@ -1,0 +1,88 @@
+{
+  "actual_current_public_bytes": 44810402,
+  "actual_current_public_files": 145,
+  "admission": {
+    "bytes": 8740,
+    "path": "/tmp/intune-C30-publication-selection-review-20261012-01/PUBLIC-SELECTION-ADMISSION.json",
+    "sha256": "4848ea9ee5042eb093f3aa21c1cfd0f413f316e4ea092ca243dc8c5d284dcdfa"
+  },
+  "artifacts": [
+    {
+      "HTTP_readback_status": "PASS",
+      "bytes": 1630724,
+      "path": "packages/Intune_IaC_Plugin_0.9.0.zip",
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/f9104700b1871642f89f982fc625ab0da9eae310/intune-workbench/r4-20261011/c30-20261011/packages/Intune_IaC_Plugin_0.9.0.zip"
+    },
+    {
+      "HTTP_readback_status": "PASS",
+      "bytes": 18454404,
+      "path": "packages/Intune_IaC_Plugin_0.9.0_Source.zip",
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7",
+      "url": "https://raw.githubusercontent.com/nsahmed23/neon-commons/f9104700b1871642f89f982fc625ab0da9eae310/intune-workbench/r4-20261011/c30-20261011/packages/Intune_IaC_Plugin_0.9.0_Source.zip"
+    }
+  ],
+  "commit": "f9104700b1871642f89f982fc625ab0da9eae310",
+  "commit_binding": {
+    "bytes": 7854,
+    "path": "/tmp/intune-C30-publication-commit-review-20261012-01/PUBLIC-COMMIT-BINDING.json",
+    "sha256": "04c0af3238c0e0e717e7e7c9d5deb02e903bb6359af3a7f03526163012abd203"
+  },
+  "complete_private_corpus": false,
+  "full_independent_result": {
+    "bytes": 15628,
+    "path": "/tmp/intune-C30-publication-delivery-review-20261012-01/RESULT.json",
+    "sha256": "8c1b8ff05b33ae206f37dae5ec98c0753300523488ab31ea1768a635d4e8fa39"
+  },
+  "limitations": [
+    "First commit01 remainsFAIL128; environment HOME omission was diagnosed without identity/config provisioning, then separately approved index-only restoration preserved files/objects and normal-environment02 commit passed. No automatic remote retry or historicalFAIL rewrite.",
+    "All16 new files match actual immutablef910 rawGit/anonymous readback. Prior129 were not requested again by reviewer; exact unchanged committedGit closure and originalb7c HTTP disposition remain separate.",
+    "Engineering/package source is39cc; companionf910 is delivery identity. OlderC25 archive bytes and scopes remain unchanged and not relabeled.",
+    "Public metadata/inert source and selected ZIPs omit raw/private profiles, keys, GO/witness/state/plans/SQL/journals/capsules; complete121MiB runtime raw/47MB capsule receiving and required new performance/native/platform/organizational approval remain blocked."
+  ],
+  "local_current_upstream_and_clean": true,
+  "metadata_assertions": 31,
+  "native_platform_qualified": false,
+  "new_anonymous_HTTP200_exact_URL_byte_SHA_matches": 16,
+  "new_performance_qualified": false,
+  "new_timing_samples": 0,
+  "original_commit_failed_attempt": {
+    "bytes": 3851,
+    "path": "/tmp/intune-C30-publication-commit-20261012-01/FAILURE.json",
+    "sha256": "1d785fbba89af60243165828d28cb76439a1af56b3818052fcb09f2403bea189"
+  },
+  "original_failed_attempt_reclassified": false,
+  "parent": "b7c6515ac3e99f6a548d774805a905df0c44baf1",
+  "prefix": "intune-workbench/r4-20261011/c30-20261011/",
+  "prior129bytes_unchanged": true,
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "reviewer_HTTP_and_mutations_and_product_runs": 0,
+  "root_observed_remote_refs": {
+    "refs/heads/intune-atmos-wally-r4-20261011": "f9104700b1871642f89f982fc625ab0da9eae310",
+    "refs/heads/main": "4ba077d93fecbf5f893ee13ef972c839cf13883d"
+  },
+  "root_push_receipt": {
+    "bytes": 3971,
+    "path": "/tmp/intune-C30-publication-push-20261012-01/RECEIPT.json",
+    "sha256": "1d3d4d24a41d5d9a81f5c1370346a8a9ef80fa0618c4170e775b5c065e3ca89d"
+  },
+  "root_readback_receipt": {
+    "bytes": 13818,
+    "path": "/tmp/intune-C30-publication-readback-20261012-01/RECEIPT.json",
+    "sha256": "191f741881782ce39e9ae9d32f46a2916a661faa6436d506789cc71ee2fbf74e"
+  },
+  "schema": "public-independent-C30-companion-delivery-disposition/1",
+  "scope": "Read-only independent reconciliation of actual root push/readback receipts against exact independently bound committed blobs and selected files. Reviewer made no new HTTP/ref request or Git/source/product/native mutation. Prior129 unchanged Git closure is reused at exact04c0 binding; their original b7c HTTP results stay historical.",
+  "selected_bytes": 20221207,
+  "selected_files": 16,
+  "separate_index_recovery": {
+    "bytes": 5003,
+    "path": "/tmp/intune-C30-index-restoration-20261012-01/RESULT.json",
+    "sha256": "799acb54875443b485d4217d9df9739b669eac5ec75bfb8816f00684f62513d1"
+  },
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_ACTUAL_PUBLIC_DELIVERY_AND_ANONYMOUS_EXACT_READBACK",
+  "tree": "6d92b8500f4f8593a4e9e2ff350498298035aa64"
+}

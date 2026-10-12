@@ -1,0 +1,733 @@
+"""Bound C30 observer metadata over immutable historical C25 inputs; actual input witnesses and external root admission required.
+
+The profile is an operator-supplied integrity contract, not service permission.
+Every allowed action targets newly allocated nonforwarding synthetic fixtures.
+No package module is imported before byte/file-set and tool verification.
+"""
+from pathlib import Path, PurePosixPath
+import argparse
+import hashlib
+import math
+import importlib
+import json
+import os
+import re
+import stat
+import sys
+import time
+
+MAX_FILE = 1024 * 1024 * 1024
+MAX_FILES = 40000
+ROLES = {'atmos', 'tofu', 'provider', 'relay', 'docker', 'openssl', 'git', 'validator', 'python'}
+ACTIONS = ('ordinary-timing-acquisition-recovery','ordinary-timing-policy-response-recovery','ordinary-timing-known-completion-recovery')
+
+
+class ProfileError(ValueError):
+    pass
+
+
+def require(condition, message):
+    if not condition:
+        raise ProfileError(message)
+
+
+def canonical(value):
+    def closed(item, depth=0):
+        require(depth <= 64, 'qualification JSON nesting exceeded')
+        if type(item) in (str, int, bool) or item is None:
+            return
+        if type(item) is float:
+            require(math.isfinite(item), 'nonfinite qualification JSON denied')
+        elif type(item) is list:
+            for child in item:
+                closed(child, depth + 1)
+        elif type(item) is dict:
+            require(all(type(key) is str for key in item), 'qualification JSON object keys must be strings')
+            for child in item.values():
+                closed(child, depth + 1)
+        else:
+            raise ValueError('unsupported qualification JSON value')
+    closed(value)
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode()
+
+
+def path_under(root, name):
+    require(type(name) is str and '\\' not in name and '\x00' not in name, 'invalid relative path')
+    rel = PurePosixPath(name)
+    require(not rel.is_absolute() and name == str(rel) and all(p not in ('', '.', '..') for p in rel.parts), 'invalid relative path')
+    result = root / name
+    require(not any(p.is_symlink() for p in (result, *result.parents)), 'symlink input denied')
+    return result
+
+
+def root_path(value):
+    path = Path(value).absolute()
+    require('..' not in path.parts and not any(p.is_symlink() for p in (path, *path.parents)), 'unsafe root')
+    require(path.is_dir(), 'missing root')
+    return path
+
+
+def hash_file(path, maximum=MAX_FILE):
+    info = path.lstat()
+    require(stat.S_ISREG(info.st_mode) and 0 <= info.st_size <= maximum, 'unsupported or oversized input')
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as stream:
+        before = os.fstat(stream.fileno())
+        value = hashlib.file_digest(stream, 'sha256').hexdigest()
+        after = os.fstat(stream.fileno())
+    identity = lambda s: (s.st_dev, s.st_ino, s.st_size, s.st_mtime_ns, s.st_ctime_ns)
+    require(identity(info) == identity(before) == identity(after) == identity(path.lstat()), 'input changed during verification')
+    return {'bytes': info.st_size, 'sha256': value}
+
+
+def inventory(root):
+    rows = {}
+    def traversal_failed(error):
+        raise ProfileError('input tree traversal failed: ' + str(error)) from error
+    for current, directories, files in os.walk(root, followlinks=False, onerror=traversal_failed):
+        for name in directories:
+            require(not (Path(current) / name).is_symlink(), 'directory symlink denied')
+        for name in files:
+            path = Path(current) / name
+            relative = path.relative_to(root).as_posix()
+            require(len(rows) < MAX_FILES, 'file count bound')
+            rows[relative] = hash_file(path)
+    require(rows, 'empty input tree')
+    return dict(sorted(rows.items()))
+
+
+def load_json(path, maximum=16 * 1024 * 1024):
+    hash_file(path, maximum)
+    def pairs(rows):
+        result = {}
+        for key, value in rows:
+            require(key not in result, 'duplicate JSON key')
+            result[key] = value
+        return result
+    return json.loads(path.read_bytes(), object_pairs_hook=pairs)
+
+
+class Profile:
+    def __init__(self, args):
+        require(re.fullmatch('[0-9a-f]{64}', args.profile_sha256 or '') is not None, 'explicit profile pin required')
+        profile_path = Path(args.profile).absolute()
+        require(hash_file(profile_path)['sha256'] == args.profile_sha256, 'profile hash mismatch')
+        value = load_json(profile_path)
+        require(set(value) == {'schema_version', 'source_revision', 'source_linkage', 'package', 'helpers', 'inputs', 'tools', 'loader_sha256'}, 'profile fields')
+        require(value['schema_version'] == OBSERVER_PROFILE_SCHEMA, 'profile schema')
+        require(value['loader_sha256'] == hash_file(Path(__file__).absolute())['sha256'], 'loader implementation changed')
+        require(re.fullmatch('[0-9a-f]{40}', value['source_revision'] or '') is not None, 'source revision')
+        require(type(value['package']) is dict and type(value['helpers']) is dict and type(value['inputs']) is dict, 'inventory types')
+        self.project = root_path(args.project_root)
+        self.evidence = root_path(args.evidence_root)
+        self.tool_root = root_path(args.tool_root)
+        self.scratch = root_path(args.scratch_root)
+        scratch = self.scratch.stat()
+        require(scratch.st_uid == os.geteuid() and not scratch.st_mode & 0o077 and len(str(self.scratch)) <= 50, 'private short scratch root required')
+        self.source_revision = value['source_revision']
+        self.value = value
+        self.sha256 = args.profile_sha256
+        require(inventory(self.project) == value['package'], 'complete package file set or bytes differ')
+        for group in ('helpers', 'inputs'):
+            for name, expected in value[group].items():
+                require(hash_file(path_under(self.evidence, name)) == expected, group + ' input mismatch: ' + name)
+        require(value['helpers'] == {'helpers/' + name: row for name, row in inventory(self.evidence / 'helpers').items()}, 'helper file set mismatch')
+        require(value['inputs'] == {'inputs/' + name: row for name, row in inventory(self.evidence / 'inputs').items()}, 'input file set mismatch')
+        linkage = value['source_linkage']
+        require(type(linkage) is dict and set(linkage) == {'path', 'sha256'}, 'linkage fields')
+        require(linkage['path'] in value['inputs'] and value['inputs'][linkage['path']]['sha256'] == linkage['sha256'], 'unbound source linkage')
+        self.linkage = load_json(path_under(self.evidence, linkage['path']))
+        require(self.linkage.get('source_revision') == self.source_revision and self.linkage.get('package_inventory_sha256') == hashlib.sha256(canonical(value['package'])).hexdigest(), 'source linkage does not bind this package')
+        require(self.linkage.get('scope') == 'package bytes compared to specified source revision', 'linkage scope')
+        require(set(value['tools']) == ROLES, 'closed tool roles required')
+        locations = load_json(Path(args.tool_map).absolute())
+        require(set(locations) == ROLES, 'closed tool locations required')
+        self.paths = {}
+        for role, expected in value['tools'].items():
+            path = path_under(self.tool_root, locations[role])
+            require(hash_file(path) == expected, 'tool hash mismatch: ' + role)
+            info = path.stat()
+            require(info.st_nlink == 1 and info.st_uid in (0, os.geteuid()) and not info.st_mode & 0o022, 'tool identity denied: ' + role)
+            self.paths[role] = path
+        require(hash_file(Path(sys.executable).resolve()) == value['tools']['python'], 'running interpreter not selected pin')
+        self.tool_rows = [{'role': role, 'path': str(self.paths[role]), 'sha256': value['tools'][role]['sha256']} for role in ('atmos', 'tofu', 'provider', 'relay')]
+        self.fixture = json.loads(self.input('native-policy.json').read_bytes())
+        self.assert_import_origins()
+        self.contract=bound_contract(self)
+
+    def input(self, name):
+        path = 'inputs/' + name
+        require(path in self.value['inputs'], 'unlisted fixture input')
+        return path_under(self.evidence, path)
+
+    def tool(self, name):
+        require(name in self.paths, 'unlisted tool')
+        return str(self.paths[name])
+
+    def assert_import_origins(self):
+        origins = {}
+        for name, module in tuple(sys.modules.items()):
+            if name == 'intune_iac' or name.startswith('intune_iac.') or name == 'plugin_tests' or name.startswith('plugin_tests.'):
+                source = getattr(module, '__file__', None)
+                require(source is not None, 'package module has no source origin')
+                path = Path(source).absolute()
+                require(self.project in path.parents and path.suffix == '.py', 'package module imported outside selected package')
+                relative = path.relative_to(self.project).as_posix()
+                require(relative in self.value['package'] and hash_file(path) == self.value['package'][relative], 'imported package module changed')
+                origins[name] = {'path': relative, **self.value['package'][relative]}
+            elif name in {Path(key).stem for key in self.value['helpers'] if key.endswith('.py')}:
+                source=getattr(module,'__file__',None)
+                require(source is not None,'helper module has no source origin')
+                path=Path(source).absolute();key='helpers/'+name+'.py'
+                require(path==self.evidence/key and key in self.value['helpers'] and hash_file(path)==self.value['helpers'][key],
+                    'helper imported outside exact selected bundle')
+                origins[name]={'external_helper':key,**self.value['helpers'][key]}
+        return origins
+
+    def recheck(self):
+        require(inventory(self.project) == self.value['package'], 'package changed during qualification')
+        require(self.value['helpers'] == {'helpers/' + name: row for name, row in inventory(self.evidence / 'helpers').items()}, 'helper file set changed during qualification')
+        require(self.value['inputs'] == {'inputs/' + name: row for name, row in inventory(self.evidence / 'inputs').items()}, 'input file set changed during qualification')
+        for group in ('helpers', 'inputs'):
+            for name, expected in self.value[group].items():
+                require(hash_file(path_under(self.evidence, name)) == expected, 'qualification dependency changed')
+        for role, path in self.paths.items():
+            require(hash_file(path) == self.value['tools'][role], 'tool changed during qualification')
+        require(hash_file(Path(__file__).absolute())['sha256'] == self.value['loader_sha256'], 'loader changed during qualification')
+        return self.assert_import_origins()
+
+
+
+OBSERVER_SOURCE = '39cc77618a0f7f2734599fbfed224b47c333293f'
+HISTORICAL_SOURCE = 'e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'
+OBSERVER_PROFILE_SCHEMA = 'C30-observer-native-timing-recovery-profile/2'
+OBSERVER_RECEIPT_SCHEMA = 'C30-observer-native-timing-recovery-receipt/1'
+
+
+def proof(row, maximum=32*1024*1024):
+    require(type(row) is dict and set(row) == {'path', 'bytes', 'sha256'} and type(row['bytes']) is int
+            and type(row['path']) is str and Path(row['path']).is_absolute() and '..' not in Path(row['path']).parts
+            and not any(p.is_symlink() for p in (Path(row['path']), *Path(row['path']).parents)), 'literal typed proof required')
+    require(canonical(hash_file(Path(row['path']), maximum)) == canonical({k: row[k] for k in ('bytes', 'sha256')}), 'exact proof bytes differ')
+    return load_json(Path(row['path']), maximum)
+
+
+def bound_contract(profile):
+    value = load_json(profile.input('observer-recovery-routes.json'))
+    required = {'schema_version', 'status', 'observer_source_revision', 'observer_tree', 'package_receipt',
+                'raw_source_linkage', 'helper_admission', 'helper_preparation', 'historical_profile',
+                'historical_routes', 'historical_reconstruction', 'legacy_seed', 'routes', 'required_gates', 'external_admission_policy'}
+    require(type(value) is dict and set(value) == required and value['schema_version'] == 'C30-observer-native-timing-recovery-routes/1'
+            and value['status'] in ('BOUND_METADATA_WAITING_NATIVE_INPUTS', 'READY_WITH_ACTUAL_INPUT_BINDINGS')
+            and value['observer_source_revision'] == profile.source_revision == OBSERVER_SOURCE
+            and value['observer_tree'] == 'f8bff355322c7c50e46790171c12a5e1a7cb80aa', 'closed exact newer observing contract')
+    packages = proof(value['package_receipt']); source = proof(value['raw_source_linkage'])
+    require(value['package_receipt']['sha256'] == 'eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a'
+            and packages['schema'] == 'intune-C30-exact-package-qualification/1' and packages['status'] == 'PASS'
+            and packages['commit'] == OBSERVER_SOURCE and packages['tree'] == value['observer_tree']
+            and packages['all_actual_archive_bytes_equal'] is True and packages['source_unchanged'] is True
+            and source['schema_version'] == 'release-source-linkage/1' and source['status'] == 'PASS'
+            and source['source_commit'] == OBSERVER_SOURCE and source['tree_object'] == value['observer_tree'], 'real new package/source construction proof required')
+    for role in ('source', 'runtime'):
+        row = packages['artifacts'][role]
+        require(canonical(hash_file(Path(row['path']), 32*1024*1024)) == canonical({key:row[key] for key in ('bytes','sha256')}), 'new source/runtime archive changed')
+    selected = {row['path']: {k: row[k] for k in ('bytes', 'sha256')} for row in source['files']}
+    require(len(selected) == 3463 and len(profile.value['package']) == 3464
+            and canonical(selected) == canonical({k:v for k,v in profile.value['package'].items() if k != 'SHA256SUMS'}), 'complete observing source file inventory differs')
+    admitted = proof(value['helper_admission']); preparation = proof(value['helper_preparation'])
+    require(value['helper_admission']['sha256'] == '25267f7fc69f2567ab3d4c6be0cdc43fefcc57784050f8646bc15abff19dcd89'
+            and admitted['schema'] == 'independent-ordinary-timing-recovery-preparation-admission/1'
+            and admitted['status'] == 'PASS_SCOPED_SOURCE_API_TYPED_NEGATIVE_PREPARATION_ONLY'
+            and canonical(profile.value['helpers']['helpers/native_ordinary_timing_recovery.py'])
+                == canonical({k:admitted['helper'][k] for k in ('bytes','sha256')})
+            and canonical(admitted['new_preparation_identity']) == canonical({k:value['helper_preparation'][k] for k in ('bytes','sha256')}), 'exact admitted helper02 required')
+    old = proof(value['historical_profile']); old_routes = proof(value['historical_routes']); proof(value['historical_reconstruction'])
+    require(value['historical_profile']['sha256'] == '54625684f541d8a9a5826aa8e4481dc872a86d771f98af6b2ce6989e8d052b71'
+            and old['source_revision'] == HISTORICAL_SOURCE and old['source_revision'] != profile.source_revision
+            and canonical(old['tools']) == canonical(profile.value['tools'])
+            and canonical(old['helpers']) == canonical({key:row for key,row in profile.value['helpers'].items() if key != 'helpers/native_ordinary_timing_recovery.py'})
+            and canonical(old_routes['legacy_seed']) == canonical(value['legacy_seed']), 'historical C25 is separate; no old profile fallback')
+    for row in admitted['source_and_API_binding']['required_integrated_core02_modules']:
+        require(canonical(profile.value['package']['intune_iac/'+row['module']]) == canonical({key:row[key] for key in ('bytes','sha256')}), 'new observer core/API bytes differ from admission')
+    routes = value['routes']; require(type(routes) is list and len(routes) == 4, 'exact four recovery cases')
+    for row, prior, authored in zip(routes, old_routes['routes'], preparation['cases']):
+        require(type(row) is dict and set(row) == {'id','action','output','arguments','original_fault','actual_input_binding'}
+                and row['id'] == prior['id'] == authored['id'] and row['action'] == authored['full_keyword_arguments']['action']
+                and canonical(row['arguments']) == canonical({'previous_root':prior['output'],'seed_root':value['legacy_seed']['root']})
+                and canonical(row['original_fault']) == canonical({'route_id':prior['id'],'action':prior['action'],
+                    'recording_mode':prior['arguments']['recording_mode'],'source_revision':HISTORICAL_SOURCE,
+                    'profile_sha256':value['historical_profile']['sha256'],'loader_sha256':old['loader_sha256']}), 'full typed original/new case binding differs')
+        require(Path(row['output']) == Path('/tmp/intune-C30-native-timing-recovery-20261011-01/journey')/row['id'], 'fresh declared recovery output required')
+    gates = value['required_gates']
+    require(type(gates) is dict and set(gates) == {'new_source_strict','new_runtime_application','independent_profile_outer_admission','root_local_GO'}, 'closed remaining gates')
+    require(canonical(value['external_admission_policy'])==canonical({'independent_schema':REVIEW_SCHEMA,'root_schema':GO_SCHEMA,'scope':LOCAL_SCOPE,
+        'profile_embeds_decision_or_self_referential_hash':False}), 'closed external admission policy required')
+    require(gates['independent_profile_outer_admission'] is None and gates['root_local_GO'] is None,
+        'independent review and root decision are external exact runtime proofs; never cyclic self attestations')
+    profile.contract=value
+    if gates['new_source_strict'] is not None:strict_gate(profile,gates['new_source_strict'])
+    if gates['new_runtime_application'] is not None:runtime_gate(profile,gates['new_runtime_application'])
+    if value['status'] == 'BOUND_METADATA_WAITING_NATIVE_INPUTS':
+        require(all(row['actual_input_binding'] is None for row in routes), 'pending placeholders cannot manufacture actual inputs')
+    else:
+        require(all(type(row['actual_input_binding']) is dict for row in routes)
+            and gates['new_source_strict'] is not None and gates['new_runtime_application'] is not None,
+            'READY profile requires every actual input witness and actual new source/runtime gate')
+    return value
+
+
+def case_route(profile, args, output):
+    rows = [row for row in profile.contract['routes'] if row['action'] == args.action and row['output'] == str(output)]
+    require(len(rows) == 1 and canonical(rows[0]['arguments']) == canonical({'previous_root':args.previous_root,'seed_root':args.seed_root}), 'unlisted case/root/type substitution')
+    return rows[0]
+
+
+def require_ready(profile,row,args):
+    return verify_ready(profile,row,args)
+
+
+def parser():
+    result=argparse.ArgumentParser(description=__doc__)
+    for key in ('profile','profile-sha256','project-root','evidence-root','tool-root','tool-map','scratch-root','output'):
+        result.add_argument('--'+key,required=True)
+    result.add_argument('--action',choices=('validate',)+ACTIONS,required=True)
+    for key in ('previous-root','seed-root','root-go','root-go-sha256','independent-admission','independent-admission-sha256','dispatch-record'):
+        result.add_argument('--'+key)
+    return result
+
+
+def main(argv=None):
+    args=parser().parse_args(argv)
+    require(sys.flags.isolated and sys.dont_write_bytecode,'run interpreter with -I -B')
+    os.umask(0o077);profile=Profile(args)
+    if args.action=='validate':
+        require(all(getattr(args,key) is None for key in ('previous_root','seed_root','root_go','root_go_sha256',
+            'independent_admission','independent_admission_sha256','dispatch_record')),'metadata validation cannot grant/replay operation admission')
+        profile.recheck()
+        print(canonical({'status':'PASS_BOUND_OBSERVER_METADATA_ONLY','source_revision':profile.source_revision,
+            'historical_source_revision':HISTORICAL_SOURCE,'profile_sha256':profile.sha256,'source_files':len(profile.value['package']),
+            'helper_files':len(profile.value['helpers']),'tool_roles':len(profile.value['tools']),'case_count':4,
+            'native_READY_contract_implemented':True,'native_execution_ready':False,'native_dispatches':0,
+            'platform_qualified':False,'production_approved':False}).decode())
+        return
+    row=case_route(profile,args,Path(args.output).absolute())
+    execute_recovery(profile,args,row)
+
+
+# Attributed continuation-only native input and execution contract. The
+# receiving product, native tools and original four inputs are not replaced.
+LOCAL_SCOPE = 'nonforwarding synthetic local Graph/Azure native laboratory only'
+FAULT_LINK_FIELDS = {'schema_version','action','source_revision','kind','seed_root','previous_root',
+    'operation_id','manifest_sha256','job_root','policy_path','receiving_fixture','recording_mode','artifacts','artifact_scope'}
+WITNESS_SCHEMA = 'independent-C25-timing-fault-input-witness/1'
+REVIEW_SCHEMA = 'independent-C30-observer-recovery-profile-outer-admission/1'
+GO_SCHEMA = 'root-C30-observer-recovery-local-decision/1'
+RECOVERY_RUN_ROOT = '/tmp/intune-C30-native-timing-recovery-20261011-01'
+RECOVERY_DURABLE_ROOT = '/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/C30-native-timing-recovery-20261011-01'
+NATIVE_RESERVE = 32*1024*1024 + 65536
+
+
+def typed_original_inventory(root):
+    root = root_path(root); rows={}; pending=[root]
+    while pending:
+        path=pending.pop(); info=path.lstat(); name=path.relative_to(root).as_posix()
+        require(len(rows)<16000,'bounded original typed tree')
+        if stat.S_ISDIR(info.st_mode):
+            rows[name]={'kind':'directory','mode':stat.S_IMODE(info.st_mode)}
+            with os.scandir(path) as entries: pending.extend(sorted((Path(row.path) for row in entries),reverse=True))
+        elif stat.S_ISREG(info.st_mode): rows[name]={'kind':'file','mode':stat.S_IMODE(info.st_mode),**hash_file(path)}
+        elif stat.S_ISLNK(info.st_mode): rows[name]={'kind':'symlink','literal_target':os.readlink(path)}
+        elif stat.S_ISSOCK(info.st_mode): rows[name]={'kind':'runtime_socket_metadata','mode':stat.S_IMODE(info.st_mode),'restored_connection':False}
+        else: raise ProfileError('Unsupported original special node retained; no closure or dispatch')
+    return dict(sorted(rows.items()))
+
+
+def strict_gate(profile, row):
+    value=proof(row); package=proof(profile.contract['package_receipt'])
+    suite=value.get('suite')
+    require(type(value) is dict and value.get('status')=='PASS' and type(value.get('exit_code')) is int and value['exit_code']==0
+        and value.get('commit')==OBSERVER_SOURCE and value.get('source_unchanged') is True
+        and value.get('source_archive_exact_before') is True and value.get('source_archive_unchanged') is True
+        and value.get('source_file_set_changes')=={} and type(suite) is dict and suite.get('success') is True
+        and suite.get('core_regressions_included') is True,'actual complete new-source strict gate required')
+    require(all(type(suite.get(key)) is int for key in ('tests','passed','planned','failures','errors','skipped','expected_failures','unexpected_successes'))
+        and suite['tests']>0 and suite['tests']==suite['passed']==suite['planned']
+        and all(suite[key]==0 for key in ('failures','errors','skipped','expected_failures','unexpected_successes')),
+        'strict incomplete or typed count mismatch')
+    require(canonical({key:value['source_archive'][key] for key in ('bytes','sha256')})
+        ==canonical({key:package['artifacts']['source'][key] for key in ('bytes','sha256')}),'strict exact source package mismatch')
+    return value
+
+
+def runtime_gate(profile, row):
+    gate=proof(row)
+    fields={'schema_version','status','source_revision','source_tree','package_receipt','runtime_routes','known_completed_journey','independent_admission'}
+    require(type(gate) is dict and set(gate)==fields and gate['schema_version']=='C30-observer-recovery-runtime-gate-bundle/1'
+        and gate['status']=='PASS_SCOPED_LOCAL_APPLICATION_GATES' and gate['source_revision']==OBSERVER_SOURCE
+        and gate['source_tree']==profile.contract['observer_tree'] and canonical(gate['package_receipt'])==canonical(profile.contract['package_receipt']),
+        'actual C30 runtime and new factory gate bundle required')
+    routes=proof(gate['runtime_routes']); known=proof(gate['known_completed_journey']); review=proof(gate['independent_admission'])
+    require(routes.get('schema_version')=='intune-exact-new-runtime-qualification-result/1'
+        and routes.get('status')=='PASS_SCOPED_EXACT_NEW_RUNTIME_MODELED_CLI_ROUTES'
+        and routes.get('source_revision')==OBSERVER_SOURCE and routes.get('source_tree')==profile.contract['observer_tree']
+        and canonical(routes.get('package_receipt'))==canonical(profile.contract['package_receipt'])
+        and routes.get('finalization_errors')==[] and routes.get('native_platform_qualified') is False
+        and routes.get('production_approved') is False and routes.get('modeled_cli_scope_only') is True,
+        'actual final runtime reference CLI routes/preservation required')
+    actions=routes.get('actions')
+    require(type(actions) is list and len(actions)==3 and {item['procedure'] for item in actions}=={'qualify-workflow.py','qualify-terminal.py','qualify-workbench-connected.py'}
+        and all(type(item) is dict and type(item.get('exit_code')) is int and item['exit_code']==0 for item in actions),
+        'all three real runtime application qualifier actions required')
+    packages=proof(profile.contract['package_receipt'])
+    require(known.get('status')=='PASS_SCOPED_LOCAL_PACKAGED_APPLICATION_JOURNEY' and known.get('source_commit')==OBSERVER_SOURCE
+        and type(known.get('native_dispatches')) is int and known['native_dispatches']==0
+        and known.get('platform_qualified') is False and known.get('production_approved') is False
+        and canonical(known.get('packages'))==canonical({role:{key:packages['artifacts'][role][key] for key in ('path','bytes','sha256')}
+            for role in ('source','runtime')}),'actual sealed factory/reopened authority/store journey required; scope remains modeled')
+    require(type(known.get('assertions')) is list and known['assertions'] and all(type(item) is str and bool(item) for item in known['assertions'])
+        and len(known['assertions'])==len(set(known['assertions'])),
+        'new factory application assertions incomplete')
+    require(review.get('schema_version')=='independent-C30-runtime-and-known-completed-application-gate/1'
+        and review.get('status')=='PASS_SCOPED_EXACT_APPLICATION_RAW_ASSERTIONS' and review.get('source_revision')==OBSERVER_SOURCE
+        and canonical(review.get('runtime_routes'))==canonical(gate['runtime_routes'])
+        and canonical(review.get('known_completed_journey'))==canonical(gate['known_completed_journey'])
+        and review.get('platform_qualified') is False and review.get('production_approved') is False,
+        'independent exact application receipts admission required')
+    return gate
+
+
+def closed_cleanup(root, *, final_required=True):
+    selected=root/'FINAL-QUALIFICATION.json'
+    if not selected.exists() and not selected.is_symlink():
+        require(not final_required,'actual supported final cleanup proof missing')
+        require(not any(root.glob('cleanup-failures-*.json')),'actual cancellation helper cleanup failure retained')
+        # Cancellation recovery's pinned _close_all has no successful final
+        # file schema. Its exception must propagate; absence is not a claim
+        # of native host cleanup. The coordinator independently inspects raw.
+        return {'status':'NO_FINAL_FILE_IN_PINNED_CANCELLATION_HELPER_SCHEMA',
+            'requires_independent_raw_host_reader':True}
+    final=load_json(path_under(root,'FINAL-QUALIFICATION.json'))
+    require(type(final) is dict and final.get('status')=='PASS' and final.get('primary_error') is None
+        and 'primary_error' in final and final.get('platform_qualified') is False
+        and ('production_approved' not in final or final['production_approved'] is False),'actual explicit final cleanup proof required')
+    lists=[final[key] for key in ('cleanup','cleanup_failures') if key in final]
+    require(lists and all(type(items) is list and not items for items in lists),'actual zero cleanup failures required')
+    for name in ('cleanup.json','FINAL-CLEANUP.json','FIXTURE-CLEANUP.json'):
+        path=root/name
+        if path.exists() or path.is_symlink():
+            value=load_json(path_under(root,name))
+            require(type(value) is dict and type(value.get('failures')) is list and value['failures']==[]
+                and ('status' not in value or value['status']=='PASS')
+                and ('thread_alive' not in value or value['thread_alive'] is False),'literal present cleanup proof must be complete')
+    return final
+
+
+def native_fault_artifacts(profile, route):
+    root=root_path(route['arguments']['previous_root']); seed=root_path(route['arguments']['seed_root'])
+    portable=load_json(path_under(root,'PORTABLE-QUALIFICATION.json')); link=load_json(path_under(root,'qualification-linkage.json'))
+    receipt=load_json(path_under(root,'receipt.json')); old=proof(profile.contract['historical_profile']); old_routes=proof(profile.contract['historical_routes'])
+    prior=[item for item in old_routes['routes'] if item['id']==route['id']]
+    require(len(prior)==1,'old route must be explicit'); prior=prior[0]
+    require(portable.get('schema_version')=='c25-native-ordinary-timing-receipt/1' and portable.get('status')=='PASS'
+        and portable.get('action')==prior['action'] and portable.get('source_revision')==HISTORICAL_SOURCE
+        and portable.get('profile_sha256')==profile.contract['historical_profile']['sha256']
+        and portable.get('loader_sha256')==old['loader_sha256'] and portable.get('native_platform_qualified') is False
+        and portable.get('production_approved') is False and portable.get('continuation_route_id')==route['id']
+        and canonical(portable.get('continuation_route'))==canonical(prior)
+        and portable.get('action_plan_sha256')==profile.contract['historical_routes']['sha256'],
+        'only actual old timing PASS input; no failed fallback or source relabel')
+    require(type(receipt) is dict and receipt.get('status')=='PASS' and receipt.get('classification')=='ordinary_native_timing_control'
+        and type(receipt.get('assertions')) is dict and receipt['assertions'] and all(v is True for v in receipt['assertions'].values())
+        and canonical(portable.get('scenario_result'))==canonical({**receipt,'qualification_linkage':link}),
+        'actual independent producer/portable typed results differ')
+    require(type(link) is dict and set(link)==FAULT_LINK_FIELDS and link['schema_version']=='ordinary-native-fault-timing-linkage/1'
+        and link['action']==prior['action'] and link['source_revision']==HISTORICAL_SOURCE and link['kind']=='operation'
+        and link['recording_mode']==prior['arguments']['recording_mode']
+        and link['seed_root']==link['previous_root']==str(seed) and link['receiving_fixture']==str(root/'fixture')
+        and link['job_root']==str(root/'jobs/approved') and link['policy_path']==str(root/'trust/policy.json'),
+        'actual frozen timing03 default root/type/route contract required')
+    manifest=load_json(path_under(root,'jobs/approved/manifest.json'))
+    require(canonical(manifest)==canonical(load_json(path_under(root,'manifest.json')))
+        and manifest.get('operation_id')==link['operation_id'] and hashlib.sha256(canonical(manifest)).hexdigest()==link['manifest_sha256']
+        and manifest.get('profile')=='native_docker_laboratory_protocol' and manifest['run_context']['source_revision']==HISTORICAL_SOURCE
+        and manifest['saved_plan_sha256']==profile.contract['legacy_seed']['saved_plan']['sha256'],'original registered manifest/source/plan immutable')
+    declared=link['artifacts']
+    require(type(declared) is dict and 1<=len(declared)<=512 and {'receipt.json','raw-before-state.bin','raw-after-state.bin','raw-requests.json',
+        'raw-broker-attempts.json','raw-authority-rows.json','raw-authority-events.json'}<=set(declared),'missing actual fault raw evidence')
+    for name,row in declared.items(): require(canonical(hash_file(path_under(root,name)))==canonical(row),'old fault selected artifact bytes differ')
+    closed_cleanup(root)
+    state=load_json(path_under(root,'fixture/state.bin')); blobs=load_json(path_under(root,'fixture/blobs.json'))
+    physical=manifest['provider_binding']['backend']['state_blob']; from urllib.parse import urlsplit
+    state_path=urlsplit(physical).path; require(state_path in blobs,'actual state blob target missing')
+    blob=blobs[state_path]; serial=14 if route['id'].startswith('apply-archive') else 13
+    require(type(state.get('serial')) is int and state['serial']==serial,'actual held/committed state serial differs')
+    if serial==14: require(blob['lease'] is None and blob['metadata']=={},'known completion must already be normally unlocked')
+    else: require(type(blob['lease']) is str and bool(blob['lease']) and type(blob['metadata']) is dict,'cancelled route must retain actual native lease')
+    return {'root':str(root),'seed_root':str(seed),'operation_id':link['operation_id'],'manifest_sha256':link['manifest_sha256'],
+        'job_root':link['job_root'],'policy_path':link['policy_path'],'saved_plan_sha256':manifest['saved_plan_sha256'],
+        'serial':serial,'status':'host_completed_service_unverified' if serial==14 else 'outcome_unknown',
+        'original_implementation_sha256':hashlib.sha256(canonical(manifest['implementation_files'])).hexdigest(),
+        'portable':hash_file(root/'PORTABLE-QUALIFICATION.json'),'linkage':hash_file(root/'qualification-linkage.json'),
+        'raw_receipt':hash_file(root/'receipt.json'),'manifest':manifest,'state_sha256':hash_file(root/'fixture/state.bin')['sha256']}
+
+
+def authority_snapshot(root, value, facts):
+    import sqlite3
+    require(type(value) is dict and set(value)=={'snapshots','job','owners','consumed','original_before_after_unchanged','copy_precedes_SQLite_open'}
+        and value['copy_precedes_SQLite_open'] is True and value['original_before_after_unchanged'] is True,
+        'copied original authority reader required')
+    snapshots=value['snapshots']; require(type(snapshots) is list and len(snapshots)==2,'both service and broker snapshots required')
+    required=('trust/authority/service.sqlite3','jobs/approved/broker.sqlite3'); copies={}
+    for snapshot,relative in zip(snapshots,required):
+        require(type(snapshot) is dict and set(snapshot)=={'relative','files'} and snapshot['relative']==relative
+            and type(snapshot['files']) is list and len(snapshot['files'])==3,'closed original database/WAL/SHM snapshot')
+        for selected,suffix in zip(snapshot['files'],('','-wal','-shm')):
+            require(type(selected) is dict and set(selected)=={'original','copied','present'} and type(selected['present']) is bool,
+                'typed snapshot fields required')
+            original=path_under(root,relative+suffix)
+            if selected['present']:
+                require(type(selected['original']) is dict and selected['original']['path']==str(original)
+                    and canonical(hash_file(original))==canonical({key:selected['original'][key] for key in ('bytes','sha256')}),
+                    'current original database differs from admitted before snapshot')
+                copy_pin=selected['copied']; copied=Path(copy_pin['path'])
+                require(root!=copied and root not in copied.parents and root not in copied.parent.parents
+                    and canonical(hash_file(copied))==canonical({key:copy_pin[key] for key in ('bytes','sha256')})
+                    and canonical({key:selected['original'][key] for key in ('bytes','sha256')})
+                    ==canonical({key:copy_pin[key] for key in ('bytes','sha256')}),'actual complete copied database member differs')
+                require(not any(p.is_symlink() for p in (copied,*copied.parents)),'copied authority must be literal')
+                if suffix=='': copies[relative]=copied
+                else: require(copied==Path(str(copies[relative])+suffix),'WAL/SHM copied layout must match actual SQLite receiver')
+            else: require(suffix!='' and selected['original'] is None and selected['copied'] is None
+                and not original.exists() and not original.is_symlink(),'absent database member must really be absent')
+    with sqlite3.connect(copies[required[0]].as_uri()+'?mode=ro',uri=True) as db:
+        db.execute('PRAGMA query_only=ON')
+        job=db.execute('SELECT id,root,manifest_sha256,status,dispatches,outcome,controller_pid FROM jobs WHERE id=?',(facts['operation_id'],)).fetchone()
+        owners=db.execute('SELECT scope,job FROM ownership WHERE job=? ORDER BY scope',(facts['operation_id'],)).fetchall()
+        consumed=db.execute('SELECT operation_id,manifest_sha256 FROM consumed WHERE operation_id=?',(facts['operation_id'],)).fetchall()
+    require(job is not None and job[:5]==(facts['operation_id'],facts['job_root'],facts['manifest_sha256'],facts['status'],1)
+        and type(job[4]) is int and job[6] is None and type(job[5]) is str,'actual before authority status/consumption/host must match route')
+    manifest=facts['manifest']; physical=manifest['provider_binding']['backend']['state_blob']
+    expected=sorted([hashlib.sha256(canonical({'tenant':manifest['tenant_id'],'object_and_assignments':oid})).hexdigest()
+        for oid in manifest['object_ids']]+[hashlib.sha256(canonical({'tenant':manifest['tenant_id'],'state_blob':physical})).hexdigest()])
+    require(len(expected)==2 and owners==[(scope,facts['operation_id']) for scope in expected]
+        and consumed==[(facts['operation_id'],facts['manifest_sha256'])],'exact two writer reservations and one consumed original required')
+    observed={'operation_id':job[0],'job_root':job[1],'manifest_sha256':job[2],'status':job[3],'dispatches':job[4],
+        'outcome_sha256':hashlib.sha256(job[5].encode()).hexdigest(),'controller_pid':job[6]}
+    require(canonical(value['job'])==canonical(observed) and canonical(value['owners'])==canonical([list(row) for row in owners])
+        and canonical(value['consumed'])==canonical([list(row) for row in consumed]),'typed witnessed SQL rows differ from copied actual authority')
+    return observed
+
+
+def native_input_witness(profile, route):
+    require(type(route['actual_input_binding']) is dict,'actual native timing input witness missing')
+    witness=proof(route['actual_input_binding']); fields={'schema_version','status','source_revision','observer_source_revision','case_id',
+        'original_fault_root','original_profile_sha256','original_loader_sha256','observing_helper_sha256','immutable_receipts',
+        'typed_original_tree','typed_seed_tree','authority_snapshot','signature_reader','private_before_capsule','negative_controls',
+        'permits_replay','fresh_recovery_approval_required','platform_qualified','production_approved'}
+    require(type(witness) is dict and set(witness)==fields and witness['schema_version']==WITNESS_SCHEMA
+        and witness['status']=='PASS_SCOPED_ACTUAL_NATIVE_INPUT_READER' and witness['source_revision']==HISTORICAL_SOURCE
+        and witness['observer_source_revision']==OBSERVER_SOURCE and witness['case_id']==route['id']
+        and witness['original_fault_root']==route['arguments']['previous_root']
+        and witness['original_profile_sha256']==route['original_fault']['profile_sha256']
+        and witness['original_loader_sha256']==route['original_fault']['loader_sha256']
+        and witness['observing_helper_sha256']==profile.value['helpers']['helpers/native_ordinary_timing_recovery.py']['sha256']
+        and witness['permits_replay'] is False and witness['fresh_recovery_approval_required'] is True
+        and witness['platform_qualified'] is False and witness['production_approved'] is False,
+        'actual independently witnessed input cannot grant replay or external qualification')
+    facts=native_fault_artifacts(profile,route); root=Path(facts['root']); seed=Path(facts['seed_root'])
+    receipts=witness['immutable_receipts']
+    require(type(receipts) is dict and set(receipts)=={'portable','linkage','raw_receipt'}
+        and canonical(receipts)==canonical({key:facts[key] for key in receipts}),'exact actual fault receipt pins differ')
+    require(canonical(typed_original_inventory(root))==canonical(witness['typed_original_tree'])
+        and canonical(typed_original_inventory(seed))==canonical(witness['typed_seed_tree'])
+        and canonical(witness['typed_seed_tree'])==canonical(profile.contract['legacy_seed']['typed_inventory']),
+        'complete typed original/native input or old PASS seed changed')
+    original_job=authority_snapshot(root,witness['authority_snapshot'],facts)
+    signature=witness['signature_reader']
+    require(type(signature) is dict and set(signature)=={'status','original_signature_valid','operation_id','manifest_sha256','raw_receipt','historical_only','fresh_authorization'}
+        and signature['status']=='PASS_INDEPENDENT_HISTORICAL_SIGNATURE_CONTROLS' and signature['original_signature_valid'] is True
+        and signature['operation_id']==facts['operation_id'] and signature['manifest_sha256']==facts['manifest_sha256']
+        and signature['historical_only'] is True and signature['fresh_authorization'] is False,
+        'historical original signature readback is required but grants no fresh authorization')
+    raw_signature=proof(signature['raw_receipt'])
+    require(raw_signature.get('original_valid') is True and type(raw_signature.get('controls')) is dict
+        and {'wrong_operation','wrong_manifest','wrong_domain','changed_signature','wrong_signer'}<=set(raw_signature['controls'])
+        and all(item is True for item in raw_signature['controls'].values()),'actual signature negatives required')
+    capsule=witness['private_before_capsule']
+    require(type(capsule) is dict and set(capsule)=={'path','bytes','sha256'}
+        and canonical(hash_file(Path(capsule['path'])))==canonical({key:capsule[key] for key in ('bytes','sha256')}),
+        'preserved exact complete private original input capsule required')
+    controls=witness['negative_controls']
+    require(type(controls) is dict and {'wrong_root','wrong_source','wrong_plan','wrong_state','wrong_owner','replay'}<=set(controls)
+        and all(v is True for v in controls.values()),'independent actual input rejection controls incomplete')
+    return {'witness':route['actual_input_binding'],'facts':{k:v for k,v in facts.items() if k!='manifest'},
+        'original_job':original_job,'authority_snapshot':witness['authority_snapshot'],
+        'before_original_tree':witness['typed_original_tree']}
+
+
+def external_review_and_GO(profile, row, args):
+    require(args.independent_admission and args.independent_admission_sha256 and args.root_go and args.root_go_sha256,
+        'independent exact profile/outer admission and explicit root GO required')
+    def external(path,digest):
+        require(type(digest) is str and re.fullmatch('[0-9a-f]{64}',digest),'external proof SHA required')
+        selected=Path(path); pin={'path':str(selected),'bytes':hash_file(selected)['bytes'],'sha256':digest}
+        return pin,proof(pin)
+    review_pin,review=external(args.independent_admission,args.independent_admission_sha256)
+    go_pin,go=external(args.root_go,args.root_go_sha256)
+    require(type(review) is dict and set(review)=={'schema_version','status','source_revision','profile_sha256','loader_sha256',
+        'outer_sha256','configuration_sha256','action_plan_sha256','witnesses','scope','native_dispatches','platform_qualified','production_approved'}
+        and review['schema_version']==REVIEW_SCHEMA and review['status']=='PASS_SCOPED_READY_FOR_ROOT_LOCAL_LAB_DECISION'
+        and review['source_revision']==OBSERVER_SOURCE and review['profile_sha256']==profile.sha256
+        and review['loader_sha256']==profile.value['loader_sha256']
+        and review['action_plan_sha256']==profile.value['inputs']['inputs/observer-recovery-routes.json']['sha256']
+        and review['scope']==LOCAL_SCOPE and type(review['native_dispatches']) is int and review['native_dispatches']==0
+        and review['platform_qualified'] is False and review['production_approved'] is False,'exact independent READY admission differs')
+    require(type(go) is dict and set(go)=={'schema_version','status','source_revision','profile_sha256','loader_sha256','outer_sha256',
+        'configuration_sha256','action_plan_sha256','review','allowed_case_ids','witnesses','run_root','durable_root','decision_owner',
+        'issued_at','expires_at','nonce','scope','production_changes_authorized'},'closed root decision required')
+    require(go['schema_version']==GO_SCHEMA and go['status']=='APPROVED_LOCAL_LAB_EXECUTION'
+        and all(canonical(go[key])==canonical(review[key]) for key in ('source_revision','profile_sha256','loader_sha256','outer_sha256',
+            'configuration_sha256','action_plan_sha256','witnesses','scope')) and canonical(go['review'])==canonical(review_pin)
+        and go['allowed_case_ids']==[route['id'] for route in profile.contract['routes']]
+        and go['run_root']==RECOVERY_RUN_ROOT and go['durable_root']==RECOVERY_DURABLE_ROOT
+        and type(go['decision_owner']) is str and bool(go['decision_owner']) and type(go['nonce']) is str
+        and re.fullmatch('[0-9a-f]{32}',go['nonce']) is not None and type(go['issued_at']) is int and type(go['expires_at']) is int
+        and go['issued_at']<=time.time()<go['expires_at']<=go['issued_at']+7200
+        and go['production_changes_authorized'] is False,'unexpired exact root local decision required')
+    require(canonical(go['witnesses'])==canonical({route['id']:route['actual_input_binding'] for route in profile.contract['routes']}),
+        'independent/root decision must bind every exact actual original input witness')
+    control=Path(args.dispatch_record).absolute() if args.dispatch_record else None
+    expected=Path(go['durable_root'])/'control'/row['id']
+    require(control==expected and control.is_dir() and not any(p.is_symlink() for p in (control,*control.parents)),
+        'dispatch journal must be exact durable receiving directory')
+    return {'review':review_pin,'GO':go_pin,'decision':go,'dispatch_record':str(control/'DISPATCH-INTENT.json')}
+
+
+def receiving_capacity_and_roots(profile,row,admission):
+    durable=Path(admission['decision']['durable_root']); temporary=Path(admission['decision']['run_root'])
+    require(durable.is_dir() and temporary.is_dir(),'guarded outer must allocate private receiving roots after admission')
+    for path in (durable,temporary): require(path.stat().st_uid==os.geteuid() and not stat.S_IMODE(path.stat().st_mode)&0o077,
+        'receiving roots must be privately owned')
+    info=os.statvfs(durable); require(info.f_bavail*info.f_frsize>=NATIVE_RESERVE,'persistent native33,619,968-byte reserve missing before dispatch')
+    info=os.statvfs(temporary); require(info.f_bavail*info.f_frsize>=1536*1024*1024,'temporary complete native action reservation missing')
+    output=Path(row['output']); require(output.parent==temporary/'journey' and output.parent.is_dir()
+        and not output.exists() and not output.is_symlink(),'fresh closed output and existing owned journey required')
+    roots=(profile.project,profile.evidence,Path(row['arguments']['previous_root']),Path(row['arguments']['seed_root']),durable)
+    require(not any(p.is_symlink() for p in output.parents)
+        and all(output!=root and root not in output.parents and output not in root.parents for root in roots),'output overlaps protected input')
+
+
+def verify_ready(profile,row,args):
+    require(profile.contract['status']=='READY_WITH_ACTUAL_INPUT_BINDINGS' and all(type(route['actual_input_binding']) is dict
+        for route in profile.contract['routes']),'actual four native timing input witnesses missing; pending dispatch forbidden')
+    strict_gate(profile,profile.contract['required_gates']['new_source_strict'])
+    runtime_gate(profile,profile.contract['required_gates']['new_runtime_application'])
+    selected=native_input_witness(profile,row)
+    admission=external_review_and_GO(profile,row,args)
+    receiving_capacity_and_roots(profile,row,admission)
+    return selected,admission
+
+
+def mutable_original_path(name,route):
+    if name in ('trust/authority/service.sqlite3','trust/authority/service.sqlite3-wal','trust/authority/service.sqlite3-shm'):return True
+    if not route['id'].startswith('apply-archive') and re.fullmatch(r'jobs/(successor|temporary)-[0-9a-f-]{36}(/.*)?',name):return True
+    return route['id'].startswith('apply-archive') and re.fullmatch(r'jobs/approved/reconciliation-[0-9a-f]{32}\.json',name) is not None
+
+
+def preserve_original_after(profile,route,before):
+    after=typed_original_inventory(Path(route['arguments']['previous_root']))
+    changed={key:{'before':before.get(key),'after':after.get(key)} for key in set(before)|set(after) if canonical(before.get(key))!=canonical(after.get(key))}
+    require(all(mutable_original_path(name,route) or name in ('jobs','trust/authority') and before.get(name)==after.get(name) for name in changed),
+        'original immutable evidence changed outside actual typed recovery/reconcile authority append boundary')
+    require(canonical(typed_original_inventory(Path(route['arguments']['seed_root'])))==canonical(profile.contract['legacy_seed']['typed_inventory']),
+        'original PASS seed changed during recovery')
+    return {'scope':'Explicit typed authority/new successor or known reconciliation append boundary; original failed artifacts/plan/source/receipt untouched.',
+        'changed_nodes':changed,'prior_negative_results_rewritten':False,'original_dispatched_operation_replayed':False}
+
+
+def recovery_artifacts(profile,output,result,route):
+    root=root_path(output); link=load_json(path_under(root,'qualification-linkage.json'))
+    fields={'schema_version','action','route','source_revision','historical_source_revision','previous_root','seed_root',
+        'operation_id','manifest_sha256','job_root','policy_path','artifacts','scope'}
+    require(type(result) is dict and result.get('status')=='PASS' and type(result.get('assertions')) is dict and result['assertions']
+        and all(item is True for item in result['assertions'].values()) and type(link) is dict and set(link)==fields
+        and link['schema_version']=='ordinary-native-timing-recovery-linkage/1' and link['action']==route['action']
+        and link['source_revision']==OBSERVER_SOURCE and link['historical_source_revision']==HISTORICAL_SOURCE
+        and link['previous_root']==route['arguments']['previous_root'] and link['seed_root']==route['arguments']['seed_root']
+        and canonical(link)==canonical(result.get('qualification_linkage')),'actual new helper/result/old source identity contract differs')
+    receipt=load_json(path_under(root,'receipt.json'))
+    require(canonical(receipt)==canonical({key:value for key,value in result.items() if key!='qualification_linkage'}),
+        'new helper return differs from archived actual result')
+    require(link['route']==('known-completion' if route['id'].startswith('apply-archive') else route['id'])
+        and all(type(link[key]) is str and result.get(key)==link[key] for key in ('operation_id','manifest_sha256','job_root','policy_path')),
+        'actual recovery route identities differ')
+    if route['id'].startswith('apply-archive'):
+        require(link['job_root']==route['arguments']['previous_root']+'/jobs/approved'
+            and link['policy_path']==route['arguments']['previous_root']+'/trust/policy.json'
+            and result.get('new_readback_module_sha256')==profile.value['package']['intune_iac/worker_completed_readback.py']['sha256']
+            and result.get('new_service_module_sha256')==profile.value['package']['intune_iac/worker_service.py']['sha256'],
+            'known completion must bind actual new no-release factory and original historical authority')
+    else:
+        require(Path(link['job_root']).parent==Path(route['arguments']['previous_root'])/'jobs'
+            and Path(link['job_root']).name.startswith('successor-') and link['policy_path']==str(root/'trust/policy.json'),
+            'cancelled recovery must use fresh same-authority successor and new approval')
+    artifacts=link['artifacts']; require(type(artifacts) is dict and 1<=len(artifacts)<=512 and 'receipt.json' in artifacts,
+        'selected actual artifact census required; complete raw preserved separately')
+    for name,pin in artifacts.items(): require(canonical(hash_file(path_under(root,name)))==canonical(pin),'new result selected artifact substituted')
+    cleanup=closed_cleanup(root,final_required=route['id'].startswith('apply-archive'))
+    return {'linkage':link,'selected_files':artifacts,'linkage_file':hash_file(root/'qualification-linkage.json'),'cleanup_schema':cleanup,
+        'independent_actual_receiving_SQL_request_state_plan_history_reader_still_required':True}
+
+
+def execute_recovery(profile,args,route):
+    selected,admission=verify_ready(profile,route,args)
+    profile.recheck()
+    record={'schema_version':'C30-native-recovery-durable-dispatch-intent/1','case_id':route['id'],'route':route,
+        'source_revision':profile.source_revision,'historical_source_revision':HISTORICAL_SOURCE,'profile_sha256':profile.sha256,
+        'loader_sha256':profile.value['loader_sha256'],'review':admission['review'],'root_GO':admission['GO'],
+        'actual_native_input_witness':selected['witness'],'issued_at':int(time.time()),'automatic_retry':False,'production_changes_authorized':False}
+    target=Path(admission['dispatch_record'])
+    descriptor=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+    with os.fdopen(descriptor,'wb') as stream:stream.write(canonical(record));stream.flush();os.fsync(stream.fileno())
+    descriptor=os.open(target.parent,os.O_RDONLY|os.O_DIRECTORY)
+    try:os.fsync(descriptor)
+    finally:os.close(descriptor)
+    # The once-only durable intent exists before installing/importing a native
+    # qualifier. It cannot be requeued if evidence recording fails afterwards.
+    sys.path[:0]=[str(profile.evidence/'helpers'),str(profile.project)]
+    from qualification_context import install
+    install(profile);os.environ['INTUNE_TEST_VALIDATOR_LIBRARY']=profile.tool('validator')
+    result=None;primary=None;facts=None;changes=None;origins=None;started=time.time();output=Path(route['output'])
+    try:
+        result=importlib.import_module('native_ordinary_timing_recovery').run(args.action,output,
+            previous_root=route['arguments']['previous_root'],seed_root=route['arguments']['seed_root'])
+        facts=recovery_artifacts(profile,output,result,route)
+    except BaseException as error:primary=error
+    finally:
+        try:
+            origins=profile.recheck();changes=preserve_original_after(profile,route,selected['before_original_tree'])
+        except BaseException as secondary:
+            if primary is None:primary=secondary
+            else:primary.add_note('Secondary observer dependency/original mutation-boundary check: '+type(secondary).__name__)
+        if output.exists():
+            receipt={'schema_version':OBSERVER_RECEIPT_SCHEMA,'status':'FAIL' if primary else 'PASS','action':route['action'],
+                'continuation_route_id':route['id'],'continuation_route':route,'profile_sha256':profile.sha256,
+                'loader_sha256':profile.value['loader_sha256'],'source_revision':profile.source_revision,'historical_source_revision':HISTORICAL_SOURCE,
+                'project_root':str(profile.project),'package_inventory_sha256':hashlib.sha256(canonical(profile.value['package'])).hexdigest(),
+                'action_plan_sha256':profile.value['inputs']['inputs/observer-recovery-routes.json']['sha256'],
+                'scenario_result':result,'recovery_operation_artifacts':facts,'original_native_input':selected,
+                'original_mutation_boundary':changes,'imported_package_sources':origins,'durable_dispatch_intent':str(target),
+                'elapsed_seconds':time.time()-started,'error':type(primary).__name__ if primary else None,
+                'fixture_scope':LOCAL_SCOPE,'native_platform_qualified':False,'production_approved':False}
+            try:
+                fd=os.open(output/'PORTABLE-QUALIFICATION.json',os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+                with os.fdopen(fd,'wb') as stream:stream.write(canonical(receipt));stream.flush();os.fsync(stream.fileno())
+            except BaseException as secondary:
+                if primary is None:primary=secondary
+                else:primary.add_note('Secondary observer result recording: '+type(secondary).__name__)
+    if primary is not None:raise primary
+    print(canonical({'status':'PASS_SCOPED_NATIVE_OBSERVER_RECOVERY_LAB','source_revision':profile.source_revision,
+        'action':route['action'],'output':str(output),'platform_qualified':False,'production_approved':False}).decode())
+
+
+if __name__=='__main__': main()

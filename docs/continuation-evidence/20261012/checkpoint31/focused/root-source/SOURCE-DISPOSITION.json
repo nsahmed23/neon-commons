@@ -1,0 +1,52 @@
+{
+  "actual_run_scope": "One fixed independently source-admitted local Focused04 once-run application repair followed by complete PRIVATE preservation of three declared owned roots. No new gate, standalone replay or whole-corpus guarantee.",
+  "application_runs": 0,
+  "complete_private_corpus_claim": false,
+  "embedded_private_payload_or_credential_found": false,
+  "evidence_reuse": "Existing actual run/private preservation and separate peer raw review are linked by exact receipts; this review does not rerun or extend those scopes.",
+  "existing_receipt_linkage": {
+    "private_archive_bytes": 184980,
+    "private_archive_sha256": "8808400c20628195f1137e83e51d39850aa82d62137dc19c248da9b400246b6d",
+    "private_preservation_result_bytes": 4034,
+    "private_preservation_result_sha256": "aeb9e86afdd1fa0e0a16b6f2aaad23b615ac2b4863cd33577bff7d7b679a5b71",
+    "public_independent_actual_raw_metadata_bytes": 6420,
+    "public_independent_actual_raw_metadata_sha256": "758af96ed8f2cfb566d25ee29ea1c4751c729bf1e7cb45e6273e2e7d054bdb28"
+  },
+  "independent_actual_raw_review_borrowed": false,
+  "method": "Read both complete original source files; exact regular-file bytes/stat identity and immutable copies verified. Source text parsed without execution. Checked literal constants, argv/environment usage, logging/printing, capsule manifest construction and private output handling for embedded payloads/credentials. No helper/test/product/native/Git command executed.",
+  "native_dispatches": 0,
+  "performance_qualified": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "publication_execution_owner": "Root release engineer; author has not committed, pushed, uploaded or published these sources.",
+  "publication_scope": "Exactly two complete inert .py.txt source texts, README and this source disposition. Full private source/utility inputs, profiles/contracts/job/state/plan/capture/fixture/key material and output capsules are not selected.",
+  "reviewer": "resumed_performance; reviewed ROOT-authored launcher and preservation wrapper, not author of those two sources",
+  "schema_version": "independent-focused04-ROOT-public-source-disposition/1",
+  "security_review_scope": "Public text suitability only; not a new threat model, reachable-code security review or organizational AppSec approval.",
+  "selected": {
+    "README.md": {
+      "bytes": 2132,
+      "role": "Explicit narrow scope, exclusions and limitations.",
+      "sha256": "e15ab09a6fbe8667008b39792be498bbe2df1353e38449425ed28b0dcf1455ce"
+    },
+    "launch-intune-focused04-20261012.py.txt": {
+      "bytes": 4341,
+      "exact_complete_bytes": true,
+      "origin": "/tmp/launch-intune-focused04-20261012.py",
+      "role": "Fixed single-use ROOT launcher and exact launch receipt; no protected execution authority.",
+      "sha256": "5f8b0a86dadf814423d8c5695f5a656a238bcb139e0c9d4538ba7f90471d9325"
+    },
+    "preserve-intune-focused04-20261012.py.txt": {
+      "bytes": 6305,
+      "exact_complete_bytes": true,
+      "origin": "/tmp/preserve-intune-focused04-20261012.py",
+      "role": "Fixed three-owned-root PRIVATE capsule preservation wrapper; no application dispatch.",
+      "sha256": "2c34f9563f681e35cb58f57b81565ba0db23c221a35ecbf8bf24065ec6cb4898"
+    }
+  },
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_or_byte_edits": false,
+  "status": "PASS_SCOPED_PUBLIC_SOURCE_TEXT_ONLY",
+  "tests_run": 0,
+  "timing_samples": 0
+}

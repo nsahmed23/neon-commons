@@ -1,0 +1,63 @@
+{
+  "schema": "public-independent-CI-fixture-source-selection-admission/1",
+  "status": "PASS_SCOPED_INERT_SOURCE_PREPARATION_ONLY",
+  "source_base": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "selected": [
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/public-source/CLOSED-PROFILE.json",
+      "bytes": 6549,
+      "sha256": "5707c7b530405a4d74fd0f584ba84ae895a81258269006d6cfcec6b1f3b61f80"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/public-source/README.md",
+      "bytes": 2710,
+      "sha256": "da8778ac934a1aad21b01a4277f911c6c55c421e342843bcdb812b603fb31ca1"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/public-source/prepare-ci-qualification.py.txt",
+      "bytes": 5088,
+      "sha256": "23464095f8557cc367bcc043fa3ff438889708e16fb12780b1edda681aa9e3e0"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/public-source/test-protected-completion.py.txt",
+      "bytes": 29460,
+      "sha256": "ed6b7c71ba1c7bd5e56396116a927082277a13490c8898abb1001c56ab8993df"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/public-source/validate.yml.txt",
+      "bytes": 8478,
+      "sha256": "1b3352de2a8bc5b3a58084b9fb9742698c3eee640746289eca0750dec61c9a91"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/public-source/workflow.patch",
+      "bytes": 1593,
+      "sha256": "88459d67b759fd2ed0ceb1b5920a79297e1aca7482194088fa0e01969d31b0d0"
+    }
+  ],
+  "independent_review": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/ci-fixture-source-preparation-01/ADMISSION.json",
+    "bytes": 9302,
+    "sha256": "1b39b65411a156eec044152b87027f443317f4d4c437e1e801965ef76276dd4c"
+  },
+  "review_scope": "Whole new binder/workflow/profile/README/patch plus exact new variable/four-reference native-test delta against committed already public baseline.51 metadata/source guards; no binary hashes/native/CI rerun.",
+  "demonstrated_preparation": "Closed four-tool fixed-role/pin declaration and exact five-key path-only export; no shell evaluation/defaults/alias creation. Two actual author bind/export commands and two edited local builtin OpenTofu methods plus explicit post-native unchanged-tool closure bound.",
+  "counts_nonadditive": "Author29 preparation/native2 controls and independent51 metadata checks overlap existing cases; no new full-suite, native-profile or CI/platform totals.",
+  "proposal_application": "Three candidate source paths are reviewable for dedicated continuation branch. Required source inventory, changed-scope tests and exact new artifact identity remain coordinator-owned; no current source39cc/eaa56 package byte claims are transferred.",
+  "remaining_external_prerequisites": [
+    "Approved runner/fixture custodian supplies four exact existing tool files and compatible daemon/image",
+    "Repository/platform owner decides and authorizes actual CI variables/registration/dispatch/permissions; source proposal and publication do not constitute activation",
+    "Actual runner/tool/image/isolation/CI evidence and separately protected execution/service/provider/backend/device/Windows/AppSec/organizational approval gates"
+  ],
+  "omissions": [
+    "No original private native intermediate TemporaryDirectories, actual private environment maps/qualification fixtures/state/plans/tool payloads or broader corpus are selected",
+    "Native2 original tests clean their intermediates; no complete raw recovery capsule inferred",
+    "No deployment, credential/privilege provisioning, runner installation, daemon/image change, CI dispatch or production authority"
+  ],
+  "public_source_payload_has_no_raw_tenant_or_credential_values": true,
+  "source_safety_scope": "Read source literals and exact unchanged-public baseline/delta; no real secrets/raw captures/state/plan payload found in new selections. This is engineering text clearance, not organizational AppSec approval.",
+  "reviewer_native_runs": 0,
+  "actual_CI_dispatches": 0,
+  "platform_qualified": false,
+  "production_approved": false,
+  "global_laboratory_complete": false
+}

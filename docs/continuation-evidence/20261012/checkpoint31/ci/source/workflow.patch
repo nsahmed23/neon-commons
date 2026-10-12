@@ -1,0 +1,28 @@
+--- a/.github/workflows/validate.yml
++++ b/.github/workflows/validate.yml
+@@ -81,6 +81,17 @@
+           python scripts/prepare-ci-validator.py --package "$CI_ROOT/validator-input/libsodium.deb" --output "$CI_ROOT/validator"
+           printf 'INTUNE_TEST_VALIDATOR_LIBRARY=%s/validator/libsodium.so.23.3.0\n' "$CI_ROOT" >> "$GITHUB_ENV"
+ 
++      - id: qualification-inputs
++        name: Bind existing fixed qualification fixtures without installation
++        env:
++          QUALIFICATION_DOCKER: ${{ vars.INTUNE_QUALIFICATION_DOCKER }}
++          QUALIFICATION_TOFU: ${{ vars.INTUNE_QUALIFICATION_TOFU }}
++          QUALIFICATION_RELAY_V2: ${{ vars.INTUNE_QUALIFICATION_RELAY_V2 }}
++          QUALIFICATION_RELAY_V3: ${{ vars.INTUNE_QUALIFICATION_RELAY_V3 }}
++        run: |
++          python scripts/prepare-ci-qualification.py bind --docker "$QUALIFICATION_DOCKER" --tofu "$QUALIFICATION_TOFU" --relay-v2 "$QUALIFICATION_RELAY_V2" --relay-v3 "$QUALIFICATION_RELAY_V3" --output "$CI_ROOT/qualification-inputs"
++          python scripts/prepare-ci-qualification.py export --input "$CI_ROOT/qualification-inputs" >> "$GITHUB_ENV"
++
+       - id: verify
+         name: Run the complete local and repaired-core verifier
+         run: |
+@@ -157,6 +168,7 @@
+             ${{ env.CI_ROOT }}/extracted-verification
+             ${{ env.CI_ROOT }}/archive-verification.json
+             ${{ env.CI_ROOT }}/validator/receipt.json
++            ${{ env.CI_ROOT }}/qualification-inputs
+             ${{ env.CI_ROOT }}/validator/copyright
+           if-no-files-found: error
+           retention-days: 7

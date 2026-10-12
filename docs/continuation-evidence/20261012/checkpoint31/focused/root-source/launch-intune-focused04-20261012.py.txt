@@ -1,0 +1,80 @@
+"""ROOT-only launch receipt for one independently admitted modeled evidence repair."""
+from pathlib import Path
+import argparse, datetime, hashlib, json, os, subprocess, sys
+
+PREP = Path('/tmp/intune-new-package-completed-journey-20261011-04/PREPARATION.json')
+SCRIPT = Path('/tmp/intune-new-package-completed-journey-20261011-04/qualify_packaged_completed_journey.py')
+CONTRACT = Path('/tmp/intune-new-package-completed-journey-20261011-04/EXECUTION-CONTRACT.json')
+OUTPUT = Path('/tmp/intune-C30-actual-launch-receipts-20261012-03')
+PINS = {
+    PREP: (8825, '9da19dfb82c2acb9925116b1886dc1c8d3a6ec2369e92fdbdde874b979fd978e'),
+    SCRIPT: (43840, '83a6a4299837d82ac1e5cb88fb5fd904640d287683b200e936c5359ea1453dd7'),
+    CONTRACT: (1924, 'f3d793896f49d5e51778c372fa53db28f2604623ce41aba3ce3aaded7d3bbb76'),
+}
+
+def pin(path):
+    raw = path.read_bytes()
+    if path.is_symlink():
+        raise ValueError('Literal regular input required')
+    return {'path': str(path), 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+
+def write(path, value):
+    with path.open('x') as stream:
+        json.dump(value, stream, sort_keys=True, indent=2)
+        stream.write('\n')
+        stream.flush()
+        os.fsync(stream.fileno())
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source-admission', type=Path, required=True)
+    parser.add_argument('--source-admission-sha256', required=True)
+    args = parser.parse_args()
+    if sys.flags.optimize or not sys.flags.isolated:
+        raise ValueError('Unoptimized isolated launcher required')
+    inputs = {str(path): pin(path) for path in PINS}
+    for path, expected in PINS.items():
+        actual = inputs[str(path)]
+        if (actual['bytes'], actual['sha256']) != expected:
+            raise ValueError('Frozen04 input changed')
+    admission = pin(args.source_admission)
+    if admission['sha256'] != args.source_admission_sha256:
+        raise ValueError('Independent source admission substituted')
+    prepared = json.loads(PREP.read_bytes())
+    argv = prepared['execution_command']
+    if argv[-1] != '/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH':
+        raise ValueError('Different application receiving namespace')
+    if Path(argv[-1]).exists() or Path(argv[-1]).is_symlink():
+        raise ValueError('Application receiving namespace already exists')
+    os.umask(0o077)
+    OUTPUT.mkdir(mode=0o700)
+    receipt = {'schema_version': 'ROOT-focused04-actual-launch/1', 'status': 'STARTED',
+               'actual_argv': argv, 'actual_cwd': '/workspace', 'inputs': inputs,
+               'source_admission': admission, 'launcher': pin(Path(__file__)),
+               'started_utc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+               'scope': 'One short current-package modeled journey to save the missing six per-negative authority pairs. No strict-suite rerun or native dispatch.',
+               'platform_qualified': False, 'production_approved': False}
+    write(OUTPUT / 'START.json', receipt)
+    try:
+        stdout, stderr = OUTPUT / 'application.stdout', OUTPUT / 'application.stderr'
+        with stdout.open('xb') as out, stderr.open('xb') as err:
+            result = subprocess.run(argv, cwd='/workspace', stdin=subprocess.DEVNULL,
+                                    stdout=out, stderr=err, timeout=240)
+        receipt.update(status='EXIT_RECORDED', exit_code=result.returncode,
+                       finished_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                       stdout=pin(stdout), stderr=pin(stderr))
+        write(OUTPUT / 'LAUNCH-RECEIPT.json', receipt)
+        print(json.dumps({'receipt': pin(OUTPUT / 'LAUNCH-RECEIPT.json'),
+                          'exit_code': result.returncode, 'application_output': argv[-1]}))
+        return result.returncode
+    except BaseException as primary:
+        try:
+            write(OUTPUT / 'FAILURE.json', dict(receipt, status='FAIL_PRESERVED',
+                                               primary_type=type(primary).__name__,
+                                               primary_message=str(primary)))
+        except BaseException as secondary:
+            primary.add_note('Secondary launch receipt failure: ' + type(secondary).__name__)
+        raise
+
+if __name__ == '__main__':
+    raise SystemExit(main())

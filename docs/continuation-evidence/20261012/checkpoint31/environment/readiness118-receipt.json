@@ -1,0 +1,24 @@
+{
+  "schema": "managed-environment-readiness-preservation/1",
+  "status": "PASS_SCOPED",
+  "preserved_at": "2026-10-12T00:31:46.942188+00:00",
+  "tool": "mcp__codex_apps__cloud_environment_environment_status",
+  "observation_timestamp": "Not present in returned MCP result; originally captured before 2026-10-12T00:30:51Z and preserved now without inventing a collection timestamp.",
+  "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/environment-readiness-C31-20261012-01/OBSERVATION.json",
+  "bytes": 558,
+  "sha256": "713d59c5adeaecb595165ff10470f9a5990128d435591559383b4dbf6beb831b",
+  "observed_spec_revision": "118",
+  "desired_spec_revision": "118",
+  "observations_current": true,
+  "claims": {
+    "managed_configuration_read_only": true,
+    "configured_capabilities": 0,
+    "configured_secret_bindings": 0,
+    "configured_runtime_variables": 0,
+    "configured_outbound_identities": 0,
+    "network_connected": true
+  },
+  "limitation": "This read-only managed configuration observation is not a global credential inventory, a production execution authorization, protected CI evidence, credential activation or authenticated Graph/provider/backend/device evidence. Earlier revision114/116 observations remain historical.",
+  "working_tree_mutation": false,
+  "activation_or_provisioning": false
+}

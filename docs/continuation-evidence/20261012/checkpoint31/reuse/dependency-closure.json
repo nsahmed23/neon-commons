@@ -1,0 +1,54 @@
+{
+  "schema": "public-C31-engine-test-dependency-closure/1",
+  "status": "PASS_SCOPED_EXACT_MEASURED_ORIGINAL_C30_DEPENDENCIES",
+  "recorded_at": "2026-10-12T00:01:54.701954+00:00",
+  "tested_release_engine_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "tested_release_engine_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "exact_tested_artifacts": {
+    "source": {
+      "bytes": 18454404,
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+    },
+    "runtime": {
+      "bytes": 1630724,
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+    }
+  },
+  "actual_measured_original_source_files": 3457,
+  "original_inventory_count": 3463,
+  "actual_runtime_members_compared": 295,
+  "original_runtime_payload_count": 300,
+  "engine_Python_modules": 116,
+  "plugin_test_Python_files": 173,
+  "exact_byte_relation": "Every selected original file is byte-identical in raw39cc Git blob, original C30source ZIP and measured current checkout; every selected original runtime payload additionally matches exact C30runtime ZIP. No product imports, tests, native or remote operations ran.",
+  "full_read_only_receipt": {
+    "bytes": 1320057,
+    "sha256": "925bc98fbd10123162caf8780443203f11d5d33249ae05298875fcf5b9c62094",
+    "public_raw_payloads": false
+  },
+  "eventual_checkpoint_admission_condition": "Coordinator must independently prove the eventual C31 checkout delta contains only these five current administrative documents, inventory append-only and admitted inert public preparation/docs under docs/continuation-evidence/; all original selected3457 files must remain byte-identical. A code/test/config/native/helper dependency change voids this reuse condition.",
+  "administrative_exclusions": [
+    "docs/CONTINUATION-R4-CHECKPOINT.md",
+    "docs/CONTINUATION-R4-LEDGER.json",
+    "docs/EXECUTION-SEQUENCE-R4.md",
+    "docs/EXTERNAL-GATES-R4.md",
+    "docs/OPERATING-PROFILE-R4.md",
+    "release-source-files.txt"
+  ],
+  "reuse_scope": "Actual C30strict2326, changed123/new19 and separately admitted runtime/factory application evidence continue to apply only to original engine/code/test/input/qualified artifact bytes. This is not a new count or whole-checkpoint/archive gate.",
+  "checkpoint_identity": "The containing future Git commit and separate root postcommit/readback receipt identify the administrative checkpoint. They are not the C30engine source commit and must not relabel09f359/356f744 as new checkpoint ZIPs.",
+  "source_inventory": "Every original path/comment/byte must be preserved, except explicit append-only inventory extension recorded by coordinator; adding inert documentation does not rebuild or qualify a new runtime ZIP.",
+  "limitations": [
+    "Read-only raw Git/source ZIP/current checkout and runtime ZIP member equality, not product tests or dynamic sys.modules/per-import origin tracing.",
+    "New containing checkpoint commit and inventory/public selection require actual independent application/commit/publication binding.",
+    "No future C31 source/runtime ZIP is built or qualified by this record.",
+    "No native/platform/production or full private corpus/provenance closure is inferred."
+  ],
+  "original_source_checkout_clean_before_after": true,
+  "source_checkout_mutations": 0,
+  "product_test_runs": 0,
+  "native_dispatches": 0,
+  "remote_actions": 0,
+  "platform_qualified": false,
+  "production_approved": false
+}

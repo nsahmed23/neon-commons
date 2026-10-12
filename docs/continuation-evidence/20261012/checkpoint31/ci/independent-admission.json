@@ -1,0 +1,175 @@
+{
+  "schema": "independent-CI-fixture-source-preparation-review/1",
+  "status": "PASS_SCOPED_EXACT_SOURCE_CLOSED_PREPARATION_AND_PUBLIC_SELECTION",
+  "delivery": {
+    "path": "/tmp/intune-ci-fixture-preparation-20261011-01/DELIVERY.json",
+    "bytes": 4940,
+    "sha256": "e07216c80229e71031bf32498e79182e0d0a92c55c622e788e3e2a0b5c9e00ed"
+  },
+  "source_base": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "candidate_source_files": [
+    {
+      "proposed_repository_path": "scripts/prepare-ci-qualification.py",
+      "public_text": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/prepare-ci-qualification.py.txt",
+        "bytes": 5088,
+        "sha256": "23464095f8557cc367bcc043fa3ff438889708e16fb12780b1edda681aa9e3e0"
+      },
+      "candidate": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/candidate/scripts/prepare-ci-qualification.py",
+        "bytes": 5088,
+        "sha256": "23464095f8557cc367bcc043fa3ff438889708e16fb12780b1edda681aa9e3e0"
+      }
+    },
+    {
+      "proposed_repository_path": "plugin_tests/test_protected_completion.py",
+      "public_text": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/test-protected-completion.py.txt",
+        "bytes": 29460,
+        "sha256": "ed6b7c71ba1c7bd5e56396116a927082277a13490c8898abb1001c56ab8993df"
+      },
+      "candidate": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/candidate/plugin_tests/test_protected_completion.py",
+        "bytes": 29460,
+        "sha256": "ed6b7c71ba1c7bd5e56396116a927082277a13490c8898abb1001c56ab8993df"
+      }
+    },
+    {
+      "proposed_repository_path": ".github/workflows/validate.yml",
+      "public_text": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/validate.yml.txt",
+        "bytes": 8478,
+        "sha256": "1b3352de2a8bc5b3a58084b9fb9742698c3eee640746289eca0750dec61c9a91"
+      },
+      "candidate": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/candidate/.github/workflows/validate.yml",
+        "bytes": 8478,
+        "sha256": "1b3352de2a8bc5b3a58084b9fb9742698c3eee640746289eca0750dec61c9a91"
+      }
+    }
+  ],
+  "public_selected_files": [
+    {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/CLOSED-PROFILE.json",
+      "bytes": 6549,
+      "sha256": "5707c7b530405a4d74fd0f584ba84ae895a81258269006d6cfcec6b1f3b61f80"
+    },
+    {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/README.md",
+      "bytes": 2710,
+      "sha256": "da8778ac934a1aad21b01a4277f911c6c55c421e342843bcdb812b603fb31ca1"
+    },
+    {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/prepare-ci-qualification.py.txt",
+      "bytes": 5088,
+      "sha256": "23464095f8557cc367bcc043fa3ff438889708e16fb12780b1edda681aa9e3e0"
+    },
+    {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/test-protected-completion.py.txt",
+      "bytes": 29460,
+      "sha256": "ed6b7c71ba1c7bd5e56396116a927082277a13490c8898abb1001c56ab8993df"
+    },
+    {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/validate.yml.txt",
+      "bytes": 8478,
+      "sha256": "1b3352de2a8bc5b3a58084b9fb9742698c3eee640746289eca0750dec61c9a91"
+    },
+    {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/workflow.patch",
+      "bytes": 1593,
+      "sha256": "88459d67b759fd2ed0ceb1b5920a79297e1aca7482194088fa0e01969d31b0d0"
+    }
+  ],
+  "checks": [
+    "exact_delivery_frozen",
+    "exact_candidate_scripts/prepare-ci-qualification.py",
+    "exact_public_copy_scripts/prepare-ci-qualification.py",
+    "public_text_candidate_bytes_equal_scripts/prepare-ci-qualification.py",
+    "exact_candidate_plugin_tests/test_protected_completion.py",
+    "exact_public_copy_plugin_tests/test_protected_completion.py",
+    "public_text_candidate_bytes_equal_plugin_tests/test_protected_completion.py",
+    "exact_candidate_.github/workflows/validate.yml",
+    "exact_public_copy_.github/workflows/validate.yml",
+    "public_text_candidate_bytes_equal_.github/workflows/validate.yml",
+    "public_selected_pin_CLOSED-PROFILE.json",
+    "public_selected_pin_README.md",
+    "public_selected_pin_prepare-ci-qualification.py.txt",
+    "public_selected_pin_test-protected-completion.py.txt",
+    "public_selected_pin_validate.yml.txt",
+    "public_selected_pin_workflow.patch",
+    "unchanged_dependency_source_scripts/qualification_tools.py",
+    "unchanged_dependency_source_scripts/prepare-qualification-tools.py",
+    "source39cc_unmodified_clean",
+    "actual_committed_base_plugin_tests/test_protected_completion.py",
+    "actual_committed_base_.github/workflows/validate.yml",
+    "exact_new_native_variable_and_four_reference_changes_only",
+    "all_test_method_names_preserved",
+    "only_expected_workflow_step_and_evidence_path_delta",
+    "path_map_appended_no_shell_evaluation",
+    "original_zero_failure_error_skip_gates_preserved",
+    "closed_profile_fixed_pins_equal_existing_q_source",
+    "modeled_exact_five_fixed_environment_roles",
+    "pure_closed_contract_reject_missing",
+    "pure_closed_contract_reject_extra",
+    "pure_closed_contract_reject_bool",
+    "pure_closed_contract_reject_float",
+    "pure_closed_contract_reject_empty",
+    "pure_closed_contract_reject_relative",
+    "pure_closed_contract_reject_newline",
+    "pure_closed_contract_reject_traversal",
+    "pure_export_exact_five_literal_lines",
+    "pure_export_reject_extra",
+    "pure_export_reject_wrong_alias",
+    "pure_export_reject_typed_alias",
+    "pure_export_reject_duplicate_keys",
+    "pure_export_reject_literal_leaf_link",
+    "actual_author29_source_input_CLI_controls_receipt",
+    "actual_author_two_local_native_method_log_scope",
+    "explicit_post_native_tool_pin_closure_bound",
+    "actual_bind_CLI_scope_flags",
+    "actual_export_CLI_exact_literal_five_lines",
+    "actual_bind.stderr_empty",
+    "actual_export.stderr_empty",
+    "source_checkout_still_unchanged",
+    "no_product_or_native_test_import_by_reviewer"
+  ],
+  "metadata_check_count": 51,
+  "actual_author_result": {
+    "path": "/tmp/intune-ci-fixture-preparation-20261011-01/qualification01/RESULT.json",
+    "bytes": 4334,
+    "sha256": "8d0627461a443bb4fce08ade48a167ee5090c72fd2eb95291a67fd44b30275b4"
+  },
+  "actual_post_native_tool_closure": {
+    "path": "/tmp/intune-ci-fixture-preparation-20261011-01/qualification01/FINAL-TOOL-CLOSURE.json",
+    "bytes": 1135,
+    "sha256": "edd862f3c6c10cc6974e04915d0317ee7ca7ff313686684e7d598028ab6c9c17"
+  },
+  "native_method_log": {
+    "path": "/tmp/intune-ci-fixture-preparation-20261011-01/qualification01/native2-test-log.txt",
+    "bytes": 504,
+    "sha256": "bbe85ce3b2faa74a224ad5e85472db64c4f6235989c107dda804d74cbfb35a12"
+  },
+  "reviewer_scope": "Whole new helper/workflow/closed profile/README/patch plus exact four-reference native-test delta against actual committed baseline. Stdlib-only detached closed contract/export guards; actual tool pin/CLI/native-method receipts independently bound, no heavy binary hashes or native repeat.",
+  "public_suitability": "Exactly six reviewed inert source/profile/readme/patch files are suitable for documentation/public source selection. Existing full native-test body is reused only as exact unchanged already public tracked source; new constant/four references add no credentials or private captures. No private qualification fixtures/raw state/plans/tool payload/publication or organizational AppSec blanket clearance.",
+  "evidence_limits": [
+    "Pure controls modeled q.records return and verified path/type/export guards; they do not independently rehash real binaries",
+    "Actual native2 method pass is observed through exact author log/receipt and post-native closure, not rerun by this reviewer; original TemporaryDirectory intermediates remain deleted/omitted",
+    "No actual CI registration/dispatch, approved stock-runner file provisioning, Docker daemon/image qualification, privileged workflow/identity/approval, Graph/providerRPC/device/Windows or production evidence",
+    "Changes remain in new candidate stage; application to dedicated branch and exact subsequent source/artifact gates require coordinator action"
+  ],
+  "release_gate_preservation": "Both source and extracted strict zero skipped/failure/error gates unchanged; no method dropped, default branch/trigger/action pins/permissions/images changed",
+  "required_external_owner": "Runner/fixture custodian supplies four exact existing files and approved daemon/image; repository/platform owner authorizes actual CI configuration/run; organizational security/pilot approvers retain production decision",
+  "reviewer_native_runs": 0,
+  "reviewer_CI_dispatches": 0,
+  "reviewer_product_imports": 0,
+  "reviewer_original_repository_edits": 0,
+  "platform_qualified": false,
+  "production_approved": false,
+  "global_laboratory_complete": false,
+  "count_scope": "Metadata/pure source guards and author29/native2 overlap existing gates; not summed as product-suite or platform test totals.",
+  "reviewer": {
+    "path": "/tmp/review_ci_fixture_source_20261011.py",
+    "bytes": 12714,
+    "sha256": "2cdb2a6c41f6d6ab7828c25b059741e2f1ee85ca9b0a47c297e5a84bb054e066"
+  }
+}

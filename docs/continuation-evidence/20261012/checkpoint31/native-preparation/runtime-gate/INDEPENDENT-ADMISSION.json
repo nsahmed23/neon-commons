@@ -1,0 +1,108 @@
+{
+  "READY_or_GO": false,
+  "actual_existing_metadata_runtime_gate_passed": true,
+  "actual_finalizer_missing_native_exit": 1,
+  "actual_ready_output_allocated": false,
+  "application_suite_or_performance_reruns": 0,
+  "author_result": {
+    "bytes": 3573,
+    "path": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/RESULT.json",
+    "sha256": "1117cbe49bcf2e01617874a78a941fd23d785d3954b471e22767fad8e6e05609"
+  },
+  "author_source": {
+    "bytes": 7022,
+    "path": "/tmp/bind-intune-C30-runtime-gates-20261012-02.py",
+    "sha256": "c6729c463b877de39078c03a0c9e7ddb86ce657e9aaf900e1a38abcf9b7c7c22"
+  },
+  "complete_private_corpus": false,
+  "count_scope": "Reuses16ba runtime46 scoped assertions and758af focused04 six private raw pairs;64/34/10 and50/11/6 remain nonadditive.37 detached gate negatives and metadata readbacks are preparation checks, not new application/native/suite tests.",
+  "detached_typed_controls": 37,
+  "evidence_reuse": [
+    {
+      "evidence": {
+        "bytes": 9452,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C30-modeled-runtime-20261011-01/PUBLIC-ADMISSION.json",
+        "sha256": "16ba2e2e8c4d79dd9e38f892fa2fdfba670fb5f8a05e117876171a08d58f3067"
+      },
+      "scope": "Existing independent46 raw assertions; actual modeled connected64 named checks/34 unique CLI records/10 Linux PTYs; standalone and workflow scopes separately retained, not added."
+    },
+    {
+      "evidence": {
+        "bytes": 6420,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/actual-raw-04/PUBLIC-METADATA.json",
+        "sha256": "758af96ed8f2cfb566d25ee29ea1c4751c729bf1e7cb45e6273e2e7d054bdb28"
+      },
+      "scope": "Exact focused04 actual50 assertions/11 text commands/6 negatives, independent six raw BEFORE/AFTER/EXCEPTION pairs and copied-only SQL; all nonadditive."
+    }
+  ],
+  "four_actual_native_witnesses": 0,
+  "frozen_loader": {
+    "bytes": 57637,
+    "path": "/tmp/intune-C30-observer-recovery-profile-20261011-03/loader/qualify_C30_observer.py",
+    "sha256": "26938934ed3e6a2c79093cb13b967f7ba59e301f15361a88b65c8f111eeaadd0"
+  },
+  "frozen_native_profile": {
+    "bytes": 694654,
+    "path": "/tmp/intune-C30-observer-recovery-profile-20261011-03/profile.json",
+    "sha256": "5a3c4cfd0f620c3f30cab63a0d7d79be5d01ae82bfd90b1d82645f0818204fdb"
+  },
+  "full_read_only_review": {
+    "bytes": 21008,
+    "path": "/tmp/intune-C30-runtime-gate-loader-review-20261012-01/RESULT.json",
+    "sha256": "dd9938dcdebeb909e079f40a5e8edf6ae483d7ce8c69bc0d9a39d2bd57f9a185"
+  },
+  "global_laboratory_complete": false,
+  "independent_envelope": {
+    "bytes": 3810,
+    "path": "/tmp/intune-C30-runtime-factory-gate-admission-20261012-01/INDEPENDENT-APPLICATION-GATE.json",
+    "sha256": "ca13af184093594a4fdb07d64a122b22e686c8b1e8715f11e380b38361d697f9"
+  },
+  "known_completed_journey": {
+    "bytes": 10042,
+    "path": "/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH/RESULT.json",
+    "sha256": "b128766913530b1f3eca56e4b221983560048ecfcaafd0be045f7a8b3d07d2fd"
+  },
+  "limitations": [
+    "Application paths use explicit local synthetic service, historical host/approval/nonce and observation fixtures. No native provider/backend/live Graph/service/device/Windows/protected CI/organizational approval is inferred.",
+    "Finite manually invoked collection is not independent persistent OS scheduling. Workflow/standalone deleted TemporaryDirectory intermediates remain omitted.",
+    "Large runtime raw and private capsule remain temporary only; G11 durability and 32MiB native/performance guards remain BLOCKED. Focused04 private negative pairs have separate existing durable preservation.",
+    "Four actual C30 native fault witness roots, final READY profile/outer admission and root GO remain missing. This envelope only admits runtime application gate inputs; frozen native03 is not modified or activated.",
+    "Existing count scopes overlap; no addition to strict2326, historicalC252307, affected123/new19, connected64/34/10, or focused50/11/6.",
+    "Successful new results do not close historical missing roots/receipts, actor attribution, unexpected files/reappearance, failed candidates, Wally findings, G13 or public/private corpus provenance."
+  ],
+  "metadata_readback_assertions": 36,
+  "native_dispatches": 0,
+  "new_performance_qualified": false,
+  "package_receipt": {
+    "bytes": 7532,
+    "path": "/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json",
+    "sha256": "eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a"
+  },
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "public_source_text_suitable": true,
+  "remaining_blockers": [
+    "Four actual C30 native fault witnesses NOT_STARTED",
+    "Native/performance32MiB durable guard BLOCKED",
+    "Final actual READY profile/outer independent admission missing",
+    "Once-only root local GO not created",
+    "Actual required external host/service/provider/backend/CI/device/security and accountable organizational approval absent"
+  ],
+  "restricted_payloads_included": false,
+  "runtime_gate_bundle": {
+    "bytes": 1104,
+    "path": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/RUNTIME-GATE-BUNDLE.json",
+    "sha256": "da502673edff384fe3923da04da33755bb107c2cbd3f636d123ab7be107620e6"
+  },
+  "runtime_routes": {
+    "bytes": 1571,
+    "path": "/tmp/intune-new-runtime-C30-20261011-01/RESULT.json",
+    "sha256": "2d45ea27084268e50f050eb64febb546873a8365465436d6623b758c3848100f"
+  },
+  "schema_version": "public-independent-C30-runtime-gate-bundle-preparation-admission/1",
+  "source_or_profile_modified": false,
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_ACTUAL_METADATA_GATE_BINDING_AND_MISSING_NATIVE_WITNESS_REJECTION"
+}

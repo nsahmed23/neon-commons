@@ -1,0 +1,126 @@
+{
+  "accepted_boundaries": [
+    "New helper source and three exact inert .py.txt texts only; no actual stager/publisher main, product import, real Git, network, commit, push or receiving action performed by this reviewer.",
+    "C30 source39cc/treef8 and exact new archives09f359/356f744 stay separate from unchanged C25 and any later administrative checkpoint. All original C25 PUB01-04/stager bytes remain identical; nine inherited publisher function ASTs are identical.",
+    "Detached guards cover closed typed pins/JSON, duplicate/nonfinite numbers, source/tree/base/prefix identity, scoped false qualification flags, canonical unique paths, prospective Git blob/raw committed bytes, exact parent/diff scope, prior129 bytes, fixed main/target refs, origin/fetch projection and primary plus secondary failure journals.",
+    "Error-handler controls preserve primary exception identity and failed-attempt records; no automatic cleanup, rollback, retry or alternate target is authorized.",
+    "Actual selected JSON roles, packages, texts and generated README/ARTIFACTS require a separately pinned PASS_SCOPED_FIXED_C30_PACKAGE_SELECTION before delivery; this source admission does not approve an unfinished or substituted selection.",
+    "Performance must remain BLOCKED before measurement with zero samples/new_performance_qualified false and auditable actual preflight pins. Complete private runtime receiving and native/platform/production remain unclosed; omitted raw/profile/state/plan/SQL/key/GO/witness/privatecapsule data are not public."
+  ],
+  "actual_dispatches": {
+    "Git": 0,
+    "commit": 0,
+    "native": 0,
+    "network": 0,
+    "product": 0,
+    "publisher": 0,
+    "push": 0,
+    "stager": 0
+  },
+  "actual_selection_admitted": false,
+  "author_controls": {
+    "bytes": 18703,
+    "path": "/tmp/intune-C30-public-release-delivery-20261011-04/author-controls-01/RESULT.json",
+    "sha256": "fff1a0801245809446b3afb0133f69573447b2a4b7cea258d4b280e1d3ed95fd"
+  },
+  "author_preparation": {
+    "bytes": 4945,
+    "path": "/tmp/intune-C30-public-release-delivery-20261011-04/PREPARED.json",
+    "sha256": "8fcb84dbb3ef6e92e73477d75c1c6ce47a5132bcc9806bf13dd1e73c939346d5"
+  },
+  "branch": "intune-atmos-wally-r4-20261011",
+  "companion_base": "b7c6515ac3e99f6a548d774805a905df0c44baf1",
+  "companion_prefix": "intune-workbench/r4-20261011/c30-20261011/",
+  "complete_private_corpus": false,
+  "independent_controls": {
+    "detached_guards": {
+      "failures": 0,
+      "matched": 139,
+      "not_additive_with_prior_or_author_counts": true,
+      "observations": 139,
+      "result": {
+        "bytes": 29604,
+        "path": "/tmp/intune-C30-publication-review-20261011-01/source-controls-04-01/RESULT.json",
+        "sha256": "6689725845106239b0b441759e90b23871567886a58aa0b12cde9bcca19b626f"
+      }
+    },
+    "reviewer_source": {
+      "bytes": 30278,
+      "path": "/tmp/intune-C30-publication-review-20261011-01/review_publication_sources02.py",
+      "sha256": "2fb1abf6eb4e3c7ca9321a35dd7ee6aaf4ec9fea7818756715647d7daabd063d"
+    },
+    "static_binding": {
+      "failures": 0,
+      "matched": 26,
+      "observations": 26,
+      "result": {
+        "bytes": 9234,
+        "path": "/tmp/intune-C30-publication-review-20261011-01/STATIC-BINDING-04.json",
+        "sha256": "ed058d8134205d1301cd4fddd8e64fe1c807015e85ad0ddf5a5483f8a6d495c8"
+      }
+    }
+  },
+  "laboratory_complete": false,
+  "main": "4ba077d93fecbf5f893ee13ef972c839cf13883d",
+  "native_qualified": false,
+  "new_performance_qualified": false,
+  "platform_qualified": false,
+  "preserved_counterexamples": {
+    "prior_drafts_and_author_failures": "Original unrun01 and frozen02/03 source/control/preparation artifacts remain separate; no source/product/native/publication failure or PASS inferred from preparation.",
+    "source02_nonfinite_exponent_overflow": {
+      "known_bad_accepted": 6,
+      "result": {
+        "bytes": 4672,
+        "path": "/tmp/intune-C30-publication-review-20261011-01/nonfinite-json-02/RESULT.json",
+        "sha256": "75b0e55b2315a56a8549015947f3deb91051a4489aebe81da8136d9ab9621db5"
+      },
+      "scope": "Unrun helper parser contract; explicit NaN/Infinity rejected, exponent overflow accepted. Immutable03 narrows finite parse_float."
+    },
+    "source03_duplicate_admission": {
+      "known_bad_accepted": 1,
+      "result": {
+        "bytes": 29504,
+        "path": "/tmp/intune-C30-publication-review-20261011-01/source-controls-03-01/RESULT.json",
+        "sha256": "792ab92524a7020092d3ff1375a048d1e9884d1c37a1fa3f197d4c03e74de14c"
+      },
+      "scope": "Unrun helper admission-list contract; three admitted rows/two unique paths with selected_files two accepted. Immutable04 adds exact list length guard."
+    },
+    "source03_exact_modeled_input": {
+      "bytes": 33088,
+      "path": "/tmp/intune-C30-publication-review-20261011-01/source-controls-03-02/MODELED-DUPLICATE-ADMISSION-INPUT.json",
+      "sha256": "848b21c6f48aa7d5efd3fff4aec6eccdc61c5d73d50df32e267463771d392cba"
+    },
+    "source03_repeated_same_guard_result": {
+      "bytes": 29504,
+      "path": "/tmp/intune-C30-publication-review-20261011-01/source-controls-03-02/RESULT.json",
+      "sha256": "1c5dc43c65c668a4873b1298e0a2726ae45d28ebe4088d7b6b68bb233d17df9a"
+    }
+  },
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "public_source_text_suitable": true,
+  "reused_runtime_source_admission": {
+    "bytes": 7805,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/new-runtime-outer-source-review-20261011-01/ADMISSION.json",
+    "sha256": "756f1b59126ee1ab02c6759d50d4c939e319071350e53ed79d30d6a323dca01a"
+  },
+  "schema": "intune-C30-publication-source-admission/1",
+  "scope": "Independent exact source/static review and detached modeled guard controls. No actual package selection, publication, tenant, platform, production or full private recovery claim.",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_files": {
+    "publish_c30.py": {
+      "bytes": 19595,
+      "sha256": "7d36db847d15be9bd06cad493db04c84946f2b561dad59ca7757a6dde43acd44"
+    },
+    "qualify_new_runtime.py": {
+      "bytes": 26053,
+      "sha256": "f72e402f407f8b26efab756cc8476787f8e29784e9d3e158cde827d1a325a183"
+    },
+    "stage_c30.py": {
+      "bytes": 13863,
+      "sha256": "37ddc23ec4800f3759881e4060d7210ab8ce1b19cfbb2e5b9b14c14d7be03f65"
+    }
+  },
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_SOURCE_ONLY"
+}

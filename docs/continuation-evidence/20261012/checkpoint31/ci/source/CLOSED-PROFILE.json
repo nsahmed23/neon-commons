@@ -1,0 +1,128 @@
+{
+  "schema": "intune-ci-validation-fixture-source-profile/1",
+  "status": "IMPLEMENTED",
+  "profile": "Linux validation preparation, not protected apply/production worker",
+  "intrinsic_closed_contract": "Executable bind requires exactly four explicit local paths, q.PINNED fixed roles/size/digests; export requires exact5keys including same verified Tofu legacy-test environment. This descriptor is not a runtime authority or caller-supplied pin source.",
+  "base_engine_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "tool_pins": {
+    "docker": {
+      "environment": "INTUNE_QUALIFICATION_DOCKER",
+      "version": "28.4.0",
+      "bytes": 43556144,
+      "sha256": "27f239f97492c434e091a70b41b8796c698f0aa2b6052c6f9c28da4ee7ae888b",
+      "default": "/usr/local/bin/docker"
+    },
+    "tofu": {
+      "environment": "INTUNE_QUALIFICATION_TOFU",
+      "version": "1.13.1",
+      "bytes": 114188448,
+      "sha256": "a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a",
+      "default": "/workspace/intune-recovery/native-reprobe/tools/tofu"
+    },
+    "relay_v2": {
+      "environment": "INTUNE_QUALIFICATION_RELAY_V2",
+      "version": "relay-v2-half-close-repair",
+      "bytes": 888056,
+      "sha256": "2e321b0efa62fcd710401b814a18b8afd3140ea0202fd1b516875bd814564697",
+      "default": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-broker/relay/intune-worker-relay-v2"
+    },
+    "relay_v3": {
+      "environment": "INTUNE_QUALIFICATION_RELAY_V3",
+      "version": "relay-v3-exclusive-readiness",
+      "bytes": 888088,
+      "sha256": "4255592e3b477d9c7fba06a59536d07effaa2a54e9e848f4908fecae672a25a0",
+      "default": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/worker-broker/relay/intune-worker-relay-v3"
+    }
+  },
+  "expected_environment_keys": [
+    "INTUNE_QUALIFICATION_DOCKER",
+    "INTUNE_QUALIFICATION_RELAY_V2",
+    "INTUNE_QUALIFICATION_RELAY_V3",
+    "INTUNE_QUALIFICATION_TOFU",
+    "INTUNE_TEST_TOFU_EXECUTABLE"
+  ],
+  "source_candidates": [
+    {
+      "proposed_repository_path": "scripts/prepare-ci-qualification.py",
+      "public_text": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/prepare-ci-qualification.py.txt",
+        "bytes": 5088,
+        "sha256": "23464095f8557cc367bcc043fa3ff438889708e16fb12780b1edda681aa9e3e0"
+      },
+      "candidate": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/candidate/scripts/prepare-ci-qualification.py",
+        "bytes": 5088,
+        "sha256": "23464095f8557cc367bcc043fa3ff438889708e16fb12780b1edda681aa9e3e0"
+      }
+    },
+    {
+      "proposed_repository_path": "plugin_tests/test_protected_completion.py",
+      "public_text": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/test-protected-completion.py.txt",
+        "bytes": 29460,
+        "sha256": "ed6b7c71ba1c7bd5e56396116a927082277a13490c8898abb1001c56ab8993df"
+      },
+      "candidate": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/candidate/plugin_tests/test_protected_completion.py",
+        "bytes": 29460,
+        "sha256": "ed6b7c71ba1c7bd5e56396116a927082277a13490c8898abb1001c56ab8993df"
+      }
+    },
+    {
+      "proposed_repository_path": ".github/workflows/validate.yml",
+      "public_text": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/public-source/validate.yml.txt",
+        "bytes": 8478,
+        "sha256": "1b3352de2a8bc5b3a58084b9fb9742698c3eee640746289eca0750dec61c9a91"
+      },
+      "candidate": {
+        "path": "/tmp/intune-ci-fixture-preparation-20261011-01/candidate/.github/workflows/validate.yml",
+        "bytes": 8478,
+        "sha256": "1b3352de2a8bc5b3a58084b9fb9742698c3eee640746289eca0750dec61c9a91"
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "repository_path": "scripts/qualification_tools.py",
+      "bytes": 4350,
+      "sha256": "741980d8ae06b6d3719dc232bef170ea2ddbd51042246df1a171e2378344154c",
+      "scope": "Exactexistinghelpercopiedonlytoownedteststage; notaproposedchangedsource."
+    },
+    {
+      "repository_path": "scripts/prepare-qualification-tools.py",
+      "bytes": 8425,
+      "sha256": "dfc7f7020145917e81c71fefdd95198b1c8e48671cf97521cfd09dd8a4f4880e",
+      "scope": "Exactexistinghelpercopiedonlytoownedteststage; notaproposedchangedsource."
+    }
+  ],
+  "workflow_change": "Bind existingfixturepaths from explicitly configured repository variables before the unchanged verifier; all skipped/failing/error gates remain mandatory. No fixture defaults/download/systeminstall, no daemon/image mutation.",
+  "test_change": "Two previously hardcoded native completion methods now use the same declared environment input as seven existing convergence methods, preserving the historical default. All method names/bodies/decorators otherwise unchanged; no requiredcase skipped or excluded.",
+  "qualification": {
+    "author_result": {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/qualification01/RESULT.json",
+      "bytes": 4334,
+      "sha256": "8d0627461a443bb4fce08ade48a167ee5090c72fd2eb95291a67fd44b30275b4"
+    },
+    "final_post_native_tools": {
+      "path": "/tmp/intune-ci-fixture-preparation-20261011-01/qualification01/FINAL-TOOL-CLOSURE.json",
+      "bytes": 1135,
+      "sha256": "edd862f3c6c10cc6974e04915d0317ee7ca7ff313686684e7d598028ab6c9c17"
+    },
+    "author_controls": 29,
+    "preparation_CLI_commands": 2,
+    "actual_edited_native_methods": 2,
+    "skipped": 0,
+    "actual_CI_dispatch": 0,
+    "limitations": "29 controls and2native methods overlap earlier evidence. Native methods are disposable local builtin OpenTofu only; their TemporaryDirectory raw intermediate files are cleaned by originaltests, not claimed complete preserved. No Graph/providerG13/realCI/Windows/privilegedworker or broad source2326gate rerun."
+  },
+  "remaining_external_requirements": [
+    "Approved runner/file custodian supplies exactexisting fourbinary fixture paths; stockUbuntu image/defaulttoolnames do not satisfy pins.",
+    "Approved compatible Docker daemon/baseimage/relay environment and actualCI image/tool/native/isolation qualification.",
+    "Repository/platform owner selects actualorganizationalCI and allowed registration/dispatch/protected permissions; no automaticCIpass fromsource or publication.",
+    "Humansecurity/permissions/productionreview and actualtenant/device routes remaindistinct."
+  ],
+  "activation_authority": "NOT_GRANTED",
+  "platform_qualified": false,
+  "production_approved": false
+}

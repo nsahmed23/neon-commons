@@ -1,0 +1,105 @@
+"""Qualify new exact source/runtime archives; preserve C25 pins unchanged."""
+import argparse, datetime, hashlib, json, os, stat, subprocess
+from pathlib import Path
+
+REPO=Path('/workspace/intune-continuation/work/projects/intune')
+PY=Path('/workspace/intune-runtime/bin/python')
+GIT=Path('/usr/bin/git')
+env={k:v for k,v in os.environ.items() if not k.startswith('GIT_') and k not in ('PYTHONPATH','PYTHONHOME','PYTHONOPTIMIZE','PYTHONSTARTUP','PYTHONINSPECT')}
+env.update(PYTHONDONTWRITEBYTECODE='1',PYTHONNOUSERSITE='1',GIT_TERMINAL_PROMPT='0')
+
+def sha(p):
+    with Path(p).open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
+
+def pin(p):
+    p=Path(p); s=p.lstat()
+    if not stat.S_ISREG(s.st_mode) or s.st_nlink!=1:raise ValueError('Unique regular file required: '+str(p))
+    return {'path':str(p),'bytes':s.st_size,'sha256':sha(p)}
+
+def require(v,m):
+    if not v:raise ValueError(m)
+
+def interpreter():
+    links=[]; current=PY
+    for _ in range(8):
+        if not current.is_symlink():break
+        target=os.readlink(current);links.append({'path':str(current),'target':target})
+        current=Path(target) if Path(target).is_absolute() else current.parent/target
+    require(not current.is_symlink(),'Bounded interpreter link chain')
+    return {'invocation_path':str(PY),'link_chain':links,'resolved_file':pin(current.resolve())}
+
+def write(p,v):
+    with p.open('x') as f:json.dump(v,f,indent=2,sort_keys=True);f.write('\n');f.flush();os.fsync(f.fileno())
+
+def git(*args):
+    run=subprocess.run([str(GIT),'--git-dir='+str(REPO/'.git'),'--work-tree='+str(REPO),'-c','core.hooksPath=/dev/null',*args],env=env,cwd=REPO,stdin=subprocess.DEVNULL,capture_output=True)
+    require(run.returncode==0,'Git failed: '+str(run.returncode));return run.stdout.decode().strip()
+
+def run(out,label,argv,cwd):
+    write(out/(label+'-COMMAND.json'),{'argv':argv,'cwd':str(cwd),'python_optimized':sys.flags.optimize,'PYTHONOPTIMIZE_present':'PYTHONOPTIMIZE' in env,'recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat()})
+    with (out/(label+'.stdout')).open('xb') as so,(out/(label+'.stderr')).open('xb') as se:
+        result=subprocess.run(argv,cwd=cwd,env=env,stdin=subprocess.DEVNULL,stdout=so,stderr=se)
+    require(result.returncode==0,label+' failed; original stdout/stderr retained')
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--commit',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    require(len(a.commit)==40 and all(c in '0123456789abcdef' for c in a.commit),'Exact source commit required')
+    require(a.output.is_absolute() and not a.output.exists() and not a.output.is_symlink(),'Fresh absolute output required')
+    require(sys.flags.optimize==0,'Unoptimized verifier required')
+    require(git('rev-parse','HEAD')==a.commit and git('branch','--show-current')=='continuation/r4-20261007' and not git('status','--porcelain'),'Exact clean dedicated source commit required')
+    require(stat.S_ISDIR((REPO/'.git').lstat().st_mode),'Literal source Git directory')
+    v=os.statvfs(a.output.parent);require(v.f_bavail*v.f_frsize>512*1024*1024,'Temporary package qualification reserve')
+    tools=['scripts/build-release.py','scripts/verify-release-artifact.py','scripts/verify-source-linkage.py']
+    before={s:pin(REPO/s) for s in tools+['release-source-files.txt','intune_iac/worker_service.py','intune_iac/worker_completed_readback.py','plugin_tests/test_worker_completed_readback_r4.py']}
+    a.output.mkdir(mode=0o700)
+    phase='prepare'
+    python_before=interpreter();git_before=pin(GIT)
+    write(a.output/'PREPARED.json',{'schema':'intune-C30-exact-package-qualification/1','status':'PREPARED','commit':a.commit,'tree':git('rev-parse','HEAD^{tree}'),'inputs':before,'python':python_before,'git':git_before,'driver':pin(Path(__file__)),'scope':'New exact engine reproducible source/runtime artifacts, safe extraction and raw Git linkage. No old C25 package/suite/native evidence transfer, public delivery, real platform or production approval. Temporary work storage is not durable corpus closure.'})
+    try:
+        builds=[]
+        for label in ('build-A','build-B'):
+            phase=label
+            run(a.output,label,[str(PY),'-B','-I',str(REPO/'scripts/build-release.py'),'--output-dir',str(a.output/label)],REPO)
+            receipt=json.loads((a.output/label/'Intune_IaC_Plugin_Archive_Receipt.json').read_bytes())
+            builds.append(receipt)
+        require(builds[0]==builds[1],'Reproducible builds differ')
+        artifacts={};all_build_archive_pins={}
+        for row in builds[0]['archives']:
+            key='source' if row['filename'].endswith('_Source.zip') else 'runtime'
+            archive=a.output/'build-A'/row['filename']
+            actual=pin(archive)
+            require(actual['bytes']==row['bytes'] and actual['sha256']==row['sha256'],'Builder receipt does not match exact archive')
+            b_actual=pin(a.output/'build-B'/row['filename'])
+            require((b_actual['bytes'],b_actual['sha256'])==(actual['bytes'],actual['sha256']),'Actual A/B archive bytes differ')
+            all_build_archive_pins[key]={'A':dict(actual),'B':b_actual}
+            extract=a.output/('extract-'+key)
+            phase='extract-'+key
+            run(a.output,phase,[str(PY),'-B','-I',str(REPO/'scripts/verify-release-artifact.py'),'--archive',str(archive),'--sha256',row['sha256'],'--extract',str(extract)],REPO)
+            actual['extracted']=str(extract/('intune-iac-source' if key=='source' else 'intune-iac'))
+            actual['files']=row['files'];actual['listed_hashes']=row['listed_hashes']
+            artifacts[key]=actual
+        phase='raw-git-source-linkage'
+        require(pin(GIT)==git_before,'Git executable changed before independent linkage')
+        run(a.output,phase,[str(PY),'-B','-I',str(REPO/'scripts/verify-source-linkage.py'),'--repository',str(REPO),'--source',artifacts['source']['extracted'],'--commit',a.commit,'--git-executable',str(GIT),'--git-sha256',git_before['sha256'],'--output',str(a.output/'SOURCE-LINKAGE.json')],REPO)
+        source=Path(artifacts['source']['extracted'])
+        phase='rebuild-extracted-source'
+        run(a.output,phase,[str(PY),'-B','-I',str(source/'scripts/build-release.py'),'--output-dir',str(a.output/'build-C')],source)
+        third=json.loads((a.output/'build-C/Intune_IaC_Plugin_Archive_Receipt.json').read_bytes())
+        require(third==builds[0],'Extracted source rebuild differs')
+        for row in third['archives']:
+            key='source' if row['filename'].endswith('_Source.zip') else 'runtime'
+            c_actual=pin(a.output/'build-C'/row['filename'])
+            require((c_actual['bytes'],c_actual['sha256'])==(artifacts[key]['bytes'],artifacts[key]['sha256']),'Actual A/C archive bytes differ')
+            all_build_archive_pins[key]['C']=c_actual
+        after={s:pin(REPO/s) for s in before}
+        require(before==after and interpreter()==python_before and pin(GIT)==git_before and git('rev-parse','HEAD')==a.commit and not git('status','--porcelain'),'Source, Git or interpreter changed during packaging')
+        result={'schema':'intune-C30-exact-package-qualification/1','status':'PASS','commit':a.commit,'tree':git('rev-parse','HEAD^{tree}'),'artifacts':artifacts,'all_build_archive_pins':all_build_archive_pins,'source_linkage':pin(a.output/'SOURCE-LINKAGE.json'),'reproducible_builds':3,'build_receipts_equal':True,'all_actual_archive_bytes_equal':True,'source_unchanged':True,'tools_before':before,'tools_after':after,'git_before':git_before,'git_after':pin(GIT),'driver':pin(Path(__file__)),'recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'required_new_strict_gate':'NOT_STARTED','required_new_application_journey':'NOT_STARTED','native_platform_qualified':False,'production_approved':False,'scope':'Only exact new artifact construction, bounded safe extraction, raw Git commit/tree/inventory/blob linkage and byte-identical A/B/extracted-source C rebuild. Required new exact-source strict suite and final-runtime application journeys remain separate gates. C25 evidence remains historical and no old package binding was relaxed.'}
+        write(a.output/'PACKAGE-RECEIPT.json',result)
+        print(json.dumps({'receipt':pin(a.output/'PACKAGE-RECEIPT.json'),'commit':a.commit,'artifacts':artifacts},indent=2))
+    except BaseException as error:
+        try:write(a.output/'FAILURE.json',{'status':'FAIL','phase':phase,'error_type':type(error).__name__,'error':str(error),'commit':a.commit,'scope':'Original partial output retained; no overwrite, automatic replacement archive or relaxed gate.'})
+        except BaseException as secondary:error.add_note('Secondary failure-record error: '+type(secondary).__name__)
+        raise
+
+import sys
+if __name__=='__main__':main()

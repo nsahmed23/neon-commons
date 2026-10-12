@@ -1,0 +1,73 @@
+{
+  "READY_or_GO": false,
+  "actual_existing_loader_runtime_gate_passed": true,
+  "actual_finalizer_missing_native_control": {
+    "argv": [
+      "/workspace/intune-runtime/bin/python",
+      "-B",
+      "-I",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/finalize-C30-observer-ready05.py",
+      "--bindings",
+      "/tmp/intune-C30-runtime-gate-bundle-20261012-01/MISSING-NATIVE-WITNESS-BINDINGS.json",
+      "--bindings-sha256",
+      "a97e9fa21d671ddb763aa62ea25196e6486f9d62e3de8e2b967651ab55ab87f6",
+      "--output",
+      "/tmp/intune-C30-observer-ready-profile-RUNTIME-BOUND-NEGATIVE-01"
+    ],
+    "exit_code": 1,
+    "output_allocated": false,
+    "rejected_missing_native_witness": true,
+    "streams": [
+      {
+        "bytes": 0,
+        "path": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/stdout",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "bytes": 1017,
+        "path": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/stderr",
+        "sha256": "4c1787c521a7572fc67d2559c30f08874453610c4de3c102664ca4ad9a72bc09"
+      }
+    ]
+  },
+  "actual_native_witnesses": 0,
+  "application_test_reruns": 0,
+  "exact_strict_gate_verified_without_rerun": true,
+  "existing_known_completed_result": {
+    "bytes": 10042,
+    "path": "/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH/RESULT.json",
+    "sha256": "b128766913530b1f3eca56e4b221983560048ecfcaafd0be045f7a8b3d07d2fd"
+  },
+  "existing_runtime_result": {
+    "bytes": 1571,
+    "path": "/tmp/intune-new-runtime-C30-20261011-01/RESULT.json",
+    "sha256": "2d45ea27084268e50f050eb64febb546873a8365465436d6623b758c3848100f"
+  },
+  "historical_mutator_source": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "independent_envelope": {
+    "bytes": 3810,
+    "path": "/tmp/intune-C30-runtime-factory-gate-admission-20261012-01/INDEPENDENT-APPLICATION-GATE.json",
+    "sha256": "ca13af184093594a4fdb07d64a122b22e686c8b1e8715f11e380b38361d697f9"
+  },
+  "laboratory_complete": false,
+  "native_dispatches": 0,
+  "platform_qualified": false,
+  "production_approved": false,
+  "recorded_at": "2026-10-12T00:45:25.522795+00:00",
+  "remaining": "Four genuine native fault witnesses, unchanged33619968-byte durable admission, independent final READY/profile/configuration admission and once-only internal local GO; required real platform/security and organizational approval remain separate.",
+  "runtime_gate_bundle": {
+    "bytes": 1104,
+    "path": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/RUNTIME-GATE-BUNDLE.json",
+    "sha256": "da502673edff384fe3923da04da33755bb107c2cbd3f636d123ab7be107620e6"
+  },
+  "schema": "C30-actual-application-gate-binding-preparation/1",
+  "scope": "Read-only metadata binding of already independently qualified actual local modeled-dependency application routes, plus actual fixed finalizer denial before output allocation. No new product tests, native tools, service requests, approvals, READY or recovery authority. Original null profile remains immutable; new bundle is a separate exact preparation dependency.",
+  "source": {
+    "bytes": 7022,
+    "path": "/tmp/bind-intune-C30-runtime-gates-20261012-02.py",
+    "sha256": "c6729c463b877de39078c03a0c9e7ddb86ce657e9aaf900e1a38abcf9b7c7c22"
+  },
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_ALREADY_QUALIFIED_RUNTIME_BINDING_AND_MISSING_NATIVE_WITNESS_REJECTION"
+}

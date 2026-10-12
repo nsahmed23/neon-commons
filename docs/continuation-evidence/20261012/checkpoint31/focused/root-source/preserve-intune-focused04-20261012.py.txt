@@ -1,0 +1,102 @@
+"""Preserve one complete modeled negative-evidence run; never dispatch application."""
+from pathlib import Path
+import importlib.util, json, os, tarfile
+
+R4 = Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4')
+UTIL_ROOT = R4 / 'integration/native-continuation-protocol-20261011-01'
+ACTUAL = Path('/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH')
+LAUNCH = Path('/tmp/intune-C30-actual-launch-receipts-20261012-03')
+PREP = Path('/tmp/intune-focused04-root-preparation-20261012-01')
+STAGE = Path('/tmp/intune-focused04-private-preservation-20261012-01')
+DURABLE = R4 / 'integration/private-focused04-preservation-20261012-01'
+
+def module(name, path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    value = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(value)
+    return value
+
+def main():
+    os.umask(0o077)
+    util = module('focused04_preservation_util', UTIL_ROOT / 'preserve-private-preparation02.py')
+    restore = module('focused04_preservation_restore', UTIL_ROOT / 'preserve-publisher-controls04.py')
+    for path in (STAGE, DURABLE, PREP):
+        if path.exists() or path.is_symlink():
+            raise ValueError('Fresh owned namespace required: ' + str(path))
+    launch = json.loads((LAUNCH / 'LAUNCH-RECEIPT.json').read_bytes())
+    if launch['exit_code'] != 0 or launch['actual_argv'][-1] != str(ACTUAL):
+        raise ValueError('Actual focused04 completion required')
+    actual = json.loads((ACTUAL / 'RESULT.json').read_bytes())
+    if actual['status'] != 'PASS_SCOPED_LOCAL_PACKAGED_APPLICATION_JOURNEY':
+        raise ValueError('Focused04 result not passed; original failure remains')
+    PREP.mkdir(mode=0o700)
+    extras = [Path('/tmp/launch-intune-focused04-20261012.py'), Path(__file__),
+              Path('/tmp/intune-new-package-completed-journey-20261011-04/PREPARATION.json'),
+              Path('/tmp/intune-new-package-completed-journey-20261011-04/qualify_packaged_completed_journey.py'),
+              Path('/tmp/intune-new-package-completed-journey-20261011-04/EXECUTION-CONTRACT.json'),
+              Path(launch['source_admission']['path'])]
+    exact = []
+    for index, source in enumerate(extras):
+        original = util.pin(source)
+        destination = PREP / (str(index) + '-' + source.name)
+        raw, _ = util.read_file(source)
+        with destination.open('xb') as stream:
+            stream.write(raw); stream.flush(); os.fsync(stream.fileno())
+        if any(util.pin(destination)[key] != original[key] for key in ('bytes', 'sha256')):
+            raise ValueError('Additional exact source changed')
+        exact.append(original)
+    roots, nodes, blobs, total = util.census([ACTUAL, LAUNCH, PREP])
+    manifest = {'schema_version': 'private-focused04-model-negative-evidence-capsule/1',
+                'owned_roots': roots, 'nodes': nodes, 'declared_regular_bytes': total,
+                'source_revision': '39cc77618a0f7f2734599fbfed224b47c333293f',
+                'additional_exact_sources': exact, 'public_suitable': False,
+                'native_dispatches': 0, 'native32MiB_gate_waived': False,
+                'platform_qualified': False, 'production_approved': False,
+                'explicit_omissions': ['Only the three exact declared owned roots are included.',
+                    'Prior02 actual root and all failed preparation/control candidates are separately retained.',
+                    'Original full corpus, packages/extractions/tools, complete runtime raw/private capsule and unrelated epochs remain separate dependencies.',
+                    'This private raw archive must not be published; six pairs concern synthetic prior authority, not native/tenant evidence.',
+                    'Capsule result/receipt is retained alongside and is not self-included.']}
+    STAGE.mkdir(mode=0o700)
+    archive = STAGE / 'PRIVATE-FOCUSED04.tar.xz'
+    with tarfile.open(archive, 'w:xz', preset=6) as bundle:
+        util.add_member(bundle, 'MANIFEST.json', json.dumps(manifest, sort_keys=True, indent=2).encode()+b'\n')
+        for digest, raw in sorted(blobs.items()):
+            util.add_member(bundle, 'blobs/'+digest, raw)
+    archive_pin = util.pin(archive)
+    staged = util.verify_archive(archive, manifest)
+    restored = restore.restore_and_check(archive, manifest, STAGE / 'new-extraction', util)
+    _, after, _, after_total = util.census([ACTUAL, LAUNCH, PREP])
+    if nodes != after or total != after_total:
+        raise ValueError('Owned actual roots changed')
+    available = util.free_bytes(DURABLE.parent)
+    required = archive_pin['bytes'] + util.COPY_MARGIN + 256*1024
+    if available < required:
+        raise ValueError('G11 actual capsule cannot preserve unchanged8MiB small-copy margin')
+    DURABLE.mkdir(mode=0o700)
+    target = DURABLE / archive.name
+    with target.open('xb') as stream:
+        stream.write(archive.read_bytes()); stream.flush(); os.fsync(stream.fileno())
+    copied = util.pin(target)
+    if any(copied[key] != archive_pin[key] for key in ('bytes', 'sha256')):
+        raise ValueError('Durable exact archive differs')
+    durable = util.verify_archive(target, manifest)
+    receipt = util.write_json(DURABLE / 'RESULT.json', {
+        'status': 'PASS_SCOPED_PRIVATE_COMPLETE_FOCUSED04_ROOT_PRESERVATION',
+        'script': util.pin(Path(__file__)), 'archive': copied,
+        'typed_nodes': len(nodes), 'staged_readback': staged,
+        'fresh_extraction_readback': restored, 'durable_readback': durable,
+        'owned_roots_unchanged': True, 'additional_exact_sources': exact,
+        'actual_launch': util.pin(LAUNCH/'LAUNCH-RECEIPT.json'),
+        'actual_result': util.pin(ACTUAL/'RESULT.json'),
+        'physical_copy_admission': {'available_before_bytes': available,
+            'required_bytes': required, 'archive_bytes': archive_pin['bytes'],
+            'small_copy_margin_bytes': util.COPY_MARGIN},
+        'native32MiB_gate_waived': False, 'native_dispatches': 0,
+        'public_suitable': False, 'platform_qualified': False, 'production_approved': False,
+        'limitations': manifest['explicit_omissions']})
+    print(json.dumps({'receipt': receipt, 'archive': copied,
+                      'workspace_available_after_bytes': util.free_bytes(DURABLE)}))
+
+if __name__ == '__main__':
+    main()

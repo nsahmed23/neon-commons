@@ -1,0 +1,108 @@
+{
+  "actual_negative_preflight": {
+    "bytes": 1572,
+    "path": "/tmp/intune-C30-performance-preparation-20261011-01/NEGATIVE-PREFLIGHT.json",
+    "sha256": "e98e2d42717cc55b6a5252180418f49678179320f154d5b56a2759543f661543"
+  },
+  "actual_timed_or_product_or_native_reruns": 0,
+  "assertion_count_nonadditive": 44,
+  "assertions": [
+    "exact:prepare.py",
+    "exact:run-prepared.py",
+    "exact:qualify_pure_controls.py",
+    "exact:EXECUTION-CONTRACT.json",
+    "exact:PREPARATION-RECEIPT.json",
+    "exact:NEGATIVE-PREFLIGHT.json",
+    "exact:PUBLIC-METADATA-02.json",
+    "new_revision_consistent",
+    "actual_artifact:source",
+    "actual_artifact:runtime",
+    "unchanged_grader:scripts/qualify-workbench-capacity.py",
+    "unchanged_grader:scripts/qualify-workbench-performance.py",
+    "blocked_not_pass",
+    "retained_guard",
+    "no_GO",
+    "actual_preregistration:runtime",
+    "actual_plan_digest:runtime",
+    "actual_preregistration:source",
+    "actual_plan_digest:source",
+    "only_two_durable_path_relocations",
+    "original_preserve_tree_semantics_unchanged",
+    "pure_capacity:0",
+    "pure_capacity:1",
+    "pure_capacity:13254656",
+    "pure_capacity:33554431",
+    "pure_capacity:33554432",
+    "pure_capacity:33554433",
+    "capacity_precedes_subprocess",
+    "actual_denial_scope",
+    "actual_negative_file:stderr",
+    "actual_negative_file:stdout",
+    "actual_negative_file:actual_blocked_record",
+    "actual_space_rejection",
+    "actual_stderr_reason",
+    "prepared_no_actual_grades",
+    "zero_reclassifications",
+    "old_public_preserved",
+    "unchanged_after:prepare.py",
+    "unchanged_after:run-prepared.py",
+    "unchanged_after:qualify_pure_controls.py",
+    "unchanged_after:EXECUTION-CONTRACT.json",
+    "unchanged_after:PREPARATION-RECEIPT.json",
+    "unchanged_after:NEGATIVE-PREFLIGHT.json",
+    "unchanged_after:PUBLIC-METADATA-02.json"
+  ],
+  "blocker_owner": "Environment/storage custodian; coordinator owns quiet-window procedure",
+  "contract": {
+    "bytes": 8276,
+    "path": "/tmp/intune-C30-performance-preparation-20261011-01/EXECUTION-CONTRACT.json",
+    "sha256": "f12d27f116c2a1d01be0aa52cd0651ada7aa6634eef361aefd5ad8d06cd7bd22"
+  },
+  "current_durable_free_bytes": 13103104,
+  "exact_preparation": {
+    "bytes": 13267,
+    "path": "/tmp/intune-C30-performance-preparation-20261011-01/PREPARATION-RECEIPT.json",
+    "sha256": "3cc153d43ff7737065022e7bb7a9d77aa425833689a1c1b1d5662ae8cad6e711"
+  },
+  "limitations": [
+    "Admission covers exact-source untimed preparation, unchanged preserve_tree32MiB rule, independently evaluated pure capacity boundary and retained actual preflight/streams. No measurement or positive grader qualification is inferred.",
+    "Existing cooperative lab runner accepts a coordinator quiet-window label; this is procedure metadata, not authenticated approval or protected execution authority.",
+    "Original C25 counts and earlier lost roots remain their historical scopes. New helper/source/contract admission does not transfer C25 timing performance to39cc.",
+    "Hostile mutation/process containment, timing interruption and full private corpus closure are not demonstrated by this blocked preflight.",
+    "Complete 121MiB runtime raw/private capsule and external routes remain separately blocked; no full laboratory/platform/production completion."
+  ],
+  "new_performance_qualified": false,
+  "new_timing_samples": 0,
+  "next_action": "Supply authorized approved durable capacity satisfying complete capsule bytes+32MiB, recheck immutable code/artifact/preregistration pins and obtain a genuine quiet window before either actual lane.",
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_blocker_metadata": {
+    "bytes": 5177,
+    "path": "/tmp/intune-C30-performance-preparation-20261011-01/PUBLIC-METADATA-02.json",
+    "sha256": "28b73dd2984b7654044a9ff2664d479823e27b53f7fb89bb5b6437821b3c6074"
+  },
+  "public_metadata_suitable": true,
+  "public_selection_scope": "Exact bounded PUBLIC-METADATA-02 plus inert source text with separate explicit disposition; no prepared stores, private preregistrations, database, raw attempts or credentials.",
+  "required_performance_gate": "BLOCKED",
+  "schema_version": "independent-C30-performance-preparation-admission/1",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_or_workload_changes": 0,
+  "source_pins": {
+    "prepare.py": {
+      "bytes": 16052,
+      "path": "/tmp/intune-C30-performance-preparation-20261011-01/prepare.py",
+      "sha256": "c4ebe211bd4260ccb53220b655c719c090578042ec29b9bf982674c3441fd465"
+    },
+    "qualify_pure_controls.py": {
+      "bytes": 4215,
+      "path": "/tmp/intune-C30-performance-preparation-20261011-01/qualify_pure_controls.py",
+      "sha256": "d32d3392b9acbbb144066f58eb95a2ed0d9d7fc77fe1c8b21aff736dd875070c"
+    },
+    "run-prepared.py": {
+      "bytes": 12334,
+      "path": "/tmp/intune-C30-performance-preparation-20261011-01/run-prepared.py",
+      "sha256": "b625852df373123d2a3f2ed0ee26e70facd4bc14c522119309736db5cebe2c69"
+    }
+  },
+  "status": "PASS_SCOPED_BLOCKED_PREPARATION_METADATA"
+}

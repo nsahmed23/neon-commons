@@ -1,0 +1,61 @@
+{
+  "schema": "public-independent-C30-known-completed-actual-journey-admission/1",
+  "status": "PASS_SCOPED_LOCAL_PACKAGED_APPLICATION_JOURNEY_INDEPENDENT_RAW_REVIEW",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_archive": {
+    "bytes": 18454404,
+    "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+  },
+  "runtime_archive": {
+    "bytes": 1630724,
+    "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+  },
+  "qualifier": {
+    "bytes": 41348,
+    "sha256": "4c1cf9f334b2d5c80fd566370458bed93ad87b4995c947eb402c341b88a40a02"
+  },
+  "recipe_contract": {
+    "bytes": 1924,
+    "sha256": "f3d793896f49d5e51778c372fa53db28f2604623ce41aba3ce3aaded7d3bbb76"
+  },
+  "exact_source_admission_sha256": "d55c2ad19d5eb3d917cdb91ff4cf3de1fc9853c9ff4b3a5e926f42574f21d720",
+  "actual_root_exit_code": 0,
+  "root_launch_receipt_sha256": "681ff8be8117fb2aac03732afc99a9e44dd1192a2f087585227634c295edc66f",
+  "actual_result_sha256": "bd466d85c3e7f47dd5e0bd4bf288f16ec09b24079841f58fb8ad9110b8aba0d5",
+  "actual_application_assertions": 50,
+  "actual_text_commands": 11,
+  "actual_negative_rejections": 6,
+  "counts_are_nonadditive": "These application assertions/commands/negative controls overlap fixture19/affected123/new strict2326 and other journey assertions.Independent4272 archive/path/raw checks are metadata checks, not product tests or additional native actions.",
+  "demonstrated": "Exact new runtime completion factory and independently reopened service reconciliation, atomic local captured-batch publication, persistent store/history reopening and actual service/status/attach/workbench text routes.Original nonce retained, two reservations released once, one dispatch and one actual reconciliation event. Full raw captured fields/null/types/order and state bytes retained.",
+  "independent_method": "Stdlib-only raw byte/typed JSON assertions, copied-only SQLite integrity and explicit rows, actual retained text streams, exact package ZIP/extraction and import origins, durable private focused archive membership. No product normalizer or duplicate application run.",
+  "preserved_before_and_after": "Four finalization findings plus nested cleanup scope error were proved before and repaired with seven affected controls. Version01, AST Store/Load preparation failure and unchanged census guards remain preserved.",
+  "complete_focused_owned_root_durable": true,
+  "focused_root_typed_nodes": 124,
+  "private_preservation_archive": {
+    "bytes": 224268,
+    "sha256": "6caff78923b76054d6ba6618bfb2fc0460bf07fa6e822ddeef3b973a15cd03bd"
+  },
+  "private_preservation_receipt_sha256": "a4e5a752e224c547814a460159c6f035f92b27dcb23eeb3d72b72987c89ffd90",
+  "full_independent_result": {
+    "bytes": 503798,
+    "sha256": "1eee5d0ba27bcd7daffed46542ac8ff0abe741c94f3a73cbe6eaa77c58b4966f",
+    "public_suitable": false
+  },
+  "limitations": [
+    "Historical controller/approval/nonce/host, receiving observation context, OAuth/principal and Graph transport are modeled fixtures, not native or live platform evidence",
+    "Full exited-process observing native-map inventory is not independently reconstructed from a digest; actual module/source/receipt and artifact origin bytes are bound",
+    "Each negative rejection used in-process raw before/after assertions; not every per-negative pair was separately persisted. Final SQL and phase snapshots were independently checked",
+    "G11 remains blocked: complete larger runtime raw/capsule is only in temporary storage; legacy deleted TemporaryDirectory and historical provenance omissions remain",
+    "Separate native lifecycle/no-change plan, real scheduling/host/service/backend/CI/device/Windows/AppSec and accountable organizational decision are required"
+  ],
+  "public_selected_raw_payloads": false,
+  "private_capsule_uploaded": false,
+  "complete_private_R4_corpus": false,
+  "complete_runtime_raw_durable": false,
+  "native_capacity_gate_waived": false,
+  "reviewer_native_dispatches": 0,
+  "reviewer_application_reruns": 0,
+  "global_laboratory_complete": false,
+  "platform_qualified": false,
+  "production_approved": false
+}

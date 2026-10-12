@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+"""Bind unchanged original product qualification preparations to exact C30 ZIPs; no timings."""
+from pathlib import Path, PurePosixPath
+from datetime import datetime, timezone
+import hashlib
+import json
+import os
+import stat
+import subprocess
+import sys
+import zipfile
+
+ROOT = Path(__file__).resolve().parent
+SOURCE_COMMIT = '39cc77618a0f7f2734599fbfed224b47c333293f'
+SOURCE_TREE = 'f8bff355322c7c50e46790171c12a5e1a7cb80aa'
+PYTHON = Path('/workspace/intune-runtime/bin/python')
+ARCHIVES = Path('/tmp/intune-C30-packages-20261011-01/build-A')
+SOURCE = Path('/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source')
+RUNTIME = Path('/tmp/intune-C30-packages-20261011-01/extract-runtime/intune-iac')
+SCRATCH = Path('/tmp/intune-r4-C30-performance-prepared-20261011-01')
+DURABLE_ROOT = Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4/resume-performance-20261011/C30-bounded-performance-01')
+OLD = Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r3/performance/run-01')
+STORED_DB_SHA = '408cd5eae0bd98181be4173ef528cb36c45e65d025e37ac6bb6536497aef9f56'
+PINS = {
+    'source': ('Intune_IaC_Plugin_0.9.0_Source.zip', 18454404, '09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7', SOURCE),
+    'runtime': ('Intune_IaC_Plugin_0.9.0.zip', 1630724, '356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891', RUNTIME),
+}
+PACKAGE_RECEIPT = Path('/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json')
+PACKAGE_RECEIPT_SHA = 'eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a'
+LINKAGE = Path('/tmp/intune-C30-packages-20261011-01/SOURCE-LINKAGE.json')
+LINKAGE_SHA = '3a4a0f2734d706885f43b9a8a7d9ae1835f39cd4d8484592e8f17a0e3ecdab22'
+GRADERS = {
+    'scripts/qualify-workbench-performance.py': (27996, 'fc9be268a59742c29609002ee15ded031b4096dbc4c1d174db31b4b941b70972'),
+    'scripts/qualify-workbench-capacity.py': (20081, '5cd496f647b29c8b28b1832340242ca2b007d16f05d7639e9eeed600e2aeb058'),
+}
+MIN_DURABLE_RESERVE = 32 * 1024 * 1024
+
+
+def sha(path):
+    digest = hashlib.sha256()
+    with Path(path).open('rb') as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def dump(path, value):
+    with Path(path).open('xb') as handle:
+        handle.write(json.dumps(value, indent=2, sort_keys=True).encode() + b'\n')
+    Path(path).chmod(0o600)
+
+
+def reviewed_identity():
+    """Source/package/independent grader pins only; no product imports."""
+    if PACKAGE_RECEIPT.stat().st_size != 7532 or sha(PACKAGE_RECEIPT) != PACKAGE_RECEIPT_SHA:
+        raise AssertionError('Actual C30 package construction/linkage receipt changed')
+    package = json.loads(PACKAGE_RECEIPT.read_bytes())
+    if package['status'] != 'PASS' or package['commit'] != SOURCE_COMMIT:
+        raise AssertionError('Actual new source revision differs')
+    if LINKAGE.stat().st_size != 1633771 or sha(LINKAGE) != LINKAGE_SHA:
+        raise AssertionError('Actual C30 Git/source linkage receipt changed')
+    linkage = json.loads(LINKAGE.read_bytes())
+    if linkage['status'] != 'PASS' or linkage['source_commit'] != SOURCE_COMMIT or linkage['tree_object'] != SOURCE_TREE:
+        raise AssertionError('Actual C30 source/tree linkage differs')
+    for kind, (name, size, digest, extracted) in PINS.items():
+        declared = package['artifacts'][kind]
+        if (type(declared['bytes']) is not int or declared['bytes'] != size or declared['sha256'] != digest
+                or declared['path'] != str(ARCHIVES/name) or declared['extracted'] != str(extracted)):
+            raise AssertionError('Declared C30 archive/extraction binding differs: ' + kind)
+    for relative, (size, digest) in GRADERS.items():
+        path = SOURCE/relative
+        if path.stat().st_size != size or sha(path) != digest:
+            raise AssertionError('Original independent grader bytes changed')
+    if sha(PYTHON) != 'fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7':
+        raise AssertionError('The qualified interpreter changed')
+    return {'source_commit':SOURCE_COMMIT,'source_tree':SOURCE_TREE,
+        'actual_package_receipt':{'path':str(PACKAGE_RECEIPT),'bytes':7532,'sha256':PACKAGE_RECEIPT_SHA},
+        'actual_source_linkage':{'path':str(LINKAGE),'bytes':1633771,'sha256':LINKAGE_SHA},
+        'graders':{relative:{'bytes':size,'sha256':digest} for relative,(size,digest) in GRADERS.items()},
+        'evaluator_only_shadow':False,
+        'runtime_grade_route':'External exact source-package capacity/measurement evaluators; --project names actual complete runtime extraction; every product command executes that runtime scripts/intune-iac.py.'}
+
+
+def physical_preflight():
+    """Retain the original 32MiB post-copy reserve; never grade a blocked run."""
+    import shutil
+    available = shutil.disk_usage(DURABLE_ROOT.parent).free
+    return {'schema_version':'C30-performance-durable-preflight/1','checked_at':datetime.now(timezone.utc).isoformat(),
+        'path':str(DURABLE_ROOT.parent),'available_bytes':available,'minimum_post_copy_reserve_bytes':MIN_DURABLE_RESERVE,
+        'original_max_capsule_bytes':32*1024*1024,
+        'status':'BLOCKED_G11' if available <= MIN_DURABLE_RESERVE else 'MINIMUM_RESERVE_PRESENT_CAPSULE_SIZE_STILL_REQUIRED',
+        'minimum_guard_satisfied':available > MIN_DURABLE_RESERVE,
+        'admission_rule':'Each actual nonempty full capsule must be <=32MiB and free space before copy must be at least its exact size +32MiB. This minimum preflight cannot certify a future unknown capsule.',
+        'root_quiet_window_GO_granted':False,'timings_started':False,'fallback_weaker_reserve_authorized':False}
+
+
+def archive_census(kind):
+    name, expected_size, expected_sha, root = PINS[kind]
+    archive = ARCHIVES / name
+    if archive.stat().st_size != expected_size or sha(archive) != expected_sha:
+        raise AssertionError('Exact archive identity failed: ' + kind)
+    actual_files, actual_dirs = {}, {''}
+    def denied(error):
+        raise error
+    if root.is_symlink() or not root.is_dir():
+        raise AssertionError('Extraction root type failed')
+    for parent, directories, files in os.walk(root, followlinks=False, onerror=denied):
+        for directory in directories:
+            p = Path(parent) / directory
+            mode = p.lstat().st_mode
+            if not stat.S_ISDIR(mode):
+                raise AssertionError('Unexpected non-directory: ' + str(p))
+            actual_dirs.add(p.relative_to(root).as_posix())
+        for filename in files:
+            p = Path(parent) / filename
+            mode = p.lstat().st_mode
+            if not stat.S_ISREG(mode):
+                raise AssertionError('Unexpected non-file: ' + str(p))
+            actual_files[p.relative_to(root).as_posix()] = {'bytes': p.stat().st_size, 'sha256': sha(p)}
+    expected_files, expected_dirs = {}, {''}
+    with zipfile.ZipFile(archive) as bundle:
+        for item in bundle.infolist():
+            path = PurePosixPath(item.filename)
+            if '\\' in item.filename or path.is_absolute() or any(part in ('', '.', '..') for part in item.filename.split('/')):
+                raise AssertionError('Unsafe archive member')
+            if len(path.parts) < 2 or path.parts[0] != root.name:
+                raise AssertionError('Archive root mismatch')
+            mode = item.external_attr >> 16
+            if item.is_dir() or not stat.S_ISREG(mode):
+                raise AssertionError('Expected regular archive payload')
+            relative = PurePosixPath(*path.parts[1:]).as_posix()
+            if relative in expected_files:
+                raise AssertionError('Duplicate archive member')
+            data = bundle.read(item)  # ZIP CRC checked by the independent stdlib reader.
+            expected_files[relative] = {'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()}
+            for parent in PurePosixPath(relative).parents:
+                expected_dirs.add('' if str(parent) == '.' else str(parent))
+    if actual_files != expected_files or actual_dirs != expected_dirs:
+        raise AssertionError('Exact package extraction census failed: ' + kind)
+    return {'archive': str(archive), 'bytes': expected_size, 'sha256': expected_sha,
+            'extraction': str(root), 'regular_files': len(actual_files), 'directories': len(actual_dirs),
+            'census_sha256': hashlib.sha256(json.dumps({'files': actual_files, 'directories': sorted(actual_dirs)}, sort_keys=True, separators=(',', ':')).encode()).hexdigest()}
+
+
+def command(label, argv, cwd=SOURCE):
+    completed = subprocess.run([str(value) for value in argv], cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1'}, timeout=120)
+    stdout, stderr = ROOT / (label + '.stdout'), ROOT / (label + '.stderr')
+    stdout.write_bytes(completed.stdout)
+    stderr.write_bytes(completed.stderr)
+    stdout.chmod(0o600)
+    stderr.chmod(0o600)
+    row = {'id': label, 'argv': list(map(str, argv)), 'cwd': str(cwd), 'exit_code': completed.returncode,
+           'stdout': {'path': str(stdout), 'bytes': stdout.stat().st_size, 'sha256': sha(stdout)},
+           'stderr': {'path': str(stderr), 'bytes': stderr.stat().st_size, 'sha256': sha(stderr)}}
+    if completed.returncode:
+        dump(ROOT / (label + '-FAILURE.json'), row)
+        raise AssertionError('Untimed preparation failed: ' + label)
+    return row
+
+
+def main():
+    identity_before = reviewed_identity()
+    # Small source/preregistration metadata may be checkpointed despite G11;
+    # full timed evidence must still satisfy the unchanged 32MiB reserve.
+    DURABLE_ROOT.mkdir(mode=0o700,exist_ok=True)
+    if SCRATCH.exists():
+        raise AssertionError('Existing scratch must be retained; choose a new attempt')
+    SCRATCH.mkdir(mode=0o700)
+    receipt = {'schema': 'intune-C30-performance-preparation/1', 'status': 'PREPARING',
+               'at': datetime.now(timezone.utc).isoformat(), 'source_commit': SOURCE_COMMIT,
+               'source_tree': SOURCE_TREE, 'timing_authorized': False, 'timings_started': False,
+               'python': {'path': str(PYTHON), 'resolved': str(PYTHON.resolve()), 'sha256': sha(PYTHON)},
+               'commands': [], 'packages_before': {kind: archive_census(kind) for kind in PINS}}
+    receipt['exact_new_source_and_grader_identity_before'] = identity_before
+    receipt['physical_durable_preflight_before'] = physical_preflight()
+    dump(ROOT / 'START.json', receipt)
+    try:
+        performance = SOURCE / 'scripts/qualify-workbench-performance.py'
+        capacity = SOURCE / 'scripts/qualify-workbench-capacity.py'
+        old_registration = json.loads((OLD / 'preregistration.json').read_bytes())
+        if sha(OLD / 'preregistration.json') != '7c03f808edd6866e8cd607483d737ba946a6b2a9bc691ee8d8ee49c628701522':
+            raise AssertionError('Retained original preregistration differs')
+        if sha(performance) != old_registration['grader_sha256']:
+            raise AssertionError('Original full workload grader changed')
+        if sha(OLD / 'imported-store/observations.sqlite3') != STORED_DB_SHA:
+            raise AssertionError('Retained 1000-import fixture differs')
+        receipt['commands'].append(command('source-help', [PYTHON, '-B', performance, '--help']))
+        receipt['commands'].append(command('capacity-help', [PYTHON, '-B', capacity, '--help']))
+        source_output = SCRATCH / 'source-full-01'
+        runtime_output = SCRATCH / 'runtime-capacity-01'
+        receipt['commands'].append(command('source-prepare', [PYTHON, '-B', performance, '--prepare', '--output', source_output]))
+        receipt['commands'].append(command('runtime-prepare', [PYTHON, '-B', capacity, '--project', RUNTIME, '--store', OLD / 'imported-store', '--prepare', '--output', runtime_output]))
+        source_registration = json.loads((source_output / 'preregistration.json').read_bytes())
+        runtime_registration = json.loads((runtime_output / 'preregistration.json').read_bytes())
+        if source_registration['plan'] != old_registration['plan']:
+            raise AssertionError('Original workload or thresholds changed')
+        if runtime_registration['plan']['thresholds'] != old_registration['plan']['thresholds']:
+            raise AssertionError('Original capacity thresholds changed')
+        receipt['registrations'] = {}
+        for kind, output in [('source', source_output), ('runtime', runtime_output)]:
+            original = output / 'preregistration.json'
+            durable = DURABLE_ROOT / (kind + '-preregistration.json')
+            durable.write_bytes(original.read_bytes()); durable.chmod(0o600)
+            receipt['registrations'][kind] = {'path': str(original), 'durable_copy': str(durable), 'sha256': sha(original),
+                'bytes': original.stat().st_size, 'plan_sha256': json.loads(original.read_bytes())['plan_sha256']}
+        receipt['retained_original'] = {'preregistration': str(OLD / 'preregistration.json'), 'preregistration_sha256': sha(OLD / 'preregistration.json'),
+            'receipt': str(OLD / 'receipt.json'), 'receipt_sha256': sha(OLD / 'receipt.json'),
+            'database': str(OLD / 'imported-store/observations.sqlite3'), 'database_bytes': (OLD / 'imported-store/observations.sqlite3').stat().st_size, 'database_sha256': STORED_DB_SHA,
+            'evidence_reuse': 'Reuse only original thresholds/workload and exact independently checked 1000-import fixture; original R3 timings remain scoped to original R3 source.'}
+        receipt['packages_after'] = {kind: archive_census(kind) for kind in PINS}
+        if receipt['packages_before'] != receipt['packages_after']:
+            raise AssertionError('Package bytes changed during preparation')
+        receipt['exact_new_source_and_grader_identity_after'] = reviewed_identity()
+        if identity_before != receipt['exact_new_source_and_grader_identity_after']:
+            raise AssertionError('Actual source/artifact/independent grader identity changed')
+        receipt['physical_durable_preflight_after'] = physical_preflight()
+        receipt['new_C30_performance_gate'] = 'BLOCKED_G11' if not receipt['physical_durable_preflight_after']['minimum_guard_satisfied'] else 'NOT_STARTED_REQUIRES_EXACT_REVIEW_AND_ROOT_QUIET_WINDOW'
+        receipt['original_C25_results_reclassified'] = False
+        receipt['count_scope'] = 'Old C25 source1037/runtime48 counts stay in their old actual receipts. No C30 timed commands have run; derive any future count from actual new receipts.'
+        receipt['required_storage_owner'] = 'Root/environment custodian; no new volume/paid service/cleanup or weaker reserve authorized.'
+        receipt.update(status='PASS_UNTIMED_PREPARATION', finished_at=datetime.now(timezone.utc).isoformat(),
+            original_thresholds_and_workload_preserved=True, native_provider_calls=0, platform_qualification=False,
+            limitations=['No timed qualification has run in this preparation.',
+                         'Old /tmp/intune-r4-final-performance-01 and -02 preparation material is absent after workspace reset; those missing bytes are not recreated or claimed retained.',
+                         'Runtime capacity uses external exact source-package graders and a preserved caller-asserted fixture; no native Windows, real Graph, device, fleet SLA or production approval claim.',
+                         'Three samples are descriptive; operating-system caches and background host activity remain uncontrolled.'])
+        dump(ROOT / 'PREPARATION-RECEIPT.json', receipt)
+        print(ROOT / 'PREPARATION-RECEIPT.json')
+    except Exception as error:
+        receipt.update(status='FAIL_PRESERVED', error_type=type(error).__name__, error=str(error), finished_at=datetime.now(timezone.utc).isoformat())
+        dump(ROOT / 'PREPARATION-FAILURE.json', receipt)
+        raise
+
+
+if __name__ == '__main__':
+    main()

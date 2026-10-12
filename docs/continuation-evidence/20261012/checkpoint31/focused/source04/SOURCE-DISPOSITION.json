@@ -1,0 +1,31 @@
+{
+  "actual_application_qualified_by_this_disposition": false,
+  "limitations": [
+    "Source review and detached controls are not native or actual application acceptance.",
+    "Exact new source copy does not relabel original02/03 outcomes.",
+    "Standalone reusable source does not establish a runnable complete recovery corpus.",
+    "Full process native map proof remains unqualified."
+  ],
+  "native_qualified": false,
+  "negative_controls_independently_asserted": false,
+  "omissions": [
+    "Private execution contract and profiles",
+    "Raw individual authority BEFORE/AFTER and exception records",
+    "Original/private full fixture helpers and generated state/binary plans",
+    "Generated key/token/capture/store bytes",
+    "Private preparation/whole-run capsules and root authorization",
+    "Full original and subsequent private corpus"
+  ],
+  "platform_qualified": false,
+  "production_approved": false,
+  "review_scope": "Complete qualifier source02 previously read; entire03 recorder delta and complete04 cause propagation delta read; independent AST proves all remaining source equivalent to admitted02. Exact43840-byte04 text contains generic qualification procedures, synthetic expected fixture values and metadata paths, no embedded actual private credentials, state, saved-plan payload or tenant capture bytes.",
+  "schema": "intune-public-exact-qualifier-source-disposition/1",
+  "selected_source": {
+    "bytes": 43840,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-04/public-source/qualify_packaged_completed_journey.py.txt",
+    "sha256": "83a6a4299837d82ac1e5cb88fb5fd904640d287683b200e936c5359ea1453dd7"
+  },
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_qualified": true,
+  "status": "PASS_PUBLIC_SOURCE_TEXT_ONLY"
+}

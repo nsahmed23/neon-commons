@@ -1,0 +1,44 @@
+{
+  "schema": "public-independent-C30-completed-journey-source-disposition/1",
+  "status": "PASS_SCOPED_SELECTED_SOURCE_TEXT_ONLY",
+  "selected": [
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-02/public-source/qualify-packaged-completed-journey.py.txt",
+      "bytes": 41348,
+      "sha256": "4c1cf9f334b2d5c80fd566370458bed93ad87b4995c947eb402c341b88a40a02"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-02/public-source/qualify-static-preparation.py.txt",
+      "bytes": 6863,
+      "sha256": "140297d0498896542edaea8dd4979ab1bbce434afa62812a82dfcce8b3382266"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-02/public-source/qualify-finalization-controls.py.txt",
+      "bytes": 8934,
+      "sha256": "748bab375c046604e296586ab9ca8da0daf7cdd46579f9f01d31b77f32e65af8"
+    },
+    {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-02/public-source/README.md",
+      "bytes": 1652,
+      "sha256": "af9631acdee41b44f7a367dfb8257dddaa1e0269f09d083c3e0c6866c4242303"
+    }
+  ],
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "qualified_application_yet": false,
+  "source_admission": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-02/ADMISSION.json",
+    "bytes": 8374,
+    "sha256": "d55c2ad19d5eb3d917cdb91ff4cf3de1fc9853c9ff4b3a5e926f42574f21d720"
+  },
+  "review_method": "Read whole qualifier/checker source, literal metadata and narrow unchanged/changed AST; no real private credential/key/state/plan/raw HTTP/capture payload literals found in selected text. Explicit synthetic strings and generated future artifact procedures remain. This is not universal secret absence or independent organizational AppSec approval.",
+  "omissions": [
+    "Actual execution contract/private preparation JSON and whole private capsules",
+    "Actual source fixture object captures, prepared native state, saved binary plans, generated future SQL authority/store evidence, token/credential values and approvals",
+    "Original full private qualification helpers/corpus; only these exact new qualifier/checker text files are cleared",
+    "Historical missing265tmp/39receipt/provenance findings remain open; public text is not complete private recovery"
+  ],
+  "scope": "Documentation-only exact three scripts and small README/disposition; not runtime inclusion, self-contained executable/private bundle, actual application/native/platform or organizational production approval.",
+  "native_dispatches": 0,
+  "platform_qualified": false,
+  "production_approved": false
+}

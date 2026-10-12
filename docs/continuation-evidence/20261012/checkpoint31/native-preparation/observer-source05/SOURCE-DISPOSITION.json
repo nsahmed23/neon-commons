@@ -1,0 +1,50 @@
+{
+  "author_output_namespace_controls": "df717de2648c0c0ba7ae6016e319683b61f661ae7c042c71afc3445f2801a23d",
+  "explicit_omissions": [
+    "Complete private profiles/helpers/input data, binary state/plans, captures, SQLite/key/approval material and owned capsules.",
+    "Product source/runtime archives and full original corpus remain separately preserved; this is not complete recovery."
+  ],
+  "independent_clearance": null,
+  "known_before_finalization_failure": "a2cd6a76446b09efd0a968cc2e998f10543f507e44cb72b88671082042beceec",
+  "known_before_output_namespace_failure": "fc4b0275d95e83c8fdf92d8d5d77f6fae20916860f53d383fbb3199009207c1a",
+  "limitations": [
+    "Public source text alone is not runnable without pinned original/private layers and real input/gate bindings.",
+    "Author65 metadata controls/actual CLI denials do not qualify native routes or count as product tests."
+  ],
+  "native_dispatches": 0,
+  "platform_qualified": false,
+  "preserves_before_source_stages": [
+    "/tmp/intune-C30-observer-public-source-20261011-03",
+    "/tmp/intune-C30-observer-public-source-20261011-04"
+  ],
+  "private_payload_selected": false,
+  "production_approved": false,
+  "schema_version": "C30-observer-inert-public-source-author-recommendation/1",
+  "selected": [
+    {
+      "bytes": 57637,
+      "selected": "/tmp/intune-C30-observer-public-source-20261011-05/qualify-C30-observer.py.txt",
+      "sha256": "26938934ed3e6a2c79093cb13b967f7ba59e301f15361a88b65c8f111eeaadd0",
+      "source": "/tmp/intune-C30-observer-recovery-profile-20261011-03/loader/qualify_C30_observer.py"
+    },
+    {
+      "bytes": 52853,
+      "selected": "/tmp/intune-C30-observer-public-source-20261011-05/orchestrate-C30-observer-recovery.py.txt",
+      "sha256": "86776255fce662207b4624cdda8b8c4eeeed1cf6ef739942c33d703fa24cd596",
+      "source": "/tmp/intune-C30-observer-recovery-orchestration-20261011-04/orchestrate-observer-recovery.py"
+    },
+    {
+      "bytes": 8229,
+      "selected": "/tmp/intune-C30-observer-public-source-20261011-05/finalize-C30-observer-ready.py.txt",
+      "sha256": "dd2f9b14f251114081972773ba114fc4279e0b96e4fdf71c399687086ce9e05e",
+      "source": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/finalize-C30-observer-ready05.py"
+    },
+    {
+      "bytes": 7044,
+      "selected": "/tmp/intune-C30-observer-public-source-20261011-05/README.md",
+      "sha256": "af2b71e337b185f14fd4f0ef61317b81df37d435ca26f25d60fadd55360c72a5",
+      "source": "new attributed author documentation"
+    }
+  ],
+  "status": "AUTHOR_SOURCE_TEXT_RECOMMENDED_PENDING_INDEPENDENT_REVIEW"
+}

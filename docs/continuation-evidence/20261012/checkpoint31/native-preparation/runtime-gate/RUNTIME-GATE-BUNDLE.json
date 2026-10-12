@@ -1,0 +1,26 @@
+{
+  "independent_admission": {
+    "bytes": 3810,
+    "path": "/tmp/intune-C30-runtime-factory-gate-admission-20261012-01/INDEPENDENT-APPLICATION-GATE.json",
+    "sha256": "ca13af184093594a4fdb07d64a122b22e686c8b1e8715f11e380b38361d697f9"
+  },
+  "known_completed_journey": {
+    "bytes": 10042,
+    "path": "/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH/RESULT.json",
+    "sha256": "b128766913530b1f3eca56e4b221983560048ecfcaafd0be045f7a8b3d07d2fd"
+  },
+  "package_receipt": {
+    "bytes": 7532,
+    "path": "/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json",
+    "sha256": "eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a"
+  },
+  "runtime_routes": {
+    "bytes": 1571,
+    "path": "/tmp/intune-new-runtime-C30-20261011-01/RESULT.json",
+    "sha256": "2d45ea27084268e50f050eb64febb546873a8365465436d6623b758c3848100f"
+  },
+  "schema_version": "C30-observer-recovery-runtime-gate-bundle/1",
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_LOCAL_APPLICATION_GATES"
+}

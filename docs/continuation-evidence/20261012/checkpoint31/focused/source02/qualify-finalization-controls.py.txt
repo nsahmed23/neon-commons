@@ -1,0 +1,142 @@
+"""Detached exact-source finalization controls; no product/fixture imports."""
+from pathlib import Path
+import ast
+import hashlib
+import json
+import sys
+from types import SimpleNamespace
+import traceback
+
+ROOT = Path(__file__).absolute().parent
+SOURCE = ROOT / 'qualify_packaged_completed_journey.py'
+tree = ast.parse(SOURCE.read_text())
+names = {'secondary_note', 'finish_fixture', 'record_failure'}
+functions = [node for node in tree.body if type(node) is ast.FunctionDef and node.name in names]
+assert len(functions) == 3
+namespace = {'Path': Path, 'traceback': traceback, 'SCOPE': 'Detached qualifier controls; no application/native evidence'}
+exec(compile(ast.Module(body=functions, type_ignores=[]), str(SOURCE) + ':exact finalization AST', 'exec'), namespace)
+checks = []
+records = []
+def record(path, value):
+    records.append((str(path), value))
+def fail_dump(path, value):
+    raise OSError('deliberate receipt recording failure')
+def raise_cleanup():
+    raise KeyboardInterrupt('deliberate cleanup interruption')
+class ClosedCredentialError(Exception):
+    code = 'identity_credential_unavailable'
+def closed_credential():
+    raise ClosedCredentialError()
+def check(name, value):
+    if value is not True:
+        raise AssertionError(name)
+    checks.append({'id': name, 'status': 'PASS'})
+def finish(callback, primary=None, writer=record, *, graph=lambda: True, reader_closed=True, credential_closed=True):
+    namespace['dump'] = writer
+    fixture = SimpleNamespace(doCleanups=callback, graph=SimpleNamespace(doCleanups=graph),
+        reader=SimpleNamespace(_closed=reader_closed, _token='' if reader_closed else 'unclosed-modeled-token',
+            _credential=SimpleNamespace(_get=closed_credential if credential_closed else lambda: 'never-logged-modeled-value')))
+    return namespace['finish_fixture'](fixture, Path('/unused-qualified-control-root'), primary, app_error=ClosedCredentialError)
+finish(lambda: True)
+check('successful_cleanup_records_true_without_PASS', records[-1][1]['reader_and_credential_cleanup_success'] is True and
+      not any(path.endswith('/RESULT.json') for path, _ in records))
+primary = ValueError('primary application failure')
+finish(lambda: True, primary, fail_dump)
+check('primary_survives_secondary_cleanup_receipt_failure', len(primary.__notes__) == 1 and 'OSError' in primary.__notes__[0])
+primary = ValueError('primary application failure')
+finish(raise_cleanup, primary, fail_dump)
+check('primary_retains_cleanup_and_recording_failures', len(primary.__notes__) == 2 and
+      any('KeyboardInterrupt' in note for note in primary.__notes__) and any('OSError' in note for note in primary.__notes__))
+primary = ValueError('primary application failure')
+finish(lambda: False, primary)
+check('primary_survives_failed_cleanup_return', len(primary.__notes__) == 1 and 'AssertionError' in primary.__notes__[0])
+try:
+    finish(lambda: False)
+except AssertionError:
+    check('cleanup_false_blocks_final_success', records[-1][1]['reader_and_credential_cleanup_success'] is False)
+else:
+    raise AssertionError('Failed cleanup did not block')
+try:
+    finish(raise_cleanup, writer=fail_dump)
+except KeyboardInterrupt as error:
+    check('primary_cleanup_interruption_survives_secondary_recording', 'OSError' in error.__notes__[0])
+else:
+    raise AssertionError('Cleanup interrupt suppressed')
+try:
+    finish(lambda: True, writer=fail_dump)
+except OSError:
+    check('cleanup_receipt_failure_blocks_success', True)
+else:
+    raise AssertionError('Recording failure suppressed without primary')
+try:
+    finish(lambda: True, graph=lambda: False)
+except AssertionError:
+    check('nested_false_cannot_borrow_outer_true', records[-1][1]['nested_graph_cleanup_success'] is False and
+          records[-1][1]['outer_cleanup_success'] is True and records[-1][1]['reader_and_credential_cleanup_success'] is False)
+else:
+    raise AssertionError('Nested false was silently admitted')
+try:
+    finish(lambda: True, reader_closed=False)
+except AssertionError:
+    check('actual_closed_state_required_in_addition_to_cleanup_returns', records[-1][1]['reader_closed'] is False and
+          records[-1][1]['reader_and_credential_cleanup_success'] is False)
+else:
+    raise AssertionError('Open reader was silently admitted')
+try:
+    finish(lambda: True, credential_closed=False)
+except AssertionError:
+    check('credential_unavailable_check_required', records[-1][1]['credential_unavailable_after_close'] is False and
+          records[-1][1]['reader_and_credential_cleanup_success'] is False)
+else:
+    raise AssertionError('Usable credential was silently admitted')
+primary = ValueError('primary before nested failure')
+finish(lambda: True, primary, fail_dump, graph=raise_cleanup)
+check('nested_cleanup_interruption_and_receipt_failure_keep_primary', len(primary.__notes__) == 2 and
+      any('KeyboardInterrupt' in note for note in primary.__notes__) and any('OSError' in note for note in primary.__notes__))
+primary = ValueError('original application failure')
+namespace['dump'] = fail_dump
+try:
+    try:
+        raise primary
+    except BaseException as error:
+        namespace['record_failure'](Path('/unused-qualified-control-root'), error)
+        raise
+except BaseException as error:
+    check('original_exception_identity_survives_FAILURE_receipt_error', error is primary and 'OSError' in error.__notes__[0])
+
+main = next(node for node in tree.body if type(node) is ast.FunctionDef and node.name == 'main')
+app = next(node for node in tree.body if type(node) is ast.FunctionDef and node.name == 'application')
+result_writes = [node for node in ast.walk(main) if type(node) is ast.Call and type(node.func) is ast.Name and node.func.id == 'dump'
+                and node.args and any(type(part) is ast.Constant and part.value == 'RESULT.json' for part in ast.walk(node.args[0]))]
+provisional_writes = [node for node in ast.walk(app) if type(node) is ast.Call and type(node.func) is ast.Name and node.func.id == 'dump'
+                     and node.args and any(type(part) is ast.Constant and part.value == 'PROVISIONAL-RESULT.json' for part in ast.walk(node.args[0]))]
+app_result_writes = [node for node in ast.walk(app) if type(node) is ast.Call and type(node.func) is ast.Name and node.func.id == 'dump'
+                    and node.args and any(type(part) is ast.Constant and part.value == 'RESULT.json' for part in ast.walk(node.args[0]))]
+check('application_writes_only_provisional_result', len(provisional_writes) == 1 and app_result_writes == [])
+check('only_main_writes_authoritative_RESULT', len(result_writes) == 1)
+body = next(node for node in main.body if type(node) is ast.Try).body
+application_call = next(i for i,node in enumerate(body) if type(node) is ast.Assign and type(node.value) is ast.Call
+                        and type(node.value.func) is ast.Name and node.value.func.id == 'application')
+post = body[application_call + 1:]
+post_names = {node.func.id for statement in post for node in ast.walk(statement) if type(node) is ast.Call and type(node.func) is ast.Name}
+check('actual_post_flow_has_bindings_census_origins_source_contract_rechecks', {'bindings','package_census','import_origins','file_pin','exact_equal'} <= post_names)
+result_index = next(i for i,node in enumerate(body) if type(node) is ast.Expr and type(node.value) is ast.Call and
+                    type(node.value.func) is ast.Name and node.value.func.id == 'dump' and node.value is result_writes[0])
+check('post_identity_checks_precede_authoritative_RESULT', result_index > application_call + 5)
+finally_body = next(node for node in app.body if type(node) is ast.Try).finalbody
+check('application_finally_executes_guarded_actual_fixture_cleanup', any(type(node) is ast.Expr and type(node.value) is ast.Call and
+      type(node.value.func) is ast.Name and node.value.func.id == 'finish_fixture' for node in finally_body))
+
+result = {'status': 'PASS_SCOPED_DETACHED_FINALIZATION_CONTROLS',
+    'source': {'path': str(SOURCE), 'bytes': SOURCE.stat().st_size, 'sha256': hashlib.sha256(SOURCE.read_bytes()).hexdigest()},
+    'checks': checks, 'check_count': len(checks),
+    'scope': 'Exact AST finalization functions with deliberately controlled cleanup/dump outcomes plus static actual final-PASS ordering. No actual fixture, application, native, Graph/backend or provider dispatch.',
+    'actual_product_imports': 0, 'application_runs': 0, 'native_dispatches': 0,
+    'count_scope': 'Qualifier finalization controls; not new product-suite tests, nonadditive with24 input guards or retained19/123.',
+    'platform_qualified': False, 'production_approved': False}
+path = ROOT / 'FINALIZATION-CONTROLS-02.json'
+with path.open('x') as stream:
+    json.dump(result, stream, indent=2, sort_keys=True)
+    stream.write('\n')
+path.chmod(0o600)
+print(json.dumps({'path': str(path), 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'check_count': len(checks)}))

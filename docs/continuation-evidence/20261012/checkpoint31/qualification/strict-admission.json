@@ -1,0 +1,119 @@
+{
+  "affected_123_subset": true,
+  "affected_module_source_files": {
+    "test_worker_committed_description_r4": {
+      "bytes": 3906,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_committed_description_r4.py",
+      "sha256": "f7dd6b542c674eb420117fc6d926f9d123542b8ff926a06e86ffaa5eaabeef61"
+    },
+    "test_worker_committed_recovery_r4": {
+      "bytes": 7010,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_committed_recovery_r4.py",
+      "sha256": "4da4c5f0eacfb3926fa085985022a765c4ab14e662a3c9890cd9215250f9f6ed"
+    },
+    "test_worker_completed_readback_r4": {
+      "bytes": 25298,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_completed_readback_r4.py",
+      "sha256": "41658847cfd8618338f60e98f226b64a0248b8b863a3906ca953e5ff8ce7d9b3"
+    },
+    "test_worker_lease_recovery_r4": {
+      "bytes": 6579,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_lease_recovery_r4.py",
+      "sha256": "4e771088996aae76dba8d141e131d6df1e3bff6dd24ab7889d9bb145c1e82109"
+    },
+    "test_worker_service_r4": {
+      "bytes": 21891,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_service_r4.py",
+      "sha256": "62917aaa1e7e3a6f2ce6e7d2794a415ae5d71a8aa68bda32e2b22f56b01d37cc"
+    },
+    "test_worker_service_readback_r4": {
+      "bytes": 13886,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_service_readback_r4.py",
+      "sha256": "6d9949a84f31d88391c47c8c8343867c9af83366ed8ae158e08aaceb61652459"
+    },
+    "test_worker_service_shutdown_r4": {
+      "bytes": 10713,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_service_shutdown_r4.py",
+      "sha256": "ec12724df1309d3257b1768e1031a52f5e5d2fb88f8aac0fcae12858424772cd"
+    },
+    "test_worker_state_r4": {
+      "bytes": 9175,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_state_r4.py",
+      "sha256": "9ffc9dfaec23dc10420d76200e97ceb2ad3171472dabb7066b92d88d18d00a31"
+    },
+    "test_worker_state_recovery_r4": {
+      "bytes": 10440,
+      "path": "/tmp/intune-C30-packages-20261011-01/extract-source/intune-iac-source/plugin_tests/test_worker_state_recovery_r4.py",
+      "sha256": "b3cda718c6e1c90daa7bee5585fd723ebaa890662b9b9f30358f68f77c617a4e"
+    }
+  },
+  "core_included": true,
+  "duplicate_IDs": {},
+  "full_result": {
+    "bytes": 6115,
+    "path": "/tmp/intune-C30-strict-independent-20261011-01/RESULT.json",
+    "sha256": "7cb88f19052970e75426baec58cebdb6b0381b800b5929e4274df7dba348436a"
+  },
+  "gate_receipt": {
+    "bytes": 1618,
+    "path": "/tmp/intune-C30-strict-20261011-01/gate/RECEIPT.json",
+    "sha256": "ea6bee160f184c27ea17cb9a3c62a6699199c3fa24d9da617093723df90134b8"
+  },
+  "limitations": [
+    "The actual full gate count is2,326 executed/2,326 unique test IDs. Older2,307 and affected123/new19 are overlapping separate observations and are not summed.",
+    "Selected runner argv, source discovery bootstrap, immutable complete source namespace and qualified test module namespaces are bound. No per-import sys.modules origin trace was captured; do not infer dynamic origin attestation for every third-party library.",
+    "Required complete actual final-runtime application journeys and bounded new-package performance remain separate pending gates.",
+    "No complete required native-mode matrix, native Windows, real tenant/provider/Azure/protected CI/device, hostile-process/power-loss/AppSec/key-custody or accountable organizational acceptance is established.",
+    "Preserved historical provenance, original native portable failure, loss/omission and deniedG13 findings remain open."
+  ],
+  "metadata_assertions": 160,
+  "new_factory_19_subset": true,
+  "not_established": [
+    "Live Graph authenticity or service semantics",
+    "Provider-backed import/no-change plan",
+    "Full native Atmos runtime configuration parity",
+    "Native Windows/PowerShell behavior",
+    "Native host installation",
+    "CLM learned-model quality, calibration or latency"
+  ],
+  "outer_result": {
+    "bytes": 4951,
+    "path": "/tmp/intune-C30-strict-20261011-01/RESULT.json",
+    "sha256": "52c87f11f3ab19799f6db2886cb7e7e7dc50e749b3b6fea94cb4657b768cf317"
+  },
+  "package_receipt": {
+    "bytes": 7532,
+    "path": "/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json",
+    "sha256": "eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a"
+  },
+  "platform_qualified": false,
+  "private_raw_clearance": false,
+  "product_or_suite_reruns": 0,
+  "production_approved": false,
+  "public_suitable": true,
+  "raw_log": {
+    "bytes": 420648,
+    "path": "/tmp/intune-C30-strict-20261011-01/gate/strict-suite/test-log.txt",
+    "sha256": "d43dddf242717de3caeff14e745ba297ec789e5a554060dffa1a7630f72b29a9"
+  },
+  "raw_planned_executed_passed": 2326,
+  "required_incomplete_cases": 0,
+  "schema_version": "intune-public-independent-C30-actual-strict-admission/1",
+  "scope": "Local runtime behavior, repository semantics, negative contracts, synthetic and API-shaped capture pipelines, and HTTP protocol fixtures.",
+  "source_full_namespace_before_after_exact": true,
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_EXACT_SOURCE_STRICT_AND_UNIQUE_IDS",
+  "suite_report": {
+    "bytes": 759,
+    "path": "/tmp/intune-C30-strict-20261011-01/gate/strict-suite/result.json",
+    "sha256": "fc061d7232ba4e0e0058ca7f98967d997b81c3d123e0548f093973c0731b5bce"
+  },
+  "tools_before_after_exact_declared": true,
+  "unique_ID_oracle": {
+    "bytes": 612684,
+    "path": "/tmp/intune-C30-test-id-review-actual-20261011-01/RESULT.json",
+    "sha256": "f394199e1f21a866a177ded33d77be43f03032877e808dc4e47697b68a6bae06"
+  },
+  "unique_test_IDs": 2326
+}

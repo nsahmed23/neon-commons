@@ -1,0 +1,96 @@
+{
+  "actual_application_runs_in_reviewer_lane": 0,
+  "count_clarification": {
+    "bytes": 1233,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-04/COUNT-CLARIFICATION.json",
+    "sha256": "d795447adb31ae9b7fc2815f3807abfc29da83455ece43ab1694a059aee7013c"
+  },
+  "evidence_reuse": [
+    {
+      "applicable_scope": "Unchanged full source AST except rejected nested recorder; contract byte-exact, all positive flow unchanged. Does not substitute for future actual04 raw pair evidence.",
+      "dependency": "admitted02 complete source/contract/import-origin/pin/cleanup/finalization checks"
+    },
+    {
+      "applicable_scope": "Inspected author scope only, overlapping pure checks not independent product counts.",
+      "dependency": "Author static24/finalization17/recorder65"
+    }
+  ],
+  "execution_contract": {
+    "bytes": 1924,
+    "path": "/tmp/intune-new-package-completed-journey-20261011-04/EXECUTION-CONTRACT.json",
+    "sha256": "f3d793896f49d5e51778c372fa53db28f2604623ce41aba3ce3aaded7d3bbb76"
+  },
+  "expected_future_scope": {
+    "actual_assertions": 50,
+    "actual_text_commands": 11,
+    "negative_controls": 6,
+    "negative_controls_independently_asserted": false,
+    "nonadditive": true
+  },
+  "independent_affected_result": {
+    "bytes": 1456,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-04/after-count-clarification/RESULT.json",
+    "sha256": "43240bef79c97f6dea76be29fbb64d2755d2b82d0c60985f2c119a4b617329f3"
+  },
+  "independent_distinct_control_count": 9,
+  "native_dispatches": 0,
+  "next_action": "Root may run this frozen04 short local journey once with exact contract and fresh output, clean no-token environment, then retain entire raw lifetime and obtain independent assertions of all six raw authority pairs. No native/provider dispatch or whole suite requested.",
+  "preparation": {
+    "bytes": 8825,
+    "path": "/tmp/intune-new-package-completed-journey-20261011-04/PREPARATION.json",
+    "sha256": "9da19dfb82c2acb9925116b1886dc1c8d3a6ec2369e92fdbdde874b979fd978e"
+  },
+  "prior_evidence": {
+    "actual02_public_scope": {
+      "bytes": 4170,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/actual-raw-01/PUBLIC-METADATA.json",
+      "sha256": "88112abf7b53dc2b5547b153bb790fb5d39acc41d57ed61847c0d766bbb2541a"
+    },
+    "original03_cause_failure": {
+      "bytes": 1008,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/negative-recorder-03-before/RESULT.json",
+      "sha256": "db90bb68616e8a1b6a7c815802ecbe92c61e45069513f69ea5d820149a35490c"
+    },
+    "source_admission": {
+      "bytes": 8374,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-02/ADMISSION.json",
+      "sha256": "d55c2ad19d5eb3d917cdb91ff4cf3de1fc9853c9ff4b3a5e926f42574f21d720"
+    }
+  },
+  "public_source_disposition": {
+    "bytes": 1915,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/admitted-04/public-source/SOURCE-DISPOSITION.json",
+    "sha256": "66e5298050c50a3ad363c903204cf7a828a1373507df53abe129ce3f813abd8c"
+  },
+  "remaining_limitations": [
+    "Actual04 and six raw pairs have not yet been executed/admitted.",
+    "Historical host/authority/Graph transport expressly modeled.",
+    "No native identity/provider/backend/CI/Windows/device evidence.",
+    "Root owns whole-run preservation; private raw pairs remain NOT_PUBLIC.",
+    "Native inventory digest binding is not independently complete native map attestation.",
+    "Source and local checks do not establish AppSec or organizational approval."
+  ],
+  "replay_command": [
+    "env",
+    "-i",
+    "PATH=/usr/bin:/bin",
+    "LANG=C.UTF-8",
+    "LC_ALL=C.UTF-8",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "PYTHONNOUSERSITE=1",
+    "python3",
+    "-B",
+    "/tmp/review_focused04_negative_recorder_20261012.py"
+  ],
+  "replay_limitation": "Reviewer owns fixed fresh output root; replay requires a new explicit output path, and no product imports. Existing raw detached roots preserved.",
+  "review_scope": "Exact source contract, only nested application.rejected recorder changes from admitted02; source03 before failure and exact04 fix. No product/helper main/native execution in reviewer lane.",
+  "root_cause": "Recording failure used raise error from recording, replacing an existing callback cause. Exact04 leaves inner recording handler, then bare-reraises still-active callback; secondary note retained. Accepted generated assertion also raised after recording handler.",
+  "schema": "independent-intune-focused-completion-qualifier-source-admission/4",
+  "script": {
+    "bytes": 43840,
+    "path": "/tmp/intune-new-package-completed-journey-20261011-04/qualify_packaged_completed_journey.py",
+    "sha256": "83a6a4299837d82ac1e5cb88fb5fd904640d287683b200e936c5359ea1453dd7"
+  },
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "status": "PASS_SCOPED_EXACT04_SOURCE_CONTRACT_DETACHED_GUARDS"
+}

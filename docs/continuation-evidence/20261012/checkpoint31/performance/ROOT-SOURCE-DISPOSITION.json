@@ -1,0 +1,53 @@
+{
+  "complete_corpus": false,
+  "limitations": [
+    "Public-text suitability and previously recorded untimed/negative evidence only; no new product tests or timing measurements.",
+    "Exact executable preparation requires its separately pinned excluded contract, preregistration, original DB, toolchain and complete source/runtime dependencies. Text is not standalone recovery.",
+    "Coordinator quiet-window label is procedural metadata; it is not authenticated approval or a protected execution security boundary.",
+    "Unchanged full capsule<=32MiB and capsulebytes+32MiB durable reserve remains required. Missing capacity does not permit a weaker gate.",
+    "Prior C25 results, denied preflight, failed checker and provenance findings remain in their original scopes. No platform or organizational approval is inferred."
+  ],
+  "new_performance_qualified": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_source_text_suitable": true,
+  "recorded_at": "2026-10-12T00:08:59.243878+00:00",
+  "required_performance_gate": "BLOCKED_G11",
+  "review_scope": "Full text review of all three exact helper files and README/author disposition; literal path/source/tool/artifact and synthetic fixture hashes only, no credential values, raw captures, state, plans, approval payloads, live organizational identity or private data. Files remain inert .py.txt documentation.",
+  "reviewer": "Root release engineer independent of performance helper author",
+  "schema_version": "independent-C30-performance-inert-public-source-disposition/1",
+  "selected": {
+    "README.md": {
+      "bytes": 2664,
+      "path": "/tmp/intune-C30-performance-public-source-20261012-01/README.md",
+      "sha256": "863de089f2377e88d3f319868eebf14802b6e1d90f8f0847e0ab1cd95509b035"
+    },
+    "SOURCE-DISPOSITION.json": {
+      "bytes": 2853,
+      "path": "/tmp/intune-C30-performance-public-source-20261012-01/SOURCE-DISPOSITION.json",
+      "sha256": "2a0eda69856d78b86e5dd222a0499e50ae033f24a83d75a10c2c614b6f7143af"
+    },
+    "prepare.py.txt": {
+      "bytes": 16052,
+      "path": "/tmp/intune-C30-performance-public-source-20261012-01/prepare.py.txt",
+      "sha256": "c4ebe211bd4260ccb53220b655c719c090578042ec29b9bf982674c3441fd465"
+    },
+    "qualify_pure_controls.py.txt": {
+      "bytes": 4215,
+      "path": "/tmp/intune-C30-performance-public-source-20261012-01/qualify_pure_controls.py.txt",
+      "sha256": "d32d3392b9acbbb144066f58eb95a2ed0d9d7fc77fe1c8b21aff736dd875070c"
+    },
+    "run-prepared.py.txt": {
+      "bytes": 12334,
+      "path": "/tmp/intune-C30-performance-public-source-20261012-01/run-prepared.py.txt",
+      "sha256": "b625852df373123d2a3f2ed0ee26e70facd4bc14c522119309736db5cebe2c69"
+    }
+  },
+  "source_execution_admission": {
+    "bytes": 5149,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C30-performance-preparation-20261012-02/PUBLIC-ADMISSION.json",
+    "sha256": "aa6c30bc734bfb74625ec6bf64f70015d59e470292e03404c700a00c1c0b73b8"
+  },
+  "status": "PASS_SCOPED_PUBLIC_SOURCE_SUITABILITY",
+  "timing_samples": 0
+}

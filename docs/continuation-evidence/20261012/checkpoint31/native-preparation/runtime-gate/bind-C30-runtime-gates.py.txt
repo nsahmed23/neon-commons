@@ -1,0 +1,79 @@
+"""Bind already qualified C30 application evidence; no native or READY dispatch."""
+from pathlib import Path
+from types import SimpleNamespace
+import argparse, datetime, hashlib, importlib.util, json, os, stat, subprocess
+
+SOURCE='39cc77618a0f7f2734599fbfed224b47c333293f'
+TREE='f8bff355322c7c50e46790171c12a5e1a7cb80aa'
+HISTORICAL='e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'
+BASIS=Path('/tmp/intune-C30-observer-recovery-profile-20261011-03')
+ROOT=Path('/tmp/intune-C30-runtime-gate-bundle-20261012-01')
+READY=Path('/tmp/intune-C30-observer-ready-profile-RUNTIME-BOUND-NEGATIVE-01')
+RUNTIME=Path('/tmp/intune-new-runtime-C30-20261011-01/RESULT.json')
+KNOWN=Path('/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH/RESULT.json')
+FINALIZER=Path('/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/finalize-C30-observer-ready05.py')
+
+def raw(path):
+    assert path.is_absolute() and all(stat.S_ISDIR(parent.lstat().st_mode) for parent in path.parents)
+    info=path.lstat();assert stat.S_ISREG(info.st_mode) and info.st_nlink==1
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+    with os.fdopen(fd,'rb') as stream:
+        data=stream.read();current=os.fstat(stream.fileno())
+        assert (current.st_dev,current.st_ino,current.st_size)==(info.st_dev,info.st_ino,info.st_size)
+    return data
+
+def pin(path):
+    data=raw(path);return {'path':str(path),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+
+def save(path,value):
+    with path.open('xb') as stream:
+        stream.write((json.dumps(value,indent=2,sort_keys=True,allow_nan=False)+'\n').encode());stream.flush();os.fsync(stream.fileno())
+    return pin(path)
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--independent-envelope',type=Path,required=True)
+    parser.add_argument('--independent-envelope-sha256',required=True)
+    args=parser.parse_args()
+    assert pin(args.independent_envelope)['sha256']==args.independent_envelope_sha256
+    envelope=json.loads(raw(args.independent_envelope))
+    assert envelope['schema_version']=='independent-C30-runtime-and-known-completed-application-gate/1'
+    assert envelope['status']=='PASS_SCOPED_EXACT_APPLICATION_RAW_ASSERTIONS' and envelope['source_revision']==SOURCE
+    assert envelope['platform_qualified'] is False and envelope['production_approved'] is False
+    rp=pin(RUNTIME);kp=pin(KNOWN)
+    assert rp['sha256']=='2d45ea27084268e50f050eb64febb546873a8365465436d6623b758c3848100f'
+    assert kp['sha256']=='b128766913530b1f3eca56e4b221983560048ecfcaafd0be045f7a8b3d07d2fd'
+    assert envelope['runtime_routes']==rp and envelope['known_completed_journey']==kp
+    profile_pin=pin(BASIS/'profile.json')
+    assert profile_pin['sha256']=='5a3c4cfd0f620c3f30cab63a0d7d79be5d01ae82bfd90b1d82645f0818204fdb'
+    loader=BASIS/'loader/qualify_C30_observer.py'
+    assert pin(loader)['sha256']=='26938934ed3e6a2c79093cb13b967f7ba59e301f15361a88b65c8f111eeaadd0'
+    assert pin(FINALIZER)['sha256']=='dd2f9b14f251114081972773ba114fc4279e0b96e4fdf71c399687086ce9e05e'
+    contract=json.loads(raw(BASIS/'bundle/inputs/observer-recovery-routes.json'))
+    spec=importlib.util.spec_from_file_location('C30_exact_metadata_gate_only',loader)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    profile=SimpleNamespace(source_revision=SOURCE,value=json.loads(raw(BASIS/'profile.json')),contract=contract)
+    module.strict_gate(profile,contract['required_gates']['new_source_strict'])
+    assert not os.path.lexists(ROOT) and not os.path.lexists(READY)
+    ROOT.mkdir(mode=0o700)
+    gate={'schema_version':'C30-observer-recovery-runtime-gate-bundle/1','status':'PASS_SCOPED_LOCAL_APPLICATION_GATES','source_revision':SOURCE,'source_tree':TREE,'package_receipt':contract['package_receipt'],'runtime_routes':rp,'known_completed_journey':kp,'independent_admission':pin(args.independent_envelope)}
+    gate_pin=save(ROOT/'RUNTIME-GATE-BUNDLE.json',gate)
+    assert module.runtime_gate(profile,gate_pin)==gate
+    bindings={'schema_version':'C30-observer-actual-ready-bindings/1','source_revision':SOURCE,'original_source_revision':HISTORICAL,'profile_basis':profile_pin,'runtime_gate':gate_pin,'witnesses':{row['id']:None for row in contract['routes']}}
+    bindings_pin=save(ROOT/'MISSING-NATIVE-WITNESS-BINDINGS.json',bindings)
+    argv=['/workspace/intune-runtime/bin/python','-B','-I',str(FINALIZER),'--bindings',bindings_pin['path'],'--bindings-sha256',bindings_pin['sha256'],'--output',str(READY)]
+    # Qualified finalizer verifies strict/runtime metadata before its missing
+    # witnesses deny allocation. It has no native dispatcher and imports no
+    # product module. This is a negative preparation command, not a native run.
+    run=subprocess.run(argv,stdin=subprocess.DEVNULL,capture_output=True,timeout=30)
+    streams=[]
+    for name,data in [('stdout',run.stdout),('stderr',run.stderr)]:
+        with (ROOT/name).open('xb') as stream:stream.write(data);stream.flush();os.fsync(stream.fileno())
+        streams.append(pin(ROOT/name))
+    assert run.returncode!=0 and not os.path.lexists(READY)
+    assert b'actual native timing input witness missing' in run.stderr, run.stderr.decode(errors='replace')
+    result={'schema':'C30-actual-application-gate-binding-preparation/1','status':'PASS_SCOPED_ALREADY_QUALIFIED_RUNTIME_BINDING_AND_MISSING_NATIVE_WITNESS_REJECTION','recorded_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'source_revision':SOURCE,'source_tree':TREE,'historical_mutator_source':HISTORICAL,'runtime_gate_bundle':gate_pin,'independent_envelope':pin(args.independent_envelope),'existing_runtime_result':rp,'existing_known_completed_result':kp,'exact_strict_gate_verified_without_rerun':True,'actual_existing_loader_runtime_gate_passed':True,'actual_finalizer_missing_native_control':{'argv':argv,'exit_code':run.returncode,'streams':streams,'rejected_missing_native_witness':True,'output_allocated':False},'actual_native_witnesses':0,'native_dispatches':0,'application_test_reruns':0,'READY_or_GO':False,'laboratory_complete':False,'platform_qualified':False,'production_approved':False,'scope':'Read-only metadata binding of already independently qualified actual local modeled-dependency application routes, plus actual fixed finalizer denial before output allocation. No new product tests, native tools, service requests, approvals, READY or recovery authority. Original null profile remains immutable; new bundle is a separate exact preparation dependency.','remaining':'Four genuine native fault witnesses, unchanged33619968-byte durable admission, independent final READY/profile/configuration admission and once-only internal local GO; required real platform/security and organizational approval remain separate.','source':pin(Path(__file__))}
+    receipt=save(ROOT/'RESULT.json',result)
+    print(json.dumps({'result':receipt,'bundle':gate_pin,'status':result['status']}))
+
+if __name__=='__main__':main()

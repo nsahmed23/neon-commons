@@ -1,0 +1,72 @@
+"""Exact C30 performance input/space guards, no grader/measurement dispatch."""
+from pathlib import Path
+import ast
+import hashlib
+import importlib.util
+import json
+from types import SimpleNamespace
+
+ROOT = Path(__file__).absolute().parent
+spec = importlib.util.spec_from_file_location('C30_performance_preparation_controls', ROOT / 'prepare.py')
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+checks = []
+def check(name, value):
+    if value is not True:
+        raise AssertionError(name)
+    checks.append({'id': name, 'status': 'PASS'})
+def reject(name, callback):
+    try:
+        callback()
+    except AssertionError:
+        checks.append({'id': name, 'status': 'PASS_KNOWN_BAD_REJECTED'})
+    else:
+        raise AssertionError(name + ' accepted')
+
+check('exact_C30_source_package_grader_identity', module.reviewed_identity()['source_commit'] == '39cc77618a0f7f2734599fbfed224b47c333293f')
+for attribute, value in [('SOURCE_COMMIT', 'e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'),
+                         ('SOURCE_TREE', '0bdbdeb3556acce23c8390abb20e835184880b27'),
+                         ('PACKAGE_RECEIPT_SHA', '0' * 64), ('LINKAGE_SHA', '0' * 64)]:
+    original = getattr(module, attribute)
+    setattr(module, attribute, value)
+    try:
+        reject('wrong_' + attribute, module.reviewed_identity)
+    finally:
+        setattr(module, attribute, original)
+original = module.GRADERS
+module.GRADERS = {**original, 'scripts/qualify-workbench-performance.py': (27996, '0' * 64)}
+try:
+    reject('substituted_independent_grader_pin', module.reviewed_identity)
+finally:
+    module.GRADERS = original
+original = module.PINS
+module.PINS = {**original, 'runtime': ('Intune_IaC_Plugin_0.9.0.zip', 1520542,
+    '7ca39bc46cef9d8a699ea1885646fcecd281cd7e6677607b106267eb6a8fd84d', module.RUNTIME)}
+try:
+    reject('old_runtime_cannot_borrow_C30_binding', module.reviewed_identity)
+finally:
+    module.PINS = original
+preflight = module.physical_preflight()
+check('actual_required_32MiB_preflight_is_blocked', preflight['minimum_guard_satisfied'] is False and preflight['status'] == 'BLOCKED_G11')
+check('reserve_remains_exact_32MiB', module.MIN_DURABLE_RESERVE == 33554432 and preflight['minimum_post_copy_reserve_bytes'] == 33554432)
+tree = ast.parse((ROOT / 'run-prepared.py').read_text())
+main = next(node for node in tree.body if type(node) is ast.FunctionDef and node.name == 'main')
+guard = next(node for node in main.body if type(node) is ast.If and 'minimum_guard_satisfied' in ast.unparse(node.test))
+check('actual_runner_denies_before_grader_subprocess', any(type(node) is ast.Raise for node in ast.walk(guard)))
+preserve = next(node for node in tree.body if type(node) is ast.FunctionDef and node.name == 'preserve_tree')
+guard = next(node for node in preserve.body if type(node) is ast.If and 'disk_usage' in ast.unparse(node.test))
+check('exact_capsule_plus_32MiB_postcopy_reserve_unchanged', 'archive.stat().st_size + 32 * 1024 * 1024' in ast.unparse(guard.test)
+      and 'preparation.DURABLE_ROOT.parent' in ast.unparse(guard.test))
+check('actual_negative_CLI_records_no_measurement_dispatch', json.loads((ROOT / 'NEGATIVE-PREFLIGHT.json').read_bytes())['product_timed_commands'] == 0)
+result = {'status': 'PASS_SCOPED_PURE_PERFORMANCE_GUARDS', 'checks': checks, 'check_count': len(checks),
+    'source_pins': {name: {'bytes': (ROOT / name).stat().st_size, 'sha256': hashlib.sha256((ROOT / name).read_bytes()).hexdigest()}
+                    for name in ('prepare.py', 'run-prepared.py')},
+    'scope': 'Input metadata/AST/durable-space rejection only. Original workload/grader/native/product commands were not run; no timing sample was collected.',
+    'timed_commands': 0, 'native_calls': 0, 'C30_performance_status': 'BLOCKED_G11',
+    'C25_prior_performance_scopes_reclassified': False, 'platform_qualified': False, 'production_approved': False}
+path = ROOT / 'PURE-CONTROLS-02.json'
+with path.open('x') as stream:
+    json.dump(result, stream, indent=2, sort_keys=True)
+    stream.write('\n')
+path.chmod(0o600)
+print(json.dumps({'path': str(path), 'bytes': path.stat().st_size, 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'checks': len(checks)}))

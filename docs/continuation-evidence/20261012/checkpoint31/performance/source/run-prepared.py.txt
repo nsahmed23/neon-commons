@@ -1,0 +1,201 @@
+#!/usr/bin/env python3
+"""Run one unchanged preregistered C30-bound grader only after reviewed quiet window and 32MiB durability preflight."""
+from pathlib import Path
+from datetime import datetime, timezone
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import shutil
+import stat
+import subprocess
+import sys
+import zipfile
+
+ROOT = Path(__file__).resolve().parent
+spec = importlib.util.spec_from_file_location('performance_preparation_binding', ROOT / 'prepare.py')
+preparation = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(preparation)
+
+
+def pins():
+    return {kind: preparation.archive_census(kind) for kind in preparation.PINS}
+
+
+def exclusive_copy(source, destination):
+    with Path(source).open('rb') as inp, Path(destination).open('xb') as out:
+        shutil.copyfileobj(inp, out)
+    Path(destination).chmod(0o600)
+    if preparation.sha(source) != preparation.sha(destination):
+        raise AssertionError('Durable copy differs')
+
+
+def preserve_tree(source, lane):
+    """Archive every real result file, then independently read back exact bytes."""
+    files, directories = {}, {''}
+    def denied(error):
+        raise error
+    for parent, names, leaves in os.walk(source, followlinks=False, onerror=denied):
+        for name in names:
+            p = Path(parent) / name
+            if not stat.S_ISDIR(p.lstat().st_mode):
+                raise AssertionError('Result contains non-directory child')
+            directories.add(p.relative_to(source).as_posix())
+        for name in leaves:
+            p = Path(parent) / name
+            if not stat.S_ISREG(p.lstat().st_mode):
+                raise AssertionError('Result contains unsupported non-file')
+            files[p.relative_to(source).as_posix()] = {'bytes': p.stat().st_size, 'sha256': preparation.sha(p)}
+    archive = preparation.SCRATCH / (lane + '-evidence-complete.zip')
+    with zipfile.ZipFile(archive, 'x', zipfile.ZIP_DEFLATED, compresslevel=6) as bundle:
+        for directory in sorted(directories):
+            entry = zipfile.ZipInfo((lane + '/' + directory).rstrip('/') + '/')
+            entry.create_system = 3
+            entry.external_attr = (stat.S_IFDIR | 0o700) << 16
+            bundle.writestr(entry, b'')
+        for name in sorted(files):
+            entry = zipfile.ZipInfo(lane + '/' + name)
+            entry.create_system = 3
+            entry.external_attr = (stat.S_IFREG | 0o600) << 16
+            entry.compress_type = zipfile.ZIP_DEFLATED
+            with (source / name).open('rb') as inp, bundle.open(entry, 'w', force_zip64=True) as out:
+                shutil.copyfileobj(inp, out)
+    readback_files, readback_dirs = {}, set()
+    with zipfile.ZipFile(archive) as bundle:
+        for entry in bundle.infolist():
+            if not entry.filename.startswith(lane + '/'):
+                raise AssertionError('Archive prefix mismatch')
+            name = entry.filename[len(lane) + 1:]
+            if entry.is_dir():
+                name = name.rstrip('/')
+                if name in readback_dirs:
+                    raise AssertionError('Duplicate archive directory')
+                readback_dirs.add(name)
+                continue
+            if name in readback_files:
+                raise AssertionError('Duplicate archive file')
+            digest = hashlib.sha256()
+            count = 0
+            with bundle.open(entry) as stream:
+                for data in iter(lambda: stream.read(1024 * 1024), b''):
+                    count += len(data); digest.update(data)
+            readback_files[name] = {'bytes': count, 'sha256': digest.hexdigest()}
+    if readback_files != files or readback_dirs != directories:
+        raise AssertionError('Archive full namespace/byte readback differs')
+    for name, record in files.items():
+        p = source / name
+        if p.stat().st_size != record['bytes'] or preparation.sha(p) != record['sha256']:
+            raise AssertionError('Evidence changed while archiving')
+    record = {'scratch_archive': str(archive), 'bytes': archive.stat().st_size, 'sha256': preparation.sha(archive),
+              'files': len(files), 'directories': len(directories), 'expanded_bytes': sum(item['bytes'] for item in files.values()),
+              'exact_full_namespace_and_bytes_readback': True, 'source_evidence_unchanged': True}
+    if archive.stat().st_size > 32 * 1024 * 1024 or shutil.disk_usage(preparation.DURABLE_ROOT.parent).free < archive.stat().st_size + 32 * 1024 * 1024:
+        record.update(durable_archive=False, limitation='Preserved scratch archive cannot be copied within bounded durable-space reserve; original evidence not deleted.')
+        return record
+    durable = preparation.DURABLE_ROOT / (lane + '-evidence-complete.zip')
+    exclusive_copy(archive, durable)
+    record.update(durable_archive=True, durable_path=str(durable), durable_sha256=preparation.sha(durable))
+    return record
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--lane', choices=('source', 'runtime'), required=True)
+    parser.add_argument('--preparation-sha256', required=True)
+    parser.add_argument('--quiet-window', required=True,
+                        help='Exact coordinator GO and quiet-window scope; never infer authorization from elapsed time.')
+    args = parser.parse_args()
+    registration_path = ROOT / 'PREPARATION-RECEIPT.json'
+    if preparation.sha(registration_path) != args.preparation_sha256:
+        raise AssertionError('Preparation receipt substituted')
+    registered = json.loads(registration_path.read_bytes())
+    if registered['status'] != 'PASS_UNTIMED_PREPARATION' or registered['timings_started'] is not False:
+        raise AssertionError('Preparation is not an untimed qualified candidate')
+    preparation.reviewed_identity()
+    preflight = preparation.physical_preflight()
+    if not preflight['minimum_guard_satisfied']:
+        path = ROOT / ('blocked-preflight-' + args.lane + '-' + str(os.getpid()) + '.json')
+        preparation.dump(path,dict(preflight,lane=args.lane,preparation_receipt_sha256=args.preparation_sha256,
+            dispatch_denied=True,product_timed_commands=0,
+            required_next_action='Provide independently reviewed authorized durable capacity sufficient for exact capsule bytes+32MiB; then recheck this unchanged guard, obtain root quiet-window GO and select fresh attempt.'))
+        raise AssertionError('BLOCKED_G11: original 32MiB durable-space guard is unmet; no grader dispatched')
+    preparation.DURABLE_ROOT.mkdir(mode=0o700,exist_ok=True)
+    lane_root = preparation.DURABLE_ROOT / (args.lane + '-run-01')
+    lane_root.mkdir(mode=0o700, exist_ok=False)
+    output = preparation.SCRATCH / ('source-full-01' if args.lane == 'source' else 'runtime-capacity-01')
+    if (output / 'receipt.json').exists():
+        raise AssertionError('Attempted grader output must never be reused')
+    if preparation.sha(output / 'preregistration.json') != registered['registrations'][args.lane]['sha256']:
+        raise AssertionError('Workload or thresholds substituted')
+    if preparation.sha(preparation.OLD / 'imported-store/observations.sqlite3') != preparation.STORED_DB_SHA:
+        raise AssertionError('Preserved fixture changed')
+    before = pins()
+    if before != registered['packages_after']:
+        raise AssertionError('Exact final source/runtime package binding differs')
+    identity_before = preparation.reviewed_identity()
+    grader = preparation.SOURCE / 'scripts' / ('qualify-workbench-performance.py' if args.lane == 'source' else 'qualify-workbench-capacity.py')
+    argv = [str(preparation.PYTHON), '-B', str(grader)]
+    if args.lane == 'runtime':
+        argv += ['--project', str(preparation.RUNTIME)]
+    argv += ['--run', '--output', str(output), '--python', str(preparation.PYTHON), '--quiet-window', args.quiet_window]
+    receipt = {'schema': 'intune-C30-exact-performance-execution/1', 'lane': args.lane, 'status': 'RUNNING',
+               'started_at': datetime.now(timezone.utc).isoformat(), 'source_commit': preparation.SOURCE_COMMIT,
+               'source_tree': preparation.SOURCE_TREE, 'preparation_receipt_sha256': args.preparation_sha256,
+               'quiet_window_attestation': args.quiet_window, 'actual_argv': argv, 'cwd': str(preparation.SOURCE),
+               'packages_before': before, 'native_provider_calls': 0,
+               'limitations': ['Fresh Linux CLI processes over synthetic/caller-asserted fixtures; no real Graph, native Windows, device or fleet SLA.',
+                               'Runtime capacity imports external exact source-package graders only; product commands use the exact runtime entrypoint.',
+                               'Three samples remain descriptive, with warm uncontrolled OS caches and ambient host activity.']}
+    receipt['exact_source_artifact_grader_identity_before'] = identity_before
+    receipt['physical_durable_preflight_before_dispatch'] = preflight
+    preparation.dump(lane_root / 'START.json', receipt)
+    stdout, stderr = lane_root / 'grader.stdout', lane_root / 'grader.stderr'
+    try:
+        with stdout.open('xb') as out, stderr.open('xb') as err:
+            child = subprocess.run(argv, cwd=preparation.SOURCE, stdout=out, stderr=err,
+                env={'PATH': '/usr/bin:/bin', 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8', 'PYTHONDONTWRITEBYTECODE': '1', 'PYTHONNOUSERSITE': '1'}, timeout=900)
+        receipt['exit_code'] = child.returncode
+        for label, p in [('stdout', stdout), ('stderr', stderr)]:
+            p.chmod(0o600)
+            receipt[label] = {'path': str(p), 'bytes': p.stat().st_size, 'sha256': preparation.sha(p)}
+        product_receipt = output / 'receipt.json'
+        if product_receipt.exists():
+            durable = lane_root / 'product-receipt.json'
+            exclusive_copy(product_receipt, durable)
+            result = json.loads(product_receipt.read_bytes())
+            receipt['product_receipt'] = {'path': str(product_receipt), 'durable_copy': str(durable), 'bytes': durable.stat().st_size,
+                                         'sha256': preparation.sha(durable), 'status': result['status'],
+                                         'commands': len(result.get('commands', [])), 'named_checks': len(result.get('checks', []))}
+        else:
+            result = None
+        for name in ['failure-traceback.txt', 'processes-before.txt', 'processes-after.txt']:
+            if (output / name).is_file():
+                exclusive_copy(output / name, lane_root / name)
+        receipt['packages_after'] = pins()
+        if receipt['packages_after'] != before:
+            raise AssertionError('Exact package archive or extraction changed during qualification')
+        receipt['exact_source_artifact_grader_identity_after'] = preparation.reviewed_identity()
+        if receipt['exact_source_artifact_grader_identity_after'] != identity_before:
+            raise AssertionError('Exact source/artifact/independent grader bytes changed during qualification')
+        if preparation.sha(preparation.OLD / 'imported-store/observations.sqlite3') != preparation.STORED_DB_SHA:
+            raise AssertionError('Original preserved store changed')
+        receipt['evidence_capsule'] = preserve_tree(output, args.lane)
+        if child.returncode != 0 or result is None or result['status'] != 'PASS_SCOPED':
+            raise AssertionError('Product preregistered performance gate failed; preserved attempt')
+        if not receipt['evidence_capsule']['durable_archive']:
+            raise AssertionError('Full new result corpus not yet durably preserved')
+        receipt.update(status='PASS_SCOPED', finished_at=datetime.now(timezone.utc).isoformat(),
+                       exact_packages_unchanged=True, original_fixture_unchanged=True,
+                       organizational_production_approval=False, platform_qualified=False)
+        preparation.dump(lane_root / 'RESULT.json', receipt)
+        print(lane_root / 'RESULT.json')
+        return 0
+    except Exception as error:
+        receipt.update(status='FAIL_PRESERVED', error_type=type(error).__name__, error=str(error), finished_at=datetime.now(timezone.utc).isoformat())
+        preparation.dump(lane_root / 'FAILURE.json', receipt)
+        raise
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

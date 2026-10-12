@@ -1,0 +1,49 @@
+{
+  "READY_or_GO": false,
+  "actual_native_witnesses": 0,
+  "complete_recovery_bundle": false,
+  "files": [
+    {
+      "bytes": 7022,
+      "name": "bind-C30-runtime-gates.py.txt",
+      "origin": "/tmp/bind-intune-C30-runtime-gates-20261012-02.py",
+      "sha256": "c6729c463b877de39078c03a0c9e7ddb86ce657e9aaf900e1a38abcf9b7c7c22"
+    },
+    {
+      "bytes": 3810,
+      "name": "INDEPENDENT-APPLICATION-GATE.json",
+      "origin": "/tmp/intune-C30-runtime-factory-gate-admission-20261012-01/INDEPENDENT-APPLICATION-GATE.json",
+      "sha256": "ca13af184093594a4fdb07d64a122b22e686c8b1e8715f11e380b38361d697f9"
+    },
+    {
+      "bytes": 1104,
+      "name": "RUNTIME-GATE-BUNDLE.json",
+      "origin": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/RUNTIME-GATE-BUNDLE.json",
+      "sha256": "da502673edff384fe3923da04da33755bb107c2cbd3f636d123ab7be107620e6"
+    },
+    {
+      "bytes": 3573,
+      "name": "AUTHOR-RESULT.json",
+      "origin": "/tmp/intune-C30-runtime-gate-bundle-20261012-01/RESULT.json",
+      "sha256": "1117cbe49bcf2e01617874a78a941fd23d785d3954b471e22767fad8e6e05609"
+    },
+    {
+      "bytes": 6011,
+      "name": "INDEPENDENT-ADMISSION.json",
+      "origin": "/tmp/intune-C30-runtime-gate-loader-review-20261012-01/PUBLIC-ADMISSION.json",
+      "sha256": "61cdbfc2277dc458e23bda3eff02e111778be502cc175c704f0efdbfef66444b"
+    }
+  ],
+  "global_laboratory_complete": false,
+  "independent_admission_sha256": "61cdbfc2277dc458e23bda3eff02e111778be502cc175c704f0efdbfef66444b",
+  "limitations": "Exact metadata gate only.37 detached controls/36 metadata assertions reuse original scoped evidence without adding product counts. Four native inputs,32MiB durable gate, final READY/admission/GO and external platform/security/organization gates remain blocked. Frozen native03 unchanged. No restricted raw payload or full private corpus claim.",
+  "native_dispatches": 0,
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_metadata_and_source_text_suitable": true,
+  "raw_captures_state_saved_plans_keys_approvals_GO_or_identity_streams_included": false,
+  "runnable_native_profile": false,
+  "schema_version": "C30-runtime-aggregate-gate-public-metadata-disposition/1",
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "status": "PASS_SCOPED_EXACT_METADATA_AND_INERT_SOURCE_ONLY"
+}

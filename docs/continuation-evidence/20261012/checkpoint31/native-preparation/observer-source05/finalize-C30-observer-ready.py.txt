@@ -1,0 +1,115 @@
+"""Verify actual inputs/gates, then allocate a NEW READY profile; never dispatch."""
+from pathlib import Path
+from types import SimpleNamespace
+import argparse
+import copy
+import hashlib
+import importlib.util
+import json
+import os
+
+BASIS=Path('/tmp/intune-C30-observer-recovery-profile-20261011-03')
+OUTER_BASIS=Path('/tmp/intune-C30-observer-recovery-orchestration-20261011-04')
+SOURCE='39cc77618a0f7f2734599fbfed224b47c333293f'
+HISTORICAL='e3bdefe0b1ac0c58e46f9af3360970f8e47ae393'
+
+
+def pin(path):
+    raw=path.read_bytes();return {'path':str(path),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+
+
+def save(path,value):
+    with path.open('xb') as stream:stream.write(json.dumps(value,sort_keys=True,indent=2,ensure_ascii=False,allow_nan=False).encode()+b'\n')
+    return pin(path)
+
+
+def main(args):
+    os.umask(0o077)
+    loader=BASIS/'loader/qualify_C30_observer.py'
+    assert pin(loader)['sha256']=='26938934ed3e6a2c79093cb13b967f7ba59e301f15361a88b65c8f111eeaadd0'
+    spec=importlib.util.spec_from_file_location('metadata_only_C30_loader',loader)
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    raw=module.hash_file(args.bindings)
+    module.require(raw['sha256']==args.bindings_sha256,'exact actual bindings manifest SHA required')
+    bindings=module.load_json(args.bindings)
+    fields={'schema_version','source_revision','original_source_revision','profile_basis','runtime_gate','witnesses'}
+    module.require(type(bindings) is dict and set(bindings)==fields and bindings['schema_version']=='C30-observer-actual-ready-bindings/1'
+        and bindings['source_revision']==SOURCE and bindings['original_source_revision']==HISTORICAL,
+        'closed current observer/historical native bindings')
+    basis=pin(BASIS/'profile.json')
+    module.require(module.canonical(bindings['profile_basis'])==module.canonical(basis)
+        and basis['sha256']=='5a3c4cfd0f620c3f30cab63a0d7d79be5d01ae82bfd90b1d82645f0818204fdb','exact immutable profile03 basis required')
+    profile_value=module.load_json(BASIS/'profile.json')
+    contract=module.load_json(BASIS/'bundle/inputs/observer-recovery-routes.json')
+    module.require(type(bindings['witnesses']) is dict and set(bindings['witnesses'])=={row['id'] for row in contract['routes']},
+        'all four actual distinct native inputs required; no normal release/consumed replay')
+    contract=copy.deepcopy(contract);contract['status']='READY_WITH_ACTUAL_INPUT_BINDINGS'
+    contract['required_gates']['new_runtime_application']=bindings['runtime_gate']
+    for row in contract['routes']:row['actual_input_binding']=bindings['witnesses'][row['id']]
+    profile=SimpleNamespace(source_revision=SOURCE,value=profile_value,contract=contract)
+    # Only exact metadata functions are called. No QualificationContext install,
+    # product/helper import, native tool, signing, mutation or service read runs.
+    module.strict_gate(profile,contract['required_gates']['new_source_strict'])
+    module.runtime_gate(profile,contract['required_gates']['new_runtime_application'])
+    facts=[module.native_input_witness(profile,row) for row in contract['routes']]
+    target=args.output.absolute()
+    prefix='intune-C30-observer-ready-profile-'
+    suffix=target.name[len(prefix):] if target.name.startswith(prefix) else ''
+    module.require(args.output.is_absolute() and target.parent==Path('/tmp') and bool(suffix)
+        and all(character.isascii() and (character.isalnum() or character in '-_') for character in suffix),
+        'fresh canonical direct /tmp READY-profile output required; nesting in existing namespaces is denied')
+    module.require('..' not in target.parts and not any(path.is_symlink() for path in (target,*target.parents))
+        and not target.exists() and target.parent.is_dir(),'new literal existing-parent profile output required')
+    for root in (BASIS,*[Path(row['arguments'][key]) for row in contract['routes'] for key in ('previous_root','seed_root')]):
+        module.require(target!=root and root not in target.parents and target not in root.parents,'profile cannot replace original evidence or source')
+    target.mkdir(mode=0o700)
+    for relative in ('loader','bundle','bundle/helpers','bundle/inputs'):(target/relative).mkdir(mode=0o700)
+    (target/'loader/qualify_C30_observer.py').write_bytes(loader.read_bytes())
+    for group in ('helpers','inputs'):
+        for name,expected in profile_value[group].items():
+            path=module.path_under(BASIS/'bundle',name)
+            module.require(module.canonical(module.hash_file(path))==module.canonical(expected),'basis dependency changed')
+            if name!='inputs/observer-recovery-routes.json':(target/'bundle'/name).write_bytes(path.read_bytes())
+    contract_pin=save(target/'bundle/inputs/observer-recovery-routes.json',contract)
+    value=copy.deepcopy(profile_value);value['inputs']['inputs/observer-recovery-routes.json']={key:contract_pin[key] for key in ('bytes','sha256')}
+    profile_pin=save(target/'profile.json',value)
+    (target/'tool-map.json').write_bytes((BASIS/'tool-map.json').read_bytes())
+    base=module.load_json(BASIS/'base-command.json');options=dict(zip(base[4::2],base[5::2]))
+    options.update({'--profile':str(target/'profile.json'),'--profile-sha256':profile_pin['sha256'],
+        '--evidence-root':str(target/'bundle'),'--tool-map':str(target/'tool-map.json')})
+    actual=[base[0],'-B','-I',str(target/'loader/qualify_C30_observer.py'),*[item for key in base[4::2] for item in (key,options[key])]]
+    base_pin=save(target/'base-command.json',actual)
+    # Rebind a new metadata configuration without altering the reviewed outer
+    # code or manufacturing its independent admission/root decision.
+    coordinator=target/'coordinator';coordinator.mkdir(mode=0o700)
+    outer_source=OUTER_BASIS/'orchestrate-observer-recovery.py'
+    module.require(pin(outer_source)['sha256']=='86776255fce662207b4624cdda8b8c4eeeed1cf6ef739942c33d703fa24cd596',
+        'exact guarded outer03 basis required')
+    outer=coordinator/'orchestrate-observer-recovery.py';outer.write_bytes(outer_source.read_bytes())
+    prepared=module.load_json(OUTER_BASIS/'PREPARED.json')
+    prepared.update(out=str(target),profile={key:profile_pin[key] for key in ('bytes','sha256')},
+        base_command={key:base_pin[key] for key in ('bytes','sha256')},loader_pin=pin(target/'loader/qualify_C30_observer.py'),
+        outer_pin=pin(outer))
+    # Preserve the original preparation observation as historical. Actual
+    # readiness comes only from current exact witnesses/gates, not this flag.
+    prepared['old_four_native_inputs_available']=False
+    prepared_pin=save(coordinator/'PREPARED.json',prepared)
+    config=module.load_json(OUTER_BASIS/'CONFIGURATION.json')
+    config.update(prepared_receipt=prepared_pin,base_command=base_pin,profile=profile_pin,
+        tool_map=pin(target/'tool-map.json'),action_plan=contract_pin)
+    config_pin=save(coordinator/'CONFIGURATION.json',config)
+    receipt=save(target/'READY-BINDING-RECEIPT.json',{'schema_version':'C30-observer-actual-ready-profile-binding/1',
+        'status':'PASS_ACTUAL_METADATA_BINDING_ONLY_NOT_EXECUTION_AUTHORITY','source_revision':SOURCE,'historical_source_revision':HISTORICAL,
+        'profile':profile_pin,'actual_bindings':pin(args.bindings),'basis':basis,'loader':pin(loader),'contract':contract_pin,
+        'outer':pin(outer),'outer_configuration':config_pin,'outer_prepared':prepared_pin,
+        'actual_input_facts':facts,'native_dispatches':0,'root_GO_granted':False,'platform_qualified':False,'production_approved':False,
+        'next':'Prepare a fresh closed outer configuration against these exact profile/base pins, independently admit profile/outer, obtain root local decision, meet33,619,968-byte durable admission, then run once. This receipt cannot dispatch or replay.'})
+    print(json.dumps({'receipt':receipt,'profile':profile_pin}))
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--bindings',type=Path,required=True)
+    parser.add_argument('--bindings-sha256',required=True)
+    parser.add_argument('--output',type=Path,required=True)
+    main(parser.parse_args())

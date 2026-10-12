@@ -1,0 +1,134 @@
+{
+  "actual_file_list_and_pins": [
+    {
+      "bytes": 26053,
+      "path": "/tmp/intune-new-runtime-qualification-20261011-02/qualify_new_runtime.py",
+      "sha256": "f72e402f407f8b26efab756cc8476787f8e29784e9d3e158cde827d1a325a183"
+    }
+  ],
+  "actual_main_supervisor_invoke_or_qualifier_calls": 0,
+  "actual_new_package_or_suite_qualification_by_this_review": false,
+  "actual_product_imports": 0,
+  "actual_runtime_execution_by_this_review": false,
+  "actual_suite_or_performance_reruns": 0,
+  "author_after_controls": {
+    "bytes": 11295,
+    "path": "/tmp/intune-new-runtime-qualification-20261011-02/author-controls-01/RESULT.json",
+    "sha256": "27fd8c8e693be93e0f7cb3c4ba00944c9e47ae8742b5536c023d1b8b5f4dc7b1"
+  },
+  "author_original_controls": {
+    "bytes": 10118,
+    "path": "/tmp/intune-new-runtime-qualification-20261011/author-controls-01/RESULT.json",
+    "sha256": "8ef3dfa8b80bdbee17c7f114d4d84710ff05c92472840bb4fd950e96059a8d48"
+  },
+  "closed_future_entrypoint": {
+    "common_argv": [
+      "selected-python",
+      "-B",
+      "-I",
+      "source/scripts/<qualifier>",
+      "--plugin",
+      "selected-runtime",
+      "--output",
+      "fresh-raw-output"
+    ],
+    "contracts": "Exact source/runtime archives/extracted namespaces, source commit/tree/raw Git linkage/full required strict raw counts/core regressions, interpreter/link-chain/validator/driver and three selected source-script pins. All three zero exits plus after namespace/dependency equality are required before prepared PASS.",
+    "qualifiers": [
+      "qualify-workflow.py",
+      "qualify-terminal.py",
+      "qualify-workbench-connected.py"
+    ],
+    "workbench_extra_argv": [
+      "--python",
+      "selected-python"
+    ]
+  },
+  "complete_private_corpus": false,
+  "failed_before_and_pass_after": "Four originally accepted malformed float byte-count aliases now reject through typed pin/identity guards. All73 repeated input observations pass; original69 expected and4 contrary observations, old source/author49 remain preserved. This is a narrow unexecuted helper-contract repair, not a demonstrated product/native regression.",
+  "failures": [],
+  "full_source_review": {
+    "bytes": 12166,
+    "path": "/tmp/intune-new-runtime-source-review-20261011-01/FINAL-SOURCE-02-RESULT.json",
+    "sha256": "22eb2e66398cf13c28355b11bc021071a8a49c22168b01c223cc88ef81424d81"
+  },
+  "independent_detached_input_observations": 73,
+  "independent_detached_inputs_after": {
+    "bytes": 35910,
+    "path": "/tmp/intune-new-runtime-source-review-20261011-01/input-controls-02/RESULT.json",
+    "sha256": "4a315232c4a0b31655c81d62469fde478551ff6d7663d88e5ae36e40f80e0d3f"
+  },
+  "inherited_source_reference_pins": {
+    "intune_iac/protected.py": {
+      "C25_bytes_equal": true,
+      "bytes": 57644,
+      "sha256": "25370da808577c92ca59b2686e54e400dbaa9dd6d73b33bb4aa06f4fc599d891"
+    },
+    "scripts/qualify-terminal.py": {
+      "C25_bytes_equal": true,
+      "bytes": 2862,
+      "sha256": "04f44be887f444c86c28c65d7e9abf14b672384bf9ac2f7494de7a15d46ce67c"
+    },
+    "scripts/qualify-workbench-connected.py": {
+      "C25_bytes_equal": true,
+      "bytes": 31843,
+      "sha256": "748d773498fd088b481dce4c2ea23d5bec93277405ed92530fa8b8dcfc8aced6"
+    },
+    "scripts/qualify-workflow.py": {
+      "C25_bytes_equal": true,
+      "bytes": 3143,
+      "sha256": "2f9f27ee35b2bcfb04ee8f8e12acec17aac65b2bb37804e6137a9a8199365a9c"
+    }
+  },
+  "initial_failed_contract_receipt": {
+    "bytes": 2206,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/new-runtime-outer-source-review-20261011-01/PRESERVED-TYPED-PIN-FAILURE.json",
+    "sha256": "9a6285d1cf069eee5a78939995772123bc96a1a9ae8efb173e2160427bc38f4d"
+  },
+  "lifecycle_scope": "Reuse exact pinned runtime protected.py Linux cooperative group cleanup, unreaped direct-child anchor and deferred spawn SIGINT. No containment/escaped-group/process primitive requalification inferred. Main/invoke/supervisor never called by this reviewer.",
+  "native_dispatches": 0,
+  "native_platform_qualified": false,
+  "new_core_factory_runtime_exercised": false,
+  "next_requirement": "Root may bind the exact admitted helper bytes to separately reviewed actual new package/full strict gate/interpreter/validator/route inputs. An actual execution and independent raw result/count/preservation review are still required; this source receipt is not that qualification.",
+  "original_independent_failed_controls": {
+    "bytes": 74993,
+    "path": "/tmp/intune-new-runtime-source-review-20261011-01/input-controls-01/RESULT.json",
+    "sha256": "6a37785b64f375d521a5c4b4a7a99a7d9ecfd956b7d52bbdd7996f02949cae03"
+  },
+  "original_source": {
+    "bytes": 25334,
+    "path": "/tmp/intune-new-runtime-qualification-20261011/qualify_new_runtime.py",
+    "sha256": "0d271a87fe0647420a2221d48a944ffc2d9d82daa1b1ad5c80077c888378f578"
+  },
+  "preservation_scope": "Before/after namespace equality is a success gate. On early failure later routes stop; outer owned control/raw outputs are preserved. Unchanged workflow/terminal TemporaryDirectory intermediate trees are already deleted by those qualifiers and explicitly omitted. Inputs/archives/extractions/tools remain separately pinned; sockets metadata only, no runnable restore/private-corpus closure. Actual raw outcome review remains required.",
+  "production_approved": false,
+  "public_full_runnable_qualification_corpus": false,
+  "public_metadata_suitable": true,
+  "public_raw_state_profiles_keys_GO_host_IDs_or_capsules_included": false,
+  "publication_actions": 0,
+  "reviewer_script": {
+    "bytes": 12830,
+    "path": "/tmp/intune-new-runtime-source-review-20261011-01/final-source-review-02.py",
+    "sha256": "658ff77d1308409d4f2a7bdbeb3fcbbde9143cc973ecfda1c88fed3ba2771e2b"
+  },
+  "schema": "independent-new-runtime-outer-source-admission/1",
+  "scope": "Exact frozen new runtime outer02 source and detached synthetic input guards only. Prepared future three modeled CLI routes; actual new package/strict contract and runtime outcomes remain separately reviewed. No product regression or runtime/native outcome claimed.",
+  "source_and_supplemental_shape_observations": 72,
+  "source_change_scope": "Add pin_shape/artifact_identity; only read_pin/interpreter/verify_packages/contract ASTs change. All16 other function ASTs, main/invoke/supervisor, routes, lifecycle, cleanup and capsule behavior remain identical to original0d. Consumed pins require exact integer bytes/absolute path/SHA shape; genuine package files/listed_hashes metadata retained, unconsumed.",
+  "source_checkout_mutations": 0,
+  "source_repair": {
+    "bytes": 2095,
+    "path": "/tmp/intune-new-runtime-qualification-20261011-02/SOURCE-REPAIR.json",
+    "sha256": "491ed73169c60820c546f9cbc28b041f2aeb0c1add008d909b2577f685e8d2fe"
+  },
+  "source_revision_context": "New C30 engine39cc77618a0f7f2734599fbfed224b47c333293f; exact actual future contract must bind its separately qualified source/runtime artifacts/tree/full strict raw outcome. Outer explicitly rejects C25 relabel.",
+  "specifically_admitted_public_files": [
+    {
+      "bytes": 26053,
+      "kind": "inert_source_text",
+      "path": "/tmp/intune-new-runtime-public-source-20261011-02/qualify-new-runtime.py.txt",
+      "sha256": "f72e402f407f8b26efab756cc8476787f8e29784e9d3e158cde827d1a325a183"
+    }
+  ],
+  "status": "PASS_SCOPED_SOURCE_AND_DETACHED_INPUT_CONTROLS",
+  "test_counting": "Existing protected.py/three route definitions are exact C25-byte-identical references. No C25 64checks/34commands/10PTY or2307 suite count transfer to new C30. Author55 overlaps49; independent73 repeated before/after and72 source/supplemental shape observations are detached metadata, not product tests or additive runtime/native evidence."
+}

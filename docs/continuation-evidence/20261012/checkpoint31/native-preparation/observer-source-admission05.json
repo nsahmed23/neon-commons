@@ -1,0 +1,157 @@
+{
+  "READY_PROFILE_ADMITTED": false,
+  "actual_dispatches_by_reviewer": {
+    "GO": 0,
+    "container": 0,
+    "finalizer_main": 0,
+    "loader_main": 0,
+    "native": 0,
+    "outer_run": 0,
+    "product": 0,
+    "provider": 0,
+    "source_mutations": 0,
+    "valid_READY": 0
+  },
+  "author05_actual_help_and_null_rejection": {
+    "bytes": 1750,
+    "path": "/tmp/intune-C30-observer-finalizer-actual05-20261012-01/RESULT.json",
+    "sha256": "76e3e945240b11729762e9601ee00dc06f03a808898d94e87ff41799d7d0da8a"
+  },
+  "author16_namespace_after_controls": {
+    "bytes": 6476,
+    "path": "/tmp/intune-C30-observer-finalizer-output-after05-20261012-01/RESULT.json",
+    "sha256": "df717de2648c0c0ba7ae6016e319683b61f661ae7c042c71afc3445f2801a23d"
+  },
+  "author65_original_metadata_controls": {
+    "bytes": 11367,
+    "path": "/tmp/intune-C30-observer-pure-controls-20261011-03/RESULT.json",
+    "sha256": "d37936a41d0f399166f30598a13001f9ebaacb59f4343e74465e84dec018bb0a"
+  },
+  "complete_private_corpus": false,
+  "historical_source_revision": "e3bdefe0b1ac0c58e46f9af3360970f8e47ae393",
+  "independent_detached_controls": {
+    "observations": 35,
+    "result": {
+      "bytes": 9084,
+      "path": "/tmp/intune-C30-observer-ready-review-20261012-01/detached-controls-05/RESULT.json",
+      "sha256": "ba746f9d8b34049c47f0ca8656ca5d92d27d7391f26177c09c304da331a38858"
+    },
+    "scope": "Nonadditive metadata/canonical/output-boundary/realstdlibSQLite-on-modeled-copies/typed append-only guards; no product methods or actual native witnesses."
+  },
+  "native_execution_ready": false,
+  "native_qualified": false,
+  "platform_qualified": false,
+  "preserved_failures": {
+    "finalizer04_nested_namespace": {
+      "bytes": 2317,
+      "path": "/tmp/intune-C30-observer-ready-review-20261012-01/namespace-before04/RESULT.json",
+      "sha256": "fc4b0275d95e83c8fdf92d8d5d77f6fae20916860f53d383fbb3199009207c1a"
+    },
+    "outer03_unprotected_discovery": {
+      "bytes": 1687,
+      "path": "/tmp/intune-C30-observer-ready-review-20261012-01/finalization-primary-03/RESULT.json",
+      "sha256": "a2cd6a76446b09efd0a968cc2e998f10543f507e44cb72b88671082042beceec"
+    },
+    "reviewer_readme_hash_assumption": {
+      "bytes": 822,
+      "path": "/tmp/intune-C30-observer-ready-review-20261012-01/STATIC-REVIEWER-FAILURE-01.json",
+      "sha256": "2c5f67f1098b798d2df7425151b3435f502af224c467725af0506724f96cb820"
+    }
+  },
+  "primary_finalization_after": {
+    "bytes": 13663,
+    "path": "/tmp/intune-C30-observer-ready-review-20261012-01/finalization-primary-04/RESULT.json",
+    "sha256": "04180176d4eba191675834a74344b47cec6254f5feb29680b5b5c0071cf2114b"
+  },
+  "private_configuration_pin_only": {
+    "bytes": 2123,
+    "path": "/tmp/intune-C30-observer-recovery-orchestration-20261011-04/CONFIGURATION.json",
+    "sha256": "fe9d43571ce6198ccf04247fc9355962361b49f48f7003aa0bfb0cb66691295e"
+  },
+  "private_profile_pin_only": {
+    "bytes": 694654,
+    "path": "/tmp/intune-C30-observer-recovery-profile-20261011-03/profile.json",
+    "sha256": "5a3c4cfd0f620c3f30cab63a0d7d79be5d01ae82bfd90b1d82645f0818204fdb"
+  },
+  "private_route_pin_only": {
+    "bytes": 30549,
+    "path": "/tmp/intune-C30-observer-recovery-profile-20261011-03/bundle/inputs/observer-recovery-routes.json",
+    "sha256": "6fbbacda68c67c1f8418e4f7769186b467d0c94fb4898dd13001ce5e2841ce9b"
+  },
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "public_selected_files": {
+    "README.md": {
+      "bytes": 7044,
+      "path": "/tmp/intune-C30-observer-public-source-20261011-05/README.md",
+      "sha256": "af2b71e337b185f14fd4f0ef61317b81df37d435ca26f25d60fadd55360c72a5"
+    },
+    "SOURCE-DISPOSITION.json": {
+      "bytes": 2663,
+      "path": "/tmp/intune-C30-observer-public-source-20261011-05/SOURCE-DISPOSITION.json",
+      "sha256": "480337c9b629e912f0bb22b663680736e3c054a87113f81713a7de88eb0e726c"
+    },
+    "finalize-C30-observer-ready.py.txt": {
+      "bytes": 8229,
+      "path": "/tmp/intune-C30-observer-public-source-20261011-05/finalize-C30-observer-ready.py.txt",
+      "sha256": "dd2f9b14f251114081972773ba114fc4279e0b96e4fdf71c399687086ce9e05e"
+    },
+    "orchestrate-C30-observer-recovery.py.txt": {
+      "bytes": 52853,
+      "path": "/tmp/intune-C30-observer-public-source-20261011-05/orchestrate-C30-observer-recovery.py.txt",
+      "sha256": "86776255fce662207b4624cdda8b8c4eeeed1cf6ef739942c33d703fa24cd596"
+    },
+    "qualify-C30-observer.py.txt": {
+      "bytes": 57637,
+      "path": "/tmp/intune-C30-observer-public-source-20261011-05/qualify-C30-observer.py.txt",
+      "sha256": "26938934ed3e6a2c79093cb13b967f7ba59e301f15361a88b65c8f111eeaadd0"
+    }
+  },
+  "public_source_text_suitable": true,
+  "remaining_unresolved": [
+    "Actual four original C25 native timing fault outputs and independently witnessed private input/readiness are absent. Actual immutable profile still pending; actual new runtime/factory gate bundle, external READY admission and root GO not embedded/present.",
+    "33,619,968-byte native receiving minimum and complete-capsule plus32MiB final copy gate remain unmet.8MiB small metadata-copy reserve cannot waive these. No native/provider/container/CI or positive finalization executed by reviewer.",
+    "Source and modeled gates do not qualify actual daemon receiving/host/Graph/Azure/device/Windows/Git Bash/OS scheduler/AppSec/key-custody/hostile process containment or organizational deployment. Cooperative lifecycle primitive/scoped historical before-after references remain narrower.",
+    "Full121MiB runtime raw/47MB capsule durable receiving, deleted qualifier intermediates, historical265roots/39receipts and deniedG13 repair remain unclosed. Original fullR2/R3/six-thread corpus stays separate; selected inerttexts are not runnable complete recovery."
+  ],
+  "retained_actual03_negative_stream_readback": {
+    "bytes": 3414,
+    "path": "/tmp/intune-C30-observer-ready-review-20261012-01/ACTUAL-NEGATIVE-READBACK.json",
+    "sha256": "9f67fc0a2aae476aeddf22d2ee8e3a17fea9f83aa2104547fc6251a496ed4dbe"
+  },
+  "schema": "independent-C30-observer-source-blocked-contract-admission/1",
+  "scope": "Exact frozen loader03/outer04/finalizer05 and five inert public source/README/author-disposition files only, plus bounded detached metadata controls and existing negative CLI readback. Public clearance does not grant READY/GO/execution or prove actual native/production behavior; all contrary attempts remain immutable.",
+  "source_API_boundaries": [
+    "No package/helper import in loader before complete package/helper/input/tool verification; imported origins/rechecks remain bounded to exact C30 source and helper set. Historical C25 fault PASS receipts/source/plan/provider/approval/controller identities remain separately checked; failed fallback/replay disallowed.",
+    "Copied service and broker DB/WAL/SHM exact metadata precede readonly service SQL query. RealstdlibSQLite model controls verify both status variants, dispatch1/owners2/consumed1/controllerNone and reject original-as-copy/second dispatch/missing scopes/consumption/live controller; they are not actual native witnesses.",
+    "All four actual old timing witnesses, exact current strict/runtime/factory bundle, independent exact READY profile/outer review and unexpired root local nonce/decision are required externally. Profile does not embed self-referential authority. Current runtime/four-witness/decision placeholders remain null; no valid READY exists.",
+    "A once-only O_EXCL/fsynced durable dispatch intent precedes qualifier installation/native helper import; missing logs or terminal detach do not permit replay. Current original archives/manifests/plan/state/signatures remain immutable except explicitly typed service authority/new successor or known reconciliation append paths.",
+    "Known host-complete serial14/unlocked/empty metadata remains distinct from cancelled serial13/heldlease/outcome_unknown. New C30 no-release factory preserves known completion; no exceptional release row synthesis or second original dispatch.",
+    "Outer04 cache is validated after both initial capacity checks and before output/native mutations; exact same primary contexts retain secondary capsule failures. Complete before-append old-root preservation is required before native helper; finalizer05 permits only fresh canonical direct/tmp named READY prefix and forbids nesting within existing namespaces."
+  ],
+  "source_files": {
+    "finalizer": {
+      "bytes": 8229,
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/native-continuation-protocol-20261011-01/finalize-C30-observer-ready05.py",
+      "sha256": "dd2f9b14f251114081972773ba114fc4279e0b96e4fdf71c399687086ce9e05e"
+    },
+    "loader": {
+      "bytes": 57637,
+      "path": "/tmp/intune-C30-observer-recovery-profile-20261011-03/loader/qualify_C30_observer.py",
+      "sha256": "26938934ed3e6a2c79093cb13b967f7ba59e301f15361a88b65c8f111eeaadd0"
+    },
+    "outer": {
+      "bytes": 52853,
+      "path": "/tmp/intune-C30-observer-recovery-orchestration-20261011-04/orchestrate-observer-recovery.py",
+      "sha256": "86776255fce662207b4624cdda8b8c4eeeed1cf6ef739942c33d703fa24cd596"
+    }
+  },
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "static_binding": {
+    "bytes": 4443,
+    "path": "/tmp/intune-C30-observer-ready-review-20261012-01/STATIC-BINDING-05.json",
+    "sha256": "64acd4a84af62b25b5bfa858f9c6195ec2cfbfbe071a00b423a43301a7fdf7af"
+  },
+  "status": "PASS_SCOPED_SOURCE_TYPED_MODELS_AND_BLOCKED_METADATA_ONLY"
+}

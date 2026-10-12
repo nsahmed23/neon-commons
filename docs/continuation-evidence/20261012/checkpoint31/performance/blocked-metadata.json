@@ -1,0 +1,97 @@
+{
+  "C25_counts_scope": "Prior C25 source1037/runtime48 actual command counts stay bound to original e3bdefe source and exact C25 packages; no C30 result or count transfer. Future actual count must come from fresh receipts.",
+  "actual_negative_preflight": {
+    "exit_code": 1,
+    "graded_receipts_created": 0,
+    "prepared_scratch_namespace_and_bytes_unchanged": true,
+    "product_timed_commands": 0,
+    "scope": "Actual new closed runner rejected before grader subprocess because unchanged durable reserve was unmet. This is required rejection evidence, not performance PASS."
+  },
+  "artifacts": {
+    "runtime": {
+      "bytes": 1630724,
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+    },
+    "source": {
+      "bytes": 18454404,
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+    }
+  },
+  "blocker_id": "G11",
+  "capacity_checked_at": "2026-10-11T23:59:39.994979+00:00",
+  "contract": {
+    "bytes": 8276,
+    "sha256": "f12d27f116c2a1d01be0aa52cd0651ada7aa6634eef361aefd5ad8d06cd7bd22"
+  },
+  "evidence_class": "Exact source/package-bound untimed preparation, pure metadata/AST controls and actual CLI dispatch-denial evidence; no measurements",
+  "final_admission_rule": "Each complete result capsule must be nonempty, <=33554432 B, and leave >=33554432 B free after durable copy; /tmp does not satisfy durable evidence storage.",
+  "independent_admission_status": "PENDING_SEPARATE_REVIEW",
+  "laboratory_performance_complete": false,
+  "maximum_each_complete_capsule_bytes": 33554432,
+  "minimum_guard_satisfied": false,
+  "minimum_post_copy_reserve_bytes": 33554432,
+  "native_provider_calls": 0,
+  "negative_preflight_receipt": {
+    "bytes": 1572,
+    "sha256": "e98e2d42717cc55b6a5252180418f49678179320f154d5b56a2759543f661543"
+  },
+  "new_performance_qualified": false,
+  "new_timed_commands": 0,
+  "new_timing_samples": 0,
+  "next_procedure": "Supply approved private durable storage satisfying unchanged exact-capsule +32MiB rule, obtain independent source/contract admission, recheck exact C30 archive/source/grader/prereg/input bytes, then root may run source followed by runtime in an explicit quiet window. Current placeholder GO command is not authorized.",
+  "organizational_production_approved": false,
+  "original_recipe": {
+    "repetitions": 3,
+    "retained_1000_import_fixture_sha256": "408cd5eae0bd98181be4173ef528cb36c45e65d025e37ac6bb6536497aef9f56",
+    "runtime_grader": {
+      "bytes": 20081,
+      "sha256": "5cd496f647b29c8b28b1832340242ca2b007d16f05d7639e9eeed600e2aeb058"
+    },
+    "runtime_plan_sha256": "d01c071e512f86fbf5763b3682b44e3a7f4efaf7cfed71fe257b4ea98317b1d5",
+    "source_grader": {
+      "bytes": 27996,
+      "sha256": "fc9be268a59742c29609002ee15ded031b4096dbc4c1d174db31b4b941b70972"
+    },
+    "source_plan_sha256": "1277f1f36c3369c68867abe3b4720887128644f9074fc11d947ef6b812beac2b",
+    "workload_thresholds_relaxed": false
+  },
+  "physical_durable_available_bytes": 13254656,
+  "platform_qualified": false,
+  "preparation": {
+    "bytes": 13267,
+    "sha256": "3cc153d43ff7737065022e7bb7a9d77aa425833689a1c1b1d5662ae8cad6e711"
+  },
+  "preserved_limitations": [
+    "Earlier deleted /tmp preparations are not recreated or claimed recovered.",
+    "Prior valid qualification and failures remain under their exact original scopes.",
+    "No native Windows, real Graph, provider, device, fleet SLA, CI or production approval follows from these controls.",
+    "Full original private R4 raw corpus still has 265 missing roots and 39 missing pinned receipts; this preparation does not close those provenance gaps."
+  ],
+  "public_selection_scope": "This bounded metadata and proposed inert qualifier source text only, subject to independent suitability review. Private preregistrations, fixture database, raw attempts, prepared stores and complete preparation capsule are not publicly selected.",
+  "pure_count_scope": "Metadata/pin/AST/space controls only; no product suite additions and no measurements. These overlap first control receipt and are not summed. The first old-runtime literal typo is retained with exact source repair; successor rejects genuine pinned C25 runtime.",
+  "pure_guard_count": 12,
+  "pure_guard_receipt": {
+    "bytes": 1890,
+    "sha256": "cd7c6ec9e6ab32215dda6d2c3e9ced0c540a70c97b5cceb6b546ac9496f75f47"
+  },
+  "remaining_blocker_owner": "Environment/storage custodian; root coordinator owns actual GO",
+  "requirement_id": "E-F-C30-BOUNDED-PERFORMANCE",
+  "schema_version": "intune-C30-bounded-performance-public-metadata/1",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_pins": {
+    "prepare.py": {
+      "bytes": 16052,
+      "sha256": "c4ebe211bd4260ccb53220b655c719c090578042ec29b9bf982674c3441fd465"
+    },
+    "qualify_pure_controls.py": {
+      "bytes": 4215,
+      "sha256": "d32d3392b9acbbb144066f58eb95a2ed0d9d7fc77fe1c8b21aff736dd875070c"
+    },
+    "run-prepared.py": {
+      "bytes": 12334,
+      "sha256": "b625852df373123d2a3f2ed0ee26e70facd4bc14c522119309736db5cebe2c69"
+    }
+  },
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "BLOCKED"
+}

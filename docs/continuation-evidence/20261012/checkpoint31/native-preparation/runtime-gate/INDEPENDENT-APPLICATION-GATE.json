@@ -1,0 +1,57 @@
+{
+  "complete_private_corpus": false,
+  "evidence_reuse": [
+    {
+      "evidence": {
+        "bytes": 9452,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C30-modeled-runtime-20261011-01/PUBLIC-ADMISSION.json",
+        "sha256": "16ba2e2e8c4d79dd9e38f892fa2fdfba670fb5f8a05e117876171a08d58f3067"
+      },
+      "scope": "Existing independent46 raw assertions; actual modeled connected64 named checks/34 unique CLI records/10 Linux PTYs; standalone and workflow scopes separately retained, not added."
+    },
+    {
+      "evidence": {
+        "bytes": 6420,
+        "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/branch-source-publication-20261011-01/packaged-known-completion-journey-source-review-01/actual-raw-04/PUBLIC-METADATA.json",
+        "sha256": "758af96ed8f2cfb566d25ee29ea1c4751c729bf1e7cb45e6273e2e7d054bdb28"
+      },
+      "scope": "Exact focused04 actual50 assertions/11 text commands/6 negatives, independent six raw BEFORE/AFTER/EXCEPTION pairs and copied-only SQL; all nonadditive."
+    }
+  ],
+  "global_laboratory_complete": false,
+  "independent_aggregate_method": "Stdlib-only literal regular-byte SHA/size and typed JSON linkage assertions. Prior independently admitted raw checks reused only for their exact source/artifact/result identities. No new product, native, suite, performance, network or publication execution.",
+  "known_completed_journey": {
+    "bytes": 10042,
+    "path": "/tmp/known-completed-packaged-journey-C30-04-ROOT-FRESH/RESULT.json",
+    "sha256": "b128766913530b1f3eca56e4b221983560048ecfcaafd0be045f7a8b3d07d2fd"
+  },
+  "limitations": [
+    "Application paths use explicit local synthetic service, historical host/approval/nonce and observation fixtures. No native provider/backend/live Graph/service/device/Windows/protected CI/organizational approval is inferred.",
+    "Finite manually invoked collection is not independent persistent OS scheduling. Workflow/standalone deleted TemporaryDirectory intermediates remain omitted.",
+    "Large runtime raw and private capsule remain temporary only; G11 durability and 32MiB native/performance guards remain BLOCKED. Focused04 private negative pairs have separate existing durable preservation.",
+    "Four actual C30 native fault witness roots, final READY profile/outer admission and root GO remain missing. This envelope only admits runtime application gate inputs; frozen native03 is not modified or activated.",
+    "Existing count scopes overlap; no addition to strict2326, historicalC252307, affected123/new19, connected64/34/10, or focused50/11/6.",
+    "Successful new results do not close historical missing roots/receipts, actor attribution, unexpected files/reappearance, failed candidates, Wally findings, G13 or public/private corpus provenance."
+  ],
+  "native_activation_authorized_by_this_envelope": false,
+  "native_qualification": false,
+  "new_performance_qualified": false,
+  "package_receipt": {
+    "bytes": 7532,
+    "path": "/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json",
+    "sha256": "eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a"
+  },
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "raw_capture_state_plan_key_or_identity_streams_included": false,
+  "runtime_routes": {
+    "bytes": 1571,
+    "path": "/tmp/intune-new-runtime-C30-20261011-01/RESULT.json",
+    "sha256": "2d45ea27084268e50f050eb64febb546873a8365465436d6623b758c3848100f"
+  },
+  "schema_version": "independent-C30-runtime-and-known-completed-application-gate/1",
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_EXACT_APPLICATION_RAW_ASSERTIONS"
+}

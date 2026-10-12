@@ -1,0 +1,149 @@
+{
+  "actual_capsule_receipt": {
+    "bytes": 999,
+    "path": "/tmp/intune-new-runtime-C30-20261011-01/capsule/CAPSULE-RECEIPT.json",
+    "sha256": "38cd4b8b532af7d39526e964d4f592332f352feef9960f47bbe4d3a9a9841fb4"
+  },
+  "actual_contract": {
+    "bytes": 2816,
+    "path": "/tmp/intune-C30-runtime-contract-20261011-01.json",
+    "sha256": "b6dc40bf1e9e9020a33a8c8e551edea1140c136a82d3fbbecd7da4d24c6046e0"
+  },
+  "actual_contract_admission": {
+    "bytes": 3225,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/new-runtime-outer-source-review-20261011-01/ACTUAL-CONTRACT-ADMISSION.json",
+    "sha256": "b41cc23f8416e69bcd695e596830657d603257a2d5f87bfcaa5c331456496ca4"
+  },
+  "actual_outer_result": {
+    "bytes": 1571,
+    "path": "/tmp/intune-new-runtime-C30-20261011-01/RESULT.json",
+    "sha256": "2d45ea27084268e50f050eb64febb546873a8365465436d6623b758c3848100f"
+  },
+  "actual_product_or_suite_or_performance_or_native_reruns": 0,
+  "actual_raw_assertions": "Exact one synthetic policy/object/settings/assignment/filter/exclusion semantics with bag multiplicity; all three SQL setting snapshots and repeated history/relationships; adoption ownership unknown, no cloud/execution authority; literal repository/inheritance source and value-free flags; exactlytwo expected200 modeled PATCHes with actual if-match/revision/response-loss metadata and read-only GETs; exact approved requests/consumed markers/backend serial1/lineage/value/saved-plan/config hashes; one engine dispatch and protected/journal chains per operation; three fresh delayed GETs preserveunknown then observeddesired/no-change with no replay; retained wrong approval and replay negatives; finite manually invoked2+1 scheduler reads; captured SQL last-good/reference control bytes/100targeted8reports92unknown/no endpoint effect, migration backup1/destination2 and SQL integrity; actual unique CLI/PTY streams and interrupt/EOF/resize/sanitization.",
+  "actual_root_launch": {
+    "bytes": 1350,
+    "path": "/tmp/intune-C30-actual-launch-receipts-20261011-02/runtime.LAUNCH-RECEIPT.json",
+    "sha256": "0f992fe472635bdd198f4eade28857118f6a340d0faeee15fb1b562d85e6e8a7"
+  },
+  "artifacts": {
+    "runtime": {
+      "bytes": 1630724,
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+    },
+    "source": {
+      "bytes": 18454404,
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+    }
+  },
+  "complete_private_corpus": false,
+  "counting": "64 connected named harness records,34 unique connected subprocess records including10 actualPTYs are newly observed. Standalone onePTY/transcript and workflow8 parsed command records/11 harness checks are separate scopes. Nested fixture/CLI/PTY/check counts overlap; no total or inherited64/34/10/C252307/runtime gate addition. Independent46 raw assertions and13 preparation controls are reviewer metadata, not product tests.",
+  "failures": [],
+  "full_raw_review": {
+    "bytes": 1064703,
+    "path": "/tmp/intune-C30-runtime-acceptance-20261011-01/actual-read-02/RESULT.json",
+    "sha256": "d8b7142b8f908dd0179bbbd6deac38ceb56c8918ada2c9cce5e19eb5fabbe705"
+  },
+  "global_laboratory_complete": false,
+  "launch_and_finite_schedule_readback": {
+    "bytes": 1130,
+    "path": "/tmp/intune-C30-runtime-acceptance-20261011-01/ACTUAL-LAUNCH-SCHEDULE-READBACK.json",
+    "sha256": "73123af08feaa6c786c28da4b0fae340647a4a5918dd6a701d60a10e4b4a0a4a"
+  },
+  "limitations": [
+    "Actual controlled CLI/PTY, synthetic stateful service and injected GET capture only; no authenticated Graph/Azure/provider/native-host/device/CI/organizational approval.",
+    "Finite schedule is manually invoked local model collection, not independent persistent OS scheduling.",
+    "Workflow/standalone qualifiers delete TemporaryDirectory state and do not preserve individual verification/raw child streams; only retained parsed results/transcript can be admitted.",
+    "Capsule scope covers preserved control/raw outputs only; inputs/archives/tools and final/census/receipt bytes are separate, sockets metadata only, no runnable restore.",
+    "New counts are derived from unique actual records and may overlap strict/source/older scopes; no64/34/10 inheritance or addition.",
+    "New core no-release factory is not exercised by these three legacy routes; its native restart/backend/history gate remains separate.",
+    "Actual outer output was retained as combined tool output only; separate outer streams were not captured. Three child qualifier stdout/stderr streams are retained.",
+    "Original C25 fixed binder, packages and failed38 native attempt remain untouched; new C30 modeled results do not turn any historical failure intoPASS.",
+    "Actual root launch, source/package/strict/model journey observations do not establish full Lab, native provider/backend/device, endpoint, CI/AppSec/key custody or accountable organizational production approval."
+  ],
+  "modeled_Linux_only": true,
+  "native_platform_qualified": false,
+  "new_core_factory_exercised_by_three_routes": false,
+  "next_action": "Preserve full47MB capsule/raw in user-authorized existing private storage and obtain exact final-source closed native profile/readback/restart/history/backend/second-plan plus real external approvals separately; no gate or historical finding waiver.",
+  "observed_scope_counts": {
+    "connected": {
+      "actual_PTYS": 10,
+      "history_observations": 5,
+      "modeled_PATCHes": 2,
+      "named_check_records_observed": 64,
+      "native_schedule_qualified": false,
+      "unique_command_records": 34
+    },
+    "finite_schedule_failures": 0,
+    "finite_schedule_requested_and_observed_successes": 3,
+    "qualifier_outer_commands": 3,
+    "standalone_terminal": {
+      "actual_transcript_count": 1,
+      "independent_raw_verify_stream_available": false,
+      "transcript_sha256": "e445a98b00d5eea7396e58b71ba55acc13af9fa96b37fe8fd6d1e3512cadae85"
+    },
+    "workflow": {
+      "named_harness_checks_observed": 11,
+      "raw_TemporaryDirectory_state_or_child_streams_available": false,
+      "unique_retained_parsed_command_records": 8
+    }
+  },
+  "package_receipt": {
+    "bytes": 7532,
+    "path": "/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json",
+    "sha256": "eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a"
+  },
+  "preservation": {
+    "complete_selected_control_raw_namespace_verified": true,
+    "durable_raw_capsule_copy": false,
+    "members": 304,
+    "original265missingroots39missingreceipts_closed": false,
+    "physical_capacity_blocker": "G11 BLOCKED; actual47MB private ZIP and121MB raw remain/tmp. Rootpreservation15 retains control/root/metadata only; no complete raw receiving closure.",
+    "private_owned_capsule": {
+      "bytes": 46862494,
+      "path": "/tmp/intune-new-runtime-C30-20261011-01/capsule/PRIVATE-OWNED-EVIDENCE.zip",
+      "sha256": "dd9bcbc6ac26c4bb5e211105b9da5ba0c07a5f27c340425d5129d375e648f8d9"
+    },
+    "public_raw_payloads_included": false,
+    "regular_bytes": 127129860,
+    "runnable_restore": false
+  },
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "publication_actions": 0,
+  "read_only_raw_metadata_assertions": 46,
+  "reader_error_preservation": {
+    "disposition": "Reader expected CLI envelopes to equal persisted reconciliation payloads. Actual declared reconcile adds only previous_status=outcome_unknown after persistence; common fields equal and exact envelope extension verified. Corrected reader04 only, all product/root/contract/raw bytes unchanged; not a product/runtime failure.",
+    "first_failed_report": {
+      "bytes": 1064328,
+      "path": "/tmp/intune-C30-runtime-acceptance-20261011-01/actual-read-01/RESULT.json",
+      "sha256": "e8d57b01f9162a03fb086f538deacf1965c0ae892f58d0665ab9f555a0cdcf00"
+    },
+    "first_reader": {
+      "bytes": 32473,
+      "path": "/tmp/intune-C30-runtime-acceptance-20261011-01/review-03.py",
+      "sha256": "50512c34913189d0957428d9b6ca98eff8e452c112cc1238d379e827c10e0580"
+    }
+  },
+  "reviewer": {
+    "bytes": 32526,
+    "path": "/tmp/intune-C30-runtime-acceptance-20261011-01/review-04.py",
+    "sha256": "8bf93f0844788f7592da85901260366e2f51962e2c00b47b6852bf10df12f518"
+  },
+  "schema": "independent-C30-modeled-runtime-raw-admission/1",
+  "scope": "Actual newly bound C30 source/runtime packaged workflow, standalone wizard and connected CLI/PTY journey with raw service HTTP model, SQL, backend, approval/request, journal and transcript checks. Source identity remains39cc, distinct from later administrative checkpoints. No product/suite/native rerun by reviewer.",
+  "source_checkout_mutations": 0,
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_helper_admission": {
+    "bytes": 7805,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/new-runtime-outer-source-review-20261011-01/ADMISSION.json",
+    "sha256": "756f1b59126ee1ab02c6759d50d4c939e319071350e53ed79d30d6a323dca01a"
+  },
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_ACTUAL_NEW_RUNTIME_RAW_READBACK",
+  "strict_actual2326_unique_gate": {
+    "bytes": 6144,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C30-strict-gate-20261011-01/PUBLIC-ADMISSION.json",
+    "sha256": "80524da930540406e4d6a3082828d4a5f4cae2a517ff793b9919d7b1a49110c4"
+  }
+}
