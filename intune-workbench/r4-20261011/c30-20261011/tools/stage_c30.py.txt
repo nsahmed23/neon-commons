@@ -1,0 +1,151 @@
+"""Prepare only a new C30 public selection; never apply, commit, push or execute."""
+from pathlib import Path, PurePosixPath
+import argparse,hashlib,json,math,os,re,stat,subprocess,sys
+
+REPO=Path('/tmp/intune-C30-publication-isolated-20261011')
+PREFIX='intune-workbench/r4-20261011/c30-20261011/'
+OLD_PREFIX='intune-workbench/r4-20261011/'
+BASE='b7c6515ac3e99f6a548d774805a905df0c44baf1'
+MAIN='4ba077d93fecbf5f893ee13ef972c839cf13883d'
+BRANCH='intune-atmos-wally-r4-20261011'
+SOURCE='39cc77618a0f7f2734599fbfed224b47c333293f'
+TREE='f8bff355322c7c50e46790171c12a5e1a7cb80aa'
+GIT_SHA='356db14e102d68a1a37d8a1ac577dfd678d45d46e92f468bef8b7154e7bfdc60'
+ROLE_PATHS={'package_admission':'qualification/package.json','strict_admission':'qualification/strict.json',
+ 'runtime_admission':'qualification/runtime.json','factory_admission':'qualification/factory.json',
+ 'factory_negative_admission':'qualification/factory-negative-supplement.json',
+ 'performance_blocker':'qualification/performance-blocked.json','source_publication':'receipts/source-publication.json',
+ 'prior_delivery':'receipts/prior-delivery.json'}
+FIXED={'package_admission':(4977,'5dfaa915fc2b787ff2e98ba82eb5c7e1231a057ca5b552292e6444926b902390'),
+ 'factory_admission':(4170,'88112abf7b53dc2b5547b153bb790fb5d39acc41d57ed61847c0d766bbb2541a'),
+ 'prior_delivery':(4410,'baff91f8ad55500d23d9dfeb344983711fe5f14eb1ab7f9dc05659f0243bee04'),
+ 'strict_admission':(6144,'80524da930540406e4d6a3082828d4a5f4cae2a517ff793b9919d7b1a49110c4'),
+ 'runtime_admission':(9452,'16ba2e2e8c4d79dd9e38f892fa2fdfba670fb5f8a05e117876171a08d58f3067'),
+ 'source_publication':(26279,'50c12839118b6861f74a89beecf08cf711bc8d74d04360347d6b5541ff920dd9')}
+ARCHIVES={'source':(18454404,'09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7','Intune_IaC_Plugin_0.9.0_Source.zip'),
+ 'runtime':(1630724,'356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891','Intune_IaC_Plugin_0.9.0.zip')}
+
+def require(ok,message):
+ if not ok:raise ValueError(message)
+
+def digest(raw):return hashlib.sha256(raw).hexdigest()
+def blob(raw):return hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+
+def literal(path,kind):
+ p=Path(path);require(p.is_absolute() and '..' not in p.parts,'Absolute literal path required')
+ for parent in p.parents:require(stat.S_ISDIR(parent.lstat().st_mode),'Nonliteral ancestor')
+ require(stat.S_IFMT(p.lstat().st_mode)==kind,'Literal type differs');return p
+
+def read_pin(pin,limit=32*1024**2):
+ require(type(pin) is dict and set(pin)=={'path','bytes','sha256'} and type(pin['path']) is str and
+  type(pin['bytes']) is int and 0<=pin['bytes']<=limit and type(pin['sha256']) is str and
+  re.fullmatch('[0-9a-f]{64}',pin['sha256']),'Closed typed pin required')
+ p=literal(pin['path'],stat.S_IFREG);s=p.lstat();require(s.st_nlink==1,'One-link source required')
+ raw=p.read_bytes();require((len(raw),digest(raw))==(pin['bytes'],pin['sha256']),'Pinned input changed');return raw
+
+def parse(raw):
+ def pairs(rows):
+  result={}
+  for key,value in rows:require(key not in result,'Duplicate JSON key');result[key]=value
+  return result
+ def invalid(value):raise ValueError('Nonfinite JSON')
+ def finite_float(value):
+  result=float(value);require(math.isfinite(result),'Nonfinite JSON number');return result
+ return json.loads(raw,object_pairs_hook=pairs,parse_constant=invalid,parse_float=finite_float)
+
+def file_pin(path):
+ p=literal(path,stat.S_IFREG);raw=p.read_bytes();return {'path':str(p),'bytes':len(raw),'sha256':digest(raw)}
+
+def git(*args):
+ literal(REPO,stat.S_IFDIR);literal(REPO/'.git',stat.S_IFDIR)
+ require(file_pin(Path('/usr/bin/git'))['sha256']==GIT_SHA,'Pinned Git changed')
+ env={k:v for k,v in os.environ.items() if not k.startswith('GIT_')};env['GIT_TERMINAL_PROMPT']='0'
+ r=subprocess.run(['/usr/bin/git','--git-dir='+str(REPO/'.git'),'--work-tree='+str(REPO),'-c','core.hooksPath=/dev/null',*args],
+  cwd=REPO,env=env,stdin=subprocess.DEVNULL,capture_output=True)
+ require(r.returncode==0,'Metadata Git error '+args[0]+' exit='+str(r.returncode)+' stderr_sha='+digest(r.stderr));return r.stdout
+
+def write(path,raw):
+ path.parent.mkdir(parents=True,mode=0o700,exist_ok=True)
+ with path.open('xb') as stream:stream.write(raw);stream.flush();os.fsync(stream.fileno())
+
+def serialized(value):return (json.dumps(value,sort_keys=True,indent=2,allow_nan=False)+'\n').encode()
+
+def inputs(raw):
+ value=parse(raw)
+ fields={'schema','source_commit','source_tree','companion_base','prefix','roles','archives','helper_sources','helper_source_admission'}
+ require(type(value) is dict and set(value)==fields and value['schema']=='intune-C30-public-delivery-inputs/1','Closed C30 inputs required')
+ require(value['source_commit']==SOURCE and value['source_tree']==TREE and value['companion_base']==BASE and value['prefix']==PREFIX,'Wrong C30 identity')
+ require(type(value['roles']) is dict and set(value['roles'])==set(ROLE_PATHS),'Exact public evidence roles required')
+ payload={};parsed={}
+ for role,pin in value['roles'].items():
+  content=read_pin(pin,128*1024);record=parse(content);require(type(record) is dict,'Typed evidence record required');parsed[role]=record;payload[ROLE_PATHS[role]]=content
+  if role in FIXED:require((pin['bytes'],pin['sha256'])==FIXED[role],'Reviewed fixed role differs: '+role)
+  if role=='prior_delivery':require(record.get('commit')==BASE and record.get('public_metadata_suitable') is True,'Wrong prior public base')
+  elif role=='performance_blocker':
+   require(record.get('status') in ('BLOCKED','BLOCKED_DURABLE_CAPACITY','BLOCKED_BEFORE_MEASUREMENT') and
+    record.get('new_performance_qualified') is False and record.get('source_commit')==SOURCE,'Blocked actual performance scope required')
+  else:
+   require(type(record.get('status')) is str and record['status'].startswith('PASS_SCOPED'),'Required independent local/source evidence not admitted')
+   ids=[record[key] for key in ('source_revision','source_commit') if key in record]
+   require(ids and all(v==SOURCE for v in ids),'Public role applies to another source')
+ require(type(value['archives']) is dict and set(value['archives'])==set(ARCHIVES),'Exact two archive roles required')
+ for role,pin in value['archives'].items():
+  size,sha,name=ARCHIVES[role];content=read_pin(pin);require((pin['bytes'],pin['sha256'])==(size,sha),'Wrong new archive')
+  payload['packages/'+name]=content
+ admission=parse(read_pin(value['helper_source_admission'],128*1024))
+ require(type(admission) is dict and admission.get('status')=='PASS_SCOPED_SOURCE_ONLY' and admission.get('public_source_text_suitable') is True,'Exact helper text admission required')
+ require(type(value['helper_sources']) is dict and set(value['helper_sources'])=={'stage_c30.py','publish_c30.py','qualify_new_runtime.py'},'Exact inert helper source roles')
+ require(type(admission.get('source_files')) is dict and set(admission['source_files'])==set(value['helper_sources']),'Exact independently reviewed helper texts')
+ payload['receipts/helper-source-admission.json']=read_pin(value['helper_source_admission'],128*1024)
+ for name,pin in value['helper_sources'].items():
+  content=read_pin(pin,128*1024)
+  reviewed=admission['source_files'][name]
+  require(type(reviewed) is dict and set(reviewed)=={'bytes','sha256'} and type(reviewed['bytes']) is int and 0<=reviewed['bytes']<=128*1024 and type(reviewed['sha256']) is str and re.fullmatch('[0-9a-f]{64}',reviewed['sha256']),'Typed independent helper pin required')
+  require(reviewed=={'bytes':pin['bytes'],'sha256':pin['sha256']},'Helper text differs from independent admission')
+  if name=='qualify_new_runtime.py':require(pin['sha256']=='f72e402f407f8b26efab756cc8476787f8e29784e9d3e158cde827d1a325a183','Wrong new-runtime helper')
+  payload['tools/'+name+'.txt']=content
+ return value,payload,parsed
+
+def main():
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--inputs',type=Path,required=True);p.add_argument('--inputs-sha256',required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+ require(sys.flags.optimize==0 and sys.flags.isolated and sys.dont_write_bytecode,'Use unoptimized Python -I -B')
+ input_pin=file_pin(a.inputs);input_raw=read_pin(input_pin);require(input_pin['sha256']==a.inputs_sha256,'Inputs exact external pin differs')
+ value,payload,roles=inputs(input_raw)
+ require(a.output.is_absolute() and not a.output.exists() and not a.output.is_symlink() and a.output.parent==Path('/tmp'),'Fresh owned /tmp output required')
+ require(git('rev-parse','HEAD').decode().strip()==BASE and git('branch','--show-current').decode().strip()==BRANCH and not git('status','--porcelain'),'Exact clean isolated companion base')
+ require(not (REPO/PREFIX).exists() and not (REPO/PREFIX).is_symlink(),'New prefix already exists')
+ entries={}
+ for row in git('ls-tree','-r','-z',BASE,'--',OLD_PREFIX).split(b'\0'):
+  if not row:continue
+  header,name=row.split(b'\t',1);mode,kind,oid=header.split();name=name.decode('utf-8')
+  require(mode==b'100644' and kind==b'blob' and name not in entries,'Prior public tree type/duplicate')
+  content=git('cat-file','blob',BASE+':'+name);require(blob(content)==oid.decode(),'Prior raw Git blob mismatch')
+  entries[name]={'bytes':len(content),'sha256':digest(content),'Git_blob':oid.decode()}
+ require(len(entries)==129,'Actual prior129 public file closure differs')
+ total=sum(map(len,payload.values()));v=os.statvfs('/tmp');require(v.f_bavail*v.f_frsize>=total+128*1024**2,'Temporary selection capacity insufficient')
+ a.output.mkdir(mode=0o700);phase='public_payload'
+ try:
+  artifact_identity={'source_commit':SOURCE,'source_tree':TREE,'archives':{role:{'bytes':size,'sha256':sha,'filename':name} for role,(size,sha,name) in ARCHIVES.items()},
+   'laboratory_complete':False,'platform_qualified':False,'production_approved':False,'new_performance_qualified':False,'complete_private_corpus':False,
+   'scope':'New exact source/runtime packages and independently admitted local/model/API evidence. Actual performance is blocked before measurement; native/platform/org gates remain.'}
+  payload['ARTIFACTS.json']=serialized(artifact_identity)
+  payload['README.md']=('''# Intune Workbench C30 qualification candidate\n\nSource commit `'''+SOURCE+'''`, tree `'''+TREE+'''`. The two 0.9.0 filenames identify different bytes from C25; their exact hashes are in ARTIFACTS.json. All previous 129 public files stay unchanged.\n\nThe exact source gate passed 2,326 unique tests; affected 123 and new 19 overlap and are not added. The three real local CLI/PTY routes use a synthetic service: connected 64 checks, 34 unique command records including 10 Linux PTYs; standalone 1 PTY and workflow 8 commands/11 checks are distinct overlapping scopes. Factory API qualification is separate. The finite invoked timer is not an independently activated OS schedule. New performance measurement is blocked by durable capacity; old C25 performance remains historical.\n\nLaboratory completion remains incomplete. Platform qualification and organizational production approval remain blocked. Native Windows/Git Bash, authenticated live Graph/provider/Azure/protected CI/device evidence and accountable security/operations decisions are required. No tenant/deployment/control/credentials/privilege authority is granted here.\n\nThis prefix contains selected source/runtime and bounded public metadata/inert helper source texts. Original full/private corpus, profiles, keys, approvals/GO/witnesses, raw captures/state/plans/SQL/journals/capsules are omitted. The full 47MB new runtime evidence remains in temporary private storage; no complete durable private recovery is claimed. First-two qualifier TemporaryDirectory intermediates were deleted by their harnesses. Historical missing 265 roots/39 receipt pins, native FAIL, provenance anomalies and denied G13 repair remain unclosed.\n\nPreserve original full R2/R3 layers and subsequent private evidence. These two ZIPs alone are not complete repository recovery. Replayed commands must use new output directories and exact source/runtime SHA pins; rerun the full suite only for a relevant change or required gate. The tools/*.py.txt files are reviewed source text, not a complete executable/private profile bundle.\n''').encode()
+  rows=[]
+  for name,content in sorted(payload.items()):
+   path=a.output/'payload'/name;write(path,content)
+   rows.append({'path':name,'bytes':len(content),'sha256':digest(content),'physical_path':str(path),'final_destination':str(REPO/PREFIX/name),'prospective_Git_blob':blob(content)})
+  phase='selection_receipt'
+  selection={'schema':'intune-C30-public-package-selection/1','checkpoint':30,'source_commit':SOURCE,'source_tree':TREE,'documentation_commit':SOURCE,
+   'base_commit':BASE,'destination_prefix':str(REPO/PREFIX),'prefix':PREFIX,'branch':BRANCH,'main':MAIN,'files':rows,
+   'selected_files':len(rows),'selected_bytes':sum(row['bytes'] for row in rows),'prior_files':entries,'prior_file_count':len(entries),
+   'inputs':input_pin,'helper_source_admission':value['helper_source_admission'],'status':'PREPARED_SELECTION_REQUIRES_INDEPENDENT_ADMISSION',
+   'public_private_corpus_complete':False,'new_performance_qualified':False,'laboratory_complete':False,'platform_qualified':False,'production_approved':False}
+  write(a.output/'SELECTION.json',serialized(selection));write(a.output/'INPUTS.json',serialized(value))
+  require(read_pin(input_pin)==input_raw,'Inputs changed during stage')
+  print(json.dumps(file_pin(a.output/'SELECTION.json')))
+ except BaseException as error:
+  try:write(a.output/'FAILURE.json',serialized({'status':'FAIL','phase':phase,'error_type':type(error).__name__,'error':str(error),'no_cleanup_or_retry':True}))
+  except BaseException as secondary:error.add_note('Secondary stage failure-record error: '+type(secondary).__name__)
+  raise
+
+if __name__=='__main__':main()

@@ -1,0 +1,99 @@
+{
+  "actual_A_B_C_bytes_equal": true,
+  "actual_extractions_exact": true,
+  "all_actual_build_archive_pins": {
+    "runtime": {
+      "A": {
+        "bytes": 1630724,
+        "path": "/tmp/intune-C30-packages-20261011-01/build-A/Intune_IaC_Plugin_0.9.0.zip",
+        "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+      },
+      "B": {
+        "bytes": 1630724,
+        "path": "/tmp/intune-C30-packages-20261011-01/build-B/Intune_IaC_Plugin_0.9.0.zip",
+        "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+      },
+      "C": {
+        "bytes": 1630724,
+        "path": "/tmp/intune-C30-packages-20261011-01/build-C/Intune_IaC_Plugin_0.9.0.zip",
+        "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+      }
+    },
+    "source": {
+      "A": {
+        "bytes": 18454404,
+        "path": "/tmp/intune-C30-packages-20261011-01/build-A/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+      },
+      "B": {
+        "bytes": 18454404,
+        "path": "/tmp/intune-C30-packages-20261011-01/build-B/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+      },
+      "C": {
+        "bytes": 18454404,
+        "path": "/tmp/intune-C30-packages-20261011-01/build-C/Intune_IaC_Plugin_0.9.0_Source.zip",
+        "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+      }
+    }
+  },
+  "all_runtime_members_are_source_bytes": true,
+  "builder_runs": 0,
+  "full_private_result": {
+    "bytes": 1951995,
+    "path": "/tmp/intune-C30-package-independent-20261011-01/RESULT.json",
+    "sha256": "4a1345f244672938796f6fc9cdf30f149b123deda48909112e20a9a0f30f24f3"
+  },
+  "limitations": [
+    "This is exact artifact construction and source linkage, not new behavior/strict-suite/connected-journey acceptance.",
+    "Both packages retain version 0.9.0 names with different bytes from C25; delivery must use a separate revision-bound prefix and never replace old packages.",
+    "Git metadata/tool and cooperative mutable-workspace assumptions are scoped; no publisher identity, commit-actor attribution closure, hostile-process containment or organizational AppSec approval.",
+    "Packages are selected source/runtime, not full recovery corpus. Private original captures/state/plans/profiles/approvals/witnesses/raw capsules remain outside publication.",
+    "Historical C25 2307 tests and modeled64/34/10 evidence stay separate; no count addition or external/native/device qualification."
+  ],
+  "metadata_assertions": 10728,
+  "negative_control_count": 5,
+  "negative_control_ids": [
+    "wrong-root",
+    "traversal",
+    "literal-link",
+    "fifo",
+    "missing-manifest"
+  ],
+  "new_core_pins": {
+    "intune_iac/worker_completed_readback.py": "edfe6e78224b7a557479b5f6ca7208af71f2e6cdd1c63ce3b75cd674617e36f8",
+    "intune_iac/worker_service.py": "40f6caf0c30f21ba3ff79f2ecf2823fbccd9de2929e88d94d3a74d4d1a2e499a",
+    "plugin_tests/test_worker_completed_readback_r4.py": "41658847cfd8618338f60e98f226b64a0248b8b863a3906ca953e5ff8ce7d9b3"
+  },
+  "package_publication_clearance": "Exact identity and selected source/runtime construction are admitted. New public selection/omissions/qualification receipts require their own final admission; no private raw artifacts cleared.",
+  "package_receipt": {
+    "bytes": 7532,
+    "path": "/tmp/intune-C30-packages-20261011-01/PACKAGE-RECEIPT.json",
+    "sha256": "eaa56c9915098b8a8944f0714b6ae28c8ee361a63704f198dc823a08b887717a"
+  },
+  "platform_qualified": false,
+  "product_or_suite_runs": 0,
+  "production_approved": false,
+  "public_suitable": true,
+  "raw_commit_tree_and_selected_blob_linkage": true,
+  "reader": {
+    "bytes": 14063,
+    "path": "/tmp/intune-C30-package-independent-20261011-01/review_exact_packages.py",
+    "sha256": "1a6340c9506262f3d161447c979c908ea14c91f7c84d2823dbf72753d703b886"
+  },
+  "required_new_application_journeys": "NOT_STARTED",
+  "required_new_strict_gate": "RUNNING_NOT_ADMITTED",
+  "runtime_members": 301,
+  "schema_version": "intune-public-independent-C30-exact-package-admission/1",
+  "scope": "Independent read-only complete actual A/B/C archive hashes, manifest/type/member bytes, both extracted namespaces, raw Git commit/root tree and each selected committed blob/source/runtime subset. Existing qualified linkage procedure is reused at its exact bytes; no build or suite rerun.",
+  "selected_source_files": 3463,
+  "source_linkage": {
+    "bytes": 1633771,
+    "path": "/tmp/intune-C30-packages-20261011-01/SOURCE-LINKAGE.json",
+    "sha256": "3a4a0f2734d706885f43b9a8a7d9ae1835f39cd4d8484592e8f17a0e3ecdab22"
+  },
+  "source_members": 3464,
+  "source_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "status": "PASS_SCOPED_EXACT_PACKAGE_CONSTRUCTION_AND_IDENTITY"
+}

@@ -1,0 +1,22 @@
+{
+  "archives": {
+    "runtime": {
+      "bytes": 1630724,
+      "filename": "Intune_IaC_Plugin_0.9.0.zip",
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+    },
+    "source": {
+      "bytes": 18454404,
+      "filename": "Intune_IaC_Plugin_0.9.0_Source.zip",
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+    }
+  },
+  "complete_private_corpus": false,
+  "laboratory_complete": false,
+  "new_performance_qualified": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "scope": "New exact source/runtime packages and independently admitted local/model/API evidence. Actual performance is blocked before measurement; native/platform/org gates remain.",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa"
+}

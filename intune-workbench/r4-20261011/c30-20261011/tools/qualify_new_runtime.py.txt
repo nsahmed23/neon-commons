@@ -1,0 +1,393 @@
+"""Future root-only exact-new-package binding for three existing CLI routes.
+
+This never modifies the C25 fixed binder. Supply a separately reviewed exact
+contract only after new source/runtime packages and required strict gate exist.
+No production/service/native-host/device approval follows from modeled CLI/PTYS.
+"""
+from pathlib import Path, PurePosixPath
+import argparse
+import base64
+import hashlib
+import importlib
+import json
+import os
+import re
+import stat
+import subprocess
+import sys
+import time
+import zipfile
+
+QUALIFIERS = ('qualify-workflow.py', 'qualify-terminal.py', 'qualify-workbench-connected.py')
+MAX_JSON = 16 * 1024 * 1024
+
+
+def require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def literal(value, kind=None, *, absent=False):
+    path = Path(value)
+    require(path.is_absolute() and '..' not in path.parts, 'Absolute literal path required')
+    for parent in path.parents:
+        require(stat.S_ISDIR(parent.lstat().st_mode), 'Literal directory ancestor required')
+    if absent:
+        require(not path.exists() and not path.is_symlink(), 'Fresh unused namespace required')
+    elif kind is not None:
+        require(stat.S_IFMT(path.lstat().st_mode) == kind, 'Literal input type differs')
+    return path
+
+
+def identity(info):
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink, info.st_size, info.st_mtime_ns, info.st_ctime_ns)
+
+
+def file_pin(value, maximum=1024**3):
+    path = literal(value, stat.S_IFREG)
+    initial = path.lstat()
+    require(initial.st_nlink == 1 and initial.st_size <= maximum, 'Bounded one-link regular input required')
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as stream:
+        require(identity(initial) == identity(os.fstat(stream.fileno())), 'Input open changed')
+        digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+        require(identity(initial) == identity(os.fstat(stream.fileno())), 'Input read changed')
+    require(identity(initial) == identity(path.lstat()), 'Input namespace changed')
+    return {'path': str(path), 'bytes': initial.st_size, 'sha256': digest}
+
+
+def canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode()
+
+
+def json_bytes(raw):
+    def pairs(rows):
+        value = {}
+        for key, item in rows:
+            require(key not in value, 'Duplicate JSON key')
+            value[key] = item
+        return value
+    def invalid(value):
+        raise ValueError('Nonfinite JSON number')
+    return json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid)
+
+
+def pin_shape(value, maximum=1024**3):
+    require(type(value) is dict and set(value) == {'path', 'bytes', 'sha256'}
+            and type(value['path']) is str and Path(value['path']).is_absolute() and '..' not in Path(value['path']).parts
+            and type(value['bytes']) is int and 0 <= value['bytes'] <= maximum
+            and type(value['sha256']) is str and re.fullmatch('[0-9a-f]{64}', value['sha256']), 'Closed typed exact artifact pin required')
+    return value
+
+
+def artifact_identity(value):
+    require(type(value) is dict and {'path','bytes','sha256','extracted'} <= value.keys(), 'Artifact identity fields missing')
+    selected=pin_shape({key:value[key] for key in ('path','bytes','sha256')})
+    require(type(value['extracted']) is str and Path(value['extracted']).is_absolute()
+            and '..' not in Path(value['extracted']).parts, 'Typed absolute extracted root required')
+    return {**selected,'extracted':value['extracted']}
+
+
+def read_pin(value, maximum=MAX_JSON):
+    pin_shape(value,maximum)
+    require(file_pin(value['path'], maximum) == value, 'Pinned artifact bytes changed')
+    raw = Path(value['path']).read_bytes()
+    require(len(raw) == value['bytes'] and hashlib.sha256(raw).hexdigest() == value['sha256'], 'Pinned read changed')
+    return raw
+
+
+def write_new(path, value):
+    raw = canonical(value) + b'\n'
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, 'wb') as stream:
+        stream.write(raw); stream.flush(); os.fsync(stream.fileno())
+
+
+def free(path):
+    value = os.statvfs(path)
+    return value.f_bavail * value.f_frsize
+
+
+def capacity(path, needed):
+    require(free(path) >= needed, 'Temporary qualification capacity unavailable; preserve existing work')
+
+
+def interpreter(value):
+    require(type(value) is dict and set(value) == {'invocation_path', 'link_chain', 'resolved_file'}, 'Closed interpreter identity required')
+    require(type(value['invocation_path']) is str and Path(value['invocation_path']).is_absolute()
+            and type(value['link_chain']) is list and all(type(row) is dict and set(row) == {'path','target'}
+            and all(type(item) is str for item in row.values()) for row in value['link_chain']), 'Typed interpreter invocation/link chain required')
+    current = Path(value['invocation_path']); links = []
+    for _ in range(8):
+        if not current.is_symlink():
+            break
+        target = os.readlink(current); links.append({'path': str(current), 'target': target})
+        current = Path(target) if Path(target).is_absolute() else current.parent / target
+    require(not current.is_symlink() and links == value['link_chain'], 'Interpreter link chain changed')
+    pin_shape(value['resolved_file'])
+    require(file_pin(current.resolve()) == value['resolved_file'], 'Resolved interpreter changed')
+    require(Path(sys.executable).resolve() == current.resolve(), 'Running interpreter differs from selected interpreter')
+    return value['invocation_path']
+
+
+def extracted_tree(root):
+    root = literal(root, stat.S_IFDIR); result = {}
+    def failed(error):
+        raise error
+    for parent, directories, files in os.walk(root, followlinks=False, onerror=failed):
+        for name in directories + files:
+            path = Path(parent) / name; info = path.lstat(); relative = path.relative_to(root).as_posix()
+            if stat.S_ISDIR(info.st_mode):
+                row = {'kind': 'directory'}
+            elif stat.S_ISREG(info.st_mode):
+                found = file_pin(path); row = {'kind': 'file', 'bytes': found['bytes'], 'sha256': found['sha256']}
+            else:
+                raise ValueError('New extracted package contains link or special input; preserve it')
+            result[relative] = row
+    return result
+
+
+def archive_tree(path, root):
+    result = {}; seen = set()
+    with zipfile.ZipFile(path) as archive:
+        for item in archive.infolist():
+            parts = item.filename.split('/')
+            require(len(parts) >= 2 and parts[0] == root and all(p not in ('', '.', '..') for p in parts)
+                    and '\\' not in item.filename and ':' not in item.filename and item.filename not in seen
+                    and stat.S_ISREG(item.external_attr >> 16), 'Unexpected exact-package member/type')
+            seen.add(item.filename); relative = '/'.join(parts[1:])
+            with archive.open(item) as stream:
+                result[relative] = {'kind': 'file', 'bytes': item.file_size, 'sha256': hashlib.file_digest(stream, 'sha256').hexdigest()}
+            for index in range(1, len(parts) - 1):
+                parent = '/'.join(parts[1:index + 1])
+                require(parent not in result or result[parent] == {'kind': 'directory'}, 'Package file shadows directory')
+                result[parent] = {'kind': 'directory'}
+    require(result.get('SHA256SUMS', {}).get('kind') == 'file', 'Package manifest absent')
+    return result
+
+
+def verify_packages(package):
+    require(type(package['artifacts']) is dict and set(package['artifacts']) == {'source', 'runtime'}, 'Exact source/runtime roles required')
+    trees = {}
+    for role, item in package['artifacts'].items():
+        artifact_identity(item)
+        expected = pin_shape({key:item[key] for key in ('path','bytes','sha256')})
+        require(file_pin(item['path']) == expected, 'Exact package archive changed')
+        root = 'intune-iac-source' if role == 'source' else 'intune-iac'
+        require(Path(item['extracted']).name == root, 'Extracted package root differs')
+        trees[role] = extracted_tree(item['extracted'])
+        require(trees[role] == archive_tree(item['path'], root), 'Extracted source/runtime namespace or bytes differ from exact ZIP')
+    return trees
+
+
+def contract(arguments):
+    raw = read_pin({'path': str(arguments.contract), 'bytes': arguments.contract.stat().st_size, 'sha256': arguments.contract_sha256})
+    value = json_bytes(raw)
+    fields = {'schema_version', 'status', 'source_revision', 'source_tree', 'package_receipt', 'strict_receipt',
+              'required_raw_suite_count', 'qualifier_pins', 'python', 'validator', 'driver_sha256', 'run_root', 'limits'}
+    require(type(value) is dict and set(value) == fields and value['schema_version'] == 'intune-exact-new-runtime-qualification-contract/1'
+            and value['status'] == 'PREPARED_EXACT_NEW_PACKAGES', 'Closed new-runtime contract required')
+    require(re.fullmatch('[0-9a-f]{40}', value['source_revision']) and re.fullmatch('[0-9a-f]{40}', value['source_tree']), 'Exact newer source identity required')
+    require(value['source_revision'] != 'e3bdefe0b1ac0c58e46f9af3360970f8e47ae393', 'New qualifier cannot relabel C25')
+    require(value['driver_sha256'] == file_pin(Path(__file__).absolute())['sha256'], 'Reviewed outer source changed')
+    package = json_bytes(read_pin(value['package_receipt']))
+    require(package.get('schema') == 'intune-C30-exact-package-qualification/1' and package.get('status') == 'PASS'
+            and package.get('commit') == value['source_revision'] and package.get('tree') == value['source_tree']
+            and package.get('source_unchanged') is True and package.get('build_receipts_equal') is True
+            and package.get('all_actual_archive_bytes_equal') is True, 'New exact package construction has not passed')
+    linkage = json_bytes(read_pin(package['source_linkage']))
+    require(linkage.get('status') == 'PASS' and linkage.get('source_commit') == value['source_revision']
+            and linkage.get('tree_object') == value['source_tree'], 'Package raw Git source linkage differs')
+    gate = json_bytes(read_pin(value['strict_receipt']))
+    suite = gate.get('suite'); count = value['required_raw_suite_count']
+    require(type(count) is int and count > 0 and type(suite) is dict and gate.get('status') == 'PASS'
+            and type(gate.get('exit_code')) is int and gate['exit_code'] == 0 and gate.get('commit') == value['source_revision']
+            and gate.get('source_file_set_changes') == {} and all(gate.get(key) is True for key in ('source_unchanged','source_archive_exact_before','source_archive_unchanged'))
+            and suite.get('success') is True and suite.get('core_regressions_included') is True,
+            'Required new exact-source gate has not passed')
+    require(all(type(suite.get(key)) is int and suite[key] == count for key in ('planned', 'tests', 'passed'))
+            and all(type(suite.get(key)) is int and suite[key] == 0 for key in ('failures','errors','skipped','expected_failures','unexpected_successes')), 'Required new complete gate outcome/count differs')
+    require(artifact_identity(gate['source_archive']) == artifact_identity(package['artifacts']['source']), 'Strict source package differs')
+    before = verify_packages(package)
+    require(type(value['qualifier_pins']) is dict and set(value['qualifier_pins']) == set(QUALIFIERS), 'Exact three declared legacy routes required')
+    source = Path(package['artifacts']['source']['extracted'])
+    for name, expected in value['qualifier_pins'].items():
+        pin_shape(expected)
+        actual = file_pin(source / 'scripts' / name)
+        require(expected == actual, 'Frozen exact-source qualifier changed')
+    python = interpreter(value['python']); read_pin(value['validator'], 64 * 1024 * 1024)
+    run_root = literal(value['run_root'], absent=True)
+    require(run_root.parent == Path('/tmp') and run_root.name.startswith('intune-new-runtime-'), 'Use fresh task-owned /tmp namespace')
+    inputs = [Path(arguments.contract), Path(value['package_receipt']['path']), Path(value['strict_receipt']['path']),
+              *[Path(item['path']) for item in package['artifacts'].values()], *[Path(item['extracted']) for item in package['artifacts'].values()]]
+    require(all(run_root != path and run_root not in path.parents and path not in run_root.parents for path in inputs), 'Output overlaps preserved package/input namespace')
+    limits = value['limits']
+    require(type(limits) is dict and set(limits) == {'action_timeout_seconds','temporary_reserve_bytes','max_entries','max_file_bytes','max_total_bytes'}
+            and all(type(x) is int and x > 0 for x in limits.values())
+            and limits['action_timeout_seconds'] <= 1800 and limits['temporary_reserve_bytes'] >= 512 * 1024**2
+            and limits['max_entries'] <= 200000 and limits['max_file_bytes'] <= 1024**3 and limits['max_total_bytes'] <= 4 * 1024**3,
+            'Closed bounded qualification limits required')
+    return value, package, before, python, raw
+
+
+def census(roots, limits):
+    rows = {}; total = 0
+    def visit(path, name):
+        nonlocal total
+        info = path.lstat(); require(len(rows) < limits['max_entries'], 'Private output entry bound')
+        row = {'source_path': str(path), 'mode': info.st_mode, 'identity': list(identity(info))}
+        if stat.S_ISDIR(info.st_mode):
+            rows[name] = {**row, 'kind': 'directory'}
+            for child in sorted(path.iterdir()): visit(child, name + '/' + child.name)
+        elif stat.S_ISREG(info.st_mode):
+            found = file_pin(path, limits['max_file_bytes']); total += found['bytes']
+            require(total <= limits['max_total_bytes'], 'Private output byte bound')
+            rows[name] = {**row, 'kind': 'file', 'bytes': found['bytes'], 'sha256': found['sha256']}
+        elif stat.S_ISLNK(info.st_mode):
+            rows[name] = {**row, 'kind': 'literal_link', 'target_base64': base64.b64encode(os.readlink(os.fsencode(path))).decode()}
+        elif stat.S_ISSOCK(info.st_mode):
+            rows[name] = {**row, 'kind': 'runtime_socket_metadata', 'serialized_live_state': False}
+        else: raise ValueError('Unsupported special node retained in private raw root; no closure')
+        require(identity(info) == identity(path.lstat()), 'Private evidence changed during census')
+    for label, path in roots.items(): visit(literal(path, stat.S_IFDIR), label)
+    return {'entries': dict(sorted(rows.items())), 'regular_bytes': total}
+
+
+def seal(roots, output, limits):
+    before = census(roots, limits)
+    write_new(output / 'RAW-CENSUS-BEFORE.json', before)
+    capacity(output, before['regular_bytes'] + len(before['entries']) * 4096 + limits['temporary_reserve_bytes'])
+    archive = output / 'PRIVATE-OWNED-EVIDENCE.zip'
+    with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED, allowZip64=True) as packed:
+        for name, row in before['entries'].items():
+            rel = PurePosixPath(name)
+            require(not rel.is_absolute() and '..' not in rel.parts and '\\' not in name, 'Unsafe private capsule member')
+            directory = row['kind'] == 'directory'
+            item = zipfile.ZipInfo(name + ('/' if directory else ''), date_time=(1980,1,1,0,0,0))
+            item.create_system = 3; item.external_attr = row['mode'] << 16; item.compress_type = zipfile.ZIP_DEFLATED
+            if directory or row['kind'] == 'runtime_socket_metadata': packed.writestr(item,b'')
+            elif row['kind'] == 'literal_link': packed.writestr(item,base64.b64decode(row['target_base64'],validate=True))
+            else:
+                require(file_pin(row['source_path'])['sha256'] == row['sha256'], 'Capsule input changed')
+                packed.writestr(item, Path(row['source_path']).read_bytes())
+    seen = set()
+    with zipfile.ZipFile(archive) as packed:
+        for item in packed.infolist():
+            name = item.filename.rstrip('/') if item.is_dir() else item.filename
+            require(name not in seen and name in before['entries'], 'Duplicate/extra private capsule member'); seen.add(name)
+            row = before['entries'][name]; raw = packed.read(item)
+            require(stat.S_IFMT(item.external_attr >> 16) == stat.S_IFMT(row['mode']), 'Private capsule type changed')
+            if row['kind'] == 'file': require(len(raw) == row['bytes'] and hashlib.sha256(raw).hexdigest() == row['sha256'], 'Private capsule bytes differ')
+            elif row['kind'] == 'literal_link': require(raw == base64.b64decode(row['target_base64'],validate=True), 'Literal link payload differs')
+            else: require(raw == b'', 'Directory/socket marker payload differs')
+    require(seen == set(before['entries']), 'Private capsule membership incomplete')
+    after = census(roots,limits); write_new(output / 'RAW-CENSUS-AFTER.json',after); require(before == after, 'Owned raw evidence changed during sealing')
+    return {'status':'PASS_SCOPED_TYPED_OWNED_OUTPUT_CAPSULE','artifact':file_pin(archive),'members':len(seen),'raw_roots':{k:str(v) for k,v in roots.items()},
+            'public_suitable':False,'runnable_restore':False,'historical_loss_closed':False,
+            'omissions':['Workflow and terminal qualifiers delete their own TemporaryDirectory intermediates outside these owned roots; only their preserved parsed results/transcript and outer raw logs are covered.',
+                        'Source/runtime archives/extractions and native tools remain separately pinned, not recopied into this output capsule.',
+                        'Capsule, its census/receipt and later final result cannot contain their own final bytes; retained alongside.',
+                        'Filesystem socket nodes are typed namespace metadata only; no live connection state is serialized.']}
+
+
+def supervisor(runtime):
+    """Reuse the exact runtime's already repaired, bounded Linux group cleanup.
+
+    The direct child stays unreaped until that primitive confirms the original
+    group. This does not establish hostile-process containment or escaped groups.
+    Imports occur only after the exact package/gate contract has been admitted.
+    """
+    require(sys.platform == 'linux' and not any(name == 'intune_iac' or name.startswith('intune_iac.')
+            for name in sys.modules), 'Fresh Linux qualification interpreter required')
+    sys.path.insert(0, str(runtime))
+    result = importlib.import_module('intune_iac.protected')
+    require(Path(result.__file__).absolute() == runtime / 'intune_iac/protected.py', 'Selected runtime supervisor differs')
+    return result
+
+
+def invoke(command, source, env, out, name, selected, timeout):
+    process = None; primary = None; cleanup = {}; failures = []; code = None
+    with (out/(name+'.stdout')).open('xb') as so, (out/(name+'.stderr')).open('xb') as se:
+        try:
+            with selected._defer_spawn_interrupt(lambda: None) as child_guard:
+                process = subprocess.Popen(command,cwd=source,env=env,stdin=subprocess.DEVNULL,stdout=so,stderr=se,
+                    start_new_session=True,close_fds=True,preexec_fn=child_guard)
+            code = selected._wait_process_exit(process,deadline=time.monotonic()+timeout)
+        except BaseException as error:
+            primary = error
+        finally:
+            if process is not None:
+                try: selected._cleanup_process_group(process,evidence=cleanup)
+                except BaseException as error: failures.append(('qualifier_group_cleanup',error))
+            else: cleanup = {'status':'NOT_STARTED','scope':'No returned owned child reference'}
+            for stream in (so,se):
+                try: stream.flush();os.fsync(stream.fileno())
+                except BaseException as error: failures.append(('raw_log_flush',error))
+            try: write_new(out/(name+'.PROCESS.json'),{'exit_code':code,'cleanup':cleanup,
+                'secondary_failures':[{'stage':stage,'error_type':type(error).__name__,'error':str(error)} for stage,error in failures],
+                'scope':'Pinned runtime supervisor; original cooperative Linux group only, no host-containment claim.'})
+            except BaseException as error: failures.append(('process_receipt',error))
+            for stage,error in failures:
+                if primary is None: primary = error
+                else: primary.add_note('Secondary '+stage+': '+type(error).__name__+': '+str(error))
+    if primary is not None: raise primary
+    return code
+
+
+def main(arguments):
+    require(sys.flags.optimize == 0 and sys.flags.isolated and sys.dont_write_bytecode, 'Use selected unoptimized Python -I -B')
+    os.umask(0o077)
+    value, package, before, python, contract_raw = contract(arguments)
+    root = Path(value['run_root']); capacity(root.parent,value['limits']['temporary_reserve_bytes'] + 256 * 1024**2)
+    root.mkdir(mode=0o700); control=root/'control'; control.mkdir(mode=0o700); raw=root/'raw'; raw.mkdir(mode=0o700); capsule=root/'capsule'; capsule.mkdir(mode=0o700)
+    env={'PATH':'/usr/bin:/bin','LANG':'C.UTF-8','LC_ALL':'C.UTF-8','PYTHONDONTWRITEBYTECODE':'1','PYTHONNOUSERSITE':'1','INTUNE_TEST_VALIDATOR_LIBRARY':value['validator']['path']}
+    source=Path(package['artifacts']['source']['extracted']); runtime=Path(package['artifacts']['runtime']['extracted'])
+    primary=None; actions=[]; status='STARTED'; finalization=[]
+    try:
+        write_new(control/'CONTRACT.json',value);write_new(control/'PACKAGE-BEFORE.json',before)
+        selected = supervisor(runtime)
+        for name in QUALIFIERS:
+            capacity(root,value['limits']['temporary_reserve_bytes'] + 256 * 1024**2)
+            interpreter(value['python']); read_pin(value['package_receipt']); read_pin(value['strict_receipt']); read_pin(value['validator'],64*1024**2)
+            require(file_pin(source/'scripts'/name)==value['qualifier_pins'][name],'Qualifier changed before dispatch')
+            output=raw/name.removesuffix('.py'); require(not output.exists(),'Never requeue or overwrite qualifier output')
+            command=[python,'-B','-I',str(source/'scripts'/name),'--plugin',str(runtime),'--output',str(output)]
+            if name=='qualify-workbench-connected.py':command+=['--python',python]
+            write_new(control/(name+'.COMMAND.json'),{'argv':command,'cwd':str(source),'source_revision':value['source_revision'],'qualifier':value['qualifier_pins'][name],'modeled_scope_only':True})
+            code=invoke(command,source,env,control,name,selected,value['limits']['action_timeout_seconds'])
+            row={'procedure':name,'exit_code':code,'output':str(output)}; actions.append(row); write_new(control/(name+'.EXIT.json'),row)
+            require(code==0,'Qualifier failed; preserve output and stop further dispatch')
+        after=verify_packages(package);write_new(control/'PACKAGE-AFTER.json',after);require(after==before,'Exact package bytes/types changed during application qualification')
+        require(read_pin({'path':str(arguments.contract),'bytes':len(contract_raw),'sha256':arguments.contract_sha256}) == contract_raw,
+                'Exact qualification contract changed during execution')
+        interpreter(value['python']);read_pin(value['validator'],64*1024**2)
+        read_pin(value['package_receipt']);read_pin(value['strict_receipt'])
+        require(value['driver_sha256'] == file_pin(Path(__file__).absolute())['sha256'], 'Outer driver changed during execution')
+        status='PASS_SCOPED_EXACT_NEW_RUNTIME_MODELED_CLI_ROUTES'
+    except BaseException as error:
+        primary=error;status='FAIL'
+        try:write_new(control/'FAILURE.json',{'status':'FAIL','error_type':type(error).__name__,'error':str(error),'actions':actions,'no_further_dispatch':True})
+        except BaseException as secondary:error.add_note('Secondary primary failure recording: '+type(secondary).__name__+': '+str(secondary))
+    finally:
+        try:
+            receipt=seal({'control':control,'raw':raw},capsule,value['limits']);write_new(capsule/'CAPSULE-RECEIPT.json',receipt)
+        except BaseException as error:
+            finalization.append({'stage':'private_owned_capsule','error_type':type(error).__name__,'error':str(error)})
+            if primary is None:primary=error;status='FAIL_REQUIRED_PRESERVATION'
+            else:primary.add_note('Secondary private capsule preservation: '+str(error))
+        try:
+            write_new(root/'RESULT.json',{'schema_version':'intune-exact-new-runtime-qualification-result/1','status':status,'source_revision':value['source_revision'],'source_tree':value['source_tree'],
+                'contract_sha256':arguments.contract_sha256,'package_receipt':value['package_receipt'],'strict_receipt':value['strict_receipt'],'actions':actions,'finalization_errors':finalization,
+                'modeled_cli_scope_only':True,'new_core_factory_exercised':False,'independent_raw_admission_still_required':True,'native_platform_qualified':False,'production_approved':False,
+                'counts_nonadditive':'Executed procedures overlap strict suite and old flow definitions. Actual command/check/PTY and unique test counts require independent parsing; no inherited64/34/10 count asserted here.',
+                'complete_private_corpus':False,'raw_outputs_retained':True,'public_suitable':False})
+        except BaseException as error:
+            if primary is None:primary=error
+            else:primary.add_note('Secondary final result recording: '+str(error))
+    if primary is not None:raise primary
+    print(json.dumps({'status':status,'result':file_pin(root/'RESULT.json'),'private_capsule_receipt':file_pin(capsule/'CAPSULE-RECEIPT.json')}))
+
+
+if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--contract',type=Path,required=True);parser.add_argument('--contract-sha256',required=True)
+    main(parser.parse_args())

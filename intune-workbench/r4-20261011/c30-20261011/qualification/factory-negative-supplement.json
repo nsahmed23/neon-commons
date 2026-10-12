@@ -1,0 +1,102 @@
+{
+  "actual_application_assertions": 50,
+  "actual_negative_rejections": 6,
+  "actual_result_sha256": "b128766913530b1f3eca56e4b221983560048ecfcaafd0be045f7a8b3d07d2fd",
+  "actual_root_exit_code": 0,
+  "actual_separate_outer_stdout_stderr_retained": true,
+  "actual_text_commands": 11,
+  "all_six_private_authority_pairs_durable": true,
+  "authority_pair_scope": "Direct private readonly SQL rows/columns for jobs,ownership,consumed,events,native_lease_recoveries; absent native table explicitly null. First three controls equal held original authority; changed host control equals separately captured intentionally bad phase; final two equal already converged authority. Exact codes and literal AppError records retained. No dispatch, nonce, ownership, event or fabricated lease changes from rejected calls.",
+  "complete_focused_owned_root_durable": true,
+  "complete_private_R4_corpus": false,
+  "complete_runtime_raw_durable": false,
+  "counts_are_nonadditive": "Same50 application assertions/11 text commands/6 controls overlap original02, fixture19/affected123/strict2326 and other journey assertions. They are not summed. Independent4399 byte/path/raw assertions are metadata checks, not product tests.",
+  "demonstrated": "Exact new runtime completion factory and independently reopened service reconciliation, atomic local captured-batch publication, persistent store/history reopening and actual service/status/attach/workbench text routes.Original nonce retained, two reservations released once, one dispatch and one actual reconciliation event. Full raw captured fields/null/types/order and state bytes retained.",
+  "exact_source_admission_sha256": "a69586880ef65c2bd8ead7784c7c682593640970bdb931de10f9153eec5071b2",
+  "focused_root_typed_nodes": 142,
+  "full_independent_result": {
+    "bytes": 46042,
+    "public_suitable": false,
+    "sha256": "22d3a053ac50d176c07e9f787b7b4276fe1d9e992f04d00642577280c01e3e15"
+  },
+  "global_laboratory_complete": false,
+  "independent_method": "Stdlib-only raw byte/typed JSON assertions, copied-only SQLite integrity and explicit rows, actual retained text streams, exact package ZIP/extraction and import origins, durable private focused archive membership. No product normalizer or duplicate application run.",
+  "independently_asserted_negative_pair_count": 6,
+  "limitations": [
+    "Historical controller/approval/nonce/host, receiving observation context, OAuth/principal and Graph transport are modeled fixtures, not native or live platform evidence",
+    "Full exited-process observing native-map inventory is not independently reconstructed from a digest; actual module/source/receipt and artifact origin bytes are bound",
+    "G11 remains blocked: complete larger runtime raw/capsule is only in temporary storage; legacy deleted TemporaryDirectory and historical provenance omissions remain",
+    "Separate native lifecycle/no-change plan, real scheduling/host/service/backend/CI/device/Windows/AppSec and accountable organizational decision are required",
+    "All six private raw pairs now independently checked for exact frozen04 only. They concern explicitly modeled historical authority and do not establish native lease recovery or live service/device effectiveness.",
+    "This disposition does not close historical provenance gaps or omitted large runtime/deleted intermediary preservation."
+  ],
+  "native_capacity_gate_waived": false,
+  "negative_controls_independently_asserted": true,
+  "observed_negative_controls": [
+    {
+      "error_code": "lease_recovery_observation_changed_or_stale",
+      "id": "stale_sealed_observation",
+      "independently_asserted": true
+    },
+    {
+      "error_code": "service_readback_capability_required",
+      "id": "json_readback_not_capability",
+      "independently_asserted": true
+    },
+    {
+      "error_code": "completed_readback_observer_implementation_changed",
+      "id": "modeled_observer_inventory_substitution",
+      "independently_asserted": true
+    },
+    {
+      "error_code": "completed_readback_known_host_result_required",
+      "id": "changed_modeled_host_outcome",
+      "independently_asserted": true
+    },
+    {
+      "error_code": "completed_readback_known_host_authority_required",
+      "id": "reconcile_replay_rejected",
+      "independently_asserted": true
+    },
+    {
+      "error_code": "completed_readback_known_host_authority_required",
+      "id": "post_convergence_capture_accessor_rejected",
+      "independently_asserted": true
+    }
+  ],
+  "original_SQL_opened_by_reviewer": false,
+  "platform_qualified": false,
+  "preserved_before_and_after": "Original02 actual positive scope and missing-pair limitation remain immutable. Source03 original-cause replacement finding db90 remains, never application-run. Source04 repair passes nine distinct detached controls and this separately bound actual run retains/asserts all six raw authority pairs. Earlier reviewer-only overlapping count and adaptive missing-path lookup are preserved.",
+  "prior02_public_metadata_sha256": "88112abf7b53dc2b5547b153bb790fb5d39acc41d57ed61847c0d766bbb2541a",
+  "private_capsule_uploaded": false,
+  "private_preservation_archive": {
+    "bytes": 184980,
+    "sha256": "8808400c20628195f1137e83e51d39850aa82d62137dc19c248da9b400246b6d"
+  },
+  "private_preservation_receipt_sha256": "aeb9e86afdd1fa0e0a16b6f2aaad23b615ac2b4863cd33577bff7d7b679a5b71",
+  "production_approved": false,
+  "public_selected_raw_payloads": false,
+  "qualifier": {
+    "bytes": 43840,
+    "sha256": "83a6a4299837d82ac1e5cb88fb5fd904640d287683b200e936c5359ea1453dd7"
+  },
+  "raw_negative_pair_publication": false,
+  "recipe_contract": {
+    "bytes": 1924,
+    "sha256": "f3d793896f49d5e51778c372fa53db28f2604623ce41aba3ce3aaded7d3bbb76"
+  },
+  "reviewer_application_reruns": 0,
+  "reviewer_native_dispatches": 0,
+  "root_launch_receipt_sha256": "42db21b0d80bea9cff0f7e3da1dcbf95fb214c76b1a5d4820ef592c056da406b",
+  "runtime_archive": {
+    "bytes": 1630724,
+    "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+  },
+  "schema": "public-independent-C30-focused04-known-completed-actual-journey-admission/1",
+  "source_archive": {
+    "bytes": 18454404,
+    "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+  },
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "status": "PASS_SCOPED_LOCAL_PACKAGED_APPLICATION_JOURNEY_INDEPENDENT_RAW_REVIEW"
+}
