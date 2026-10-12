@@ -1,0 +1,207 @@
+{
+  "schema_version": "public-C32-original-storage-and-export-boundary/1",
+  "recorded_at": "2026-10-12T21:40:22.498213+00:00",
+  "status": "BLOCKED",
+  "source_commit": "5d81867490938f6499fe719dbd1a5079782a77a4",
+  "tested_engine": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "package_version": "0.9.0",
+  "managed_instance_id": "ccarenv_b64_Y2NhcmVudl9lODBjZTc1OWUzYWM4MTkxYTMwZTE3ZTk5MzFjODM1OA",
+  "managed_observed_revision": 129,
+  "environment_scope": "Original retained Intune execution environment; not another chat sandbox. This instance observation does not enumerate all connector credentials.",
+  "storage": {
+    "recorded_at": "2026-10-12T21:40:22.498213+00:00",
+    "executing_uid": 1000,
+    "executing_gid": 1000,
+    "paths_on_same_overlay": [
+      "/workspace",
+      "/workspace/intune-continuation/work/projects/intune",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r4"
+    ],
+    "device": 27,
+    "block_size_bytes": 4096,
+    "executing_account_available_bytes": 4116480,
+    "filesystem_free_bytes_not_account_available": 1738878976,
+    "executing_account_available_inodes": 1833430,
+    "filesystem_type": "overlay",
+    "quota_or_reserved_block_explanation": "UNVERIFIED; underlying overlay host mounts are not visible and quota tools are absent.",
+    "access_scope": "An actual 42-byte private create/fsync/readback probe passed; no inode or write-permission failure established.",
+    "persistence_scope": "Original /workspace and same managed instance survived this resumption; no guaranteed disaster or cross-session archive retention established.",
+    "tmpfs": {
+      "path": "/tmp",
+      "device": 33,
+      "available_bytes": 5592031232,
+      "retention_qualified": false,
+      "prior_original_tmp_namespace_currently_absent": true
+    },
+    "account_display": "User-reported 4.11 GB / 100 GB account allocation; not execution filesystem, mounted destination, permission or retrieval evidence."
+  },
+  "sealed_available_corpus": {
+    "status": "PASS",
+    "scope": "Available four roots at recorded snapshot cutoff only; not complete original historical/current private recovery.",
+    "archive_parent": "/tmp/intune-C32-available-private-evidence-20261012-01",
+    "main_raw_regular_bytes": 3893135483,
+    "archive_set_bytes": 1535392547,
+    "archive_layer_pins": [
+      {
+        "label": "r4-evidence",
+        "archive": {
+          "bytes": 1469518188,
+          "sha256": "7bbc9f88eee9b4c417f622fb76cb5e2c0b0d4790d5b7cceaa2ae661ce2012ad7"
+        },
+        "manifest_sha256": "9f53658f8b795e136d32baab6d7043741a81cd6450e9d640489fb01a97610fb1",
+        "regular_bytes": 3893135483,
+        "literal_symlinks": 640,
+        "IPC_metadata_count": 8
+      },
+      {
+        "label": "provider-candidates",
+        "archive": {
+          "bytes": 9849950,
+          "sha256": "755b9f4f8d29e562f476fc7e1f3bb8f376fd0fbfbeabe7a8e7e7ec78099280c7"
+        },
+        "manifest_sha256": "bccf1c15dcda000ebeae37f1c23de016233d062d8a0edcf535b39f67ffd99fa6",
+        "regular_bytes": 27278816,
+        "literal_symlinks": 0,
+        "IPC_metadata_count": 0
+      },
+      {
+        "label": "current-diagnostic-scratch",
+        "archive": {
+          "bytes": 14485539,
+          "sha256": "60960f3760f24893e7114185d5d14ee7ab3e35e1fc17008097d2b6eecc83e939"
+        },
+        "manifest_sha256": "43ef5e7852f9e2be9878cfc17ef096182d166fc693b970333828e54e11f7b992",
+        "regular_bytes": 211637515,
+        "literal_symlinks": 0,
+        "IPC_metadata_count": 0
+      },
+      {
+        "label": "current-exact-artifact-scratch",
+        "archive": {
+          "bytes": 41538870,
+          "sha256": "c221c1410d905806275dc3ea72c2793db83839816d112d4d3095e3bbe4819add"
+        },
+        "manifest_sha256": "5d8b84ecc1c8bf9690fa0cbfa0012650430e36f302f4982969a04366b7984c2e",
+        "regular_bytes": 92457055,
+        "literal_symlinks": 0,
+        "IPC_metadata_count": 0
+      }
+    ],
+    "source_changes": "Frozen source pre/post census and qualified builder verification; originals unchanged at snapshot cutoff.",
+    "ipc_omissions": "Eight FIFOs retained in originals and explicitly represented as metadata-only; not runnable IPC restoration.",
+    "post_cutoff_records": "Stop, independent disposition, missing-original register and this administrative delta remain separately retained. Include them as an explicit small amendment in any future export; do not silently call the four ZIPs the entire subsequently updated corpus.",
+    "temporary_only": true
+  },
+  "restore": {
+    "status": "FAIL",
+    "scope": "First temporary restore interrupted on latest user export-first steering; no complete receiving verification.",
+    "restorer_exit_code": -2,
+    "wrapper_exit_code": 1,
+    "error": "KeyboardInterrupt",
+    "completed_full_restore_receipts": 0,
+    "partial_retained_path": "/tmp/intune-C32-available-private-evidence-20261012-01/r4-evidence-restored",
+    "qualified_archive_or_restore_writers_active": 0,
+    "root_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/SNAPSHOT-ROOT-ACTUAL.json",
+      "bytes": 14576,
+      "sha256": "d3f6736c3ec87d7d1ae9a06d5048f377a612ac2848241db469efbdc7d4aa1fc0"
+    },
+    "stop_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/EXPORT-BOUNDARY-STOP.json",
+      "bytes": 12467,
+      "sha256": "f7d101cd10c90306dc07463eaa20c4c017f3218a7db9f29f7198dbbcf462b856"
+    }
+  },
+  "export": {
+    "status": "BLOCKED",
+    "save": "NOT_STARTED",
+    "retrieve": "NOT_STARTED",
+    "receiver_restore": "NOT_STARTED",
+    "persistent_identifier": null,
+    "Library_roundtrip": false,
+    "cross_session_recovery_demonstrated": false,
+    "specific_blocker": "No approved exact private destination with validated write, binary raw-readback/materialization, permissions, retention and receiving capacity.",
+    "Library_contract": "Page-bound upload supports <=10 MiB but ZIP binary readback is explicitly unsupported. No generic Library binary archive save/retrieve route is exposed.",
+    "Drive_contract": "New-file host-payload upload and raw streaming fetch contracts exist, but no approved folder/classification/ACL/quota/retention or materialized raw readback has been tested. No remote calls performed.",
+    "receiving_capacity": {
+      "example_all_layers_actual_rounded_restore_bytes": 4605972480,
+      "example_archive_one_set_rounded_bytes": 1535401984,
+      "example_block_size_bytes": 4096,
+      "example_required_additional_receiving_bytes": 7827771392,
+      "example_two_archive_sets_rounded_bytes": 3070803968,
+      "formula": "2*sum(ceil(archive_bytes/receiver_block_size)*receiver_block_size) + full restore allocation at receiver block size (all regular/hardlink copies, directories, literal links, exact manifests, structural dirs) + mandatory retained reserve + separate control/receipt metadata allocation",
+      "is_actual_approved_receiver_capacity": false,
+      "mandatory_snapshot_retained_reserve_bytes": 134217728,
+      "native_performance_receiving_reserves_unchanged": true,
+      "omitted_restoration_receipt_actual_sizes": "No completed restore; independent control-metadata reserve retained rather than inventing receipt bytes.",
+      "separate_control_receipt_stdio_metadata_reserve_bytes": 16777216
+    },
+    "smallest_missing_input": "User/evidence owner selects an existing approved private folder with actual binary write/raw-readback support, or a persistent receiving filesystem in the original environment. No new credentials/services/access changes.",
+    "next_procedure": "Validate destination authorization/classification/access/retention and actual quota/block size; qualify bounded nonsensitive exact-byte transfer/readback; then transfer all four retained layers plus explicit post-cutoff amendment, verify full archive sizes/hashes, retain authoritative typed manifests, safely restore fresh receiving paths and independently compare every required node/metadata. Same-session byte equality is separate from cross-session retention."
+  },
+  "release_packages": {
+    "status": "PASS",
+    "scope": "Fresh recovery of already published exact source/runtime bytes and qualified safe extraction only; no rebuild or qualification rerun.",
+    "root": "/tmp/intune-C32-required-artifacts-20261012-01",
+    "source_bytes": 18454404,
+    "source_sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7",
+    "runtime_bytes": 1630724,
+    "runtime_sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891",
+    "recovery_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/PACKAGE-RECOVERY.json",
+      "bytes": 1996,
+      "sha256": "1ee8f2ce9deb3ff0e1590a8260525c7663cf74dd32d1e1ec2e69ea646ab822ad"
+    },
+    "extraction_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/PACKAGE-EXTRACTION.json",
+      "bytes": 3117,
+      "sha256": "3f49a0446bb882060d7dff25548b699f288669b89ce9e735ead99ee42956c457"
+    }
+  },
+  "laboratory_procedures": {
+    "performance_source": {
+      "status": "NOT_STARTED",
+      "admission": "BLOCKED",
+      "samples": 0
+    },
+    "performance_runtime": {
+      "status": "NOT_STARTED",
+      "admission": "BLOCKED",
+      "samples": 0
+    },
+    "normal32": {
+      "status": "NOT_STARTED",
+      "admission": "BLOCKED"
+    },
+    "additional32": {
+      "status": "NOT_STARTED",
+      "admission": "BLOCKED"
+    },
+    "ordinary_timing4": {
+      "status": "NOT_STARTED",
+      "admission": "BLOCKED"
+    },
+    "final_source_observer": {
+      "status": "NOT_STARTED",
+      "admission": "BLOCKED"
+    },
+    "missing_performance": "Persistent receiving capacity, original <=32 MiB complete-capsule / capsule+32 MiB admission, exact restored recipe/dependencies and genuine quiet measurement window with per-lane root GO.",
+    "missing_native": "33,619,968-byte unchanged persistent receiving reserve, genuinely observed current receiving identity/state/lease/reservations, applicable fresh approval, four genuine fault witnesses, final closed READY/profile/outer independent admission and root GO. Do not replay consumed writes or manufacture a release.",
+    "reused": "Thirteen surviving sealed prerequisite archives verified; separate da502 runtime aggregate / ca13 envelope / 61cdb admission complete and reused. No whole suite, application journey or native/performance run repeated.",
+    "original_native_failure": "Historical 38 planned / 6 attempted / 5 completed / 32 not attempted; policy PUT204 / assignment403 / state13 / unknown outcome / held lease and two reservations remain historical, not current live observations."
+  },
+  "G13": {
+    "status": "BLOCKED",
+    "alternate_attempts": 0,
+    "denial": "Automatic approval review rejected the isolated malformed-error provider repair citing possible cybersecurity risk. No specific command or fuller reason was exposed.",
+    "owner": "Provider maintainer and execution-policy/AppSec owner",
+    "next_action": "Owner supplies a reviewed disposition or explicit applicable authorization for the existing denied boundary; no equivalent command, transport or privilege bypass."
+  },
+  "outcomes": {
+    "laboratory_complete": false,
+    "platform_qualified": false,
+    "production_approved": false
+  },
+  "public_metadata_suitable": true,
+  "publication_excludes": "Private archive payloads, raw member manifests/names, capture/state/plan/key/approval material, restored content and private controls."
+}

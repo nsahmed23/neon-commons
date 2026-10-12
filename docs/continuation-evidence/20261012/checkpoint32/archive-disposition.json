@@ -1,0 +1,166 @@
+{
+  "G13_denied_boundary_unchanged": true,
+  "all_four_archive_builds_completed_before_user_stop": true,
+  "archive_location_class": "TEMPORARY_TMPFS_ONLY",
+  "archive_set_total_bytes": 1535392547,
+  "complete_current_original_private_evidence": false,
+  "durable_receiver": {
+    "actual_receiver_block_size": null,
+    "actual_receiving_path": null,
+    "authorized_environment_selected": false,
+    "status": "NOT_VALIDATED"
+  },
+  "engineering_revision": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "historical_missing_roots_or_provenance_closed": false,
+  "laboratory_complete": false,
+  "layers": [
+    {
+      "IPC_metadata_count": 8,
+      "IPC_types": [
+        "fifo"
+      ],
+      "actual_rounded_restore_payload_manifest_and_dirs_at_4096": 4235362304,
+      "all_regular_payload_CRC_or_SHA_rechecked_here": false,
+      "archive": {
+        "bytes": 1469518188,
+        "sha256": "7bbc9f88eee9b4c417f622fb76cb5e2c0b0d4790d5b7cceaa2ae661ce2012ad7"
+      },
+      "archive_member_count": 101744,
+      "archive_status": "PASS_TMP_ONLY_EXACT_DIGEST_AND_TYPED_MANIFEST",
+      "builder_receipt_sha256": "21c10ba712bb77e39c4a998928e32eab7f1d1a51cc7ce7d8394d63aaa3fe0aee",
+      "directories_including_three_structural": 18988,
+      "label": "r4-evidence",
+      "literal_link_payload_bytes_independently_verified": 26003,
+      "literal_symlinks": 640,
+      "manifest_CRC_SHA_type_full_namespace_and_literal_links_independently_checked": true,
+      "manifest_bytes": 35983862,
+      "manifest_sha256": "9f53658f8b795e136d32baab6d7043741a81cd6450e9d640489fb01a97610fb1",
+      "regular_bytes": 3893135483,
+      "regular_files": 82115
+    },
+    {
+      "IPC_metadata_count": 0,
+      "IPC_types": [],
+      "actual_rounded_restore_payload_manifest_and_dirs_at_4096": 53383168,
+      "all_regular_payload_CRC_or_SHA_rechecked_here": false,
+      "archive": {
+        "bytes": 9849950,
+        "sha256": "755b9f4f8d29e562f476fc7e1f3bb8f376fd0fbfbeabe7a8e7e7ec78099280c7"
+      },
+      "archive_member_count": 7620,
+      "archive_status": "PASS_TMP_ONLY_EXACT_DIGEST_AND_TYPED_MANIFEST",
+      "builder_receipt_sha256": "e6d56171467b72f1f3c7f236da43c9a4b83170895af9faa272c06ec9cc022f84",
+      "directories_including_three_structural": 1885,
+      "label": "provider-candidates",
+      "literal_link_payload_bytes_independently_verified": 0,
+      "literal_symlinks": 0,
+      "manifest_CRC_SHA_type_full_namespace_and_literal_links_independently_checked": true,
+      "manifest_bytes": 2875760,
+      "manifest_sha256": "bccf1c15dcda000ebeae37f1c23de016233d062d8a0edcf535b39f67ffd99fa6",
+      "regular_bytes": 27278816,
+      "regular_files": 5734
+    },
+    {
+      "IPC_metadata_count": 0,
+      "IPC_types": [],
+      "actual_rounded_restore_payload_manifest_and_dirs_at_4096": 211681280,
+      "all_regular_payload_CRC_or_SHA_rechecked_here": false,
+      "archive": {
+        "bytes": 14485539,
+        "sha256": "60960f3760f24893e7114185d5d14ee7ab3e35e1fc17008097d2b6eecc83e939"
+      },
+      "archive_member_count": 12,
+      "archive_status": "PASS_TMP_ONLY_EXACT_DIGEST_AND_TYPED_MANIFEST",
+      "builder_receipt_sha256": "31e08a8fbc3fbd123e8ec9b3b16ebf879c2ef56832031146767b9f10e0e5f243",
+      "directories_including_three_structural": 3,
+      "label": "current-diagnostic-scratch",
+      "literal_link_payload_bytes_independently_verified": 0,
+      "literal_symlinks": 0,
+      "manifest_CRC_SHA_type_full_namespace_and_literal_links_independently_checked": true,
+      "manifest_bytes": 5496,
+      "manifest_sha256": "43ef5e7852f9e2be9878cfc17ef096182d166fc693b970333828e54e11f7b992",
+      "regular_bytes": 211637515,
+      "regular_files": 8
+    },
+    {
+      "IPC_metadata_count": 0,
+      "IPC_types": [],
+      "actual_rounded_restore_payload_manifest_and_dirs_at_4096": 105545728,
+      "all_regular_payload_CRC_or_SHA_rechecked_here": false,
+      "archive": {
+        "bytes": 41538870,
+        "sha256": "c221c1410d905806275dc3ea72c2793db83839816d112d4d3095e3bbe4819add"
+      },
+      "archive_member_count": 4436,
+      "archive_status": "PASS_TMP_ONLY_EXACT_DIGEST_AND_TYPED_MANIFEST",
+      "builder_receipt_sha256": "a1c2c1fcabdcb01df48d17e099656bad10571f6e5434871cfa578609a7559b02",
+      "directories_including_three_structural": 664,
+      "label": "current-exact-artifact-scratch",
+      "literal_link_payload_bytes_independently_verified": 0,
+      "literal_symlinks": 0,
+      "manifest_CRC_SHA_type_full_namespace_and_literal_links_independently_checked": true,
+      "manifest_bytes": 1677589,
+      "manifest_sha256": "5d8b84ecc1c8bf9690fa0cbfa0012650430e36f302f4982969a04366b7984c2e",
+      "regular_bytes": 92457055,
+      "regular_files": 3771
+    }
+  ],
+  "limitations": [
+    "Streamed ZIP digest and metadata controls reuse qualified builder full CRC/payload-verification receipt; no second full4GB source read or independent all-regular payload CRC/SHA pass is claimed.",
+    "Only currently AVAILABLE roots at recorded cutoff. Missing originaldd9/current raw/history not reconstructed; tmpfs is not durable and no Library transfer occurred.",
+    "All large writes/restores/native/performance/provider work stopped under new user steering; this is read-only disposition.",
+    "Actual Library capability receipt remains a separate prerequisite; this review does not create or validate any external route."
+  ],
+  "original_dd9_runtime_capsule_recovered": false,
+  "platform_qualified": false,
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "public_selection_excludes": [
+    "Archive payloads, raw manifests/member names, literal target strings, private state/plans/captures/keys/approvals/nonce, partial restored contents and private control transcripts."
+  ],
+  "receiving_capacity_formula": {
+    "example_all_layers_actual_rounded_restore_bytes": 4605972480,
+    "example_archive_one_set_rounded_bytes": 1535401984,
+    "example_block_size_bytes": 4096,
+    "example_required_additional_receiving_bytes": 7827771392,
+    "example_two_archive_sets_rounded_bytes": 3070803968,
+    "formula": "2*sum(ceil(archive_bytes/receiver_block_size)*receiver_block_size) + full restore allocation at receiver block size (all regular/hardlink copies, directories, literal links, exact manifests, structural dirs) + mandatory retained reserve + separate control/receipt metadata allocation",
+    "is_actual_approved_receiver_capacity": false,
+    "mandatory_snapshot_retained_reserve_bytes": 134217728,
+    "native_performance_receiving_reserves_unchanged": true,
+    "omitted_restoration_receipt_actual_sizes": "No completed restore; independent control-metadata reserve retained rather than inventing receipt bytes.",
+    "separate_control_receipt_stdio_metadata_reserve_bytes": 16777216
+  },
+  "recorded_at": "2026-10-12T21:31:31.086475+00:00",
+  "required_next_action": "Obtain the smallest specific authorized export/receiving route and validate actual platform/file-size limits, access/retention/receiving free space. Complete no further large operation before that decision; retain existing archives and partial failure. Future verified export requires actual exact-size/hash readback and authorized receiving restore with independent assertions.",
+  "restore": {
+    "child_result_sha256": "0d561c5eb1fe0ee97b5a50ae4acdfad43d296f5e56468c7d4152e8b16171535c",
+    "completed_full_restore_receipts": 0,
+    "error_class": "KeyboardInterrupt",
+    "new_restore_attempts_by_reviewer": 0,
+    "partial_restore_retained": true,
+    "qualified_archive_restore_writers_active_at_review": 0,
+    "qualified_restorer_exit_code": -2,
+    "root_result_provisional": true,
+    "root_wrapper_exit_code": 1,
+    "status": "FAIL_INTERRUPTED_PRESERVED"
+  },
+  "reviewer": "branch_source_review",
+  "root_actual_receipt": {
+    "bytes": 14576,
+    "sha256": "d3f6736c3ec87d7d1ae9a06d5048f377a612ac2848241db469efbdc7d4aa1fc0"
+  },
+  "schema": "public-independent-C32-available-archive-and-interruption-disposition/1",
+  "scope": "Read-only streaming SHA256 of four actual stable ZIPs and independent typed manifest/member namespace/declared bytes/hashes/literal links. No source payload rehash, extraction, writer, product/native/performance/provider/remote transfer.",
+  "source_commit_at_original_procedure": "5d81867490938f6499fe719dbd1a5079782a77a4",
+  "status": "PASS_SCOPED_ARCHIVE_INTEGRITY_RESTORE_FAILED_INTERRUPTED_EXPORT_UNQUALIFIED",
+  "verified_export": {
+    "Drive_folder_route_authorized": false,
+    "Library_route_validated": false,
+    "archive_hash_matches_remote_delivery": false,
+    "remote_calls_by_reviewer": 0,
+    "saved_upload_or_receiving_readback": false,
+    "status": "NOT_VALIDATED"
+  },
+  "wrapper_sha256": "4cdbdadde012b1aacaa3797035045d976354d5f4756aace04f405074120d6d68"
+}

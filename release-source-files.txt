@@ -3592,3 +3592,7 @@ docs/continuation-evidence/20261012/checkpoint31/reuse/dependency-closure.json
 docs/continuation-evidence/20261012/checkpoint31/reuse/independent-admission.json
 docs/continuation-evidence/20261012/checkpoint31/runtime-source/qualify-new-runtime.py.txt
 docs/continuation-evidence/20261012/checkpoint31/runtime-source/source-admission.json
+docs/continuation-evidence/20261012/checkpoint32/archive-disposition.json
+docs/continuation-evidence/20261012/checkpoint32/library-contract.json
+docs/continuation-evidence/20261012/checkpoint32/missing-originals.json
+docs/continuation-evidence/20261012/checkpoint32/storage-export-result.json

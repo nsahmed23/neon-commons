@@ -1,0 +1,41 @@
+{
+  "schema_version": "public-C32-missing-originals-and-availability-disposition/1",
+  "recorded_at": "2026-10-12T21:40:22.498213+00:00",
+  "status": "FAIL",
+  "scope": "Availability of exact previously declared originals; prior successful qualification retains its historical scope.",
+  "entries": [
+    {
+      "id": "C30-COMPLETE-RUNTIME-ARCHIVE",
+      "original_path": "/tmp/intune-new-runtime-C30-20261011-01/capsule/PRIVATE-OWNED-EVIDENCE.zip",
+      "bytes": 46862494,
+      "sha256": "dd9bcbc6ac26c4bb5e211105b9da5ba0c07a5f27c340425d5129d375e648f8d9",
+      "current_lexists": false,
+      "previously_recorded_raw_bytes": 127129860,
+      "current_raw_bytes_remeasured": false
+    },
+    {
+      "id": "C30-COMPLETE-OWNED-OBSERVER-REVIEW",
+      "original_path": "/tmp/intune-C30-observer-owned-review-capsule-20261012-01/COMPLETE-OWNED-OBSERVER-REVIEW.zip",
+      "bytes": 50239,
+      "sha256": "ad049bf5c4c00219811f897d811f91777d111457bfbff20165169e0266a45999",
+      "current_lexists": false
+    }
+  ],
+  "other_originals": "Full private aggregate-reader result (21,008 bytes) and its temporary raw-control namespace were not durably retained; selected public metadata/envelope/admission is narrower.",
+  "historical_open_findings": "265 missing roots / 39 references, lost original Git error stream, unexpected files/reappearance, actor/helper attribution and Wally negative/inconclusive findings remain unresolved.",
+  "transitive_missing_TMP_literals": 1908,
+  "reference_count_scope": "Historical, modeled, planned and duplicate locations are included; not 1908 newly lost required jobs.",
+  "owner": "Original environment/evidence custodian",
+  "next_action": "Recover exact originals from an existing approved snapshot/export and verify original pins and member manifest; otherwise obtain an accountable scoped loss disposition. Do not rerun and label new evidence recovered.",
+  "private_register": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/MISSING-ORIGINALS.json",
+    "bytes": 1990,
+    "sha256": "f61b0c6a6b3ec3274bca76cf1e12cd519f0b66220bf4cf7deb714e13a2f5cbe1"
+  },
+  "private_audit": {
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/audit/FINAL-AUDIT.json",
+    "bytes": 55266,
+    "sha256": "d44ba132f2bf3af21de9f4fa432113849a82a133f0b7f33c39977bae06800bf2"
+  },
+  "public_metadata_suitable": true
+}

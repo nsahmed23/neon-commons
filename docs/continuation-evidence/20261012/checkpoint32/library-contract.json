@@ -1,0 +1,42 @@
+{
+  "archive_preservation_qualified": false,
+  "contract_snapshot": {
+    "bytes": 32156,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C32-library-contract-20261012-01/CONTRACT-SNAPSHOT.json",
+    "sha256": "191c1eb36b4c6882a1eae18957f75ae7e73b420f6531a96aaaf505524ad1e44d"
+  },
+  "current_exposed_tool_count": 553,
+  "drive_host_file_annotation_note": "The upload schema declares file_uri:string and annotates an absolute local path as host-supplied file payload; older prose also describes a structured runtime reference. Do not invent IDs or manually substitute unsupported shapes. This note alone is not a reason to deny the declared upload capability. Exact runtime-reference materialization and whole-byte readback remain to be demonstrated after destination authorization.",
+  "library_specific_archive_write_readback_gate": "BLOCKED",
+  "original_failures_preserved": "Initial63-match metadata discovery output truncated49095tokens is explicitly recorded as incomplete; final14 full contracts are independently pinned. No connector operation failed because none was attempted.",
+  "platform_qualified": false,
+  "precise_findings": [
+    "No directly exposed generic Library binary archive upload/download/quota/retention or FileService materializer; no tool-search/browser tool in this current exposed inventory. This does not prove backend absence.",
+    "Page writer uploads selected files<=10MiB and returns an opaque persistent Files reference+bytehash; it is not merely a pointer writer or image-only writer. Page archive ZIP readback is explicitly unsupported, and canonical Files destination is Page-bound.",
+    "Artifact image upload supports PNG/JPEG/GIF/WebP,10MiB each/16MiB total. HTML Library-backed visualization is limited to256KiB UTF8; neither qualifies archive preservation.",
+    "download_file is only Sediment uploaded-file retrieval<=32MiB and explicitly not FileService IDs.",
+    "GoogleDrive is a separate alternative with new-file upload and complete raw-fetch streaming to a user-scoped runtime file_uri, but no approved exact folder/classification/ACL/quota/retention or tested large-archive roundtrip exists. Native files.export10MB is distinct from raw files.download.",
+    "GitHub download artifacts/fetch are reads, not an authorized private preservation destination. Existing public source/runtime approval does not cover private state/plans/keys/captures. Sites upload is Site-specific deployment output, not generic corpus storage.",
+    "User/account100GB is not execution-filesystem capacity, per-tool size support or permission to relocate restricted corpus. No account-capacity tool result was obtained."
+  ],
+  "prepared_next_procedure": "Root records target/ACL/retention/encryption/recovery and actual capacity, qualifies an authorized bounded known-byte roundtrip, then saves approved archive manifest and verifies all receiving/readback bytes+hashes. No transfer should be claimed complete from metadata-only digest inspection.",
+  "production_approved": false,
+  "public_metadata_suitable": true,
+  "raw_user_payload_or_credentials_included": false,
+  "remote_calls_or_user_file_reads": 0,
+  "review_result": {
+    "bytes": 12306,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C32-library-contract-20261012-01/RESULT.json",
+    "sha256": "bfda11a918943f10c4b2abaf162f073a7474bb2f28a78b19b032cb42b9e60f04"
+  },
+  "reviewer": {
+    "bytes": 14513,
+    "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/independent/C32-library-contract-20261012-01/review_contracts.py",
+    "sha256": "dfd538f227ffa1b94650dd95aa8c7f955297ae3698cc6cd7718407d92bb469c0"
+  },
+  "schema_version": "public-independent-C32-library-archive-capability-receipt/1",
+  "selected_full_callable_contracts": 14,
+  "sharing_or_access_changes": 0,
+  "smallest_missing_decision": "Select/approve exact private preservation destination/container and applicable corpus classification, with documented ZIP write and exact-byte retrieval support. If mandatory ChatGPT Library, expose/confirm that binary interface or provide user-controlled verified transfer; do not silently substitute Drive.",
+  "status": "PASS_SCOPED_EXPOSED_CONTRACT_RECONCILIATION_ONLY"
+}

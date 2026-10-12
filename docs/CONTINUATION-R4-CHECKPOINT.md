@@ -1,3 +1,39 @@
+# C32 original-storage and export-boundary checkpoint — 2026-10-12
+
+Administrative parent **5d81867490938f6499fe719dbd1a5079782a77a4** was verified on continuation/r4-20261007. The actual containing C32 Git commit and separate root delivery receipt establish this document's identity; no future commit is invented here. This change is public-safe administrative metadata only, distinct from engine/package qualification and private export.
+
+The tested engine remains **39cc77618a0f7f2734599fbfed224b47c333293f**, package0.9.0. Exact published source18,454,404B/09f359 and runtime1,630,724B/356f744 were recovered and safely extracted, not rebuilt. Preserve the original2326unique strict gate, modeled64checks/34commands/10LinuxPTY and focused04 application scopes without overlap inflation or rerun. Prior1242/1141 scopes and all failures/provenance/Wally findings remain unchanged.
+
+The complete prior runtime ZIP46,862,494B/dd9 and raw127,129,860B are **currently unavailable** at their recorded temporary origins, not still present awaiting copying. Original ad049 observer ZIP and full private aggregate/control namespace are also absent. [Missing-original register](continuation-evidence/20261012/checkpoint32/missing-originals.json) preserves exact archive pins; new runs/snapshots cannot be labeled recovered originals.
+
+Current surviving R4 raw regular bytes are **3,893,135,483**. All four available-root archives were built before the latest export-first steering: **1,535,392,547 bytes total**, temporary only. The first restore was interrupted/-2/KeyboardInterrupt; wrapper1, zero completed restore receipts, partial preserved. [Independent archive/failed-restore disposition](continuation-evidence/20261012/checkpoint32/archive-disposition.json) gives exact pins, typed scope, eight FIFO metadata omissions and limitations. Later stop/audit/canonical records remain outside that snapshot cutoff and require an explicit small export amendment. No second large tmpfs run is authorized or planned merely to produce temporary success.
+
+Original account availability is about4.17MB on the same overlay backing source/evidence/staging. User-reported100GB account storage is separate. Receiving example at4096-byte allocations requires **7,827,771,392 additional bytes**: two retained archive sets plus full fresh restoration, unchanged128MiB reserve and separate16MiB control allocation. Recompute on the actual approved destination; this excludes lost originals and future laboratory output. The old256MiB figure is an admission minimum, not full preservation capacity. Do not consume unavailable filesystem free blocks, lower reserves, prune evidence or infer quota causes.
+
+Library save/retrieve/receiver restoration are **NOT_STARTED**, export admission **BLOCKED**. Page-bound host-file uploads<=10MiB are real, but ZIP binary readback is explicitly unsupported. No generic Library archive roundtrip or persistent object ID was demonstrated. Drive upload/raw-stream-fetch contracts exist; exact private folder/classification/permissions/quota/retention and materialized binary retrieval remain unapproved/untested. [Capability receipt](continuation-evidence/20261012/checkpoint32/library-contract.json) distinguishes these findings. Neither local-computer access nor a network transport is assumed.
+
+Performance source/runtime and remaining native normal32/additional32/timing4/final observer dispatch remain **NOT_STARTED**, individually **BLOCKED** at actual prerequisites. Reuse thirteen verified surviving prerequisite archives and the completed da502/ca13/61cdb runtime binding. Performance retains complete-capsule<=32MiB and capsule+32MiB persistent receiving guard, genuine quietwindow and per-lane root GO. Native retains33,619,968B reserve, genuinely observed current receiving identity/state/lease/reservations, applicable fresh approval, four real fault witnesses, final closed READY/profile/outer independent admission and root GO. Historical38planned/6attempted/5completed/32notattempted native failure is not current live held-state evidence. Never replay consumed writes or invent a lease release.
+
+Laboratory completion is incomplete; platform qualification and organizational production approval remain blocked. Automatic approval review rejected the isolated malformed-error provider repair citing possible cybersecurity risk. No specific command or fuller reason was exposed. G13 stays blocked without bypass; provider/execution-policy/AppSec owners must resolve that boundary.
+
+Resume with the actual current source and canonical ledger:
+
+```sh
+cd /workspace/intune-continuation/work/projects/intune
+git status --short
+git rev-parse HEAD
+cat docs/continuation-evidence/20261012/checkpoint32/storage-export-result.json
+cat docs/EXECUTION-SEQUENCE-R4.md
+```
+
+The next consequential action is selecting an **existing approved private destination** with genuine archive write/raw-readback/materialization and receiving capacity. First validate access/classification/retention, actual quota/block size and a bounded nonsensitive roundtrip. Then transfer retained layers plus the post-cutoff amendment, independently verify archive byte size/SHA256 and restore into fresh receiving locations against the full authoritative typed manifest. No further archive/extraction/native/performance operation starts without its actual gates. A same-session roundtrip cannot prove cross-session recovery.
+
+All original documents below remain byte-exact historical records. Current guidance supersedes only stale present-tense TMP availability, prior pending C31 source delivery and use of256MiB as full preservation capacity.
+
+---
+
+## Historical C31 checkpoint — retained byte-exact
+
 # C31 current checkpoint — 2026-10-12
 
 The tested release engine is **39cc77618a0f7f2734599fbfed224b47c333293f**, tree **f8bff355322c7c50e46790171c12a5e1a7cb80aa**. Source ZIP is **18,454,404 bytes / 09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7**; runtime ZIP is **1,630,724 bytes / 356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891**. This administrative checkpoint has the Git commit that contains this file and a separate root postcommit/publication receipt. It deliberately embeds no own future hash. Its new documents and inert preparation texts do not rebuild, retest or relabel those C30 archives.
