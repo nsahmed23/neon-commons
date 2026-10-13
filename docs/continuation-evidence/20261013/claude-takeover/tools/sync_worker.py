@@ -1,17 +1,19 @@
-"""Background sync worker: keeps the audit trail current and publishes it to the project branch.
+"""Background sync worker: keeps the local audit trail current. It never pushes.
 
 Each cycle (every --interval seconds until --hours elapse, or until tools/STOP_SYNC exists):
   1. logs/controller-log.md from the controller session transcript
   2. rolling local snapshot of that transcript (byte-prefix checked; never published)
   3. board/ledger.js from ledger/ledger.json
   4. logs/AUDIT-TABLES.md from logs/events.jsonl and logs/runs.jsonl
-  5. publish_branch.py --fetch, with --push only when this worker was started with --push;
-     it makes one fast-forward commit on continuation/r4-20261007 when the allowlisted set changed
+  5. publish_branch.py --dry-run against the local branch ref (no fetch), which only reports what a
+     publish would contain.
+Publishing is a separate, owner-gated step: export the candidate with publish_branch.py --export-dir, scan it
+with scan_published.py, get the owner's review, then push with --review-receipt bound to that exact file set.
 Every step's exit code and output tail go to logs/sync-worker.log (local only). A failed step is
 logged and the cycle continues; the next cycle retries. Git never prompts: GIT_TERMINAL_PROMPT=0 and
 GCM_INTERACTIVE=never make a missing credential fail fast instead of hanging a background job.
 
-Usage: py -3.11 -I tools/sync_worker.py --transcript <session.jsonl> [--push] [--interval 600] [--hours 12] [--once]
+Usage: py -3.11 -I tools/sync_worker.py --transcript <session.jsonl> [--interval 600] [--hours 12] [--once]
 Stop early: create tools/STOP_SYNC (any content). The worker deletes nothing.
 """
 import argparse
@@ -60,26 +62,20 @@ def cycle_once(cycle, args, env):
     step(cycle, "tables", py + [str(TOOLS / "audit.py"), "tables"], env)
     publish = py + [str(TOOLS / "publish_branch.py"), "--root", str(ROOT), "--repo", str(ROOT / "source.git"),
                     "--branch", BRANCH, "--prefix", PREFIX, "--allowlist", str(TOOLS / "publish-allowlist.txt"),
-                    "--fetch", "--message", f"docs(takeover): sync audit trail {utc_now()}"]
-    publish += ["--push"] if args.push else ["--dry-run"]
-    code, out = step(cycle, "publish", publish, env)
-    if args.push and code == 0 and "no changes" not in out:
-        step(cycle, "event", py + [str(TOOLS / "audit.py"), "event", "--actor", "sync-worker", "--kind",
-                                   "controller-action", "--summary",
-                                   f"Published audit trail to {BRANCH}: {out.strip().splitlines()[-1][:200] if out.strip() else 'ok'}"], env)
+                    "--message", f"docs(takeover): sync audit trail {utc_now()}", "--dry-run"]
+    step(cycle, "publish-dry-run", publish, env)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--transcript", required=True)
-    parser.add_argument("--push", action="store_true")
     parser.add_argument("--interval", type=int, default=600)
     parser.add_argument("--hours", type=float, default=12.0)
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0", GCM_INTERACTIVE="never", PYTHONUTF8="1")
     deadline = time.monotonic() + args.hours * 3600
-    log(f"start pid={os.getpid()} push={args.push} interval={args.interval}s hours={args.hours}")
+    log(f"start pid={os.getpid()} interval={args.interval}s hours={args.hours}")
     cycle = 0
     while True:
         cycle += 1

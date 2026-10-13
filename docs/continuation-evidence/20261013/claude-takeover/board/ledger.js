@@ -1,7 +1,7 @@
 // Generated from ledger/ledger.json by tools/make_ledger_js.py. Do not edit.
 window.LEDGER = {
   "schema": "intune-rescue-ledger/1",
-  "updated_utc": "2026-10-13T15:43:48Z",
+  "updated_utc": "2026-10-13T17:51:47Z",
   "writer": "Claude Code controller only; every other lane reads this file",
   "outcome_flags": {
     "private_export": "BLOCKED",
@@ -13,25 +13,25 @@ window.LEDGER = {
     {
       "id": "OA-1",
       "urgency": "now",
-      "ask": "Paste the fenced block in outbox/SOURCE-QUERY-01.md into the original ChatGPT Work task, keep that task open (no reset, no new task), and save its JSON reply as inbox/SOURCE-REPLY-01.json or paste it to the controller.",
-      "blocks": "M2 route selection and the M3 availability recheck"
+      "ask": "Paste the fenced block in outbox/SOURCE-QUERY-02.md into the same original ChatGPT Work task (no reset, no new task) and paste its JSON reply here or save it as inbox/SOURCE-REPLY-02.json.",
+      "blocks": "the copies search, the surviving-root census, and which GitHub access change (if any) route B1-R needs"
     },
     {
       "id": "OA-2",
-      "urgency": "after the reply",
-      "ask": "Authorize one route in writing for the 18,445-byte synthetic probe only (for example a new private GitHub repository). A private repository is a new custodian, not an extension of the public C32 push.",
+      "urgency": "after SOURCE-REPLY-02",
+      "ask": "Approve route B1-R for the 18,445-byte synthetic probe only: create a private repository under nsahmed23 with a README, add a draft release tagged probe-20261013-01 with no files, make any one-repository access change SOURCE-REPLY-02 shows, then send the approval line from outbox/ROUTE-DECISION-01.md.",
       "blocks": "M2 synthetic bridge"
     },
     {
       "id": "OA-3",
-      "urgency": "before M3",
-      "ask": "Classify the private corpus and approve destination, transit and retention for the four layers; separately approve building the post-cutoff amendment, which is a write in the source task.",
-      "blocks": "M3 transfer and amendment"
+      "urgency": "before any evidence transfer",
+      "ask": "The four C32 archives are absent at their recorded paths. Choose a loss disposition, or a new capture of the two surviving input roots. A new capture needs a classification plus destination, transit and retention approval, and a separate one-time lift of the handoff's large-source-tmpfs boundary for one build.",
+      "blocks": "M3"
     },
     {
       "id": "OA-4",
       "urgency": "before M3",
-      "ask": "Remote Control starts on by default (remoteControlAtStartup is true) and syncs transcripts through Anthropic. Decide whether sessions that touch raw evidence run with it off.",
+      "ask": "Decide the Remote Control posture for sessions that touch raw evidence.",
       "blocks": "M3 and M4 raw-evidence sessions"
     },
     {
@@ -39,6 +39,12 @@ window.LEDGER = {
       "urgency": "before M5",
       "ask": "Name an off-machine backup destination; this PC has one physical disk.",
       "blocks": "M5 durability"
+    },
+    {
+      "id": "OA-6",
+      "urgency": "optional",
+      "ask": "Public history keeps two things the current tree no longer will: the handoff bundle (commits 658ff7f4 to 7840c407) and one controller-log row with the Work environment id (7840c407). Keep it (default), or rewrite continuation/r4-20261007 with a force push on your named line.",
+      "blocks": "nothing"
     }
   ],
   "lanes": [
@@ -54,9 +60,9 @@ window.LEDGER = {
       "id": "L1",
       "lane": "advisor-fable",
       "model": "Fable 5.1 (Claude Agent, read-only tools)",
-      "role": "independent review of the route decision and SOURCE-QUERY-01",
+      "role": "independent review: route decision and SOURCE-QUERY-01 (R01); ROUTE-DECISION-01 and SOURCE-QUERY-02 (R20)",
       "status": "DONE",
-      "output": "lanes/advisor-fable/REPORT.md"
+      "output": "lanes/advisor-fable/REPORT.md (R01); lanes/advisor-fable/REPORT-R20.md (R20)"
     },
     {
       "id": "L2",
@@ -70,9 +76,9 @@ window.LEDGER = {
       "id": "L3",
       "lane": "chatgpt-source",
       "model": "original ChatGPT Work task, relayed by the owner",
-      "role": "source operator; the only holder of the four archive layers",
+      "role": "source operator; replied SOURCE-REPLY-01 (archives absent, probe present)",
       "status": "WAITING_ON_OWNER",
-      "output": "inbox/SOURCE-REPLY-01.json"
+      "output": "inbox/SOURCE-REPLY-01.json (local only); next inbox/SOURCE-REPLY-02.json"
     },
     {
       "id": "L4",
@@ -110,9 +116,9 @@ window.LEDGER = {
       "id": "L8",
       "lane": "sync-worker",
       "model": "deterministic script, no model",
-      "role": "every 10 min: logs, tables, board data, publish to continuation/r4-20261007",
-      "status": "RUNNING",
-      "output": "logs/sync-worker.log; commits on continuation/r4-20261007"
+      "role": "every 10 min: logs, tables, board data, dry-run publish; local only since 2026-10-13T17:28Z (never pushes)",
+      "status": "LOCAL_ONLY",
+      "output": "logs/sync-worker.log (local)"
     },
     {
       "id": "L9",
@@ -137,6 +143,22 @@ window.LEDGER = {
       "role": "publisher: redact C--Users-<user> and memory-file names; exclude host-intake JSON",
       "status": "DONE",
       "output": "tools/publish_branch.py (7 of 7 tests green)"
+    },
+    {
+      "id": "L12",
+      "lane": "pub-gate",
+      "model": "Sonnet 5.5 (claude-sonnet-5-5 per API metadata), code-editor agent",
+      "role": "relay withholding and posture redaction in the controller log; scanner with an append-only rules file; review-receipt gate on push; local-only worker",
+      "status": "DONE",
+      "output": "lanes/pub-gate/FINAL.md; tools/ (29 tests pass)"
+    },
+    {
+      "id": "L13",
+      "lane": "pub-review",
+      "model": "Sonnet 5.5 (claude-sonnet-5-5 per API metadata), code-reader agent, read-only",
+      "role": "careful read of the exact 58 published files at 7840c407",
+      "status": "DONE",
+      "output": "lanes/pub-review/REPORT.md; observations/PUBLICATION-REVIEW-01.json"
     }
   ],
   "milestones": [
@@ -144,25 +166,25 @@ window.LEDGER = {
       "id": "M0",
       "title": "Intake and authority map",
       "status": "IN_PROGRESS",
-      "evidence": "Host, WSL and repository measured; route analysis reviewed by Fable 5.1, GPT-6 Astra and GPT-6 Sol; final query waits on owner relay (OA-1)."
+      "evidence": "Host, WSL and repository measured; SOURCE-REPLY-01 received and checked against the sent pins (observations/SOURCE-REPLY-01-CHECK.json); SOURCE-QUERY-02 FINAL after Fable 5.1 review R20; waiting on owner relay (OA-1)."
     },
     {
       "id": "M1",
       "title": "Exact public source and package availability",
       "status": "PASS",
-      "evidence": "Public scope only. Remote tip d057cc15 is C32; engine 39cc7761 tree f8bff355; ledger 2,025,195 B sha d6b787c6 matches; both 0.9.0 packages match bytes and SHA-256 at f9104700."
+      "evidence": "Public scope only. d057cc15 is the immutable C32 baseline (it was the remote tip at 14:49Z); engine 39cc7761 tree f8bff355; ledger 2,025,195 B sha d6b787c6 matches; both 0.9.0 packages match bytes and SHA-256 at f9104700."
     },
     {
       "id": "M2",
       "title": "Original-source synthetic bridge",
       "status": "BLOCKED",
-      "evidence": "No proven route. Drive returned 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT; waiting on OA-1."
+      "evidence": "Route B1-R proposed (release asset on an owner-created private repository; outbox/ROUTE-DECISION-01.md). Waiting on SOURCE-REPLY-02 and OA-2. Drive 403 not retried."
     },
     {
       "id": "M3",
       "title": "Four layers plus explicit amendment",
       "status": "BLOCKED",
-      "evidence": "Availability NOT_RECHECKED; destination not approved (OA-2)."
+      "evidence": "All four C32 archives ABSENT (ENOENT at recorded /tmp paths; source runtime booted 2026-10-13T15:52:05Z). Recovery only if SOURCE-QUERY-02 finds a copy; otherwise a new capture under OA-3."
     },
     {
       "id": "M4",
@@ -202,11 +224,11 @@ window.LEDGER = {
       "sha256": "7bbc9f88eee9b4c417f622fb76cb5e2c0b0d4790d5b7cceaa2ae661ce2012ad7",
       "manifest_bytes": 35983862,
       "manifest_sha256": "9f53658f8b795e136d32baab6d7043741a81cd6450e9d640489fb01a97610fb1",
-      "source_path": "UNKNOWN",
-      "availability": "NOT_RECHECKED",
-      "destination": "NONE",
-      "readback": "NOT_STARTED",
-      "restore": "NOT_STARTED"
+      "source_path": "recorded /tmp path (C32)",
+      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root present in /workspace (existence only)",
+      "destination": "NONE (B1-R proposed)",
+      "readback": "NOT_POSSIBLE unless a copy is found",
+      "restore": "NOT_POSSIBLE unless a copy is found"
     },
     {
       "label": "provider-candidates",
@@ -214,11 +236,11 @@ window.LEDGER = {
       "sha256": "755b9f4f8d29e562f476fc7e1f3bb8f376fd0fbfbeabe7a8e7e7ec78099280c7",
       "manifest_bytes": 2875760,
       "manifest_sha256": "bccf1c15dcda000ebeae37f1c23de016233d062d8a0edcf535b39f67ffd99fa6",
-      "source_path": "UNKNOWN",
-      "availability": "NOT_RECHECKED",
-      "destination": "NONE",
-      "readback": "NOT_STARTED",
-      "restore": "NOT_STARTED"
+      "source_path": "recorded /tmp path (C32)",
+      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root present in /workspace (existence only)",
+      "destination": "NONE (B1-R proposed)",
+      "readback": "NOT_POSSIBLE unless a copy is found",
+      "restore": "NOT_POSSIBLE unless a copy is found"
     },
     {
       "label": "current-diagnostic-scratch",
@@ -226,11 +248,11 @@ window.LEDGER = {
       "sha256": "60960f3760f24893e7114185d5d14ee7ab3e35e1fc17008097d2b6eecc83e939",
       "manifest_bytes": 5496,
       "manifest_sha256": "43ef5e7852f9e2be9878cfc17ef096182d166fc693b970333828e54e11f7b992",
-      "source_path": "UNKNOWN",
-      "availability": "NOT_RECHECKED",
-      "destination": "NONE",
-      "readback": "NOT_STARTED",
-      "restore": "NOT_STARTED"
+      "source_path": "recorded /tmp path (C32)",
+      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root gone (/tmp)",
+      "destination": "NONE (B1-R proposed)",
+      "readback": "NOT_POSSIBLE unless a copy is found",
+      "restore": "NOT_POSSIBLE unless a copy is found"
     },
     {
       "label": "current-exact-artifact-scratch",
@@ -238,11 +260,11 @@ window.LEDGER = {
       "sha256": "c221c1410d905806275dc3ea72c2793db83839816d112d4d3095e3bbe4819add",
       "manifest_bytes": 1677589,
       "manifest_sha256": "5d8b84ecc1c8bf9690fa0cbfa0012650430e36f302f4982969a04366b7984c2e",
-      "source_path": "UNKNOWN",
-      "availability": "NOT_RECHECKED",
-      "destination": "NONE",
-      "readback": "NOT_STARTED",
-      "restore": "NOT_STARTED"
+      "source_path": "recorded /tmp path (C32)",
+      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root gone (/tmp)",
+      "destination": "NONE (B1-R proposed)",
+      "readback": "NOT_POSSIBLE unless a copy is found",
+      "restore": "NOT_POSSIBLE unless a copy is found"
     },
     {
       "label": "post-cutoff amendment",
@@ -251,19 +273,31 @@ window.LEDGER = {
       "manifest_bytes": null,
       "manifest_sha256": null,
       "source_path": "UNKNOWN",
-      "availability": "NOT_DEFINED",
+      "availability": "68 records exist (50 listed in SOURCE-REPLY-01; full list asked in SOURCE-QUERY-02); not built",
       "destination": "NONE",
       "readback": "NOT_STARTED",
       "restore": "NOT_STARTED"
+    },
+    {
+      "label": "synthetic probe",
+      "archive_bytes": 18445,
+      "sha256": "d01a9b0e9cd1506b1ee5d0defcfebf4f377af858ab610d3ec5362623ee0c67c3",
+      "manifest_bytes": null,
+      "manifest_sha256": null,
+      "source_path": "/workspace (C33 probe folder)",
+      "availability": "PRESENT, PIN-MATCH 2026-10-13T16:02:54Z",
+      "destination": "NONE (B1-R proposed)",
+      "readback": "NOT_STARTED",
+      "restore": "n/a"
     }
   ],
   "gates": [
     {
       "gate": "G11 binary export",
       "status": "BLOCKED",
-      "boundary": "Drive upload 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT; no Library save or materialize in the source task",
+      "boundary": "C32 archives absent at recorded paths; Drive 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT (not retried); no Library in the source task; route B1-R proposed, not approved",
       "owner": "source integration owner, then evidence owner",
-      "next_input": "SOURCE-REPLY-01, then route approval (OA-2)"
+      "next_input": "SOURCE-REPLY-02, then OA-2"
     },
     {
       "gate": "G11 receiving capacity",
@@ -282,7 +316,7 @@ window.LEDGER = {
     {
       "gate": "F03/F09 missing originals",
       "status": "FAIL",
-      "boundary": "C30 runtime evidence ZIP (46,862,494 B), observer ZIP (50,239 B), raw tree and aggregate-reader output absent at origin",
+      "boundary": "C30 runtime evidence ZIP (46,862,494 B), observer ZIP (50,239 B), raw tree and aggregate-reader output absent at origin; the four C32 archives are absent at their recorded /tmp paths (copies search pending, SOURCE-QUERY-02 step 2)",
       "owner": "original evidence custodian",
       "next_input": "exact copies, or a scoped loss disposition"
     },
@@ -389,6 +423,22 @@ window.LEDGER = {
     {
       "utc": "2026-10-13T15:32:17Z",
       "text": "Codex CLI 0.162.1: gpt-6.1-sol now runs; the earlier HTTP 400 was a client-version gate."
+    },
+    {
+      "utc": "2026-10-13T17:19:43Z",
+      "text": "Owner relayed SOURCE-REPLY-01 and a ChatGPT correction (saved locally in inbox/)."
+    },
+    {
+      "utc": "2026-10-13T17:28:06Z",
+      "text": "Sync worker stopped via STOP_SYNC after cycle 12 (7840c407); publishing now needs a review receipt."
+    },
+    {
+      "utc": "2026-10-13T17:43:22Z",
+      "text": "Reply checked: four archives ABSENT, probe PIN-MATCH; publication review of 7840c407 done; ROUTE-DECISION-01 and SOURCE-QUERY-02 drafted."
+    },
+    {
+      "utc": "2026-10-13T17:51:47Z",
+      "text": "Fable 5.1 review R20: SEND-WITH-FIXES; fixes applied; SOURCE-QUERY-02 FINAL; ROUTE-DECISION-01 reviewed."
     }
   ],
   "routing": "Opus 5.5 controller: judgment, gates, synthesis, last-mile git. Sonnet 5.5: mechanical Claude lanes (verification runs, records, reply parsing). Haiku 5.5: sweeps and inventories. Fable 5.1 leads the advisor tier, GPT-6 Astra is its peer. GPT-6.1 Sol (working since Codex CLI 0.162.1) is the Opus-tier ChatGPT executor. Kimi K3: frontend only."

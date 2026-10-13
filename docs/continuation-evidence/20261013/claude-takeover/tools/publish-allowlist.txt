@@ -12,6 +12,7 @@ outbox/*.md
 lanes/*/BRIEF*.md
 lanes/*/FINAL.md
 lanes/advisor-fable/REPORT.md
+lanes/advisor-fable/REPORT-*.md
 lanes/kimi-board/kimi-run-*.out
 logs/events.jsonl
 logs/runs.jsonl
@@ -23,6 +24,5 @@ board/ledger.js
 board/BRIEF*.md
 tools/*.py
 tools/publish-allowlist.txt
-handoff/Intune_Claude_Code_Handoff_2026-10-12.zip
-handoff/Intune_Claude_Code_Handoff_2026-10-12/*
-handoff/Intune_Claude_Code_Handoff_2026-10-12/*/*
+# handoff/ is NOT published: START_HERE.md line 9 says not to move the bundle into a public repository
+# automatically. Removed 2026-10-13 after the review of 7840c407; earlier commits still carry it.

@@ -1,9 +1,19 @@
-"""Publish a sanitized workspace subtree using Git plumbing only."""
+"""Publish a sanitized workspace subtree using Git plumbing only.
+
+Review gate: --export-dir DIR writes the exact sanitized candidate bytes for scanning and owner review (no commit,
+no push; refuses a non-empty DIR, exit 2). A real --push needs --review-receipt FILE, a JSON with "verdict" "PASS"
+and "files" ({relpath: {"sha256": hex, ...}}, the shape tools/scan_published.py writes). The candidate set must equal
+the receipt's files exactly (paths and sha256); otherwise up to 20 differing paths are printed tagged
+added/removed/changed, nothing is committed or pushed, and the exit code is 5. --dry-run never pushes, so it needs
+no receipt.
+"""
 
 import argparse
 from datetime import datetime, timezone
 import fnmatch
 import getpass
+import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -49,7 +59,11 @@ def parse_args():
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--message")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--export-dir", type=Path)
+    parser.add_argument("--review-receipt", type=Path)
     args = parser.parse_args()
+    if args.export_dir and args.push:
+        parser.error("--export-dir cannot be combined with --push")
     if not args.root.is_dir():
         parser.error("--root must be a directory")
     if not args.allowlist.is_file():
@@ -146,9 +160,24 @@ MEMORY_FILE_PATTERN = re.compile(
 )
 
 
-def sanitize_text(value, home, encoded):
+# The owner's Claude Code setting VALUE stays private; the bare key name reveals nothing and is kept.
+REMOTE_CONTROL_VALUE_PATTERN = re.compile(
+    r"[\"'`]?remoteControlAtStartup[\"'`]?\s*(?:is\s+|[:=]\s*)?(?:true|false)\b", re.IGNORECASE
+)
+# The owner's agent permission posture (same terms as controller_log.py POSTURE). Redacted in prose and data
+# files only: a .py file keeps its patterns and test inputs, which reveal nothing about the owner's settings.
+POSTURE_PATTERN = re.compile(
+    r"danger-full-access|approval[ ]never|approval_policy(?:\s*=\s*\"never\")?|dangerously-skip-permissions"
+    r"|bypass[ ]?permissions", re.IGNORECASE
+)
+
+
+def sanitize_text(value, home, encoded, redact_posture=False):
     value = home.sub("~", value)
     value = encoded.sub(r"\1~", value)
+    value = REMOTE_CONTROL_VALUE_PATTERN.sub("[setting redacted]", value)
+    if redact_posture:
+        value = POSTURE_PATTERN.sub("[posture redacted]", value)
     return MEMORY_FILE_PATTERN.sub(r"\1[redacted].md", value)
 
 
@@ -175,7 +204,8 @@ def collect(root, patterns):
             raw = path.read_bytes()
             if relative.parts[0].lower() != "handoff" and path.suffix.lower() in TEXT_SUFFIXES:
                 value = raw.decode("utf-8", "surrogateescape")
-                raw = sanitize_text(value, replacement, encoded).encode("utf-8", "surrogateescape")
+                posture = path.suffix.lower() != ".py"
+                raw = sanitize_text(value, replacement, encoded, posture).encode("utf-8", "surrogateescape")
             collected.append((relative, raw))
     collected.sort(key=lambda item: item[0].as_posix())
     return collected
@@ -238,8 +268,58 @@ def graft(repo, old_tree, parts, new_tree):
     return make_tree(repo, entries)
 
 
+MAX_DIFF_LINES = 20
+
+
+def export_candidate(files, target):
+    if target.exists() and (not target.is_dir() or any(target.iterdir())):
+        print(f"refusing to export into a non-empty path: {target}", file=sys.stderr)
+        return 2
+    for relative, content in files:
+        destination = target / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(content)
+    target.mkdir(parents=True, exist_ok=True)
+    print(f"exported {len(files)} files to {target}")
+    return 0
+
+
+def check_receipt(files, receipt_path):
+    """Return None when the receipt approves exactly this candidate set, else a list of reasons."""
+    if receipt_path is None:
+        return ["no --review-receipt given; a push needs a PASS receipt for this exact file set"]
+    try:
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        approved = {path: entry["sha256"] for path, entry in receipt["files"].items()}
+        verdict = receipt["verdict"]
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
+        return [f"unreadable review receipt: {exc}"]
+    problems = []
+    if verdict != "PASS":
+        problems.append(f"receipt verdict is {verdict!r}, not 'PASS'")
+    candidate = {relative.as_posix(): hashlib.sha256(content).hexdigest() for relative, content in files}
+    diffs = [f"added {path}" for path in sorted(candidate.keys() - approved.keys())]
+    diffs += [f"removed {path}" for path in sorted(approved.keys() - candidate.keys())]
+    diffs += [f"changed {path}" for path in sorted(candidate.keys() & approved.keys())
+              if candidate[path] != approved[path]]
+    problems += diffs[:MAX_DIFF_LINES]
+    if len(diffs) > MAX_DIFF_LINES:
+        problems.append(f"... and {len(diffs) - MAX_DIFF_LINES} more differing paths")
+    return problems or None
+
+
 def publish(args):
     repo = args.repo
+    files = collect(args.root, load_patterns(args.allowlist))
+    if args.export_dir:
+        return export_candidate(files, args.export_dir)
+    if args.push and not args.dry_run:
+        problems = check_receipt(files, args.review_receipt)
+        if problems:
+            print("PUBLISH REFUSED by the review gate:", file=sys.stderr)
+            for problem in problems:
+                print(problem, file=sys.stderr)
+            return 5
     if args.fetch:
         git(
             repo,
@@ -249,7 +329,6 @@ def publish(args):
         )
     tip = oid(git(repo, "rev-parse", f"refs/heads/{args.branch}"))
     tip_tree = oid(git(repo, "rev-parse", f"{tip}^{{tree}}"))
-    files = collect(args.root, load_patterns(args.allowlist))
     subtree = subtree_from_files(repo, files)
     new_root = graft(repo, tip_tree, args.prefix_parts, subtree)
     if new_root == tip_tree:

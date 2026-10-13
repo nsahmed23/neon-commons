@@ -25,7 +25,7 @@ ADD: B2 download lands ~\Downloads NTFS first, outside receiver root. Confirm no
 Q4 Risks 48 h
 1. tmpfs loss on resumption (FINAL-RESULT L101). Mit: query today; owner keeps Work task open, no reset; route pick same day reply lands.
 2. No r4 route (fine-grained token, no gh/git-lfs, uploads.github.com blocked). Mit: 5b additions above; owner pre-creates empty private repo, grants only after reply.
-3. Wrong custodian: origin push by habit, Downloads/OneDrive, Remote Control transcripts (remoteControlAtStartup true, host-intake L43; §9.2 L334). Mit: "never origin" every brief; OA-3 before any archive byte on PC; handling session launched without Remote Control.
+3. Wrong custodian: origin push by habit, Downloads/OneDrive, Remote Control transcripts ([setting redacted], host-intake L43; §9.2 L334). Mit: "never origin" every brief; OA-3 before any archive byte on PC; handling session launched without Remote Control.
 
 Q5 Next
 Apply Q2 edits to C:\Dev\Projects\intune-rescue\outbox\SOURCE-QUERY-01.md, owner pastes, controller idle until SOURCE-REPLY-01. Nothing else.

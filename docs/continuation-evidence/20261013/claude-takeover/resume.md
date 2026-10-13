@@ -4,32 +4,42 @@ Read this first in any new session. `ledger/ledger.json` is the source of truth 
 
 ## What this folder is
 
-The local controller workspace for taking over the Intune Workbench from the ChatGPT Work environment, per the 2026-10-12 handoff in `handoff/`. Private evidence is NOT here: the four archive layers still live only in the original ChatGPT Work task's tmpfs.
+The local controller workspace for taking over the Intune Workbench from the ChatGPT Work environment, per the 2026-10-12 handoff in `handoff/` (local only, never published). Private evidence is NOT here.
 
 ## Done (2026-10-13)
 
-- M0 intake measurements: Windows host, WSL Ubuntu, local repo, tools (`.checkpoints/M0-intake.json`).
-- M1 PASS, public scope: C32 tip, engine tree, canonical ledger hash, both 0.9.0 package hashes (`.checkpoints/M1-public-source.json`).
-- Route analysis reviewed by Fable 5.1, GPT-6 Astra and GPT-6 Sol; `outbox/SOURCE-QUERY-01.md` is final.
-- M4 preparation: the public restorer is POSIX-only stdlib Python, so it runs in WSL with no installs; it has no free-space check (`lanes/m4-prep/FINAL.md`).
-- Audit trail live (`AUDIT.md`); a sync worker publishes the sanitized set to `continuation/r4-20261007` every 10 minutes (first commit 658ff7f4).
-- Codex CLI updated to 0.162.1; `gpt-6.1-sol` works.
+- M0 intake measurements and M1 PASS (public scope; d057cc15 is the immutable C32 baseline).
+- SOURCE-QUERY-01 answered (`inbox/SOURCE-REPLY-01.json`, local). Checked against the sent pins (`observations/SOURCE-REPLY-01-CHECK.json`):
+  - the four C32 archives are ABSENT (ENOENT) in a source runtime that booted 2026-10-13T15:52:05Z;
+  - the 18,445-byte probe is intact;
+  - the input roots for r4-evidence and provider-candidates exist in `/workspace`, and the two `/tmp` scratch roots are gone.
+- The public sync was stopped at 17:28Z, and publishing now needs a review receipt bound to exact file hashes:
+  - the gate is in `tools/publish_branch.py`, the scanner in `tools/scan_published.py`, and the tool tests pass (29);
+  - review of the already-public commit 7840c407: `observations/PUBLICATION-REVIEW-01.json`.
+- Model identities confirmed from runtime metadata (`observations/MODEL-EVIDENCE-01.md`).
+- Route B1-R proposed (`outbox/ROUTE-DECISION-01.md`) and SOURCE-QUERY-02 drafted (`outbox/SOURCE-QUERY-02.md`); Fable 5.1 review R20 requested.
 
 ## In flight
 
-- OA-1: the owner relays SOURCE-QUERY-01 to the ChatGPT Work task; the reply goes to `inbox/SOURCE-REPLY-01.json`.
-- Sync worker (`logs/sync-worker.log`), started 2026-10-13T15:31:44Z for 12 hours. Stop it by creating `tools/STOP_SYNC`.
+- R20: the Fable 5.1 advisor reviews ROUTE-DECISION-01 and SOURCE-QUERY-02.
+- The local-only sync worker (`logs/sync-worker.log`); stop it with `tools/STOP_SYNC`.
 
 ## Next
 
-1. Parse `inbox/SOURCE-REPLY-01.json` against the pins (Sonnet 5.5 lane, script-checked); update the ledger's `source_transfer` rows.
-2. Pick the M2 route with the owner (OA-2), then run the synthetic bridge with the existing 18,445-byte probe.
-3. After OA-3 and OA-4: create the WSL receiver tree (`~/intune-rescue/{incoming,archives,restored,amendments,observations}`) and transfer the small layers first.
+1. The owner relays SOURCE-QUERY-02 (OA-1) and returns the reply as `inbox/SOURCE-REPLY-02.json`. Check it with a script against the pins, then update the ledger.
+2. Once the owner approves (OA-2: private repo, draft release `probe-20261013-01`, approval line), write SOURCE-ACTION-01 for the probe upload. The owner downloads the asset in the browser; hash-check it and record PASS or FAIL.
+3. OA-3 decides the C32 archives: a loss disposition, or a new capture of the surviving roots. Nothing moves before it.
+4. Publish only through `--export-dir`, then scan, review the delta, write a PASS receipt, and push with `--review-receipt`.
 
 ## Routing
 
-Opus 5.5 controls and gates. Sonnet 5.5 takes mechanical Claude work; Haiku 5.5 takes sweeps. Fable 5.1 leads the advisors with GPT-6 Astra as its peer. GPT-6.1 Sol is the Opus-tier ChatGPT executor. Kimi K3 does frontend only.
+Opus 5.5 controls and gates. Sonnet 5.5 takes mechanical Claude work; Haiku 5.5 takes sweeps. Fable 5.1 leads the advisors with GPT-6 Astra as its peer. GPT-6.1 Sol is the Opus-tier ChatGPT executor. Kimi K3 does frontend only. Model identity is taken from runtime metadata, never from a self-report.
 
 ## Boundaries that stay in force
 
-No Drive retry without an evidenced scope change. No private evidence in any public repository, and no raw transcripts published. No credential changes, VM installs, laboratory mutations or G13 attempts. New runs are new evidence, never recovery of a missing original.
+- No Drive retry without an evidenced scope change.
+- No private evidence in any public repository.
+- Raw transcripts, inbox replies and the handoff bundle are never published.
+- No credential changes, VM installs, laboratory mutations or G13 attempts.
+- No large source tmpfs build without the owner's explicit lift.
+- New runs and new captures are new evidence, never recovery of a missing original.

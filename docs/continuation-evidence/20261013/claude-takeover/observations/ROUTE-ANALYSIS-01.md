@@ -44,3 +44,10 @@ No source-to-receiver route is proven today (Route D). Two Route B candidates ex
 ## Explicitly not done
 
 No Drive retry, no browser automation of the ChatGPT task, no credentials touched, no VM or WSL configuration change, no product code run, no G13 action, no Wally work.
+
+## Correction, 2026-10-13 after SOURCE-REPLY-01 and the owner-relayed ChatGPT review
+
+- The 4.6 GB and 7,827,771,392 B figures are disk allocations for restore, not memory. Restore memory must be measured as the restorer's peak on the smallest layer first. Capping WSL memory would tighten the guest; the lever is freeing host memory.
+- The archive format is ZIP (ZIP64-capable), so `zstd` is not needed.
+- Route B1 is refined to B1-R, a GitHub release asset on an owner-created private repository; ordinary Git cannot carry the 1,469,518,188 B layer as one file. See `outbox/ROUTE-DECISION-01.md`.
+- The four C32 archives were absent at their recorded paths when SOURCE-REPLY-01 was taken; see `observations/SOURCE-REPLY-01-CHECK.json`.

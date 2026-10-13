@@ -1,4 +1,6 @@
 import getpass
+import hashlib
+import json
 import os
 from pathlib import Path
 import stat
@@ -244,6 +246,49 @@ class PublishBranchTests(unittest.TestCase):
             "\n".join(lines).encode("utf-8"),
         )
 
+    def test_remote_control_setting_value_redacted(self):
+        # The key is split so this test file does not itself carry a setting-with-value line.
+        key = "remoteControl" + "AtStartup"
+        lines = [
+            f"transcripts ({key} true, host-intake L43)",
+            f"ask: Remote Control starts on by default ({key} is true) and syncs",
+            f'    "{key}": true',
+            f"bare mention of {key} stays",
+            f"setting (`{key}` is true) here",
+        ]
+        self.write("docs/rc.md", "\n".join(lines).encode("utf-8"))
+        result = self.run_script()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        commit = result.stdout.strip().splitlines()[-1]
+        self.assertEqual(
+            self.git("show", f"{commit}:published/docs/docs/rc.md"),
+            "\n".join(
+                [
+                    "transcripts ([setting redacted], host-intake L43)",
+                    "ask: Remote Control starts on by default ([setting redacted]) and syncs",
+                    "    [setting redacted]",
+                    f"bare mention of {key} stays",
+                    "setting ([setting redacted]) here",
+                ]
+            ),
+        )
+
+    def test_posture_terms_redacted_outside_python_files(self):
+        # Split literals keep this test file free of the terms it checks.
+        full, never = "danger-" + "full-access", "approval " + "never"
+        line = f"defaults (`{full}`, `{never}`) quoted"
+        self.write("docs/p.md", line.encode("utf-8"))
+        self.write("docs/p.py", line.encode("utf-8"))
+        result = self.run_script()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        commit = result.stdout.strip().splitlines()[-1]
+        self.assertEqual(
+            self.git("show", f"{commit}:published/docs/docs/p.md"),
+            "defaults (`[posture redacted]`, `[posture redacted]`) quoted",
+        )
+        # Code keeps its patterns and test inputs; a .py file is never rewritten for posture.
+        self.assertEqual(self.git("show", f"{commit}:published/docs/docs/p.py"), line)
+
     def test_fetch_uses_remote_tip(self):
         tree = self.git("rev-parse", f"{self.tip}^{{tree}}")
         advanced = self.git("commit-tree", tree, "-p", self.tip, "-m", "advance", repo=self.remote)
@@ -263,8 +308,30 @@ class PublishBranchTests(unittest.TestCase):
         self.assertEqual(failure.returncode, 4)
         self.assertTrue(failure.stderr.strip())
 
+    def export(self, name="export"):
+        target = self.base / name
+        result = self.run_script("--export-dir", str(target))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return target
+
+    def receipt(self, verdict="PASS", name="receipt.json", mutate=None):
+        exported = self.export(name + ".dir")
+        files = {}
+        for path in sorted(p for p in exported.rglob("*") if p.is_file()):
+            data = path.read_bytes()
+            files[path.relative_to(exported).as_posix()] = {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+        if mutate:
+            mutate(files)
+        target = self.base / name
+        target.write_text(json.dumps({"verdict": verdict, "files": files}), encoding="utf-8")
+        return target
+
+    def assert_nothing_pushed(self):
+        self.assertEqual(self.git("rev-parse", "refs/heads/main"), self.tip)
+        self.assertEqual(self.git("rev-parse", "refs/heads/main", repo=self.remote), self.tip)
+
     def test_push_fast_forward_then_rejection(self):
-        result = self.run_script("--push", "--message", "first push")
+        result = self.run_script("--push", "--review-receipt", str(self.receipt()), "--message", "first push")
         self.assertEqual(result.returncode, 0, result.stderr)
         pushed = self.git("rev-parse", "refs/heads/main")
         self.assertEqual(pushed, self.git("rev-parse", "refs/heads/main", repo=self.remote))
@@ -272,10 +339,59 @@ class PublishBranchTests(unittest.TestCase):
         advanced = self.git("commit-tree", tree, "-p", pushed, "-m", "advance", repo=self.remote)
         self.git("update-ref", "refs/heads/main", advanced, repo=self.remote)
         self.write("docs/new.md", b"changed after advance")
-        rejected = self.run_script("--push", "--message", "second push")
+        rejected = self.run_script("--push", "--review-receipt", str(self.receipt(name="r2.json")),
+                                   "--message", "second push")
         self.assertEqual(rejected.returncode, 3, rejected.stderr)
         self.assertTrue(rejected.stderr.strip())
         self.assertEqual(self.git("rev-parse", "refs/heads/main"), pushed)
+
+    def test_push_without_receipt_refused(self):
+        result = self.run_script("--push")
+        self.assertEqual(result.returncode, 5, result.stderr)
+        self.assert_nothing_pushed()
+
+    def test_push_with_mismatched_receipt_refused_and_lists_paths(self):
+        def mutate(files):
+            files["docs/new.md"]["sha256"] = "0" * 64
+            del files["handoff/h.json"]
+            files["docs/ghost.md"] = {"bytes": 1, "sha256": "1" * 64}
+
+        result = self.run_script("--push", "--review-receipt", str(self.receipt(mutate=mutate)))
+        self.assertEqual(result.returncode, 5, result.stderr)
+        report = result.stdout + result.stderr
+        self.assertIn("changed docs/new.md", report)
+        self.assertIn("added handoff/h.json", report)
+        self.assertIn("removed docs/ghost.md", report)
+        self.assert_nothing_pushed()
+
+    def test_push_with_non_pass_verdict_refused(self):
+        result = self.run_script("--push", "--review-receipt", str(self.receipt(verdict="FAIL")))
+        self.assertEqual(result.returncode, 5, result.stderr)
+        self.assert_nothing_pushed()
+
+    def test_edit_after_review_refused(self):
+        receipt = self.receipt()
+        self.write("docs/new.md", b"edited after the review")
+        result = self.run_script("--push", "--review-receipt", str(receipt))
+        self.assertEqual(result.returncode, 5, result.stderr)
+        self.assertIn("changed docs/new.md", result.stdout + result.stderr)
+        self.assert_nothing_pushed()
+
+    def test_export_dir_writes_sanitized_bytes_and_refuses_non_empty(self):
+        target = self.export()
+        self.assertEqual((target / "docs/new.md").read_bytes(), b"~\\x and ~/x")
+        self.assertFalse((target / "docs/skip.md").exists())
+        self.assertEqual((target / "handoff/h.json").read_bytes(), self.home_text().encode("utf-8"))
+        self.assertEqual((target / "archive.zip").read_bytes(), b"\x00\xffzip")
+        self.assertFalse((target / "inbox").exists())
+        again = self.run_script("--export-dir", str(target))
+        self.assertEqual(again.returncode, 2)
+        self.assert_nothing_pushed()
+
+    def test_export_dir_cannot_combine_with_push(self):
+        result = self.run_script("--push", "--export-dir", str(self.base / "e2"))
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse((self.base / "e2").exists())
 
 
 if __name__ == "__main__":

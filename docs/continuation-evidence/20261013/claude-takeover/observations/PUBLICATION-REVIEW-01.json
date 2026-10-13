@@ -1,0 +1,372 @@
+{
+  "review_id": "PUBLICATION-REVIEW-01",
+  "purpose": "Retrospective review of the exact bytes already public; NOT a push receipt (verdict is not PASS, so publish_branch.py refuses it).",
+  "scope": {
+    "repository": "github.com/nsahmed23/neon-commons",
+    "branch": "continuation/r4-20261007",
+    "commit": "7840c4070b5ab6c454ff4a4a1876b02ba2cb180c",
+    "root_tree": "e68f312af062fb39c3c576840d2f0f493b4dbc55",
+    "prefix": "docs/continuation-evidence/20261013/claude-takeover",
+    "prefix_tree": "e3c7b4e6bd228bd035b08b4ea6785ae49bffa9ba",
+    "file_count": 58,
+    "bytes": 935243,
+    "export": "git archive with core.autocrlf=false (blob bytes, verified per file against ls-tree sizes)"
+  },
+  "deterministic_scan": {
+    "rules": 20,
+    "hits": 13,
+    "by_rule": {
+      "HIGH chatgpt-environment-id": 1,
+      "HIGH memory-file-name": 1,
+      "LOW remote-control-setting": 3,
+      "MEDIUM agent-permission-posture": 3,
+      "MEDIUM email-address": 2,
+      "MEDIUM source-reply-field": 3
+    },
+    "rules_now_in": "tools/publish-scan-rules.txt (append-only)"
+  },
+  "careful_read": {
+    "lane": "pub-review (R19)",
+    "model_from_api_metadata": "claude-sonnet-5-5",
+    "coverage": "every text file READ; binaries not read: the handoff ZIP and the synthetic library probe ZIP; the PNG screenshot was viewed by the controller (public branch names and a phone status bar only)",
+    "report": "lanes/pub-review/FINAL.md",
+    "lane_verdict": "NEW-FINDINGS"
+  },
+  "findings": [
+    {
+      "severity": "HIGH",
+      "where": "logs/controller-log.md:262",
+      "what": "first 1,500 chars of the owner's relay of SOURCE-REPLY-01: Work environment id, runtime boot data, source paths; no credential",
+      "disposition": "fixed forward: controller_log.py withholds owner messages over 2,000 chars (hash and length only); history keeps it (OA-6)"
+    },
+    {
+      "severity": "MEDIUM",
+      "where": "logs/controller-log.md:252,259",
+      "what": "the owner's agent permission posture quoted in a controller reply and a tool description",
+      "disposition": "fixed forward: controller_log.py redacts posture terms in every row"
+    },
+    {
+      "severity": "MEDIUM",
+      "where": "ledger/ledger.json:33, board/ledger.js:34",
+      "what": "the value of the owner's Remote Control startup setting in the OA-4 ask; an earlier controller-log row wrongly said it had been removed",
+      "disposition": "fixed: OA-4 reworded; the publisher now redacts that setting's value in every published text file"
+    },
+    {
+      "severity": "LOW",
+      "where": "lanes/advisor-fable/REPORT.md:28",
+      "what": "same setting value in the advisor's report",
+      "disposition": "fixed in published copies by the publisher redaction; the local report is unchanged"
+    },
+    {
+      "severity": "MEDIUM",
+      "where": "handoff/ (whole bundle, including the ZIP)",
+      "what": "published although START_HERE.md line 9 says not to move the bundle into a public repository automatically; carries ChatGPT Library ids, hardware and account-storage details",
+      "disposition": "fixed forward: handoff/ removed from tools/publish-allowlist.txt; history keeps it (OA-6)"
+    },
+    {
+      "severity": "LOW",
+      "where": "ledger observations, events, runs, controller log, lane outputs",
+      "what": "host hardware and tool versions, session id, lane sandbox modes, local transcript file names, sanitized config paths",
+      "disposition": "accepted"
+    },
+    {
+      "severity": "NONE",
+      "where": "tools/test_publish_branch.py",
+      "what": "synthetic fixtures (placeholder user, example.test email, feedback_x.md, MEMORY.md)",
+      "disposition": "allow entries bound to the exact line hashes in tools/publish-scan-allow.txt"
+    }
+  ],
+  "verdict": "FINDINGS_FIXED_FORWARD",
+  "files": {
+    ".checkpoints/M0-intake.json": {
+      "bytes": 803,
+      "sha256": "19eb5bcef9cca91392dd3d446b33ec49ce05f1d243b6129b612679c98cde2559",
+      "git_blob": "acfe8fa6579256b0b01817ddf86e68ca82b3adff"
+    },
+    ".checkpoints/M1-public-source.json": {
+      "bytes": 1405,
+      "sha256": "5f069026c48decf3f518c558f3c793ce34dcb6f1348f1ac539c66e4aa57b3f3c",
+      "git_blob": "c7bfc3e7d024be306cdd7075ee3296551bb0efd4"
+    },
+    "AUDIT.md": {
+      "bytes": 6158,
+      "sha256": "49afe847dfc647cb9c7c9144103d9cccd8ae9e39f76629a43f6028b3ea00bbce",
+      "git_blob": "15ae2c78b07b9e6ed46def3a3211f3eafa57052b"
+    },
+    "board/BRIEF-02.md": {
+      "bytes": 1794,
+      "sha256": "8d99262f03b9009158f2b2395cffc2c75d02db349a7d835670cc7f28d847c526",
+      "git_blob": "a0c23f3a713818d25f87de20cf232a5a4f112810"
+    },
+    "board/BRIEF-03.md": {
+      "bytes": 1294,
+      "sha256": "4c3e1dadaef3ef52cb2ae60d5493482f78f18a2f10c5ae906906c9644c803a0c",
+      "git_blob": "a27720427431e67bd20c0fd52e20d325a7318d48"
+    },
+    "board/BRIEF.md": {
+      "bytes": 3611,
+      "sha256": "4546d58c7b8faff11c8e4f7e51d0635b3b616f530499a4975a729a491fbe019e",
+      "git_blob": "5db921894d438ce9153d6ff1539467edd5b5922c"
+    },
+    "board/index.html": {
+      "bytes": 11635,
+      "sha256": "f14e10e6a19f279184962937f3200bfc2c639a424693111b0113029bb2d41fdb",
+      "git_blob": "9f3cbf212fd15a4d198116b272190c64b403bc76"
+    },
+    "board/ledger.js": {
+      "bytes": 14825,
+      "sha256": "37551ebd26d9cc59ab441113d05b2d8f2f823666c64fb4cbb691b6c78562e49a",
+      "git_blob": "9f8f9921b2462cfd2044b253e4f1058c45898ea3"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/CLAUDE_CODE_HANDOFF.md": {
+      "bytes": 77899,
+      "sha256": "49aa8624104bda8a2c37542744fcc1728ee2c4dbf638749e96359637264e8207",
+      "git_blob": "bbe1294502e4c1b01f464b8e84ab717dc6025741"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/CLAUDE_START_PROMPT.md": {
+      "bytes": 6197,
+      "sha256": "520bebeadc914d47ee4fab66eecf8dbd2618792e6fcde09c994cdf06dabce546",
+      "git_blob": "ce616783a3cd87caf457f042b75564aac859d992"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/evidence/FINAL-RESULT.json": {
+      "bytes": 10671,
+      "sha256": "2a314039e244e67052a68e14c5be5860ae0c724256179cc001eb165411b702cc",
+      "git_blob": "038e3d5f3ecf93baadf00a5bd7521d4550946102"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/evidence/LIBRARY-ROUNDTRIP-RESULT.json": {
+      "bytes": 11228,
+      "sha256": "2dc785ec59a4e2823e3f7327d33fbd659db06440d7f234be12006a77094c2af3",
+      "git_blob": "e4e582ac12cf562341c354e945d16969f2aa158e"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/evidence/synthetic_library_probe.zip": {
+      "bytes": 67732,
+      "sha256": "ea982e34e5e535e9be2cb523ab93ba169ec4166d4c33d71fc113c19b6c6b84fc",
+      "git_blob": "97b562ec4fbd0f03f04808c28e4d104ca350cb75"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/evidence/WORK_EXPORT_FAILURE_USER_REPORT.md": {
+      "bytes": 1545,
+      "sha256": "13152eebe1bf541c27d5c9208fa64a63dde09c2a3acba0d4ce91c150bf96cc89",
+      "git_blob": "c91bdd3cb2609294b18244d2d1dbd9971e76bc52"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/HANDOFF_PACKAGE_MANIFEST.json": {
+      "bytes": 2876,
+      "sha256": "37c697e8e741e915bfa86a80457b6fce2c55dffc166e34cedb8bb9d275e2cd66",
+      "git_blob": "5c90f843c1d9f96126178723efbb8e17b3946e57"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/HANDOFF_STATE.json": {
+      "bytes": 9468,
+      "sha256": "41e63224ea955d5d1b8244e9423218653946e2ff216af09ce2ec27498e7f5749",
+      "git_blob": "560d121df03c55b623d22ac87ce837d1b14f7cc6"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/PACKAGE_QA.json": {
+      "bytes": 8662,
+      "sha256": "6afe7e5778be78e9931838e74cf5d6a2f024b7a29f0364bb5661ded4a088902e",
+      "git_blob": "cbcb12f774b923b310233e49a11223df686974ad"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/reference/ARCHIVE_LAYER_PINS.json": {
+      "bytes": 5570,
+      "sha256": "526837668ce2ce8ec4437c40fc818ab1c978719be6c7102687c722fd13844ffd",
+      "git_blob": "6a07cc5a4af839d965e276313ec3fe612bc7edd1"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/reference/MISSING_ORIGINALS_EXTRACT.json": {
+      "bytes": 1393,
+      "sha256": "4e584b52d96a9252b99851407fb5b71191d33635bffa4c70593d0d596f2ba1f9",
+      "git_blob": "3ceba605be1ac9797e12778c66b57774ff2ad635"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/reference/PACKAGE_PINS.json": {
+      "bytes": 1586,
+      "sha256": "b1fbb45d88f6f4f5f0de8fef1ad8351955534a9f94825cb42f98d351e200b50f",
+      "git_blob": "8125b074f0403ed93636215a156304af7ca4d464"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/SHA256SUMS": {
+      "bytes": 1509,
+      "sha256": "0072cd5a7d3063ede27fb080d33fe47c11c6a2dbbf69e7bb1dd34fc59d6a547f",
+      "git_blob": "3e042aa0e90b02c211853c83af74ea949c9c3e4e"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/SOURCE_NOTES.md": {
+      "bytes": 10357,
+      "sha256": "b7f891e98b79e9794b7ff5182e286637cf8e2108d9b629065497414369f39294",
+      "git_blob": "6f73dcd9d5fe7ad9cc56cdea15ee5442f97a65b4"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/SOURCE_REGISTER.json": {
+      "bytes": 12321,
+      "sha256": "ce7ccfb07d6afe4a4c32ea477cfacad0d2f87b75cad7f3627ce66447cd2abe79",
+      "git_blob": "b255a2246f13ab7eddeec5b953c8496d6f6e986f"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/START_HERE.md": {
+      "bytes": 3463,
+      "sha256": "efa5dd222f1161dc9fcff76249f76e3c931c03ffec8589ff6456ffc8a72fa8d4",
+      "git_blob": "f674021ecbe6f9939f283becf351ab19071758e7"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12/worksheets/RECEIVER_AND_AUTHORIZATION.md": {
+      "bytes": 3746,
+      "sha256": "a4aa148ade1d3b07fe0deaf84ef4b4c35198d8134b84cf48c9c261d7add9591b",
+      "git_blob": "e8a53a87b60a8a33e43a33d64ccfade2a8e00b2f"
+    },
+    "handoff/Intune_Claude_Code_Handoff_2026-10-12.zip": {
+      "bytes": 131333,
+      "sha256": "369422c12597acf764e11470ede0f9a49d2a6cb6d60c5a87aee6b66f1bb2f5c8",
+      "git_blob": "4ae06bc06ee59acdb8a2d9d1cd40f91180c4cb43"
+    },
+    "lanes/advisor-astra/BRIEF.md": {
+      "bytes": 3062,
+      "sha256": "a5b9e3ba4eec9c230afed69b96b74b09a5cc14030bb3efcce0b3cece22f3bb07",
+      "git_blob": "9fc987307e53d1db767cd4a9891c3db84095ff54"
+    },
+    "lanes/advisor-astra/FINAL.md": {
+      "bytes": 4191,
+      "sha256": "73d48407028b5201b7a0ac90b7f20effccc61fec12de5f8670fbb0c018c2c61b",
+      "git_blob": "b141f97c87646add6c6c179538b0f3efc62f1e68"
+    },
+    "lanes/advisor-fable/BRIEF.md": {
+      "bytes": 3030,
+      "sha256": "9be3d2e1f0ae9862c899151be0b7a6a51b1e19fe69c8aa933ceb74d163dafd09",
+      "git_blob": "84e1ca52d8337b325e6d43c5a096ffaccd7cc2a2"
+    },
+    "lanes/advisor-fable/REPORT.md": {
+      "bytes": 4031,
+      "sha256": "5fac658b95d66d0088a8f0861615868bb79ab63787a557b84b84123dd3dbdc02",
+      "git_blob": "d8d57dc0aa26348c6a91b9cf9d9d7811a21fa753"
+    },
+    "lanes/codex-probe/FINAL.md": {
+      "bytes": 43,
+      "sha256": "473df2f5fdf1ae2e3e16c9cb3016e6aadef16b3ab8b9f7ee0aadddcb3687bab0",
+      "git_blob": "06bfd7b7f4f01498b7c37afd77fe81ab99814ca7"
+    },
+    "lanes/kimi-board/kimi-run-01.out": {
+      "bytes": 1270,
+      "sha256": "d0149419d51c52a969672e841eae69fe19d1b2f5bf9dffdd8da0c4b0c6c15677",
+      "git_blob": "4e0ec20db63d69ae53d3b9a2755b1afc0f54f36c"
+    },
+    "lanes/kimi-board/kimi-run-02.out": {
+      "bytes": 2141,
+      "sha256": "cf00cc76407363fc4e54f96fc4922cf9c4dbb99b4b4308339a61a2c951eaf3b6",
+      "git_blob": "4116cea6691b42f6d7b87b1ead8c26bb4d0a5fed"
+    },
+    "lanes/kimi-board/kimi-run-03.out": {
+      "bytes": 810,
+      "sha256": "2f1ee45075ab76b3d121f019f6a1f468414f811e6714c374e1634f8f71043015",
+      "git_blob": "5961d13d3d7f0295b928d55eda3c466fea414069"
+    },
+    "lanes/m4-prep/BRIEF.md": {
+      "bytes": 2817,
+      "sha256": "368e4a9ba131125d768bfa9c38de76a30c50fc10fbdeeadf6879836a7e9aff23",
+      "git_blob": "fd4d9520abf781b74a3c228117d02ac7224f4242"
+    },
+    "lanes/m4-prep/FINAL.md": {
+      "bytes": 4786,
+      "sha256": "fcdc5e849d029265768fd69627505833adba0751d86eb804aaa8428c3f5dd7e0",
+      "git_blob": "eb718099fa7c72c5e383c0603dc8f7d154813117"
+    },
+    "lanes/publisher/BRIEF.md": {
+      "bytes": 3764,
+      "sha256": "e4f46b03ed4e69717387adb2ab9bc1cb6560c3ac1dc438515d53e8ef0a0fe99b",
+      "git_blob": "52e1c17a7e98737b6f2c3887e7b94d902c995d4a"
+    },
+    "lanes/publisher/FINAL.md": {
+      "bytes": 1455,
+      "sha256": "fb9e5c277acb55ada7f7cf018c0313f93188db96fcb7da12ea025dfe323db7f9",
+      "git_blob": "850f6791bd3cfd80327ef112bf5189fa6d946f7c"
+    },
+    "lanes/sol-query-check/BRIEF.md": {
+      "bytes": 1410,
+      "sha256": "ffffd941e77d53be42acffd840e8279b685da7d3bf06391c1a97937cd9ac52bd",
+      "git_blob": "80eaa47d4dece06f9df378282c7fae4e50464a24"
+    },
+    "lanes/sol-query-check/FINAL.md": {
+      "bytes": 1500,
+      "sha256": "bc13bea2bc8b0d856a913411b709731a12f730b522c1bfe722e9dbc93e207260",
+      "git_blob": "a9c8848c391004e7cb8cf9bee9937d8de9f2fda0"
+    },
+    "ledger/ledger.json": {
+      "bytes": 14730,
+      "sha256": "bbc6685520b539ee7878ab06c1c84f38f205ed4b451a1f529c5a66af74aac5e7",
+      "git_blob": "8f33be7b58d1c0b576d2d6fa414c1dfb8e0dd1f8"
+    },
+    "logs/AUDIT-TABLES.md": {
+      "bytes": 19532,
+      "sha256": "db721624dcae7683f11fbcc71775ebb256179ccf593de1d7fe25ca1cea10f89d",
+      "git_blob": "ceac3ca96a712c87fa84b863445b20fb4ce48461"
+    },
+    "logs/controller-log.md": {
+      "bytes": 42193,
+      "sha256": "16f2db184f70fe331535aebca1cb0a8e09a085de6305c14a360bd135ed680d2b",
+      "git_blob": "7769aa328f4eb51e2f167fb63f189eecbb0fdd18"
+    },
+    "logs/events.jsonl": {
+      "bytes": 23623,
+      "sha256": "469a590a04703a293ccb91c38c32e7c35257a14befa3f354ca4395472b315b49",
+      "git_blob": "35dc458f79d06914e9e81e5428ec63aa185bff89"
+    },
+    "logs/owner-attachments/2026-10-13T151432Z-github-branches.png": {
+      "bytes": 292801,
+      "sha256": "77180f97033f27520f10582c8a705513f4fbfea78cf54751367a0608dcbb76d3",
+      "git_blob": "4409f3c984e0c999a70e773cce266d25a21328fa"
+    },
+    "logs/runs.jsonl": {
+      "bytes": 13889,
+      "sha256": "e70cb8d859cbc54865b17e148f542aa66f9a4e238ed9ddb81d74bf6485c7a970",
+      "git_blob": "721484c4a5c2aeaec47fbb390d35024cf2a99f0a"
+    },
+    "observations/ROUTE-ANALYSIS-01.md": {
+      "bytes": 5926,
+      "sha256": "64fb49d91a183b02a5ba06e39d403bef40c15f53b4c7f9862fe41c14190a8e70",
+      "git_blob": "759a1bed101eb7ac156b469912ea6f99a044fa73"
+    },
+    "outbox/SOURCE-QUERY-01.draft-v1.md": {
+      "bytes": 5338,
+      "sha256": "6c1f06e821c99b51bf62fd4f11892402080059dc8a83f4a775c3b3bc10ff66e9",
+      "git_blob": "78872b7de0b8ffa5eba7f664c83a3507e081590d"
+    },
+    "outbox/SOURCE-QUERY-01.md": {
+      "bytes": 7659,
+      "sha256": "8ce32934fafbb28a7159f70ce6576267ac6f08a9ebee12d03185e1b86a257f98",
+      "git_blob": "4fa1f6a4f7843f6a9baea2359e61f4acade148e4"
+    },
+    "resume.md": {
+      "bytes": 2475,
+      "sha256": "6bf16d96aedb871626484eef7fb180dd3e9dd72e3ecb159a06a38a408a98e44a",
+      "git_blob": "b0552ceab1df3b75828649c9868b03a1a4c0f9d1"
+    },
+    "tools/audit.py": {
+      "bytes": 9248,
+      "sha256": "c5cb581dbffbea3d0c33764179869a450e71771c229ea2865c429716f4bfeef6",
+      "git_blob": "0dcf020b06462ce8c44714cb6f8c243e805d2683"
+    },
+    "tools/backfill_20261013.py": {
+      "bytes": 17976,
+      "sha256": "be023a0e3633a16d0582b9f9b477e8ef67a6c28003edc5231ac99ffb8ede808c",
+      "git_blob": "c5f57118fb03b7d1888fec99316d243cd5c18849"
+    },
+    "tools/controller_log.py": {
+      "bytes": 7770,
+      "sha256": "583655f6a8973fd8db20090873c862f64f9db755d35e5ea1cd6e083db6212c9e",
+      "git_blob": "fb9b97702222f2a65f2e16ad9aabc2a63a262a55"
+    },
+    "tools/make_ledger_js.py": {
+      "bytes": 1416,
+      "sha256": "8ad8d8d27c2f1d92b1526222adf323c334705d9905b52a6dbafb31e3b89fb498",
+      "git_blob": "e37818411316669636e85c2525641b87b35c27e7"
+    },
+    "tools/publish-allowlist.txt": {
+      "bytes": 850,
+      "sha256": "88481b20a0a96cee74fcc212ef6fe1e8a2f2cdf54aa6dfdb776020f5778ba4a2",
+      "git_blob": "9e490a6e76cec4ebfa1d3c244eb0b0947a3a502f"
+    },
+    "tools/publish_branch.py": {
+      "bytes": 9697,
+      "sha256": "8dceb280e651e6f332e984c22079421b81ba914b3e373526f00a381886bd98c5",
+      "git_blob": "78f8ac5827852b007094ed68e7d8639c867e6f71"
+    },
+    "tools/sync_worker.py": {
+      "bytes": 4850,
+      "sha256": "08b57216a6f1013bf1a453fb90135e2cd4f19d850c7465096698d8cfd5a37c09",
+      "git_blob": "8988126d9bf191d68bf275e2837643c477b51266"
+    },
+    "tools/test_publish_branch.py": {
+      "bytes": 11879,
+      "sha256": "d2d67a9760f4e9329893c0d181a692757c76375b504f68c6b329fd17f12c6142",
+      "git_blob": "dd2e580ca889affd6411a0ab9503316191639883"
+    }
+  }
+}

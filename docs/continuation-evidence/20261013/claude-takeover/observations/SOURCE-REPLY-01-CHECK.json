@@ -1,0 +1,102 @@
+{
+  "reply_sha256_local": "see inbox/RECEIVED-01.json",
+  "runtime": {
+    "new_runtime_start": "NEW_RUNTIME_START_CONFIRMED",
+    "kernel_boot_utc": "2026-10-13T15:52:05Z",
+    "cause": "UNKNOWN",
+    "source_head": "d057cc15c9928dd1a34a965b8d8ebf8e6755d94a",
+    "files_created_or_modified_by_query": false
+  },
+  "objects": [
+    {
+      "object": "r4-evidence",
+      "echoed_pin_matches_sent_pin": true,
+      "availability": "MISSING_AT_RECORDED_PATH",
+      "error": "ENOENT",
+      "fresh_sha256": "UNKNOWN",
+      "verdict": "ABSENT"
+    },
+    {
+      "object": "provider-candidates",
+      "echoed_pin_matches_sent_pin": true,
+      "availability": "MISSING_AT_RECORDED_PATH",
+      "error": "ENOENT",
+      "fresh_sha256": "UNKNOWN",
+      "verdict": "ABSENT"
+    },
+    {
+      "object": "current-diagnostic-scratch",
+      "echoed_pin_matches_sent_pin": true,
+      "availability": "MISSING_AT_RECORDED_PATH",
+      "error": "ENOENT",
+      "fresh_sha256": "UNKNOWN",
+      "verdict": "ABSENT"
+    },
+    {
+      "object": "current-exact-artifact-scratch",
+      "echoed_pin_matches_sent_pin": true,
+      "availability": "MISSING_AT_RECORDED_PATH",
+      "error": "ENOENT",
+      "fresh_sha256": "UNKNOWN",
+      "verdict": "ABSENT"
+    },
+    {
+      "object": "synthetic-original-work-probe.zip",
+      "echoed_pin_matches_sent_pin": true,
+      "availability": "PRESENT",
+      "fresh_bytes": 18445,
+      "fresh_sha256": "d01a9b0e9cd1506b1ee5d0defcfebf4f377af858ab610d3ec5362623ee0c67c3",
+      "size_mtime_unchanged": true,
+      "verdict": "PIN-MATCH"
+    },
+    {
+      "object": "WORK-EXPORT-PROBE.json",
+      "fresh_bytes": 2426,
+      "verdict": "PIN-MATCH (pin from the Work task's own receipt)"
+    }
+  ],
+  "layer_input_roots_exist": {
+    "r4-evidence": true,
+    "provider-candidates": true,
+    "current-diagnostic-scratch": false,
+    "current-exact-artifact-scratch": false
+  },
+  "capacity_bytes": {
+    "workspace_account_available": 3018752,
+    "workspace_filesystem_free": 1737781248,
+    "tmp_available": 9441345536,
+    "cgroup_memory_limit": 17179869184
+  },
+  "github": {
+    "c32_method": "native git CLI push",
+    "clients_present": [
+      "curl",
+      "gh",
+      "git",
+      "git-lfs"
+    ],
+    "gh_api_user_status": 200,
+    "oauth_scopes": "UNKNOWN",
+    "credential_helper": "UNCONFIGURED",
+    "private_repo_access": "UNKNOWN",
+    "release_asset_upload_permission": "UNKNOWN"
+  },
+  "drive": {
+    "retried_by_query": false,
+    "historical": "403 ACCESS_TOKEN_SCOPE_INSUFFICIENT"
+  },
+  "post_cutoff_records": {
+    "listed": 50,
+    "total": 68,
+    "complete": false
+  },
+  "errors": [
+    "archives.r4-evidence: ENOENT",
+    "archives.provider-candidates: ENOENT",
+    "archives.current-diagnostic-scratch: ENOENT",
+    "archives.current-exact-artifact-scratch: ENOENT",
+    "manifests: PARENT_ARCHIVES_ABSENT",
+    "github_mechanism.gh_api_user: HEADER_PARSE_FAILED",
+    "post_cutoff_records: BOUNDED_LIST"
+  ]
+}

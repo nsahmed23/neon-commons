@@ -1,8 +1,8 @@
 # Audit tables
 
-Generated 2026-10-13T17:22:50Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T17:51:48Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
-## Lane runs (17)
+## Lane runs (20)
 
 | run | lane | executor | model requested / confirmed | effort | sandbox | start / end UTC | exit | status | deviations |
 |---|---|---|---|---|---|---|---|---|---|
@@ -23,8 +23,11 @@ Generated 2026-10-13T17:22:50Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R15 | L10 render-check | Claude Agent fast-worker (resumed) | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | writes only scratchpad/render-check | 2026-10-13T15:37:53Z / 2026-10-13T15:38:23Z | n/a | DONE | none |
 | R16 | L9 leak-sweep | Claude Agent Explore (read-only) | haiku / claude-haiku-5-5 (report line 1) | agent default | read-only tools | 2026-10-13T15:34:04Z / 2026-10-13T15:40:36Z | n/a | DONE | made one no-op call to an AWS sandbox tool (self-reported; no access to the target) |
 | R17 | L11 redaction-fix | Claude Agent code-editor | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | edits limited to three tools/ files | 2026-10-13T15:41:31Z / 2026-10-13T15:42:28Z | n/a | DONE | agent skipped its ASCII check (grep error); controller verified 0 non-ASCII bytes |
+| R18 | L12 pub-gate | Claude Agent code-editor | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (API metadata in the agent transcript) | agent default | edits limited to tools/ and lanes/pub-gate/FINAL.md; no remote | 2026-10-13T17:32:24Z / 2026-10-13T17:37:12Z | n/a | DONE | left two synthetic fixture lines unallowed (reported); controller added exact-line allow entries |
+| R19 | L13 pub-review | Claude Agent code-reader (read-only tools) | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (API metadata, 54 messages) | agent default | read-only tools | 2026-10-13T17:32:26Z / 2026-10-13T17:35:38Z | n/a | DONE | none |
+| R20 | L1 advisor-fable | Claude Agent teammate fable-advisor (architect, read-only tools) | fable / claude-fable-5-1 (API metadata in the advisor transcript) | agent default | read-only tools | 2026-10-13T17:41:20Z / 2026-10-13T17:43:22Z | n/a | DONE | report sent by SendMessage at 17:43:16Z never reached the controller context; controller read it from the advisor transcript at about 17:50Z |
 
-## Events (74)
+## Events (91)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -102,3 +105,20 @@ Generated 2026-10-13T17:22:50Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T16:52:39Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 4fa09634ba1e2aa3ba160be3ef9304be5480b8b1 |  |
 | 2026-10-13T17:02:45Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: ef9b797e62d1a6934e539ea3a302f7911960db9d |  |
 | 2026-10-13T17:12:50Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: ffcf39f8325e771f5533c0556514e079a0b0b9a5 |  |
+| 2026-10-13T17:22:55Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 7840c4070b5ab6c454ff4a4a1876b02ba2cb180c |  |
+| 2026-10-13T17:32:58Z | owner | relay-in | - | Owner relayed SOURCE-REPLY-01, the Work task's read-only inventory (JSON, 57,895 B), plus a ChatGPT review (11,471 B). Saved locally as inbox/SOURCE-REPLY-01.json and inbox/CHATGPT-REVIEW-01.md; inbox stays unpublished. | inbox/RECEIVED-01.json |
+| 2026-10-13T17:32:58Z | owner | owner-directive | - | Relayed correction for Claude: pause the public sync worker and finish the privacy review against an exact commit and file-hash set; correct the source query; name the binary transfer mechanism (ordinary Git cannot ca... | inbox/CHATGPT-REVIEW-01.md |
+| 2026-10-13T17:32:58Z | controller | controller-action | - | Created tools/STOP_SYNC; the sync worker logged 'stop requested via STOP_SYNC after cycle 12' at 17:28:06Z and exited 0. Remote continuation/r4-20261007 = 7840c407 (cycle 12, pushed 17:22:55Z); main unchanged at 4ba07... | logs/sync-worker.log |
+| 2026-10-13T17:32:59Z | controller | failure | - | Publication defect: cycle 12 (7840c407) published logs/controller-log.md with the first 1,500 chars of the owner's 69,304-char relay of the Work task reply (source environment id, runtime boot data, source paths). No ... | logs/controller-log.md |
+| 2026-10-13T17:32:59Z | controller | dispatch | pub-gate | R18 dispatched: Sonnet 5.5 code-editor adds relay withholding and posture redaction to controller_log.py, scan_published.py with an append-only rules file, a review-receipt gate in publish_branch.py, and a local-only ... | lanes/pub-gate/BRIEF.md |
+| 2026-10-13T17:32:59Z | controller | dispatch | pub-review | R19 dispatched: Sonnet 5.5 code-reader reviews the exact 58 published files at 7840c407 (subtree e3c7b4e6); deterministic scan already run (13 hits, 20 rules); 25 min box. | lanes/pub-review/BRIEF.md |
+| 2026-10-13T17:44:35Z | sonnet-5-5 | report | pub-review | R19: no credentials, emails or phone numbers. New: handoff bundle published against START_HERE.md line 9 (with ChatGPT Library ids); Remote Control setting value still in the ledger OA-4 ask and the Fable report, alth... | lanes/pub-review/FINAL.md |
+| 2026-10-13T17:44:35Z | sonnet-5-5 | report | pub-gate | R18: relay withholding plus posture redaction, scanner with append-only rules (20) and line-bound allow file, review-receipt gate (exit 5 without an exact PASS receipt), local-only worker; 27 tests pass. | lanes/pub-gate/FINAL.md |
+| 2026-10-13T17:44:35Z | controller | verification | - | Controller gate on R18: reran all tool tests (27 OK), read the gate code (one collect() feeds both the receipt check and the commit, so no window between them); added a no-fetch worker test (RED then GREEN), a Remote ... | tools/publish_branch.py |
+| 2026-10-13T17:44:35Z | controller | verification | - | SOURCE-REPLY-01 checked by tools/check_source_reply.py against the pins in the sent query: echoed pins match; four archives ABSENT (ENOENT); probe 18,445 B PIN-MATCH; receipt PIN-MATCH; two input roots exist, two gone. | observations/SOURCE-REPLY-01-CHECK.json |
+| 2026-10-13T17:44:36Z | controller | verification | - | Model identities re-derived from runtime metadata (API model fields, Codex rollouts, Kimi wire logs), not self-reports; all runs match; Kimi runs now confirmed as kimi-code/k3-256k. | observations/MODEL-EVIDENCE-01.md |
+| 2026-10-13T17:44:36Z | controller | decision | - | Publication review of 7840c407 bound to its 58-file hash set (935,243 B; the R19 brief's 941,799 B figure was a du total including directories). Verdict FINDINGS_FIXED_FORWARD; no history rewrite without the owner's n... | observations/PUBLICATION-REVIEW-01.json |
+| 2026-10-13T17:44:36Z | controller | dispatch | advisor-fable | R20: asked Fable 5.1 (existing advisor teammate) to review ROUTE-DECISION-01 and SOURCE-QUERY-02 for blocking issues; 10 min box. | outbox/ROUTE-DECISION-01.md |
+| 2026-10-13T17:51:38Z | fable-5-1 | report | advisor-fable | R20: SEND-WITH-FIXES. Blocking: Q02 step 6 could print credential values into the source task's own command output; Q02 could not tell token types apart, and the owner's action differs by type. Non-blocking: drop /mnt... | lanes/advisor-fable/REPORT-R20.md |
+| 2026-10-13T17:51:38Z | controller | decision | - | Applied all R20 fixes to SOURCE-QUERY-02 (now FINAL) and ROUTE-DECISION-01, except one deliberate deviation: no gh auth status, because it makes its own GitHub request that cannot carry the required User-Agent; the to... | outbox/SOURCE-QUERY-02.md |
+| 2026-10-13T17:51:38Z | controller | deviation | advisor-fable | Teammate-to-controller SendMessage delivery failed again (second time today): the advisor's 17:43:16Z report was only found by reading its transcript. Controller now checks the advisor transcript when a teammate goes ... | lanes/advisor-fable/REPORT-R20.md |

@@ -1,7 +1,8 @@
 """Timestamped controller log from a Claude Code session transcript (JSONL).
 
 Ported from pharos-lab-olr r1-day/controller_log.py and extended for this workspace. One row per:
-- owner message (verbatim up to 1,500 chars), including messages sent mid-turn;
+- owner message (verbatim up to 2,000 chars, including messages sent mid-turn; longer relays are withheld and
+  replaced by a length and sha256 prefix marker, because they may carry pasted third-party text);
 - agent message (teammate or subagent reports delivered to the controller);
 - controller reply to the owner (assistant text, up to 600 chars);
 - controller tool call (tool name plus its description or target);
@@ -10,9 +11,11 @@ Ported from pharos-lab-olr r1-day/controller_log.py and extended for this worksp
 Tool outputs are not copied; lane outputs live under lanes/ and logs/transcripts/.
 
 Usage: py -3.11 -I tools/controller_log.py --transcript <session.jsonl> [--since ISO] [--until ISO] [--out PATH]
+Agent-permission posture terms are replaced with [posture redacted] in every row.
 Output is ASCII-only (non-ASCII is backslash-escaped), so it renders anywhere.
 """
 import argparse
+import hashlib
 import json
 import pathlib
 import re
@@ -25,10 +28,30 @@ AGENT = re.compile(r"<(?:agent|teammate)-message[^>]*?(?:from|teammate_id)=\"([^
 TASK = re.compile(r"<task-notification>.*?<status>(.*?)</status>.*?<summary>(.*?)</summary>", re.S)
 
 
+OWNER_LIMIT = 2000
+POSTURE = re.compile(
+    r"danger-full-access|approval[ ]never|approval_policy(?:\s*=\s*\"never\")?|dangerously-skip-permissions"
+    r"|bypass[ ]?permissions", re.I)
+REDACTION = "[posture redacted]"
+
+
 def clean(text, limit):
-    text = " ".join(str(text).split()).replace("|", "/")
+    text = " ".join(str(text).split())
+    text = POSTURE.sub(REDACTION, text).replace("|", "/")
     text = text.encode("ascii", "backslashreplace").decode("ascii")
     return text if len(text) <= limit else text[: limit - 3] + "..."
+
+
+def row_text(who, what):
+    """Row text for one entry; long owner relays are withheld, with a hash so the paste stays identifiable."""
+    if who == "owner":
+        collapsed = " ".join(str(what).split())
+        if len(collapsed) > OWNER_LIMIT:
+            digest = hashlib.sha256(str(what).encode("utf-8")).hexdigest()[:16]
+            return (f"[owner relay withheld from the published log: {len(collapsed)} chars, sha256 {digest}; "
+                    "full text kept in the local transcript]")
+        return clean(what, OWNER_LIMIT)
+    return clean(what, 600)
 
 
 def texts_of(content):
@@ -94,7 +117,7 @@ def rows_from(transcript, since, until):
                     if not what.strip() or (who == "owner" and key in seen):
                         continue
                     seen.add(key)
-                    yield ts, who, clean(what, 1500 if who == "owner" else 600)
+                    yield ts, who, row_text(who, what)
                 continue
             if entry.get("type") == "user":
                 if entry.get("isMeta") or entry.get("isCompactSummary"):
@@ -112,7 +135,7 @@ def rows_from(transcript, since, until):
                         if who == "owner" and key in seen:
                             continue
                         seen.add(key)
-                        yield ts, who, clean(what, 1500 if who == "owner" else 600)
+                        yield ts, who, row_text(who, what)
             elif entry.get("type") == "assistant" and isinstance(content, list):
                 for block in content:
                     if not isinstance(block, dict):
