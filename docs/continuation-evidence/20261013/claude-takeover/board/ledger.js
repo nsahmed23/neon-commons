@@ -1,7 +1,7 @@
 // Generated from ledger/ledger.json by tools/make_ledger_js.py. Do not edit.
 window.LEDGER = {
   "schema": "intune-rescue-ledger/1",
-  "updated_utc": "2026-10-13T17:51:47Z",
+  "updated_utc": "2026-10-13T18:26:28Z",
   "writer": "Claude Code controller only; every other lane reads this file",
   "outcome_flags": {
     "private_export": "BLOCKED",
@@ -12,20 +12,20 @@ window.LEDGER = {
   "owner_asks": [
     {
       "id": "OA-1",
-      "urgency": "now",
-      "ask": "Paste the fenced block in outbox/SOURCE-QUERY-02.md into the same original ChatGPT Work task (no reset, no new task) and paste its JSON reply here or save it as inbox/SOURCE-REPLY-02.json.",
-      "blocks": "the copies search, the surviving-root census, and which GitHub access change (if any) route B1-R needs"
+      "urgency": "done",
+      "ask": "Done 2026-10-13T18:19Z: SOURCE-QUERY-02 answered (inbox/SOURCE-REPLY-02.json, checked in observations/SOURCE-REPLY-02-CHECK.json).",
+      "blocks": "nothing"
     },
     {
       "id": "OA-2",
-      "urgency": "after SOURCE-REPLY-02",
-      "ask": "Approve route B1-R for the 18,445-byte synthetic probe only: create a private repository under nsahmed23 with a README, add a draft release tagged probe-20261013-01 with no files, make any one-repository access change SOURCE-REPLY-02 shows, then send the approval line from outbox/ROUTE-DECISION-01.md.",
+      "urgency": "now",
+      "ask": "Create private repository nsahmed23/intune-evidence-custody (or your name) with a README; add a draft release tagged probe-20261013-01 with no files; in GitHub > Settings > Applications > Installed GitHub Apps, add that repository to the ChatGPT app's access if it uses selected repositories; send the approval line from outbox/ROUTE-DECISION-01.md; then paste outbox/SOURCE-ACTION-01.md into the Work task and download the asset in your browser.",
       "blocks": "M2 synthetic bridge"
     },
     {
       "id": "OA-3",
       "urgency": "before any evidence transfer",
-      "ask": "The four C32 archives are absent at their recorded paths. Choose a loss disposition, or a new capture of the two surviving input roots. A new capture needs a classification plus destination, transit and retention approval, and a separate one-time lift of the handoff's large-source-tmpfs boundary for one build.",
+      "ask": "No copy of the four C32 archives survives in the searched source folders, so they are missing originals. The surviving r4-evidence and provider-candidates roots equal their receipts in files, bytes and links. Choose a loss disposition, or a new capture of those two roots. A new capture needs a classification plus destination, transit and retention approval, and a one-time lift of the handoff's large-source-tmpfs boundary. The two scratch layers cannot be recaptured.",
       "blocks": "M3"
     },
     {
@@ -62,7 +62,7 @@ window.LEDGER = {
       "model": "Fable 5.1 (Claude Agent, read-only tools)",
       "role": "independent review: route decision and SOURCE-QUERY-01 (R01); ROUTE-DECISION-01 and SOURCE-QUERY-02 (R20)",
       "status": "DONE",
-      "output": "lanes/advisor-fable/REPORT.md (R01); lanes/advisor-fable/REPORT-R20.md (R20)"
+      "output": "lanes/advisor-fable/REPORT.md (R01); REPORT-R20.md (R20); REPORT-R22.md (R22)"
     },
     {
       "id": "L2",
@@ -76,9 +76,9 @@ window.LEDGER = {
       "id": "L3",
       "lane": "chatgpt-source",
       "model": "original ChatGPT Work task, relayed by the owner",
-      "role": "source operator; replied SOURCE-REPLY-01 (archives absent, probe present)",
+      "role": "source operator; replied SOURCE-REPLY-01 (archives absent) and SOURCE-REPLY-02 (no copies; roots match receipts; app user token)",
       "status": "WAITING_ON_OWNER",
-      "output": "inbox/SOURCE-REPLY-01.json (local only); next inbox/SOURCE-REPLY-02.json"
+      "output": "inbox/SOURCE-REPLY-01.json, inbox/SOURCE-REPLY-02.json (local only)"
     },
     {
       "id": "L4",
@@ -156,9 +156,9 @@ window.LEDGER = {
       "id": "L13",
       "lane": "pub-review",
       "model": "Sonnet 5.5 (claude-sonnet-5-5 per API metadata), code-reader agent, read-only",
-      "role": "careful read of the exact 58 published files at 7840c407",
+      "role": "careful read of published and candidate files: 7840c407 (R19), candidate-02 delta (R21)",
       "status": "DONE",
-      "output": "lanes/pub-review/REPORT.md; observations/PUBLICATION-REVIEW-01.json"
+      "output": "lanes/pub-review/FINAL.md; observations/PUBLICATION-REVIEW-01.json and -02.json"
     }
   ],
   "milestones": [
@@ -178,13 +178,13 @@ window.LEDGER = {
       "id": "M2",
       "title": "Original-source synthetic bridge",
       "status": "BLOCKED",
-      "evidence": "Route B1-R proposed (release asset on an owner-created private repository; outbox/ROUTE-DECISION-01.md). Waiting on SOURCE-REPLY-02 and OA-2. Drive 403 not retried."
+      "evidence": "Route B1-R reviewed (R20, R22); owner steps exact (private repo, draft release, ChatGPT app repository access); SOURCE-ACTION-01 FINAL (privacy check, release lookup, one upload); waiting on OA-2."
     },
     {
       "id": "M3",
       "title": "Four layers plus explicit amendment",
       "status": "BLOCKED",
-      "evidence": "All four C32 archives ABSENT (ENOENT at recorded /tmp paths; source runtime booted 2026-10-13T15:52:05Z). Recovery only if SOURCE-QUERY-02 finds a copy; otherwise a new capture under OA-3."
+      "evidence": "C32 archives are missing originals: ENOENT at recorded paths and no copy in /workspace, /tmp, /var/tmp or /home (/root not searchable). Surviving r4-evidence and provider-candidates roots equal their receipts in files, bytes and links. Next step only under OA-3 (new capture) or a loss disposition."
     },
     {
       "id": "M4",
@@ -225,7 +225,7 @@ window.LEDGER = {
       "manifest_bytes": 35983862,
       "manifest_sha256": "9f53658f8b795e136d32baab6d7043741a81cd6450e9d640489fb01a97610fb1",
       "source_path": "recorded /tmp path (C32)",
-      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root present in /workspace (existence only)",
+      "availability": "MISSING ORIGINAL (no copy in searched roots); input root present and equal to its receipt in files, bytes and links",
       "destination": "NONE (B1-R proposed)",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
@@ -237,7 +237,7 @@ window.LEDGER = {
       "manifest_bytes": 2875760,
       "manifest_sha256": "bccf1c15dcda000ebeae37f1c23de016233d062d8a0edcf535b39f67ffd99fa6",
       "source_path": "recorded /tmp path (C32)",
-      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root present in /workspace (existence only)",
+      "availability": "MISSING ORIGINAL (no copy in searched roots); input root present and equal to its receipt in files, bytes and links",
       "destination": "NONE (B1-R proposed)",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
@@ -249,7 +249,7 @@ window.LEDGER = {
       "manifest_bytes": 5496,
       "manifest_sha256": "43ef5e7852f9e2be9878cfc17ef096182d166fc693b970333828e54e11f7b992",
       "source_path": "recorded /tmp path (C32)",
-      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root gone (/tmp)",
+      "availability": "MISSING ORIGINAL (no copy in searched roots); input root gone with /tmp",
       "destination": "NONE (B1-R proposed)",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
@@ -261,7 +261,7 @@ window.LEDGER = {
       "manifest_bytes": 1677589,
       "manifest_sha256": "5d8b84ecc1c8bf9690fa0cbfa0012650430e36f302f4982969a04366b7984c2e",
       "source_path": "recorded /tmp path (C32)",
-      "availability": "ABSENT: ENOENT 2026-10-13T16:02:54Z; input root gone (/tmp)",
+      "availability": "MISSING ORIGINAL (no copy in searched roots); input root gone with /tmp",
       "destination": "NONE (B1-R proposed)",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
@@ -273,7 +273,7 @@ window.LEDGER = {
       "manifest_bytes": null,
       "manifest_sha256": null,
       "source_path": "UNKNOWN",
-      "availability": "68 records exist (50 listed in SOURCE-REPLY-01; full list asked in SOURCE-QUERY-02); not built",
+      "availability": "68 records fully listed (SOURCE-REPLY-01 and -02); 64 in the epoch, 241,052 B; not built",
       "destination": "NONE",
       "readback": "NOT_STARTED",
       "restore": "NOT_STARTED"
@@ -297,7 +297,7 @@ window.LEDGER = {
       "status": "BLOCKED",
       "boundary": "C32 archives absent at recorded paths; Drive 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT (not retried); no Library in the source task; route B1-R proposed, not approved",
       "owner": "source integration owner, then evidence owner",
-      "next_input": "SOURCE-REPLY-02, then OA-2"
+      "next_input": "OA-2, then SOURCE-ACTION-01"
     },
     {
       "gate": "G11 receiving capacity",
@@ -316,9 +316,9 @@ window.LEDGER = {
     {
       "gate": "F03/F09 missing originals",
       "status": "FAIL",
-      "boundary": "C30 runtime evidence ZIP (46,862,494 B), observer ZIP (50,239 B), raw tree and aggregate-reader output absent at origin; the four C32 archives are absent at their recorded /tmp paths (copies search pending, SOURCE-QUERY-02 step 2)",
+      "boundary": "C30 runtime evidence ZIP (46,862,494 B), observer ZIP (50,239 B), raw tree and aggregate-reader output absent at origin; the four C32 snapshot archives absent with no copy in the searched source folders",
       "owner": "original evidence custodian",
-      "next_input": "exact copies, or a scoped loss disposition"
+      "next_input": "a loss disposition, or a new capture under OA-3"
     },
     {
       "gate": "D12/E01 performance",
@@ -439,6 +439,18 @@ window.LEDGER = {
     {
       "utc": "2026-10-13T17:51:47Z",
       "text": "Fable 5.1 review R20: SEND-WITH-FIXES; fixes applied; SOURCE-QUERY-02 FINAL; ROUTE-DECISION-01 reviewed."
+    },
+    {
+      "utc": "2026-10-13T17:55:13Z",
+      "text": "Reviewed publish 02: 7a9716b9 (receipt PUBLICATION-REVIEW-02, 56 files; R21 PASS); handoff/ no longer in the tree."
+    },
+    {
+      "utc": "2026-10-13T18:19:24Z",
+      "text": "SOURCE-REPLY-02: no surviving archive copies; receipts intact; surviving roots equal receipts by count and bytes; source credential is a GitHub App user token."
+    },
+    {
+      "utc": "2026-10-13T18:26:28Z",
+      "text": "Fable 5.1 review R22: SOURCE-ACTION-01 SEND; hardenings applied plus a destination privacy check; FINAL."
     }
   ],
   "routing": "Opus 5.5 controller: judgment, gates, synthesis, last-mile git. Sonnet 5.5: mechanical Claude lanes (verification runs, records, reply parsing). Haiku 5.5: sweeps and inventories. Fable 5.1 leads the advisor tier, GPT-6 Astra is its peer. GPT-6.1 Sol (working since Codex CLI 0.162.1) is the Opus-tier ChatGPT executor. Kimi K3: frontend only."

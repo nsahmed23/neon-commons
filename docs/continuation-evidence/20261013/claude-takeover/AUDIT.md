@@ -17,7 +17,7 @@ This file is the entry point to the record of every communication, brief, report
 | Checked results of source replies | `observations/SOURCE-REPLY-*-CHECK.json` | `tools/check_source_reply.py` | yes (sanitized) |
 | Publication reviews, bound to exact file hashes | `observations/PUBLICATION-REVIEW-*.json`, `lanes/pub-review/FINAL.md` | controller and review lane | yes |
 | Which model really ran each lane (runtime metadata) | `observations/MODEL-EVIDENCE-01.md` | controller | yes |
-| Route decision and source queries | `outbox/ROUTE-DECISION-01.md`, `outbox/SOURCE-QUERY-*.md` | controller, advisor-reviewed | yes |
+| Route decision, source queries and source actions | `outbox/ROUTE-DECISION-01.md`, `outbox/SOURCE-QUERY-*.md`, `outbox/SOURCE-ACTION-*.md` | controller, advisor-reviewed | yes |
 | Stage checkpoints | `.checkpoints/*.json` | controller | yes |
 
 Raw transcripts stay local because they embed the owner's private Claude and Codex configuration and memory, not only this project. Inbox replies stay local. In the published controller log, any owner message longer than 2,000 characters (a relay or paste) appears only as its length and a SHA-256 prefix. Private evidence never enters this folder's published set or any public repository.
@@ -61,6 +61,15 @@ py -3.11 -I tools/audit.py tables
 - 17:32Z to 17:38Z: Sonnet 5.5 lanes built the review-before-push gate (29 tests after controller additions) and reviewed the exact 58 published files at 7840c407. Evidence: `lanes/pub-gate/FINAL.md`, `lanes/pub-review/FINAL.md`, `observations/PUBLICATION-REVIEW-01.json`.
 - 17:44Z: model identities re-derived from runtime metadata instead of self-reports; all match. Evidence: `observations/MODEL-EVIDENCE-01.md`.
 - 17:45Z: route B1-R proposed (GitHub release asset on an owner-created private repository) and SOURCE-QUERY-02 drafted, sent to Fable 5.1 for review. Evidence: `outbox/ROUTE-DECISION-01.md`, `outbox/SOURCE-QUERY-02.md`.
+- 17:43Z to 17:51Z: Fable 5.1 review R20: SEND-WITH-FIXES (two blocking items in the query's credential checks); fixes applied, SOURCE-QUERY-02 FINAL. Evidence: `lanes/advisor-fable/REPORT-R20.md`.
+- 17:55Z: first reviewed publish, 7a9716b9: 56 files bound by SHA-256 to receipt PUBLICATION-REVIEW-02 (R21 delta review PASS); verified byte for byte after the push; `handoff/` no longer in the tree. Evidence: `observations/PUBLICATION-REVIEW-02.json`.
+- 18:19Z: the owner relayed SOURCE-REPLY-02.
+  - No copy of any C32 archive or manifest survives in the searched source folders.
+  - The four builder receipts match their pins.
+  - The surviving roots equal their receipts in files, bytes and links.
+  - The source's GitHub credential is a GitHub App user token.
+  - Evidence: `observations/SOURCE-REPLY-02-CHECK.json`.
+- 18:21Z to 18:28Z: route decision updated with the exact owner steps. `outbox/SOURCE-ACTION-01.md` drafted for the probe upload. Fable 5.1 review R22 returned SEND; its three hardenings and a privacy check of the destination were applied, and the action is FINAL. Evidence: `lanes/advisor-fable/REPORT-R22.md`.
 
 **Failures and deviations**
 - 14:56Z: Astra attempt 1 refused before start: "Not inside a trusted directory and --skip-git-repo-check was not specified." Fix: relaunch with `--skip-git-repo-check`. Evidence: `lanes/advisor-astra/stderr.log`.
@@ -74,4 +83,5 @@ py -3.11 -I tools/audit.py tables
 - 15:31Z to 17:22Z: every publish carried `handoff/`, the whole handoff bundle including its ZIP, although `START_HERE.md` line 9 says not to move it into a public repository automatically. It is removed from the allowlist from the next publish onward; commits 658ff7f4 to 7840c407 keep it (OA-6).
 - 15:42Z: a controller row said the ledger no longer published the Remote Control setting value. That was wrong: the OA-4 ask still carried it until 17:43Z.
 - 17:22:55Z: worker cycle 12 (7840c407) published the first 1,500 characters of the owner's 69,304-character relay of the source reply. That included the Work environment id and runtime boot data; no credential. Cause: the controller log kept owner messages verbatim up to 1,500 characters. Fixed forward by withholding long relays; history keeps it (OA-6).
+- 17:35:42Z: the gate lane's red-phase test ran the real `sync_worker.py --push --once` (the old code still accepted `--push`), so one real cycle ran against this workspace. The new review gate refused the publish (exit 5) before any fetch; nothing went out. The test now runs only `--help`.
 - Run records R01 to R17 cited "report line 1" or a CLI header as model confirmation. A model's self-report is not evidence; `observations/MODEL-EVIDENCE-01.md` replaces those citations with runtime metadata.

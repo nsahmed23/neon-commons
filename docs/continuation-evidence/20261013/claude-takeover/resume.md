@@ -14,22 +14,25 @@ The local controller workspace for taking over the Intune Workbench from the Cha
   - the 18,445-byte probe is intact;
   - the input roots for r4-evidence and provider-candidates exist in `/workspace`, and the two `/tmp` scratch roots are gone.
 - The public sync was stopped at 17:28Z, and publishing now needs a review receipt bound to exact file hashes:
-  - the gate is in `tools/publish_branch.py`, the scanner in `tools/scan_published.py`, and the tool tests pass (29);
+  - the gate is in `tools/publish_branch.py`, the scanner in `tools/scan_published.py`, and the tool tests pass (30);
   - review of the already-public commit 7840c407: `observations/PUBLICATION-REVIEW-01.json`.
 - Model identities confirmed from runtime metadata (`observations/MODEL-EVIDENCE-01.md`).
-- Route B1-R proposed (`outbox/ROUTE-DECISION-01.md`) and SOURCE-QUERY-02 drafted (`outbox/SOURCE-QUERY-02.md`); Fable 5.1 review R20 requested.
+- Route B1-R proposed and reviewed (`outbox/ROUTE-DECISION-01.md`). SOURCE-QUERY-02 was answered (`observations/SOURCE-REPLY-02-CHECK.json`):
+  - no copy of any C32 archive survives in the searched folders;
+  - the surviving roots equal their receipts in files, bytes and links;
+  - the source credential is a GitHub App user token.
+- `outbox/SOURCE-ACTION-01.md` FINAL after Fable 5.1 review R22.
 
 ## In flight
 
-- R20: the Fable 5.1 advisor reviews ROUTE-DECISION-01 and SOURCE-QUERY-02.
 - The local-only sync worker (`logs/sync-worker.log`); stop it with `tools/STOP_SYNC`.
 
 ## Next
 
-1. The owner relays SOURCE-QUERY-02 (OA-1) and returns the reply as `inbox/SOURCE-REPLY-02.json`. Check it with a script against the pins, then update the ledger.
-2. Once the owner approves (OA-2: private repo, draft release `probe-20261013-01`, approval line), write SOURCE-ACTION-01 for the probe upload. The owner downloads the asset in the browser; hash-check it and record PASS or FAIL.
-3. OA-3 decides the C32 archives: a loss disposition, or a new capture of the surviving roots. Nothing moves before it.
-4. Publish only through `--export-dir`, then scan, review the delta, write a PASS receipt, and push with `--review-receipt`.
+1. OA-2: the owner creates the private repository and the draft release `probe-20261013-01`, adds the repository to the ChatGPT GitHub App's access if needed, and sends the approval line. Then the owner pastes `outbox/SOURCE-ACTION-01.md` into the Work task and downloads the asset in the browser.
+2. Hash the download (18,445 B, `d01a9b0e...0c67c3`); record PASS or FAIL in `observations/`.
+3. OA-3: a loss disposition for the four C32 archives, or a new capture of the two surviving roots.
+4. Publish only through `--export-dir`, then scan, review the delta, write a PASS receipt, and push with `--review-receipt`. Pause the local worker during the publish window.
 
 ## Routing
 

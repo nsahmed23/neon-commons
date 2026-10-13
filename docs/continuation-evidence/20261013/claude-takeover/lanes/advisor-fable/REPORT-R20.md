@@ -26,3 +26,5 @@ N3. Step 4 structural digest (L79-81) sorts ~100k+ lines; `sort` spills temp fil
 Route B1-R: no boundary conflict found. New-capture framing honest (ROUTE-DECISION L22, L64-68); cite handoff §10 D L364 and §7 L264 (new identities after approval, never backdated) as authority for owner decision at L66. Probe + r4 use same `gh api --input` client (L34), matches owner "same mechanism" correction.
 
 VERDICT: SEND-WITH-FIXES (B1, B2).
+
+Delivery note: this message reached the controller as a teammate message only after the controller's turn ended, with content identical to the copy above.

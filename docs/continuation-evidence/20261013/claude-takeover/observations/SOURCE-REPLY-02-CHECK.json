@@ -1,0 +1,141 @@
+{
+  "runtime": {
+    "kernel_boot_utc": "2026-10-13T15:52:05Z",
+    "restart_since_reply_01": false,
+    "source_head_is_c32_baseline": true
+  },
+  "copies": {
+    "roots_covered": [
+      "/workspace",
+      "/tmp",
+      "/var/tmp",
+      "/home"
+    ],
+    "roots_not_covered": [
+      "/root"
+    ],
+    "hits": 5,
+    "hit_names": [
+      "R4-EVIDENCE-MANIFEST.json"
+    ],
+    "hit_bytes": [
+      2439,
+      5633,
+      5633,
+      5633,
+      5633
+    ],
+    "any_hit_matches_a_pin": false,
+    "any_hit_has_a_pinned_size": false,
+    "verdict": "NO_SURVIVING_COPY_IN_SEARCHED_ROOTS"
+  },
+  "receipts": [
+    {
+      "label": "r4-evidence",
+      "receipt_sha256_matches_pin": true,
+      "recorded_archive_matches_c32_pin": true,
+      "recorded_manifest_sha256_matches_pin": true,
+      "input_root": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4",
+      "regular_files": 82115,
+      "regular_bytes": 3893135483,
+      "directories": 18988,
+      "literal_symlinks": 640,
+      "explicit_ipc_omissions": 8
+    },
+    {
+      "label": "provider-candidates",
+      "receipt_sha256_matches_pin": true,
+      "recorded_archive_matches_c32_pin": true,
+      "recorded_manifest_sha256_matches_pin": true,
+      "input_root": "/workspace/intune-continuation/work/provider-candidates",
+      "regular_files": 5734,
+      "regular_bytes": 27278816,
+      "directories": 1885,
+      "literal_symlinks": 0,
+      "explicit_ipc_omissions": 0
+    },
+    {
+      "label": "current-diagnostic-scratch",
+      "receipt_sha256_matches_pin": true,
+      "recorded_archive_matches_c32_pin": true,
+      "recorded_manifest_sha256_matches_pin": true,
+      "input_root": "/tmp/intune-storage-diagnosis-C32-20261012-01-audit",
+      "regular_files": 8,
+      "regular_bytes": 211637515,
+      "directories": 3,
+      "literal_symlinks": 0,
+      "explicit_ipc_omissions": 0
+    },
+    {
+      "label": "current-exact-artifact-scratch",
+      "receipt_sha256_matches_pin": true,
+      "recorded_archive_matches_c32_pin": true,
+      "recorded_manifest_sha256_matches_pin": true,
+      "input_root": "/tmp/intune-C32-required-artifacts-20261012-01",
+      "regular_files": 3771,
+      "regular_bytes": 92457055,
+      "directories": 664,
+      "literal_symlinks": 0,
+      "explicit_ipc_omissions": 0
+    }
+  ],
+  "census": [
+    {
+      "label": "r4-evidence",
+      "root": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4",
+      "regular_files_match_receipt": true,
+      "regular_bytes_match_receipt": true,
+      "symlinks_match_receipt": true,
+      "fifo_count_equals_omission_list_length": true,
+      "directories_at_or_before_cutoff_minus_receipt": -6,
+      "directories_now": 18992,
+      "regular_files_added_after_cutoff": 64,
+      "regular_bytes_added_after_cutoff": 241052,
+      "largest_regular_bytes": 293986466,
+      "regular_over_100MiB": 4,
+      "regular_over_2GiB": 0,
+      "structural_sha256_at_or_before_cutoff": "3bec57e83173cbcd558230d45a5500a8b78d212a18c5c8362f3fd3ced9852764"
+    },
+    {
+      "label": "provider-candidates",
+      "root": "/workspace/intune-continuation/work/provider-candidates",
+      "regular_files_match_receipt": true,
+      "regular_bytes_match_receipt": true,
+      "symlinks_match_receipt": true,
+      "fifo_count_equals_omission_list_length": true,
+      "directories_at_or_before_cutoff_minus_receipt": -2,
+      "directories_now": 1883,
+      "regular_files_added_after_cutoff": 0,
+      "regular_bytes_added_after_cutoff": 0,
+      "largest_regular_bytes": 1454676,
+      "regular_over_100MiB": 0,
+      "regular_over_2GiB": 0,
+      "structural_sha256_at_or_before_cutoff": "7eb992ddee17ae6795dd4a02ce6d02c03d0c7d1c6980a56e19266307b9067033"
+    }
+  ],
+  "post_cutoff_records": {
+    "newly_listed": 18,
+    "total": 68,
+    "complete": true,
+    "epoch_count_agrees_with_census": true
+  },
+  "github_client": {
+    "gh_version": "gh version 2.46.0 (2025-01-13 Debian 2.46.0-3)",
+    "release_upload_subcommand": true,
+    "api_subcommand": true,
+    "token_prefix_type": "APP_USER",
+    "reported_auth_type": "APP_USER",
+    "oauth_scopes": "",
+    "client_id_header_present": true,
+    "token_expiration_header_present": true,
+    "proxy_variables_set": true,
+    "extraheader": "NONE",
+    "credential_helper": "UNCONFIGURED",
+    "user_status": 200,
+    "login": "nsahmed23"
+  },
+  "errors": [
+    "copies: EACCES",
+    "instruction_intake: ATTACHMENT_MATERIALIZED_BEFORE_RULES_READ"
+  ]
+}

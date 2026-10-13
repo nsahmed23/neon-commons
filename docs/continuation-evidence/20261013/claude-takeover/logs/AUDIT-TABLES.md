@@ -1,8 +1,8 @@
 # Audit tables
 
-Generated 2026-10-13T17:51:48Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T18:27:23Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
-## Lane runs (20)
+## Lane runs (22)
 
 | run | lane | executor | model requested / confirmed | effort | sandbox | start / end UTC | exit | status | deviations |
 |---|---|---|---|---|---|---|---|---|---|
@@ -26,8 +26,10 @@ Generated 2026-10-13T17:51:48Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R18 | L12 pub-gate | Claude Agent code-editor | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (API metadata in the agent transcript) | agent default | edits limited to tools/ and lanes/pub-gate/FINAL.md; no remote | 2026-10-13T17:32:24Z / 2026-10-13T17:37:12Z | n/a | DONE | left two synthetic fixture lines unallowed (reported); controller added exact-line allow entries |
 | R19 | L13 pub-review | Claude Agent code-reader (read-only tools) | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (API metadata, 54 messages) | agent default | read-only tools | 2026-10-13T17:32:26Z / 2026-10-13T17:35:38Z | n/a | DONE | none |
 | R20 | L1 advisor-fable | Claude Agent teammate fable-advisor (architect, read-only tools) | fable / claude-fable-5-1 (API metadata in the advisor transcript) | agent default | read-only tools | 2026-10-13T17:41:20Z / 2026-10-13T17:43:22Z | n/a | DONE | report sent by SendMessage at 17:43:16Z never reached the controller context; controller read it from the advisor transcript at about 17:50Z |
+| R21 | L13 pub-review | Claude Agent code-reader (read-only tools), resumed | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (API metadata in the agent transcript) | agent default | read-only tools | 2026-10-13T17:52:30Z / 2026-10-13T17:54:31Z | n/a | DONE | none |
+| R22 | L1 advisor-fable | Claude Agent teammate fable-advisor (architect, read-only tools) | fable / claude-fable-5-1 (API metadata in the advisor transcript) | agent default | read-only tools | 2026-10-13T18:21:30Z / 2026-10-13T18:25:24Z | n/a | DONE | reply read from the advisor transcript; teammate messages reach the controller only after its turn ends |
 
-## Events (91)
+## Events (106)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -122,3 +124,18 @@ Generated 2026-10-13T17:51:48Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T17:51:38Z | fable-5-1 | report | advisor-fable | R20: SEND-WITH-FIXES. Blocking: Q02 step 6 could print credential values into the source task's own command output; Q02 could not tell token types apart, and the owner's action differs by type. Non-blocking: drop /mnt... | lanes/advisor-fable/REPORT-R20.md |
 | 2026-10-13T17:51:38Z | controller | decision | - | Applied all R20 fixes to SOURCE-QUERY-02 (now FINAL) and ROUTE-DECISION-01, except one deliberate deviation: no gh auth status, because it makes its own GitHub request that cannot carry the required User-Agent; the to... | outbox/SOURCE-QUERY-02.md |
 | 2026-10-13T17:51:38Z | controller | deviation | advisor-fable | Teammate-to-controller SendMessage delivery failed again (second time today): the advisor's 17:43:16Z report was only found by reading its transcript. Controller now checks the advisor transcript when a teammate goes ... | lanes/advisor-fable/REPORT-R20.md |
+| 2026-10-13T17:55:40Z | sonnet-5-5 | report | pub-review | R21 delta review of candidate-02 (29 added or changed files): PASS, no new HIGH or MEDIUM; relay rows withheld, posture terms only inside .py patterns and tests, Remote Control value gone, no handoff/ paths. LOW items... | observations/PUBLICATION-REVIEW-02.json |
+| 2026-10-13T17:55:40Z | controller | controller-action | - | Reviewed publish 02: 7a9716b9 on continuation/r4-20261007 (parent 7840c407, fast-forward) with --review-receipt bound to 56 files; handoff/ dropped from the tree; main unchanged at 4ba077d9. | observations/PUBLICATION-REVIEW-02.json |
+| 2026-10-13T17:55:40Z | controller | verification | - | ls-remote shows continuation/r4-20261007 = 7a9716b9; the pushed takeover subtree holds exactly the 56 receipt files with matching SHA-256 (0 missing, 0 extra, 0 changed); no change outside the takeover folder. | observations/PUBLICATION-REVIEW-02.json |
+| 2026-10-13T17:57:06Z | controller | deviation | pub-gate | Found in logs/sync-worker.log: at 17:35:42Z the R18 lane's red-phase test ran the real sync_worker.py with --push --once (old code still accepted --push), executing one real cycle against this workspace. The new revie... | tools/test_sync_worker.py |
+| 2026-10-13T17:57:06Z | controller | controller-action | - | Restarted the sync worker local-only at 17:55:53Z for 10 hours (no fetch, no push; dry-run commit objects only); the used stop file moved to lanes/pub-gate/STOP_SYNC.used-2026-10-13T172806Z. | logs/sync-worker.log |
+| 2026-10-13T17:59:23Z | controller | verification | advisor-fable | Correction to the 17:51:38Z deviation: Fable's R20 SendMessage (sent 17:43:16Z) was not lost. It was delivered after the controller's turn ended, despite many tool rounds in between. Its content is identical to the tr... | lanes/advisor-fable/REPORT-R20.md |
+| 2026-10-13T18:14:34Z | controller | verification | - | Owner shared a note on the Gemini 4 Argon launch (not an Intune task). Controller fetched ai.google.dev/gemini-api/docs/models with the required User-Agent (HTTP 200, 156,179 B): the page says Gemini 4 Argon is now av... |  |
+| 2026-10-13T18:18:23Z | owner | owner-directive | - | Owner: test Gemini 4 Argon access (after the controller proposed probing it through agy). |  |
+| 2026-10-13T18:18:23Z | controller | verification | - | Argon probe: agy 1.2.14 signs in fine and lists 10 models (Gemini 3.8 Flash low/medium/high, Claude Opus 5.5 and Sonnet 5.5 in three levels each, GPT-OSS 120B); no Gemini 4 model. --model gemini-4-argon fails: 'not re... |  |
+| 2026-10-13T18:23:42Z | owner | relay-in | - | Owner relayed SOURCE-REPLY-02 (JSON, 27,201 B; saved locally as inbox/SOURCE-REPLY-02.json). | inbox/RECEIVED-02.json |
+| 2026-10-13T18:23:42Z | controller | verification | - | SOURCE-REPLY-02 checked by tools/check_source_reply_02.py: no restart since 15:52:05Z; no copy of any C32 archive or manifest in /workspace, /tmp, /var/tmp or /home (/root denied); four builder receipts PIN-MATCH; sur... | observations/SOURCE-REPLY-02-CHECK.json |
+| 2026-10-13T18:23:42Z | controller | decision | - | C32 archives recorded as missing originals (searched roots); route B1-R kept; owner step for a ghu_ token = add the new private repository to the ChatGPT GitHub App's repository access. Drafted outbox/SOURCE-ACTION-01... | outbox/ROUTE-DECISION-01.md |
+| 2026-10-13T18:23:42Z | controller | dispatch | advisor-fable | R22: asked Fable 5.1 to review SOURCE-ACTION-01 (first write action) and the updated route decision; 10 min box. | outbox/SOURCE-ACTION-01.md |
+| 2026-10-13T18:26:28Z | fable-5-1 | report | advisor-fable | R22 on SOURCE-ACTION-01: SEND, no blocking items. Absolute uploads URL, gh auth on uploads.github.com, --input with Content-Length, draft visibility for a ghu_ token and the app repository-access step all check out (f... | lanes/advisor-fable/REPORT-R22.md |
+| 2026-10-13T18:26:28Z | controller | decision | - | Applied all three R22 hardenings and added a read-only check that the destination repository is private before any write (three requests in total). Approval line updated to match. SOURCE-ACTION-01 FINAL. | outbox/SOURCE-ACTION-01.md |
