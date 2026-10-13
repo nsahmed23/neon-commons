@@ -1,6 +1,6 @@
 # Audit tables
 
-Generated 2026-10-13T17:02:40Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T17:12:45Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
 ## Lane runs (17)
 
@@ -24,7 +24,7 @@ Generated 2026-10-13T17:02:40Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R16 | L9 leak-sweep | Claude Agent Explore (read-only) | haiku / claude-haiku-5-5 (report line 1) | agent default | read-only tools | 2026-10-13T15:34:04Z / 2026-10-13T15:40:36Z | n/a | DONE | made one no-op call to an AWS sandbox tool (self-reported; no access to the target) |
 | R17 | L11 redaction-fix | Claude Agent code-editor | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | edits limited to three tools/ files | 2026-10-13T15:41:31Z / 2026-10-13T15:42:28Z | n/a | DONE | agent skipped its ASCII check (grep error); controller verified 0 non-ASCII bytes |
 
-## Events (72)
+## Events (73)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -100,3 +100,4 @@ Generated 2026-10-13T17:02:40Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T16:32:28Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 042ee72f667b0b3f734d2bd3c0aab7e01c9b1070 |  |
 | 2026-10-13T16:42:34Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 6fce451282ae1d94cf18401b2fcede623f03d80e |  |
 | 2026-10-13T16:52:39Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 4fa09634ba1e2aa3ba160be3ef9304be5480b8b1 |  |
+| 2026-10-13T17:02:45Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: ef9b797e62d1a6934e539ea3a302f7911960db9d |  |
