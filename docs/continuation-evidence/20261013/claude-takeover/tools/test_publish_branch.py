@@ -218,9 +218,9 @@ class PublishBranchTests(unittest.TestCase):
         lines = [
             f"folder C--Users-{user} here",
             f"folder d--users-{user.upper()}/x",
-            "see ~/.claude/projects/C--Users-~/memory/feedback_x.md for more",
+            "see ~/.claude/projects/C--Users-~/memory/[redacted].md for more",
             f"see C:\\Users\\{user}\\.claude\\projects\\C--Users-{user}\\memory\\project_y.md now",
-            f"see C:/Users/{user}/.claude/projects/C--Users-{user}/memory/MEMORY.md ok",
+            f"see C:/Users/{user}/.claude/projects/C--Users-{user}/memory/[redacted].md ok",
         ]
         self.write("docs/mem.md", "\n".join(lines).encode("utf-8"))
         self.write("handoff/mem.md", "\n".join(lines).encode("utf-8"))

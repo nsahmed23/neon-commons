@@ -25,8 +25,8 @@ A background sync worker regenerates the logs and tables, then publishes the all
 ## Regenerate by hand
 
 ```
-py -3.11 -I tools/controller_log.py --transcript ~/.claude/projects/C--Users-nsahm/a133a22b-c5ca-4dce-ac02-3ee2deac0cb9.jsonl
-py -3.11 -I tools/audit.py snapshot ~/.claude/projects/C--Users-nsahm/a133a22b-c5ca-4dce-ac02-3ee2deac0cb9.jsonl claude/L0-controller-a133a22b.jsonl --rolling
+py -3.11 -I tools/controller_log.py --transcript ~/.claude/projects/C--Users-~/a133a22b-c5ca-4dce-ac02-3ee2deac0cb9.jsonl
+py -3.11 -I tools/audit.py snapshot ~/.claude/projects/C--Users-~/a133a22b-c5ca-4dce-ac02-3ee2deac0cb9.jsonl claude/L0-controller-a133a22b.jsonl --rolling
 py -3.11 -I tools/make_ledger_js.py C:/Dev/Projects/intune-rescue
 py -3.11 -I tools/audit.py tables
 ```

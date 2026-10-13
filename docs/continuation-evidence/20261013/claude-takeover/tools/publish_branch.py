@@ -134,9 +134,28 @@ def home_pattern():
     return re.compile("(?:" + "|".join(paths) + r")(?=$|[/\\])", re.IGNORECASE)
 
 
+def encoded_home_pattern():
+    user = os.environ.get("USERNAME") or getpass.getuser()
+    return re.compile(
+        r"([A-Za-z]--Users-)" + re.escape(user) + r"(?![A-Za-z0-9_])", re.IGNORECASE
+    )
+
+
+MEMORY_FILE_PATTERN = re.compile(
+    r"(\.claude[/\\]projects[/\\][^/\\\s]+[/\\]memory[/\\])[\w.\-]+\.md", re.IGNORECASE
+)
+
+
+def sanitize_text(value, home, encoded):
+    value = home.sub("~", value)
+    value = encoded.sub(r"\1~", value)
+    return MEMORY_FILE_PATTERN.sub(r"\1[redacted].md", value)
+
+
 def collect(root, patterns):
     includes, excludes = patterns
     replacement = home_pattern()
+    encoded = encoded_home_pattern()
     collected = []
     for directory, dirs, files in os.walk(root, followlinks=False):
         dirs[:] = sorted(
@@ -156,7 +175,7 @@ def collect(root, patterns):
             raw = path.read_bytes()
             if relative.parts[0].lower() != "handoff" and path.suffix.lower() in TEXT_SUFFIXES:
                 value = raw.decode("utf-8", "surrogateescape")
-                raw = replacement.sub("~", value).encode("utf-8", "surrogateescape")
+                raw = sanitize_text(value, replacement, encoded).encode("utf-8", "surrogateescape")
             collected.append((relative, raw))
     collected.sort(key=lambda item: item[0].as_posix())
     return collected

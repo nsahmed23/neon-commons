@@ -1,7 +1,7 @@
 // Generated from ledger/ledger.json by tools/make_ledger_js.py. Do not edit.
 window.LEDGER = {
   "schema": "intune-rescue-ledger/1",
-  "updated_utc": "2026-10-13T15:41:50Z",
+  "updated_utc": "2026-10-13T15:43:48Z",
   "writer": "Claude Code controller only; every other lane reads this file",
   "outcome_flags": {
     "private_export": "BLOCKED",
@@ -135,8 +135,8 @@ window.LEDGER = {
       "lane": "redaction-fix",
       "model": "Sonnet 5.5 (code-editor agent)",
       "role": "publisher: redact C--Users-<user> and memory-file names; exclude host-intake JSON",
-      "status": "RUNNING",
-      "output": "tools/publish_branch.py"
+      "status": "DONE",
+      "output": "tools/publish_branch.py (7 of 7 tests green)"
     }
   ],
   "milestones": [

@@ -7,6 +7,7 @@ ledger/ledger.json
 .checkpoints/*.json
 observations/*.md
 observations/*.json
+!observations/2026-10-13-host-intake.json
 outbox/*.md
 lanes/*/BRIEF*.md
 lanes/*/FINAL.md

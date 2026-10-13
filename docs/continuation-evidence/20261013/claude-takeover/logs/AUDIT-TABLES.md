@@ -1,8 +1,8 @@
 # Audit tables
 
-Generated 2026-10-13T15:41:53Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T15:52:00Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
-## Lane runs (16)
+## Lane runs (17)
 
 | run | lane | executor | model requested / confirmed | effort | sandbox | start / end UTC | exit | status | deviations |
 |---|---|---|---|---|---|---|---|---|---|
@@ -22,8 +22,9 @@ Generated 2026-10-13T15:41:53Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R14 | L4 kimi-board | Kimi Code CLI 0.37.2 | kimi-code/k3-256k / UNCONFIRMED (see wire.jsonl) | default | prompt mode, auto permission, cwd board/ | 2026-10-13T15:35:32Z / 2026-10-13T15:37:25Z | 0 | DONE | none |
 | R15 | L10 render-check | Claude Agent fast-worker (resumed) | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | writes only scratchpad/render-check | 2026-10-13T15:37:53Z / 2026-10-13T15:38:23Z | n/a | DONE | none |
 | R16 | L9 leak-sweep | Claude Agent Explore (read-only) | haiku / claude-haiku-5-5 (report line 1) | agent default | read-only tools | 2026-10-13T15:34:04Z / 2026-10-13T15:40:36Z | n/a | DONE | made one no-op call to an AWS sandbox tool (self-reported; no access to the target) |
+| R17 | L11 redaction-fix | Claude Agent code-editor | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | edits limited to three tools/ files | 2026-10-13T15:41:31Z / 2026-10-13T15:42:28Z | n/a | DONE | agent skipped its ASCII check (grep error); controller verified 0 non-ASCII bytes |
 
-## Events (63)
+## Events (65)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -90,3 +91,5 @@ Generated 2026-10-13T15:41:53Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T15:41:50Z | haiku-5-5 | report | L9 | Leak sweep of published commit 658ff7f4: secrets NONE; personal contact data NONE (fixture email only); LOW local-identity hints (C--Users-<user> encoding, hardware, UUIDs); MEDIUM private tooling posture (Codex defau... |  |
 | 2026-10-13T15:41:50Z | haiku-5-5 | deviation | L9 | Explore agent self-reported one stray no-op call to an AWS sandbox tool; it printed noop and touched nothing. |  |
 | 2026-10-13T15:41:50Z | controller | decision | - | Redact going forward (no history rewrite; that would need a force push and the owner's call): exclude host-intake JSON from publishing, sanitize C--Users-<user> and memory-file names, drop the Remote Control field fro... |  |
+| 2026-10-13T15:42:00Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 0f869f5b5dff6cda4217ba1ce004d57494c48427 |  |
+| 2026-10-13T15:43:48Z | controller | verification | L11 | Redaction gate PASS: 7 of 7 tests on 3.11, ASCII clean; dry-run commit shows 0 files with the encoded home folder, host-intake JSON excluded, 18 memory names redacted. Accepted residual: one earlier controller reply i... | tools/publish_branch.py |
