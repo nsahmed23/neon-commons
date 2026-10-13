@@ -1,6 +1,6 @@
 # Audit tables
 
-Generated 2026-10-13T15:26:45Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T15:31:46Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
 ## Lane runs (10)
 
@@ -17,7 +17,7 @@ Generated 2026-10-13T15:26:45Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R09 | L6 sol-query-check | Codex CLI 0.156.0 | gpt-6-sol / gpt-6-sol (stderr header and report line 1) | high | read-only | 2026-10-13T15:21:43Z / 2026-10-13T15:23:23Z | 0 | DONE | none |
 | R10 | L7 publisher | Codex CLI 0.156.0 | gpt-6-sol / gpt-6-sol (stderr header) | high | workspace-write | 2026-10-13T15:21:45Z / None |  | RUNNING | none |
 
-## Events (46)
+## Events (48)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -67,3 +67,5 @@ Generated 2026-10-13T15:26:45Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T15:23:11Z (backfilled) | controller | controller-action | - | Raw transcripts snapshotted to logs/transcripts/ (local only) with SHA256SUMS: Codex rollouts, Kimi sessions, Fable subagent, controller session. | logs/transcripts/SHA256SUMS |
 | 2026-10-13T15:23:23Z (backfilled) | gpt-6-sol | report | L6 | L6 report; model gpt-6-sol: 7 line edits (two contradictions from the merge, mid-hash change guard, User-Agent on source HEAD checks). | lanes/sol-query-check/FINAL.md |
 | 2026-10-13T15:24:52Z (backfilled) | controller | decision | L3 | SOURCE-QUERY-01 final: Sol edits adopted; gh auth status replaced by the gh api header check, which can carry the User-Agent. | outbox/SOURCE-QUERY-01.md |
+| 2026-10-13T15:29:20Z | controller | checkpoint | - | Ledger refreshed: lanes L1-L5 done, L6 done on gpt-6-sol, L7 running, L8 queued; owner asks restructured OA-1 to OA-5. | ledger/ledger.json, AUDIT.md |
+| 2026-10-13T15:31:38Z | controller | controller-action | - | First publish: commit 658ff7f4 on continuation/r4-20261007 (parent d057cc15, C32), 56 files under docs/continuation-evidence/20261013/claude-takeover/, fast-forward, main untouched. | tools/publish_branch.py, tools/publish-allowlist.txt |
