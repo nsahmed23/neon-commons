@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intune rescue control board</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #171717;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --card: #fafafa;
+    --green: #16a34a;
+    --red: #dc2626;
+    --amber: #d97706;
+    --blue: #2563eb;
+    --violet: #7c3aed;
+    --gray: #9ca3af;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0a0a;
+      --fg: #ededed;
+      --muted: #8f8f8f;
+      --border: #262626;
+      --card: #141414;
+      --green: #4ade80;
+      --red: #f87171;
+      --amber: #fbbf24;
+      --blue: #60a5fa;
+      --violet: #a78bfa;
+      --gray: #6b7280;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 56px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 10px; }
+  h2 { font-size: 14px; font-weight: 600; margin: 0 0 10px; }
+  section { margin-top: 30px; }
+  .k { color: var(--muted); font-size: 12px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .hash {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .status { white-space: nowrap; }
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  /* header */
+  .board-head { border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+  .meta-line {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 2px 0;
+    overflow-wrap: anywhere;
+  }
+  .meta-line > * { min-width: 0; }
+  .meta-line .k { min-width: 240px; }
+  @media (max-width: 480px) {
+    .meta-line { flex-direction: column; gap: 0; }
+    .meta-line .k { min-width: 0; }
+  }
+  /* owner asks */
+  .asks { display: grid; gap: 10px; }
+  .ask {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    padding: 12px 14px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .ask-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin-bottom: 6px;
+  }
+  .ask-id { font-weight: 600; }
+  .ask-urg { font-size: 12px; color: var(--muted); }
+  .ask-text { margin: 0 0 6px; }
+  .ask-blocks { margin: 0; font-size: 12px; color: var(--muted); }
+  /* tables */
+  .table-wrap {
+    overflow-x: auto;
+    max-width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  table { border-collapse: collapse; width: 100%; }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  td { overflow-wrap: anywhere; }
+  th { font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  .nw { white-space: nowrap; }
+  /* events */
+  .event {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .event > * { min-width: 0; }
+  .event:last-child { border-bottom: 0; }
+  .event-time {
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    padding-top: 1px;
+  }
+  .event-text { flex: 1 1 220px; overflow-wrap: anywhere; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script src="ledger.js"></script>
+<script>
+(function () {
+  "use strict";
+  var L = window.LEDGER || {};
+  var app = document.getElementById("app");
+
+  var STATUS_COLORS = {
+    PASS: "var(--green)",
+    FAIL: "var(--red)",
+    BLOCKED: "var(--amber)",
+    IN_PROGRESS: "var(--blue)",
+    RUNNING: "var(--blue)",
+    WAITING_ON_OWNER: "var(--violet)",
+    NOT_STARTED: "var(--gray)",
+    NOT_TESTED: "var(--gray)",
+    NOT_RECHECKED: "var(--gray)",
+    NOT_DEFINED: "var(--gray)",
+    UNKNOWN: "var(--gray)",
+    NONE: "var(--gray)",
+    QUEUED: "var(--gray)"
+  };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+
+  function isStatus(v) {
+    return typeof v === "string" &&
+      Object.prototype.hasOwnProperty.call(STATUS_COLORS, v);
+  }
+
+  function numStr(n) {
+    var parts = String(n).split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
+  }
+
+  function isHash(v) {
+    return typeof v === "string" && /^[0-9a-f]{64}$/.test(v);
+  }
+
+  // Append a value to parent: null -> UNKNOWN, boolean -> true/false,
+  // number -> tabular with thousands separators, 64-char hex -> first 12
+  // chars with the full hash in title. A status dot is shown only when
+  // asStatus is true (allowed fields: lanes/milestones/gates .status,
+  // source_transfer availability/readback/restore, private_export flag).
+  function renderVal(parent, v, asStatus) {
+    if (v === null || v === undefined) {
+      parent.appendChild(el("span", null, "UNKNOWN"));
+    } else if (typeof v === "boolean") {
+      parent.appendChild(el("span", null, v ? "true" : "false"));
+    } else if (typeof v === "number") {
+      parent.appendChild(el("span", "num", numStr(v)));
+    } else if (isHash(v)) {
+      var h = el("span", "hash", v.slice(0, 12));
+      h.title = v;
+      parent.appendChild(h);
+    } else if (asStatus && isStatus(v)) {
+      var s = el("span", "status");
+      var d = el("span", "dot");
+      d.style.background = STATUS_COLORS[v];
+      s.appendChild(d);
+      s.appendChild(document.createTextNode(v));
+      parent.appendChild(s);
+    } else {
+      parent.appendChild(el("span", null, String(v)));
+    }
+  }
+
+  function section(title) {
+    var s = el("section");
+    s.appendChild(el("h2", null, title));
+    app.appendChild(s);
+    return s;
+  }
+
+  function emptyNote(parent) {
+    parent.appendChild(el("p", "empty", "None"));
+  }
+
+  function table(parent, cols, rows) {
+    if (!Array.isArray(rows) || rows.length === 0) {
+      emptyNote(parent);
+      return;
+    }
+    var wrap = el("div", "table-wrap");
+    var t = el("table");
+    var thead = el("thead");
+    var htr = el("tr");
+    cols.forEach(function (c) {
+      htr.appendChild(el("th", null, c.label));
+    });
+    thead.appendChild(htr);
+    t.appendChild(thead);
+    var tbody = el("tbody");
+    rows.forEach(function (row) {
+      var tr = el("tr");
+      cols.forEach(function (c) {
+        var td = el("td", c.nw ? "nw" : null);
+        renderVal(td, row ? row[c.key] : undefined, !!c.status);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    t.appendChild(tbody);
+    wrap.appendChild(t);
+    parent.appendChild(wrap);
+  }
+
+  function metaLine(parent, name, value, asStatus) {
+    var line = el("div", "meta-line");
+    line.appendChild(el("span", "k", name + ":"));
+    var v = el("span");
+    renderVal(v, value, asStatus);
+    line.appendChild(v);
+    parent.appendChild(line);
+  }
+
+  // a. Header
+  var head = el("header", "board-head");
+  head.appendChild(el("h1", null, "Intune rescue control board"));
+  metaLine(head, "updated_utc", L.updated_utc);
+  var flags = L.outcome_flags || {};
+  Object.keys(flags).forEach(function (name) {
+    metaLine(head, name, flags[name], name === "private_export");
+  });
+  if (Object.keys(flags).length === 0) metaLine(head, "outcome_flags", undefined);
+  app.appendChild(head);
+
+  // b. Blocked on owner
+  var askSec = section("Blocked on owner");
+  var asks = L.owner_asks;
+  if (!Array.isArray(asks) || asks.length === 0) {
+    emptyNote(askSec);
+  } else {
+    var grid = el("div", "asks");
+    asks.forEach(function (a) {
+      a = a || {};
+      var card = el("div", "ask");
+      var ah = el("div", "ask-head");
+      var idSpan = el("span", "ask-id");
+      renderVal(idSpan, a.id);
+      ah.appendChild(idSpan);
+      var urg = el("span", "ask-urg");
+      urg.appendChild(document.createTextNode("urgency: "));
+      renderVal(urg, a.urgency);
+      ah.appendChild(urg);
+      card.appendChild(ah);
+      var text = el("p", "ask-text");
+      renderVal(text, a.ask);
+      card.appendChild(text);
+      var blocks = el("p", "ask-blocks");
+      blocks.appendChild(document.createTextNode("blocks: "));
+      renderVal(blocks, a.blocks);
+      card.appendChild(blocks);
+      grid.appendChild(card);
+    });
+    askSec.appendChild(grid);
+  }
+
+  // c. Lanes
+  table(section("Lanes"), [
+    { key: "id", label: "id", nw: true },
+    { key: "lane", label: "lane", nw: true },
+    { key: "model", label: "model" },
+    { key: "role", label: "role" },
+    { key: "status", label: "status", nw: true, status: true },
+    { key: "output", label: "output" }
+  ], L.lanes);
+
+  // d. Milestones
+  table(section("Milestones"), [
+    { key: "id", label: "id", nw: true },
+    { key: "title", label: "title" },
+    { key: "status", label: "status", nw: true, status: true },
+    { key: "evidence", label: "evidence" }
+  ], L.milestones);
+
+  // e. Source transfer
+  table(section("Source transfer"), [
+    { key: "label", label: "label", nw: true },
+    { key: "archive_bytes", label: "archive_bytes", nw: true },
+    { key: "sha256", label: "sha256", nw: true },
+    { key: "manifest_bytes", label: "manifest_bytes", nw: true },
+    { key: "source_path", label: "source_path", nw: true },
+    { key: "availability", label: "availability", nw: true, status: true },
+    { key: "destination", label: "destination", nw: true },
+    { key: "readback", label: "readback", nw: true, status: true },
+    { key: "restore", label: "restore", nw: true, status: true }
+  ], L.source_transfer);
+
+  // f. Gates
+  table(section("Gates"), [
+    { key: "gate", label: "gate", nw: true },
+    { key: "status", label: "status", nw: true, status: true },
+    { key: "boundary", label: "boundary" },
+    { key: "owner", label: "owner" },
+    { key: "next_input", label: "next_input" }
+  ], L.gates);
+
+  // g. Fresh observations (flattened key/value rows)
+  var obsSec = section("Fresh observations");
+  var rows = [];
+  (function flatten(obj, prefix) {
+    if (!obj || typeof obj !== "object") return;
+    Object.keys(obj).forEach(function (k) {
+      var v = obj[k];
+      var key = prefix ? prefix + "." + k : k;
+      if (v && typeof v === "object" && !Array.isArray(v)) {
+        flatten(v, key);
+      } else {
+        rows.push({ key: key, value: v });
+      }
+    });
+  })(L.observations, "");
+  table(obsSec, [
+    { key: "key", label: "key", nw: true },
+    { key: "value", label: "value" }
+  ], rows);
+
+  // h. Events, newest first
+  var evSec = section("Events");
+  var events = Array.isArray(L.events) ? L.events.slice() : [];
+  if (events.length === 0) {
+    emptyNote(evSec);
+  } else {
+    events.sort(function (a, b) {
+      var ua = a && a.utc != null ? String(a.utc) : "";
+      var ub = b && b.utc != null ? String(b.utc) : "";
+      return ua < ub ? 1 : ua > ub ? -1 : 0;
+    });
+    var list = el("div");
+    events.forEach(function (e) {
+      e = e || {};
+      var row = el("div", "event");
+      var time = el("span", "event-time");
+      renderVal(time, e.utc);
+      row.appendChild(time);
+      var text = el("span", "event-text");
+      renderVal(text, e.text);
+      row.appendChild(text);
+      list.appendChild(row);
+    });
+    evSec.appendChild(list);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+{
+  "schema": "intune-claude-code-handoff-state/1",
+  "document_date": "2026-10-12",
+  "scope": "Continuity handoff only; no private corpus or live source access delivered",
+  "authority": "User requested a handoff; earlier authorization covered small synthetic tests. Private export/host changes/tenant mutations remain separately authorized.",
+  "repository": {
+    "full_name": "nsahmed23/neon-commons",
+    "branch": "continuation/r4-20261007",
+    "reported_administrative_commit": "d057cc15c9928dd1a34a965b8d8ebf8e6755d94a",
+    "reported_parent": "5d81867490938f6499fe719dbd1a5079782a77a4",
+    "tested_engine": "39cc77618a0f7f2734599fbfed224b47c333293f",
+    "package_version": "0.9.0",
+    "live_branch_reference_checked_during_handoff": false,
+    "default_branch_modified": false
+  },
+  "recorded_outcomes": {
+    "private_export": "BLOCKED",
+    "laboratory_complete": false,
+    "platform_qualified": false,
+    "organizational_production_approved": false
+  },
+  "source_filesystem": {
+    "paths": [
+      "/workspace/intune-continuation/work/projects/intune",
+      "/workspace/intune-continuation/work/evidence/epoch-20261007-r4",
+      "/workspace"
+    ],
+    "environment": "Original retained managed instance129, same instance identity as118; uid1000.",
+    "mount": "overlay /",
+    "device": 27,
+    "block_bytes": 4096,
+    "executing_account_available_bytes_before_this_receipt": 3149824,
+    "available_inodes": 1833362,
+    "required_additional_receiving_bytes_example_4096": 7827771392,
+    "receiver_capacity_scope": "Two retained archive sets, all fresh restored allocations,128MiB retained reserve and16MiB controls. Actual approved path/blocks/quota and post-cutoff amendment must be measured; future lab outputs/lost originals excluded.",
+    "blocker_class": "ACCOUNT_AVAILABLE_CAPACITY + REQUIRED_RESERVE; approved destination/access/retention/raw retrieval unestablished. Not observed permission/inode failure. Quota/reserved free-gap cause unverified.",
+    "tmpfs": "Temporary only. Prior TMP originals absent across resumption; memory observations do not prove reservation or persistence."
+  },
+  "source_snapshot": {
+    "reference": "reference/ARCHIVE_LAYER_PINS.json",
+    "recorded_four_archive_bytes": 1535392547,
+    "main_r4_regular_bytes": 3893135483,
+    "current_source_paths": null,
+    "current_availability": "NOT_RECHECKED",
+    "post_cutoff_amendment": "REQUIRED_NOT_DELIVERED",
+    "private_bytes_in_handoff": false
+  },
+  "source_restore": {
+    "status": "FAIL",
+    "error_class": "KeyboardInterrupt",
+    "restorer_exit": -2,
+    "wrapper_exit": 1,
+    "completed_full_restore_receipts": 0,
+    "partial_retained_as_reported": true
+  },
+  "receiving_chat_probe": {
+    "source_id": "P2",
+    "file": "evidence/synthetic_library_probe.zip",
+    "bytes": 67732,
+    "sha256": "ea982e34e5e535e9be2cb523ab93ba169ec4166d4c33d71fc113c19b6c6b84fc",
+    "historical_status": "PASS",
+    "scope": "A single small synthetic ZIP saved to personal Library, located by Files list, retrieved by file ID through Files materialize(raw_file), and safely restored in the same chat session.",
+    "library_file_id": "file_00000000c2a081f98a05a89807a0fd2c",
+    "library_file_id_is_not_local_path": true,
+    "limitations": {
+      "cross_session_recovery": "NOT_TESTED",
+      "cross_environment_retrieval": "NOT_TESTED",
+      "large_archive_size_support": "NOT_TESTED",
+      "retention_duration": "NOT_VERIFIED",
+      "cloud_work_session_export_bridge": "NOT_TESTED",
+      "private_project_corpus_export": "NOT_ATTEMPTED",
+      "intune_laboratory_qualification": "UNCHANGED",
+      "platform_and_production_approval": "UNCHANGED",
+      "G13": "UNCHANGED; no provider operations performed",
+      "backend_read_source": "The tool performed a raw_file materialization by Library-visible file_id. Backend cache/object-fetch implementation was not observed."
+    }
+  },
+  "original_work_probe": {
+    "source_id": "P4",
+    "evidence_level": "USER_REPORTED; source ZIP and original JSON not delivered",
+    "filename": "synthetic-original-work-probe.zip",
+    "bytes": 18445,
+    "sha256": "d01a9b0e9cd1506b1ee5d0defcfebf4f377af858ab610d3ec5362623ee0c67c3",
+    "companion_filename": "WORK-EXPORT-PROBE.json",
+    "companion_bytes": 2426,
+    "upload_status": "FAIL",
+    "http_status": 403,
+    "error_reason": "ACCESS_TOKEN_SCOPE_INSUFFICIENT",
+    "raw_error_response_available": false,
+    "metadata_access_reported": "SUCCEEDED",
+    "file_creation_reported": "DENIED",
+    "saved_object_ids": [],
+    "source_file_current_availability": "NOT_RECHECKED",
+    "missing_source_operations": [
+      "files.manage_library",
+      "files.materialize"
+    ],
+    "reauthorization_or_connector_repair_evidenced": false,
+    "receiving_verification": "NOT_STARTED"
+  },
+  "local_receiver": {
+    "selected_path": null,
+    "private_data_approval": null,
+    "current_capacity": null,
+    "source_byte_access": null,
+    "historical_hardware": {
+      "model": "Minisforum UM870 Slim",
+      "cpu": "Ryzen 7 8745H",
+      "cores": 8,
+      "threads": 16,
+      "ram_gb": 32,
+      "nvme_tb": 1,
+      "os": "Windows 11 Pro",
+      "wsl2_docker_virtualization": "Mentioned in prior context; current status unmeasured"
+    },
+    "withdrawn_free_space_estimate": "360 GB; do not use",
+    "proposed_vm": {
+      "status": "NOT_APPROVED_OR_INSTALLED_BY_THIS_HANDOFF",
+      "os": "Ubuntu x86-64",
+      "vcpus": 4,
+      "ram_gb": 12,
+      "virtual_disk_gb": 120
+    },
+    "remote_control": "OPTIONAL; not source access and not enabled here"
+  },
+  "missing_originals_reference": "reference/MISSING_ORIGINALS_EXTRACT.json",
+  "preserved_qualification": {
+    "unique_strict_tests_recorded": 2326,
+    "modeled_checks_recorded": 64,
+    "modeled_unique_commands_recorded": 34,
+    "linux_ptys_recorded": 10,
+    "surviving_prerequisite_archive_checks_recorded": 13,
+    "focused04": "50 assertions/11 text commands/6 negatives; overlapping scope",
+    "runtime_binding": "da502 / ca13 / 61cdb historical admitted scope",
+    "test_counts_are_not_additive": true,
+    "fresh_product_suite_run_during_handoff": false
+  },
+  "laboratory_dispatch_record": {
+    "performance_source": "NOT_STARTED",
+    "performance_runtime": "NOT_STARTED",
+    "normal32": "NOT_STARTED",
+    "additional32": "NOT_STARTED",
+    "ordinary_timing4": "NOT_STARTED",
+    "final_source_observer": "NOT_STARTED",
+    "individual_admissions": "BLOCKED",
+    "eligibility_receipt": {
+      "path": "/workspace/intune-continuation/work/evidence/epoch-20261007-r4/integration/storage-diagnosis-C32-20261012-01/LABORATORY-ELIGIBILITY-CURRENT.json",
+      "bytes": 2306,
+      "sha256": "83c6748b25db4301c9e498fa94e4ea7d00e0e067d765ac4cecb2c702c950c058"
+    },
+    "reused": "13 surviving prerequisite archive checks; exact39ccsource/runtime package recovery/extraction;2326source/64-34-10modeled/focused04 and separateda502-ca13-61cdb binding historical scopes. No whole suite/native/performance repeated.",
+    "thresholds_unchanged": true,
+    "consumed_writes_replayed": 0,
+    "G13_equivalent_route_retries": 0
+  },
+  "denial": {
+    "gate": "G13",
+    "status": "BLOCKED",
+    "statement": "Automatic approval review rejected the isolated malformed-error provider repair citing possible cybersecurity risk. No specific command or fuller reason was exposed. G13 remains blocked; no bypass or alternate repair route.",
+    "alternate_route_authorized": false
+  },
+  "wally": {
+    "scope": "SEPARATE_OPTIONAL_READ_ONLY",
+    "completed_reviews_recorded": 87,
+    "total_reviews_recorded": 96,
+    "timeouts_recorded": 9,
+    "benefit": "NOT_DEMONSTRATED",
+    "new_evaluation_authorized": false
+  },
+  "milestones": [
+    {
+      "id": "M0",
+      "title": "Intake and authority map",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M1",
+      "title": "Exact public source/package availability",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M2",
+      "title": "Original-source synthetic bridge",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M3",
+      "title": "Four layers plus explicit amendment",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M4",
+      "title": "Full safe typed restoration",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M5",
+      "title": "Durability and binding relocation",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M6",
+      "title": "Current exact-artifact performance",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M7",
+      "title": "Remaining native procedures",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    },
+    {
+      "id": "M8",
+      "title": "External platform and organizational approval",
+      "status": "NOT_EXECUTED_BY_HANDOFF_AUTHOR"
+    }
+  ],
+  "source_priority": "Newer applicable original receipt/current canonical gate per claim; distinguish attached bytes, reported actions, pinned metadata and proposals.",
+  "handoff_author_actions": {
+    "created_handoff_files": true,
+    "read_attached_receipts": true,
+    "inspected_selected_pinned_public_metadata": true,
+    "read_original_work_filesystem": false,
+    "exported_private_evidence": false,
+    "repaired_drive_connection": false,
+    "ran_project_tests": false,
+    "changed_repository": false,
+    "installed_local_vm": false
+  }
+}

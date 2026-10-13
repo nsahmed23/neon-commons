@@ -1,0 +1,21 @@
+• Read the brief and the file. Now I'll apply the four fixes to `index.html`.
+
+• Now the status-dot scoping fix in the JS, plus a small wrap guard for `.hash` and `.ask-head` children.
+
+• Fixes applied. Now verifying layout at 360px using headless Edge on a temp copy (original untouched).
+
+• Dot count matches exactly: 38 rendered, 38 expected, and 10 status-like values on other fields are now plain text. Now the 360px overflow check via an iframe harness.
+
+• No probe output — rerunning without suppressing errors to see what happened.
+
+• All checks pass. Getting the final byte size.
+
+• Done. Report:
+
+  - **Defect 1 (380px overflow): fixed.** Added `min-width:0` to flex/grid children (`.meta-line > *`, `.event > *`, `.ask`), `max-width:100%` on `.table-wrap`, `overflow-wrap:anywhere` on `.meta-line`, `.ask`, `.event-text`, `td`, `.hash`. Header key/value rows stack label-above-value below 480px (`@media (max-width:480px)` makes `.meta-line` column and drops the 240px label min-width). Verified headless in a 360px iframe: `scrollW == clientW == 345`, meta rows stacked, no element outside `.table-wrap` exceeds the viewport; lanes / source-transfer / gates tables scroll inside their own containers, milestones and observations fit.
+  - **Defect 2 (column too narrow at 1280px): fixed.** `main` max-width raised 980px → 1120px.
+  - **Defect 3 (status dots on non-status values): fixed.** `renderVal` now takes an `asStatus` flag; dots render only for `lanes.status`, `milestones.status`, `gates.status`, `source_transfer.availability/readback/restore`, and `outcome_flags.private_export` (marked via `status: true` on those table columns and `name === "private_export"` in the header flags loop). Everything else is plain text. Verified: 38 dots rendered == 38 expected from `ledger.json`; 10 status-like values on other fields (e.g. `source_path` UNKNOWN, `destination` NONE) now plain text.
+  - **Defect 4 (viewport meta): already present** at `index.html:5`, no change needed.
+
+  Final byte size of `index.html`: **11556 bytes**. Only `index.html` modified; verification ran on temp copies, since removed.
+

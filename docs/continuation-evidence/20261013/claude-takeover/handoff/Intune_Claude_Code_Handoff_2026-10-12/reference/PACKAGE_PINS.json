@@ -1,0 +1,41 @@
+{
+  "schema": "intune-handoff-derived-package-pins/1",
+  "derivative_not_original_manifest": true,
+  "source_id": "R10",
+  "source_commit": "39cc77618a0f7f2734599fbfed224b47c333293f",
+  "source_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+  "package_version": "0.9.0",
+  "package_delivery_commit": "f9104700b1871642f89f982fc625ab0da9eae310",
+  "archives": {
+    "runtime": {
+      "bytes": 1630724,
+      "filename": "Intune_IaC_Plugin_0.9.0.zip",
+      "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891"
+    },
+    "source": {
+      "bytes": 18454404,
+      "filename": "Intune_IaC_Plugin_0.9.0_Source.zip",
+      "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7"
+    }
+  },
+  "package_binary_bytes_in_bundle": false,
+  "fresh_package_binary_verification_during_handoff": false,
+  "native_tool_reference_source": "R3",
+  "linux_amd64_tool_pins": {
+    "opentofu": {
+      "version": "1.13.1",
+      "sha256": "a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a"
+    },
+    "atmos": {
+      "version": "1.230.1",
+      "sha256": "f3b5b42e897a2778678cc1231e7a4e2476773bc61ea2af225586dc4e96408802"
+    },
+    "microsoft365_provider": {
+      "version": "1.0.0 repaired epoch build",
+      "registry_address": "registry.terraform.io/deploymenttheory/microsoft365",
+      "sha256": "415097131c64a47c8435ce9528d050382996cfa4bed38d0960548f160a0b0dd3",
+      "source_lineage": "1718c946b3ae111bb44c7c1d925b3e35b708cb0a plus retained repairs",
+      "G13": "BLOCKED; preservation is not repair authorization"
+    }
+  }
+}

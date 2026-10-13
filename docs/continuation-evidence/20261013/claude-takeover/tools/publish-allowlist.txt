@@ -1,0 +1,27 @@
+# Published to github.com/nsahmed23/neon-commons, branch continuation/r4-20261007,
+# under docs/continuation-evidence/20261013/claude-takeover/. PUBLIC repository.
+# publish_branch.py also hard-excludes logs/transcripts/, source.git/, inbox/, *.log and *.err.
+AUDIT.md
+resume.md
+ledger/ledger.json
+.checkpoints/*.json
+observations/*.md
+observations/*.json
+outbox/*.md
+lanes/*/BRIEF*.md
+lanes/*/FINAL.md
+lanes/advisor-fable/REPORT.md
+lanes/kimi-board/kimi-run-*.out
+logs/events.jsonl
+logs/runs.jsonl
+logs/AUDIT-TABLES.md
+logs/controller-log.md
+logs/owner-attachments/*.png
+board/index.html
+board/ledger.js
+board/BRIEF*.md
+tools/*.py
+tools/publish-allowlist.txt
+handoff/Intune_Claude_Code_Handoff_2026-10-12.zip
+handoff/Intune_Claude_Code_Handoff_2026-10-12/*
+handoff/Intune_Claude_Code_Handoff_2026-10-12/*/*

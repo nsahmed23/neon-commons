@@ -1,0 +1,22 @@
+{
+  "stage": "M1",
+  "title": "Exact public source and package availability",
+  "status": "PASS",
+  "scope": "Public repository metadata and the two published 0.9.0 packages only. Not private-corpus recovery, not a product test.",
+  "completed_utc": "2026-10-13T14:50:33Z",
+  "method": "Bare blob-less clone at source.git; blobs read through git cat-file; nothing checked out or executed.",
+  "results": {
+    "continuation_tip": "d057cc15c9928dd1a34a965b8d8ebf8e6755d94a",
+    "main_tip": "4ba077d93fecbf5f893ee13ef972c839cf13883d",
+    "engine_is_ancestor": true,
+    "engine_tree": "f8bff355322c7c50e46790171c12a5e1a7cb80aa",
+    "ledger": { "bytes": 2025195, "sha256": "d6b787c643f044dd5ef916e9b9ee533ec854d00cf0796ca07d7cd4fa2b93a612", "match": true },
+    "package_delivery_commit": "f9104700b1871642f89f982fc625ab0da9eae310 (tip of intune-atmos-wally-r4-20261011, not an ancestor of the continuation tip)",
+    "runtime_package": { "bytes": 1630724, "sha256": "356f74421583575ad6a7096e4b45e19f42fd99c1c30a79f21dd9d66ae35db891", "match": true },
+    "source_package": { "bytes": 18454404, "sha256": "09f359c4950bf310be14572aa55eb62def8d2d2d1cecdf57dd1d03f74af5d2b7", "match": true }
+  },
+  "not_done": [
+    "Reading the pinned AGENTS/plugin/agent directories (.agents, .claude-plugin, .codex-plugin) as data",
+    "Locating the archive builder and restorer in public source (M4 preparation)"
+  ]
+}

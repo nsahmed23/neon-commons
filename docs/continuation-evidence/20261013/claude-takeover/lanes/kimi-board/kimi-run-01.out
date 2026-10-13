@@ -1,0 +1,12 @@
+• Ledger shape clear. Writing `index.html` now.
+
+• Running the self-check from the brief.
+
+• Done.
+
+  - Written: `index.html` (10,850 bytes). `ledger.js`, `ledger.json`, `BRIEF.md` untouched.
+  - Sections done, in brief order: header (title, updated_utc, 4 outcome_flags as "name: VALUE"); Blocked on owner (OA-1..OA-4 cards, id/urgency/ask/blocks); Lanes table; Milestones table M0–M8; Source transfer table (9 columns per spec); Gates table; Fresh observations flattened (host.c_free_bytes style keys); Events newest first.
+  - Rules held: only external load `ledger.js`; all CSS/JS inline; plain DOM with textContent, no innerHTML; status dots 8px with spec color map; null/empty → UNKNOWN, empty arrays → None; numbers tabular-nums with thousands separators; sha256 shown first 12 chars, full hash in title; CSS vars on :root, dark via prefers-color-scheme, body background both themes; 16px gutters, tables scroll in own overflow-x containers.
+  - Self-check: zero "http" hits in index.html; inline script passes node --check; empty-array paths render "None".
+  - Skipped: `manifest_sha256` column — not in brief's Source transfer column list. No headless browser in env, so visual render not screenshot-verified; checked by code inspection instead.
+

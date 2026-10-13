@@ -1,0 +1,19 @@
+{
+  "stage": "M0",
+  "title": "Intake and authority map",
+  "status": "IN_PROGRESS",
+  "updated_utc": "2026-10-13T14:58:00Z",
+  "done": [
+    "Handoff package verified and preserved (handoff/)",
+    "Windows host and WSL Ubuntu measured read-only (observations/2026-10-13-host-intake.json)",
+    "Route analysis drafted (observations/ROUTE-ANALYSIS-01.md)",
+    "Source inventory query drafted (outbox/SOURCE-QUERY-01.md)"
+  ],
+  "open": [
+    "OA-1: owner relays SOURCE-QUERY-01; reply expected at inbox/SOURCE-REPLY-01.json",
+    "Advisor reports L1 (Fable 5.1) and L2 (GPT-6 Astra)",
+    "OA-2 and OA-3 owner decisions"
+  ],
+  "route_state": "D (no proven route); candidates B2, B1, A in that order",
+  "receiver_candidate": "WSL2 Ubuntu 24.04 ext4 on the single NVMe; not yet approved or created"
+}

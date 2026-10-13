@@ -1,0 +1,337 @@
+{
+  "schema": "intune-handoff-package-qa/1",
+  "completed_at_utc": "2026-10-13T00:22:49.081704+00:00",
+  "status": "PASS",
+  "scope": "Handoff packaging/source consistency and attached synthetic ZIP bytes only; not project tests, cloud export, private restoration or qualification",
+  "main_document_words": 10411,
+  "main_document_numbered_sections": 27,
+  "checks": [
+    {
+      "check": "unchanged_attachment:evidence/FINAL-RESULT.json",
+      "status": "PASS",
+      "details": {
+        "bytes": 10671,
+        "sha256": "2a314039e244e67052a68e14c5be5860ae0c724256179cc001eb165411b702cc"
+      }
+    },
+    {
+      "check": "unchanged_attachment:evidence/LIBRARY-ROUNDTRIP-RESULT.json",
+      "status": "PASS",
+      "details": {
+        "bytes": 11228,
+        "sha256": "2dc785ec59a4e2823e3f7327d33fbd659db06440d7f234be12006a77094c2af3"
+      }
+    },
+    {
+      "check": "unchanged_attachment:evidence/synthetic_library_probe.zip",
+      "status": "PASS",
+      "details": {
+        "bytes": 67732,
+        "sha256": "ea982e34e5e535e9be2cb523ab93ba169ec4166d4c33d71fc113c19b6c6b84fc"
+      }
+    },
+    {
+      "check": "state_commit_matches_original_receipt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "state_engine_matches_original_receipt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "archive_sum_matches_original_receipt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "r4_raw_count_matches_original_receipt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "capacity_scenario_arithmetic",
+      "status": "PASS",
+      "details": 7827771392
+    },
+    {
+      "check": "layer_pin_present_in_handoff:r4-evidence",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_does_not_invent_source_path:r4-evidence",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_pin_present_in_handoff:provider-candidates",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_does_not_invent_source_path:provider-candidates",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_pin_present_in_handoff:current-diagnostic-scratch",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_does_not_invent_source_path:current-diagnostic-scratch",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_pin_present_in_handoff:current-exact-artifact-scratch",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "layer_does_not_invent_source_path:current-exact-artifact-scratch",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "package_pin_present_in_handoff:runtime",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "package_pin_present_in_handoff:source",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "G13_statement_preserved",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "historical_tests_not_new_handoff_results",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "readiness_flags_remain_false",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_probe_CRC",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_unique_members",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_bounded_expansion",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_inventory_matches_receipt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:binary/",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:empty-directory/",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:notes/",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:MANIFEST.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_member_hash:MANIFEST.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:README.txt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_member_hash:README.txt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:binary/all-byte-values.bin",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_member_hash:binary/all-byte-values.bin",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:binary/payload.bin",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_member_hash:binary/payload.bin",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:empty.dat",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_member_hash:empty.dat",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_safe_member:notes/UTF-8 sample.txt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "synthetic_member_hash:notes/UTF-8 sample.txt",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "work_probe_not_fabricated",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "balanced_fences:CLAUDE_CODE_HANDOFF.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "no_chat_citation_tokens_in_authored_markdown:CLAUDE_CODE_HANDOFF.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "balanced_fences:START_HERE.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "no_chat_citation_tokens_in_authored_markdown:START_HERE.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "balanced_fences:CLAUDE_START_PROMPT.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "no_chat_citation_tokens_in_authored_markdown:CLAUDE_START_PROMPT.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "balanced_fences:SOURCE_NOTES.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "no_chat_citation_tokens_in_authored_markdown:SOURCE_NOTES.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "balanced_fences:evidence/WORK_EXPORT_FAILURE_USER_REPORT.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "no_chat_citation_tokens_in_authored_markdown:evidence/WORK_EXPORT_FAILURE_USER_REPORT.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "balanced_fences:worksheets/RECEIVER_AND_AUTHORIZATION.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "no_chat_citation_tokens_in_authored_markdown:worksheets/RECEIVER_AND_AUTHORIZATION.md",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:HANDOFF_STATE.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:SOURCE_REGISTER.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:evidence/FINAL-RESULT.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:evidence/LIBRARY-ROUNDTRIP-RESULT.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:reference/MISSING_ORIGINALS_EXTRACT.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:reference/PACKAGE_PINS.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "valid_json:reference/ARCHIVE_LAYER_PINS.json",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "source_register_complete",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "check": "required_handoff_files_exist",
+      "status": "PASS",
+      "details": null
+    }
+  ],
+  "limitations": [
+    "No access to original Work filesystem or raw Drive response.",
+    "No new Library write/readback operation in this preparation.",
+    "No private archive layers, original Work probe or full repository included.",
+    "Selected repository metadata read through connector; full raw snapshots not downloaded.",
+    "No Claude session, host configuration, private export, native or performance procedure executed.",
+    "No project/readiness gate changed."
+  ]
+}

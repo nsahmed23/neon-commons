@@ -1,0 +1,84 @@
+{
+  "schema": "intune-handoff-package-manifest/1",
+  "bundle_name": "Intune_Claude_Code_Handoff_2026-10-12",
+  "scope": "Handoff documents, attached receipts and one synthetic ZIP; no complete private corpus",
+  "hash_algorithm": "SHA-256",
+  "self_reference_policy": "This manifest excludes itself and SHA256SUMS. SHA256SUMS includes this manifest but not itself. An adjacent external checksum covers the final ZIP.",
+  "files": [
+    {
+      "path": "CLAUDE_CODE_HANDOFF.md",
+      "bytes": 77899,
+      "sha256": "49aa8624104bda8a2c37542744fcc1728ee2c4dbf638749e96359637264e8207"
+    },
+    {
+      "path": "CLAUDE_START_PROMPT.md",
+      "bytes": 6197,
+      "sha256": "520bebeadc914d47ee4fab66eecf8dbd2618792e6fcde09c994cdf06dabce546"
+    },
+    {
+      "path": "HANDOFF_STATE.json",
+      "bytes": 9468,
+      "sha256": "41e63224ea955d5d1b8244e9423218653946e2ff216af09ce2ec27498e7f5749"
+    },
+    {
+      "path": "PACKAGE_QA.json",
+      "bytes": 8662,
+      "sha256": "6afe7e5778be78e9931838e74cf5d6a2f024b7a29f0364bb5661ded4a088902e"
+    },
+    {
+      "path": "SOURCE_NOTES.md",
+      "bytes": 10357,
+      "sha256": "b7f891e98b79e9794b7ff5182e286637cf8e2108d9b629065497414369f39294"
+    },
+    {
+      "path": "SOURCE_REGISTER.json",
+      "bytes": 12321,
+      "sha256": "ce7ccfb07d6afe4a4c32ea477cfacad0d2f87b75cad7f3627ce66447cd2abe79"
+    },
+    {
+      "path": "START_HERE.md",
+      "bytes": 3463,
+      "sha256": "efa5dd222f1161dc9fcff76249f76e3c931c03ffec8589ff6456ffc8a72fa8d4"
+    },
+    {
+      "path": "evidence/FINAL-RESULT.json",
+      "bytes": 10671,
+      "sha256": "2a314039e244e67052a68e14c5be5860ae0c724256179cc001eb165411b702cc"
+    },
+    {
+      "path": "evidence/LIBRARY-ROUNDTRIP-RESULT.json",
+      "bytes": 11228,
+      "sha256": "2dc785ec59a4e2823e3f7327d33fbd659db06440d7f234be12006a77094c2af3"
+    },
+    {
+      "path": "evidence/WORK_EXPORT_FAILURE_USER_REPORT.md",
+      "bytes": 1545,
+      "sha256": "13152eebe1bf541c27d5c9208fa64a63dde09c2a3acba0d4ce91c150bf96cc89"
+    },
+    {
+      "path": "evidence/synthetic_library_probe.zip",
+      "bytes": 67732,
+      "sha256": "ea982e34e5e535e9be2cb523ab93ba169ec4166d4c33d71fc113c19b6c6b84fc"
+    },
+    {
+      "path": "reference/ARCHIVE_LAYER_PINS.json",
+      "bytes": 5570,
+      "sha256": "526837668ce2ce8ec4437c40fc818ab1c978719be6c7102687c722fd13844ffd"
+    },
+    {
+      "path": "reference/MISSING_ORIGINALS_EXTRACT.json",
+      "bytes": 1393,
+      "sha256": "4e584b52d96a9252b99851407fb5b71191d33635bffa4c70593d0d596f2ba1f9"
+    },
+    {
+      "path": "reference/PACKAGE_PINS.json",
+      "bytes": 1586,
+      "sha256": "b1fbb45d88f6f4f5f0de8fef1ad8351955534a9f94825cb42f98d351e200b50f"
+    },
+    {
+      "path": "worksheets/RECEIVER_AND_AUTHORIZATION.md",
+      "bytes": 3746,
+      "sha256": "a4aa148ade1d3b07fe0deaf84ef4b4c35198d8134b84cf48c9c261d7add9591b"
+    }
+  ]
+}
