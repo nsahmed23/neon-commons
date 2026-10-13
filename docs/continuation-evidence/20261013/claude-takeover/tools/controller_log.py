@@ -91,9 +91,10 @@ def rows_from(transcript, since, until):
                     prompt = " ".join(b.get("text", "") for b in prompt if isinstance(b, dict))
                 for who, what in classify_user_text(str(prompt or "")) or [("owner", str(prompt or ""))]:
                     key = (who, " ".join(what.split())[:200])
-                    if what.strip() and key not in seen:
-                        seen.add(key)
-                        yield ts, who, clean(what, 1500 if who == "owner" else 600)
+                    if not what.strip() or (who == "owner" and key in seen):
+                        continue
+                    seen.add(key)
+                    yield ts, who, clean(what, 1500 if who == "owner" else 600)
                 continue
             if entry.get("type") == "user":
                 if entry.get("isMeta") or entry.get("isCompactSummary"):
@@ -105,10 +106,13 @@ def rows_from(transcript, since, until):
                     continue
                 for text in texts_of(content):
                     for who, what in classify_user_text(text):
+                        # Only owner messages are replayed by the transcript once delivered; repeated lane
+                        # notices and agent messages are separate events and must all be kept.
                         key = (who, " ".join(what.split())[:200])
-                        if key not in seen:
-                            seen.add(key)
-                            yield ts, who, clean(what, 1500 if who == "owner" else 600)
+                        if who == "owner" and key in seen:
+                            continue
+                        seen.add(key)
+                        yield ts, who, clean(what, 1500 if who == "owner" else 600)
             elif entry.get("type") == "assistant" and isinstance(content, list):
                 for block in content:
                     if not isinstance(block, dict):

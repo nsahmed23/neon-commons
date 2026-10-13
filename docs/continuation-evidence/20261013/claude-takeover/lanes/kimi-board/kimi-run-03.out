@@ -1,0 +1,10 @@
+• Adding the scroll-not-squeeze rules to the table CSS in `index.html`.
+
+• Done.
+
+  - Added `.table-wrap > table { min-width: 720px; }` — every table now scrolls inside its `.table-wrap` (which already had `overflow-x: auto`) instead of squeezing; `width: 100%` still lets it fill wider containers.
+  - Added `td:not(.nw) { min-width: 18ch; }` — long-text cells (model, role, output, title, evidence, boundary, owner, next_input, value) keep a readable floor and wrap normally; short cells already carry `nw: true` in the render code and stay `white-space: nowrap` via the existing `.nw` rule.
+  - No other rules touched; page-level overflow unchanged (table min-width lives inside the scrolling container, so body scrollWidth stays equal to clientWidth).
+
+  Final size of `index.html`: 11,635 bytes.
+

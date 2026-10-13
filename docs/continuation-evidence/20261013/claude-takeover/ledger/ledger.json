@@ -1,6 +1,6 @@
 {
   "schema": "intune-rescue-ledger/1",
-  "updated_utc": "2026-10-13T15:29:20Z",
+  "updated_utc": "2026-10-13T15:41:50Z",
   "writer": "Claude Code controller only; every other lane reads this file",
   "outcome_flags": {
     "private_export": "BLOCKED",
@@ -102,16 +102,40 @@
       "lane": "publisher",
       "model": "gpt-6-sol via Codex, workspace-write in lanes/publisher, effort high",
       "role": "implement publish_branch.py test-first (no network)",
-      "status": "RUNNING",
-      "output": "lanes/publisher/FINAL.md"
+      "status": "DONE",
+      "output": "tools/publish_branch.py (6 of 6 tests green)"
     },
     {
       "id": "L8",
       "lane": "sync-worker",
       "model": "deterministic script, no model",
       "role": "every 10 min: logs, tables, board data, publish to continuation/r4-20261007",
-      "status": "QUEUED",
-      "output": "logs/sync-worker.log"
+      "status": "RUNNING",
+      "output": "logs/sync-worker.log; commits on continuation/r4-20261007"
+    },
+    {
+      "id": "L9",
+      "lane": "leak-sweep",
+      "model": "Haiku 5.5 (claude-haiku-5-5, Explore agent, read-only)",
+      "role": "secret and personal-data sweep of the published files",
+      "status": "DONE",
+      "output": "no secrets; medium tooling-posture items redacted going forward"
+    },
+    {
+      "id": "L10",
+      "lane": "render-check",
+      "model": "Sonnet 5.5 (fast-worker agent)",
+      "role": "board render and overflow check at 360, 380 and 1280 px",
+      "status": "DONE",
+      "output": "agent report"
+    },
+    {
+      "id": "L11",
+      "lane": "redaction-fix",
+      "model": "Sonnet 5.5 (code-editor agent)",
+      "role": "publisher: redact C--Users-<user> and memory-file names; exclude host-intake JSON",
+      "status": "RUNNING",
+      "output": "tools/publish_branch.py"
     }
   ],
   "milestones": [
@@ -291,8 +315,7 @@
       "ram_available_mb": 2211,
       "disk": "one 1 TB NVMe SSD",
       "c_free_bytes": 326692147200,
-      "claude_code": "2.1.296",
-      "remote_control_at_startup": true
+      "claude_code": "2.1.296"
     },
     "wsl": {
       "distro": "Ubuntu 24.04.2 LTS (WSL2, default)",
@@ -349,7 +372,23 @@
     {
       "utc": "2026-10-13T15:27:41Z",
       "text": "Audit trail live: controller log, events, runs, transcript snapshots; see AUDIT.md."
+    },
+    {
+      "utc": "2026-10-13T15:29:19Z",
+      "text": "Publisher (GPT-6 Sol) done; controller re-ran 6 of 6 tests and reviewed the code."
+    },
+    {
+      "utc": "2026-10-13T15:31:38Z",
+      "text": "First publish: 658ff7f4 on continuation/r4-20261007 (56 files, fast-forward, main untouched)."
+    },
+    {
+      "utc": "2026-10-13T15:31:52Z",
+      "text": "Sync worker cycle 1 pushed de69761f; runs every 10 minutes for 12 hours."
+    },
+    {
+      "utc": "2026-10-13T15:32:17Z",
+      "text": "Codex CLI 0.162.1: gpt-6.1-sol now runs; the earlier HTTP 400 was a client-version gate."
     }
   ],
-  "routing": "Opus 5.5 controller leads; GPT-6.1 Sol is its ChatGPT-side peer (fallback gpt-6-sol while 6.1 is refused on this Codex login). Fable 5.1 leads the advisor tier; GPT-6 Astra is its peer. Kimi K3: frontend only."
+  "routing": "Opus 5.5 controller: judgment, gates, synthesis, last-mile git. Sonnet 5.5: mechanical Claude lanes (verification runs, records, reply parsing). Haiku 5.5: sweeps and inventories. Fable 5.1 leads the advisor tier, GPT-6 Astra is its peer. GPT-6.1 Sol (working since Codex CLI 0.162.1) is the Opus-tier ChatGPT executor. Kimi K3: frontend only."
 }

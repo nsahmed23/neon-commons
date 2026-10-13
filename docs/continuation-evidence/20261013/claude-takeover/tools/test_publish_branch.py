@@ -213,6 +213,37 @@ class PublishBranchTests(unittest.TestCase):
             self.git("rev-parse", f"{self.tip}:src"),
         )
 
+    def test_project_folder_encoding_and_memory_file_names_redacted(self):
+        user = os.environ.get("USERNAME") or getpass.getuser()
+        lines = [
+            f"folder C--Users-{user} here",
+            f"folder d--users-{user.upper()}/x",
+            "see ~/.claude/projects/C--Users-~/memory/feedback_x.md for more",
+            f"see C:\\Users\\{user}\\.claude\\projects\\C--Users-{user}\\memory\\project_y.md now",
+            f"see C:/Users/{user}/.claude/projects/C--Users-{user}/memory/MEMORY.md ok",
+        ]
+        self.write("docs/mem.md", "\n".join(lines).encode("utf-8"))
+        self.write("handoff/mem.md", "\n".join(lines).encode("utf-8"))
+        result = self.run_script()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        commit = result.stdout.strip().splitlines()[-1]
+        self.assertEqual(
+            self.git("show", f"{commit}:published/docs/docs/mem.md"),
+            "\n".join(
+                [
+                    "folder C--Users-~ here",
+                    "folder d--users-~/x",
+                    "see ~/.claude/projects/C--Users-~/memory/[redacted].md for more",
+                    "see ~\\.claude\\projects\\C--Users-~\\memory\\[redacted].md now",
+                    "see ~/.claude/projects/C--Users-~/memory/[redacted].md ok",
+                ]
+            ),
+        )
+        self.assertEqual(
+            self.git_bytes("show", f"{commit}:published/docs/handoff/mem.md"),
+            "\n".join(lines).encode("utf-8"),
+        )
+
     def test_fetch_uses_remote_tip(self):
         tree = self.git("rev-parse", f"{self.tip}^{{tree}}")
         advanced = self.git("commit-tree", tree, "-p", self.tip, "-m", "advance", repo=self.remote)

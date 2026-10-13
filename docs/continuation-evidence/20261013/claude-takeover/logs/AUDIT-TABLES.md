@@ -1,8 +1,8 @@
 # Audit tables
 
-Generated 2026-10-13T15:31:46Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T15:41:53Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
-## Lane runs (10)
+## Lane runs (16)
 
 | run | lane | executor | model requested / confirmed | effort | sandbox | start / end UTC | exit | status | deviations |
 |---|---|---|---|---|---|---|---|---|---|
@@ -15,9 +15,15 @@ Generated 2026-10-13T15:31:46Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R07 | L6 sol-query-check | Codex CLI 0.156.0 | gpt-6.1-sol / none (HTTP 400 for ChatGPT-account login) | high | read-only | 2026-10-13T15:19:13Z / 2026-10-13T15:19:24Z | 1 | FAILED | model not entitled on this Codex login |
 | R08 | L7 publisher | Codex CLI 0.156.0 | gpt-6.1-sol / none (HTTP 400 for ChatGPT-account login) | high | workspace-write | 2026-10-13T15:19:15Z / 2026-10-13T15:19:26Z | 1 | FAILED | model not entitled on this Codex login |
 | R09 | L6 sol-query-check | Codex CLI 0.156.0 | gpt-6-sol / gpt-6-sol (stderr header and report line 1) | high | read-only | 2026-10-13T15:21:43Z / 2026-10-13T15:23:23Z | 0 | DONE | none |
-| R10 | L7 publisher | Codex CLI 0.156.0 | gpt-6-sol / gpt-6-sol (stderr header) | high | workspace-write | 2026-10-13T15:21:45Z / None |  | RUNNING | none |
+| R10 | L7 publisher | Codex CLI 0.156.0 | gpt-6-sol / gpt-6-sol (stderr header; report line 1 said only GPT-6) | high | workspace-write | 2026-10-13T15:21:45Z / 2026-10-13T15:29:19Z | 0 | DONE | tests ran on Python 3.14 in the sandbox; controller re-ran 6 of 6 green on 3.11; Codex auto-review blocked deleting its own __pycache__ |
+| R11 | codex-probe | Codex CLI 0.162.1 | gpt-6.1-sol / gpt-6.1-sol (stderr header) | low | read-only | 2026-10-13T15:32:17Z / 2026-10-13T15:32:17Z | 0 | DONE | none |
+| R12 | L8 sync-worker | tools/sync_worker.py (deterministic, no model) | none / UNCONFIRMED | n/a | local process, pushes fast-forward to continuation/r4-20261007 | 2026-10-13T15:31:44Z / None |  | RUNNING | none |
+| R13 | L10 render-check | Claude Agent fast-worker | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | writes only scratchpad/render-check | 2026-10-13T15:34:13Z / 2026-10-13T15:34:44Z | n/a | DONE | 360px window screenshot clipped by headless Edge; harness iframe measurement used as the authority |
+| R14 | L4 kimi-board | Kimi Code CLI 0.37.2 | kimi-code/k3-256k / UNCONFIRMED (see wire.jsonl) | default | prompt mode, auto permission, cwd board/ | 2026-10-13T15:35:32Z / 2026-10-13T15:37:25Z | 0 | DONE | none |
+| R15 | L10 render-check | Claude Agent fast-worker (resumed) | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | writes only scratchpad/render-check | 2026-10-13T15:37:53Z / 2026-10-13T15:38:23Z | n/a | DONE | none |
+| R16 | L9 leak-sweep | Claude Agent Explore (read-only) | haiku / claude-haiku-5-5 (report line 1) | agent default | read-only tools | 2026-10-13T15:34:04Z / 2026-10-13T15:40:36Z | n/a | DONE | made one no-op call to an AWS sandbox tool (self-reported; no access to the target) |
 
-## Events (48)
+## Events (63)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -69,3 +75,18 @@ Generated 2026-10-13T15:31:46Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T15:24:52Z (backfilled) | controller | decision | L3 | SOURCE-QUERY-01 final: Sol edits adopted; gh auth status replaced by the gh api header check, which can carry the User-Agent. | outbox/SOURCE-QUERY-01.md |
 | 2026-10-13T15:29:20Z | controller | checkpoint | - | Ledger refreshed: lanes L1-L5 done, L6 done on gpt-6-sol, L7 running, L8 queued; owner asks restructured OA-1 to OA-5. | ledger/ledger.json, AUDIT.md |
 | 2026-10-13T15:31:38Z | controller | controller-action | - | First publish: commit 658ff7f4 on continuation/r4-20261007 (parent d057cc15, C32), 56 files under docs/continuation-evidence/20261013/claude-takeover/, fast-forward, main untouched. | tools/publish_branch.py, tools/publish-allowlist.txt |
+| 2026-10-13T15:31:52Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: de69761fb2287c1a3bebb4a9267a7962ada66c9e |  |
+| 2026-10-13T15:32:18Z | controller | deviation | - | Codex CLI updated 0.156.0 -> 0.162.1 (owner asked to refresh Codex). The pre-check listed two running codex.exe processes but did not gate the install; both belong to the ChatGPT desktop app's bundled Codex (AppData/L... |  |
+| 2026-10-13T15:33:30Z | controller | verification | - | gpt-6.1-sol probe PASS on Codex CLI 0.162.1 (header model gpt-6.1-sol, exit 0): the HTTP 400 was a client-version gate, not the login. Sol-tier lanes use gpt-6.1-sol from now on. | lanes/codex-probe/stderr.log |
+| 2026-10-13T15:33:30Z | owner | owner-directive | - | We should be using sonnet 5.5 and haiku 5.5 wherever appropriate |  |
+| 2026-10-13T15:34:36Z | controller | dispatch | L9 | Haiku leak sweep of the 56 published files (Explore agent, model haiku, read-only, 15 min box). |  |
+| 2026-10-13T15:34:36Z | controller | dispatch | L10 | Sonnet 5.5 board render check at 360, 380 and 1280 px (fast-worker, model sonnet, 15 min box). |  |
+| 2026-10-13T15:35:39Z | sonnet-5-5 | report | L10 | Render check: no page overflow at 360 or 1280 (scrollWidth equals clientWidth); Lanes table squeezes to one character per line at 360 instead of scrolling; dark theme readable; dots only on status columns. |  |
+| 2026-10-13T15:35:39Z | controller | dispatch | L4 | Kimi polish pass 03: tables keep a minimum width and scroll inside their containers on phones. | board/BRIEF-03.md |
+| 2026-10-13T15:37:59Z | kimi | report | L4 | Pass 03: table min-width 720px inside scroll containers; long cells floor at 18ch; index.html 11,635 B. Controller static gate PASS; render re-check sent back to the Sonnet 5.5 agent. | board/index.html |
+| 2026-10-13T15:39:05Z | sonnet-5-5 | report | L10 | Re-check after Kimi pass 03: page 360/360 and 1280/1280; all five tables scroll inside their containers (753, 720, 1101, 720, 720 over 326 at 360); narrowest Lanes model cell 136 px. PASS. |  |
+| 2026-10-13T15:39:05Z | controller | verification | L4 | Controller viewed the 360px harness screenshot: header and owner-ask cards wrap, tables scroll in place. Board lane closed. |  |
+| 2026-10-13T15:39:41Z | controller | deviation | - | controller_log.py de-duplicated identical lane notices, dropping a second completion of the same agent; fixed to de-duplicate owner replays only. R15 end time corrected from the regenerated log. | tools/controller_log.py |
+| 2026-10-13T15:41:50Z | haiku-5-5 | report | L9 | Leak sweep of published commit 658ff7f4: secrets NONE; personal contact data NONE (fixture email only); LOW local-identity hints (C--Users-<user> encoding, hardware, UUIDs); MEDIUM private tooling posture (Codex defau... |  |
+| 2026-10-13T15:41:50Z | haiku-5-5 | deviation | L9 | Explore agent self-reported one stray no-op call to an AWS sandbox tool; it printed noop and touched nothing. |  |
+| 2026-10-13T15:41:50Z | controller | decision | - | Redact going forward (no history rewrite; that would need a force push and the owner's call): exclude host-intake JSON from publishing, sanitize C--Users-<user> and memory-file names, drop the Remote Control field fro... |  |

@@ -40,6 +40,10 @@ py -3.11 -I tools/audit.py tables
 - 15:01Z to 15:02Z: GPT-6 Sol read the public restorer; the controller spot-checked four claims against the code. Evidence: `lanes/m4-prep/FINAL.md`.
 - 15:05Z and 15:07Z: both advisors reported (Fable 5.1 confirmed as `claude-fable-5-1`; GPT-6 Astra confirmed in the Codex header). Evidence: `lanes/advisor-fable/REPORT.md`, `lanes/advisor-astra/FINAL.md`.
 - 15:23Z: GPT-6 Sol's final query check; SOURCE-QUERY-01 finalized with edits from three reviewers. Evidence: `outbox/SOURCE-QUERY-01.md`, `outbox/SOURCE-QUERY-01.draft-v1.md`.
+- 15:29Z: GPT-6 Sol delivered `publish_branch.py` test-first; the controller re-ran 6 of 6 tests on Python 3.11 and reviewed the code. Evidence: `lanes/publisher/FINAL.md`, `tools/publish_branch.py`.
+- 15:31Z: first publish, commit 658ff7f4 on `continuation/r4-20261007` (parent d057cc15, 56 files, all under the takeover folder); the sync worker's first cycle pushed de69761f.
+- 15:32Z: Codex CLI 0.156.0 updated to 0.162.1; `gpt-6.1-sol` now runs. The earlier HTTP 400 was a client-version gate, not the login.
+- 15:35Z: Sonnet 5.5 render check: no page overflow at 360 or 1280 px; Lanes table squeezes at 360 (Kimi pass 03 dispatched).
 
 **Failures and deviations**
 - 14:56Z: Astra attempt 1 refused before start: "Not inside a trusted directory and --skip-git-repo-check was not specified." Fix: relaunch with `--skip-git-repo-check`. Evidence: `lanes/advisor-astra/stderr.log`.
@@ -47,4 +51,6 @@ py -3.11 -I tools/audit.py tables
 - 15:00Z: Kimi run 01 failed the controller's 380px render gate (sideways overflow); fixed in run 02. Evidence: `lanes/kimi-board/index.run-01.html`, `board/index.html`.
 - 15:00Z: the controller's headless Edge render logged a failed component-catalog update despite the disable flags; that background request could not carry the mandated User-Agent.
 - 15:07Z: Kimi run 02 ran a headless browser on temp copies outside `board/` (not authorized or forbidden by its brief; no residue).
-- 15:19Z: both `gpt-6.1-sol` lanes rejected with HTTP 400, "not supported when using Codex with a ChatGPT account." Fallback: `gpt-6-sol`, same tier. Installed Codex CLI 0.156.0; latest is 0.162.1. Evidence: `lanes/*/stderr-attempt1-gpt-6.1-sol-rejected.log`.
+- 15:19Z: both `gpt-6.1-sol` lanes rejected with HTTP 400, "not supported when using Codex with a ChatGPT account." Fallback: `gpt-6-sol`, same tier. Cause found at 15:32Z: the installed CLI (0.156.0) was too old; 0.162.1 runs the model. Evidence: `lanes/*/stderr-attempt1-gpt-6.1-sol-rejected.log`, `lanes/codex-probe/stderr.log`.
+- 15:31Z: the Codex update's pre-check listed two running `codex.exe` processes but did not gate the install. Both belonged to the ChatGPT desktop app's bundled Codex (`AppData/Local/OpenAI/Codex/bin`), separate from the npm install, so they were unaffected.
+- Early event labels in the ledger ran ahead of the clock; they were corrected from the session transcript, which is now the only source of event times.
