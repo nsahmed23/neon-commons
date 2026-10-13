@@ -1,6 +1,6 @@
 # ROUTE-DECISION-01: transfer mechanism after SOURCE-REPLY-01
 
-Status: PROPOSED, reviewed by Fable 5.1 (R20: no boundary conflict). SOURCE-REPLY-02 has settled the open facts (section below). Waiting on owner approval (OA-2). Nothing has been created, uploaded or authorized.
+Status: PROPOSED, reviewed by Fable 5.1 (R20: no boundary conflict). SOURCE-REPLY-02 has settled the open facts (section below). Approved for the probe 2026-10-13 18:45Z. The probe FAILED at the upload (see the probe result below); diagnosis in `outbox/SOURCE-QUERY-03.md`.
 
 ## What SOURCE-REPLY-01 changed
 
@@ -86,3 +86,13 @@ Restore on this PC would use the per-layer `scripts/restore-evidence-layer.py`, 
 - the restorer's peak memory on the smallest layer first.
 
 Capping WSL memory would tighten the guest; closing applications is the lever.
+
+## Probe result, 2026-10-13 18:43Z
+
+SOURCE-ACTION-01 ran its three requests; the reply is local, in `inbox/SOURCE-ACTION-REPLY-01.json`:
+- Preflight: PASS (18,445 B, pin match).
+- Request 1: PASS, the repository is private.
+- Request 2: PASS, exactly one draft release with no assets.
+- Request 3, the upload to `uploads.github.com`: FAIL, HTTP 401 `Bad credentials`.
+
+Nothing was uploaded and there was no retry. The owner's GitHub side is correct: the ChatGPT Codex Connector app has all repositories, with read and write access to code. A 401 rather than a 403 means the upload host did not accept the credential that reached it, while `api.github.com` accepted the same task's reads. The cause is not established; SOURCE-QUERY-03 tests it read-only. By the stop rules, B1-R gets no retry and no fallback without a new decision.

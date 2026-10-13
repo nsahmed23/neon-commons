@@ -1,0 +1,27 @@
+{
+  "id": "SOURCE-REPLY-04-CHECK",
+  "reply": {
+    "bytes": 480,
+    "sha256": "253d6d8e8d23c9b5653b888c25707f88104ed17741954dbacaec628db3246675"
+  },
+  "expected_from": "observations/UPLOAD-HOST-CALIBRATION-01.json",
+  "results": {
+    "api_full_address": true,
+    "git_ls_remote": true,
+    "git_lfs": true,
+    "errors_empty": true
+  },
+  "refs": [
+    {
+      "sha": "a35da44ca366a0585b0a7224852e1440d209b79a",
+      "ref": "HEAD"
+    },
+    {
+      "sha": "a35da44ca366a0585b0a7224852e1440d209b79a",
+      "ref": "refs/heads/main"
+    }
+  ],
+  "source_git_lfs": "git-lfs/3.6.1 (GitHub; linux amd64; go 1.24.4)",
+  "verdict": "PASS",
+  "reading": "Same gh client and login work on api.github.com with a full address, so the upload 401 is specific to uploads.github.com from this task: route B1-R is closed for this task. Git over https reaches the private repository and Git LFS is installed, so a Git LFS probe is the next candidate route."
+}

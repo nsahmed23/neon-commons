@@ -70,6 +70,7 @@ py -3.11 -I tools/audit.py tables
   - The source's GitHub credential is a GitHub App user token.
   - Evidence: `observations/SOURCE-REPLY-02-CHECK.json`.
 - 18:21Z to 18:28Z: route decision updated with the exact owner steps. `outbox/SOURCE-ACTION-01.md` drafted for the probe upload. Fable 5.1 review R22 returned SEND; its three hardenings and a privacy check of the destination were applied, and the action is FINAL. Evidence: `lanes/advisor-fable/REPORT-R22.md`.
+- 18:29Z: reviewed publish 03, c7170215: 62 files bound to receipt PUBLICATION-REVIEW-03 (R23 PASS); verified byte for byte after the push. Evidence: `observations/PUBLICATION-REVIEW-03.json`.
 
 **Failures and deviations**
 - 14:56Z: Astra attempt 1 refused before start: "Not inside a trusted directory and --skip-git-repo-check was not specified." Fix: relaunch with `--skip-git-repo-check`. Evidence: `lanes/advisor-astra/stderr.log`.

@@ -1,7 +1,7 @@
 // Generated from ledger/ledger.json by tools/make_ledger_js.py. Do not edit.
 window.LEDGER = {
   "schema": "intune-rescue-ledger/1",
-  "updated_utc": "2026-10-13T18:26:28Z",
+  "updated_utc": "2026-10-13T20:52:00Z",
   "writer": "Claude Code controller only; every other lane reads this file",
   "outcome_flags": {
     "private_export": "BLOCKED",
@@ -13,19 +13,19 @@ window.LEDGER = {
     {
       "id": "OA-1",
       "urgency": "done",
-      "ask": "Done 2026-10-13T18:19Z: SOURCE-QUERY-02 answered (inbox/SOURCE-REPLY-02.json, checked in observations/SOURCE-REPLY-02-CHECK.json).",
+      "ask": "Done: SOURCE-ACTION-02 ran; route B1-L probe PASS on both sides (observations/PROBE-B1L-01.json).",
       "blocks": "nothing"
     },
     {
       "id": "OA-2",
-      "urgency": "now",
-      "ask": "Create private repository nsahmed23/intune-evidence-custody (or your name) with a README; add a draft release tagged probe-20261013-01 with no files; in GitHub > Settings > Applications > Installed GitHub Apps, add that repository to the ChatGPT app's access if it uses selected repositories; send the approval line from outbox/ROUTE-DECISION-01.md; then paste outbox/SOURCE-ACTION-01.md into the Work task and download the asset in your browser.",
-      "blocks": "M2 synthetic bridge"
+      "urgency": "done",
+      "ask": "Done: repository, draft release, app access (all repositories) and approval line; SOURCE-ACTION-01 ran and failed at the upload with HTTP 401.",
+      "blocks": "nothing"
     },
     {
       "id": "OA-3",
-      "urgency": "before any evidence transfer",
-      "ask": "No copy of the four C32 archives survives in the searched source folders, so they are missing originals. The surviving r4-evidence and provider-candidates roots equal their receipts in files, bytes and links. Choose a loss disposition, or a new capture of those two roots. A new capture needs a classification plus destination, transit and retention approval, and a one-time lift of the handoff's large-source-tmpfs boundary. The two scratch layers cannot be recaptured.",
+      "urgency": "now",
+      "ask": "A tested route now exists: B1-L, Git LFS into the private custody repository (synthetic probe PASS). Limits for evidence: 2 GB per LFS file, 10 GiB LFS storage and 10 GiB monthly bandwidth on Free and Pro, readable by every app with access to all repositories, LFS objects removable only by deleting the repository. No copy of the four C32 archives survives in the searched source folders, so they are missing originals. The surviving r4-evidence and provider-candidates roots equal their receipts in files, bytes and links. Choose a loss disposition, or a new capture of those two roots. A new capture needs a classification plus destination, transit and retention approval, and a one-time lift of the handoff's large-source-tmpfs boundary. The two scratch layers cannot be recaptured.",
       "blocks": "M3"
     },
     {
@@ -156,9 +156,9 @@ window.LEDGER = {
       "id": "L13",
       "lane": "pub-review",
       "model": "Sonnet 5.5 (claude-sonnet-5-5 per API metadata), code-reader agent, read-only",
-      "role": "careful read of published and candidate files: 7840c407 (R19), candidate-02 delta (R21)",
+      "role": "careful read of published and candidate files: 7840c407 (R19), candidate-02 (R21), candidate-04 (R23)",
       "status": "DONE",
-      "output": "lanes/pub-review/FINAL.md; observations/PUBLICATION-REVIEW-01.json and -02.json"
+      "output": "lanes/pub-review/FINAL.md; observations/PUBLICATION-REVIEW-01.json to -03.json"
     }
   ],
   "milestones": [
@@ -177,8 +177,8 @@ window.LEDGER = {
     {
       "id": "M2",
       "title": "Original-source synthetic bridge",
-      "status": "BLOCKED",
-      "evidence": "Route B1-R reviewed (R20, R22); owner steps exact (private repo, draft release, ChatGPT app repository access); SOURCE-ACTION-01 FINAL (privacy check, release lookup, one upload); waiting on OA-2."
+      "status": "PASS",
+      "evidence": "Route B1-L PASS 2026-10-13T20:47:05Z: the Work task pushed the 18,445-byte probe through Git LFS (commit 6dfaddbd, branch probe-lfs-20261013-01); this PC downloaded it with the required User-Agent and matched size and SHA-256 to the source pin; source reply, refs, commit author and release all checked (observations/PROBE-B1L-01.json). Earlier: probe through B1-R failed at the upload: uploads.github.com returned 401 Bad credentials; api.github.com reads succeeded; nothing uploaded. Diagnosis SOURCE-REPLY-04 PASS: only uploads.github.com rejects the Work task's login, so B1-R is closed for that task; git and Git LFS reach the private repository. Next: route B1-L (Git LFS), outbox/ROUTE-DECISION-02.md. R24 SEND WITH FIXES, all applied; the owner accepted the Git LFS User-Agent exception for the Work task (20:39Z, 20:40Z); SOURCE-ACTION-02 FINAL; the receiver watcher runs until about 22:43Z."
     },
     {
       "id": "M3",
@@ -226,7 +226,7 @@ window.LEDGER = {
       "manifest_sha256": "9f53658f8b795e136d32baab6d7043741a81cd6450e9d640489fb01a97610fb1",
       "source_path": "recorded /tmp path (C32)",
       "availability": "MISSING ORIGINAL (no copy in searched roots); input root present and equal to its receipt in files, bytes and links",
-      "destination": "NONE (B1-R proposed)",
+      "destination": "NONE (missing original); a new capture could use route B1-L after OA-3",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
     },
@@ -238,7 +238,7 @@ window.LEDGER = {
       "manifest_sha256": "bccf1c15dcda000ebeae37f1c23de016233d062d8a0edcf535b39f67ffd99fa6",
       "source_path": "recorded /tmp path (C32)",
       "availability": "MISSING ORIGINAL (no copy in searched roots); input root present and equal to its receipt in files, bytes and links",
-      "destination": "NONE (B1-R proposed)",
+      "destination": "NONE (missing original); a new capture could use route B1-L after OA-3",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
     },
@@ -250,7 +250,7 @@ window.LEDGER = {
       "manifest_sha256": "43ef5e7852f9e2be9878cfc17ef096182d166fc693b970333828e54e11f7b992",
       "source_path": "recorded /tmp path (C32)",
       "availability": "MISSING ORIGINAL (no copy in searched roots); input root gone with /tmp",
-      "destination": "NONE (B1-R proposed)",
+      "destination": "NONE (missing original); a new capture could use route B1-L after OA-3",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
     },
@@ -262,7 +262,7 @@ window.LEDGER = {
       "manifest_sha256": "5d8b84ecc1c8bf9690fa0cbfa0012650430e36f302f4982969a04366b7984c2e",
       "source_path": "recorded /tmp path (C32)",
       "availability": "MISSING ORIGINAL (no copy in searched roots); input root gone with /tmp",
-      "destination": "NONE (B1-R proposed)",
+      "destination": "NONE (missing original); a new capture could use route B1-L after OA-3",
       "readback": "NOT_POSSIBLE unless a copy is found",
       "restore": "NOT_POSSIBLE unless a copy is found"
     },
@@ -285,9 +285,9 @@ window.LEDGER = {
       "manifest_bytes": null,
       "manifest_sha256": null,
       "source_path": "/workspace (C33 probe folder)",
-      "availability": "PRESENT, PIN-MATCH 2026-10-13T16:02:54Z",
-      "destination": "NONE (B1-R proposed)",
-      "readback": "NOT_STARTED",
+      "availability": "PRESENT, PIN-MATCH 2026-10-13T16:02:54Z; PIN-MATCH again in SOURCE-ACTION-REPLY-02 preflight",
+      "destination": "B1-L: nsahmed23/intune-evidence-custody, branch probe-lfs-20261013-01 (commit 6dfaddbd), Git LFS object",
+      "readback": "PASS 2026-10-13T20:47:05Z: 18,445 B, SHA-256 d01a9b0e...0c67c3 (observations/PROBE-B1L-01.json)",
       "restore": "n/a"
     }
   ],
@@ -295,16 +295,16 @@ window.LEDGER = {
     {
       "gate": "G11 binary export",
       "status": "BLOCKED",
-      "boundary": "C32 archives absent at recorded paths; Drive 403 ACCESS_TOKEN_SCOPE_INSUFFICIENT (not retried); no Library in the source task; route B1-R proposed, not approved",
+      "boundary": "Route B1-L (Git LFS into the private custody repository) PASS for the synthetic probe (observations/PROBE-B1L-01.json). B1-R closed for the Work task (uploads.github.com 401). Drive 403 not retried. C32 archives are missing originals. Evidence export waits on OA-3 classification and approval.",
       "owner": "source integration owner, then evidence owner",
-      "next_input": "OA-2, then SOURCE-ACTION-01"
+      "next_input": "OA-3"
     },
     {
       "gate": "G11 receiving capacity",
       "status": "BLOCKED",
-      "boundary": "Receiver measured (C: backs 326,692,147,200 B free against a 7,827,771,392 B scenario) but the destination is not approved",
+      "boundary": "Receiver measured (C: backs 326,692,147,200 B free against a 7,827,771,392 B scenario). The custody repository is approved for the synthetic probe only; evidence needs its own destination approval.",
       "owner": "receiving storage owner (the owner)",
-      "next_input": "OA-2"
+      "next_input": "OA-3"
     },
     {
       "gate": "F03 full restoration",
@@ -451,6 +451,22 @@ window.LEDGER = {
     {
       "utc": "2026-10-13T18:26:28Z",
       "text": "Fable 5.1 review R22: SOURCE-ACTION-01 SEND; hardenings applied plus a destination privacy check; FINAL."
+    },
+    {
+      "utc": "2026-10-13T18:29:34Z",
+      "text": "Reviewed publish 03: c7170215 (receipt PUBLICATION-REVIEW-03, 62 files; R23 PASS)."
+    },
+    {
+      "utc": "2026-10-13T18:43:05Z",
+      "text": "OA-2 steps 1-2 done by the owner; controller verified the repository is private and the draft release exists with no assets."
+    },
+    {
+      "utc": "2026-10-13T18:45:04Z",
+      "text": "Owner approved route B1-R for the synthetic probe only (exact line recorded in logs/events.jsonl)."
+    },
+    {
+      "utc": "2026-10-13T18:50:34Z",
+      "text": "SOURCE-ACTION-01: preflight, privacy check and release lookup passed; the upload returned 401 Bad credentials; nothing uploaded."
     }
   ],
   "routing": "Opus 5.5 controller: judgment, gates, synthesis, last-mile git. Sonnet 5.5: mechanical Claude lanes (verification runs, records, reply parsing). Haiku 5.5: sweeps and inventories. Fable 5.1 leads the advisor tier, GPT-6 Astra is its peer. GPT-6.1 Sol (working since Codex CLI 0.162.1) is the Opus-tier ChatGPT executor. Kimi K3: frontend only."

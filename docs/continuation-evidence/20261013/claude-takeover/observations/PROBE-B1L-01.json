@@ -1,0 +1,111 @@
+{
+  "id": "PROBE-B1L-01",
+  "route": "B1-L (Git LFS)",
+  "verdict": "PASS",
+  "receiver": {
+    "utc": "2026-10-13T20:47:05Z",
+    "polls": 9,
+    "commit": "6dfaddbdbf3bba943e35bcdba2ee9df48e00c2fd",
+    "tree_sha": "ade1dfd5a07546efc1b9555dcd4789c8bedbb6c9",
+    "tree": [
+      {
+        "path": ".gitattributes",
+        "sha": "db3ca4d2cfe782c0bf4c7a0df631cb6ab478dcf7",
+        "size": 70,
+        "type": "blob"
+      },
+      {
+        "path": "synthetic-original-work-probe.zip",
+        "sha": "bfbc3ed2e109cbe46dba796530d4e0be7850b34a",
+        "size": 130,
+        "type": "blob"
+      }
+    ],
+    "pointer": {
+      "oid": "d01a9b0e9cd1506b1ee5d0defcfebf4f377af858ab610d3ec5362623ee0c67c3",
+      "size": 18445
+    },
+    "verdict": "PASS",
+    "downloaded_bytes": 18445,
+    "sha256": "d01a9b0e9cd1506b1ee5d0defcfebf4f377af858ab610d3ec5362623ee0c67c3",
+    "zip_members": [
+      {
+        "name": "binary/",
+        "bytes": 0
+      },
+      {
+        "name": "text/",
+        "bytes": 0
+      },
+      {
+        "name": "binary/payload.bin",
+        "bytes": 16384
+      },
+      {
+        "name": "text/origin.txt",
+        "bytes": 269
+      },
+      {
+        "name": "empty.bin",
+        "bytes": 0
+      },
+      {
+        "name": "MEMBER-MANIFEST.json",
+        "bytes": 1166
+      }
+    ],
+    "path": "C:\\Dev\\Projects\\intune-rescue\\incoming\\probe-lfs-20261013-01\\synthetic-original-work-probe.zip"
+  },
+  "source_reply": {
+    "bytes": 1776,
+    "sha256": "480dba4dad529d2df0f923f073ffd364a7913890362c4cd2b7c0c62876c539b1",
+    "checks": {
+      "preflight_pin": true,
+      "final_block_used": true,
+      "remote_address": true,
+      "lfs_object_id": true,
+      "pointer_blob_130": true,
+      "commit_matches_receiver": true,
+      "lfs_push_ok": true,
+      "git_push_new_branch": true,
+      "refs_expected": true,
+      "errors_empty": true
+    }
+  },
+  "github": {
+    "refs": [
+      "a35da44ca366a0585b0a7224852e1440d209b79a refs/heads/main",
+      "6dfaddbdbf3bba943e35bcdba2ee9df48e00c2fd refs/heads/probe-lfs-20261013-01"
+    ],
+    "commit_author": {
+      "date": "2026-10-13T20:41:31Z",
+      "email": "probe@example.invalid",
+      "name": "Work task probe"
+    },
+    "message": "probe: synthetic Git LFS transfer test",
+    "releases": [
+      {
+        "assets": 0,
+        "draft": true,
+        "id": 411991153,
+        "tag_name": "probe-20261013-01"
+      }
+    ],
+    "checks": {
+      "refs_main_unchanged_plus_one_branch": true,
+      "commit_by_work_task_probe": true,
+      "release_unchanged": true
+    }
+  },
+  "work_clock": {
+    "commit_stamped_utc": "2026-10-13T20:41:31Z",
+    "block_delivered_utc": "2026-10-13T20:44:00Z",
+    "branch_absent_utc": "2026-10-13T20:46:35Z",
+    "branch_seen_utc": "2026-10-13T20:47:05Z",
+    "lag_seconds_min": 149,
+    "lag_seconds_max": 334,
+    "reading": "The commit is stamped before the block that created it was delivered, so the Work task's clock runs behind this PC's by the range above. Work-clock times in earlier replies (for example the 15:52:05Z boot) carry the same offset if it was the same then."
+  },
+  "proves": "The source moved one 18,445-byte file through git and Git LFS into the private repository, and this PC downloaded it unchanged (same size and SHA-256 as the source pin).",
+  "does_not_prove": "Large files, the LFS quota, Work-task limits on long uploads, or any evidence classification."
+}

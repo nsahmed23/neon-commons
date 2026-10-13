@@ -1,0 +1,19 @@
+{
+  "id": "UPLOAD-HOST-CALIBRATION-01",
+  "utc": "2026-10-13T20:08:33Z",
+  "by": "controller (Opus 5.5), local machine, read-only GETs with the required User-Agent",
+  "question": "Can a GET on uploads.github.com tell a working login from a rejected one (SOURCE-QUERY-03 step 3)?",
+  "url": "https://uploads.github.com/repos/nsahmed23/intune-evidence-custody/releases/411991153/assets (no name parameter)",
+  "results": [
+    {"login": "valid (local gh)", "http": 400, "message": "Invalid name for request", "request_id": "D56B:6C44B:1BEF7:20DB5:6ACE8EB7"},
+    {"login": "none (curl)", "http": 400, "message": "Invalid name for request", "request_id": "D56E:358627:1B4C2:2030C:6ACE8EB7"},
+    {"login": "fake bearer value 'not-a-real-token' (curl)", "http": 400, "message": "Invalid name for request", "request_id": "D572:7A7E6:1CBC0:21A69:6ACE8EB8"}
+  ],
+  "finding": "The upload host checks the name parameter before the login, so this GET returns 400 for any login and cannot diagnose the 401. SOURCE-QUERY-03 step 3 was uninformative and is dropped in SOURCE-QUERY-04. A GET with a name parameter was not tried: with a working login it would be an upload-shaped request against the approved draft, which is outside what the owner approved.",
+  "expected_answers_for_SOURCE-QUERY-04": {
+    "utc": "2026-10-13T20:10:11Z",
+    "api_full_address": {"draft": true, "id": 411991153, "tag_name": "probe-20261013-01"},
+    "git_refs": [{"sha": "a35da44ca366a0585b0a7224852e1440d209b79a", "ref": "refs/heads/main"}],
+    "note": "The draft release has created no git tag yet (draft releases create their tag on publish), so ls-remote should show HEAD and refs/heads/main at a35da44c only."
+  }
+}

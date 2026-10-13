@@ -22,6 +22,17 @@ The local controller workspace for taking over the Intune Workbench from the Cha
   - the surviving roots equal their receipts in files, bytes and links;
   - the source credential is a GitHub App user token.
 - `outbox/SOURCE-ACTION-01.md` FINAL after Fable 5.1 review R22.
+- OA-2 done; SOURCE-ACTION-01 ran at 18:50Z. Preflight, privacy check and release lookup passed; the upload to uploads.github.com failed with HTTP 401 Bad credentials. Nothing was uploaded and nothing was retried.
+- SOURCE-QUERY-03 (diagnosis) was replaced by `outbox/SOURCE-QUERY-04.md` at 20:11Z. The owner said "This isn’t a cybersecurity issue", and the 03 upload-host read returns 400 for any login (`observations/UPLOAD-HOST-CALIBRATION-01.json`).
+- SOURCE-REPLY-04 checked PASS (`observations/SOURCE-REPLY-04-CHECK.json`). Route B1-R is closed for the Work task, because only uploads.github.com rejects its login. Git and Git LFS 3.6.1 reach the private repository from there.
+- Route B1-L (Git LFS) is in `outbox/ROUTE-DECISION-02.md` and `outbox/SOURCE-ACTION-02.md`.
+  - SOURCE-ACTION-02 is FINAL after Fable R24, with all fixes applied.
+  - The owner accepted the Git LFS User-Agent exception for the Work task at 20:39Z and 20:40Z.
+- **M2 PASS at 20:47:05Z** (`observations/PROBE-B1L-01.json`):
+  - the Work task pushed the probe through Git LFS to branch `probe-lfs-20261013-01` (commit 6dfaddbd);
+  - `tools/fetch_lfs_probe.py` downloaded it here with the required User-Agent, and the size and SHA-256 match the source pin;
+  - the source reply, refs, commit author and release were all checked.
+- Finding: the Work task's clock runs 149 to 334 s behind this PC's.
 
 ## In flight
 
@@ -29,10 +40,12 @@ The local controller workspace for taking over the Intune Workbench from the Cha
 
 ## Next
 
-1. OA-2: the owner creates the private repository and the draft release `probe-20261013-01`, adds the repository to the ChatGPT GitHub App's access if needed, and sends the approval line. Then the owner pastes `outbox/SOURCE-ACTION-01.md` into the Work task and downloads the asset in the browser.
-2. Hash the download (18,445 B, `d01a9b0e...0c67c3`); record PASS or FAIL in `observations/`.
-3. OA-3: a loss disposition for the four C32 archives, or a new capture of the two surviving roots.
-4. Publish only through `--export-dir`, then scan, review the delta, write a PASS receipt, and push with `--review-receipt`. Pause the local worker during the publish window.
+1. OA-3 (owner): a loss disposition for the four C32 archives, or a new capture of the two surviving roots through B1-L.
+   - A capture needs data classification, destination approval and a one-time lift of the large-source-tmpfs boundary.
+   - It also needs files under 2 GB each.
+   - The audience is every app with access to all repositories, and LFS objects are removable only by deleting the repository.
+2. After an OA-3 decision, draft the capture plan and have Fable and Astra review it independently.
+3. Publish only through `--export-dir`, then scan, review the delta, write a PASS receipt, and push with `--review-receipt`. Pause the local worker during the publish window. The next publish carries SOURCE-QUERY-03/04, ROUTE-DECISION-02, SOURCE-ACTION-02, the new tools and observations, R24, the ledger and the logs.
 
 ## Routing
 

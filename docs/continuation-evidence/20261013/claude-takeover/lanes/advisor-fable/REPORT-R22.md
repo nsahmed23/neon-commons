@@ -22,3 +22,5 @@ N2. App identification (ROUTE-DECISION L48 "the one with access to neon-commons"
 N3. Error sanitization (rule 2, L24-26): HTTPS_PROXY set; Go transport errors can embed proxy URL including user-info. Add: "In any error text, replace the user-info part of any URL with REDACTED." Add interpretation line to rule 4: "A connection or proxy error (no HTTP status) means uploads.github.com not reachable through the proxy; report as ROUTE_UNREACHABLE, not as an auth failure."
 
 VERDICT: SEND (N1-N3 optional, N1 recommended before paste).
+
+Delivery note: this message reached the controller as a teammate message only after the controller's turn ended, with content identical to the copy above.
