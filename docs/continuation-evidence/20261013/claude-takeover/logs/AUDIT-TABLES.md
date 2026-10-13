@@ -1,6 +1,6 @@
 # Audit tables
 
-Generated 2026-10-13T16:02:06Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
+Generated 2026-10-13T16:12:11Z by tools/audit.py from logs/runs.jsonl and logs/events.jsonl.
 
 ## Lane runs (17)
 
@@ -24,7 +24,7 @@ Generated 2026-10-13T16:02:06Z by tools/audit.py from logs/runs.jsonl and logs/e
 | R16 | L9 leak-sweep | Claude Agent Explore (read-only) | haiku / claude-haiku-5-5 (report line 1) | agent default | read-only tools | 2026-10-13T15:34:04Z / 2026-10-13T15:40:36Z | n/a | DONE | made one no-op call to an AWS sandbox tool (self-reported; no access to the target) |
 | R17 | L11 redaction-fix | Claude Agent code-editor | sonnet (alias claude-sonnet-5-5) / claude-sonnet-5-5 (report line 1) | agent default | edits limited to three tools/ files | 2026-10-13T15:41:31Z / 2026-10-13T15:42:28Z | n/a | DONE | agent skipped its ASCII check (grep error); controller verified 0 non-ASCII bytes |
 
-## Events (66)
+## Events (67)
 
 | UTC | actor | kind | lane | summary | refs |
 |---|---|---|---|---|---|
@@ -94,3 +94,4 @@ Generated 2026-10-13T16:02:06Z by tools/audit.py from logs/runs.jsonl and logs/e
 | 2026-10-13T15:42:00Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 0f869f5b5dff6cda4217ba1ce004d57494c48427 |  |
 | 2026-10-13T15:43:48Z | controller | verification | L11 | Redaction gate PASS: 7 of 7 tests on 3.11, ASCII clean; dry-run commit shows 0 files with the encoded home folder, host-intake JSON excluded, 18 memory names redacted. Accepted residual: one earlier controller reply i... | tools/publish_branch.py |
 | 2026-10-13T15:52:05Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: ed7bded1dd66b82fba7c18e250692657dd6f650a |  |
+| 2026-10-13T16:02:11Z | sync-worker | controller-action | - | Published audit trail to continuation/r4-20261007: 84b308ee887a9e1eee6130f4b8a36d5f6d39c4fd |  |
