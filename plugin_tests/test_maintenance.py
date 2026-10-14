@@ -168,6 +168,9 @@ class MaintenanceTests(unittest.TestCase):
         recovered = maintenance.reconcile(self.operation)
         self.assertEqual(recovered['classification'], 'desired_state_observed')
         self.assertFalse(recovered['replay_authorized'])
+        # The result states the journal status it left, as the journal records it.
+        self.assertEqual((recovered['previous_status'], recovered['journal_status']), ('outcome_unknown', 'reconciled'))
+        self.assertEqual(load_json(self.operation / 'journal.json')['status'], recovered['journal_status'])
         with self.assertRaises(AppError): self.execute(proposal)
         self.assertEqual(len(self.patches()), 1)
         self.assertEqual(set(self.service.snapshot()['current']['objects']), set(self.ids))

@@ -121,18 +121,30 @@ def hazard_band(facts, signals, width):
     operation is no longer a hazard, and one known only from this session still is. Other recorded signals are
     counted, with the key that lists them all.
     """
-    operation = facts.get('operation')
+    operation, operation_id = facts.get('operation'), facts.get('operation_id')
     live = [item for item in signals or [] if isinstance(item, dict)]
-    if operation not in OPERATION_SIGNAL:
-        live = [item for item in live if item.get('area') != 'operations']
+
+    def about(item):
+        evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else {}
+        return evidence.get('operation_id')
+    if operation_id and operation not in OPERATION_SIGNAL:
+        # This session's newer result for that operation resolved it; only that operation's older signal is set aside.
+        live = [item for item in live if not (item.get('area') == 'operations' and about(item) == operation_id)]
+    if operation in OPERATION_SIGNAL and not any(item.get('code') == OPERATION_SIGNAL[operation]
+                                                 and (not operation_id or about(item) in (None, operation_id)) for item in live):
+        # Known from this session's own result before diagnostics recorded it.
+        live.append({'area': 'operations', 'code': OPERATION_SIGNAL[operation],
+                     'evidence': {'operation_id': operation_id} if operation_id else {}})
+    unique = {}
+    for item in live:
+        unique.setdefault((item.get('code'), about(item)), item)
+    live = list(unique.values())
     ranked = sorted((item for item in live if item.get('code') in BAND_RANK), key=lambda item: BAND_RANK.index(item['code']))
     primary = ranked[0] if ranked else None
-    if operation in OPERATION_SIGNAL and (primary is None or primary.get('area') != 'operations'):
-        recorded = next((item for item in live if item.get('code') == OPERATION_SIGNAL[operation]), None)
-        primary = recorded or {'area': 'operations', 'code': OPERATION_SIGNAL[operation], 'evidence': {}}
     if primary is None:
         return None
-    others = len([item for item in live if item is not primary and item.get('code') != primary.get('code')])
+    # Every other finding is counted, the same kind for another operation included.
+    others = len([item for item in live if item is not primary])
     more = '  +%d more: i' % others if others else ''
     forms = _band_forms(primary)
     for text in [form + more for form in forms] + forms:

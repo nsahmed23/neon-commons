@@ -238,6 +238,24 @@ class ActionStagingTests(unittest.TestCase):
         self.assertEqual(workspace.notice, notice)
         self.assertIsNone(workspace.quiet)
 
+    def test_a_reconcile_result_teaches_the_journal_status(self):
+        workspace = self.workspace()
+        workspace.facts['operation'] = 'outcome_unknown'
+        workspace.last_command = 'reconcile /work/op'
+        workspace.receive({'operation_id': '651a8ce8ff0e42d5a091c70ac13d21a1', 'classification': 'desired_state_observed',
+                           'previous_status': 'outcome_unknown', 'journal_status': 'reconciled'})
+        self.assertEqual((workspace.facts['operation'], workspace.facts['operation_id']),
+                         ('reconciled', '651a8ce8ff0e42d5a091c70ac13d21a1'))
+
+    def test_a_newer_read_retires_a_hazard_it_no_longer_finds(self):
+        workspace = self.workspace()
+        workspace.facts.update(operation='outcome_unknown', operation_id='651a8ce8ff0e42d5a091c70ac13d21a1')
+        workspace.quiet = {'purpose': 'refresh', 'state': 'sent'}
+        fresh = actions_value()
+        fresh['attention'] = {'status': 'clear', 'signals': [], 'checked': {'operations': 'clear'}}
+        workspace.receive(fresh)
+        self.assertNotIn('operation', workspace.facts)
+
     def test_a_view_is_not_followed_by_a_read(self):
         workspace = self.workspace()
         workspace.last_command = 'inspect'

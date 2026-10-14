@@ -434,6 +434,8 @@ def reconcile(operation_root):
         # delivered or grants permission to replay the consumed operation.
         if previous_status != 'prepared' and not result['visibility']['pending']:
             journal['status'] = 'reconciled'
+        # The status the journal is left in, so a reader need not infer it from the classification.
+        result['journal_status'] = journal['status']
         _event(root, journal, 'reconciled', classification=result['classification'], previous_status=previous_status,
                visibility=result['visibility'])
         _register(root, plan, journal)

@@ -97,8 +97,18 @@ class BandTests(unittest.TestCase):
             self.assertLessEqual(cell_width(line), 80, line)
 
     def test_a_reconciled_operation_is_no_longer_a_hazard(self):
-        # The live operation status wins over an older recorded signal from before the reconcile.
-        self.assertIsNone(self.band({'operation': 'reconciled'}, [UNKNOWN], 80))
+        # This session's newer result for the same operation wins over its older recorded signal.
+        self.assertIsNone(self.band({'operation': 'reconciled', 'operation_id': OPERATION}, [UNKNOWN], 80))
+
+    def test_another_operations_result_never_hides_an_unknown_outcome(self):
+        line = self.band({'operation': 'prepared', 'operation_id': 'f' * 32}, [UNKNOWN], 120)
+        self.assertIn('a: reconcile', line)
+        self.assertIn(OPERATION[:8], line)
+
+    def test_two_unknown_outcomes_are_both_counted(self):
+        second = signal('operations', 'operation_outcome_unknown', 'Another operation is unknown.', 'Reconcile it.',
+                        operation_id='e' * 32, operation_root='/work/other')
+        self.assertIn('+1 more: i', self.band({}, [UNKNOWN, second], 120))
 
     def test_an_operation_known_only_from_this_session_still_shows(self):
         line = self.band({'operation': 'outcome_unknown'}, [], 80)

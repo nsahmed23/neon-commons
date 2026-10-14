@@ -685,11 +685,17 @@ class Workspace:
             facts['repository'] = next((REPOSITORY_FROM_SIGNAL[code] for code in codes if code in REPOSITORY_FROM_SIGNAL),
                                        REPOSITORY_FROM_CHECK[checked])
         # A recorded operation condition reaches the strip even in a session that has not opened that operation.
-        operation_codes = [signal.get('code') for signal in attention.get('signals') or []
-                           if isinstance(signal, dict) and signal.get('area') == 'operations']
-        recorded = next((OPERATION_FROM_SIGNAL[code] for code in operation_codes if code in OPERATION_FROM_SIGNAL), None)
-        if value.get('object_id') == self.selected and recorded:
-            facts['operation'] = recorded
+        operation_signals = [signal for signal in attention.get('signals') or []
+                             if isinstance(signal, dict) and signal.get('code') in OPERATION_FROM_SIGNAL]
+        if value.get('object_id') == self.selected and operation_signals:
+            facts['operation'] = OPERATION_FROM_SIGNAL[operation_signals[0]['code']]
+            evidence = operation_signals[0].get('evidence') if isinstance(operation_signals[0].get('evidence'), dict) else {}
+            if isinstance(evidence.get('operation_id'), str): facts['operation_id'] = evidence['operation_id']
+            else: facts.pop('operation_id', None)
+        elif (value.get('object_id') == self.selected and (attention.get('checked') or {}).get('operations') == 'clear'
+              and facts.get('operation') in OPERATION_FROM_SIGNAL.values()):
+            # A newer read checked the operations and found no hazard: one known from an earlier result is resolved.
+            facts.pop('operation', None); facts.pop('operation_id', None)
         # The recorded signals feed the hazard band on every surface while this policy stays selected, and the
         # read model's actions feed the actions layer (a).
         if value.get('object_id') == self.selected and isinstance(attention.get('signals'), list):
@@ -710,7 +716,11 @@ class Workspace:
         operation_command = self.last_command.split(' ', 1)[0] in ('execute', 'reconcile')
         if (isinstance(value.get('operation_id'), str) and isinstance(value.get('status'), str)
                 and (value.get('object_id') == self.selected or (value.get('object_id') is None and operation_command))):
-            facts['operation'] = value['status']
+            facts['operation'] = value['status']; facts['operation_id'] = value['operation_id']
+        elif (isinstance(value.get('operation_id'), str) and isinstance(value.get('journal_status'), str)
+                and value.get('object_id') is None and operation_command):
+            # Reconcile states the journal status it left; the result has no status of its own.
+            facts['operation'] = value['journal_status']; facts['operation_id'] = value['operation_id']
         if value.get('schema_version') == 'workbench-delivery/1' and value.get('object_id') == self.selected:
             facts['operation'] = str(value.get('journal_status'))
         self.facts = facts
@@ -894,7 +904,11 @@ class Workspace:
                 readback = result.get('readback') if isinstance(result.get('readback'), dict) else {}
                 error = result.get('error') if isinstance(result.get('error'), dict) else {}
                 field('Operation', result.get('operation_id', 'unknown'))
-                field('Status', result.get('status', 'unknown'))
+                if 'status' not in result and isinstance(result.get('journal_status'), str):
+                    # Reconcile reports the journal status it left and the one it found.
+                    field('Journal', '%s (was %s)' % (result['journal_status'], result.get('previous_status', 'not recorded')))
+                else:
+                    field('Status', result.get('status', 'unknown'))
                 # Execute nests its independent readback; reconcile returns it at the top level.
                 field('Readback', result.get('classification') or readback.get('classification') or 'not recorded')
                 field('Error', result.get('error_code') or error.get('code') or 'none recorded')
