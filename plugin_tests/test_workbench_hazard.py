@@ -186,7 +186,7 @@ class MinimumTests(unittest.TestCase):
 
 class FrameTests(unittest.TestCase):
     """The band is chrome: every layer, every scroll position and every size in the matrix shows it."""
-    def frame(self, size, layer='summary', scroll=0, lines=200):
+    def frame(self, size, layer='summary', scroll=0, lines=200, **extra):
         from intune_iac.workbench_tui import Workspace
         workspace = Workspace.__new__(Workspace)
         out = io.StringIO()
@@ -196,6 +196,7 @@ class FrameTests(unittest.TestCase):
             facts={'object_id': POLICY, 'name': 'Windows Privacy Pilot', 'observation': 'fresh', 'repository': 'current',
                    'operation': 'outcome_unknown', 'signals': [UNKNOWN]},
             store=type('S', (), {'tenant_id': TENANT})(), mode_class='synthetic', last_command='inspect')
+        workspace.__dict__.update(extra)
         workspace._terminal_size = lambda: size
         workspace._data_lines = lambda width: ['metadata line %d %s' % (index, 'x' * 70) for index in range(lines)]
         workspace.draw()
@@ -231,6 +232,16 @@ class FrameTests(unittest.TestCase):
             self.assertIn('unknown', joined.lower(), size)
             self.assertIn('below 40x12', joined.lower(), size)
             self.assertNotIn('metadata line', joined, size)  # no body below the minimum
+
+    def test_a_staged_command_keeps_its_instruction_on_screen(self):
+        instruction = 'STAGED refresh: type the REVISION at the cursor; Enter records it; Esc discards.'
+        for size in ((120, 40), (48, 20)):
+            rows = self.frame(size, mode='command', buffer='repository-refresh  ' + 'c' * 64,
+                              cursor=len('repository-refresh '), staged={'kind': 'repository-refresh', 'binding': {}},
+                              notice=instruction)
+            text = '\n'.join(rows)
+            self.assertIn('STAGED refresh: type the REVISION', text, size)
+            self.assertIn(':repository-refresh', text, size)
 
     def test_the_band_sits_above_the_body_in_the_first_rows(self):
         rows = self.frame((48, 20))

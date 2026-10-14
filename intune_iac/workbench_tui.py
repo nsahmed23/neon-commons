@@ -1114,6 +1114,9 @@ class Workspace:
                  or 'evidence class not stated')
         footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data),
                              width, ellipsis)
+        if self.mode == 'command' and getattr(self, 'staged', None):
+            # While a staged action's command is edited, its instruction stays on the row above the command bar.
+            footer = fit(self.notice, width, ellipsis)
         prompt = self._prompt_line(width, ellipsis)
         top, side, bottom = RULES[getattr(self, 'rules', 'ascii')]
         # Content beyond the frame is announced inside the border, not only by the row counter below it.
@@ -1254,9 +1257,10 @@ class Workspace:
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
         self.staged = {'kind': action.get('kind'), 'label': action.get('label'), 'binding': dict(action.get('binding') or {})}
         needs = [str(need).split(':')[0] for need in action.get('needs') or []]
-        self.notice = 'Staged for review: %s. %s %s submits it; Esc discards it.%s' % (
-            action.get('label'), action.get('effects'), self._submit_word(),
-            ' Type %s at the cursor first.' % ' and '.join(needs) if needs else '')
+        # The instruction leads, so a narrow footer still shows how to submit and discard; the effects follow.
+        self.notice = 'STAGED %s: %s%s submits, Esc discards. %s' % (
+            action.get('label'), 'type the %s at the cursor; ' % ' and '.join(needs) if needs else '', self._submit_word(),
+            action.get('effects'))
         return None
 
     def _stage_after_difference(self, action, value):
@@ -1276,8 +1280,8 @@ class Workspace:
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
         self.staged = {'kind': action.get('kind'), 'label': action.get('label'),
                        'binding': dict(action.get('binding') or {}, resolution_sha256=shown)}
-        self.notice = ('This is the difference the refresh records. Type the REVISION at the cursor; %s records it (not a '
-                       'commit, approval or apply); Esc discards it.' % self._submit_word())
+        self.notice = ('STAGED %s: type the REVISION at the cursor; %s records the difference shown above (not a commit, '
+                       'approval or apply); Esc discards.' % (action.get('label'), self._submit_word()))
 
     def _submit_word(self):
         return 'Enter' if getattr(self, 'submission_key', 'enter') == 'enter' else 'Ctrl+Enter'
