@@ -816,6 +816,9 @@ class Workspace:
                 and isinstance(value.get('data'), dict) and 'created' in value):
             from .workbench_screens import recorded_lines
             rows.extend(recorded_lines(value, width))
+        elif value.get('status') in ('ready_local_model_handoff', 'adopted_local_model'):
+            from .workbench_screens import adoption_lines
+            rows.extend(adoption_lines(value, width))
         elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '

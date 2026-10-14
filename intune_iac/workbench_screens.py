@@ -1832,6 +1832,59 @@ def lineage_lines(value, width):
     return lines
 
 
+def adoption_lines(value, width):
+    """The adoption preview (what adopt would create) and the adopt result (what it created), from their records."""
+    lines = []
+    field = lambda label, text: lines.extend(word_wrap('%s: %s' % (label, text), width))
+    policies = lambda count: '%d %s' % (count, 'policy' if count == 1 else 'policies')
+    flags = ('no cloud authority; execution not authorized; nothing imported remotely'
+             if value.get('cloud_authority') is False and value.get('execution_authorized') is False
+             and value.get('remote_import_performed') is False else 'authority flags not as expected; see r raw record')
+    if value.get('status') == 'adopted_local_model':
+        ids = [str(item) for item in value.get('object_ids') or []]
+        lines += word_wrap('[ADOPTED] %s handed off to a local maintenance model' % policies(len(ids)), width)
+        for object_id in ids:
+            lines += word_wrap('  ' + object_id, width)
+        field('Handoff', value.get('handoff_root'))
+        field('Modeled service', value.get('service_root'))
+        adoptions = [str(row.get('artifact_id'))[:8] for row in value.get('adoptions') or [] if isinstance(row, dict)]
+        lines += word_wrap('Collection run %s recorded in this store, with %s (%s).' % (
+            value.get('collection_run_id'), _plural(len(adoptions), 'adoption record'), ', '.join(adoptions) or 'none'), width)
+        field('Ownership', str(value.get('ownership')))
+        lines += word_wrap('%s; %s.' % ('original journey kept' if value.get('original_journey_preserved') else
+                                         'original journey not confirmed kept', flags), width)
+        lines += word_wrap("Next: q, then reopen the workspace with --service-root '%s' so collect and proposals use "
+                           'the handoff\'s model; 1 Estate lists the adopted policies.' % value.get('service_root'), width)
+        return lines
+    binding = value.get('binding') if isinstance(value.get('binding'), dict) else {}
+    ids = [str(item) for item in binding.get('object_ids') or []]
+    generated = binding.get('generated') if isinstance(binding.get('generated'), dict) else {}
+    lines += word_wrap('[ADOPTION PREVIEW] Ready to hand off %s into a separate local maintenance model'
+                       % policies(len(ids)), width)
+    for object_id in ids:
+        place = generated.get(object_id) if isinstance(generated.get(object_id), dict) else {}
+        lines += word_wrap('  %s  generated at %s' % (object_id, place.get('path', 'an unrecorded path')), width)
+    field('Journey', '%s (a completed wizard journey; kept unchanged)' % binding.get('session'))
+    source = binding.get('source') if isinstance(binding.get('source'), dict) else {}
+    context = binding.get('context') if isinstance(binding.get('context'), dict) else {}
+    field('Source', '%s | context %s' % (source.get('path'), context.get('path')))
+    atmos = binding.get('atmos') if isinstance(binding.get('atmos'), dict) else {}
+    field('Stack', '%s / %s (%s; Atmos %s)' % (atmos.get('stack'), atmos.get('component'),
+          str(atmos.get('assurance')).replace('_', ' '), 'was run' if atmos.get('native_atmos_executed') else 'was not run'))
+    repository = binding.get('repository')
+    field('Repository', 'none supplied (local context only)' if repository is None else str(
+        repository.get('root') if isinstance(repository, dict) else repository))
+    service = binding.get('original_service') if isinstance(binding.get('original_service'), dict) else {}
+    field('Journey model', 'revision %s after %s' % (service.get('revision'), _plural(service.get('request_count') or 0, 'request')))
+    field('Ownership', str(binding.get('ownership')))
+    field('Evidence', '%s; %s' % (str(binding.get('evidence_class')).replace('_', ' '), flags))
+    lines += word_wrap('What adopt does: creates a new handoff directory with its own modeled service built from the '
+                       'captured estate, records one collection of these policies in this store and one adoption '
+                       'record for each. It sends nothing to a tenant and leaves the journey unchanged.', width)
+    lines += word_wrap("Next: adopt '%s' NEW_HANDOFF_DIR" % binding.get('session'), width)
+    return lines
+
+
 TITLES = {'current': 'REPOSITORY MATCHES THE RECORDED INTENT',
           'stale': 'REPOSITORY CHANGED SINCE THE RECORDED INTENT',
           'unavailable': 'REPOSITORY UNAVAILABLE'}

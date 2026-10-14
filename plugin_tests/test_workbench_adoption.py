@@ -241,5 +241,46 @@ class WorkbenchAdoptionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, result.stdout)
 
 
+class AdoptionSummaryTests(unittest.TestCase):
+    """In the workspace the preview and the adopt result say what they found and did (journey 25 showed both empty)."""
+    setUp = WorkbenchAdoptionTests.setUp
+    process = WorkbenchAdoptionTests.process
+    call = WorkbenchAdoptionTests.call
+    complete = WorkbenchAdoptionTests.complete
+
+    def summary(self, value):
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self)
+        workspace.tab, workspace.value, workspace.selected = 0, value, None
+        return ' '.join(' '.join(workspace._summary_lines(118)).split())
+
+    def test_the_preview_says_what_adopt_would_create_and_that_nothing_is_sent(self):
+        from intune_iac.workbench_adoption import preview
+        self.complete()
+        text = self.summary(preview(self.store, self.session))
+        self.assertIn('[ADOPTION PREVIEW] Ready to hand off 2 policies into a separate local maintenance model', text)
+        for object_id in self.ids:
+            self.assertIn(object_id, text)
+        self.assertIn(str(self.session), text)
+        self.assertIn('kept unchanged', text)
+        self.assertIn('Repository: none supplied (local context only)', text)
+        self.assertIn('Ownership: unknown', text)
+        self.assertIn('What adopt does:', text)
+        self.assertIn('sends nothing to a tenant', text)
+        self.assertIn('Next: adopt', text)
+
+    def test_the_adopt_result_names_the_handoff_and_how_to_use_it(self):
+        from intune_iac.workbench_adoption import adopt
+        self.complete()
+        result = adopt(self.store, self.session, self.handoff)
+        text = self.summary(result)
+        self.assertIn('[ADOPTED] 2 policies handed off to a local maintenance model', text)
+        self.assertIn('Handoff: ' + str(self.handoff), text)
+        self.assertIn('Modeled service: ' + str(self.handoff / 'service'), text)
+        self.assertIn('Collection run %s recorded in this store' % result['collection_run_id'], text)
+        self.assertIn('original journey kept', text)
+        self.assertIn('--service-root', text)
+
+
 if __name__ == '__main__':
     unittest.main()
