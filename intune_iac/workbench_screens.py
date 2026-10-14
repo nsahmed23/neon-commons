@@ -271,6 +271,88 @@ def _band_primary(facts, signals):
     return primary, len([item for item in live if item is not primary])
 
 
+def readable_time(value):
+    """An ISO 8601 time to the second with its zone, for summaries; the exact value stays in the evidence layers."""
+    from datetime import datetime, timezone
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError:
+        return value
+    if parsed.tzinfo is None:
+        return value
+    return parsed.astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+
+
+# Freshness reasons the store records, in plain words.
+FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection did not complete',
+                          'older_than_window': 'older than the freshness window',
+                          'stamped_after_now': "stamped after this host's clock"}
+# The proposal's own observation check, as part of the observation's state.
+ELIGIBILITY_STATE_WORDS = {
+    'service_changed': 'the modeled service changed since (revision %(observed_revision)s, now %(service_revision)s)',
+    'policy_changed': 'this policy changed in the modeled service since',
+    'source_mismatch': 'it came from another service than the one configured',
+    'tenant_mismatch': 'the configured service is for another tenant'}
+INTENT_STATE_WORDS = {'current': 'current with the repository', 'changed': 'the repository changed since',
+                      'consumer_changed': 'the component no longer consumes this policy',
+                      'unreadable': 'the repository cannot be read now', 'not_checked': 'not checked'}
+
+
+def state_lines(states, width):
+    """Observation, repository intent and the newest operation, each its own line, from the read model's states."""
+    observation = states.get('observation') if isinstance(states.get('observation'), dict) else {}
+    source = [evidence_words(observation.get('evidence_class'))]
+    if observation.get('run_id') is not None:
+        source.append('run %s' % observation['run_id'])
+    source.append(readable_time(observation.get('observed_at')) or 'time not recorded')
+    parts = [', '.join(source)]
+    if observation.get('coverage'):
+        parts.append(coverage_words(observation['coverage']))
+    freshness = observation.get('freshness')
+    reasons = [FRESHNESS_REASON_WORDS.get(reason, reason) for reason in observation.get('freshness_reasons') or []]
+    parts.append(('fresh by age' if freshness == 'fresh' else str(freshness or 'freshness not recorded'))
+                 + (' (%s)' % '; '.join(reasons) if reasons and freshness != 'fresh' else ''))
+    eligibility = observation.get('eligibility') if isinstance(observation.get('eligibility'), dict) else {}
+    if eligibility.get('reason') in ELIGIBILITY_STATE_WORDS:
+        parts.append(ELIGIBILITY_STATE_WORDS[eligibility['reason']] % eligibility)
+    lines = ['', 'STATE'] + _labelled('  Observation', '; '.join(parts), width, 15)
+    intent = states.get('intent') if isinstance(states.get('intent'), dict) else {}
+    if intent.get('status') in (None, 'none'):
+        text = 'none recorded; repository-entry REPOSITORY finds where this policy is maintained'
+    else:
+        scope = intent.get('scope') if isinstance(intent.get('scope'), dict) else {}
+        revision = intent.get('source_revision')
+        verified = ('content verified' if intent.get('revision_content_verified') else
+                    'asserted, not verified against the files')
+        text = '%s from %s / %s at %s (%s); %s' % (
+            short_id(intent.get('artifact_id')), scope.get('stack'), scope.get('component'),
+            short_id(revision) if revision else 'no revision', verified,
+            _clause(intent['reason']) if intent.get('reason') else INTENT_STATE_WORDS.get(intent.get('status'), str(intent.get('status'))))
+    lines += _labelled('  Intent', text, width, 15)
+    operation = states.get('operation') if isinstance(states.get('operation'), dict) else None
+    if operation is None:
+        text = 'none recorded for this policy'
+    else:
+        journal, recorded = operation.get('journal_status'), operation.get('status')
+        text = '%s %s' % (short_id(operation.get('operation_id')), journal or recorded or 'status not recorded')
+        if journal and recorded and journal != recorded:
+            text += ' (the store records %s)' % recorded
+        if operation.get('classification'):
+            text += '; readback %s' % operation['classification']
+        if operation.get('recorded_at'):
+            text += '; recorded %s' % readable_time(operation['recorded_at'])
+    lines += _labelled('  Operation', text, width, 15)
+    return lines
+
+
+def _clause(text):
+    """A recorded sentence as a clause after a semicolon: first letter lower case, no closing full stop."""
+    text = str(text).strip().rstrip('.')
+    return text[:1].lower() + text[1:]
+
+
 def utc_time(value):
     """An epoch number as an ISO 8601 UTC time; anything else unchanged."""
     from datetime import datetime, timezone
@@ -502,6 +584,11 @@ def inspector_lines(value, width):
         identity += [str(body.get('platforms')), ', '.join(map(str, technologies)) if isinstance(technologies, list) else _value(technologies),
                      'scope tags ' + (' '.join(_value(tag) for tag in tags) if isinstance(tags, list) else _value(tags))]
     lines += _labelled('Identity', ' | '.join(identity), width, 10)
+    if isinstance(value.get('states'), dict):
+        # Three distinct states replace the one provenance line; nothing is folded into the observation's freshness.
+        lines += state_lines(value['states'], width)
+        lines += _attention_lines(value, width)
+        return lines + _evidence_says(value, body, width)
     # Where the evidence comes from, then what that run covered, then its freshness: each a separate clause.
     source = [evidence_words(value.get('evidence_class'))]
     if value.get('run_id') is not None:
@@ -512,7 +599,12 @@ def inspector_lines(value, width):
     clauses += [str(value['freshness'])] if value.get('freshness') else []
     lines += _labelled('From', '; '.join(clauses), width, 10)
     lines += _attention_lines(value, width)
-    lines += ['', 'WHAT THE EVIDENCE SAYS IT DOES']
+    return lines + _evidence_says(value, body, width)
+
+
+def _evidence_says(value, body, width):
+    """What the evidence says the policy does: settings, targets, description and management."""
+    lines = ['', 'WHAT THE EVIDENCE SAYS IT DOES']
     settings = body.get('settings', {}).get('settings') if isinstance(body.get('settings'), dict) else None
     if isinstance(settings, list):
         lines.append('  ' + _count(len(settings), 'setting', 'settings'))
@@ -544,6 +636,8 @@ def inspector_lines(value, width):
     scope = repository.get('scope') if repository and isinstance(repository.get('scope'), dict) else {}
     managed = 'ownership %s; %s' % (value.get('ownership', 'unknown'), 'repository intent recorded from %s (%s / %s)' % (
         scope.get('repository'), scope.get('stack'), scope.get('component')) if repository else 'no repository intent recorded')
+    if isinstance(value.get('states'), dict):
+        managed = 'ownership %s' % value.get('ownership', 'unknown')  # the intent has its own state line above
     lines += _labelled('  Managed', managed, width, 15)
     return lines
 

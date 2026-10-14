@@ -279,7 +279,34 @@ def _attention(store, object_id):
             'signals': [{**{key: signal[key] for key in ('area', 'code', 'observed', 'next_step')},
                          'evidence': signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}}
                         for signal in value['signals']],
-            'checked': value['checked']}
+            'checked': value['checked'], 'newest_operation': value.get('newest_operation')}
+
+
+def _states(observation, intent, attention, eligibility):
+    """The observation, the repository intent and the newest operation as three states, each from its own records.
+
+    The observation's freshness is its age; the proposal's own check against the service is reported beside it, not
+    folded into it. The intent's state is diagnostics' repository check. The operation's is its journal.
+    """
+    checked = attention.get('checked') if isinstance(attention.get('checked'), dict) else {}
+    signals = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
+    observed = {key: observation.get(key) for key in ('evidence_class', 'run_id', 'observed_at', 'coverage', 'freshness')}
+    observed['freshness_reasons'] = list(observation.get('freshness_reasons') or [])
+    observed['eligibility'] = eligibility if isinstance(eligibility, dict) and eligibility.get('reason') else None
+    if intent is None:
+        intended = {'status': 'none'}
+    else:
+        data, area = intent['data'], checked.get('repository')
+        codes = [code for code in ('repository_stale', 'repository_consumer_mismatch', 'repository_unavailable') if code in signals]
+        status = {'repository_stale': 'changed', 'repository_consumer_mismatch': 'consumer_changed',
+                  'repository_unavailable': 'unreadable'}.get(codes[0]) if codes else (
+            'current' if area == 'clear' else 'unreadable' if area == 'unavailable' else 'not_checked')
+        intended = {'status': status, 'artifact_id': intent['artifact_id'], 'scope': data.get('scope'),
+                    'source_revision': data.get('source_revision'),
+                    'revision_content_verified': data.get('revision_content_verified'),
+                    'recorded_at': intent.get('recorded_at'), 'reason': signals[codes[0]].get('observed') if codes else None}
+    operation = attention.get('newest_operation')
+    return {'observation': observed, 'intent': intended, 'operation': operation if isinstance(operation, dict) else None}
 
 
 # The Inspector names at most this many next steps and says how many more diagnostics holds.
@@ -535,6 +562,7 @@ def _inspection(store, object_id, *, attention=False, service_available=False, s
         service = None if service_root is None else str(service_root)
         eligibility = _eligibility(store, object_id, service)
         value = {**value, 'attention': found, 'observation_eligibility': eligibility,
+                 'states': _states(value, intent, found, eligibility),
                  'next_actions': _next_actions({'selected_repository': intent}, found, service_available or service_root is not None),
                  'actions': _actions(store, object_id, found, intent, service, eligibility=eligibility,
                                      evidence_class=value.get('evidence_class'))}

@@ -91,9 +91,30 @@ def _operation_records(store, object_id):
     return records, False
 
 
-def _operations(store, object_id):
+def _newest_operation(records):
+    """The policy's newest operation as its records and journal say: store status, journal status, readback."""
+    from . import maintenance
+    if not records:
+        return None
+    record = records[-1]
+    state = {'operation_id': record['operation_id'], 'status': record.get('status'), 'journal_status': None,
+             'classification': None, 'recorded_at': record.get('recorded_at'), 'operation_root': record.get('operation_root')}
+    try:
+        _, _, journal, _, _ = maintenance._load(record.get('operation_root'))
+    except Exception:
+        return state
+    reconciled = [event for event in journal['events'] if event['kind'] == 'reconciled']
+    state.update(journal_status=journal['status'],
+                 classification=reconciled[-1].get('classification') if reconciled else None)
+    return state
+
+
+def _operations(store, object_id, newest=None):
     from . import maintenance
     records, complete = _operation_records(store, object_id)
+    if newest is not None:
+        # The newest record, read in the same pass, for the Inspector's operation state.
+        newest['operation'] = _newest_operation(records)
     latest = {}
     for position, record in enumerate(records):
         latest[record['operation_id']] = (position, record)
@@ -232,8 +253,10 @@ def diagnostics(store, object_id):
     limitations = ['Read from local records only; nothing was collected, reconciled or refreshed to produce this view.',
                    'Synthetic and caller-asserted evidence stays labelled as such in each source record.']
 
+    newest = {}
+
     def operations():
-        found, complete = _operations(store, object_id)
+        found, complete = _operations(store, object_id, newest)
         if not complete:
             limitations.append('Operation records for this policy exceed the read bound; the oldest were not checked.')
         # An incomplete read stays partly checked even when it found something: what it did not read is unknown.
@@ -243,4 +266,5 @@ def diagnostics(store, object_id):
     _area(signals, checked, 'repository', lambda: _repository(store, object_id))
     _area(signals, checked, 'device_evidence', lambda: _device_evidence(store, object_id))
     return {'schema_version': VERSION, 'object_id': object_id, 'name': observed.get('name'), 'signals': signals,
-            'checked': checked, 'limitations': limitations, 'execution_authorized': False, 'cloud_authority': False}
+            'checked': checked, 'limitations': limitations, 'newest_operation': newest.get('operation'),
+            'execution_authorized': False, 'cloud_authority': False}

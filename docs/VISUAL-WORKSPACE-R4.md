@@ -230,6 +230,15 @@ The tests exercise real Linux PTY keystrokes, resizing, hostile inert labels, ed
 
 Performance thresholds were recorded before launch under `work/evidence/epoch-20261007-r4/visual/PREREGISTRATION.json`. The existing generator’s eight-policy limit required an explicit pre-measurement amendment, retained with the failed setup logs. Cold first-frame latency is bounded at five seconds and an input response at three seconds for this exact fixture. These observations cannot establish P99, fleet performance, Graph behavior or another host’s latency. Earlier 0.8.0 qualification remains historical and is not reused to qualify this new UI.
 
+## Distinct states
+
+Under the policy's identity, the Inspector shows three states, each from its own records, where it used to show one provenance line:
+- **Observation:** where the evidence comes from (mode, run, time to the second with its zone), what the run covered, and its freshness by age with the store's reason when it is not fresh. Beside it, not folded into it, the proposal's own check against the service when that fails: `fresh by age; the modeled service changed since (revision 1, now 2)`.
+- **Intent:** the recorded repository intent (its id, stack and component, revision, whether that revision was verified against the files) and whether the repository still matches it, with the changed file when diagnostics recorded one; or `none recorded` with the command that finds where the policy is maintained.
+- **Operation:** the policy's newest operation as its journal says (with the store's record when the two differ) and its readback when reconciled; or `none recorded for this policy`.
+
+Summaries give times to the second with their zone (`2026-10-14 19:55:52 UTC`); the exact values stay in the typed details (`e`) and the raw record (`r`). The `Managed` line then states only ownership, since the intent has its own line.
+
 ## Guided actions
 
 The Inspector's read model offers, for the selected policy, the actions that fit what is recorded:

@@ -815,6 +815,7 @@ plugin_tests/test_workbench_retry_review.py
 plugin_tests/test_workbench_scheduler.py
 plugin_tests/test_workbench_service_tui_r4.py
 plugin_tests/test_workbench_service_views_r4.py
+plugin_tests/test_workbench_states.py
 plugin_tests/test_workbench_store.py
 plugin_tests/test_workbench_tui_r4.py
 plugin_tests/test_workbench_vendor_lineage.py
