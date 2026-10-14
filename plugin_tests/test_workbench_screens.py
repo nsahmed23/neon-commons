@@ -103,15 +103,23 @@ class FrameTextTests(unittest.TestCase):
         from intune_iac.workbench_screens import context_strip
         tenant, policy = '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'
         facts = {'name': 'Windows Privacy Pilot', 'observation': 'fresh', 'repository': 'stale', 'operation': 'prepared'}
-        wide = context_strip(tenant, policy, facts, 160)
-        self.assertEqual(wide, 'TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBSERVED fresh | REPOSITORY stale | OPERATION prepared')
-        narrow = context_strip(tenant, policy, facts, 80)
-        self.assertLessEqual(cell_width(narrow), 80)
-        self.assertTrue(narrow.startswith('POLICY Windows Privacy Pilot (22222222)'))
-        self.assertEqual(context_strip(tenant, None, {}, 80), 'TENANT 11111111 | POLICY none selected')
+        wide = context_strip(tenant, policy, facts, 160, 'synthetic')
+        self.assertEqual(wide, 'SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBSERVED fresh | '
+                               'REPOSITORY stale | OPERATION prepared')
+        # The mode and the tenant lead every width; the states give way first.
+        for width in (100, 80, 60):
+            narrow = context_strip(tenant, policy, facts, width, 'synthetic')
+            self.assertLessEqual(cell_width(narrow), width, narrow)
+            self.assertTrue(narrow.startswith('SYNTHETIC | TENANT 11111111 | POLICY '), narrow)
+        self.assertEqual(context_strip(tenant, None, {}, 80, 'synthetic'), 'SYNTHETIC | TENANT 11111111 | POLICY none selected')
+        self.assertTrue(context_strip(tenant, None, {}, 80).startswith('MODE UNKNOWN | '))
+        self.assertTrue(context_strip(tenant, None, {}, 80, 'graph_authenticated_observation').startswith('LIVE READ-ONLY | '))
         done = dict(facts, operation='succeeded_verified')
-        self.assertEqual(context_strip(tenant, policy, done, 80),
-                         'POLICY 22222222 | OBS fresh | REPO stale | OP succeeded_verified')
+        self.assertEqual(context_strip(tenant, policy, done, 90, 'synthetic'),
+                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OBS fresh | REPO stale | OP verified')
+        # Narrower, the trailing states give way before the mode, tenant or policy.
+        self.assertEqual(context_strip(tenant, policy, done, 80, 'synthetic'),
+                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OBS fresh | REPO stale')
 
     def test_epoch_times_are_shown_as_utc(self):
         from intune_iac.workbench_screens import utc_time
@@ -147,16 +155,16 @@ class InspectorAndDictionaryTests(unittest.TestCase):
         from intune_iac.workbench_screens import inspector_lines
         lines = inspector_lines(INSPECT, 120)
         joined = '\n'.join(lines)
-        self.assertEqual(lines[0], '[POLICY INSPECTOR]')
-        self.assertIn('Windows Privacy Pilot', joined)
-        self.assertIn('Identity     ' + POLICY_ID, joined)
-        self.assertIn('Scope tags   "0"', joined)
+        self.assertEqual(lines[0], 'POLICY  Windows Privacy Pilot')
+        self.assertIn('Identity  ' + POLICY_ID, joined)
+        self.assertIn('scope tags "0"', joined)
         self.assertIn('Description  "Synthetic reference; not production advice."', joined)
-        self.assertIn('SETTINGS (1)', joined)
-        self.assertIn('choice  "' + LOCATION + '_2"', joined)
-        self.assertIn('TARGETING (3)', joined)
-        self.assertIn('include  group 44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', joined)
-        self.assertIn('exclude  group 66666666-6666-4666-8666-666666666666', joined)
+        self.assertIn('  1 setting', joined)
+        self.assertIn('= "' + LOCATION + '_2"', joined)
+        self.assertIn('  3 targets; group names were not captured', joined)
+        self.assertIn('include  44444444-4444-4444-8444-444444444444', joined)
+        self.assertIn('filter include 77777777-7777-4777-8777-777777777777', joined)
+        self.assertIn('exclude  66666666-6666-4666-8666-666666666666', joined)
         for line in lines:
             self.assertLessEqual(cell_width(line), 120, line)
 
@@ -165,7 +173,7 @@ class InspectorAndDictionaryTests(unittest.TestCase):
         lines = inspector_lines({'object_id': POLICY_ID, 'name': 'bad\x1b]0;title\x07name', 'freshness': 'stale'}, 80)
         joined = '\n'.join(lines)
         self.assertNotIn('\x1b', joined); self.assertNotIn('\x07', joined)
-        self.assertIn('SETTINGS not in this result', joined)
+        self.assertIn('Settings are not in this result.', joined)
 
     def test_dictionary_keeps_vendor_mapping_and_use_apart(self):
         from intune_iac.workbench_screens import dictionary_lines
@@ -634,11 +642,11 @@ class SurfaceRoutingTests(unittest.TestCase):
     def test_families_render_on_the_help_surface(self):
         from intune_iac.families import families
         text = self.summary(7, families())
-        self.assertIn('[POLICY FAMILIES]', text); self.assertIn('[EXACT FAMILY TABLE]', text)
+        self.assertIn('[POLICY FAMILIES]', text); self.assertNotIn('Full engine values follow', text)
 
     def test_a_recorded_artifact_renders_its_header_on_any_surface(self):
         text = self.summary(5, dict(RecordedLinesTests.RUN))
-        self.assertIn('[RECORDED] CI workflow run aaaaaaaaaaaa', text); self.assertIn('[EXACT RECORD]', text)
+        self.assertIn('[RECORDED] CI workflow run aaaaaaaaaaaa', text); self.assertNotIn('[EXACT', text)
 
     def test_a_refusal_renders_on_any_surface(self):
         value = {'status': 'error', 'error': {'code': 'selection_required', 'message': 'Select an exact immutable object ID first.'}}
@@ -649,11 +657,11 @@ class SurfaceRoutingTests(unittest.TestCase):
 
     def test_diagnostics_render_on_the_coverage_surface(self):
         text = self.summary(6, DIAGNOSTICS)
-        self.assertIn('[DIAGNOSTICS]', text); self.assertIn('[EXACT DIAGNOSTICS]', text)
+        self.assertIn('[DIAGNOSTICS]', text); self.assertNotIn('Full engine values follow', text)
 
     def test_lineage_and_a_cleared_selection_have_readable_screens(self):
         text = self.summary(2, LINEAGE)
-        self.assertIn('[REPOSITORY LINEAGE]', text); self.assertIn('[EXACT LINEAGE]', text)
+        self.assertIn('[REPOSITORY LINEAGE]', text); self.assertNotIn('Full engine values follow', text)
         for tab in (0, 8):
             text = self.summary(tab, {'status': 'selection_cleared', 'mutation_dispatched': False})
             self.assertIn('[SELECTION CLEARED]', text)
@@ -665,7 +673,7 @@ class SurfaceRoutingTests(unittest.TestCase):
                   'missing': ['No live discovery connection is configured.'], 'skipped_links': [], 'truncated': False}
         text = self.summary(7, survey)
         self.assertIn('INTUNE WORKBENCH: START', text); self.assertIn('NEXT', text)
-        self.assertIn('[EXACT SURVEY]', text)
+        self.assertNotIn('Full engine values follow', text)
 
     def test_an_empty_estate_explains_how_to_get_observations(self):
         text = self.summary(0, {'objects': [], 'pending_observations': [], 'pagination': {'total_objects': 0}})

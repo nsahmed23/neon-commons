@@ -235,7 +235,7 @@ class EntryScreenTests(unittest.TestCase):
     def test_the_entry_renders_on_the_repository_surface(self):
         workspace = self.workspace(self.VALUE)
         text = '\n'.join(workspace._surface_summary(100))
-        self.assertIn('[REPOSITORY ENTRY]', text); self.assertIn('[EXACT SURVEY]', text)
+        self.assertIn('[REPOSITORY ENTRY]', text); self.assertNotIn('[EXACT', text)
 
 
 if __name__ == '__main__':

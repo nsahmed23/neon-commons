@@ -151,16 +151,25 @@ SUBVIEWS = {'estate-overview': 'Relationship overview', 'diagnostics': 'Diagnost
 # From this many body cells, the readable summary and the exact engine record sit side by side.
 WIDE = 150
 # The longest that fits is shown, so narrow terminals get every key and no cut-off word.
-HELP_LINES = ('1-9 surfaces | Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | e exact record | q detach',
-              '1-9 surfaces | arrows | PgUp/PgDn | : command | / search | e record | q detach',
-              '1-9 tabs | : command | / search | e record | q detach')
+HELP_LINES = ('? help | : command | / search | e details | r raw record | b back | q exit',
+              '? help | : command | e details | r raw | b back | q exit',
+              '? help | : command | e details | b back | q exit')
+# Read-only views that b (back) may return to; nothing that prepares, approves, executes or records is ever re-sent.
+VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'history', 'history-recent', 'views',
+                           'help', 'health', 'queue', 'start', 'families', 'dictionary', 'dictionary-page', 'lineage',
+                           'diagnostics', 'estate-overview', 'repository-status', 'delivery', 'repository-entry',
+                           'operations', 'review', 'workflows', 'search', 'search-page', 'views-page'})
+LAYERS = {'details': 'typed details', 'raw': 'raw record'}
+# The repository state the strip shows when the Inspector's diagnostics checked it.
+REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'not_recorded': 'none recorded',
+                         'unavailable': 'unreadable'}
 
 
-def title_line(tab, last_command, value):
-    """The surface, and the view shown on it when that view is not the surface's own."""
+def title_line(tab, last_command, value, layer='summary'):
+    """The surface, the view shown on it when that view is not the surface's own, and the evidence layer."""
     name = last_command.split(' ', 1)[0] if isinstance(last_command, str) else ''
     sub = SUBVIEWS.get(name) if isinstance(value, dict) and value.get('status') != 'error' else None
-    return 'INTUNE WORKBENCH  /  ' + tab + ('  /  ' + sub if sub else '')
+    return 'INTUNE WORKBENCH  /  ' + tab + ('  /  ' + sub if sub else '') + ('  /  ' + LAYERS[layer] if layer in LAYERS else '')
 
 
 def fit(value, width, ellipsis='...'):
@@ -387,8 +396,11 @@ class Workspace:
         self.entry_focus = 0
         # Focus in the estate overview; kept while the session lasts, so returning finds the same policy.
         self.overview_focus = 0
-        # The exact engine record follows every readable summary; e hides or shows it for this session.
-        self.show_exact = True
+        # Each view opens as its summary; e and r show typed details and the raw record, Esc returns.
+        self.layer = 'summary'
+        # Read-only views visited this session, for b (back); never persisted, never a change.
+        self.trail = []
+        self.current_view = None
         self.pending = deque()
         self.size = self._terminal_size()
         self.key_reader = None
@@ -491,7 +503,7 @@ class Workspace:
         if value.get('schema_version') == 'workbench-repository-entry/1':
             self.entry_focus = 0
         if value.get('status') == 'error':
-            self.notice = 'ERROR: ' + str(value.get('error', {}).get('code', 'unknown'))
+            self.notice = 'REFUSED %s: what it means and the next step are on the screen.' % value.get('error', {}).get('code', 'unknown')
         else:
             object_id = value.get('object_id')
             if object_id and self.last_command.startswith('select '):
@@ -581,11 +593,26 @@ class Workspace:
             # Persist only after successful result. The explicit service route
             # saves read-only paths, never approvals, captures or credentials.
             self.save_context()
-            self.notice = 'Ready. : opens the complete text command bar; Esc cancels editing.'
+            self.notice = self._notice_for(value)
         self.draw()
+
+    def _notice_for(self, value):
+        """One qualified line about the result just shown: what it is, its evidence mode, and where to look next."""
+        from .workbench_screens import evidence_words
+        if value.get('status') == 'selection_cleared':
+            return 'Ready. No policy is selected now; nothing was changed or cancelled.'
+        if 'snapshot_id' in value and isinstance(value.get('name'), str) and value.get('evidence_class') and value.get('freshness'):
+            return 'Ready. %s: %s, %s. e typed details | r raw record | ? help' % (
+                value['name'], evidence_words(value.get('evidence_class')), value.get('freshness', 'freshness unknown'))
+        name = self.last_command.split(' ', 1)[0] if isinstance(self.last_command, str) else ''
+        view = SUBVIEWS.get(name) or TABS[self.tab]
+        return 'Ready. %s shown read-only; nothing was proposed, approved or executed. e typed details | r raw | ? help' % view
 
     def _learn(self, value):
         """Keep the latest engine-reported facts about the selected object for the context strip."""
+        if isinstance(value.get('evidence_class'), str) and ('snapshot_id' in value or isinstance(value.get('objects'), list)):
+            # Observations say where the estate's evidence comes from; the strip's first word states it.
+            self.mode_class = value['evidence_class']
         if not self.selected or value.get('object_id') not in (None, self.selected):
             return
         facts = self.facts if self.facts.get('object_id') == self.selected else {'object_id': self.selected}
@@ -595,6 +622,10 @@ class Workspace:
         observed = value.get('observation_freshness') if 'provenance_origin' in value else value.get('freshness')
         if value.get('object_id') == self.selected and isinstance(observed, str):
             facts['observation'] = observed
+        attention = value.get('attention') if isinstance(value.get('attention'), dict) else {}
+        checked = (attention.get('checked') or {}).get('repository')
+        if value.get('object_id') == self.selected and checked in REPOSITORY_FROM_CHECK:
+            facts['repository'] = REPOSITORY_FROM_CHECK[checked]
         if value.get('object_id') == self.selected and 'snapshot_id' in value and isinstance(value.get('evidence_class'), str):
             facts['evidence_class'] = value['evidence_class']
         repository = value.get('repository')
@@ -617,7 +648,7 @@ class Workspace:
     def _context_strip(self, width):
         from .workbench_screens import context_strip
         facts = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
-        return context_strip(self.store.tenant_id, self.selected, facts, width)
+        return context_strip(self.store.tenant_id, self.selected, facts, width, getattr(self, 'mode_class', None))
 
     def _surface_summary(self, width):
         from .workbench_screens import word_wrap
@@ -636,7 +667,6 @@ class Workspace:
                 and isinstance(value.get('data'), dict) and 'created' in value):
             from .workbench_screens import recorded_lines
             rows.extend(recorded_lines(value, width))
-            rows.append('[EXACT RECORD] Full engine values follow.')
         elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '
@@ -645,7 +675,6 @@ class Workspace:
         elif self.tab == 2 and 'provenance_origin' in value and isinstance(value.get('fields'), list):
             from .workbench_screens import lineage_lines
             rows.extend(lineage_lines(value, width))
-            rows.append('[EXACT LINEAGE] Full engine values follow.')
         elif (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
                 and not value.get('pending_observations') and not isinstance(value.get('filters'), dict) and not value.get('query')):
             rows.append('[NO OBSERVATIONS YET]')
@@ -658,7 +687,6 @@ class Workspace:
             policies = value.get('policies') or []
             focus = min(getattr(self, 'overview_focus', 0), max(0, len(policies) - 1)) if self.tab == 0 else None
             rows.extend(overview_lines(value, width, getattr(self, 'rules', 'ascii'), focus, self.selected))
-            rows.append('[EXACT OVERVIEW] Full engine values follow.')
         elif self.tab == 8 and value.get('schema_version') == 'workbench-repository-entry/1':
             from .workbench_screens import repository_entry_lines, word_wrap
             if getattr(self, 'mode', None) == 'command' and self.buffer.startswith('repository-import '):
@@ -666,19 +694,15 @@ class Workspace:
                 rows.extend(word_wrap(self.buffer, width))
                 rows.append('')
             rows.extend(repository_entry_lines(value, width, getattr(self, 'entry_focus', 0)))
-            rows.append('[EXACT SURVEY] Full engine values follow.')
         elif self.tab == 7 and value.get('schema_version') == 'workbench-families/1':
             from .workbench_screens import families_lines
             rows.extend(families_lines(value, width))
-            rows.append('[EXACT FAMILY TABLE] Full engine values follow.')
         elif self.tab == 7 and value.get('schema_version') == 'workbench-start/1':
             from .entry import start_lines
             rows.extend(start_lines(value, width))
-            rows.append('[EXACT SURVEY] Full engine values follow.')
         elif self.tab == 1 and isinstance(value.get('entries'), list) and 'fact_provenance_contract' in value:
             from .workbench_screens import dictionary_lines
             rows.extend(dictionary_lines(value, width))
-            rows.append('[EXACT DICTIONARY AND PROVENANCE] Full engine values follow.')
         elif self.tab == 1 and value.get('object_id'):
             from .workbench_screens import inspector_lines
             rows.extend(inspector_lines(value, width))
@@ -696,27 +720,23 @@ class Workspace:
                         items = raw.get(key)
                         field('Captured ' + key + ' records', len(items) if isinstance(items, list) else 'unknown')
                 rows.extend(word_wrap('Literal collected values are separate from normalized mapping; incomplete collection does not establish empty intent.', width))
-            rows.append('[EXACT VALUES AND TARGETING] Full typed evidence follows.')
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
             from .workbench_screens import relationship_lines
             rows.extend(relationship_lines(value, width, getattr(self, 'rules', 'ascii')))
-            rows.append('[EDGE EVIDENCE AND UNCERTAINTY]')
-            if 'raw_observed_assignments' in value:
+            if isinstance(value.get('raw_observed_assignments'), list):
+                rows.append('[LITERAL CAPTURE]')
                 field('Literal capture status', value.get('raw_mapping_status', 'unknown'))
                 field('Literal byte integrity', value.get('raw_evidence_integrity', {}).get('status', 'unknown'))
                 assignments = value['raw_observed_assignments']
                 field('Captured assignment records', len(assignments) if isinstance(assignments, list) else 'unknown')
-                rows.append('[LITERAL TARGETING] Exact includes, exclusions, filters and mapping limitations follow.')
         elif self.tab == 3 and isinstance(value.get('history'), list):
             from .workbench_screens import history_lines
             rows.extend(history_lines(value, width))
-            rows.append('[EXACT HISTORY]')
         elif self.tab == 3 and value.get('schema_version') == 'workbench-protected-adoption-history/1':
             rows.append('[PROTECTED STATE-ONLY ADOPTION HISTORY]')
             field('Object', value.get('object_id', 'unknown'))
             field('Linked operations', len(value.get('operations', [])))
             rows.extend(word_wrap('Adoption records state ownership and independent qualification. This history does not establish a Graph deployment or a last-apply baseline.', width))
-            rows.append('[EXACT ADOPTION HISTORY] Full engine values follow.')
         elif self.tab in (4, 5) and value.get('evidence_class') == 'protected_adoption_recovery_plan_journal':
             rows.append('[ADOPTION RECOVERY PLAN ' + ('REVIEW]' if self.tab == 4 else 'JOURNAL]'))
             manifest = value.get('manifest', {})
@@ -728,7 +748,6 @@ class Workspace:
             field('Original status', original.get('status', manifest.get('original_facts', {}).get('status', 'unknown')))
             field('Original recorded outcome', original.get('outcome', 'see original adoption journal'))
             rows.extend(word_wrap('This separately approved operation permits a native no-change plan only. Original import attribution remains unknown; no import or apply is replayed. Scope release requires fresh independent state and Graph readback.', width))
-            rows.append('[EXACT RECOVERY PLAN / ORIGINAL HISTORY] Full engine values follow.')
         elif self.tab in (4, 5) and value.get('evidence_class') == 'protected_adoption_journal':
             rows.append('[PROTECTED STATE-ONLY ADOPTION ' + ('REVIEW]' if self.tab == 4 else 'JOURNAL]'))
             manifest = value.get('manifest', {})
@@ -745,7 +764,6 @@ class Workspace:
                 field('Recorded outcome', value.get('outcome') or 'not recorded; outcome unknown')
             rows.extend(word_wrap('State-only adoption does not deploy Graph changes or promote a last-apply baseline. Native import completion requires independent receiving-state, Graph and first-plan evidence.', width))
             rows.extend(word_wrap('Attach and tab navigation are read-only. Cancellation does not prove termination; recovery never replays import.', width))
-            rows.append('[EXACT ADOPTION MANIFEST / JOURNAL] Full engine values follow.')
         elif self.tab == 4 and value.get('evidence_class') == 'protected_service_journal':
             rows.append('[PROTECTED SERVICE REVIEW]')
             manifest = value.get('manifest', {})
@@ -760,7 +778,6 @@ class Workspace:
                                ('Identity binding SHA-256', 'identity_binding_sha256')):
                 field(label, manifest.get(key, 'unknown'))
             rows.extend(word_wrap('Review is read-only. This terminal cannot sign or dispatch the protected service operation.', width))
-            rows.append('[EXACT MANIFEST / SIGNATURE DOMAIN / APPROVAL SCOPE] Full engine values follow.')
         elif self.tab == 5 and value.get('evidence_class') == 'protected_service_journal':
             rows.append('[PROTECTED SERVICE EXECUTION]')
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Objects', 'object_ids'),
@@ -773,7 +790,6 @@ class Workspace:
             field('Recorded outcome', outcome if outcome is not None else 'not recorded; outcome unknown')
             rows.extend(word_wrap('A cancellation request does not establish termination. Host completion does not establish independent service or device convergence.', width))
             rows.extend(word_wrap('Attach reads the durable journal. Recovery is an explicit text command and never replays execution.', width))
-            rows.append('[EXACT JOURNAL / CANCELLATION / OUTCOME] Full engine values follow.')
         elif self.tab == 4 and value.get('operation_id'):
             from .workbench_screens import change_lines
             if isinstance(value.get('field_changes'), dict):
@@ -785,7 +801,7 @@ class Workspace:
                 if isinstance(repository, dict) and repository.get('cited'):
                     field('Cited repository intent', str(repository.get('repository_intent_id'))[:16] + ' (' + str(repository.get('freshness')) + ')')
                 rows.append('')
-            rows.append('[EXACT PLAN REVIEW]')
+            rows.append('[PLAN REVIEW]')
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
                                ('Approval binding', 'approval_digest'), ('Expiry', 'expires_at'), ('Evidence class', 'evidence_class')):
@@ -795,7 +811,6 @@ class Workspace:
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
-            rows.append('[EXACT DELIVERY RECORDS] Full engine values follow.')
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
             rows.append('[EXECUTION AND RECOVERY]')
@@ -816,15 +831,12 @@ class Workspace:
             from .workbench_screens import health_lines
             # A single-policy health result carries no name; use the one already read for that exact identity.
             rows.extend(health_lines(value, width, self.facts.get('name') if value.get('object_id') == self.selected else None))
-            rows.append('[EXACT HEALTH EVIDENCE] Full engine values follow.')
         elif self.tab == 6 and value.get('schema_version') == 'workbench-diagnostics/1':
             from .workbench_screens import diagnostics_lines
             rows.extend(diagnostics_lines(value, width))
-            rows.append('[EXACT DIAGNOSTICS] Full engine values follow.')
         elif self.tab == 6 and isinstance(value.get('findings'), list):
             from .workbench_screens import queue_lines
             rows.extend(queue_lines(value, width))
-            rows.append('[EXACT FINDINGS] Full engine values follow.')
         elif self.tab == 6 and value.get('schema_version') == 'workbench-four-views/1':
             rows.append('[REPOSITORY / OBSERVED / PROPOSED / COVERAGE]')
             for label in ('repository', 'observed', 'proposed'):
@@ -852,12 +864,10 @@ class Workspace:
                 from .workbench_screens import change_lines
                 rows.append('[REPOSITORY VERSUS OBSERVED]')
                 rows.extend(change_lines(versus['field_changes'], width, 'BEFORE (observed)', 'AFTER (repository)'))
-            rows.append('[COMPLETE VIEW EVIDENCE]')
         elif self.tab == 8 and value.get('schema_version') == 'workbench-repository-status/1':
             from .workbench_screens import repository_lines
             rows.append('[REPOSITORY STATUS]')
             rows.extend(repository_lines(value, width))
-            rows.append('[EXACT REPOSITORY STATUS] Full engine values follow.')
         elif self.tab == 8 and value.get('kind') == 'repository_intent' and isinstance(value.get('data'), dict):
             data = value['data']
             rows.append('[NEW REPOSITORY INTENT RECORDED]')
@@ -865,40 +875,43 @@ class Workspace:
             field('Revision', str(data.get('source_revision')) + (' (content verified)' if data.get('revision_content_verified') else ' (caller asserted)'))
             field('Consumer', (data.get('consumer') or {}).get('status', 'not recorded'))
             rows.extend(word_wrap('Press 9 to compare it with the repository now. Earlier reviews of the previous intent are not current.', width))
-            rows.append('[EXACT INTENT RECORD] Full engine values follow.')
-        elif self.tab == 7:
-            rows.append('[WORKSPACE SHORTCUTS]')
-            for text in ('1 Estate | 2 Inspector | 3 Relationships | 4 History',
-                         '5 Exact plan | 6 Execution/recovery | 7 Coverage | 8 Help | 9 Repository',
-                         'd Setting dictionary | h Health and reporting | m Maintenance queue | l Lineage | n/p Older/newer page',
-                         'v Delivery stages of the active operation | :delivery OPERATION_DIR',
-                         's Start: what exists beside this store and the next step | :start DIRECTORY',
-                         'i Investigate: what needs attention for the selected policy, with evidence and next steps',
-                         ':families Every policy, application and script family with its support disposition',
-                         'o Relationship overview: groups, filters, scope tags and settings the estate shares; Enter selects a policy',
-                         ':repository-entry REPOSITORY The policies a repository holds; Enter fills in the exact command to record one',
-                         ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
-                         ': Complete text commands | / Search | f Global filters | q Detach',
-                         'Arrows select or scroll | Enter selects exact identity',
-                         'Escape discards edit | Ctrl-U clears edit | no automatic approval'):
-                rows.extend(word_wrap(text, width))
-            rows.append('[COMPLETE ENGINE COMMANDS]')
+        elif self.tab == 7 and isinstance(value.get('navigation'), list):
+            from .workbench_screens import help_lines
+            rows.extend(help_lines(width))
         if rows: rows.append('')
         return rows
 
     def _data_lines(self, width):
-        """The body in one column: the readable summary, then the exact engine record."""
-        return self._summary_lines(width) + self._shown_detail(self._detail_lines(width))
+        """The body in one column: the summary by default, or the typed details or the raw record when asked."""
+        from .workbench_screens import details_lines, word_wrap
+        layer = getattr(self, 'layer', 'summary')
+        if layer == 'details':
+            return (word_wrap('TYPED DETAILS  Every field of this result as recorded; r shows the raw record, Esc returns to the '
+                              'summary.', width) + [''] + details_lines(self.value, width))
+        if layer == 'raw':
+            return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines; Esc returns to the summary.'
+                              % self._raw_count(), width) + [''] + self._detail_lines(width))
+        full = 'Evidence: e typed details | r complete raw record (%d lines)' % self._raw_count()
+        return self._summary_lines(width) + [full if cell_width(full) <= width else 'Evidence: e details | r raw (%d lines)' % self._raw_count()]
+
+    def _raw_count(self):
+        """Lines of the raw record before wrapping, so the count does not change with the terminal width."""
+        key = id(self.value)
+        cached = getattr(self, '_raw_count_cache', None)
+        if cached is None or cached[0] != key:
+            cached = (key, len(json.dumps(self.value, ensure_ascii=False, indent=2, allow_nan=False).splitlines()))
+            self._raw_count_cache = cached
+        return cached[1]
 
     def _body_lines(self, inner, side):
-        """The body as drawn: one column, or from WIDE cells the summary beside the exact record."""
-        if inner < WIDE or not getattr(self, 'show_exact', True):
+        """The body as drawn. From WIDE cells, typed details or the raw record open beside the summary."""
+        if inner < WIDE or getattr(self, 'layer', 'summary') == 'summary':
             return self._data_lines(inner)
         left = (inner - 3) * 11 // 20
         right = inner - 3 - left
-        summary, detail = self._summary_lines(left), self._detail_lines(right)
-        return [pad(summary[index] if index < len(summary) else '', left) + ' ' + side + ' ' + (detail[index] if index < len(detail) else '')
-                for index in range(max(len(summary), len(detail)))]
+        summary, evidence = self._summary_lines(left), self._data_lines(right)
+        return [pad(summary[index] if index < len(summary) else '', left) + ' ' + side + ' ' + (evidence[index] if index < len(evidence) else '')
+                for index in range(max(len(summary), len(evidence)))]
 
     def _summary_lines(self, width):
         if self.tab == 0 and self.rows and isinstance(self.value.get('objects'), list):
@@ -925,8 +938,6 @@ class Workspace:
                 if row.get('pending_observation'):
                     lines.extend(wrap('  [PENDING OBSERVATION] ' + str(row.get('last_attempt', {}).get('status', 'unknown')) +
                                       '; select for literal evidence and mapping limitations.', width))
-            lines.append('')
-            lines.append('[EVIDENCE] Page metadata and exact result follow below')
         elif self.tab in (4, 5) and self.operation_rows and isinstance(self.value.get('operations'), list):
             lines = ['[OPERATIONS] Enter reviews exact current plan; no approval or execution.']
             for index, row in enumerate(self.operation_rows):
@@ -934,7 +945,7 @@ class Workspace:
                 lines.extend(wrap('%s %s | recorded=%s | status=%s' %
                                   (mark, row.get('operation_id'), row.get('recorded_at', 'unknown'), row.get('status', 'unknown')), width))
                 lines.extend(wrap('  ' + row['operation_root'], width))
-            lines.extend(['', '[EVIDENCE] Recorded receipts; Enter revalidates current plan.'])
+            lines.append('Enter reviews the highlighted plan as it is now; nothing is approved.')
         else: lines = self._surface_summary(width)
         return lines
 
@@ -950,22 +961,18 @@ class Workspace:
                 # Data remains in the complete text interface. This boundary is
                 # explicit rather than silent truncation or false completeness.
                 detail = detail[:MAX_RENDER_LINES]
-                detail.append('[VIEW LIMIT] Use the paged text interface for this result.')
+                detail.append('[VIEW LIMIT] The record continues past %d lines here; the text interface '
+                              '(intune-iac workbench terminal) prints it complete.' % MAX_RENDER_LINES)
                 break
         self._detail_cache = (cache_key, detail)
         return detail
-
-    def _shown_detail(self, detail):
-        if getattr(self, 'show_exact', True):
-            return detail
-        return ['[EXACT RECORD HIDDEN] %d lines of the engine record; press e to show them.' % len(detail)]
 
     def draw(self):
         self.size = self._terminal_size()
         width, height = self.size
         inner = width - 2
         from .workbench_screens import tab_line
-        header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value)
+        header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value, getattr(self, 'layer', 'summary'))
         labels = tab_line(TABS, self.tab, width)
         available = max(0, height - 8)
         data = self._body_lines(inner, RULES[getattr(self, 'rules', 'ascii')][1])
@@ -1027,9 +1034,15 @@ class Workspace:
             return []
         return [item for item in value.get('candidates') or [] if isinstance(item, dict)]
 
-    def _send(self, command):
+    def _send(self, command, *, returning=False):
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
+        self.layer = 'summary'
+        if name in VIEW_COMMANDS:
+            current = getattr(self, 'current_view', None)
+            if current is not None and not returning and current[1] != command:
+                self.trail = (getattr(self, 'trail', []) + [current])[-50:]
+            self.current_view = None
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
@@ -1042,6 +1055,8 @@ class Workspace:
                 'adoption-plan-status': 5, 'adoption-plan-attach': 5, 'adoption-plan-cancel': 5, 'adoption-plan-recover': 5}
         if name in tabs: self.tab = tabs[name]
         self.last_command = command
+        if name in VIEW_COMMANDS:
+            self.current_view = (self.tab, command)
         self.scroll = 0
         self.mode = None
         self.buffer = ''
@@ -1141,7 +1156,9 @@ class Workspace:
                     else: self.input_overflow = True
                 self.draw()
                 continue
-            if key == 'escape': self.notice = 'No edit to cancel. Use :cancel to clear engine selection; no run is cancelled.'
+            if key == 'escape' and getattr(self, 'layer', 'summary') != 'summary':
+                self.layer = 'summary'; self.scroll = 0; self.notice = 'Summary shown.'
+            elif key == 'escape': self.notice = 'Nothing to close. :clear-selection clears the selected policy.'
             elif key == 'tab':
                 command = self._tab_command((self.tab + 1) % len(TABS))
                 if command: return command
@@ -1184,7 +1201,13 @@ class Workspace:
                 elif char == 'q': return self._send('quit')
                 elif char == 'n': return self._send('next')
                 elif char == 'p': return self._send('previous')
-                elif char == 'b': return self._send('back')
+                elif char == 'b':
+                    if getattr(self, 'trail', []):
+                        tab, command = self.trail[-1]
+                        self.trail = self.trail[:-1]
+                        self.tab = tab
+                        return self._send(command, returning=True)
+                    self.notice = 'Nothing to go back to in this session.'
                 elif char == 'h': return self._send('health')
                 elif char == 'd': return self._send('dictionary')
                 elif char == 'm': return self._send('queue')
@@ -1197,10 +1220,13 @@ class Workspace:
                     self.notice = 'No active operation: review one first (5, or :review OPERATION_DIR).'
                 elif char == 'l': return self._send('lineage')
                 elif char == 'o': return self._send('estate-overview')
-                elif char == 'e':
-                    self.show_exact = not getattr(self, 'show_exact', True); self.scroll = 0
-                    self.notice = ('EXACT RECORD SHOWN below each summary.' if self.show_exact else
-                                   'EXACT RECORD HIDDEN: e shows it again; nothing was changed.')
+                elif char in ('e', 'r'):
+                    wanted = 'details' if char == 'e' else 'raw'
+                    self.layer = 'summary' if getattr(self, 'layer', 'summary') == wanted else wanted
+                    self.scroll = 0
+                    self.notice = ('Summary shown.' if self.layer == 'summary' else
+                                   ('Typed details: every field as recorded.' if wanted == 'details' else
+                                    'Raw record: the complete engine result as returned.') + ' Esc returns to the summary.')
                 elif char == '?': return self._send('help')
             self.draw()
 

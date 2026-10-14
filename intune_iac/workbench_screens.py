@@ -42,20 +42,25 @@ SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'o
                 'recorded_intent_not_revalidated': 'not revalidated', 'desired_state_observed': 'observed'}
 
 
-def context_strip(tenant, selected, facts, width):
-    """Where the engineer is: tenant, policy, observation, repository and operation state, as last reported."""
+def context_strip(tenant, selected, facts, width, mode_class=None):
+    """Where the engineer is: evidence mode, tenant, policy, observation, repository and operation state, as last reported.
+
+    The mode and the tenant lead every form, so synthetic and live evidence cannot be confused at any width; the
+    operation and repository states give way first when the line is too long.
+    """
+    lead = [mode_word(mode_class), 'TENANT ' + short_id(tenant)]
     if not selected:
-        return 'TENANT ' + short_id(tenant) + ' | POLICY none selected'
+        return ' | '.join(lead + ['POLICY none selected'])
     policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + short_id(selected) + ')'
     states = [('OBSERVED', 'OBS', facts.get('observation', 'unknown')), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
     if facts.get('operation'):
         states.append(('OPERATION', 'OP', facts['operation']))
     bare = 'POLICY ' + short_id(selected)
-    tiers = ((['TENANT ' + short_id(tenant)], policy, False, False), ([], policy, False, False),
-             ([], policy, True, False), ([], bare, True, False), ([], bare, True, True))
-    for prefix, name, compact, brief in tiers:
-        text = ' | '.join(prefix + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), str(value)) if brief else str(value))
-                                          for long, short, value in states])
+    tiers = [(policy, False, False, len(states)), (policy, True, False, len(states)), (bare, True, False, len(states)),
+             (bare, True, True, len(states))] + [(bare, True, True, kept) for kept in range(len(states) - 1, 0, -1)]
+    for name, compact, brief, kept in tiers:
+        text = ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), str(value)) if brief else str(value))
+                                           for long, short, value in states[:kept]])
         if cell_width(safe_text(text)) <= width:
             return text
     return text
@@ -218,43 +223,170 @@ def _target_line(row):
     return text
 
 
+# Where an observation came from, in words; anything else is shown as recorded.
+EVIDENCE_WORDS = {'synthetic': 'synthetic observation', 'graph_capture_unverified': 'unverified capture',
+                  'graph_authenticated_observation': 'live read-only observation',
+                  'synthetic_local_process_and_modeled_service_only': 'synthetic (modeled service)'}
+# The mode word that leads the context strip, so synthetic and live evidence cannot be confused.
+MODE_WORDS = (('synthetic', 'SYNTHETIC'), ('graph_capture', 'CAPTURE'), ('graph_reader', 'LIVE READ-ONLY'),
+              ('graph_authenticated', 'LIVE READ-ONLY'))
+
+
+def evidence_words(evidence_class):
+    return EVIDENCE_WORDS.get(evidence_class, str(evidence_class or 'unknown evidence').replace('_', ' '))
+
+
+def mode_word(evidence_class):
+    text = str(evidence_class or '')
+    return next((word for prefix, word in MODE_WORDS if text.startswith(prefix)), 'MODE UNKNOWN')
+
+
+def _setting_summary(instance, width):
+    """A setting as the evidence records it: its definition and value. A choice value's meaning is not translated."""
+    if not isinstance(instance, dict):
+        return word_wrap('    unreadable setting instance (r shows the record)', width)
+    lines = word_wrap('    ' + str(instance.get('settingDefinitionId')), width)
+    kind = str(instance.get('@odata.type', ''))
+    if 'ChoiceSettingInstance' in kind and isinstance(instance.get('choiceSettingValue'), dict):
+        choice = instance['choiceSettingValue']
+        children = choice.get('children') or []
+        text = '= %s%s' % (_value(choice.get('value')), '  (%s)' % _count(len(children), 'child setting', 'child settings') if children else '')
+        return (lines + _labelled('', text, width, 6)
+                + _labelled('', 'meaning not established; d shows what is known', width, 8))
+    return lines + _labelled('', '= ' + _setting_value(instance), width, 6)
+
+
 def inspector_lines(value, width):
-    """One policy as an engineer reads it: identity, observation, settings and targeting, exact values."""
-    lines = ['[POLICY INSPECTOR]']
-    lines += word_wrap(str(value.get('name') or '(no name in this result)'), width)
+    """One policy: what it is, what the evidence says it does, what needs attention, and what can be done next."""
     body = value.get('body') if isinstance(value.get('body'), dict) else {}
-    lines += _labelled('Identity', str(value.get('object_id', 'unknown')), width)
+    lines = word_wrap('POLICY  ' + str(value.get('name') or '(no name in this result)'), width)
+    identity = [str(value.get('object_id', 'unknown'))]
     if body:
         technologies = body.get('technologies')
-        lines += _labelled('Platform', str(body.get('platforms')) + ' | technologies ' + (
-            ', '.join(map(str, technologies)) if isinstance(technologies, list) else _value(technologies)), width)
         tags = body.get('role_scope_tag_ids')
-        lines += _labelled('Scope tags', ' '.join(_value(tag) for tag in tags) if isinstance(tags, list) else _value(tags), width)
-    observed = [str(value[key]) for key in ('observed_at', 'coverage', 'freshness') if value.get(key)]
-    if value.get('snapshot_id'):
-        observed.append('snapshot ' + str(value['snapshot_id'])[:12])
-    lines += _labelled('Observed', ' | '.join(observed) or 'unknown', width)
-    lines += _labelled('Ownership', str(value.get('ownership', 'unknown')), width)
-    if body:
-        lines += _labelled('Description', _value(body.get('description')), width)
+        identity += [str(body.get('platforms')), ', '.join(map(str, technologies)) if isinstance(technologies, list) else _value(technologies),
+                     'scope tags ' + (' '.join(_value(tag) for tag in tags) if isinstance(tags, list) else _value(tags))]
+    lines += _labelled('Identity', ' | '.join(identity), width, 10)
+    lines += ['', 'WHAT THE EVIDENCE SAYS IT DOES']
+    provenance = [evidence_words(value.get('evidence_class'))]
+    if value.get('run_id') is not None:
+        provenance.append('run %s' % value['run_id'])
+    provenance += ['%s' % value['observed_at']] if value.get('observed_at') else ['time not recorded']
+    provenance += ['coverage %s' % value['coverage']] if value.get('coverage') else []
+    provenance += [str(value['freshness'])] if value.get('freshness') else []
+    lines += _labelled('  From', ', '.join(provenance), width, 15)
     settings = body.get('settings', {}).get('settings') if isinstance(body.get('settings'), dict) else None
     if isinstance(settings, list):
-        lines.append('SETTINGS (%d)' % len(settings))
+        lines.append('  ' + _count(len(settings), 'setting', 'settings'))
         for row in settings:
-            instance = row.get('settingInstance') if isinstance(row, dict) else None
-            definition = instance.get('settingDefinitionId') if isinstance(instance, dict) else None
-            lines += word_wrap('  ' + str(row.get('id') if isinstance(row, dict) else '?') + '  ' + str(definition), width)
-            lines += word_wrap('     ' + _setting_value(instance), width)
+            lines += _setting_summary(row.get('settingInstance') if isinstance(row, dict) else None, width)
     else:
-        lines.append('SETTINGS not in this result')
+        lines.append('  Settings are not in this result.')
     assignments = body.get('assignments')
     if isinstance(assignments, list):
-        lines.append('TARGETING (%d)' % len(assignments))
+        names = value.get('target_names') if isinstance(value.get('target_names'), dict) else {}
+        grouped = any(isinstance(row, dict) and 'group_id' in row for row in assignments)
+        note = '; group names were not captured' if grouped and not names else ''
+        lines += word_wrap('  %s%s' % (_count(len(assignments), 'target', 'targets'), note), width)
         for row in assignments:
-            lines += word_wrap('  ' + _target_line(row), width)
+            if not isinstance(row, dict):
+                lines += word_wrap('    ' + _value(row), width)
+                continue
+            text = TARGET_WORDS.get(row.get('type'), safe_text(str(row.get('type'))))
+            if 'group_id' in row:
+                text += '  ' + safe_text(str(row['group_id'])) + (('  "%s"' % safe_text(str(names[row['group_id']]))) if row['group_id'] in names else '')
+            lines += _labelled('', text, width, 4)
+            if row.get('filter_type') not in (None, 'none'):
+                lines += _labelled('', 'filter ' + safe_text(str(row['filter_type'])) + ' ' + safe_text(str(row.get('filter_id'))), width, 13)
     elif body:
-        lines.append('TARGETING ' + ('not collected (null)' if assignments is None else 'unreadable'))
-    lines += word_wrap('Keys: d dictionary for these settings | 3 relationships | 4 history | 9 repository', width)
+        lines.append('  Targets ' + ('were not collected (null).' if assignments is None else 'are unreadable.'))
+    if body:
+        lines += _labelled('  Description', _value(body.get('description')), width, 15)
+    repository = value.get('selected_repository') if isinstance(value.get('selected_repository'), dict) else None
+    scope = repository.get('scope') if repository and isinstance(repository.get('scope'), dict) else {}
+    managed = 'ownership %s; %s' % (value.get('ownership', 'unknown'), 'repository intent recorded from %s (%s / %s)' % (
+        scope.get('repository'), scope.get('stack'), scope.get('component')) if repository else 'no repository intent recorded')
+    lines += _labelled('  Managed', managed, width, 15)
+    attention = value.get('attention') if isinstance(value.get('attention'), dict) else None
+    if attention is not None:
+        lines += ['', 'NEEDS ATTENTION']
+        signals = [signal for signal in attention.get('signals') or [] if isinstance(signal, dict)]
+        if attention.get('status') == 'unavailable':
+            lines += word_wrap('  Diagnostics could not be read (%s); i shows the details.' % attention.get('error_code'), width)
+        elif not signals:
+            checked = ', '.join(area.replace('_', ' ') for area in (attention.get('checked') or {}))
+            lines += word_wrap('  Nothing recorded needs attention%s.' % (' (checked: %s)' % checked if checked else ''), width)
+            if attention.get('status') == 'partly_checked':
+                lines += word_wrap('  Some areas were not fully read; i shows which.', width)
+        for signal in signals:
+            lines += _labelled('  !', str(signal.get('observed')), width, 4)
+    actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
+    if actions:
+        lines += ['', 'NEXT']
+        for action in actions:
+            lines += _labelled('  ', str(action.get('step')), width, 2)
+    return lines
+
+
+def details_lines(value, width):
+    """Every field of an engine result as a readable outline: words for absent and yes/no values, lists numbered."""
+    lines = []
+
+    def scalar(item):
+        if item is None:
+            return 'not recorded'
+        if isinstance(item, bool):
+            return 'yes' if item else 'no'
+        return str(item)
+
+    def walk(item, indent):
+        if isinstance(item, dict):
+            size = min(28, max([cell_width(str(key)) for key in item] + [0]) + 2)
+            for key, child in item.items():
+                label = ' ' * indent + str(key).replace('_', ' ')
+                if isinstance(child, (dict, list)) and child:
+                    lines.extend(word_wrap(label + ('  (%d)' % len(child) if isinstance(child, list) else ''), width))
+                    walk(child, indent + 2)
+                else:
+                    shown = scalar(child) if not isinstance(child, (dict, list)) else 'none'
+                    lines.extend(_labelled(label, shown, width, indent + size))
+        elif isinstance(item, list):
+            for number, child in enumerate(item, 1):
+                if isinstance(child, (dict, list)) and child:
+                    lines.append(' ' * indent + '%d.' % number)
+                    walk(child, indent + 3)
+                else:
+                    lines.extend(_labelled(' ' * indent + '%d.' % number, scalar(child) if not isinstance(child, (dict, list)) else 'none',
+                                           width, indent + 4))
+        else:
+            lines.extend(word_wrap(' ' * indent + scalar(item), width))
+
+    walk(value, 0)
+    return lines
+
+
+def help_lines(width):
+    """The one reference for keys and commands, grouped by what the engineer is doing."""
+    groups = (
+        ('Surfaces', '1 Estate, 2 Inspector, 3 Relationships, 4 History, 5 Plan, 6 Execution, 7 Coverage, 8 Help, 9 Repository.'),
+        ('Views', 'o relationship overview, d setting dictionary, l lineage, h health, m maintenance queue, i diagnostics, '
+                  'v delivery of the active operation, s what exists beside the store.'),
+        ('Evidence', 'Each view opens as a summary. e shows every field as typed details, r the complete raw engine record, '
+                     'Esc returns to the summary.'),
+        ('Moving', 'Up and Down choose, Enter selects, PgUp and PgDn scroll, / searches, f sets estate filters, '
+                   'b returns to the previous view.'),
+        ('Commands', ': opens the command bar; Enter submits and Esc discards. Every command the engine accepts is in the '
+                     'typed details of this page (e).'),
+        ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
+                    'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
+                    'OPERATION_DIR reads the service when an outcome is unknown. Moving around never proposes, approves or executes.'),
+        ('Session', 'q exits the workbench; the next start reopens the same view. :clear-selection clears the selected policy.'),
+        ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled service), '
+                 'CAPTURE (an unverified export) or LIVE READ-ONLY (an authenticated read).'),
+    )
+    lines = ['HELP']
+    for name, text in groups:
+        lines += _labelled('  ' + name, text, width, 12)
     return lines
 
 

@@ -266,11 +266,45 @@ def _dictionary(store, query='', *, object_id=None, limit=None, offset=0):
     return dictionary(store, query, object_id=object_id, limit=limit, offset=offset)
 
 
-def _inspection(store, object_id):
+def _attention(store, object_id):
+    """What the diagnostics records say needs attention, for the Inspector; read-only. An unreadable result is stated."""
+    from .workbench_diagnostics import diagnostics
+    try:
+        value = diagnostics(store, object_id)
+    except AppError as error:
+        return {'status': 'unavailable', 'error_code': error.code, 'signals': [], 'checked': {}}
+    partial = any(state in ('partly_checked', 'unavailable') for state in value['checked'].values())
+    return {'status': 'attention' if value['signals'] else 'partly_checked' if partial else 'clear',
+            'signals': [{key: signal[key] for key in ('area', 'code', 'observed', 'next_step')} for signal in value['signals']],
+            'checked': value['checked']}
+
+
+def _next_actions(value, attention, service_available):
+    """What the engineer can do next: the recorded next steps first, otherwise the change route that exists.
+
+    Every step names a real command; preparing a change always ends in a review that needs the exact digest.
+    """
+    steps = [{'source': signal['code'], 'step': signal['next_step']} for signal in attention.get('signals', [])]
+    if not steps:
+        needs = '' if service_available else ' (needs --service-root: a modeled service)'
+        if value.get('selected_repository'):
+            steps.append({'source': 'repository_intent', 'step': 'propose-from-intent NEW_OPERATION_DIR prepares a reviewed '
+                          'proposal from the recorded repository intent' + needs + '.'})
+        else:
+            steps.append({'source': 'no_repository_intent', 'step': 'repository-entry REPOSITORY shows how to record where this '
+                          'policy is maintained; propose DESIRED_JSON NEW_OPERATION_DIR prepares a reviewed local proposal'
+                          + needs + '.'})
+    return steps[:3]
+
+
+def _inspection(store, object_id, *, attention=False, service_available=False):
     """Combine an exact observed object with the current declared writer evidence.
 
     The raw observation remains unchanged. Selected repository intent and state
     claims are distinct management evidence, never authenticated cloud ownership.
+    With attention, the Inspector's read model adds what diagnostics records as
+    needing attention and the next steps, so the screen states them instead of
+    inferring them.
     """
     from .workbench_views import _intents, _latest, ownership
     value = store.inspect(object_id)
@@ -278,6 +312,10 @@ def _inspection(store, object_id):
     intent = _latest(_intents(store, object_id, None))
     scope = intent['data']['scope'] if intent else None
     writer = ownership(store, object_id, scope)
+    if attention:
+        found = _attention(store, object_id)
+        value = {**value, 'attention': found,
+                 'next_actions': _next_actions({'selected_repository': intent}, found, service_available)}
     return {**value, 'raw_capture_observation': raw_capture,
             'ownership': writer['status'], 'ownership_evidence': writer,
             'selected_repository': None if intent is None else {
@@ -458,7 +496,7 @@ HELP = {
                    'source-edit-status SOURCE_ROOT OPERATION_ID',
                    'source-edit-recover SOURCE_ROOT OPERATION_ID complete|rollback|abort EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-acceptance-propose FIELD NEW_OUTPUT_DIR', 'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
-                   'field-semantics', 'back', 'cancel', 'quit'],
+                   'field-semantics', 'clear-selection (clears the selected policy; back and cancel do the same, nothing else is undone or cancelled)', 'back', 'cancel', 'quit (exits; navigation is kept for the next start)'],
     'maintenance': ['propose-from-intent NEW_OPERATION_DIR (selected object; desired body and citation from the current repository intent)',
                     'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'delivery OPERATION_DIR (read-only: proposal, approval, execution, readback, reconciliation, deployment record, observation)',
@@ -681,7 +719,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'field-semantics' and not values:
                 from .workbench_semantics import contract
                 result = contract()
-            elif name in ('back', 'cancel') and not values:
+            elif name in ('back', 'cancel', 'clear-selection') and not values:
                 selected = None
                 if page['kind'] == 'history-recent':
                     page.clear(); page.update(kind='overview', limit=10, offset=0, query='')
@@ -703,7 +741,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'search-page' and len(values) >= 3:
                 result = set_page('search', int(values[0]), int(values[1]), ' '.join(values[2:]))
             elif name == 'select' and len(values) == 1:
-                result = _inspection(store, values[0])
+                result = _inspection(store, values[0], attention=True, service_available=service_root is not None)
                 selected = values[0]
             elif name == 'health' and len(values) <= 2:
                 result = (_health(store, selected) if selected is not None and not values else
@@ -766,7 +804,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                           offset=int(values[1]) if len(values) == 2 else 0)}
             elif name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'propose', 'workflows', 'reference-compare'):
                 if selected is None: raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                if name == 'inspect' and not values: result = _inspection(store, selected)
+                if name == 'inspect' and not values: result = _inspection(store, selected, attention=True, service_available=service_root is not None)
                 elif name in ('settings', 'relationships') and not values: result = _facet(store, selected, name)
                 elif name == 'adoption-lineage' and not values:
                     from .workbench_adoption import lineage

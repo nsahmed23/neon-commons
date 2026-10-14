@@ -42,9 +42,9 @@ def _collection(observed):
                         'If no collector is running now, the run was interrupted: collect again.', evidence)], False
     kept = (' The last-good observation of this policy (run %s) is kept, now marked %s.' % (
         success.get('run_id'), observed.get('freshness')) if success and observed.get('retained_last_good') else '')
-    step = ('Collect again when the source is reachable; until then views use the last-good observation of this policy '
+    step = ('Collect again (:collect) when the source is reachable; until then views use the last-good observation of this policy '
             '(run %s), labelled %s.' % (success.get('run_id'), observed.get('freshness')) if success else
-            'Collect again when the source is reachable; no complete observation of this policy exists yet.')
+            'Collect again (:collect) when the source is reachable; no complete observation of this policy exists yet.')
     return [_signal('collection', 'collection_failed',
                     'The last collection of this policy (run %s, %s) ended %s: %s.%s' % (
                         attempt.get('run_id'), attempt.get('completed_at') or attempt.get('started_at'),
@@ -61,7 +61,7 @@ def _freshness(observed, failed):
     sentence = ('The newest observation (%s) is %s.' % (observed['observed_at'], observed.get('freshness'))
                 if observed.get('observed_at') else
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
-    return [_signal('freshness', 'observation_stale', sentence, 'Collect again before preparing or judging a change.',
+    return [_signal('freshness', 'observation_stale', sentence, 'Collect again (:collect) before preparing or judging a change.',
                     {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at')})], 'attention'
 
 

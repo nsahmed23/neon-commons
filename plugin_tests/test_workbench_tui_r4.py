@@ -206,7 +206,7 @@ class VisualPTYTests(unittest.TestCase):
         self.key((':propose ' + shlex.quote(str(desired_path)) + ' ' + shlex.quote(str(operation)) + '\r').encode())
         journal = json.loads((operation / 'journal.json').read_text())
         self.assertEqual(journal['status'], 'prepared')
-        self.assertIn(b'[EXACT PLAN REVIEW]', self.output)
+        self.assertIn(b'[PLAN REVIEW]', self.output)
         self.key(b'1'); self.key(b'5')  # Read-only review of active exact operation.
         self.assertEqual(json.loads((operation / 'journal.json').read_text())['status'], 'prepared')
         self.key((':execute ' + shlex.quote(str(operation)) + ' ' + journal['plan_sha256'] + ' lost-response\r').encode())
@@ -254,7 +254,7 @@ class VisualPTYTests(unittest.TestCase):
         self.assertEqual(context['view_command'], 'inspect')
         self.close_visual()
         self.output = bytearray(); self.launch('--no-color')
-        self.read_until(b'[POLICY INSPECTOR]')
+        self.read_until(b'WHAT THE EVIDENCE SAYS IT DOES')
         self.drain()
         context = json.loads((self.store.root / 'workspace-context.json').read_text())
         self.assertEqual(shlex.split(context['page_command']), ['views-page', '3', '3', 'Privacy', 'unknown', 'complete_fresh', '-'])

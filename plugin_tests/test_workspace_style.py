@@ -152,7 +152,7 @@ class FrameChromeTests(unittest.TestCase):
             line = help_line(width)
             self.assertLessEqual(cell_width(line), width)
             self.assertIn(line, HELP_LINES)
-            self.assertIn('q detach', line); self.assertIn(': command', line)
+            self.assertIn('q exit', line); self.assertIn(': command', line); self.assertIn('? help', line)
 
     def test_the_status_line_keeps_the_approval_statement_whole(self):
         from intune_iac.workbench_tui import status_line
@@ -174,20 +174,21 @@ class FrameChromeTests(unittest.TestCase):
                                   selected=None, facts={}, rows=[], operation_rows=[], _detail_cache=None, **extra)
         return workspace
 
-    def test_a_wide_body_puts_the_summary_beside_the_exact_record(self):
-        workspace = self.workspace()
+    def test_a_wide_body_puts_the_raw_record_beside_the_summary(self):
+        workspace = self.workspace(layer='raw')
         wide = workspace._body_lines(160, '│')
         left = (160 - 3) * 11 // 20
         self.assertEqual(wide[0][:len('[POLICY FAMILIES]')], '[POLICY FAMILIES]')
         self.assertEqual(wide[0][left:left + 3], ' │ ')
-        self.assertEqual(wide[0][left + 3:], '{')
+        self.assertTrue(wide[0][left + 3:].startswith('RAW RECORD'))
+        self.assertTrue(any(line[left + 3:] == '{' for line in wide))
         for line in wide:
             self.assertLessEqual(cell_width(line), 160, line)
-        # Below the wide threshold, and with the record hidden, the body stays one column.
+        # Below the wide threshold, and on the summary, the body stays one column.
         self.assertEqual(workspace._body_lines(120, '│'), workspace._data_lines(120))
-        hidden = self.workspace(show_exact=False)
-        self.assertEqual(hidden._body_lines(160, '│'), hidden._data_lines(160))
-        self.assertTrue(hidden._data_lines(160)[-1].startswith('[EXACT RECORD HIDDEN]'))
+        summary = self.workspace(layer='summary')
+        self.assertEqual(summary._body_lines(160, '│'), summary._data_lines(160))
+        self.assertTrue(summary._data_lines(160)[-1].startswith('Evidence: e typed details | r complete raw record'))
 
     def test_lineage_freshness_never_becomes_the_observation_freshness(self):
         from intune_iac.workbench_tui import Workspace

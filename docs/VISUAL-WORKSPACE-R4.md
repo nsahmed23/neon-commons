@@ -50,8 +50,11 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | : | Command bar accepting the existing text commands |
 | / | Search policies/settings; preserve active global filters when using the four-view estate |
 | f | Edit the shared engine’s global ownership/coverage/health filter command |
-| b | Existing engine `back`: clear selected identity without dispatching mutation |
-| q | Detach this interface; durable operations and independently scheduled collection remain separate |
+| e / r / Esc | Typed details of the result shown / its complete raw record / back to the summary |
+| b | Back to the previous read-only view of this session; it never re-sends a command that prepares, approves, executes or records |
+| ? | Help: the one reference for keys and commands |
+| :clear-selection | Clear the selected policy (the engine words `back` and `cancel` do the same in the text interface; nothing else is undone or cancelled) |
+| q | Exit the workbench; the next start reopens the same view. Durable operations and independently scheduled collection are not touched |
 
 Global filters use the same engine before pagination, not a filter on the currently visible page:
 
@@ -61,7 +64,7 @@ views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]]
 
 Use `-` for an unset field. For example, `:views-page 10 0 Privacy unknown complete_fresh -` searches the admitted inventory before selecting a page, shows matching versus inventory totals, and retains its filters for `n`, `p`, `/` and resume. Press `f` to edit these fields. Ownership admits `owned_here`, `owned_elsewhere`, `conflicting_claims`, `no_ownership_found_in_declared_scope` and `unknown`; coverage admits `complete_fresh`, `stale_or_incomplete` and `unknown`; health admits `fresh_failure`, `fresh_success`, `reporting_incomplete` and `unknown`. These are exact engine classifications, not new UI inference. A stale/incomplete ownership index remains unknown. Health does not dispatch a write.
 
-Every presentation surface includes readable semantic labels above its complete typed evidence: immutable policy identity and targeting counts, typed relationship rows, snapshot/time history, exact-plan bindings, execution/recovery outcomes and distinct comparison baselines. Long results expose the current line range and total, with scrolling; the focused estate row has a literal `>` marker and the pinned selection a `*`, not only colour. Unknown, denied and incomplete results remain engine values. Color never carries the sole meaning. Narrow layouts keep the same commands; resize redraws without running another engine action.
+Every view opens as a readable summary; its complete evidence is one key away (`e` typed details, `r` raw record), never dumped below it. The summaries cover immutable policy identity and targeting counts, typed relationship rows, snapshot/time history, exact-plan bindings, execution/recovery outcomes and distinct comparison baselines. Long results expose the current line range and total, with scrolling; the focused estate row has a literal `>` marker and the pinned selection a `*`, not only colour. Unknown, denied and incomplete results remain engine values. Color never carries the sole meaning. Narrow layouts keep the same commands; resize redraws without running another engine action.
 
 Use the command bar for the existing intentional-change flow: `propose DESIRED_JSON NEW_OPERATION_DIR`, `review OPERATION_DIR`, explicit `execute OPERATION_DIR EXACT_REVIEW_DIGEST`, and `reconcile OPERATION_DIR`. The actual engine validates every command and retains its original authority and scope. A visible plan does not confer approval. This module neither derives nor inserts a digest, and it never creates a replacement plan. Production dispatch remains the separately configured protected worker contract; the synthetic route must not be presented as live execution.
 
@@ -71,31 +74,27 @@ While the synchronous engine is running, the frame says the outcome is not yet k
 
 **Header lines.**
 - The tab line numbers every surface and brackets the active one. When the full names do not fit, it uses short names (`[5 Plan]`, `9 Repo`).
-- The context strip below it shows the tenant, the selected policy (name and short ID), the observation freshness, the repository state and the active operation's status.
-- When the strip does not fit, it drops the tenant first, then uses short labels (`OBS`, `REPO`, `OP`), then the policy name.
+- The context strip below it leads with the evidence mode (`SYNTHETIC`, `CAPTURE`, `LIVE READ-ONLY`, or `MODE UNKNOWN` before any observation arrives) and the tenant. Then the selected policy (name and short ID), the observation freshness, the repository state (from the Inspector's own checks when it has run) and the active operation's status.
+- When the strip does not fit, it uses short labels (`OBS`, `REPO`, `OP`), then the policy's short ID, then short state words, then drops the operation and repository states. The mode and the tenant are never dropped.
 - These are the facts the engine last reported for the selected policy. "unknown" or "not checked" means no result has said yet; the workspace never makes a hidden engine call to fill them in. Exact identities appear on each surface. The strip's state words are tinted like the body's, and a lineage result never stands in for the observation's freshness.
 - The title names the surface and, when a key opens a view that belongs to it, that view too: `Coverage / Diagnostics`, `Coverage / Health`, `Execution / Delivery`, `Help / Families`, `Repository / Repository entry`.
 
 **Frame lines.**
 - When the body continues above or below what fits, the border says so (`more above: PgUp`, `more below: PgDn`).
 - The status line gives the evidence class of the result, or of the selected policy's observation when a view has none. It shortens only that class to fit, so `rows` and `no automatic approval` always stay whole.
-- The notice is shortened at a word with an ellipsis. The key line shows the longest of three forms that fits, so every width keeps `: command` and `q detach`.
-- `e` hides or shows the exact engine record below each summary for the session. While hidden, one line says how many record lines there are and how to show them.
-- From 150 body columns, the summary and the exact record sit side by side, divided by a rule, and scroll together.
+- The notice starts with `Ready.` when the workbench waits for input. It then says what was shown: for a policy, its name, evidence mode and freshness; for other views, that the view is read-only and nothing was proposed, approved or executed. It is shortened at a word with an ellipsis.
+- The key line shows the longest of three forms that fits, so every width keeps `? help`, `: command`, `b back` and `q exit`.
+- Evidence layers: each view ends with one line, `Evidence: e typed details | r complete raw record (N lines)`. `e` shows every field of the result as a readable outline (absent values and yes/no in words, lists numbered). `r` shows the complete raw engine record exactly as returned. Esc, or the same key again, returns to the summary. The title names the layer (`Inspector / typed details`). A record longer than the view limit says where it continues complete (the text interface).
+- From 150 body columns, typed details or the raw record open beside the summary instead of replacing it.
 - With box-drawing rules, Relationships draws connected tree lines and Delivery hangs its stages from one spine. ASCII rules keep the plain list.
 - Colour pairs meet WCAG AA (4.5:1) in every theme; a test measures each role against its background.
 
-**Inspector (2).** Shows the selected policy as an engineer reads it:
-- name and exact identity;
-- platform and technologies;
-- scope tags, quoted;
-- observation time, coverage, freshness and snapshot;
-- ownership;
-- the description, quoted;
-- a settings table: record ID, definition ID and the exact configured value by instance kind (choice, value or ordered list);
-- a targeting table: include, exclude, all devices or all licensed users, each with its group and filter.
+**Inspector (2).** Answers three questions from the engine's read model:
+- **What it is and what the evidence says it does:** name and exact identity, platform, technologies and scope tags. Then one line of provenance (evidence mode, run, time, coverage, freshness), each setting's definition and exact value, and each target (include, exclude, all devices or all licensed users) with its group and filter. A choice value's meaning is never translated: the line says it is not established, and `d` shows what is known. Group names are shown only where they were captured; otherwise the line says they were not, and the identities stay. Then the description, ownership, and where a repository intent was recorded.
+- **What needs attention:** the signals diagnostics records for this policy, each as its recorded fact (for example the observation's own freshness, or a repository that changed; the two are never merged into one cause). When none is recorded, it says so and names what was checked; when diagnostics could not be read, it says that instead.
+- **What can be done next:** the recorded next steps first, otherwise the change route that exists (repository intent recorded: `propose-from-intent`; none: `repository-entry` or `propose`). Each names a real command, and any change still ends in a review that needs the exact digest.
 
-The literal-capture fields remain. `d` opens the dictionary for these settings on the same surface (`[SETTING DICTIONARY]`). It keeps four sources separate:
+The literal-capture fields are in the typed details and the raw record. `d` opens the dictionary for these settings on the same surface (`[SETTING DICTIONARY]`). It keeps four sources separate:
 - **Vendor documentation:** name, meaning, aliases, CSP path, type and default, the documented CSP values, applicability, publisher, dates and URL.
 - **Local mapping:** support status, permitted Graph values and deferred qualifications.
 - **Observed use:** each policy using the setting, with its value, freshness, coverage and evidence class.
@@ -153,7 +152,7 @@ It reads local records only, and the same view is `workbench diagnostics --root 
 - Setting changes name the setting record, its definition and the changed path. Assignment changes list targets added and removed.
 - An order-only change to the settings list is named, because the plan treats it as a change.
 - An unchanged proposal says `NO CONFIGURATION CHANGE`. This label comes from the plan itself.
-- The plan's change tags and the cited repository intent's freshness follow, then the existing `[EXACT PLAN REVIEW]` fields, with expiry shown as a UTC time.
+- The plan's change tags and the cited repository intent's freshness follow, then the `[PLAN REVIEW]` fields, with expiry shown as a UTC time.
 
 **Coverage (7).** Adds the repository intent's freshness and a `[REPOSITORY VERSUS OBSERVED]` table in the same form.
 
