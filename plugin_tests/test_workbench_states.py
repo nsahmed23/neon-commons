@@ -165,5 +165,43 @@ class StateSurfaceTests(unittest.TestCase):
         self.assertIn('5f18aadb outcome unknown', text)
 
 
+class ReadableTimeTests(unittest.TestCase):
+    """Sentences give times to the second with their zone; the exact values stay in the signal's evidence."""
+    STAMP = '2026-10-14T00:00:00.123456Z'
+
+    def test_a_failed_collection_says_when_readably_and_keeps_the_exact_time(self):
+        from intune_iac.workbench_diagnostics import _collection
+        signals, _ = _collection({'last_attempt': {'run_id': 3, 'status': 'denied', 'error_code': 'denied',
+                                                   'started_at': self.STAMP, 'completed_at': self.STAMP},
+                                  'last_success': {'run_id': 2}})
+        self.assertIn('(run 3, 2026-10-14 00:00:00 UTC)', signals[0]['observed'])
+        self.assertNotIn('T00:00:00', signals[0]['observed'])
+        self.assertEqual(signals[0]['evidence']['completed_at'], self.STAMP)
+
+    def test_an_unfinished_collection_says_when_it_started(self):
+        from intune_iac.workbench_diagnostics import _collection
+        signals, _ = _collection({'last_attempt': {'run_id': 5, 'status': 'collecting', 'started_at': self.STAMP}})
+        self.assertIn('started at 2026-10-14 00:00:00 UTC', signals[0]['observed'])
+        self.assertEqual(signals[0]['evidence']['started_at'], self.STAMP)
+
+    def test_a_stale_observation_says_when_readably(self):
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, _ = _freshness({'freshness': 'stale', 'observed_at': self.STAMP, 'freshness_reasons': ['stamped_after_now'],
+                                 'freshness_checked_at': '2026-10-13T23:55:00Z'}, failed=False)
+        self.assertIn('The newest observation (2026-10-14 00:00:00 UTC)', signals[0]['observed'])
+        self.assertIn('(2026-10-13 23:55:00 UTC)', signals[0]['observed'])
+        self.assertEqual(signals[0]['evidence']['freshness_checked_at'], '2026-10-13T23:55:00Z')
+
+    def test_the_relationship_header_and_plan_expiry_read_readably(self):
+        from intune_iac.workbench_screens import relationship_lines
+        lines = ' '.join(relationship_lines({'object_id': OBJECT, 'name': 'Pilot', 'observed_at': self.STAMP,
+                                              'coverage': 'complete', 'relationships': []}, 120))
+        self.assertIn('observed 2026-10-14 00:00:00 UTC', lines)
+
+    def test_readable_time_lives_in_the_engine_layer(self):
+        from intune_iac.io import readable_time
+        self.assertEqual(readable_time(self.STAMP), '2026-10-14 00:00:00 UTC')
+
+
 if __name__ == '__main__':
     unittest.main()

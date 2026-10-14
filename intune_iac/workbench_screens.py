@@ -271,18 +271,7 @@ def _band_primary(facts, signals):
     return primary, len([item for item in live if item is not primary])
 
 
-def readable_time(value):
-    """An ISO 8601 time to the second with its zone, for summaries; the exact value stays in the evidence layers."""
-    from datetime import datetime, timezone
-    if not isinstance(value, str):
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
-    except ValueError:
-        return value
-    if parsed.tzinfo is None:
-        return value
-    return parsed.astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+from .io import readable_time  # noqa: E402  (shared with the engine's sentences)
 
 
 # Freshness reasons the store records, in plain words.
@@ -367,6 +356,19 @@ def utc_time(value):
         return datetime.fromtimestamp(value, timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z')
     except (OverflowError, OSError, ValueError):
         return value
+
+
+def _when(value, missing='time not recorded'):
+    """A recorded time for a summary, to the second with its zone; the exact value stays in the evidence layers."""
+    if value is None or value == '':
+        return missing
+    return readable_time(value) if isinstance(value, str) else str(value)
+
+
+def _readable_epoch(value):
+    """An epoch number as a readable UTC time to the second; anything else unchanged."""
+    converted = utc_time(value)
+    return readable_time(converted) if isinstance(converted, str) else converted
 
 
 def word_wrap(value, width):
@@ -610,7 +612,7 @@ def inspector_lines(value, width):
     source = [evidence_words(value.get('evidence_class'))]
     if value.get('run_id') is not None:
         source.append('run %s' % value['run_id'])
-    source.append(str(value['observed_at']) if value.get('observed_at') else 'time not recorded')
+    source.append(_when(value.get('observed_at')))
     clauses = [', '.join(source)]
     clauses += [coverage_words(value['coverage'])] if value.get('coverage') else []
     clauses += [str(value['freshness'])] if value.get('freshness') else []
@@ -1032,7 +1034,7 @@ def relationship_lines(value, width, rules='ascii'):
     edges = [edge for edge in value.get('relationships') or [] if isinstance(edge, dict)]
     lines += word_wrap('%s (%s)' % (value.get('name', '(no name)'), value.get('object_id', 'unknown')), width)
     lines += word_wrap('%d edges | coverage %s | observed %s' % (
-        len(edges), value.get('coverage', 'unknown'), value.get('observed_at', 'unknown')), width)
+        len(edges), value.get('coverage', 'unknown'), readable_time(value.get('observed_at')) or 'unknown'), width)
     if not edges:
         lines.append('No typed relationships in this result.')
     repository = value.get('selected_repository')
@@ -1085,7 +1087,7 @@ def history_lines(value, width):
     for index, item in enumerate(items):
         lines.append('')
         lines += word_wrap('%s | run %s | %s | snapshot %s' % (
-            item.get('observed_at', 'unknown'), item.get('run_id', 'unknown'), item.get('coverage', 'unknown'),
+            _when(item.get('observed_at'), 'unknown'), item.get('run_id', 'unknown'), item.get('coverage', 'unknown'),
             str(item.get('snapshot_id', 'unknown'))[:12]), width)
         lines += word_wrap('  %s | changed at %s | attribution %s' % (
             item.get('evidence_class', 'evidence unknown'), item.get('changed_at') or 'unknown', item.get('attribution') or 'unknown'), width)
@@ -1102,7 +1104,7 @@ def history_lines(value, width):
             lines += word_wrap('  No configuration change since the previous observation.', width)
             continue
         heading = 'Changed since the previous observation' if changes.get('status') == 'changed' else 'Comparison with the previous observation'
-        lines += word_wrap('  %s (%s):' % (heading, previous.get('observed_at', 'unknown')), width)
+        lines += word_wrap('  %s (%s):' % (heading, _when(previous.get('observed_at'), 'unknown')), width)
         lines += ['  ' + line for line in change_lines(changes, width - 2, 'BEFORE (previous)', 'AFTER (this observation)')]
     if not items:
         lines.append('No observations on this page.')
@@ -1260,7 +1262,7 @@ def _proposals(related):
     lines = []
     for operation, records in by_operation.items():
         latest = max(records, key=lambda record: record['sequence'] if type(record.get('sequence')) is int else -1)
-        lines.append('%s %s (%s; latest %s)' % (operation[:12], latest.get('status'), _plural(len(records), 'journal record'), latest.get('recorded_at')))
+        lines.append('%s %s (%s; latest %s)' % (operation[:12], latest.get('status'), _plural(len(records), 'journal record'), _when(latest.get('recorded_at'))))
     return lines
 
 
@@ -1303,7 +1305,7 @@ def queue_lines(value, width):
         evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else None
         if evidence:
             lines += word_wrap('  Evidence %s | observed %s | snapshot %s' % (
-                evidence.get('evidence_class', 'unknown'), evidence.get('observed_at', 'unknown'), str(evidence.get('snapshot_id', 'unknown'))[:12]), width)
+                evidence.get('evidence_class', 'unknown'), _when(evidence.get('observed_at'), 'unknown'), str(evidence.get('snapshot_id', 'unknown'))[:12]), width)
         proposals = _proposals(item.get('related_proposals'))
         lines += word_wrap('  Related proposals ' + ('(%d)' % len(proposals) if proposals else 'none'), width)
         for text in proposals:
@@ -1325,13 +1327,13 @@ MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or 
 def _approval_text(stage, status):
     if status == 'done':
         return 'exact review digest %s supplied at dispatch | window %s to %s' % (
-            str(stage.get('approval_digest'))[:12], utc_time(stage.get('opens_at')), utc_time(stage.get('closes_at')))
+            str(stage.get('approval_digest'))[:12], _readable_epoch(stage.get('opens_at')), _readable_epoch(stage.get('closes_at')))
     if status == 'waiting':
-        return 'waiting for the exact review digest until %s' % utc_time(stage.get('closes_at'))
+        return 'waiting for the exact review digest until %s' % _readable_epoch(stage.get('closes_at'))
     if status == 'expired':
-        return 'expired: the approval window closed at %s' % utc_time(stage.get('closes_at'))
+        return 'expired: the approval window closed at %s' % _readable_epoch(stage.get('closes_at'))
     if status == 'not_open':
-        return 'not open: the local clock reads before %s' % utc_time(stage.get('opens_at'))
+        return 'not open: the local clock reads before %s' % _readable_epoch(stage.get('opens_at'))
     return str(status).replace('_', ' ')
 
 
@@ -1344,7 +1346,7 @@ def _execution_text(stage, status):
     elif stage.get('no_change_dispatch'):
         parts.append('no service change dispatched')
     if stage.get('recorded_at'):
-        parts.append('recorded ' + str(stage['recorded_at']))
+        parts.append('recorded ' + _when(stage['recorded_at']))
     if status == 'unknown':
         return 'outcome unknown: %s | %s' % (stage.get('error_code') or 'no error recorded', ' | '.join(parts))
     return ' | '.join(parts)
@@ -1367,13 +1369,13 @@ def _receipt_text(stage, status):
         if (stage.get('count') or 1) > 1:
             parts.append('%d reconciliations' % stage['count'])
         if stage.get('recorded_at'):
-            parts.append('recorded ' + str(stage['recorded_at']))
+            parts.append('recorded ' + _when(stage['recorded_at']))
     return ' | '.join(parts)
 
 
 def _record_text(stage, status):
     if status == 'done':
-        return 'recorded %s | intent %s | %s | %s' % (stage.get('recorded_at'), str(stage.get('intent_id'))[:12], stage.get('evidence_class'),
+        return 'recorded %s | intent %s | %s | %s' % (_when(stage.get('recorded_at')), str(stage.get('intent_id'))[:12], stage.get('evidence_class'),
                                                       'baseline admissible' if stage.get('baseline_admissible') else 'not a baseline')
     if status == 'available':
         return 'available for intent %s; deployment-record performs the full check' % str(stage.get('intent_id'))[:12]
@@ -1385,9 +1387,9 @@ def _record_text(stage, status):
 def _observed_text(stage, status):
     revision = 'service revision %s' % stage.get('service_revision')
     if status == 'matches_desired':
-        return 'matches desired at %s (%s before the change) | observed %s' % (revision, stage.get('before_revision'), stage.get('observed_at'))
+        return 'matches desired at %s (%s before the change) | observed %s' % (revision, stage.get('before_revision'), _when(stage.get('observed_at')))
     if status == 'differs':
-        return 'differs from the desired configuration at %s | observed %s' % (revision, stage.get('observed_at'))
+        return 'differs from the desired configuration at %s | observed %s' % (revision, _when(stage.get('observed_at')))
     if status == 'not_yet':
         return 'not yet: no observation after the change' + (' (latest at %s)' % revision if stage.get('service_revision') is not None else '')
     if status == 'not_applicable':
@@ -1399,7 +1401,7 @@ def _stage_text(stage):
     name, status = stage.get('stage'), stage.get('status')
     if name == 'proposal':
         cited = stage.get('repository_intent_id')
-        return 'recorded %s | %s' % (stage.get('recorded_at') or 'time not recorded',
+        return 'recorded %s | %s' % (_when(stage.get('recorded_at')),
                                      'repository intent %s (%s)' % (str(cited)[:12], stage.get('intent_freshness')) if cited
                                      else 'desired file; no repository intent cited')
     if name == 'review':
@@ -1452,10 +1454,8 @@ def history_event_lines(history, width):
                       'journal after that event', width)
     for event in events:
         label = EVENT_LABELS.get(event.get('kind'), str(event.get('kind')).replace('_', ' '))
-        at = str(event.get('store_recorded_at') or 'time not recorded')
-        if at.endswith('Z') and '.' in at:
-            at = at.split('.')[0] + 'Z'  # to the second in the column; the raw record keeps the fraction
-        head = '  %-3s %-17s %-21s ' % (event.get('sequence'), label, at)
+        at = _when(event.get('store_recorded_at'))  # to the second with its zone; the raw record keeps the fraction
+        head = '  %-3s %-17s %-24s ' % (event.get('sequence'), label, at)
         if width >= 90:
             lines += _labelled(head, _event_text(event), width, len(head))
         else:
@@ -1503,7 +1503,7 @@ def delivery_lines(value, width, rules='ascii'):
         for run in runs:
             lines += word_wrap('  %s %s  claims %s | revision %s | observed %s | %s' % (
                 run.get('workflow') or 'workflow', run.get('run_id'), run.get('status'), str(run.get('repository_revision'))[:12],
-                run.get('observed_at'), 'tied to this operation' if run.get('relation') == 'related_operation' else 'for the cited revision'), width)
+                _when(run.get('observed_at')), 'tied to this operation' if run.get('relation') == 'related_operation' else 'for the cited revision'), width)
             lines += word_wrap('     ' + str(run.get('run_url')), width)
     else:
         lines += word_wrap('CI workflow runs: none imported for this operation or its cited revision '
@@ -1583,7 +1583,7 @@ def recorded_lines(value, width):
     kind = str(value.get('kind'))
     lines = word_wrap('[RECORDED] %s %s | %s | %s' % (
         RECORD_WORDS.get(kind, kind), str(value.get('artifact_id'))[:12],
-        'new record' if value.get('created') else 'already recorded; nothing changed', value.get('recorded_at')), width)
+        'new record' if value.get('created') else 'already recorded; nothing changed', _when(value.get('recorded_at'))), width)
     data = value.get('data') if isinstance(value.get('data'), dict) else {}
     if kind == 'workflow_run' and data:
         links = ['linked to %s %s' % ('operation' if row.get('relation') == 'related_operation' else 'observation',
@@ -1591,7 +1591,7 @@ def recorded_lines(value, width):
                  for row in data.get('relationships') or [] if isinstance(row, dict)]
         lines += word_wrap('%s %s: %s | revision %s | observed %s | %s' % (
             data.get('workflow') or 'workflow', data.get('run_id'), data.get('status'),
-            str(data.get('repository_revision'))[:12], data.get('observed_at'), '; '.join(links) or 'no local links'), width)
+            str(data.get('repository_revision'))[:12], _when(data.get('observed_at')), '; '.join(links) or 'no local links'), width)
         lines += word_wrap('An imported claim, not verified. Delivery (v) lists it beside the stages of the operation it '
                            'links to, or of an operation whose intent cites its revision; it never marks a stage done. '
                            ':workflows lists every imported run for the selected policy.', width)
@@ -1755,7 +1755,7 @@ def lineage_lines(value, width):
     if origin.get('artifact_id'):
         source += ' ' + str(origin['artifact_id'])[:12]
     if origin.get('recorded_at'):
-        source += ' recorded ' + str(origin['recorded_at'])
+        source += ' recorded ' + _when(origin['recorded_at'])
     if origin.get('source_revision'):
         source += ' | revision %s (%s)' % (str(origin['source_revision'])[:12], 'content verified' if origin.get('revision_content_verified') else 'caller asserted')
     lines += _labelled('Source', source + ' | ' + str(value.get('freshness')).replace('_', ' '), width, 11)

@@ -947,8 +947,8 @@ class Workspace:
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
                                ('Approval binding', 'approval_digest'), ('Expiry', 'expires_at'), ('Evidence class', 'evidence_class')):
-                from .workbench_screens import utc_time
-                field(label, utc_time(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
+                from .workbench_screens import _readable_epoch
+                field(label, _readable_epoch(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))

@@ -99,7 +99,7 @@ class InspectorSummaryTests(unittest.TestCase):
         self.assertEqual(lines[0], 'POLICY  Windows Privacy Pilot')
         self.assertIn(OBJECT, joined)
         self.assertIn('WHAT THE EVIDENCE SAYS IT DOES', joined)
-        self.assertIn('synthetic observation, run 4, 2026-10-14T12:25:00Z; policy list, settings and assignments read in full; '
+        self.assertIn('synthetic observation, run 4, 2026-10-14 12:25:00 UTC; policy list, settings and assignments read in full; '
                       'stale', joined.replace('\n          ', ' '))
         self.assertIn('device_vendor_msft_policy_config_privacy_letappsaccesslocation', joined)
         self.assertIn('meaning not established', joined)

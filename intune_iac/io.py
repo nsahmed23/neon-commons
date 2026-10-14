@@ -19,6 +19,20 @@ class AppError(ValueError):
         super().__init__(message)
 
 
+def readable_time(value):
+    """An ISO 8601 time to the second with its zone, for sentences and summaries; exact values stay in evidence."""
+    from datetime import datetime, timezone
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError:
+        return value
+    if parsed.tzinfo is None:
+        return value
+    return parsed.astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode('utf-8')
 

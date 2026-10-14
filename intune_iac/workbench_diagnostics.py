@@ -33,12 +33,15 @@ def _collection(observed):
     success = observed.get('last_success') if isinstance(observed.get('last_success'), dict) else None
     if attempt is None or attempt.get('status') == 'complete':
         return [], False
+    from .io import readable_time
+    # Sentences give times to the second with their zone; the exact values stay here, in the evidence.
     evidence = {'run_id': attempt.get('run_id'), 'status': attempt.get('status'), 'error_code': attempt.get('error_code'),
-                'last_success_run_id': success.get('run_id') if success else None}
+                'last_success_run_id': success.get('run_id') if success else None,
+                'started_at': attempt.get('started_at'), 'completed_at': attempt.get('completed_at')}
     if attempt.get('status') == 'collecting':
         return [_signal('collection', 'collection_not_finished',
                         'Collection run %s for this policy started at %s and has not recorded an end.' % (
-                            attempt.get('run_id'), attempt.get('started_at')),
+                            attempt.get('run_id'), readable_time(attempt.get('started_at')) or 'a time not recorded'),
                         'If no collector is running now, the run was interrupted: collect again (:collect).', evidence)], False
     kept = (' The last-good observation of this policy (run %s) is kept, now marked %s.' % (
         success.get('run_id'), observed.get('freshness')) if success and observed.get('retained_last_good') else '')
@@ -49,7 +52,8 @@ def _collection(observed):
             'Collect again (:collect) when the source is reachable; no complete observation of this policy exists yet.')
     return [_signal('collection', 'collection_failed',
                     'The last collection of this policy (run %s, %s) ended %s: %s.%s' % (
-                        attempt.get('run_id'), attempt.get('completed_at') or attempt.get('started_at'),
+                        attempt.get('run_id'), readable_time(attempt.get('completed_at') or attempt.get('started_at'))
+                        or 'time not recorded',
                         attempt.get('status'), attempt.get('error_code') or 'no error recorded', kept),
                     step, evidence)], True
 
@@ -67,9 +71,12 @@ def _freshness(observed, failed):
     if failed:
         return [], 'explained_by_collection'
     reasons = [reason for reason in observed.get('freshness_reasons') or [] if reason in FRESHNESS_WORDS]
+    from .io import readable_time
     because = '; '.join(FRESHNESS_WORDS[reason] % {'window': observed.get('freshness_window_seconds'),
-                                                   'checked': observed.get('freshness_checked_at')} for reason in reasons)
-    sentence = ('The newest observation (%s) is %s%s.' % (observed['observed_at'], observed.get('freshness'), ': ' + because if because else '')
+                                                   'checked': readable_time(observed.get('freshness_checked_at'))}
+                        for reason in reasons)
+    sentence = ('The newest observation (%s) is %s%s.' % (readable_time(observed['observed_at']), observed.get('freshness'),
+                                                         ': ' + because if because else '')
                 if observed.get('observed_at') else
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
     step = 'Collect again (:collect) before preparing or judging a change.'
@@ -77,7 +84,7 @@ def _freshness(observed, failed):
         step += " An observation stamped later than this host's clock stays stale until the clocks agree."
     return [_signal('freshness', 'observation_stale', sentence, step,
                     {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
-                     'freshness_reasons': reasons})], 'attention'
+                     'freshness_checked_at': observed.get('freshness_checked_at'), 'freshness_reasons': reasons})], 'attention'
 
 
 def _operation_records(store, object_id):

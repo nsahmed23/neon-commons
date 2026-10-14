@@ -321,7 +321,7 @@ class EstateScreensTests(unittest.TestCase):
                              {'observed_at': '2026-10-14T12:00:00Z', 'snapshot_id': 'a' * 64, 'coverage': 'complete', 'run_id': 1, 'body': body()}]}
         joined = '\n'.join(history_lines(value, 120))
         self.assertIn('[OBSERVATION HISTORY]', joined); self.assertIn('Newest first', joined)
-        self.assertIn('2026-10-14T13:00:00Z', joined); self.assertIn('2026-10-14T12:00:00Z', joined)
+        self.assertIn('2026-10-14 13:00:00 UTC', joined); self.assertIn('2026-10-14 12:00:00 UTC', joined)
         self.assertIn('Changed since the previous observation', joined)
         self.assertIn('"' + EDITED + '"', joined)
         self.assertIn('Earliest observation on this page', joined)
@@ -399,14 +399,14 @@ class DeliveryLinesTests(unittest.TestCase):
         joined = '\n'.join(lines)
         self.assertEqual(lines[0], '[DELIVERY]')
         self.assertIn('Operation b6b3679d5d95457ea8645919a1059863 | policy ' + POLICY_ID + ' | journal succeeded_verified', joined)
-        expected = ['  [x] 1 Proposal        recorded 2026-10-14T12:24:54Z | repository intent bcffdf6f0000 (current)',
+        expected = ['  [x] 1 Proposal        recorded 2026-10-14 12:24:54 UTC | repository intent bcffdf6f0000 (current)',
                     '  [x] 2 Review          1 field change: description | plan sha256 abababababab',
-                    '  [x] 3 Approval        exact review digest d1072f310000 supplied at dispatch | window 2026-10-14T12:24:57Z to 2026-10-14T12:29:57Z',
-                    '  [x] 4 Execution       engine succeeded_verified | service 200 | recorded 2026-10-14T12:24:58Z',
+                    '  [x] 3 Approval        exact review digest d1072f310000 supplied at dispatch | window 2026-10-14 12:24:57 UTC to 2026-10-14 12:29:57 UTC',
+                    '  [x] 4 Execution       engine succeeded_verified | service 200 | recorded 2026-10-14 12:24:58 UTC',
                     '  [x] 5 Readback        desired_state_observed | second plan no_change | visibility settled | 0 mismatches',
                     '  [-] 6 Reconciliation  not needed',
-                    '  [x] 7 Deployment      recorded 2026-10-14T12:25:00Z | intent bcffdf6f0000 | verified_local_modeled_deployment | baseline admissible',
-                    '  [x] 8 Observed after  matches desired at service revision 2 (1 before the change) | observed 2026-10-14T12:25:00.854978Z']
+                    '  [x] 7 Deployment      recorded 2026-10-14 12:25:00 UTC | intent bcffdf6f0000 | verified_local_modeled_deployment | baseline admissible',
+                    '  [x] 8 Observed after  matches desired at service revision 2 (1 before the change) | observed 2026-10-14 12:25:00 UTC']
         rows = [line for line in lines if line.startswith('  [')]
         self.assertEqual(rows, expected)
         self.assertIn('Next: Nothing pending: the change is recorded and observed as desired.', joined)
@@ -417,10 +417,10 @@ class DeliveryLinesTests(unittest.TestCase):
         value = delivery_value(approval={'status': 'waiting'}, execution={'status': 'not_started'}, readback={'status': 'not_started'},
                                deployment_record={'status': 'not_yet'}, observed_after={'status': 'not_yet'})
         joined = '\n'.join(delivery_lines(value, 120))
-        self.assertIn('  [ ] 3 Approval        waiting for the exact review digest until 2026-10-14T12:29:57Z', joined)
+        self.assertIn('  [ ] 3 Approval        waiting for the exact review digest until 2026-10-14 12:29:57 UTC', joined)
         self.assertIn('  [ ] 4 Execution       not started', joined)
         value = delivery_value(approval={'status': 'expired'})
-        self.assertIn('  [!] 3 Approval        expired: the approval window closed at 2026-10-14T12:29:57Z', '\n'.join(delivery_lines(value, 120)))
+        self.assertIn('  [!] 3 Approval        expired: the approval window closed at 2026-10-14 12:29:57 UTC', '\n'.join(delivery_lines(value, 120)))
         value = delivery_value(execution={'status': 'unknown', 'error_code': 'model_response_lost', 'service_status': None},
                                reconciliation={'status': 'required'},
                                deployment_record={'status': 'not_available', 'reason': 'no_verified_readback'})
@@ -446,7 +446,7 @@ class DeliveryLinesTests(unittest.TestCase):
                                    'run_url': 'https://ci.example.invalid/runs/42'}]
         joined = '\n'.join(delivery_lines(value, 140))
         self.assertIn('CI WORKFLOW RUNS  (imported claims; not verified)', joined)
-        self.assertIn('  plan 42  claims success | revision bbbbbbbbbbbb | observed 2026-10-14T12:00:00Z | tied to this operation', joined)
+        self.assertIn('  plan 42  claims success | revision bbbbbbbbbbbb | observed 2026-10-14 12:00:00 UTC | tied to this operation', joined)
 
     def test_narrow_terminals_stack_the_stage_text(self):
         from intune_iac.workbench_screens import delivery_lines
@@ -595,8 +595,8 @@ class RecordedLinesTests(unittest.TestCase):
     def test_an_imported_ci_run_reads_as_a_claim_with_its_links(self):
         from intune_iac.workbench_screens import recorded_lines
         lines = recorded_lines(self.RUN, 120)
-        self.assertEqual(lines[0], '[RECORDED] CI workflow run aaaaaaaaaaaa | new record | 2026-10-14T14:31:06Z')
-        self.assertEqual(lines[1], 'apply 1002: success | revision bbbbbbbbbbbb | observed 2026-10-14T14:21:05Z | '
+        self.assertEqual(lines[0], '[RECORDED] CI workflow run aaaaaaaaaaaa | new record | 2026-10-14 14:31:06 UTC')
+        self.assertEqual(lines[1], 'apply 1002: success | revision bbbbbbbbbbbb | observed 2026-10-14 14:21:05 UTC | '
                                    'linked to operation cccccccccccc')
         self.assertIn('never marks a stage done', ' '.join(lines[2:]))
         self.assertIn(':workflows lists every imported run', ' '.join(lines[2:]))
@@ -605,7 +605,7 @@ class RecordedLinesTests(unittest.TestCase):
         from intune_iac.workbench_screens import recorded_lines
         value = dict(self.RUN, created=False, kind='device_evidence', data={})
         self.assertEqual(recorded_lines(value, 120),
-                         ['[RECORDED] device evidence aaaaaaaaaaaa | already recorded; nothing changed | 2026-10-14T14:31:06Z'])
+                         ['[RECORDED] device evidence aaaaaaaaaaaa | already recorded; nothing changed | 2026-10-14 14:31:06 UTC'])
 
 
 class HistoryLinesTests(unittest.TestCase):
@@ -625,11 +625,11 @@ class HistoryLinesTests(unittest.TestCase):
         lines = history_event_lines(self.HISTORY, 120)
         joined = '\n'.join(lines)
         self.assertTrue(lines[0].startswith('HISTORY  journal events in order (chain verified)'))
-        self.assertIn('0   prepared          2026-10-14T16:35:31Z  approval will need digest aaaaaaaaaaaa', joined)
+        self.assertIn('0   prepared          2026-10-14 16:35:31 UTC  approval will need digest aaaaaaaaaaaa', joined)
         self.assertIn('approved with digest aaaaaaaaaaaa', joined)
         self.assertIn('1   dispatch started  time not recorded', joined)
         self.assertIn('engine reported succeeded_verified (synthetic_local_process_only)', joined)
-        self.assertIn('3   outcome unknown   2026-10-14T16:35:32Z  model_response_lost', joined)
+        self.assertIn('3   outcome unknown   2026-10-14 16:35:32 UTC  model_response_lost', joined)
         self.assertNotIn('could not be paired', joined)
         for width in (120, 60):
             for line in history_event_lines(self.HISTORY, width):
@@ -640,7 +640,7 @@ class HistoryLinesTests(unittest.TestCase):
         history = copy.deepcopy(self.HISTORY)
         history['events'][0]['store_recorded_at'] = '2026-10-14T17:14:37.396288Z'
         lines = history_event_lines(history, 120)
-        self.assertIn('0   prepared          2026-10-14T17:14:37Z  approval will need digest', lines[1])
+        self.assertIn('0   prepared          2026-10-14 17:14:37 UTC  approval will need digest', lines[1])
         self.assertEqual(lines[1].index('approval will'), lines[2].index('approved with'))
 
     def test_unpaired_registrations_are_disclosed_and_no_history_draws_nothing(self):
