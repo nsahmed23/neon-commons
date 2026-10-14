@@ -189,3 +189,19 @@ class RefreshResultTests(unittest.TestCase):
         text = ' '.join(' '.join(refresh_result_lines(value, 100)).split())
         self.assertNotIn('Previous intent', text)
         self.assertNotIn('kept', text)
+
+
+class RecordedRefreshTests(unittest.TestCase):
+    """The workspace shows a recorded refresh through the general record view (journey 27 run 1, frame 16): that view
+    must carry what the refresh established, not only that something was recorded."""
+
+    def test_the_record_view_of_a_refresh_names_the_previous_intent_it_kept(self):
+        from intune_iac.workbench_screens import recorded_lines
+        value = {'kind': 'repository_intent', 'artifact_id': 'b' * 64, 'created': True, 'recorded_at': '2026-10-14T23:50:55Z',
+                 'data': {'source_revision': 'c' * 40, 'revision_content_verified': False, 'consumer': {'status': 'verified'}},
+                 'effects': {'intent_recorded': True, 'previous_intent': 'a' * 64, 'latest_intent': 'b' * 64}}
+        text = ' '.join(' '.join(recorded_lines(value, 100)).split())
+        self.assertIn('[RECORDED] repository intent bbbbbbbbbbbb | new record', text)
+        self.assertIn('Previous intent aaaaaaaaaaaaaaaa is kept as history.', text)
+        self.assertIn('Revision: %s (caller asserted, not checked against the files)' % ('c' * 40), text)
+        self.assertNotIn('[NEW REPOSITORY INTENT RECORDED]', text)

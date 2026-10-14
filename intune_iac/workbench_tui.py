@@ -241,6 +241,9 @@ def fit(value, width, ellipsis='...'):
 LAYER_KEYS = {'details': (('e details', 'e summary'),), 'raw': (('r raw record', 'r summary'), ('r raw', 'r summary'))}
 ACTION_KEY_LINES = ('? help | Up/Down choose | Enter stages | Esc closes | q exit', '? help | Enter stages | Esc closes | q exit',
                     'Enter stages | Esc closes | q exit')
+# While a command or a search is typed, only the editing keys apply: q, ? and the digits are typed, not obeyed.
+TYPING_KEY_LINES = ('{submit} {verb} | Esc cancels | Left/Right move | Ctrl-U clears',
+                    '{submit} {verb} | Esc cancels | Ctrl-U clears', '{submit} {verb} | Esc cancels')
 FILTER_KEY_LINES = ('? help | Up/Down choose | Enter applies | Esc closes | q exit', 'Enter applies | Esc closes | q exit')
 
 
@@ -279,6 +282,13 @@ def help_line(width, layer='summary', lead=()):
     return next((line for line in lines if cell_width(line) <= width), lines[-1])
 
 
+def typing_line(width, mode, submit='Enter'):
+    """The key line while a command or a search is typed: the keys that edit, submit and cancel it."""
+    verb = 'searches' if mode == 'search' else 'submits'
+    lines = [line.format(submit=submit, verb=verb) for line in TYPING_KEY_LINES]
+    return next((line for line in lines if cell_width(line) <= width), lines[-1])
+
+
 def band_keys(rows):
     """The keys a hazard band offers, as the key line names them."""
     text = ' '.join(rows or [])
@@ -290,6 +300,9 @@ def status_line(scope, first, last, total, width, ellipsis='...', short=None):
     """Evidence class, rows and the approval statement, never cut mid-word: the class, else its mode word (short),
     else nothing (the context strip leads with the mode); the statement takes its short form last."""
     rows = 'rows %d-%d/%d' % (first, last, total)
+    # The class in words, else its mode word in the same case: never a snake_case or shouted label.
+    scope = str(scope).replace('_', ' ') if scope else scope
+    short = short.lower() if isinstance(short, str) else short
     for tail in (rows + ' | no automatic approval', rows + ' | no auto-approval'):
         for label in (scope, short):
             if label and cell_width('[%s] %s' % (label, tail)) <= width:
@@ -1294,7 +1307,8 @@ class Workspace:
                             ' more below: PgDn ' if self.scroll + available < len(data) else None),
                       pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
                       pad(prompt, width),
-                      pad(help_line(width, getattr(self, 'layer', 'summary'), band_keys(band)), width)])
+                      pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
+                          help_line(width, getattr(self, 'layer', 'summary'), band_keys(band)), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []

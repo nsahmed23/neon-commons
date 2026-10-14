@@ -294,18 +294,18 @@ class LifecycleTests(unittest.TestCase):
         import time
         text = self.summary(8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
                                 'freshness': {'status': 'stale'}})
-        self.assertIn('Next: record the current source first', text)
+        self.assertIn('Next: Refresh the repository intent first (a: actions)', text)
         self.assertNotIn('a prepares a proposal from the recorded intent', text)
         prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': time.time() + 200}
         text = self.summary(4, dict(prepared, expires_at=time.time() - 1))
-        self.assertIn("approval window has closed; a prepares a new proposal", text)
+        self.assertIn("approval window has closed; Prepare a proposal again (a: actions)", text)
         self.assertNotIn('execute OPERATION_DIR', text)
         text = self.summary(4, dict(prepared, repository={'cited': None, 'context_changed': True}))
         self.assertIn('context file changed, so execute refuses it', text)
         text = self.summary(4, dict(prepared, repository={'cited': True, 'freshness': 'stale'}))
         self.assertIn('repository changed since its intent, so execute refuses it', text)
         text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'outcome_unknown'})
-        self.assertIn('Next: a reconciles it (never replays)', text)
+        self.assertIn('Next: Reconcile it (a: actions; it never replays the change)', text)
         text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'succeeded_verified'})
         self.assertIn('Next: v shows every delivery stage, including the deployment record', text)
         self.assertNotIn('unknown outcome', text)

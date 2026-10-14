@@ -255,7 +255,7 @@ class VisionReviewTests(unittest.TestCase):
     def test_the_footer_never_cuts_the_evidence_class_mid_word(self):
         from intune_iac.workbench_tui import status_line
         self.assertEqual(status_line('synthetic_local_process_and_modeled_service_only', 1, 15, 17, 80, short='SYNTHETIC'),
-                         '[SYNTHETIC] rows 1-15/17 | no automatic approval')
+                         '[synthetic] rows 1-15/17 | no automatic approval')
         self.assertEqual(status_line('synthetic', 1, 2, 66, 40, short='SYNTHETIC'), 'rows 1-2/66 | no automatic approval')
 
 
@@ -336,6 +336,26 @@ class FrameTests(unittest.TestCase):
                                                    'freshness': {'status': 'stale', 'resolution_sha256': 'c' * 64}})
         workspace.draw()
         return workspace, [row for row in out.getvalue().replace('\x1b[H', '').replace('\x1b[J', '').split('\r\n')]
+
+    def test_while_a_command_is_typed_the_key_line_names_the_typing_keys(self):
+        # Journey 27 run 1 frame 35: the actions key line (Enter stages, Esc closes, q exit) stayed while a staged
+        # command was edited, where Enter submits, Esc cancels and q is typed into the command.
+        for size in ((120, 40), (80, 24), MINIMUM):
+            workspace, rows = self.staged_frame(size)
+            keys = rows[-1].rstrip()
+            self.assertTrue(keys.startswith('Enter submits | Esc cancels'), (size, keys))
+            self.assertNotIn('stages', keys)
+            self.assertNotIn('q exit', keys)
+            self.assertLessEqual(cell_width(keys), size[0])
+
+    def test_the_status_bar_names_the_evidence_class_in_words(self):
+        # Frame-review items 23 and 29: no snake_case class and no uppercase-only short form in the status bar.
+        from intune_iac.workbench_tui import status_line
+        from intune_iac.workbench_screens import mode_word
+        scope = 'synthetic_local_process_and_modeled_service_only'
+        self.assertTrue(status_line(scope, 1, 3, 3, 120, short=mode_word(scope)).startswith(
+            '[synthetic local process and modeled service only] rows 1-3/3'))
+        self.assertTrue(status_line(scope, 1, 3, 3, 60, short=mode_word(scope)).startswith('[synthetic] rows 1-3/3'))
 
     def test_a_staged_refresh_states_its_whole_boundary_before_the_mechanics(self):
         # TASK-11 2.6 item 1: the boundary is complete at 120 and 80 columns and usable at the minimum.

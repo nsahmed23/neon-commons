@@ -393,26 +393,26 @@ def lifecycle_next(tab, value, now, eligibility=None):
         if freshness.get('status') == 'current' and isinstance(eligibility, dict) and eligibility.get('code'):
             return 'a proposal is blocked now (%s); 2 Inspector says why and what to do' % eligibility['code']
         if freshness.get('status') == 'current':
-            return 'a prepares a proposal from the recorded intent; 5 Plan reviews it'
-        return 'record the current source first (a lists the refresh); a proposal follows from the new intent'
+            return 'Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it'
+        return 'Refresh the repository intent first (a: actions); a proposal follows from the new intent'
     if tab == 5:
         if value.get('status') == 'outcome_unknown':
-            return 'a reconciles it (never replays); v shows every delivery stage'
+            return 'Reconcile it (a: actions; it never replays the change); v shows every delivery stage'
         return 'v shows every delivery stage, including the deployment record'
     status = value.get('status')
     repository = value.get('repository') if isinstance(value.get('repository'), dict) else {}
     if status == 'prepared':
         if repository.get('context_changed'):
-            return "this proposal's context file changed, so execute refuses it; a prepares a new proposal"
+            return "this proposal's context file changed, so execute refuses it; Prepare a proposal again (a: actions)"
         if repository.get('cited') and repository.get('freshness') not in (None, 'current'):
             return ('the repository changed since its intent, so execute refuses it; record the current source, '
                     'then prepare again')
         expires = value.get('expires_at')
         if isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now:
-            return "this plan's approval window has closed; a prepares a new proposal"
+            return "this plan's approval window has closed; Prepare a proposal again (a: actions)"
         return 'execute OPERATION_DIR DIGEST runs it with the review digest; 6 Execution shows the result'
     if status == 'outcome_unknown':
-        return 'a reconciles it (never replays); v shows every delivery stage'
+        return 'Reconcile it (a: actions; it never replays the change); v shows every delivery stage'
     return 'v shows every delivery stage of this operation'
 
 
@@ -888,14 +888,16 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'workbench_fresh_output_required': 'no fresh operation directory'}
 
 
-def refresh_result_lines(value, width):
+def refresh_result_lines(value, width, header=True):
     """A recorded repository intent and what the refresh established, read back: the new intent and, when the
     result says so, the previous intent kept as history. Nothing is said about effects the result does not carry."""
     data = value.get('data') if isinstance(value.get('data'), dict) else {}
     effects = value.get('effects') if isinstance(value.get('effects'), dict) else {}
     recorded = effects.get('intent_recorded', value.get('created', True))
-    lines = ['[NEW REPOSITORY INTENT RECORDED]' if recorded else '[REPOSITORY INTENT ALREADY RECORDED]']
-    lines += word_wrap('Intent: ' + str(value.get('artifact_id'))[:16], width)
+    lines = []
+    if header:
+        lines = ['[NEW REPOSITORY INTENT RECORDED]' if recorded else '[REPOSITORY INTENT ALREADY RECORDED]']
+        lines += word_wrap('Intent: ' + str(value.get('artifact_id'))[:16], width)
     lines += word_wrap('Revision: %s (%s)' % (data.get('source_revision'), 'content verified' if
                        data.get('revision_content_verified') else 'caller asserted, not checked against the files'),
                        width)
@@ -1792,6 +1794,9 @@ def recorded_lines(value, width):
         RECORD_WORDS.get(kind, kind), str(value.get('artifact_id'))[:12],
         'new record' if value.get('created') else 'already recorded; nothing changed', _when(value.get('recorded_at'))), width)
     data = value.get('data') if isinstance(value.get('data'), dict) else {}
+    if kind == 'repository_intent' and data:
+        # What the refresh established (the previous intent kept), under the record's own heading.
+        lines += refresh_result_lines(value, width, header=False)
     if kind == 'workflow_run' and data:
         links = ['linked to %s %s' % ('operation' if row.get('relation') == 'related_operation' else 'observation',
                                        str(row.get('target_id'))[:12])
@@ -2006,8 +2011,7 @@ def refusal_lines(value, width, known=None):
 
 # The next step for a known cause, where the engine's code covers several.
 KNOWN_NEXT = {
-    'repository_changed': 'Press 9 to review the difference; then a records the current source as a new intent '
-                          '(repository-refresh REVISION).',
+    'repository_changed': 'Press 9 to review the difference; then Refresh the repository intent (a: actions).',
     'consumer_changed': 'Fix the component so it consumes exactly this policy, then repository-refresh REVISION '
                         'records the current source.',
     'service_changed': 'Collect again (a lists it), then prepare the proposal again.',

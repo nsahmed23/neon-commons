@@ -161,7 +161,7 @@ class FrameChromeTests(unittest.TestCase):
         # The class is never cut mid-word: when it does not fit, its mode word stands in (the strip leads with it too).
         line = status_line('synthetic_local_process_and_modeled_service_only', 1, 12, 125, 60, short='SYNTHETIC')
         self.assertLessEqual(cell_width(line), 60)
-        self.assertEqual(line, '[SYNTHETIC] rows 1-12/125 | no automatic approval')
+        self.assertEqual(line, '[synthetic] rows 1-12/125 | no automatic approval')
 
     def test_headings_and_signal_lines_stand_out_with_and_without_colour(self):
         from intune_iac.workbench_tui import THEMES, emphasize, paint
