@@ -888,6 +888,28 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'workbench_fresh_output_required': 'no fresh operation directory'}
 
 
+def refresh_result_lines(value, width):
+    """A recorded repository intent and what the refresh established, read back: the new intent and, when the
+    result says so, the previous intent kept as history. Nothing is said about effects the result does not carry."""
+    data = value.get('data') if isinstance(value.get('data'), dict) else {}
+    effects = value.get('effects') if isinstance(value.get('effects'), dict) else {}
+    recorded = effects.get('intent_recorded', value.get('created', True))
+    lines = ['[NEW REPOSITORY INTENT RECORDED]' if recorded else '[REPOSITORY INTENT ALREADY RECORDED]']
+    lines += word_wrap('Intent: ' + str(value.get('artifact_id'))[:16], width)
+    lines += word_wrap('Revision: %s (%s)' % (data.get('source_revision'), 'content verified' if
+                       data.get('revision_content_verified') else 'caller asserted, not checked against the files'),
+                       width)
+    lines += word_wrap('Consumer: ' + _as_words((data.get('consumer') or {}).get('status', 'not recorded')), width)
+    previous = effects.get('previous_intent')
+    if recorded and isinstance(previous, str) and previous != value.get('artifact_id'):
+        lines += word_wrap('Previous intent %s is kept as history. Reviews prepared from it do not cover this intent; '
+                           'they remain inspectable (4 History, 5 Plan).' % previous[:16], width)
+    elif not recorded:
+        lines += word_wrap('No new intent was recorded; this is the latest intent already.', width)
+    lines += word_wrap('Press 9 to compare it with the repository now.', width)
+    return lines
+
+
 def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter', prefixes=None):
     """The guided actions for the selected policy: what each is, whether it is available, its exact command and what
     it does. A blocked action says why, with the engine's own code."""

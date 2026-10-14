@@ -158,3 +158,34 @@ class RefusalEffectTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class RefreshResultTests(unittest.TestCase):
+    """A successful refresh says what it established, read back from the store: the new intent, and the previous
+    intent kept as history. Reviews prepared from that one do not cover the new intent and stay inspectable; nothing
+    says they were deleted or invalidated everywhere (TASK-11 5.8)."""
+    RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = repository_tests.RepositoryOwnedChangeTests.setUp
+    import_intent = repository_tests.RepositoryOwnedChangeTests.import_intent
+    edit_description = repository_tests.RepositoryOwnedChangeTests.edit_description
+
+    def test_a_successful_refresh_names_the_previous_intent_it_kept(self):
+        from intune_iac.workbench_repository import refresh_intent
+        from intune_iac.workbench_screens import refresh_result_lines
+        first = self.import_intent()
+        self.edit_description('Edited in the repository.')
+        second = refresh_intent(self.store, OBJECT, 'b' * 40)
+        self.assertEqual(second['effects'], {'intent_recorded': True, 'previous_intent': first['artifact_id'],
+                                             'latest_intent': second['artifact_id']})
+        text = ' '.join(' '.join(refresh_result_lines(second, 100)).split())
+        self.assertIn('[NEW REPOSITORY INTENT RECORDED]', text)
+        self.assertIn('Previous intent %s is kept as history.' % first['artifact_id'][:16], text)
+        self.assertIn('Reviews prepared from it do not cover this intent; they remain inspectable (4 History, 5 Plan).', text)
+        self.assertNotIn('not current', text)
+
+    def test_a_result_without_effects_claims_nothing_about_the_previous_intent(self):
+        from intune_iac.workbench_screens import refresh_result_lines
+        value = {'kind': 'repository_intent', 'artifact_id': 'c' * 36, 'data': {'source_revision': 'b' * 40}}
+        text = ' '.join(' '.join(refresh_result_lines(value, 100)).split())
+        self.assertNotIn('Previous intent', text)
+        self.assertNotIn('kept', text)

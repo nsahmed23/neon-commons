@@ -178,15 +178,19 @@ def refresh_intent(store, object_id, revision, *, expected_resolution=None, git_
             raise AppError('workbench_difference_changed', 'The repository changed again after its difference was shown; '
                            'review the difference again before recording it.')
         scope = data['scope']
-        return import_repository(store, scope['repository'], scope['stack'], scope['component'], object_id,
-                                 data['effective_pointer'], revision, scope['backend'], data['resource_address'],
-                                 git_executable=git_executable, git_sha256=git_sha256)
+        result = import_repository(store, scope['repository'], scope['stack'], scope['component'], object_id,
+                                   data['effective_pointer'], revision, scope['backend'], data['resource_address'],
+                                   git_executable=git_executable, git_sha256=git_sha256)
     except AppError as error:
         # Read back, not assumed: whether the refusal left the latest intent as it was.
         after = latest_intent(store, object_id)['artifact_id']
         error.effects = dict(error.effects or {}, intent_recorded=after != latest['artifact_id'],
                              retained_intent=latest['artifact_id'] if after == latest['artifact_id'] else after)
         raise
+    # Read back, as for a refusal: the latest intent now, and the previous one, which stays recorded as history.
+    after = latest_intent(store, object_id)['artifact_id']
+    return {**result, 'effects': {'intent_recorded': after != latest['artifact_id'],
+                                  'previous_intent': latest['artifact_id'], 'latest_intent': after}}
 
 
 def _usable_intent(intent, *, code_prefix):

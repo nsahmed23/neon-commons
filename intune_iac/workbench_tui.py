@@ -1111,12 +1111,8 @@ class Workspace:
             rows.append('[REPOSITORY STATUS]')
             rows.extend(repository_lines(value, width))
         elif self.tab == 8 and value.get('kind') == 'repository_intent' and isinstance(value.get('data'), dict):
-            data = value['data']
-            rows.append('[NEW REPOSITORY INTENT RECORDED]')
-            field('Intent', str(value.get('artifact_id'))[:16])
-            field('Revision', str(data.get('source_revision')) + (' (content verified)' if data.get('revision_content_verified') else ' (caller asserted)'))
-            field('Consumer', (data.get('consumer') or {}).get('status', 'not recorded'))
-            rows.extend(word_wrap('Press 9 to compare it with the repository now. Earlier reviews of the previous intent are not current.', width))
+            from .workbench_screens import refresh_result_lines
+            rows.extend(refresh_result_lines(value, width))
         elif self.tab == 7 and isinstance(value.get('navigation'), list):
             from .workbench_screens import help_lines
             rows.extend(help_lines(width))
