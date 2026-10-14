@@ -840,7 +840,6 @@ class Workspace:
                                ('Approval binding', 'approval_digest'), ('Expiry', 'expires_at'), ('Evidence class', 'evidence_class')):
                 from .workbench_screens import utc_time
                 field(label, utc_time(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
-            rows.append('Before, desired, targeting and risks: e typed details | r raw record.')
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
@@ -924,8 +923,16 @@ class Workspace:
         if layer == 'raw':
             return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
-        full = 'Evidence: e typed details | r complete raw record (%d lines)' % self._raw_count()
-        return self._summary_lines(width) + [full if cell_width(full) <= width else 'Evidence: e details | r raw (%d lines)' % self._raw_count()]
+        return self._summary_lines(width) + [self._evidence_line(width)]
+
+    def _evidence_line(self, width):
+        """One line naming the two evidence layers; for a plan, also what they hold beyond the summary."""
+        count = self._raw_count()
+        within = ' (before, desired, targeting and risks)' if self.tab == 4 and self.value.get('operation_id') else ''
+        forms = ('Evidence%s: e typed details | r complete raw record (%d lines)' % (within, count),
+                 'Evidence: e typed details | r complete raw record (%d lines)' % count,
+                 'Evidence: e details | r raw (%d lines)' % count)
+        return next((form for form in forms if cell_width(form) <= width), forms[-1])
 
     def _raw_count(self):
         """Lines of the raw record before wrapping, so the count does not change with the terminal width."""

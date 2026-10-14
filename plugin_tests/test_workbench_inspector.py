@@ -267,14 +267,16 @@ class EvidenceLayerTests(unittest.TestCase):
         self.assertEqual(workspace.facts['repository'], 'current')
 
     def test_no_summary_says_evidence_follows_below_it(self):
-        from intune_iac.workbench_screens import change_lines
         plan = {'operation_id': 'a' * 32, 'status': 'prepared', 'tenant_id': TENANT, 'object_id': OBJECT,
                 'field_changes': {'status': 'changed', 'complete': False, 'changes': [
                     {'path': '/description', 'kind': 'replaced', 'before': 'x', 'after': 'y'}]}}
-        lines = self.workspace(plan, tab=4)._summary_lines(100) + change_lines(plan['field_changes'], 100)
+        # The plan body holds the change review (with its partial-list note) and ends with the evidence line.
+        lines = self.workspace(plan, tab=4)._data_lines(100)
         joined = '\n'.join(lines).lower()
         self.assertNotIn('follow', joined)
-        self.assertIn('e typed details', joined)
+        # The plan's evidence line says what the layers hold, once; no second line repeats the keys.
+        self.assertEqual(joined.count('e typed details'), 2)  # the evidence line and the partial change list
+        self.assertIn('evidence (before, desired, targeting and risks): e typed details | r complete raw record', joined)
 
     def test_a_capture_whose_bytes_no_longer_verify_still_shows_its_integrity(self):
         value = {'object_id': OBJECT, 'name': 'Windows Privacy Pilot', 'relationships': [],
