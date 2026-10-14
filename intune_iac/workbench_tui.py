@@ -144,6 +144,54 @@ def wrap(value, width):
     yield line
 
 
+# Views shown on a surface that is not their own; the title names both, so the tab and the body agree.
+SUBVIEWS = {'diagnostics': 'Diagnostics', 'health': 'Health', 'queue': 'Maintenance queue', 'delivery': 'Delivery',
+            'families': 'Families', 'start': 'Start', 'dictionary': 'Setting dictionary', 'dictionary-page': 'Setting dictionary',
+            'lineage': 'Lineage', 'repository-entry': 'Repository entry', 'workflows': 'CI runs'}
+# From this many body cells, the readable summary and the exact engine record sit side by side.
+WIDE = 150
+# The longest that fits is shown, so narrow terminals get every key and no cut-off word.
+HELP_LINES = ('1-9 surfaces | Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | e exact record | q detach',
+              '1-9 surfaces | arrows | PgUp/PgDn | : command | / search | e record | q detach',
+              '1-9 tabs | : command | / search | e record | q detach')
+
+
+def title_line(tab, last_command, value):
+    """The surface, and the view shown on it when that view is not the surface's own."""
+    name = last_command.split(' ', 1)[0] if isinstance(last_command, str) else ''
+    sub = SUBVIEWS.get(name) if isinstance(value, dict) and value.get('status') != 'error' else None
+    return 'INTUNE WORKBENCH  /  ' + tab + ('  /  ' + sub if sub else '')
+
+
+def fit(value, width, ellipsis='...'):
+    """Text that fits `width` cells, shortened at a word boundary with an ellipsis instead of cut mid-word."""
+    text = safe_text(value)
+    if cell_width(text) <= width:
+        return text
+    room = max(1, width - cell_width(ellipsis))
+    cut = clip(text, room)
+    space = cut.rfind(' ')
+    return (cut[:space] if space > room // 2 else cut).rstrip() + ellipsis
+
+
+def help_line(width):
+    return next((line for line in HELP_LINES if cell_width(line) <= width), HELP_LINES[-1])
+
+
+def status_line(scope, first, last, total, width, ellipsis='...'):
+    """Evidence class, rows and the approval statement; only the evidence class is shortened to fit."""
+    tail = ' rows %d-%d/%d | no automatic approval' % (first, last, total)
+    room = width - cell_width(tail) - 2
+    return '[%s]%s' % (fit(scope, max(4, room), ellipsis), tail)
+
+
+def ruled(left, fill, right, inner, label=None):
+    """A border line; a label, when it fits, sits inside it near the left corner."""
+    if not label or cell_width(label) + 4 > inner:
+        return left + fill * inner + right
+    return left + fill * 2 + label + fill * (inner - 2 - cell_width(label)) + right
+
+
 def terminal_size(stream):
     try:
         size = os.get_terminal_size(stream.fileno())
@@ -336,6 +384,8 @@ class Workspace:
         self.active_adoption = None
         self.active_adoption_plan = None
         self.entry_focus = 0
+        # The exact engine record follows every readable summary; e hides or shows it for this session.
+        self.show_exact = True
         self.pending = deque()
         self.size = self._terminal_size()
         self.key_reader = None
@@ -538,10 +588,12 @@ class Workspace:
         facts = self.facts if self.facts.get('object_id') == self.selected else {'object_id': self.selected}
         if value.get('object_id') == self.selected and isinstance(value.get('name'), str):
             facts['name'] = value['name']
-        # Lineage reports its own freshness and keeps the observation's beside it.
-        observed = value.get('observation_freshness', value.get('freshness'))
+        # Lineage reports its own freshness and keeps the observation's beside it; its own is never the observation's.
+        observed = value.get('observation_freshness') if 'provenance_origin' in value else value.get('freshness')
         if value.get('object_id') == self.selected and isinstance(observed, str):
             facts['observation'] = observed
+        if value.get('object_id') == self.selected and 'snapshot_id' in value and isinstance(value.get('evidence_class'), str):
+            facts['evidence_class'] = value['evidence_class']
         repository = value.get('repository')
         if value.get('schema_version') == 'workbench-repository-status/1' and isinstance(value.get('freshness'), dict):
             facts['repository'] = str(value['freshness'].get('status'))
@@ -569,7 +621,9 @@ class Workspace:
         value = self.value
         rows = []
         def field(label, item):
-            rendered = json.dumps(item, ensure_ascii=False, allow_nan=False) if not isinstance(item, str) else item
+            # Absent and yes/no values read as words; the exact record below keeps the literal.
+            rendered = ('not recorded' if item is None else ('yes' if item else 'no') if isinstance(item, bool) else item
+                        if isinstance(item, str) else json.dumps(item, ensure_ascii=False, allow_nan=False))
             rows.extend(word_wrap(label + ': ' + rendered, width))
         if value.get('status') == 'error' and isinstance(value.get('error'), dict):
             from .workbench_screens import refusal_lines
@@ -636,7 +690,7 @@ class Workspace:
             rows.append('[EXACT VALUES AND TARGETING] Full typed evidence follows.')
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
             from .workbench_screens import relationship_lines
-            rows.extend(relationship_lines(value, width))
+            rows.extend(relationship_lines(value, width, getattr(self, 'rules', 'ascii')))
             rows.append('[EDGE EVIDENCE AND UNCERTAINTY]')
             if 'raw_observed_assignments' in value:
                 field('Literal capture status', value.get('raw_mapping_status', 'unknown'))
@@ -731,7 +785,7 @@ class Workspace:
             rows.append('[BEFORE / DESIRED / TARGETING / RISKS] Exact engine values follow.')
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
-            rows.extend(delivery_lines(value, width))
+            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
             rows.append('[EXACT DELIVERY RECORDS] Full engine values follow.')
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
@@ -823,6 +877,20 @@ class Workspace:
         return rows
 
     def _data_lines(self, width):
+        """The body in one column: the readable summary, then the exact engine record."""
+        return self._summary_lines(width) + self._shown_detail(self._detail_lines(width))
+
+    def _body_lines(self, inner, side):
+        """The body as drawn: one column, or from WIDE cells the summary beside the exact record."""
+        if inner < WIDE or not getattr(self, 'show_exact', True):
+            return self._data_lines(inner)
+        left = (inner - 3) * 11 // 20
+        right = inner - 3 - left
+        summary, detail = self._summary_lines(left), self._detail_lines(right)
+        return [pad(summary[index] if index < len(summary) else '', left) + ' ' + side + ' ' + (detail[index] if index < len(detail) else '')
+                for index in range(max(len(summary), len(detail)))]
+
+    def _summary_lines(self, width):
         if self.tab == 0 and self.rows and isinstance(self.value.get('objects'), list):
             # Short lines first, so the marker key stays on one line down to narrow terminals.
             lines = (list(wrap('[SELECT] Exact identity / name / ownership / coverage / health', width))
@@ -858,9 +926,13 @@ class Workspace:
                 lines.extend(wrap('  ' + row['operation_root'], width))
             lines.extend(['', '[EVIDENCE] Recorded receipts; Enter revalidates current plan.'])
         else: lines = self._surface_summary(width)
+        return lines
+
+    def _detail_lines(self, width):
+        """The exact engine record wrapped to `width`, cached per value and width."""
         cache_key = (id(self.value), width)
         if self._detail_cache is not None and self._detail_cache[0] == cache_key:
-            return lines + self._detail_cache[1]
+            return self._detail_cache[1]
         detail = []
         for line in json.dumps(self.value, ensure_ascii=False, indent=2, allow_nan=False).splitlines():
             detail.extend(wrap(line, width))
@@ -871,22 +943,32 @@ class Workspace:
                 detail.append('[VIEW LIMIT] Use the paged text interface for this result.')
                 break
         self._detail_cache = (cache_key, detail)
-        return lines + detail
+        return detail
+
+    def _shown_detail(self, detail):
+        if getattr(self, 'show_exact', True):
+            return detail
+        return ['[EXACT RECORD HIDDEN] %d lines of the engine record; press e to show them.' % len(detail)]
 
     def draw(self):
         self.size = self._terminal_size()
         width, height = self.size
         inner = width - 2
         from .workbench_screens import tab_line
-        header = 'INTUNE WORKBENCH  /  ' + TABS[self.tab]
+        header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value)
         labels = tab_line(TABS, self.tab, width)
         available = max(0, height - 8)
-        data = self._data_lines(inner)
+        data = self._body_lines(inner, RULES[getattr(self, 'rules', 'ascii')][1])
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
         status = self._context_strip(width)
-        scope = self.value.get('evidence_class', 'unknown')
-        footer = '[%s] rows %d-%d/%d | no automatic approval' % (scope, min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data))
+        ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
+        # A view without its own evidence class shows the selected policy's, never a bare "unknown".
+        facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
+        scope = (self.value.get('evidence_class') or facts.get('evidence_class')
+                 or 'evidence class not stated')
+        footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data),
+                             width, ellipsis)
         if self.mode:
             prefix = '/' if self.mode == 'search' else ':'
             before_cursor = safe_text(self.buffer[:self.cursor])
@@ -898,19 +980,23 @@ class Workspace:
                 tail.append(char); used += cells
             before_cursor = ''.join(reversed(tail))
             prompt = prefix + before_cursor + '|' + after_cursor
-        else: prompt = self.notice
+        else: prompt = fit(self.notice, width, ellipsis)
         top, side, bottom = RULES[getattr(self, 'rules', 'ascii')]
-        frame = [pad(header, width), pad(labels, width), pad(status, width), top[0] + top[1] * inner + top[2]]
+        # Content beyond the frame is announced inside the border, not only by the row counter below it.
+        frame = [pad(header, width), pad(labels, width), pad(status, width),
+                 ruled(top[0], top[1], top[2], inner, ' more above: PgUp ' if self.scroll > 0 else None)]
         frame.extend(side + pad(line, inner) + side for line in visible)
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
-        frame.extend([bottom[0] + bottom[1] * inner + bottom[2], pad(footer, width), pad(prompt, width), pad('1-9 surfaces | Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | q detach', width)])
+        frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
+                            ' more below: PgDn ' if self.scroll + available < len(data) else None),
+                      pad(footer, width), pad(prompt, width), pad(help_line(width), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
             for i, line in enumerate(frame):
                 base = palette['accent'] if i in (0, 1, len(frame) - 2) else palette['fg']
-                # Body lines and the notice get word-level reinforcement; words never change.
-                if line.startswith(side) or i == len(frame) - 2:
+                # Body lines, the context strip and the notice get word-level reinforcement; words never change.
+                if line.startswith(side) or i in (2, len(frame) - 2):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
         else: painted = frame
@@ -1088,6 +1174,10 @@ class Workspace:
                     if self.active_operation is not None: return self._send('delivery ' + shlex.quote(self.active_operation))
                     self.notice = 'No active operation: review one first (5, or :review OPERATION_DIR).'
                 elif char == 'l': return self._send('lineage')
+                elif char == 'e':
+                    self.show_exact = not getattr(self, 'show_exact', True); self.scroll = 0
+                    self.notice = ('EXACT RECORD SHOWN below each summary.' if self.show_exact else
+                                   'EXACT RECORD HIDDEN: e shows it again; nothing was changed.')
                 elif char == '?': return self._send('help')
             self.draw()
 

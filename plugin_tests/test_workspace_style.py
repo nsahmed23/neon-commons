@@ -99,5 +99,106 @@ class EstateMarkerTests(unittest.TestCase):
         self.assertTrue(any('> focus' in line and '* pinned selection' in line for line in lines))
 
 
+def xterm(code):
+    """The xterm 256-colour value the workspace paints with."""
+    code = int(code)
+    if code < 16:
+        raise ValueError('themes use the 6x6x6 cube or the grey ramp')
+    if code < 232:
+        levels, code = (0, 95, 135, 175, 215, 255), code - 16
+        return levels[code // 36], levels[code // 6 % 6], levels[code % 6]
+    grey = 8 + 10 * (code - 232)
+    return grey, grey, grey
+
+
+def contrast(first, second):
+    """WCAG 2 contrast ratio of two sRGB colours."""
+    def luminance(rgb):
+        linear = [c / 255 / 12.92 if c / 255 <= 0.03928 else ((c / 255 + 0.055) / 1.055) ** 2.4 for c in rgb]
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+    high, low = sorted((luminance(first), luminance(second)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+class ContrastTests(unittest.TestCase):
+    """Every text role meets WCAG AA (4.5:1) on its theme background; measured, not judged by eye."""
+    def test_every_theme_role_is_readable_on_its_background(self):
+        from intune_iac.workbench_tui import THEMES
+        for theme, palette in THEMES.items():
+            for role in ('fg', 'accent', 'ok', 'warn', 'bad'):
+                ratio = contrast(xterm(palette[role]), xterm(palette['bg']))
+                self.assertGreaterEqual(ratio, 4.5, '%s %s %.2f' % (theme, role, ratio))
+
+
+class FrameChromeTests(unittest.TestCase):
+    """Title, footer, help and borders: what the frame around every surface says."""
+    def test_the_title_names_a_view_shown_on_another_surface(self):
+        from intune_iac.workbench_tui import title_line
+        self.assertEqual(title_line('Coverage', 'diagnostics', {}), 'INTUNE WORKBENCH  /  Coverage  /  Diagnostics')
+        self.assertEqual(title_line('Execution', 'delivery /work/op', {}), 'INTUNE WORKBENCH  /  Execution  /  Delivery')
+        self.assertEqual(title_line('Coverage', 'views', {}), 'INTUNE WORKBENCH  /  Coverage')
+        self.assertEqual(title_line('Coverage', 'diagnostics', {'status': 'error'}), 'INTUNE WORKBENCH  /  Coverage')
+
+    def test_long_text_is_shortened_at_a_word_with_an_ellipsis(self):
+        from intune_iac.workbench_tui import fit
+        self.assertEqual(fit('Ready. : opens the complete text command bar; Esc cancels editing.', 40),
+                         'Ready. : opens the complete text...')
+        self.assertEqual(fit('short', 40), 'short')
+        self.assertLessEqual(cell_width(fit('x' * 90, 30, '…')), 30)
+
+    def test_the_help_line_fits_every_width_without_a_cut_word(self):
+        from intune_iac.workbench_tui import HELP_LINES, help_line
+        for width in (160, 100, 80, 60):
+            line = help_line(width)
+            self.assertLessEqual(cell_width(line), width)
+            self.assertIn(line, HELP_LINES)
+            self.assertIn('q detach', line); self.assertIn(': command', line)
+
+    def test_the_status_line_keeps_the_approval_statement_whole(self):
+        from intune_iac.workbench_tui import status_line
+        line = status_line('synthetic_local_process_and_modeled_service_only', 1, 12, 125, 60)
+        self.assertLessEqual(cell_width(line), 60)
+        self.assertTrue(line.endswith(' rows 1-12/125 | no automatic approval'), line)
+        self.assertTrue(line.startswith('[synthetic'))
+
+    def test_a_border_announces_more_content(self):
+        from intune_iac.workbench_tui import ruled
+        self.assertEqual(ruled('+', '-', '+', 30, ' more below: PgDn '), '+-- more below: PgDn ----------+')
+        self.assertEqual(ruled('+', '-', '+', 10, ' more below: PgDn '), '+' + '-' * 10 + '+')
+
+    def workspace(self, **extra):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(tab=7, value={'schema_version': 'workbench-families/1', 'available': False,
+                                                'reason': 'family_coverage_not_packaged', 'families': []},
+                                  selected=None, facts={}, rows=[], operation_rows=[], _detail_cache=None, **extra)
+        return workspace
+
+    def test_a_wide_body_puts_the_summary_beside_the_exact_record(self):
+        workspace = self.workspace()
+        wide = workspace._body_lines(160, '│')
+        left = (160 - 3) * 11 // 20
+        self.assertEqual(wide[0][:len('[POLICY FAMILIES]')], '[POLICY FAMILIES]')
+        self.assertEqual(wide[0][left:left + 3], ' │ ')
+        self.assertEqual(wide[0][left + 3:], '{')
+        for line in wide:
+            self.assertLessEqual(cell_width(line), 160, line)
+        # Below the wide threshold, and with the record hidden, the body stays one column.
+        self.assertEqual(workspace._body_lines(120, '│'), workspace._data_lines(120))
+        hidden = self.workspace(show_exact=False)
+        self.assertEqual(hidden._body_lines(160, '│'), hidden._data_lines(160))
+        self.assertTrue(hidden._data_lines(160)[-1].startswith('[EXACT RECORD HIDDEN]'))
+
+    def test_lineage_freshness_never_becomes_the_observation_freshness(self):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(selected='p1', facts={'object_id': 'p1', 'observation': 'fresh'}, last_command='lineage')
+        workspace._learn({'object_id': 'p1', 'provenance_origin': {'kind': 'repository_intent'},
+                          'freshness': 'recorded_intent_not_revalidated'})
+        self.assertEqual(workspace.facts['observation'], 'fresh')
+        workspace._learn({'object_id': 'p1', 'snapshot_id': 's', 'freshness': 'stale', 'evidence_class': 'synthetic'})
+        self.assertEqual((workspace.facts['observation'], workspace.facts['evidence_class']), ('stale', 'synthetic'))
+
+
 if __name__ == '__main__':
     unittest.main()

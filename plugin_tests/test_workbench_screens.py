@@ -200,6 +200,50 @@ RELATIONSHIPS = {'object_id': POLICY_ID, 'name': 'Windows Privacy Pilot', 'cover
                             'scope': {'repository': '/work/repository', 'stack': 'orgs/reference/dev', 'component': 'intune-reference'}}}
 
 
+class TreeAndSpineTests(unittest.TestCase):
+    """Box-drawing rules draw connected trees and a stage spine; ASCII output is unchanged."""
+    def test_relationships_hang_from_connected_tree_lines(self):
+        from intune_iac.workbench_screens import relationship_lines
+        lines = relationship_lines(RELATIONSHIPS, 140, rules='unicode')
+        self.assertIn('  ├── assignment   44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', lines)
+        self.assertTrue(any(line.startswith('  └── ') for line in lines))
+        self.assertEqual(relationship_lines(RELATIONSHIPS, 140), relationship_lines(RELATIONSHIPS, 140, rules='ascii'))
+
+    def test_delivery_stages_hang_from_one_spine(self):
+        from intune_iac.workbench_screens import delivery_lines
+        lines = delivery_lines(delivery_value(), 140, rules='unicode')
+        stage_lines = [line for line in lines if '] ' in line and line[:1] in '┌├└']
+        self.assertEqual(len(stage_lines), 8)
+        self.assertTrue(stage_lines[0].startswith('┌─[x] 1 Proposal'))
+        self.assertTrue(stage_lines[-1].startswith('└─['))
+        ascii_lines = delivery_lines(delivery_value(), 140)
+        self.assertIn('  [x] 1 Proposal', '\n'.join(ascii_lines))
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 140, line)
+
+    def test_one_observation_is_counted_in_the_singular(self):
+        from intune_iac.workbench_screens import history_lines
+        lines = history_lines({'object_id': POLICY_ID, 'name': 'P', 'pagination': {'total_observations': 1, 'offset': 0},
+                               'history': []}, 100)
+        self.assertIn('1 observation | this page 0 from offset 0', lines)
+
+    def test_a_long_address_keeps_its_label_and_column(self):
+        from intune_iac.workbench_screens import repository_entry_lines
+        value = {'repository': '/work/repository', 'revision': 'c' * 40, 'tenant_id': POLICY_ID, 'status': 'discovered',
+                 'components': [], 'next_action': 'One policy.', 'candidates': [{
+                     'number': 1, 'stack': 's', 'component': 'c', 'policy_key': 'p_' + 'a' * 32 + '_' + 'b' * 32,
+                     'object_id': POLICY_ID, 'observed': {'present': False}, 'state': 'ready', 'backend': 'local',
+                     'backend_source': 'none_declared', 'resource_address': 'resource.policy["' + 'k' * 90 + '"]',
+                     'explanation': 'Ready to record.'}]}
+        lines = repository_entry_lines(value, 80)
+        address = [index for index, line in enumerate(lines) if line.startswith('     Address   resource.policy')]
+        self.assertEqual(len(address), 1)
+        self.assertTrue(lines[address[0] + 1].startswith(' ' * 15 + 'k'))
+        self.assertIn('     State     ready to record', lines)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 80, line)
+
+
 class RelationshipLinesTests(unittest.TestCase):
     def test_edges_are_grouped_typed_and_keep_their_evidence_class(self):
         from intune_iac.workbench_screens import relationship_lines
@@ -330,7 +374,7 @@ class DeliveryLinesTests(unittest.TestCase):
         rows = [line for line in lines if line.startswith('  [')]
         self.assertEqual(rows, expected)
         self.assertIn('Next: Nothing pending: the change is recorded and observed as desired.', joined)
-        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: a failure, an expiry or a refusal', joined)
+        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: failure, expiry or refusal', joined)
 
     def test_waiting_required_and_refused_stages_are_marked_in_words(self):
         from intune_iac.workbench_screens import delivery_lines

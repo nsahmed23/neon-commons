@@ -322,8 +322,12 @@ def _edge_target(edge):
     return text
 
 
-def relationship_lines(value, width):
+TREES = {'ascii': ('|-- ', '`-- ', '    '), 'unicode': ('├── ', '└── ', '│   ')}
+
+
+def relationship_lines(value, width, rules='ascii'):
     """Typed edges grouped by what they mean, each with its exact target and its evidence class."""
+    tree = TREES.get(rules, TREES['ascii'])
     lines = ['[TYPED RELATIONSHIPS]']
     edges = [edge for edge in value.get('relationships') or [] if isinstance(edge, dict)]
     lines += word_wrap('%s (%s)' % (value.get('name', '(no name)'), value.get('object_id', 'unknown')), width)
@@ -349,15 +353,17 @@ def relationship_lines(value, width):
         shared = classes.pop() if len(classes) == 1 else None
         lines.append(heading + ('  [' + safe_text(shared) + ']' if shared else ''))
         for index, edge in enumerate(rows):
-            connector = '  `-- ' if index == len(rows) - 1 else '  |-- '
+            last = index == len(rows) - 1
+            connector = '  ' + (tree[1] if last else tree[0])
+            guide = '  ' + ('    ' if last else tree[2])
             label = RELATION_LABELS.get(edge.get('relation'), str(edge.get('relation')).replace('_', ' '))
             text = pad(label, 13) + _edge_target(edge) + ('' if shared else '  [' + safe_text(str(edge.get('assertion_class', 'unknown'))) + ']')
             for number, part in enumerate(word_wrap(text, width - len(connector))):
-                lines.append((connector if number == 0 else ' ' * len(connector)) + part)
+                lines.append((connector if number == 0 else guide) + part)
     ownership = value.get('ownership_evidence') if isinstance(value.get('ownership_evidence'), dict) else {}
     lines.append('OWNERSHIP')
     reason = ownership.get('reason')
-    lines += word_wrap('  `-- ' + pad('writer', 13) + str(value.get('ownership', 'unknown')) + (': ' + str(reason) if reason else ''), width)
+    lines += word_wrap('  ' + tree[1] + pad('writer', 13) + str(value.get('ownership', 'unknown')) + (': ' + str(reason) if reason else ''), width)
     return lines
 
 
@@ -369,8 +375,9 @@ def history_lines(value, width):
     items = [item for item in value.get('history') or [] if isinstance(item, dict)]
     lines += word_wrap('%s (%s)' % (value.get('name') or (items[0].get('name') if items else None) or '(no name)',
                                     value.get('object_id', 'unknown')), width)
-    lines += word_wrap('%s observations | this page %d from offset %s' % (
-        page.get('total_observations', 'unknown'), len(items), page.get('offset', value.get('offset', 0))), width)
+    total = page.get('total_observations')
+    lines += word_wrap('%s | this page %d from offset %s' % (
+        _plural(total, 'observation') if isinstance(total, int) else 'unknown number of observations', len(items), page.get('offset', value.get('offset', 0))), width)
     if value.get('order') == 'observed_at_desc_observation_id_desc':
         lines += word_wrap('Newest first; n shows older observations, p shows newer observations.', width)
     lines += word_wrap('Observation time is when collection saw the configuration; it does not establish who changed it or when.', width)
@@ -611,7 +618,7 @@ MARKS = {'done': 'x', 'matches_desired': 'x', 'waiting': ' ', 'not_yet': ' ', 'n
          'not_needed': '-', 'not_applicable': '-', 'unknown': '?', 'required': '?', 'pending': '?', 'not_open': '?',
          'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '!', 'differs': '!'}
 # The legend names states without the alert phrases, so only its markers are tinted, never its words.
-MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: a failure, an expiry or a refusal'
+MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: failure, expiry or refusal'
 
 
 def _approval_text(stage, status):
@@ -705,24 +712,32 @@ def _stage_text(stage):
     return texts[name](stage, status) if name in texts else str(status)
 
 
-def delivery_lines(value, width):
-    """One operation's delivery stages in order, each with a marker, its state in words and its evidence."""
+def delivery_lines(value, width, rules='ascii'):
+    """One operation's delivery stages in order, each with a marker, its state in words and its evidence.
+
+    With box-drawing rules the stages hang from one connected spine, first to last; ASCII keeps the plain list.
+    """
     lines = ['[DELIVERY]']
     lines += word_wrap('Operation %s | policy %s | journal %s' % (value.get('operation_id'), value.get('object_id'), value.get('journal_status')), width)
-    for number, stage in enumerate(value.get('stages') or [], 1):
-        if not isinstance(stage, dict):
-            continue
-        mark = '  [%s] ' % MARKS.get(stage.get('status'), '?')
+    stages = [stage for stage in value.get('stages') or [] if isinstance(stage, dict)]
+    for number, stage in enumerate(stages, 1):
+        last = number == len(stages)
+        if rules == 'unicode':
+            head = '──' if number == 1 and last else '┌─' if number == 1 else '└─' if last else '├─'
+            cont = '  ' if last else '│ '
+        else:
+            head = cont = '  '
+        mark = head + '[%s] ' % MARKS.get(stage.get('status'), '?')
         label = '%d %s' % (number, STAGE_LABELS.get(stage.get('stage'), str(stage.get('stage'))))
         text = _stage_text(stage)
         if width >= 60:
             for index, part in enumerate(word_wrap(text, width - 24)):
-                lines.append((mark + pad(label, 18) if index == 0 else ' ' * 24) + part)
+                lines.append((mark + pad(label, 18) if index == 0 else cont + ' ' * 22) + part)
         else:
             lines.append(mark + label)
-            lines += ['      ' + part for part in word_wrap(text, width - 6)]
+            lines += [cont + '    ' + part for part in word_wrap(text, width - 6)]
         if stage.get('stage') == 'observed_after' and stage.get('status') == 'differs' and isinstance(stage.get('field_changes'), dict):
-            lines += ['      ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
+            lines += [cont + '    ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
     runs = [run for run in value.get('workflow_runs') or [] if isinstance(run, dict)]
     read = value.get('workflow_runs_read') if isinstance(value.get('workflow_runs_read'), dict) else {}
     if read.get('status') == 'unavailable':
@@ -761,11 +776,6 @@ def _entry_state(candidate):
     return ENTRY_STATES.get(state, str(state))
 
 
-def _entry_key(key):
-    key = str(key)
-    return key[:14] + '...' + key[-8:] if len(key) > 28 else key
-
-
 def repository_entry_lines(value, width, focus=0):
     """The policies a repository holds, each with its state in this store; the focused one is marked."""
     lines = word_wrap('[REPOSITORY ENTRY] %s' % value.get('repository'), width)
@@ -790,11 +800,14 @@ def repository_entry_lines(value, width, focus=0):
         lines += word_wrap('%s%d  %s | %s / %s' % ('> ' if index == focus else '  ', candidate.get('number', index + 1), label,
                                                   candidate.get('stack'), candidate.get('component')), width)
         backend = '%s (%s)' % (candidate.get('backend'), {'none_declared': 'none declared', 'component_declared': 'declared by the component'}.get(
-            candidate.get('backend_source'), candidate.get('backend_source'))) if candidate.get('backend') else 'backend unknown'
-        lines += word_wrap('     %s | key %s | backend %s' % (_entry_state(candidate), _entry_key(candidate.get('policy_key')), backend), width)
+            candidate.get('backend_source'), candidate.get('backend_source'))) if candidate.get('backend') else 'unknown'
+        # Labelled rows keep each value with its label; a long key or address wraps under its own column.
+        lines += _labelled('     State', _entry_state(candidate), width, 15)
+        lines += _labelled('     Key', str(candidate.get('policy_key')), width, 15)
+        lines += _labelled('     Backend', backend, width, 15)
         if candidate.get('resource_address'):
-            lines += word_wrap('     address ' + str(candidate['resource_address']), width)
-        lines += word_wrap('     ' + str(candidate.get('explanation', '')), width)
+            lines += _labelled('     Address', str(candidate['resource_address']), width, 15)
+        lines += _labelled('', str(candidate.get('explanation', '')), width, 5)
     lines.append('')
     lines += word_wrap('Next: ' + str(value.get('next_action')), width)
     if value.get('candidates'):

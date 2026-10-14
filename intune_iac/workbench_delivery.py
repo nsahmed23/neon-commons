@@ -14,6 +14,7 @@ can step backwards. The approval window is the engine request's own
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import shlex
 import time
 
 VERSION = 'workbench-delivery/1'
@@ -186,12 +187,15 @@ def _workflow_runs(store, plan, repository):
     return runs, {'status': 'complete' if complete else 'partial', 'records_read': len(rows)}
 
 
-def _next_action(stages):
+def _next_action(stages, operation_root, store_root):
+    """The one step that moves the change forward, with the real paths. The review digest is never filled in: the
+    engineer copies it from the review they approve."""
     approval, readback, reconciliation = stages['approval'], stages['readback'], stages['reconciliation']
     record, observed = stages['deployment_record'], stages['observed_after']
+    operation, store = shlex.quote(str(operation_root)), shlex.quote(str(store_root))
     if approval['status'] == 'waiting':
-        return ('Review the change, then approve it with execute OPERATION_DIR EXACT_REVIEW_DIGEST before %s.'
-                % _utc(approval['closes_at']))
+        return ('Review the change (5), then approve it with execute %s EXACT_REVIEW_DIGEST before %s; the digest is the '
+                'one on the review, never filled in for you.' % (operation, _utc(approval['closes_at'])))
     if approval['status'] == 'expired':
         return 'The approval window closed at %s; prepare a new proposal from the current intent.' % _utc(approval['closes_at'])
     if approval['status'] == 'not_open':
@@ -200,11 +204,12 @@ def _next_action(stages):
     if approval['status'] == 'rejected':
         return 'This operation was rejected; prepare a new proposal.'
     if reconciliation['status'] == 'required':
-        return 'The outcome is unknown. Reconcile with reconcile OPERATION_DIR before any retry; execution is never replayed.'
+        return 'The outcome is unknown. Reconcile with reconcile %s before any retry; execution is never replayed.' % operation
     if 'pending' in (readback['status'], reconciliation['status']):
-        return 'The service has not yet shown the change; reconcile again later with reconcile OPERATION_DIR.'
+        return 'The service has not yet shown the change; reconcile again later with reconcile %s.' % operation
     if record['status'] == 'available':
-        return 'Record the deployment: workbench deployment-record --root STORE --operation OPERATION_DIR --intent %s' % record['intent_id']
+        return ('Record the deployment: workbench deployment-record --root %s --operation %s --intent %s'
+                % (store, operation, record['intent_id']))
     if record['status'] == 'not_available':
         return ('Reconciled as %s. This operation cannot become a deployment record because its own readback was never '
                 'verified; collect to observe the policy.' % reconciliation.get('classification'))
@@ -254,7 +259,7 @@ def delivery(operation_root, *, now=None):
     runs, runs_read = _workflow_runs(store, plan, repository)
     return {'schema_version': VERSION, 'operation_id': plan['operation_id'], 'operation_root': str(root),
             'tenant_id': plan['tenant_id'], 'object_id': plan['object_id'], 'journal_status': journal['status'],
-            'stages': stages, 'next_action': _next_action(named), 'viewed_at': _utc(now) if now >= 0 else None,
+            'stages': stages, 'next_action': _next_action(named, root, plan['store_root']), 'viewed_at': _utc(now) if now >= 0 else None,
             'workflow_runs': runs, 'workflow_runs_read': runs_read,
             'evidence_class': review['evidence_class'], 'native_provider_qualified': False,
             'execution_authorized': False, 'cloud_authority': False}

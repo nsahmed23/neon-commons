@@ -72,7 +72,17 @@ While the synchronous engine is running, the frame says the outcome is not yet k
 - The tab line numbers every surface and brackets the active one. When the full names do not fit, it uses short names (`[5 Plan]`, `9 Repo`).
 - The context strip below it shows the tenant, the selected policy (name and short ID), the observation freshness, the repository state and the active operation's status.
 - When the strip does not fit, it drops the tenant first, then uses short labels (`OBS`, `REPO`, `OP`), then the policy name.
-- These are the facts the engine last reported for the selected policy. "unknown" or "not checked" means no result has said yet; the workspace never makes a hidden engine call to fill them in. Exact identities appear on each surface.
+- These are the facts the engine last reported for the selected policy. "unknown" or "not checked" means no result has said yet; the workspace never makes a hidden engine call to fill them in. Exact identities appear on each surface. The strip's state words are tinted like the body's, and a lineage result never stands in for the observation's freshness.
+- The title names the surface and, when a key opens a view that belongs to it, that view too: `Coverage / Diagnostics`, `Coverage / Health`, `Execution / Delivery`, `Help / Families`, `Repository / Repository entry`.
+
+**Frame lines.**
+- When the body continues above or below what fits, the border says so (`more above: PgUp`, `more below: PgDn`).
+- The status line gives the evidence class of the result, or of the selected policy's observation when a view has none. It shortens only that class to fit, so `rows` and `no automatic approval` always stay whole.
+- The notice is shortened at a word with an ellipsis. The key line shows the longest of three forms that fits, so every width keeps `: command` and `q detach`.
+- `e` hides or shows the exact engine record below each summary for the session. While hidden, one line says how many record lines there are and how to show them.
+- From 150 body columns, the summary and the exact record sit side by side, divided by a rule, and scroll together.
+- With box-drawing rules, Relationships draws connected tree lines and Delivery hangs its stages from one spine. ASCII rules keep the plain list.
+- Colour pairs meet WCAG AA (4.5:1) in every theme; a test measures each role against its background.
 
 **Inspector (2).** Shows the selected policy as an engineer reads it:
 - name and exact identity;
@@ -150,7 +160,7 @@ It reads local records only, and the same view is `workbench diagnostics --root 
 
 Below the stages, `CI WORKFLOW RUNS (imported claims; not verified)` lists the CI runs recorded with `workflow-import` that name this operation, and those that name no operation but the repository revision its intent cites (a run that names another operation belongs to that one): workflow, run, claimed status, revision, observation time and link. They stay apart from the stages: an imported `success` never marks a stage done. With none, one line says so and names `workflow-import`. On any surface, a record the store has just accepted (`workflow-import`, `device-evidence-import`, `repository-import` and the others) opens with `[RECORDED]`: its kind, short identity, whether it is new or was already recorded (nothing changed), and for a CI run what it claims and which local operation or observation it links to.
 
-The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` unknown or required and `[!]` stopped by a failure, an expiry or a refusal (the legend avoids the alert words, so only its markers are tinted). A `Next:` line names the one step that would move the change forward. It never inserts the review digest into a command. The view only reads the operation's records and the store, and it is not saved for reopening: the navigation record never holds operation paths.
+The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` unknown or required and `[!]` stopped: failure, expiry or refusal (the legend avoids the alert words, so only its markers are tinted). A `Next:` line names the one step that would move the change forward. It never inserts the review digest into a command. The view only reads the operation's records and the store, and it is not saved for reopening: the navigation record never holds operation paths.
 
 **Repository (9).** Runs the read-only `repository-status` for the selected policy:
 - whether the repository still matches the recorded intent;

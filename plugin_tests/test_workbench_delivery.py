@@ -61,7 +61,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(stages['reconciliation']['status'], 'not_needed')
         self.assertEqual(stages['deployment_record']['status'], 'not_yet')
         self.assertEqual(stages['observed_after']['status'], 'not_yet')
-        self.assertIn('execute OPERATION_DIR EXACT_REVIEW_DIGEST', value['next_action'])
+        self.assertIn('execute %s EXACT_REVIEW_DIGEST' % self.operation, value['next_action'])
         # The view never supplies the approval digest for the engineer.
         self.assertNotIn(review['approval_digest'], value['next_action'])
 
@@ -198,7 +198,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(stages['readback']['status'], 'not_recorded')
         self.assertEqual(stages['reconciliation']['status'], 'required')
         self.assertEqual(stages['deployment_record']['status'], 'not_yet')
-        self.assertIn('reconcile OPERATION_DIR', value['next_action'])
+        self.assertIn('reconcile %s' % self.operation, value['next_action'])
         maintenance.reconcile(self.operation)
         value, stages = self.view()
         self.assertEqual((stages['reconciliation']['status'], stages['reconciliation']['classification']), ('done', 'desired_state_observed'))
