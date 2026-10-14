@@ -226,11 +226,14 @@ class RefusalCauseTests(unittest.TestCase):
     def test_a_known_cause_replaces_the_either_or_meaning(self):
         from intune_iac.workbench_screens import refusal_lines
         value = {'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Refused.'}}
-        text = ' '.join(' '.join(refusal_lines(value, 120, known=self.CHANGED['observed'])).split())
+        text = ' '.join(' '.join(refusal_lines(value, 120, known=(self.CHANGED['observed'], 'repository_changed'))).split())
         self.assertIn('Cause: The repository changed since its recorded intent: changed stacks/orgs/reference/dev.yaml.', text)
         self.assertNotIn('or its component no longer consumes', text)
         self.assertIn('[REFUSED] workbench_repository_stale', text)  # the exact code stays
-        self.assertIn('Next:', text)
+        # The step for this cause, not for every cause the code covers; the engine's general message is one key away.
+        self.assertIn('Next: Press 9 to review the difference', text)
+        self.assertNotIn('Refused.', text)
+        self.assertIn("The engine's own message is in the typed details (e).", text)
 
     def test_the_workspace_supplies_the_cause_it_read(self):
         workspace = self.workspace({'signals': [self.CHANGED]}, 'propose-from-intent /w/op')

@@ -1703,16 +1703,39 @@ def refusal_lines(value, width, known=None):
     code = str(error.get('code', 'unknown'))
     message = str(error.get('message') or '')
     lines = word_wrap('[REFUSED] ' + code, width)
+    if known:
+        # The cause the workspace read, and the step for it; the engine's general message is one key away.
+        cause, kind = known if isinstance(known, tuple) else (known, None)
+        lines += word_wrap('Cause: ' + str(cause), width)
+        step = KNOWN_NEXT.get(kind) or (REFUSALS[code][1] if code in REFUSALS else None)
+        if step:
+            lines += word_wrap('Next: ' + step, width)
+        if message:
+            lines += word_wrap("The engine's own message is in the typed details (e).", width)
+        return lines
     if message:
         lines += word_wrap(message, width)
-    if known:
-        lines += word_wrap('Cause: ' + str(known), width)
     if code in REFUSALS:
         meaning, step = REFUSALS[code]
-        if not known and not _restates(message, meaning):
+        if not _restates(message, meaning):
             lines += word_wrap('What it means: ' + meaning, width)
         lines += word_wrap('Next: ' + step, width)
     return lines
+
+
+# The next step for a known cause, where the engine's code covers several.
+KNOWN_NEXT = {
+    'repository_changed': 'Press 9 to review the difference; then a records the current source as a new intent '
+                          '(repository-refresh REVISION).',
+    'consumer_changed': 'Fix the component so it consumes exactly this policy, then repository-refresh REVISION '
+                        'records the current source.',
+    'service_changed': 'Collect again (a lists it), then prepare the proposal again.',
+    'policy_changed': 'Collect again (a lists it), then prepare the proposal again.',
+    'source_mismatch': 'Collect again from the configured service (a lists it), then prepare the proposal again.',
+    'tenant_mismatch': "Restart with the --service-root for this store's tenant.",
+    'observation_stale': 'Collect again (a lists it), then prepare the proposal again.',
+    'collection_failed': 'Collect again (a lists it) when the source is reachable, then prepare the proposal again.',
+    'collection_not_finished': 'Collect again (a lists it), then prepare the proposal again.'}
 
 
 CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',

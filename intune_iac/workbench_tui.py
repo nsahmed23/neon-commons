@@ -1254,18 +1254,21 @@ class Workspace:
         if not self.selected or facts.get('object_id') != self.selected:
             return None
         signals = [signal for signal in facts.get('signals') or [] if isinstance(signal, dict) and signal.get('observed')]
+        kinds = {'repository_stale': 'repository_changed', 'repository_consumer_mismatch': 'consumer_changed',
+                 'observation_stale': 'observation_stale', 'collection_failed': 'collection_failed',
+                 'collection_not_finished': 'collection_not_finished'}
         if code in ('workbench_repository_stale', 'maintenance_repository_stale'):
             found = [signal for signal in signals if signal.get('code') in ('repository_stale', 'repository_consumer_mismatch')]
-            return str(found[0]['observed']) if found else None
+            return (str(found[0]['observed']), kinds[found[0]['code']]) if found else None
         if code in ('maintenance_observation_stale', 'maintenance_observation_incomplete',
                     'maintenance_observation_source_mismatch'):
             from .workbench_screens import ELIGIBILITY_FINDINGS
             eligibility = facts.get('eligibility') if isinstance(facts.get('eligibility'), dict) else {}
             if eligibility.get('code') == code and eligibility.get('reason') in ELIGIBILITY_FINDINGS:
-                return ELIGIBILITY_FINDINGS[eligibility['reason']][0] % eligibility
+                return ELIGIBILITY_FINDINGS[eligibility['reason']][0] % eligibility, eligibility['reason']
             found = [signal for signal in signals
                      if signal.get('code') in ('observation_stale', 'collection_failed', 'collection_not_finished')]
-            return str(found[0]['observed']) if found else None
+            return (str(found[0]['observed']), kinds[found[0]['code']]) if found else None
         return None
 
     def _states_here(self, value):
