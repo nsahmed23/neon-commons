@@ -171,14 +171,22 @@ def refresh_intent(store, object_id, revision, *, expected_resolution=None, git_
     """
     from .io import AppError
     from .workbench_views import import_repository
-    data = latest_intent(store, object_id)['data']
-    if expected_resolution is not None and intent_freshness(data).get('resolution_sha256') != expected_resolution:
-        raise AppError('workbench_difference_changed', 'The repository changed again after its difference was shown; '
-                       'review the difference again before recording it.')
-    scope = data['scope']
-    return import_repository(store, scope['repository'], scope['stack'], scope['component'], object_id,
-                             data['effective_pointer'], revision, scope['backend'], data['resource_address'],
-                             git_executable=git_executable, git_sha256=git_sha256)
+    latest = latest_intent(store, object_id)
+    data = latest['data']
+    try:
+        if expected_resolution is not None and intent_freshness(data).get('resolution_sha256') != expected_resolution:
+            raise AppError('workbench_difference_changed', 'The repository changed again after its difference was shown; '
+                           'review the difference again before recording it.')
+        scope = data['scope']
+        return import_repository(store, scope['repository'], scope['stack'], scope['component'], object_id,
+                                 data['effective_pointer'], revision, scope['backend'], data['resource_address'],
+                                 git_executable=git_executable, git_sha256=git_sha256)
+    except AppError as error:
+        # Read back, not assumed: whether the refusal left the latest intent as it was.
+        after = latest_intent(store, object_id)['artifact_id']
+        error.effects = dict(error.effects or {}, intent_recorded=after != latest['artifact_id'],
+                             retained_intent=latest['artifact_id'] if after == latest['artifact_id'] else after)
+        raise
 
 
 def _usable_intent(intent, *, code_prefix):
@@ -204,23 +212,37 @@ def propose_from_intent(store_root, service_root, object_id, output):
     The inputs are written beside the operation directory, never inside it, and
     the existing ``propose`` applies every observation, plan and citation check.
     """
-    from . import maintenance
-    from .io import AppError, write_json
+    from .io import AppError
     from .workbench_store import WorkbenchStore
     store = WorkbenchStore(store_root)
+    output = Path(output).absolute()
+    written = []
+    try:
+        return _propose_from_intent(store, store_root, service_root, object_id, output, written)
+    except AppError as error:
+        # The input files this call wrote, and whether an operation directory now exists: read, not assumed.
+        error.effects = dict(error.effects or {}, files_written=[str(path) for path in written if path.exists()],
+                             operation_created=bool((error.effects or {}).get('operation_created')))
+        raise
+
+
+def _propose_from_intent(store, store_root, service_root, object_id, output, written):
+    from . import maintenance
+    from .io import AppError, write_json
     intent = latest_intent(store, object_id)
     _usable_intent(intent, code_prefix='workbench')
     if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
         raise AppError('workbench_desired_capability', 'The desired settings include a definition or value outside the '
                        'supported offline capability map, so the reference component cannot propose them.')
-    output = Path(output).absolute()
     desired_path, context_path = Path(str(output) + '.intent-desired.json'), Path(str(output) + '.intent-context.json')
     if any(path.exists() or path.is_symlink() for path in (output, desired_path, context_path)) or not output.parent.is_dir():
         raise AppError('workbench_fresh_output_required', 'Choose a new operation directory; its sibling input files must not exist.')
     data = intent['data']
     write_json(desired_path, data['desired'])
+    written.append(desired_path)
     write_json(context_path, {'tenant_id': store.tenant_id, 'cloud': 'public',
                               'repository_intent_id': intent['artifact_id'], 'scope': data['scope']})
+    written.append(context_path)
     return maintenance.propose(store_root, service_root, object_id, desired_path, output, context_path=context_path)
 
 

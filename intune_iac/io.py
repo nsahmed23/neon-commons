@@ -13,9 +13,11 @@ MAX_BYTES = 16 * 1024 * 1024
 
 
 class AppError(ValueError):
-    def __init__(self, code: str, message: str):
+    def __init__(self, code: str, message: str, *, effects=None):
         self.code = code
         self.message = message
+        # What the refused call established about what it changed (P-PRES-18); None when it established nothing.
+        self.effects = effects
         super().__init__(message)
 
 

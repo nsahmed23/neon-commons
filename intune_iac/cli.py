@@ -315,6 +315,8 @@ def main(argv=None):
         detail = {'code':error.code,'message':error.message}
         if error.code == 'host_profile_unsupported' and type(getattr(error, 'details', None)) is dict:
             detail['details'] = error.details
+        if type(getattr(error, 'effects', None)) is dict:
+            detail['effects'] = error.effects
         print(json.dumps({'status':'error','error':detail}),file=sys.stderr)
         return 4 if error.code in {'output_conflict','capture_output_conflict'} else (2 if error.code in {'capture_platform_unavailable','provider_platform_unsupported','identity_fd_platform_unsupported','host_profile_unsupported'} else 3)
     except ImportError:

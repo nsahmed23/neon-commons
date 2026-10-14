@@ -1170,7 +1170,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             present({'status': 'interrupted', 'recovery': INTERRUPTED_RECOVERY})
             return {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'recovery': INTERRUPTED_RECOVERY}
         except AppError as error:
-            present({'status': 'error', 'error': {'code': error.code, 'message': error.message}})
+            effects = getattr(error, 'effects', None)
+            present({'status': 'error', 'error': dict({'code': error.code, 'message': error.message},
+                                                    **({'effects': effects} if isinstance(effects, dict) else {}))})
         except (ValueError, TypeError, KeyError, OSError):
             present({'status': 'error', 'error': {'code': 'invalid_workbench_request',
                      'message': 'Command or local input is invalid. Enter help for exact syntax.'}})

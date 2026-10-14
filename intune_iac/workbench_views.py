@@ -358,6 +358,15 @@ def _local_proof(store,operation,intent):
 
 
 def record_local_deployment(store,operation,intent_id):
+    # Recording is the last step and one transaction, so any refusal recorded nothing.
+    try:
+        return _record_local_deployment(store,operation,intent_id)
+    except AppError as error:
+        error.effects=dict(error.effects or {},deployment_recorded=False)
+        raise
+
+
+def _record_local_deployment(store,operation,intent_id):
     matches=[r for r in _intents(store) if r['artifact_id']==intent_id]
     if len(matches)!=1:_fail('workbench_deployment_intent')
     intent=matches[0];proof=_local_proof(store,operation,intent)

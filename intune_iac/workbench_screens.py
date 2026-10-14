@@ -1763,6 +1763,9 @@ def families_lines(value, width):
 # What a refusal means and the next step, for the codes an engineer meets in ordinary work.
 # Unknown codes show only the engine's own message; nothing is guessed.
 REFUSALS = {
+    'workbench_difference_changed': (
+        'The repository changed after you reviewed its difference.',
+        'Review the new difference (9) before submitting again.'),
     'workbench_deployment_intent': (
         'The intent given is not exactly one repository intent recorded in this store.',
         "Use the intent this operation's plan cites: v Delivery names it, and a lists the record with it."),
@@ -1852,6 +1855,36 @@ def _restates(message, meaning):
     return bool(meant) and len(meant & _words(message)) * 5 >= len(meant) * 4
 
 
+def effect_lines(effects, width):
+    """What a refusal established about what changed, in words; nothing when the engine established nothing."""
+    if not isinstance(effects, dict):
+        return []
+    said = []
+    if effects.get('intent_recorded') is False:
+        retained = effects.get('retained_intent')
+        said.append('No new intent was recorded; the previous intent%s is retained.' % (
+            ' ' + str(retained)[:12] if retained else ''))
+    elif effects.get('intent_recorded') is True:
+        said.append('A new intent %s exists after the refusal; 9 shows it.' % str(effects.get('retained_intent'))[:12])
+    if 'files_written' in effects:
+        files = [str(path) for path in effects.get('files_written') or []]
+        created = effects.get('operation_created')
+        head = 'No proposal was created.' if created is False else 'An operation directory exists after the refusal.'
+        said.append(head + (' These input files were written and remain: %s.' % ', '.join(files) if files else
+                            '') if files or created is not False else 'No proposal and no input files were created.')
+    elif effects.get('operation_created') is False:
+        said.append('No operation directory was created.')
+    elif effects.get('operation_created') is True:
+        said.append('An operation directory was created before the refusal; i shows its state.')
+    if effects.get('dispatched') is False:
+        said.append('Nothing was dispatched.')
+    elif effects.get('dispatched') is True:
+        said.append('Dispatch had started, so the outcome is unknown; reconcile it (it never replays the change).')
+    if effects.get('deployment_recorded') is False:
+        said.append('No deployment receipt was recorded.')
+    return word_wrap('Effect: ' + ' '.join(said), width) if said else []
+
+
 def refusal_lines(value, width, known=None):
     """A refusal: the engine's code and message, then what it means and the next step when the code is known.
 
@@ -1866,6 +1899,7 @@ def refusal_lines(value, width, known=None):
         # The cause the workspace read, and the step for it; the engine's general message is one key away.
         cause, kind = known if isinstance(known, tuple) else (known, None)
         lines += word_wrap('Cause: ' + str(cause), width)
+        lines += effect_lines(error.get('effects'), width)
         step = KNOWN_NEXT.get(kind) or (REFUSALS[code][1] if code in REFUSALS else None)
         if step:
             lines += word_wrap('Next: ' + step, width)
@@ -1874,10 +1908,12 @@ def refusal_lines(value, width, known=None):
         return lines
     if message:
         lines += word_wrap(message, width)
-    if code in REFUSALS:
-        meaning, step = REFUSALS[code]
-        if not _restates(message, meaning):
-            lines += word_wrap('What it means: ' + meaning, width)
+    meaning, step = REFUSALS.get(code, (None, None))
+    if meaning and not _restates(message, meaning):
+        lines += word_wrap('What it means: ' + meaning, width)
+    # What the refusal established about what changed, from the engine's own facts, before the next step.
+    lines += effect_lines(error.get('effects'), width)
+    if step:
         lines += word_wrap('Next: ' + step, width)
     return lines
 

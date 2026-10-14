@@ -252,6 +252,18 @@ def proposal_eligibility(store_root, service_root, object_id, *, observation=Non
 
 
 def propose(store_root, service_root, object_id, desired_path, output, *, context_path=None, context_sha256=None):
+    """Prepare a persisted single-object operation; a refusal says whether it created the operation directory."""
+    progress = {'created': False}
+    try:
+        return _propose(store_root, service_root, object_id, desired_path, output, context_path=context_path,
+                        context_sha256=context_sha256, progress=progress)
+    except AppError as error:
+        error.effects = dict(error.effects or {}, operation_created=progress['created'])
+        raise
+
+
+def _propose(store_root, service_root, object_id, desired_path, output, *, context_path=None, context_sha256=None,
+             progress):
     """Prepare a persisted single-object operation from a complete observation.
 
     With ``context_sha256`` the context bytes read must have exactly that hash, so a caller that checked a
@@ -294,7 +306,7 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
         if digest(before) != digest(snapshot['current']) or service.snapshot()['revision'] != snapshot['revision']:
             _fail('maintenance_plan_stale')
         expected = copy.deepcopy(before); expected['objects'][object_id] = copy.deepcopy(desired)
-        root.mkdir(mode=0o700); sync_directory(root.parent)
+        root.mkdir(mode=0o700); progress['created'] = True; sync_directory(root.parent)
         write_json(root / 'desired.json', desired)
         executor = protected.create_synthetic_executor(root / 'executor', initial_value=before, desired_value=expected)
         request = protected.prepare_native_operation(executor)
@@ -395,6 +407,17 @@ def _readback(root, plan, *, kind):
 
 
 def execute(operation_root, *, approve_digest, fault=None, visibility_delay_reads=0):
+    """Run one approved operation; a refusal says whether dispatch had started (before it, nothing was sent)."""
+    progress = {'dispatched': False}
+    try:
+        return _execute(operation_root, approve_digest=approve_digest, fault=fault,
+                        visibility_delay_reads=visibility_delay_reads, progress=progress)
+    except AppError as error:
+        error.effects = dict(error.effects or {}, dispatched=progress['dispatched'])
+        raise
+
+
+def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, progress):
     root, plan, journal, desired, request = _load(operation_root)
     if fault not in (None, 'lost-response', 'after-policy', 'deny', 'throttle'):
         _fail('maintenance_fault_invalid')
@@ -429,6 +452,7 @@ def execute(operation_root, *, approve_digest, fault=None, visibility_delay_read
         approval = protected.approve_synthetic_operation(request, executor=executor)
         # Durable uncertainty is committed before either engine or model write.
         journal['status'] = 'outcome_unknown'
+        progress['dispatched'] = True
         _event(root, journal, 'dispatch_started', approval_digest=approve_digest)
         result = {'operation_id': plan['operation_id'], 'status': 'outcome_unknown',
             'evidence_class': EVIDENCE, 'cloud_authority': False, 'native_provider_qualified': False}

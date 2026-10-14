@@ -1,0 +1,123 @@
+"""Refusal effects (P-PRES-18): each refusal says what it established about what changed, never a blanket no-op.
+
+The engine attaches the facts it can establish, mostly by reading the store or the filesystem after the refusal: a
+refused refresh compares the latest intent before and after; a refused proposal names the input files it wrote and
+whether an operation directory exists; a refused execution says whether dispatch had started. The screens only put
+those facts into words. The real store, modeled service and maintenance engine produce each case.
+"""
+import json
+from pathlib import Path
+import unittest
+
+from plugin_tests import test_workbench_repository as repository_tests
+
+OBJECT, TENANT = repository_tests.OBJECT, repository_tests.TENANT
+
+
+class RefusalEffectTests(unittest.TestCase):
+    RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = repository_tests.RepositoryOwnedChangeTests.setUp
+    import_intent = repository_tests.RepositoryOwnedChangeTests.import_intent
+    edit_description = repository_tests.RepositoryOwnedChangeTests.edit_description
+
+    def refused(self, call):
+        from intune_iac.io import AppError
+        with self.assertRaises(AppError) as raised:
+            call()
+        return raised.exception
+
+    def test_a_refused_refresh_establishes_that_no_new_intent_was_recorded(self):
+        from intune_iac.workbench_repository import intent_freshness, latest_intent, refresh_intent
+        first = self.import_intent()
+        self.edit_description('Shown difference.')
+        shown = intent_freshness(latest_intent(self.store, OBJECT)['data'])['resolution_sha256']
+        self.edit_description('A second, unseen edit.')
+        error = self.refused(lambda: refresh_intent(self.store, OBJECT, 'b' * 40, expected_resolution=shown))
+        self.assertEqual(error.code, 'workbench_difference_changed')
+        self.assertEqual(error.effects, {'intent_recorded': False, 'retained_intent': first['artifact_id']})
+
+    def test_a_proposal_refused_before_its_inputs_writes_nothing(self):
+        from intune_iac.workbench_repository import propose_from_intent
+        self.import_intent()
+        self.edit_description('Changed and not refreshed.')
+        output = self.root / 'operation'
+        error = self.refused(lambda: propose_from_intent(self.store.root, self.service.root, OBJECT, output))
+        self.assertEqual(error.code, 'workbench_repository_stale')
+        self.assertEqual(error.effects, {'files_written': [], 'operation_created': False})
+
+    def test_a_proposal_refused_after_its_inputs_names_the_files_it_left(self):
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        from intune_iac.modeled_service import BASE, ModeledService
+        self.import_intent()
+        self.edit_description('Edited.')
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        service = ModeledService(self.service.root)
+        body = dict(service.snapshot()['current']['objects'][OBJECT], description='Changed in the service.')
+        service.request('PATCH', BASE + '/' + OBJECT, tenant_id=TENANT, body=body,
+                        if_match=str(service.snapshot()['revision']))
+        output = self.root / 'operation'
+        error = self.refused(lambda: propose_from_intent(self.store.root, self.service.root, OBJECT, output))
+        self.assertEqual(error.code, 'maintenance_observation_stale')
+        self.assertEqual(error.effects, {'files_written': [str(output) + '.intent-desired.json', str(output) + '.intent-context.json'],
+                                         'operation_created': False})
+        for path in error.effects['files_written']:
+            self.assertTrue(Path(path).is_file(), path)
+
+    def test_an_execution_refused_before_dispatch_says_so(self):
+        from intune_iac import maintenance
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        self.import_intent()
+        self.edit_description('Edited.')
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        operation = self.root / 'operation'
+        propose_from_intent(self.store.root, self.service.root, OBJECT, operation)
+        error = self.refused(lambda: maintenance.execute(operation, approve_digest='0' * 64))
+        self.assertEqual(error.code, 'maintenance_approval_required')
+        self.assertEqual(error.effects, {'dispatched': False})
+
+    def test_a_refused_deployment_record_records_nothing(self):
+        from intune_iac.workbench_views import record_local_deployment
+        self.import_intent()
+        error = self.refused(lambda: record_local_deployment(self.store, self.root / 'missing-operation', 'f' * 64))
+        self.assertEqual(error.effects, {'deployment_recorded': False})
+
+    def test_the_words_follow_the_facts(self):
+        from intune_iac.workbench_screens import effect_lines, refusal_lines
+        text = ' '.join(effect_lines({'intent_recorded': False, 'retained_intent': 'a' * 64}, 120))
+        self.assertIn('No new intent was recorded; the previous intent aaaaaaaaaaaa is retained.', text)
+        text = ' '.join(effect_lines({'files_written': ['/w/op.intent-desired.json', '/w/op.intent-context.json'],
+                                      'operation_created': False}, 160))
+        self.assertIn('No proposal was created. These input files were written and remain: /w/op.intent-desired.json, '
+                      '/w/op.intent-context.json.', text)
+        self.assertIn('No proposal and no input files were created.',
+                      ' '.join(effect_lines({'files_written': [], 'operation_created': False}, 120)))
+        self.assertIn('Nothing was dispatched.', ' '.join(effect_lines({'dispatched': False}, 120)))
+        self.assertIn('Dispatch had started, so the outcome is unknown',
+                      ' '.join(effect_lines({'dispatched': True}, 120)))
+        self.assertEqual(effect_lines(None, 120), [])
+        value = {'status': 'error', 'error': {'code': 'workbench_difference_changed', 'message': 'changed again',
+                                              'effects': {'intent_recorded': False, 'retained_intent': 'a' * 64}}}
+        text = ' '.join(' '.join(refusal_lines(value, 120)).split())
+        self.assertIn('Effect: No new intent was recorded; the previous intent aaaaaaaaaaaa is retained.', text)
+
+    def test_the_workspace_and_the_cli_carry_the_effects(self):
+        import subprocess, sys, os
+        from intune_iac.workbench import run_terminal
+        self.import_intent()
+        commands = iter(['select ' + OBJECT, 'repository-refresh ' + 'b' * 40 + ' ' + '0' * 64, 'quit'])
+        results = []
+        run_terminal(self.store.root, input_fn=lambda _: next(commands), result_fn=results.append)
+        refused = [item for item in results if item.get('status') == 'error']
+        self.assertEqual(refused[-1]['error']['code'], 'workbench_difference_changed')
+        self.assertIs(refused[-1]['error']['effects']['intent_recorded'], False)
+        root = Path(__file__).resolve().parents[1]
+        process = subprocess.run([sys.executable, '-B', str(root / 'scripts/intune-iac.py'), 'workbench', 'deployment-record',
+                                  '--root', str(self.store.root), '--operation', str(self.root / 'missing'), '--intent', 'f' * 64],
+                                 capture_output=True, text=True, cwd='/tmp', timeout=60,
+                                 env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
+        self.assertNotEqual(process.returncode, 0)
+        self.assertEqual(json.loads(process.stderr)['error']['effects'], {'deployment_recorded': False})
+
+
+if __name__ == '__main__':
+    unittest.main()
