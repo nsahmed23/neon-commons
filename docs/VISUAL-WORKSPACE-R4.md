@@ -29,6 +29,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | Tab | Next surface |
 | n / p | Next / previous bounded engine page |
 | h / l | Health / repository lineage |
+| d | Setting dictionary for the selected policy's settings |
 | Page Up / Page Down | Scroll the exact result, including long values |
 | : | Command bar accepting the existing text commands |
 | / | Search policies/settings; preserve active global filters when using the four-view estate |
@@ -57,6 +58,24 @@ While the synchronous engine is running, the frame says the outcome is not yet k
 - The context strip below it shows the tenant, the selected policy (name and short ID), the observation freshness, the repository state and the active operation's status.
 - When the strip does not fit, it drops the tenant first, then uses short labels (`OBS`, `REPO`, `OP`), then the policy name.
 - These are the facts the engine last reported for the selected policy. "unknown" or "not checked" means no result has said yet; the workspace never makes a hidden engine call to fill them in. Exact identities appear on each surface.
+
+**Inspector (2).** Shows the selected policy as an engineer reads it:
+- name and exact identity;
+- platform and technologies;
+- scope tags, quoted;
+- observation time, coverage, freshness and snapshot;
+- ownership;
+- the description, quoted;
+- a settings table: record ID, definition ID and the exact configured value by instance kind (choice, value or ordered list);
+- a targeting table: include, exclude, all devices or all licensed users, each with its group and filter.
+
+The literal-capture fields remain. `d` opens the dictionary for these settings on the same surface (`[SETTING DICTIONARY]`). It keeps four sources separate:
+- **Vendor documentation:** name, meaning, aliases, CSP path, type and default, the documented CSP values, applicability, publisher, dates and URL.
+- **Local mapping:** support status, permitted Graph values and deferred qualifications.
+- **Observed use:** each policy using the setting, with its value, freshness, coverage and evidence class.
+- **Company, community and AI categories:** each with its availability.
+
+When the vendor record says the Graph-to-CSP value translation is unverified, the dictionary says so next to the CSP values instead of pairing them.
 
 **Plan (5).** A review starts with `[CHANGE REVIEW]`:
 - each changed field with its exact observed and desired values. Strings are quoted, and `null`, `""` and an absent value stay distinct.

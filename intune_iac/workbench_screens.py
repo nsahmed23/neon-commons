@@ -60,10 +60,18 @@ def utc_time(value):
 
 
 def word_wrap(value, width):
-    """Wrap escaped text at spaces where possible; split a token only when it cannot fit."""
+    """Wrap escaped text at spaces where possible; split a token only when it cannot fit.
+
+    Leading indentation is kept on every wrapped line.
+    """
+    text = safe_text(value)
+    body = text.lstrip(' ')
+    indent = len(text) - len(body)
+    if indent and indent < width:
+        return [' ' * indent + line for line in word_wrap(body, width - indent)]
     width = max(1, width)
     lines, line = [], ''
-    for word in safe_text(value).split(' '):
+    for word in body.split(' '):
         candidate = word if not line else line + ' ' + word
         if cell_width(candidate) <= width:
             line = candidate
@@ -154,6 +162,140 @@ def change_lines(changes, width, before_label='BEFORE (observed)', after_label='
             for prefix, value in (('  before  ', before), ('  after   ', after)):
                 for index, part in enumerate(word_wrap(value, width - len(prefix))):
                     lines.append((prefix if index == 0 else ' ' * len(prefix)) + part)
+    return lines
+
+
+TARGET_WORDS = {'groupAssignmentTarget': 'include', 'exclusionGroupAssignmentTarget': 'exclude',
+                'allDevicesAssignmentTarget': 'all devices', 'allLicensedUsersAssignmentTarget': 'all licensed users'}
+
+
+def _labelled(label, text, width, size=13):
+    """A label column followed by wrapped text, continuation lines indented under the text."""
+    lines = []
+    for index, part in enumerate(word_wrap(text, max(1, width - size))):
+        lines.append((pad(label, size) if index == 0 else ' ' * size) + part)
+    return lines
+
+
+def _setting_value(instance):
+    """The exact configured value of one setting instance, by instance kind."""
+    if not isinstance(instance, dict):
+        return 'unreadable instance (see exact evidence)'
+    kind = str(instance.get('@odata.type', ''))
+    if 'ChoiceSettingInstance' in kind and isinstance(instance.get('choiceSettingValue'), dict):
+        value = instance['choiceSettingValue']
+        children = value.get('children') or []
+        return 'choice  ' + _value(value.get('value')) + ('  (%d child settings)' % len(children) if children else '')
+    if 'SimpleSettingCollectionInstance' in kind:
+        values = instance.get('simpleSettingCollectionValue')
+        return 'ordered list  ' + _value([v.get('value') if isinstance(v, dict) else v for v in values] if isinstance(values, list) else values)
+    if 'SimpleSettingInstance' in kind and isinstance(instance.get('simpleSettingValue'), dict):
+        return 'value  ' + _value(instance['simpleSettingValue'].get('value'))
+    return safe_text(kind or 'unknown instance') + ' (see exact evidence)'
+
+
+def _target_line(row):
+    if not isinstance(row, dict):
+        return _value(row)
+    text = TARGET_WORDS.get(row.get('type'), safe_text(str(row.get('type'))))
+    if 'group_id' in row:
+        text += '  group ' + safe_text(str(row['group_id']))
+    if row.get('filter_type') not in (None, 'none'):
+        text += '  filter ' + safe_text(str(row['filter_type'])) + ' ' + safe_text(str(row.get('filter_id')))
+    return text
+
+
+def inspector_lines(value, width):
+    """One policy as an engineer reads it: identity, observation, settings and targeting, exact values."""
+    lines = ['[POLICY INSPECTOR]']
+    lines += word_wrap(str(value.get('name') or '(no name in this result)'), width)
+    body = value.get('body') if isinstance(value.get('body'), dict) else {}
+    lines += _labelled('Identity', str(value.get('object_id', 'unknown')), width)
+    if body:
+        technologies = body.get('technologies')
+        lines += _labelled('Platform', str(body.get('platforms')) + ' | technologies ' + (
+            ', '.join(map(str, technologies)) if isinstance(technologies, list) else _value(technologies)), width)
+        tags = body.get('role_scope_tag_ids')
+        lines += _labelled('Scope tags', ' '.join(_value(tag) for tag in tags) if isinstance(tags, list) else _value(tags), width)
+    observed = [str(value[key]) for key in ('observed_at', 'coverage', 'freshness') if value.get(key)]
+    if value.get('snapshot_id'):
+        observed.append('snapshot ' + str(value['snapshot_id'])[:12])
+    lines += _labelled('Observed', ' | '.join(observed) or 'unknown', width)
+    lines += _labelled('Ownership', str(value.get('ownership', 'unknown')), width)
+    if body:
+        lines += _labelled('Description', _value(body.get('description')), width)
+    settings = body.get('settings', {}).get('settings') if isinstance(body.get('settings'), dict) else None
+    if isinstance(settings, list):
+        lines.append('SETTINGS (%d)' % len(settings))
+        for row in settings:
+            instance = row.get('settingInstance') if isinstance(row, dict) else None
+            definition = instance.get('settingDefinitionId') if isinstance(instance, dict) else None
+            lines += word_wrap('  ' + str(row.get('id') if isinstance(row, dict) else '?') + '  ' + str(definition), width)
+            lines += word_wrap('     ' + _setting_value(instance), width)
+    else:
+        lines.append('SETTINGS not in this result')
+    assignments = body.get('assignments')
+    if isinstance(assignments, list):
+        lines.append('TARGETING (%d)' % len(assignments))
+        for row in assignments:
+            lines += word_wrap('  ' + _target_line(row), width)
+    elif body:
+        lines.append('TARGETING ' + ('not collected (null)' if assignments is None else 'unreadable'))
+    lines += word_wrap('Keys: d dictionary for these settings | 3 relationships | 4 history | 9 repository', width)
+    return lines
+
+
+def _availability(entry, category):
+    record = ((entry.get('fact_provenance') or {}).get('categories') or {}).get(category) or {}
+    return str(record.get('availability', 'unknown')).replace('_', ' ')
+
+
+def dictionary_lines(value, width):
+    """Dictionary entries with vendor documentation, local mapping and observed use kept apart."""
+    lines = ['[SETTING DICTIONARY]']
+    entries = value.get('entries') if isinstance(value.get('entries'), list) else []
+    if not entries:
+        return lines + ['No dictionary entries for this query.']
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        lines.append('')
+        lines += word_wrap(str(entry.get('identifier')), width)
+        for vendor in entry.get('vendor_documentation') or []:
+            if not isinstance(vendor, dict):
+                continue
+            lines += _labelled('Name', str(vendor.get('name')) + '  (vendor documentation)', width)
+            lines += _labelled('Meaning', str(vendor.get('meaning')), width)
+            if vendor.get('aliases'):
+                lines += _labelled('Aliases', ', '.join(map(str, vendor['aliases'])), width)
+            lines += _labelled('CSP', '%s | %s | default %s' % (vendor.get('csp_uri'), vendor.get('data_type'), _value(vendor.get('default_value'))), width)
+            allowed = vendor.get('allowed_values') or []
+            lines += _labelled('CSP values', ' | '.join('%s %s' % (_value(item.get('value')), item.get('meaning')) for item in allowed if isinstance(item, dict)) or 'not documented', width)
+            if vendor.get('graph_value_translation_verified') is not True:
+                lines += _labelled('', 'Graph value to CSP value translation NOT verified: ' + str(vendor.get('association_basis', 'no attestation')), width)
+            applies = vendor.get('applicability') or {}
+            lines += _labelled('Applies to', ' | '.join(str(part) for part in (applies.get('scope'), applies.get('minimum_windows_release'),
+                               ', '.join(applies.get('editions') or [])) if part) or 'not documented', width)
+            source = vendor.get('documentation') or {}
+            lines += _labelled('Source', ' | '.join(str(part) for part in (source.get('publisher'), 'updated ' + str(source.get('published_update_at')),
+                               'retrieved ' + str(source.get('retrieved_at')), source.get('url')) if part), width)
+        for mapping in entry.get('local_mapping') or []:
+            rule = mapping.get('entry') if isinstance(mapping, dict) else None
+            if isinstance(rule, dict):
+                lines += _labelled('Mapping', str(rule.get('support_status')) + ' | permitted Graph values ' +
+                                   ', '.join(_value(v) for v in rule.get('permitted_values') or []) +
+                                   ' | deferred: ' + ', '.join(map(str, rule.get('deferred_qualification') or [])), width)
+        uses = entry.get('actual_uses') or []
+        for use in uses:
+            if isinstance(use, dict):
+                lines += _labelled('In use' if use is uses[0] else '', '%s (%s) %s | %s | %s | %s' % (
+                    use.get('name'), use.get('object_id'), _setting_value(use.get('instance')),
+                    use.get('freshness'), use.get('coverage'), use.get('evidence_class')), width)
+        if not uses:
+            lines += _labelled('In use', 'no observed use', width)
+        lines += word_wrap('Company annotation %s | community advice %s | AI interpretation %s' % (
+            _availability(entry, 'company_annotation'), _availability(entry, 'community_advice'),
+            _availability(entry, 'ai_interpretation')), width)
     return lines
 
 

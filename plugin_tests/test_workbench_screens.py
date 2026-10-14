@@ -75,6 +75,18 @@ class ChangeLinesTests(unittest.TestCase):
         self.assertNotIn('\x1b', joined); self.assertNotIn('‮', joined)
 
 
+class WordWrapTests(unittest.TestCase):
+    def test_leading_indentation_is_kept_on_every_wrapped_line(self):
+        from intune_iac.workbench_screens import word_wrap
+        self.assertEqual(word_wrap('  include  group abc', 80), ['  include  group abc'])
+        self.assertEqual(word_wrap('    one two three four', 12), ['    one two', '    three', '    four'])
+
+    def test_long_tokens_are_split_only_when_they_cannot_fit(self):
+        from intune_iac.workbench_screens import word_wrap
+        self.assertEqual(word_wrap('abcdefghij', 4), ['abcd', 'efgh', 'ij'])
+        self.assertEqual(word_wrap('', 10), [''])
+
+
 class FrameTextTests(unittest.TestCase):
     TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
 
@@ -104,6 +116,72 @@ class FrameTextTests(unittest.TestCase):
         from intune_iac.workbench_screens import utc_time
         self.assertEqual(utc_time(1791981362), '2026-10-14T12:36:02Z')
         self.assertEqual(utc_time('not a time'), 'not a time')
+
+
+POLICY_ID = '22222222-2222-4222-8222-222222222222'
+INSPECT = {'object_id': POLICY_ID, 'name': 'Windows Privacy Pilot', 'observed_at': '2026-10-14T12:34:41.449967Z',
+           'coverage': 'complete', 'freshness': 'fresh', 'ownership': 'unknown', 'snapshot_id': '90a2985f' + 'f' * 56,
+           'body': copy.deepcopy(BODY)}
+ENTRY = {'identifier': LOCATION, 'aliases': [], 'meaning': 'unknown', 'name': None, 'references': [],
+         'vendor_documentation': [{'name': 'Let Windows apps access location',
+             'meaning': 'Controls whether Windows apps may access location.', 'aliases': ['LetAppsAccessLocation'],
+             'csp_uri': './Device/Vendor/MSFT/Policy/Config/Privacy/LetAppsAccessLocation', 'data_type': 'int', 'default_value': 0,
+             'allowed_values': [{'value': 0, 'meaning': 'User in control'}, {'value': 1, 'meaning': 'Force allow'}, {'value': 2, 'meaning': 'Force deny'}],
+             'applicability': {'scope': 'device', 'minimum_windows_release': 'Windows 10, version 1607', 'editions': ['Pro', 'Enterprise']},
+             'documentation': {'publisher': 'Microsoft Learn', 'published_update_at': '2026-09-23T17:34:00Z', 'retrieved_at': '2026-10-07T03:21:49Z',
+                               'url': 'https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#letappsaccesslocation'},
+             'graph_value_translation_verified': False,
+             'association_basis': 'Explicit local cross-reference to the similarly named CSP; no Graph definition or enum translation attestation'}],
+         'local_mapping': [{'entry': {'support_status': 'supported_offline', 'permitted_values': [LOCATION + '_2'],
+             'deferred_qualification': ['service_definition_applicability', 'live_tenant_behavior']}}],
+         'actual_uses': [{'name': 'Windows Privacy Pilot', 'object_id': POLICY_ID, 'freshness': 'fresh', 'coverage': 'complete', 'evidence_class': 'synthetic',
+             'instance': {'@odata.type': '#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance', 'settingDefinitionId': LOCATION,
+                          'choiceSettingValue': {'value': LOCATION + '_2', 'children': []}}}],
+         'fact_provenance': {'categories': {'community_advice': {'availability': 'absent'}, 'company_annotation': {'availability': 'absent'},
+                                            'ai_interpretation': {'availability': 'not_implemented'}}}}
+
+
+class InspectorAndDictionaryTests(unittest.TestCase):
+    def test_inspector_shows_exact_identity_settings_and_targeting(self):
+        from intune_iac.workbench_screens import inspector_lines
+        lines = inspector_lines(INSPECT, 120)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[POLICY INSPECTOR]')
+        self.assertIn('Windows Privacy Pilot', joined)
+        self.assertIn('Identity     ' + POLICY_ID, joined)
+        self.assertIn('Scope tags   "0"', joined)
+        self.assertIn('Description  "Synthetic reference; not production advice."', joined)
+        self.assertIn('SETTINGS (1)', joined)
+        self.assertIn('choice  "' + LOCATION + '_2"', joined)
+        self.assertIn('TARGETING (3)', joined)
+        self.assertIn('include  group 44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', joined)
+        self.assertIn('exclude  group 66666666-6666-4666-8666-666666666666', joined)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 120, line)
+
+    def test_inspector_handles_missing_body_and_hostile_names(self):
+        from intune_iac.workbench_screens import inspector_lines
+        lines = inspector_lines({'object_id': POLICY_ID, 'name': 'bad\x1b]0;title\x07name', 'freshness': 'stale'}, 80)
+        joined = '\n'.join(lines)
+        self.assertNotIn('\x1b', joined); self.assertNotIn('\x07', joined)
+        self.assertIn('SETTINGS not in this result', joined)
+
+    def test_dictionary_keeps_vendor_mapping_and_use_apart(self):
+        from intune_iac.workbench_screens import dictionary_lines
+        lines = dictionary_lines({'entries': [ENTRY], 'query': ''}, 120)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[SETTING DICTIONARY]')
+        self.assertIn('Let Windows apps access location', joined)
+        self.assertIn('CSP values   0 User in control | 1 Force allow | 2 Force deny', joined)
+        self.assertIn('Graph value to CSP value translation NOT verified', joined)
+        self.assertIn('"' + LOCATION + '_2"', joined)
+        self.assertIn('In use       Windows Privacy Pilot (' + POLICY_ID + ')', joined)
+        self.assertIn('AI interpretation not implemented', joined)
+        self.assertIn('Microsoft Learn', joined)
+
+    def test_empty_dictionary_says_so(self):
+        from intune_iac.workbench_screens import dictionary_lines
+        self.assertIn('No dictionary entries for this query.', dictionary_lines({'entries': [], 'query': 'none'}, 80))
 
 
 class RepositoryLinesTests(unittest.TestCase):

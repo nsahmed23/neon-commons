@@ -28,7 +28,7 @@ SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
-              'repository-status'}
+              'repository-status', 'dictionary'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
@@ -516,16 +516,15 @@ class Workspace:
         def field(label, item):
             rendered = json.dumps(item, ensure_ascii=False, allow_nan=False) if not isinstance(item, str) else item
             rows.extend(word_wrap(label + ': ' + rendered, width))
-        if self.tab == 1 and value.get('object_id'):
-            rows.append('[POLICY INSPECTOR]')
-            for label, key in (('Identity', 'object_id'), ('Name', 'name'), ('Observed at', 'observed_at'),
-                               ('Coverage', 'coverage'), ('Freshness', 'freshness'), ('Ownership', 'ownership')):
-                field(label, value.get(key, 'unknown'))
-            body = value.get('body', value)
-            for key in ('settings', 'assignments'):
-                items = body.get(key) if isinstance(body, dict) else None
-                label = 'Normalized ' + key if isinstance(value.get('raw_capture_observation'), dict) else key.capitalize()
-                field(label + ' in this result', len(items) if isinstance(items, list) else 'unknown')
+        if self.tab == 1 and isinstance(value.get('entries'), list) and 'fact_provenance_contract' in value:
+            from .workbench_screens import dictionary_lines
+            rows.extend(dictionary_lines(value, width))
+            rows.append('[EXACT DICTIONARY AND PROVENANCE] Full engine values follow.')
+        elif self.tab == 1 and value.get('object_id'):
+            from .workbench_screens import inspector_lines
+            rows.extend(inspector_lines(value, width))
+            if isinstance(value.get('raw_capture_observation'), dict):
+                rows.extend(word_wrap('The settings and targeting above are the normalized mapping of this observation.', width))
             capture = value.get('raw_capture_observation')
             if isinstance(capture, dict):
                 field('Literal capture status', capture.get('status', 'unknown'))
@@ -806,7 +805,7 @@ class Workspace:
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
-                'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4,
+                'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -944,6 +943,7 @@ class Workspace:
                 elif char == 'p': return self._send('previous')
                 elif char == 'b': return self._send('back')
                 elif char == 'h': return self._send('health')
+                elif char == 'd': return self._send('dictionary')
                 elif char == 'l': return self._send('lineage')
                 elif char == '?': return self._send('help')
             self.draw()
