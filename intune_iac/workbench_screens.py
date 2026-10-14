@@ -87,7 +87,7 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     tiers = [(policy, False, False, states), (policy, True, False, states), (bare, True, False, states),
              (bare, True, True, states)] + [(bare, True, True, remaining) for remaining in shrinking]
     for name, compact, brief, remaining in tiers:
-        text = ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), str(value)) if brief else str(value))
+        text = ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), _as_words(value)) if brief else _as_words(value))
                                            for long, short, value in remaining])
         if cell_width(safe_text(text)) <= width:
             return text

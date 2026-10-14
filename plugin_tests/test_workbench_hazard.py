@@ -56,10 +56,13 @@ class StripTests(unittest.TestCase):
             self.assertNotIn('fresh', line, line); self.assertNotIn('current', line, line)
         self.assertIn('OP unknown', self.strip(facts, 80))
 
+    def test_state_words_read_as_words(self):
+        self.assertIn('OPERATION outcome unknown', self.strip({'operation': 'outcome_unknown'}, 200))
+
     def test_without_a_hazard_the_order_is_unchanged(self):
         facts = {'observation': 'fresh', 'repository': 'current', 'operation': 'succeeded_verified'}
         self.assertEqual(self.strip(facts, 200), 'SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | '
-                                                  'OBSERVED fresh | REPOSITORY current | OPERATION succeeded_verified')
+                                                  'OBSERVED fresh | REPOSITORY current | OPERATION succeeded verified')
 
 
 class TabLineTests(unittest.TestCase):
