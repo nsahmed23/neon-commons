@@ -1002,6 +1002,8 @@ def history_event_lines(history, width):
     for event in events:
         label = EVENT_LABELS.get(event.get('kind'), str(event.get('kind')).replace('_', ' '))
         at = str(event.get('store_recorded_at') or 'time not recorded')
+        if at.endswith('Z') and '.' in at:
+            at = at.split('.')[0] + 'Z'  # to the second in the column; the raw record keeps the fraction
         head = '  %-3s %-17s %-21s ' % (event.get('sequence'), label, at)
         if width >= 90:
             lines += _labelled(head, _event_text(event), width, len(head))

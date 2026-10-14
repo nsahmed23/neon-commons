@@ -612,6 +612,14 @@ class HistoryLinesTests(unittest.TestCase):
             for line in history_event_lines(self.HISTORY, width):
                 self.assertLessEqual(cell_width(line), width, line)
 
+    def test_a_store_time_is_shown_to_the_second_and_the_columns_stay_aligned(self):
+        from intune_iac.workbench_screens import history_event_lines
+        history = copy.deepcopy(self.HISTORY)
+        history['events'][0]['store_recorded_at'] = '2026-10-14T17:14:37.396288Z'
+        lines = history_event_lines(history, 120)
+        self.assertIn('0   prepared          2026-10-14T17:14:37Z  approval digest', lines[1])
+        self.assertEqual(lines[1].index('approval'), lines[2].index('approval'))
+
     def test_unpaired_registrations_are_disclosed_and_no_history_draws_nothing(self):
         from intune_iac.workbench_screens import history_event_lines
         lines = history_event_lines(dict(self.HISTORY, registrations=3), 120)
