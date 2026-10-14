@@ -95,6 +95,23 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(stages['observed_after']['service_revision'], 2)
         self.assertEqual(value['next_action'], 'Nothing pending: the change is recorded and observed as desired.')
 
+    def test_the_workspace_records_the_deployment_delivery_offers(self):
+        # The record step no longer needs a shell: the workspace runs the same command Delivery names.
+        from intune_iac import maintenance
+        from intune_iac.workbench import run_terminal
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        value, _ = self.view()
+        self.assertIn('deployment-record %s %s' % (self.operation, self.intent['artifact_id']), value['next_action'])
+        commands = iter(['deployment-record %s %s' % (self.operation, self.intent['artifact_id']), 'quit'])
+        results = []
+        run_terminal(self.store.root, input_fn=lambda _: next(commands), result_fn=results.append)
+        recorded = [item for item in results if item.get('kind') == 'deployment_receipt']
+        self.assertEqual(len(recorded), 1, results[-2:])
+        _, stages = self.view()
+        self.assertEqual((stages['deployment_record']['status'], stages['deployment_record']['intent_id']),
+                         ('done', self.intent['artifact_id']))
+
     def test_imported_workflow_runs_appear_as_inert_delivery_evidence(self):
         from intune_iac.workbench_health import import_workflow_run
         review = self.prepare()

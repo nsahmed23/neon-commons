@@ -359,6 +359,10 @@ ACTION_EFFECTS = {
                         'nothing.',
     'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why. It '
                    'records nothing.',
+    'deployment-record': 'Rechecks the operation, its engine receipt, its one verified readback and the context bytes '
+                         'its plan bound against the cited repository intent, then records a deployment receipt in '
+                         "this store: a verified local modeled baseline for that intent, not platform qualified. It "
+                         'sends nothing to the service.',
 }
 
 
@@ -480,6 +484,22 @@ def _reason_words(problem):
     return words.get(reason) or _refusal(problem['code'])['message']
 
 
+def _record_offer(attention):
+    """The newest operation and its cited intent when Delivery's deployment-record stage says it is available."""
+    operation = attention.get('newest_operation') if isinstance(attention.get('newest_operation'), dict) else {}
+    if operation.get('journal_status') not in ('succeeded_verified', 'reconciled') or not operation.get('operation_root'):
+        return None
+    from .workbench_delivery import deployment_stage
+    try:
+        stage = deployment_stage(operation['operation_root'])
+    except AppError:
+        return None  # Delivery itself names what is wrong with this operation's evidence.
+    if stage.get('status') != 'available':
+        return None
+    return {'operation_id': operation.get('operation_id'), 'operation_root': operation['operation_root'],
+            'intent_id': stage['intent_id']}
+
+
 def _actions(store, object_id, attention, intent, service_root, *, eligibility=_UNREAD, evidence_class=None):
     """The guided actions for one policy, built from structured evidence, never parsed from prose.
 
@@ -524,6 +544,12 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               'repository-refresh ', cursor=len('repository-refresh '), show_first='repository-status',
               needs=["REVISION: the repository's current 40-character commit; without a pinned git it is recorded as "
                      'stated, not checked against the files'])
+    record = _record_offer(attention)
+    if record:
+        offer('deployment-record', 'Record the deployment of operation %s' % str(record['operation_id'])[:8],
+              'deployment-record %s %s' % (shlex.quote(str(record['operation_root'])), record['intent_id']),
+              extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
+                     'intent_id': record['intent_id']})
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
     if (blocked or {}).get('reason') in RECOLLECT_REASONS and not any(action['kind'] == 'collect' for action in actions):
         # The proposal's own check names collecting again as the fix, even when nothing recorded says so yet.
@@ -752,7 +778,9 @@ HELP = {
                     'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'delivery OPERATION_DIR (read-only: proposal, approval, execution, readback, reconciliation, deployment record, observation)',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
-                    'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
+                    'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)',
+                    'deployment-record OPERATION_DIR INTENT_ID (records a verified local operation as the deployment of '
+                    'the intent it cites; sends nothing)'],
     'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
     'received_worker_evidence': ['evidence-link EVIDENCE_STORE REQUEST_SHA256 TRUST_PATH VERIFIER_PATH PRIVATE_SCRATCH',
                                  'evidence-history (selected object; every read rechecks signed bytes/current trust)'],
@@ -1096,6 +1124,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'delivery' and len(values) == 1:
                 from .workbench_delivery import delivery
                 result = delivery(values[0])
+            elif name == 'deployment-record' and len(values) == 2:
+                from .workbench_views import record_local_deployment
+                result = record_local_deployment(store, values[0], values[1])
             elif name in ('review', 'execute', 'reconcile', 'restore-propose'):
                 from . import maintenance
                 if name == 'review' and len(values) == 1: result = maintenance.review(values[0])

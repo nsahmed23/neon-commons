@@ -218,8 +218,9 @@ def _next_action(stages, operation_root, store_root):
     if 'pending' in (readback['status'], reconciliation['status']):
         return 'The service has not yet shown the change; reconcile again later with reconcile %s.' % operation
     if record['status'] == 'available':
-        return ('Record the deployment: workbench deployment-record --root %s --operation %s --intent %s'
-                % (store, operation, record['intent_id']))
+        return ('Record the deployment: in the workspace, deployment-record %s %s (a lists it); from a shell, '
+                'workbench deployment-record --root %s --operation %s --intent %s'
+                % (operation, record['intent_id'], store, operation, record['intent_id']))
     if record['status'] == 'not_available' and record.get('reason') == 'context_changed':
         return ('The context file this operation bound changed after it was prepared, so it cannot become a deployment '
                 'record; collect to observe the policy.')
@@ -261,6 +262,14 @@ def _history(journal, records):
               for index, event in enumerate(journal['events'])]
     return {'events': events, 'chain': 'verified when the operation was loaded', 'registrations': len(records),
             'paired': len(paired)}
+
+
+def deployment_stage(operation_root):
+    """The deployment-record stage of one operation, exactly as Delivery shows it; for the guided action."""
+    from . import maintenance
+    review = maintenance.review(operation_root)
+    _, plan, journal, _, _ = maintenance._load(review['operation_root'])
+    return _deployment(maintenance._store(plan['store_root']), plan, journal, review['repository'])
 
 
 def delivery(operation_root, *, now=None):

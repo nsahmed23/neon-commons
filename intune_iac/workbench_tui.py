@@ -160,7 +160,7 @@ MODE_CLASSES = frozenset({'synthetic', 'synthetic_local_process_only', 'syntheti
 # Short names for a staged action, so its instruction fits beside it; the full label stays in the action list.
 STAGED_NAMES = {'reconcile': 'reconcile', 'collect': 'collect', 'repository-refresh': 'refresh',
                 'propose-from-intent': 'proposal', 'propose': 'proposal', 'repository-entry': 'repository survey',
-                'diagnostics': 'diagnostics'}
+                'diagnostics': 'diagnostics', 'deployment-record': 'deployment record'}
 # The longest that fits is shown, so narrow terminals get every key and no cut-off word.
 HELP_LINES = ('? help | a actions | : command | / search | e details | r raw record | b back | q exit',
               '? help | : command | / search | e details | r raw record | b back | q exit',

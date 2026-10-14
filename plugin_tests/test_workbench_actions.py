@@ -53,6 +53,35 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertIn('never replays', first['effects'])
         self.assertIn('records', first['effects'])
 
+    def verified_change(self):
+        from intune_iac import maintenance
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        intent = refresh_intent(self.store, OBJECT, 'b' * 40)
+        operation = self.root / 'operation'
+        review = propose_from_intent(self.store.root, self.service.root, OBJECT, operation)
+        maintenance.execute(operation, approve_digest=review['approval_digest'])
+        return operation, review, intent
+
+    def test_a_verified_cited_change_offers_its_deployment_record(self):
+        # Offered exactly when Delivery's deployment-record stage is available, with both identities in the command.
+        from intune_iac.workbench_views import record_local_deployment
+        operation, review, intent = self.verified_change()
+        action = self.actions()['deployment-record']
+        self.assertTrue(action['available'], action)
+        self.assertEqual(action['command'], 'deployment-record %s %s' % (shlex.quote(str(operation)), intent['artifact_id']))
+        self.assertEqual((action['binding']['operation_id'], action['binding']['intent_id']),
+                         (review['operation_id'], intent['artifact_id']))
+        self.assertIn('sends nothing', action['effects'])
+        self.assertIn('records a deployment receipt', action['effects'])
+        record_local_deployment(self.store, operation, intent['artifact_id'])
+        self.assertNotIn('deployment-record', self.actions())
+
+    def test_an_unverified_or_uncited_change_offers_no_deployment_record(self):
+        self.lost_response()
+        self.assertNotIn('deployment-record', self.actions())
+
     def test_a_clear_policy_offers_a_proposal_into_a_fresh_directory(self):
         self.import_intent()
         action = self.actions()['propose-from-intent']
