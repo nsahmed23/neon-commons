@@ -360,17 +360,45 @@ def utc_time(value):
 
 # A change's path through the existing surfaces (P-PRES-15): numbers unchanged, where you are, what comes next.
 LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'v Delivery'))
-LIFECYCLE_NEXT = {8: 'a prepares a proposal from the recorded intent; 5 Plan reviews it',
-                  4: 'execute OPERATION_DIR DIGEST runs it with the review digest; 6 Execution shows the result',
-                  5: 'an unknown outcome is reconciled from a; v shows every delivery stage'}
 
 
-def lifecycle_lines(tab, width):
-    """Where this surface sits in a change's path and the next step, in one line."""
-    if tab not in LIFECYCLE_NEXT:
+def lifecycle_next(tab, value, now):
+    """The next step for the change shown, from its own recorded state; never a step that state refuses."""
+    value = value if isinstance(value, dict) else {}
+    if tab == 8:
+        freshness = value.get('freshness') if isinstance(value.get('freshness'), dict) else {}
+        if freshness.get('status') == 'current':
+            return 'a prepares a proposal from the recorded intent; 5 Plan reviews it'
+        return 'record the current source first (a lists the refresh); a proposal follows from the new intent'
+    if tab == 5:
+        if value.get('status') == 'outcome_unknown':
+            return 'a reconciles it (never replays); v shows every delivery stage'
+        return 'v shows every delivery stage, including the deployment record'
+    status = value.get('status')
+    repository = value.get('repository') if isinstance(value.get('repository'), dict) else {}
+    if status == 'prepared':
+        if repository.get('context_changed'):
+            return "this proposal's context file changed, so execute refuses it; a prepares a new proposal"
+        if repository.get('cited') and repository.get('freshness') not in (None, 'current'):
+            return ('the repository changed since its intent, so execute refuses it; record the current source, '
+                    'then prepare again')
+        expires = value.get('expires_at')
+        if isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now:
+            return "this plan's approval window has closed; a prepares a new proposal"
+        return 'execute OPERATION_DIR DIGEST runs it with the review digest; 6 Execution shows the result'
+    if status == 'outcome_unknown':
+        return 'a reconciles it (never replays); v shows every delivery stage'
+    return 'v shows every delivery stage of this operation'
+
+
+def lifecycle_lines(tab, width, value=None, now=None):
+    """Where this surface sits in a change's path and the next step for the state shown, in one line."""
+    if tab not in (8, 4, 5):
         return []
+    import time
     path = ' > '.join(name + (' (here)' if index == tab else '') for index, name in LIFECYCLE)
-    return word_wrap('Lifecycle: %s. Next: %s.' % (path, LIFECYCLE_NEXT[tab]), width)
+    step = lifecycle_next(tab, value, time.time() if now is None else now)
+    return word_wrap('Lifecycle: %s. Next: %s.' % (path, step), width)
 
 
 def _when(value, missing='time not recorded'):

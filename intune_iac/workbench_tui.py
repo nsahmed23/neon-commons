@@ -1128,7 +1128,7 @@ class Workspace:
             lines = self._surface_summary(width)
             if self._on_change_path(self.value):
                 from .workbench_screens import lifecycle_lines
-                lines = lines + [''] + lifecycle_lines(self.tab, width)
+                lines = lines + [''] + lifecycle_lines(self.tab, width, self.value)
         return lines
 
     def _on_change_path(self, value):

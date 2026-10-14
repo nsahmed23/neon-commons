@@ -275,7 +275,9 @@ class LifecycleTests(unittest.TestCase):
         return ' '.join(' '.join(workspace._summary_lines(118)).split())
 
     def test_the_plan_review_says_where_it_sits_and_what_comes_next(self):
-        text = self.summary(4, {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': 1792005916})
+        import time
+        text = self.summary(4, {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared',
+                                'expires_at': time.time() + 200})
         self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > v Delivery', text)
         self.assertIn('Next: execute OPERATION_DIR DIGEST', text)
 
@@ -285,6 +287,27 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('9 Repository (here)', text)
         text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'outcome_unknown'})
         self.assertIn('6 Execution (here)', text)
+
+    def test_the_next_step_follows_the_state_shown(self):
+        # A step the state refuses is never offered as next (journey 25: a changed repository offered a proposal).
+        import time
+        text = self.summary(8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                                'freshness': {'status': 'stale'}})
+        self.assertIn('Next: record the current source first', text)
+        self.assertNotIn('a prepares a proposal from the recorded intent', text)
+        prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': time.time() + 200}
+        text = self.summary(4, dict(prepared, expires_at=time.time() - 1))
+        self.assertIn("approval window has closed; a prepares a new proposal", text)
+        self.assertNotIn('execute OPERATION_DIR', text)
+        text = self.summary(4, dict(prepared, repository={'cited': None, 'context_changed': True}))
+        self.assertIn('context file changed, so execute refuses it', text)
+        text = self.summary(4, dict(prepared, repository={'cited': True, 'freshness': 'stale'}))
+        self.assertIn('repository changed since its intent, so execute refuses it', text)
+        text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'outcome_unknown'})
+        self.assertIn('Next: a reconciles it (never replays)', text)
+        text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'succeeded_verified'})
+        self.assertIn('Next: v shows every delivery stage, including the deployment record', text)
+        self.assertNotIn('unknown outcome', text)
 
     def test_other_surfaces_and_refusals_do_not(self):
         self.assertNotIn('Lifecycle:', self.summary(1, {'object_id': OBJECT, 'name': 'Pilot', 'body': {}}))
