@@ -795,6 +795,8 @@ def details_lines(value, width):
             return 'not recorded'
         if isinstance(item, bool):
             return 'yes' if item else 'no'
+        if item == '':
+            return '"" (empty text)'  # recorded and empty, never read as missing
         return str(item)
 
     def walk(item, indent):
@@ -806,7 +808,8 @@ def details_lines(value, width):
                     lines.extend(word_wrap(label + ('  (%d)' % len(child) if isinstance(child, list) else ''), width))
                     walk(child, indent + 2)
                     continue
-                shown = scalar(child) if not isinstance(child, (dict, list)) else 'none'
+                shown = scalar(child) if not isinstance(child, (dict, list)) else (
+                    '[] (empty list)' if isinstance(child, list) else '{} (empty map)')
                 if cell_width(label) > indent + size - 2:
                     # A name longer than the label column keeps every character, with its value beneath.
                     lines.extend(word_wrap(label, width) + word_wrap(' ' * (indent + 4) + shown, width))

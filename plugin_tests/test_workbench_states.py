@@ -301,5 +301,32 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('recorded=2026-10-14 19:57:00 UTC', text)
 
 
+class TypedDetailTests(unittest.TestCase):
+    """P-PRES-01: label and value apart by two spaces or separate lines; empty, null and missing kept apart."""
+    def lines(self, value, width=60):
+        from intune_iac.workbench_screens import details_lines
+        return details_lines(value, width)
+
+    def test_empty_null_and_empty_containers_read_differently(self):
+        lines = self.lines({'text': '', 'missing': None, 'items': [], 'map': {}})
+        joined = '\n'.join(lines)
+        self.assertIn('"" (empty text)', joined)
+        self.assertIn('not recorded', joined)
+        self.assertIn('[] (empty list)', joined)
+        self.assertIn('{} (empty map)', joined)
+
+    def test_labels_and_values_never_touch(self):
+        from intune_iac.workbench_tui import cell_width
+        value = {'short': 'a', '名前': '東京', 'a_very_long_key_name_that_goes_beyond_the_label_column': 'v'}
+        lines = self.lines(value, 50)
+        self.assertIn('名前', '\n'.join(lines))
+        unicode_line = next(line for line in lines if line.startswith('名前'))
+        self.assertIn('  ', unicode_line)  # at least two spaces between label and value
+        long_label = [line for line in lines if 'a very long key' in line]
+        self.assertTrue(long_label and 'v' not in long_label[0].split()[-1:])  # the value sits on its own line
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 50, line)
+
+
 if __name__ == '__main__':
     unittest.main()
