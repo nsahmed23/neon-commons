@@ -114,6 +114,27 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertIsNone(value['observation_eligibility'], value['observation_eligibility'])
         self.assertTrue({action['kind']: action for action in value['actions']}['propose-from-intent']['available'])
 
+    def test_each_action_has_a_canonical_name_and_one_essential_effect(self):
+        # TASK-11 2.6 items 4 and 7: the picker names each action as the band and the staged review do, with its
+        # availability and one essential effect; the focused action shows its full effects.
+        from intune_iac.workbench_screens import actions_lines
+        self.import_intent()
+        self.edit_description('Changed and not refreshed.')
+        actions = self.inspection()['actions']
+        refresh = next(action for action in actions if action['kind'] == 'repository-refresh')
+        self.assertEqual(refresh['label'], 'Refresh the repository intent')
+        self.assertIn('no Git commit, approval or apply', refresh['summary'])
+        self.assertIn('REVISION: the full 40-character commit ID', refresh['needs'][0])
+        for action in actions:
+            self.assertTrue(action.get('summary'), action['kind'])
+        focus = actions.index(refresh)
+        text = ' '.join(' '.join(actions_lines(actions, focus, 120)).split())
+        self.assertIn(' '.join(refresh['effects'].split()), text)  # the focused action, in full
+        others = [action for action in actions if action is not refresh]
+        for action in others:
+            self.assertIn(' '.join(action['summary'].split()), text)
+            self.assertNotIn(' '.join(action['effects'].split()), text)  # the rest on demand
+
     def test_a_clear_policy_offers_a_proposal_into_a_fresh_directory(self):
         self.import_intent()
         action = self.actions()['propose-from-intent']
@@ -492,10 +513,13 @@ class ActionStagingTests(unittest.TestCase):
         self.assertEqual(workspace.cursor, len('repository-refresh '))
         self.assertIn('difference', workspace.notice)
         # What to type, how to submit or discard, and what the value after the cursor is, within 120 columns.
-        self.assertEqual(workspace.notice, "STAGED: type the repository's current commit. Enter records, Esc discards; "
-                                           'the digest after it pins this difference.')
-        self.assertLessEqual(len(workspace.notice), 120)
-        self.assertLessEqual(len(workspace.notice), 120)
+        # The boundary first (TASK-11 2.6 item 1), then what to type and how to submit or cancel.
+        self.assertTrue(workspace.notice.startswith('STAGED refresh: no Git commit, approval or apply.'), workspace.notice)
+        self.assertIn('the digest after it pins the reviewed difference', workspace.notice)
+        self.assertIn('Esc cancels', workspace.notice)
+        # Two rows while staged: the complete boundary, then the mechanics, each in a form that fits 120 columns.
+        self.assertLessEqual(len(workspace.staged['boundary'][0]), 120)
+        self.assertTrue(any(len(form) <= 120 for form in workspace.staged['mechanics']))
 
     def test_a_staged_action_never_follows_a_changed_evidence_mode(self):
         workspace = self.workspace()
@@ -537,9 +561,8 @@ class ActionStagingTests(unittest.TestCase):
         self.stage_first(workspace)
         self.assertEqual(workspace.mode, 'command')
         self.assertEqual(workspace.buffer, 'reconcile /work/op')
-        self.assertIn('never replays', workspace.notice)
-        # The instruction leads, so a narrow footer still shows how to submit and discard.
-        self.assertTrue(workspace.notice.startswith('STAGED reconcile: Enter submits, Esc discards.'), workspace.notice)
+        self.assertTrue(workspace.notice.startswith('STAGED reconcile: never repeats the change.'), workspace.notice)
+        self.assertIn('Enter submits; Esc cancels.', workspace.notice)
 
     def test_a_blocked_action_cannot_be_staged(self):
         workspace = self.workspace()

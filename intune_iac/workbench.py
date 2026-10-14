@@ -365,6 +365,24 @@ ACTION_EFFECTS = {
 }
 
 
+# One essential effect per action, shown for every action in the list; the full effects above are for the focused one.
+ACTION_SUMMARY = {
+    'reconcile': "Checks the operation's outcome and records the result; it never replays the change.",
+    'collect': 'Reads the modeled service and records a collection run; it changes no policy.',
+    'repository-refresh': 'Shows the changes first, then records them as a new intent: no Git commit, approval or apply.',
+    'propose-from-intent': 'Creates a local proposal for review; nothing is approved or sent.',
+    'propose': 'Creates a local proposal for review; nothing is approved or sent.',
+    'repository-entry': 'Reads the repository and lists its policies; it records nothing.',
+    'diagnostics': 'Shows what diagnostics recorded, including what it could not read; it records nothing.',
+    'deployment-record': 'Records a deployment receipt in this store; it sends nothing.',
+}
+
+
+def _stamped_ahead_only(reasons):
+    """Whether staleness comes only from a stamp ahead of this host's clock, which collecting again cannot cure."""
+    return isinstance(reasons, list) and bool(reasons) and set(reasons) == {'stamped_after_now'}
+
+
 def _fresh_operation(store, object_id):
     """A new operation directory beside the store; neither it nor its sibling input files exist yet.
 
@@ -522,7 +540,8 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
 
     def offer(kind, label, command, *, cursor=None, needs=(), blocked=None, extra=None, show_first=None):
         actions.append({'kind': kind, 'label': label, 'command': command, 'cursor': cursor, 'needs': list(needs),
-                        'effects': ACTION_EFFECTS[kind], 'available': blocked is None, 'blocked': blocked,
+                        'summary': ACTION_SUMMARY[kind], 'effects': ACTION_EFFECTS[kind], 'available': blocked is None,
+                        'blocked': blocked,
                         'show_first': show_first, 'binding': dict(binding, **(extra or {}))})
 
     if not _attention_established(attention):
@@ -543,12 +562,16 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               extra={'operation_id': evidence.get('operation_id'), 'operation_root': operation_root})
     no_service = None if service_root else {'code': 'service_required', 'message': 'needs --service-root (a modeled '
                                             'service); a headless or scheduled collector can collect instead'}
-    if any(code in found for code in ('collection_failed', 'collection_not_finished', 'observation_stale')):
+    stale = found.get('observation_stale') or {}
+    stamped_ahead = _stamped_ahead_only((stale.get('evidence') or {}).get('freshness_reasons'))
+    # An observation stamped ahead of the clock stays the newest whatever is collected now, so collect is not offered.
+    if (any(code in found for code in ('collection_failed', 'collection_not_finished'))
+            or ('observation_stale' in found and not stamped_ahead)):
         offer('collect', 'Collect again', 'collect', blocked=no_service)
     if any(code in found for code in ('repository_stale', 'repository_consumer_mismatch')):
-        offer('repository-refresh', "Record the repository's current source as a new intent (shows the difference first)",
+        offer('repository-refresh', 'Refresh the repository intent',
               'repository-refresh ', cursor=len('repository-refresh '), show_first='repository-status',
-              needs=["REVISION: the repository's current 40-character commit; without a pinned git it is recorded as "
+              needs=['REVISION: the full 40-character commit ID; without a pinned git it is recorded as '
                      'stated, not checked against the files'])
     record = _record_offer(attention)
     if record:
@@ -557,7 +580,9 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
                      'intent_id': record['intent_id']})
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
-    if (blocked or {}).get('reason') in RECOLLECT_REASONS and not any(action['kind'] == 'collect' for action in actions):
+    ahead = _stamped_ahead_only(eligibility.get('freshness_reasons')) if isinstance(eligibility, dict) else False
+    if ((blocked or {}).get('reason') in RECOLLECT_REASONS and not ahead
+            and not any(action['kind'] == 'collect' for action in actions)):
         # The proposal's own check names collecting again as the fix, even when nothing recorded says so yet.
         offer('collect', 'Collect again', 'collect', blocked=no_service)
     target = _fresh_operation(store, object_id)

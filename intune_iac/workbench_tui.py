@@ -171,6 +171,27 @@ def operation_list(records):
     return [dict(latest[key], journal_records=counts[key]) for key in order]
 
 
+# What a staged action does and does not do, said before how to submit it: longest form first, each complete; the
+# shortest fits 40 columns (TASK-11 2.6 item 1).
+STAGED_BOUNDARY = {
+    'repository-refresh': ('STAGED refresh: records a new intent only; no Git commit, approval or apply.',
+                           'STAGED refresh: no Git commit, approval or apply.',
+                           'STAGED refresh: no commit, approval or apply.', 'Refresh: no commit, approval or apply.'),
+    'reconcile': ('STAGED reconcile: checks the outcome and records it; it never repeats the change.',
+                  'STAGED reconcile: never repeats the change.', 'Reconcile: never repeats the change.'),
+    'collect': ('STAGED collect: reads the modeled service and records the result; it changes no policy.',
+                'STAGED collect: reads and records only.', 'Collect: reads and records only.'),
+    'propose-from-intent': ('STAGED proposal: a local proposal for review; nothing is approved or sent.',
+                            'STAGED proposal: nothing approved or sent.', 'Proposal: nothing approved or sent.'),
+    'propose': ('STAGED proposal: a local proposal for review; nothing is approved or sent.',
+                'STAGED proposal: nothing approved or sent.', 'Proposal: nothing approved or sent.'),
+    'deployment-record': ('STAGED deployment record: a receipt in this store; nothing is sent.',
+                          'STAGED record: a local receipt; nothing sent.', 'Record: local receipt; nothing sent.'),
+    'repository-entry': ('STAGED repository survey: reads the repository; it records nothing.',
+                         'STAGED survey: reads only.', 'Survey: reads only.'),
+    'diagnostics': ('STAGED diagnostics: shows what diagnostics recorded; it records nothing.',
+                    'STAGED diagnostics: records nothing.', 'Diagnostics: records nothing.'),
+}
 # Short names for a staged action, so its instruction fits beside it; the full label stays in the action list.
 STAGED_NAMES = {'reconcile': 'reconcile', 'collect': 'collect', 'repository-refresh': 'refresh',
                 'propose-from-intent': 'proposal', 'propose': 'proposal', 'repository-entry': 'repository survey',
@@ -261,7 +282,8 @@ def help_line(width, layer='summary', lead=()):
 def band_keys(rows):
     """The keys a hazard band offers, as the key line names them."""
     text = ' '.join(rows or [])
-    return tuple(name for key, name in (('a: ', 'a actions'), ('i: ', 'i details')) if key in text)
+    return tuple(name for keys, name in ((('a: ', '(a actions)'), 'a actions'), (('i: ',), 'i details'))
+                 if any(key in text for key in keys))
 
 
 def status_line(scope, first, last, total, width, ellipsis='...', short=None):
@@ -1236,7 +1258,13 @@ class Workspace:
         selected = getattr(self, 'selected', None)
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
         band = hazard_rows(known, known.get('signals') or [], width) if selected else []
-        available = max(0, height - 8 - len(band))
+        staged = getattr(self, 'staged', None) if self.mode == 'command' else None
+        staged_rows = None
+        if isinstance(staged, dict) and staged.get('boundary'):
+            # A staged action's boundary and its mechanics each get a row, each in the longest complete form that fits.
+            pick = lambda forms: next((form for form in forms if cell_width(form) <= width), forms[-1])
+            staged_rows = [pick(staged['boundary']), pick(staged.get('mechanics') or ('',))]
+        available = max(0, height - 8 - len(band) - (1 if staged_rows else 0))
         data = self._body_lines(inner, RULES[getattr(self, 'rules', 'ascii')][1])
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
@@ -1249,7 +1277,9 @@ class Workspace:
         from .workbench_screens import mode_word
         footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data),
                              width, ellipsis, short=mode_word(scope) if scope in MODE_CLASSES else None)
-        if self.mode == 'command' and getattr(self, 'staged', None):
+        if staged_rows:
+            footer = fit(staged_rows[0], width, ellipsis)
+        elif self.mode == 'command' and getattr(self, 'staged', None):
             # While a staged action's command is edited, its instruction stays on the row above the command bar.
             footer = fit(self.notice, width, ellipsis)
         prompt = self._prompt_line(width, ellipsis)
@@ -1262,7 +1292,8 @@ class Workspace:
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
                             ' more below: PgDn ' if self.scroll + available < len(data) else None),
-                      pad(footer, width), pad(prompt, width),
+                      pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
+                      pad(prompt, width),
                       pad(help_line(width, getattr(self, 'layer', 'summary'), band_keys(band)), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
@@ -1425,13 +1456,36 @@ class Workspace:
         cursor = action.get('cursor')
         self.mode = 'command'; self.buffer = command
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
-        self.staged = {'kind': action.get('kind'), 'label': action.get('label'), 'binding': dict(action.get('binding') or {})}
-        needs = [str(need).split(':')[0] for need in action.get('needs') or []]
-        # The instruction leads, so a narrow footer still shows how to submit and discard; the effects follow.
-        self.notice = 'STAGED %s: %s%s submits, Esc discards. %s' % (
-            STAGED_NAMES.get(action.get('kind'), action.get('kind')),
-            'type the %s at the cursor; ' % ' and '.join(needs) if needs else '', self._submit_word(), action.get('effects'))
+        self.staged = {'kind': action.get('kind'), 'label': action.get('label'), 'binding': dict(action.get('binding') or {}),
+                       'boundary': self._boundary(action), 'mechanics': self._mechanics(action, bound=False)}
+        self.notice = self._staged_notice()
         return None
+
+    def _boundary(self, action):
+        kind = action.get('kind')
+        return STAGED_BOUNDARY.get(kind) or ('STAGED %s.' % (action.get('label') or kind),)
+
+    def _mechanics(self, action, *, bound):
+        """What to type and how to submit or cancel, longest form first; the last fits 40 columns."""
+        submit = self._submit_word()
+        needs = [str(need).split(':')[0] for need in action.get('needs') or []]
+        if bound:
+            return ('Type REVISION (the full 40-character commit ID) at the cursor; the digest after it pins the difference '
+                    'you reviewed. %s attempts to record it; Esc cancels.' % submit,
+                    'Type REVISION at the cursor; the digest after it pins the reviewed difference. %s submits; Esc '
+                    'cancels.' % submit,
+                    'Type REVISION. %s attempts to record this reviewed source; Esc cancels.' % submit,
+                    'REVISION, then %s; Esc cancels.' % submit)
+        if needs:
+            names = ' and '.join(needs)
+            return ('Type %s at the cursor. %s submits the command; Esc cancels.' % (names, submit),
+                    'Type %s; %s submits; Esc cancels.' % (names, submit), '%s, then %s; Esc cancels.' % (names, submit))
+        return ('%s submits the command below; Esc cancels.' % submit, '%s submits; Esc cancels.' % submit)
+
+    def _staged_notice(self):
+        staged = self.staged or {}
+        boundary, mechanics = staged.get('boundary') or ('',), staged.get('mechanics') or ('',)
+        return (boundary[min(1, len(boundary) - 1)] + ' ' + mechanics[min(1, len(mechanics) - 1)]).strip()
 
     def _stage_after_difference(self, action, value):
         """Stage a refresh once its difference is on screen, bound to that difference's resolution digest."""
@@ -1449,9 +1503,9 @@ class Workspace:
         self.mode = 'command'; self.buffer = command
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
         self.staged = {'kind': action.get('kind'), 'label': action.get('label'),
-                       'binding': dict(action.get('binding') or {}, resolution_sha256=shown)}
-        self.notice = ("STAGED: type the repository's current commit. %s records, Esc discards; the digest after it pins "
-                       'this difference.' % self._submit_word())
+                       'binding': dict(action.get('binding') or {}, resolution_sha256=shown),
+                       'boundary': self._boundary(action), 'mechanics': self._mechanics(action, bound=True)}
+        self.notice = self._staged_notice()
 
     def _submit_word(self):
         return 'Enter' if getattr(self, 'submission_key', 'enter') == 'enter' else 'Ctrl+Enter'

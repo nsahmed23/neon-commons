@@ -112,26 +112,32 @@ OPERATION_SIGNAL = {'outcome_unknown': 'operation_outcome_unknown', 'diverged': 
 
 
 def _band_forms(primary):
-    """Longest to shortest wording of one hazard; every form keeps its response."""
+    """Longest to shortest wording of one hazard; every form keeps its response, named as the actions list names it.
+
+    The key opens that list (a: actions); it never performs the named action itself. The shortest form of each
+    response fits 40 columns, so at the minimum width the hazard and its response share a row.
+    """
     code, evidence = primary.get('code'), primary.get('evidence') if isinstance(primary.get('evidence'), dict) else {}
     operation = short_id(evidence.get('operation_id')) if evidence.get('operation_id') else ''
     if code == 'operation_outcome_unknown':
-        return ['! Operation %s: outcome unknown. a: reconcile (never replays)' % operation if operation else
-                '! Operation outcome unknown. a: reconcile (never replays)',
-                '! Outcome unknown%s. a: reconcile' % (' (op %s)' % operation if operation else ''), '! Outcome unknown. a: reconcile']
+        return ['! Operation %s: outcome unknown. Next: Reconcile it (a: actions); it never replays the change' % operation
+                if operation else '! Operation outcome unknown. Next: Reconcile it (a: actions); it never replays the change',
+                '! Outcome unknown%s. Reconcile, never replays (a: actions)' % (' (op %s)' % operation if operation else ''),
+                '! Outcome unknown. Reconcile (a actions)']
     if code == 'observation_tenant_mismatch':
         return ['! The configured service is for another tenant than this store. Restart with the right --service-root',
                 '! Service is for another tenant. Fix --service-root', '! Other tenant. Fix --service-root']
     if code == 'observation_service_changed':
-        return ['! The modeled service changed since this observation (revision %s, now %s). a: collect again'
+        # Captured recently can still be out of date: the source has a newer revision than the one captured.
+        return ['! Source changed since capture (revision %s, now %s). Next: Collect again (a: actions)'
                 % (evidence.get('observed_revision'), evidence.get('service_revision')),
-                '! Service changed since this observation. a: collect', '! Service changed. a: collect']
+                '! Source changed since capture. Collect again (a: actions)', '! Source changed. Collect (a actions)']
     if code == 'observation_policy_changed':
-        return ['! This policy changed in the service since this observation. a: collect again',
-                '! Policy changed in the service. a: collect', '! Policy changed. a: collect']
+        return ['! This policy changed at the source since capture. Next: Collect again (a: actions)',
+                '! Policy changed at the source. Collect again (a: actions)', '! Policy changed. Collect (a actions)']
     if code == 'observation_source_mismatch':
-        return ['! The observation came from another service. a: collect from this one',
-                '! Observation from another service. a: collect', '! Other source. a: collect']
+        return ['! The observation came from another service. Next: Collect again from this one (a: actions)',
+                '! Observation from another service. Collect (a: actions)', '! Other source. Collect (a actions)']
     if code == 'conditions_not_reread':
         command = evidence.get('command') or 'the last command'
         return ['! Conditions not re-read after %s. 2: re-read' % command, '! Not re-read after %s. 2: re-read' % command,
@@ -140,24 +146,29 @@ def _band_forms(primary):
         # No reconcile is offered for records that cannot be read; diagnostics say which and why.
         return ['! Operation %s records unreadable. i: details' % operation, '! Op records unreadable. i: details']
     if code in ('operation_diverged', 'operation_record_disagrees'):
-        words, short = {'operation_diverged': ('diverged from its plan', 'diverged'),
-                        'operation_record_disagrees': ('records disagree', 'records disagree')}[code]
-        return ['! Operation %s %s. a: reconcile, i: details' % (operation, words), '! Operation %s. a: reconcile' % words,
-                '! Op %s. a: reconcile' % short]
+        words, shortest = {'operation_diverged': ('diverged from its plan', '! Op diverged. Reconcile (a actions)'),
+                           'operation_record_disagrees': ('records disagree', '! Records differ. Reconcile (a actions)')}[code]
+        return ['! Operation %s %s. Next: Reconcile it again (a: actions); i: details' % (operation, words),
+                '! Operation %s. Reconcile again (a: actions)' % words, shortest]
     if code == 'collection_failed':
         status = str(evidence.get('status') or 'failed')
-        return ['! Last collection %s; the kept observation is stale. a: collect again' % status,
-                '! Last collection %s. a: collect' % status, '! Collection %s. a: collect' % status]
+        return ['! Last collection %s; the kept observation is stale. Next: Collect again (a: actions)' % status,
+                '! Last collection %s. Collect again (a: actions)' % status, '! Collection %s. Collect (a actions)' % status]
     if code == 'collection_not_finished':
-        return ['! A collection started and recorded no end. a: collect again', '! Collection unfinished. a: collect']
+        return ['! A collection started and recorded no end. Next: Collect again (a: actions)',
+                '! No collection end. Collect (a actions)']
     if code in ('repository_stale', 'repository_consumer_mismatch'):
         words, short = (('changed since its intent', 'changed') if code == 'repository_stale' else
                         ('no longer consumes this policy', 'consumer changed'))
-        return ['! Repository %s. 9: difference, a: refresh' % words, '! Repository %s. a: refresh' % short,
-                '! Repo %s. a: refresh' % short]
+        return ['! Repository %s. 9: difference. Next: Refresh the repository intent (a: actions)' % words,
+                '! Repository %s. Refresh the intent (a: actions)' % short, ('! Repo changed. Refresh (a actions)' if code == 'repository_stale' else '! Consumer changed. Refresh (a actions)')]
     if code == 'repository_unavailable':
         return ['! Repository intent cannot be read. 9: repository, i: details', '! Repository unreadable. 9: repository']
-    return ['! Observation stale. a: collect again', '! Observation stale. a: collect']
+    if 'stamped_after_now' in (evidence.get('freshness_reasons') or []):
+        # Collecting again would not replace an observation stamped ahead of this host's clock as the newest.
+        return ["! Observation stamped after this host's clock; stale until the clock passes it. i: details",
+                '! Observation stamped ahead of the clock. i: details', '! Stamped ahead of clock. i: details']
+    return ['! Observation stale. Next: Collect again (a: actions)', '! Observation stale. Collect (a actions)']
 
 
 def hazard_band(facts, signals, width):
@@ -873,9 +884,16 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
                        '%s there submits it, Esc discards it.' % submit, width)
     for index, action in enumerate(actions):
         lines.append('')
+        focused = index == focus
         state = 'available' if action.get('available') else 'blocked'
-        lines += _labelled('%s %d.' % ('>' if index == focus else ' ', index + 1), '%s  (%s)' % (action.get('label'), state), width, 5)
-        if action.get('available'):
+        lines += _labelled('%s %d.' % ('>' if focused else ' ', index + 1), '%s  (%s)' % (action.get('label'), state), width, 5)
+        # One essential effect for every action; the exact command and the full effects for the focused one.
+        lines += _labelled('', str(action.get('summary') or action.get('effects')), width, 5)
+        if action.get('available') and not focused:
+            names = ' and '.join(str(need).split(':')[0] for need in action.get('needs') or [])
+            if names:
+                lines += _labelled('', 'needs  ' + names, width, 5)
+        elif action.get('available'):
             # A missing input is named where it goes, as the command bar's cursor will be.
             command, cursor = str(action.get('command') or ''), action.get('cursor')
             names = ' '.join(str(need).split(':')[0] for need in action.get('needs') or [])
@@ -890,7 +908,8 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
             # The discriminating message when the engine's code covers several causes; otherwise its meaning.
             meaning = blocked.get('message') if blocked.get('reason') or code not in REFUSALS else REFUSALS[code][0]
             lines += _labelled('', 'blocked  %s: %s' % (code, meaning), width, 5)
-        lines += _labelled('', str(action.get('effects')), width, 5)
+        if focused and action.get('effects') and action.get('effects') != action.get('summary'):
+            lines += _labelled('', str(action.get('effects')), width, 5)
     return lines
 
 

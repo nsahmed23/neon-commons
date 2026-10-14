@@ -90,18 +90,18 @@ class BandTests(unittest.TestCase):
             self.assertLessEqual(cell_width(line), width, line)
             self.assertTrue(line.startswith('! '), line)
             self.assertIn('unknown', line.lower(), line)
-            self.assertIn('a: reconcile', line, line)
+            self.assertIn('Reconcile', line, line)
         self.assertIn(OPERATION[:8], self.band({'operation': 'outcome_unknown'}, [UNKNOWN], 120))
 
     def test_the_operation_outranks_other_conditions_and_the_rest_are_counted(self):
         line = self.band({'operation': 'outcome_unknown', 'observation': 'stale', 'repository': 'stale'},
                          [STALE, CHANGED, DENIED, UNKNOWN], 120)
-        self.assertIn('a: reconcile', line)
+        self.assertIn('Reconcile', line)
         self.assertIn('+3 more: 2', line)
 
     def test_each_condition_names_its_own_response(self):
-        cases = ((DENIED, {'observation': 'stale'}, 'a: collect'), (CHANGED, {'repository': 'stale'}, 'a: refresh'),
-                 (STALE, {'observation': 'stale'}, 'a: collect'))
+        cases = ((DENIED, {'observation': 'stale'}, 'Collect'), (CHANGED, {'repository': 'stale'}, 'Refresh'),
+                 (STALE, {'observation': 'stale'}, 'Collect'))
         for found, facts, response in cases:
             line = self.band(facts, [found], 80)
             self.assertIn(response, line, line)
@@ -109,7 +109,7 @@ class BandTests(unittest.TestCase):
 
     def test_a_newer_result_never_hides_a_recorded_condition(self):
         # Only a newer read retires a recorded condition; the workspace reads again after any command that may write.
-        self.assertIn('a: reconcile', self.band({'operation': 'reconciled', 'operation_id': OPERATION}, [UNKNOWN], 80))
+        self.assertIn('Reconcile', self.band({'operation': 'reconciled', 'operation_id': OPERATION}, [UNKNOWN], 80))
 
     def test_the_count_survives_at_the_minimum_width(self):
         from intune_iac.workbench_screens import hazard_rows
@@ -121,10 +121,10 @@ class BandTests(unittest.TestCase):
         eligibility = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
                        'service_revision': 2}
         line = self.band({'eligibility': eligibility}, [], 80)
-        self.assertIn('a: collect', line)
+        self.assertIn('Collect', line)
         self.assertIn('changed', line.lower())
         line = self.band({'eligibility': eligibility, 'operation': 'outcome_unknown'}, [UNKNOWN], 120)
-        self.assertIn('a: reconcile', line)
+        self.assertIn('Reconcile', line)
         self.assertIn('+1 more: 2', line)
 
     def test_another_tenant_leads_the_band(self):
@@ -133,7 +133,7 @@ class BandTests(unittest.TestCase):
 
     def test_another_operations_result_never_hides_an_unknown_outcome(self):
         line = self.band({'operation': 'prepared', 'operation_id': 'f' * 32}, [UNKNOWN], 120)
-        self.assertIn('a: reconcile', line)
+        self.assertIn('Reconcile', line)
         self.assertIn(OPERATION[:8], line)
 
     def test_two_unknown_outcomes_are_both_counted(self):
@@ -143,7 +143,7 @@ class BandTests(unittest.TestCase):
 
     def test_an_operation_known_only_from_this_session_still_shows(self):
         line = self.band({'operation': 'outcome_unknown'}, [], 80)
-        self.assertIn('a: reconcile', line)
+        self.assertIn('Reconcile', line)
 
     def test_no_hazard_draws_no_band(self):
         self.assertIsNone(self.band({'observation': 'fresh', 'repository': 'current'}, [], 80))
@@ -161,7 +161,7 @@ class MinimumTests(unittest.TestCase):
             line = hazard_band({}, [found], MINIMUM[0])
             self.assertLessEqual(cell_width(line), MINIMUM[0], line)
             self.assertNotIn('...', line); self.assertNotIn('\u2026', line)
-            self.assertRegex(line, r'[a9i]: [a-z]', line)  # a: action, 9: repository, i: details
+            self.assertRegex(line, r'[a9i2]: [a-z]|\(a actions\)', line)  # a: action, 9: repository, i: details
 
     def test_the_key_line_and_footer_stay_whole_at_the_minimum_width(self):
         from intune_iac.workbench_tui import help_line, status_line
@@ -285,14 +285,14 @@ class FrameTests(unittest.TestCase):
                     self.assertEqual(len(rows), size[1], (size, layer, scroll))
                     band = [row for row in rows if row.lstrip('\x1b[1m').startswith('! ')]
                     self.assertTrue(band, (size, layer, scroll, rows[:5]))
-                    self.assertIn('a: reconcile', band[0], (size, band[0]))
+                    self.assertIn('Reconcile', band[0], (size, band[0]))
                     for row in rows:
                         self.assertLessEqual(cell_width(row.replace('\x1b[1m', '').replace('\x1b[22m', '')), size[0], row)
 
     def test_at_the_minimum_size_the_full_frame_is_drawn(self):
         rows = self.frame(MINIMUM)
         self.assertEqual(len(rows), MINIMUM[1])
-        self.assertTrue(any('a: reconcile' in row for row in rows))
+        self.assertTrue(any('Reconcile' in row for row in rows))
         self.assertTrue(any(row.startswith('\u250c') for row in rows), rows)
 
     def test_below_the_minimum_a_constrained_state_keeps_the_hazard(self):
@@ -303,10 +303,54 @@ class FrameTests(unittest.TestCase):
             for row in plain:
                 self.assertLessEqual(cell_width(row), size[0], (size, row))
             joined = '\n'.join(plain)
-            self.assertIn('a: reconcile', joined, size)
+            self.assertIn('Reconcile', joined, size)
             self.assertIn('unknown', joined.lower(), size)
             self.assertIn('below 40x12', joined.lower(), size)
             self.assertNotIn('metadata line', joined, size)  # no body below the minimum
+
+    def test_the_band_names_the_action_and_says_the_key_opens_actions(self):
+        # TASK-11 2.6 item 4: one canonical action name; a opens the actions, it does not perform the named one.
+        for size in SIZES + (MINIMUM,):
+            rows = self.frame(size)
+            band = ' '.join(row.replace('\x1b[1m', '').replace('\x1b[22m', '') for row in rows if '! ' in row[:8])
+            self.assertIn('Reconcile', band, size)
+            self.assertTrue('(a: actions)' in band or '(a actions)' in band, (size, band))
+            self.assertNotIn('a: reconcile', band, size)
+        first = next(row for row in self.frame(MINIMUM) if '! ' in row[:8])
+        self.assertIn('(a actions)', first)  # the hazard and its response on one row at the minimum width
+
+    def staged_frame(self, size):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        out = io.StringIO()
+        workspace.__dict__.update(
+            stdout=out, tab=8, value={'object_id': POLICY, 'evidence_class': 'synthetic'}, scroll=0, mode=None,
+            notice='', rules='unicode', color=False, theme='dark', selected=POLICY, layer='summary', submission_key='enter',
+            facts={'object_id': POLICY, 'name': 'Windows Privacy Pilot', 'signals': []}, staged=None,
+            store=type('S', (), {'tenant_id': TENANT})(), mode_class='synthetic', last_command='repository-status')
+        workspace._terminal_size = lambda: size
+        workspace._data_lines = lambda width: ['body line %d' % index for index in range(60)]
+        action = {'kind': 'repository-refresh', 'label': 'Refresh the repository intent', 'command': 'repository-refresh ',
+                  'cursor': len('repository-refresh '), 'needs': ['REVISION: the full 40-character commit ID'], 'binding': {}}
+        workspace._stage_after_difference(action, {'schema_version': 'workbench-repository-status/1', 'object_id': POLICY,
+                                                   'freshness': {'status': 'stale', 'resolution_sha256': 'c' * 64}})
+        workspace.draw()
+        return workspace, [row for row in out.getvalue().replace('\x1b[H', '').replace('\x1b[J', '').split('\r\n')]
+
+    def test_a_staged_refresh_states_its_whole_boundary_before_the_mechanics(self):
+        # TASK-11 2.6 item 1: the boundary is complete at 120 and 80 columns and usable at the minimum.
+        for size, boundary in (((120, 40), 'STAGED refresh: records a new intent only; no Git commit, approval or apply.'),
+                               ((80, 24), 'STAGED refresh: records a new intent only; no Git commit, approval or apply.'),
+                               ((48, 20), 'STAGED refresh: no commit, approval or apply.'),
+                               (MINIMUM, 'Refresh: no commit, approval or apply.')):
+            workspace, rows = self.staged_frame(size)
+            index = next(i for i, row in enumerate(rows) if row.rstrip() == boundary)
+            self.assertIn('Esc cancels', rows[index + 1], (size, rows[index + 1]))
+            self.assertTrue(rows[index + 2].startswith(':repository-refresh'), (size, rows[index + 2]))
+            self.assertEqual(len(rows), size[1], size)
+            for row in rows:
+                self.assertLessEqual(cell_width(row), size[0], (size, row))
+        self.assertTrue(workspace.notice.startswith('STAGED refresh: no Git commit, approval or apply.'), workspace.notice)
 
     def test_a_staged_command_keeps_its_instruction_on_screen(self):
         instruction = 'STAGED refresh: type the REVISION at the cursor; Enter records it; Esc discards.'
