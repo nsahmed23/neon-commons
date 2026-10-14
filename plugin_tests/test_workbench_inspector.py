@@ -228,10 +228,11 @@ class EvidenceLayerTests(unittest.TestCase):
         workspace.last_command = 'execute operation digest'
         self.assertIn('execute ran; the engine reported status outcome_unknown', workspace._notice_for({'status': 'outcome_unknown'}))
         workspace.last_command = 'health'
-        self.assertEqual(workspace._notice_for({'stages': []}), 'Ready. Health shown; nothing was proposed, approved or executed.')
+        self.assertEqual(workspace._notice_for({'stages': []}), 'Ready. Health shown; viewing changed nothing.')
         # The notice no longer repeats the keys the key line lists, or the policy the strip names.
         workspace.last_command = 'select ' + OBJECT
-        self.assertEqual(workspace._notice_for(inspected()), 'Ready. Inspector shown; nothing was proposed, approved or executed.')
+        # Scoped to the action: an Inspector showing an earlier dispatch must not read as "nothing was executed".
+        self.assertEqual(workspace._notice_for(inspected()), 'Ready. Inspector shown; viewing changed nothing.')
 
     def test_a_refusal_without_an_explanation_says_only_what_is_on_the_screen(self):
         workspace = self.workspace()
@@ -249,6 +250,21 @@ class EvidenceLayerTests(unittest.TestCase):
         self.assertIsNone(workspace.current_view)
         self.assertEqual(self.keys(workspace, [('char', 'b')]), 'inspect')
         self.assertEqual(workspace.trail, [(0, 'overview')])
+
+    def test_inside_a_layer_the_key_line_says_the_same_key_returns_to_the_summary(self):
+        from intune_iac.workbench_tui import help_line
+        for width in (160, 100, 60):
+            details, raw = help_line(width, 'details'), help_line(width, 'raw')
+            self.assertIn('e summary', details); self.assertNotIn('e details', details)
+            self.assertIn('r summary', raw); self.assertNotIn('r raw', raw)
+            self.assertLessEqual(cell_width(details), width); self.assertLessEqual(cell_width(raw), width)
+        self.assertIn('e details', help_line(100))
+
+    def test_a_recorded_unknown_outcome_reaches_the_strip_after_a_restart(self):
+        workspace = self.workspace()
+        workspace._learn(inspected(attention={'status': 'attention', 'checked': {'operations': 'attention'}, 'signals': [
+            {'area': 'operations', 'code': 'operation_outcome_unknown', 'observed': 'Unknown.', 'next_step': 'reconcile'}]}))
+        self.assertEqual(workspace.facts['operation'], 'outcome_unknown')
 
     def test_an_empty_estate_names_no_mode_and_a_mixed_one_says_so(self):
         workspace = self.workspace()

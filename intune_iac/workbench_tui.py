@@ -166,6 +166,9 @@ REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'no
 # Recorded repository signals named in the Repository view's own words.
 REPOSITORY_FROM_SIGNAL = {'repository_stale': 'stale', 'repository_unavailable': 'unavailable',
                           'repository_consumer_mismatch': 'consumer mismatch'}
+# Recorded operation conditions, in the strip's words.
+OPERATION_FROM_SIGNAL = {'operation_outcome_unknown': 'outcome_unknown', 'operation_diverged': 'diverged',
+                         'operation_record_disagrees': 'records disagree', 'operation_unreadable': 'unreadable'}
 
 
 def title_line(tab, last_command, value, layer='summary'):
@@ -186,8 +189,15 @@ def fit(value, width, ellipsis='...'):
     return (cut[:space] if space > room // 2 else cut).rstrip() + ellipsis
 
 
-def help_line(width):
-    return next((line for line in HELP_LINES if cell_width(line) <= width), HELP_LINES[-1])
+# Inside a layer the same key returns to the summary, so its label says so.
+LAYER_KEYS = {'details': (('e details', 'e summary'),), 'raw': (('r raw record', 'r summary'), ('r raw', 'r summary'))}
+
+
+def help_line(width, layer='summary'):
+    lines = list(HELP_LINES)
+    for old, new in LAYER_KEYS.get(layer, ()):
+        lines = [line.replace(old, new) for line in lines]
+    return next((line for line in lines if cell_width(line) <= width), lines[-1])
 
 
 def status_line(scope, first, last, total, width, ellipsis='...'):
@@ -630,7 +640,8 @@ class Workspace:
             return 'Ready. %s ran; the engine reported %s.' % (
                 name or 'The command', 'status ' + status if isinstance(status, str) else 'no status')
         view = SUBVIEWS.get(name) or TABS[self.tab]
-        return 'Ready. %s shown; nothing was proposed, approved or executed.' % view
+        # Scoped to this action: the screen may well show an operation that ran earlier.
+        return 'Ready. %s shown; viewing changed nothing.' % view
 
     def _learn(self, value):
         """Keep the latest engine-reported facts about the selected object for the context strip."""
@@ -656,6 +667,12 @@ class Workspace:
                      if isinstance(signal, dict) and signal.get('area') == 'repository']
             facts['repository'] = next((REPOSITORY_FROM_SIGNAL[code] for code in codes if code in REPOSITORY_FROM_SIGNAL),
                                        REPOSITORY_FROM_CHECK[checked])
+        # A recorded operation condition reaches the strip even in a session that has not opened that operation.
+        operation_codes = [signal.get('code') for signal in attention.get('signals') or []
+                           if isinstance(signal, dict) and signal.get('area') == 'operations']
+        recorded = next((OPERATION_FROM_SIGNAL[code] for code in operation_codes if code in OPERATION_FROM_SIGNAL), None)
+        if value.get('object_id') == self.selected and recorded:
+            facts['operation'] = recorded
         if value.get('object_id') == self.selected and 'snapshot_id' in value and isinstance(value.get('evidence_class'), str):
             facts['evidence_class'] = value['evidence_class']
         repository = value.get('repository')
@@ -1046,7 +1063,7 @@ class Workspace:
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
                             ' more below: PgDn ' if self.scroll + available < len(data) else None),
-                      pad(footer, width), pad(prompt, width), pad(help_line(width), width)])
+                      pad(footer, width), pad(prompt, width), pad(help_line(width, getattr(self, 'layer', 'summary')), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
