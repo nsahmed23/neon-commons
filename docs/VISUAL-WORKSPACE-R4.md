@@ -42,6 +42,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | h / l | Health and reporting on the Coverage surface / repository lineage |
 | d | Setting dictionary for the selected policy's settings |
 | m | Maintenance queue on the Coverage surface |
+| i | Investigate: diagnostics for the selected policy on the Coverage surface |
 | v | Delivery stages of the active operation on the Execution surface (`:delivery OPERATION_DIR` for any operation) |
 | s | Start survey on the Help surface: what exists beside the store (sessions, repositories, exports, generated projects, services, operations), each with its states, and the next steps (`:start DIRECTORY` for another directory; see `WIZARD.md`) |
 | Page Up / Page Down | Scroll the exact result, including long values |
@@ -113,6 +114,15 @@ The last observation on a page says it is the earliest on that page, and whether
 The full table fits 80 columns; narrower terminals get abbreviated columns with a legend, then sentences. For the deepest stage with any fresh report, the screen states the result in words ("8 of 100 targeted devices reported success at execution; 92 without a fresh report"), why the rest are not counted, and a device matrix with one cell per device (or per stated group of devices above 400). Endpoint health and outcome, service acceptance and configuration parity, and rollout readiness and approval follow on separate lines. Without imported evidence it says so. The estate-wide health result adds the collection's freshness, last success, last attempt, retained last-good state and pending observations.
 
 `m` shows `[MAINTENANCE QUEUE]`: each finding with its priority, affected object, the reason it matters, action state, owner assertion, freshness, review assignee role, writer ownership, source owner claim, review state, review due date, exception expiry, compatibility profile, evidence and related proposals (one line per operation with its latest journal status). The queue never remediates automatically. Both views resume after reopening.
+
+**Diagnostics (`i`, on Coverage).** `[DIAGNOSTICS]` shows what needs attention for the selected policy. It also lists every area it checked, so silence never means "not looked at". Each signal gives the observed fact, its evidence (run, operation, intent, source file) and the next step:
+- **collection:** the last collection failed. The retained last-good observation is named, now stale.
+- **freshness:** the newest observation is stale for another reason.
+- **operations:** an outcome is unknown, so reconcile it (never replayed); or a reconciled operation diverged from both the plan and its starting point.
+- **repository:** the repository changed since its recorded intent (changed, added and removed files), or it cannot be resolved.
+- **device evidence:** a truncated capture or access errors, so missing devices are unknown, not failed; or cohort membership conflicts.
+
+It reads local records only, and the same view is `workbench diagnostics --root STORE --object OBJECT_ID`.
 
 **Plan (5).** A review starts with `[CHANGE REVIEW]`:
 - each changed field with its exact observed and desired values. Strings are quoted, and `null`, `""` and an absent value stay distinct.

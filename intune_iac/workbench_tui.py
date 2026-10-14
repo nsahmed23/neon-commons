@@ -29,7 +29,7 @@ SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
-              'repository-status', 'dictionary', 'queue', 'start'}
+              'repository-status', 'dictionary', 'queue', 'start', 'diagnostics'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
@@ -730,6 +730,10 @@ class Workspace:
             # A single-policy health result carries no name; use the one already read for that exact identity.
             rows.extend(health_lines(value, width, self.facts.get('name') if value.get('object_id') == self.selected else None))
             rows.append('[EXACT HEALTH EVIDENCE] Full engine values follow.')
+        elif self.tab == 6 and value.get('schema_version') == 'workbench-diagnostics/1':
+            from .workbench_screens import diagnostics_lines
+            rows.extend(diagnostics_lines(value, width))
+            rows.append('[EXACT DIAGNOSTICS] Full engine values follow.')
         elif self.tab == 6 and isinstance(value.get('findings'), list):
             from .workbench_screens import queue_lines
             rows.extend(queue_lines(value, width))
@@ -782,6 +786,7 @@ class Workspace:
                          'd Setting dictionary | h Health and reporting | m Maintenance queue | l Lineage | n/p Older/newer page',
                          'v Delivery stages of the active operation | :delivery OPERATION_DIR',
                          's Start: what exists beside this store and the next step | :start DIRECTORY',
+                         'i Investigate: what needs attention for the selected policy, with evidence and next steps',
                          ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
@@ -890,7 +895,7 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
-                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7,
+                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'diagnostics': 6,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -1031,6 +1036,9 @@ class Workspace:
                 elif char == 'd': return self._send('dictionary')
                 elif char == 'm': return self._send('queue')
                 elif char == 's': return self._send('start')
+                elif char == 'i':
+                    if self.selected is not None: return self._send('diagnostics')
+                    self.notice = 'Select an exact identity from Estate first.'
                 elif char == 'v':
                     if self.active_operation is not None: return self._send('delivery ' + shlex.quote(self.active_operation))
                     self.notice = 'No active operation: review one first (5, or :review OPERATION_DIR).'

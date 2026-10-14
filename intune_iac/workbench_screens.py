@@ -729,6 +729,37 @@ def delivery_lines(value, width):
     return lines
 
 
+CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',
+               'not_imported': 'no device evidence imported',
+               'explained_by_collection': 'stale; explained by the failed collection above'}
+
+
+def diagnostics_lines(value, width):
+    """What needs attention for one policy: each observed fact, its evidence and the next step; then what is clear."""
+    signals = [signal for signal in value.get('signals') or [] if isinstance(signal, dict)]
+    lines = ['[DIAGNOSTICS]']
+    lines += word_wrap('%s (%s) | %s' % (value.get('name') or '(no name)', value.get('object_id'),
+                                         _plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention')
+                                         if signals else 'nothing needs attention'), width)
+    for signal in signals:
+        lines.append('')
+        lines += word_wrap('[!] %s  %s' % (signal.get('area'), signal.get('code')), width)
+        lines += _labelled('  Observed', str(signal.get('observed')), width, 12)
+        evidence = signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}
+        shown = ', '.join('%s %s' % (key, _value(item) if not isinstance(item, str) else item) for key, item in evidence.items()
+                          if item not in (None, [], {}) and key not in ('scope',))
+        if shown:
+            lines += _labelled('  Evidence', shown, width, 12)
+        lines += _labelled('  Next', str(signal.get('next_step')), width, 12)
+    lines.append('')
+    lines.append('CHECKED')
+    for area, state in (value.get('checked') or {}).items():
+        lines += word_wrap('  %s %s' % (pad(area.replace('_', ' '), 16), CHECK_WORDS.get(state, str(state))), width)
+    for text in value.get('limitations') or []:
+        lines += word_wrap('Limitation: ' + str(text), width)
+    return lines
+
+
 ORIGIN_WORDS = {'repository_intent': 'repository intent', 'historical_adoption': 'historical adoption',
                 'current_observation': 'current observation'}
 

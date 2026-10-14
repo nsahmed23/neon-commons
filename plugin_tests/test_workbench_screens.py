@@ -420,6 +420,39 @@ class LineageAndNavigationTests(unittest.TestCase):
         self.assertLessEqual(cell_width(tab_line(tabs, 0, 20)), 20)
 
 
+DIAGNOSTICS = {'schema_version': 'workbench-diagnostics/1', 'object_id': POLICY_ID, 'name': 'Windows Privacy Pilot',
+               'signals': [{'area': 'operations', 'code': 'operation_outcome_unknown',
+                            'observed': 'Operation b6b3679d was dispatched and its outcome is unknown: model_response_lost.',
+                            'evidence': {'operation_id': 'b6b3679d', 'operation_root': '/work/op', 'error_code': 'model_response_lost', 'scope': {'x': 1}},
+                            'next_step': 'reconcile /work/op reads the service independently; execution is never replayed.'}],
+               'checked': {'collection': 'clear', 'freshness': 'clear', 'operations': 'attention', 'repository': 'not_recorded',
+                           'device_evidence': 'not_imported'},
+               'limitations': ['Read from local records only.']}
+
+
+class DiagnosticsLinesTests(unittest.TestCase):
+    def test_signals_show_the_fact_its_evidence_and_the_next_step_then_what_is_clear(self):
+        from intune_iac.workbench_screens import diagnostics_lines
+        lines = diagnostics_lines(DIAGNOSTICS, 100)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[DIAGNOSTICS]')
+        self.assertIn('Windows Privacy Pilot (' + POLICY_ID + ') | 1 signal needs attention', joined)
+        self.assertIn('[!] operations  operation_outcome_unknown', joined)
+        self.assertIn('  Observed  Operation b6b3679d was dispatched', joined)
+        self.assertIn('  Evidence  operation_id b6b3679d, operation_root /work/op, error_code model_response_lost', joined)
+        self.assertNotIn("{'x': 1}", joined)
+        self.assertIn('  Next      reconcile /work/op', joined)
+        self.assertIn('  repository       no repository intent recorded', joined)
+        self.assertIn('  device evidence  no device evidence imported', joined)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 100, line)
+
+    def test_nothing_to_report_is_said_plainly(self):
+        from intune_iac.workbench_screens import diagnostics_lines
+        value = dict(DIAGNOSTICS, signals=[], checked={'collection': 'clear'})
+        self.assertIn('nothing needs attention', '\n'.join(diagnostics_lines(value, 120)))
+
+
 class SurfaceRoutingTests(unittest.TestCase):
     """The terminal routes typed results to their readable screens."""
     def summary(self, tab, value, width=100):
@@ -442,6 +475,10 @@ class SurfaceRoutingTests(unittest.TestCase):
         self.assertEqual(workspace.facts['observation'], 'fresh')
         workspace._learn({'object_id': POLICY_ID, 'freshness': 'stale', 'name': 'P'})
         self.assertEqual(workspace.facts['observation'], 'stale')
+
+    def test_diagnostics_render_on_the_coverage_surface(self):
+        text = self.summary(6, DIAGNOSTICS)
+        self.assertIn('[DIAGNOSTICS]', text); self.assertIn('[EXACT DIAGNOSTICS]', text)
 
     def test_lineage_and_a_cleared_selection_have_readable_screens(self):
         text = self.summary(2, LINEAGE)

@@ -92,10 +92,10 @@ def add_parser(commands):
     collect.add_argument('--stack', help='Physical manifest selector for --repo')
     collect.add_argument('--component', help='Component selector for --repo')
     collect.add_argument('--fault', choices=['deny', 'throttle', 'cross-origin', 'loop'])
-    for name in ('overview', 'health', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'operations', 'terminal'):
+    for name in ('overview', 'health', 'diagnostics', 'queue', 'dictionary', 'references', 'workflows', 'collection-history', 'collection', 'search', 'inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'operations', 'terminal'):
         item = sub.add_parser(name)
         item.add_argument('--root', required=True)
-        if name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'workflows'):
+        if name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'workflows', 'diagnostics'):
             item.add_argument('--object', required=True, help='Exact immutable object ID, never a display name')
         if name in ('search', 'dictionary'): item.add_argument('--query', default='')
         if name in ('operations', 'health', 'collection-history', 'dictionary'): item.add_argument('--object')
@@ -411,6 +411,9 @@ def command(args):
                              source=_source_metadata(args))
     if name == 'overview': return store.overview(limit=args.limit, offset=args.offset)
     if name == 'health': return _health(store, args.object, limit=args.limit, offset=args.offset)
+    if name == 'diagnostics':
+        from .workbench_diagnostics import diagnostics
+        return diagnostics(store, args.object)
     if name == 'queue': return _queue(store, limit=args.limit, offset=args.offset)
     if name == 'dictionary': return _dictionary(store, args.query, object_id=args.object, limit=args.limit, offset=args.offset)
     if name == 'search': return _search(store, args.query, limit=args.limit, offset=args.offset)
@@ -432,7 +435,7 @@ def command(args):
 
 
 HELP = {
-    'navigation': ['start [DIRECTORY] (what exists beside the store and the next step; read-only)', 'overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
+    'navigation': ['start [DIRECTORY] (what exists beside the store and the next step; read-only)', 'diagnostics (selected object: what needs attention, with evidence and next steps)', 'overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
@@ -688,6 +691,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'health' and len(values) <= 2:
                 result = (_health(store, selected) if selected is not None and not values else
                           set_page('health', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0))
+            elif name == 'diagnostics' and not values:
+                from .workbench_diagnostics import diagnostics
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                result = diagnostics(store, selected)
             elif name == 'start' and len(values) <= 1:
                 from pathlib import Path
                 from .entry import survey
