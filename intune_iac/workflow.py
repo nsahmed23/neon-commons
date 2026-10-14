@@ -67,7 +67,7 @@ def _load(session_path):
     if isinstance(value, dict) and value.get('schema_version') == '1.0.0':
         raise AppError('guided_legacy_session', 'Use the original wizard for this v1 session, or a new guided session path.')
     valid = isinstance(value, dict) and set(value) == SESSION_KEYS and value['schema_version'] == VERSION
-    if not valid or not isinstance(value['saved_state'], str) or value['saved_state'] not in FRONTIERS or value['lifecycle'] not in ('active', 'suspended', 'cancelled', 'complete_local') or value['in_flight_outcome'] not in ('none', 'unknown'):
+    if not valid or not isinstance(value['saved_state'], str) or value['saved_state'] not in FRONTIERS or value['lifecycle'] not in ('active', 'suspended', 'cancelled', 'complete_local', 'repository_handoff') or value['in_flight_outcome'] not in ('none', 'unknown'):
         raise AppError('workflow_invalid_session', 'Unsupported guided session record.')
     completed = value['completed']
     if not isinstance(completed, list) or completed != list(STAGES[:len(completed)]) or len(completed) > 9:
@@ -130,6 +130,38 @@ def _verify_one(state, context, policy_id):
         path = Path(temporary) / 'context.json'
         write_json(path, dict(context, selected_policy_id=policy_id))
         return engine.verify_project(state['paths']['input'], path, Path(state['paths']['output']) / policy_id)
+
+
+def _classify_one(state, context, policy_id):
+    """How one policy's generated output changed, from the same source and per-policy context as generation."""
+    from .output_edit import classify
+    with tempfile.TemporaryDirectory(prefix='intune-guided-') as temporary:
+        path = Path(temporary) / 'context.json'
+        write_json(path, dict(context, selected_policy_id=policy_id))
+        return classify(state['paths']['input'], path, Path(state['paths']['output']) / policy_id)
+
+
+def _output_edits(state, observed, progress):
+    """Repository-owned policy edits that explain the return to generation, or None.
+
+    None whenever any selected policy's output changed in another way, or the change
+    cannot be established: only then is the ordinary file conflict the right answer.
+    """
+    if progress['next_state'] not in ('generate', 'partial_generate') or state['in_flight_outcome'] != 'none':
+        return None
+    if not state['selected_ids'] or not Path(state['paths']['output']).is_dir():
+        return None
+    edits = {}
+    for policy_id in state['selected_ids']:
+        try:
+            value = _classify_one(state, observed['context'], policy_id)
+        except (AppError, OSError, ValueError):
+            return None
+        if value['classification'] == 'other_change':
+            return None
+        if value['classification'] == 'repository_owned_policy_edit':
+            edits[policy_id] = value
+    return edits or None
 
 
 def _observe(session_path, state):
@@ -353,14 +385,32 @@ def _guide(session_path, state, input_fn, output_fn, fresh, guard):
             output_fn('Guided progress: ' + step + '; verified local milestones ' + str(progress['milestone_index']) + '/9. Ownership, cohort membership and external execution remain unqualified.')
             if step == 'object_selection':
                 output_fn('Observed policy UUIDs: ' + ', '.join(observed['observed_ids'][:100]))
+            edits = None if cancelled else _output_edits(state, observed, progress)
+            for policy_id, edit in (edits or {}).items():
+                output_fn('Generated output for ' + policy_id + ' changed only in ' + edit['stack_file'] + ', inside ' + edit['pointer'] +
+                          ': a repository-owned edit of the desired policy. Its verification is now stale; this flow will not '
+                          'regenerate over it or call it verified.')
+                for line in edit['next_steps'][1:]:
+                    output_fn('Next: ' + line)
+            if edits:
+                output_fn('Enter handoff to end this session in the repository workflow, or edit output VALUE for a fresh staging directory.')
             prompt = ('Cancelled session [continue/save/cancel]: ' if cancelled else
-                      'Guided ' + step + ' [UUIDs/continue/generate/finish/cohort RING UUIDs/edit stack|component|output VALUE/save/cancel]: ')
+                      'Guided ' + step + ' [' + ('handoff/' if edits else '') + 'UUIDs/continue/generate/finish/cohort RING UUIDs/edit stack|component|output VALUE/save/cancel]: ')
             answer = _answer(prompt, input_fn)
             guard()
             command, _, argument = answer.partition(' ')
             command = command.lower()
             if command in ('save', 'cancel'):
                 return finish('suspended' if command == 'save' else 'cancelled')
+            if command == 'handoff' and not cancelled:
+                # Recheck the files now; the hand-off states what they show at this moment.
+                fresh_observation = _observe(session_path, state)
+                current = _output_edits(state, fresh_observation, _reconstruct(session_path, state, fresh_observation))
+                if not current:
+                    output_fn('Nothing to hand off: the generated output does not show only a repository-owned policy edit.')
+                    continue
+                output_fn('Handed off to the repository workflow. The generated output keeps its stale verification; nothing was regenerated.')
+                return finish('repository_handoff')
             if cancelled:
                 if command == 'continue':
                     cancelled = False

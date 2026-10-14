@@ -60,6 +60,37 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(len(progress['verified_completed']), 9)
         self.assertEqual(progress['external_verified_completed'], [])
 
+    def edit_policy_description(self):
+        stack = self.output / POLICY / 'stacks/orgs/reference/dev.yaml'
+        text = stack.read_text(); old = '"description": "Synthetic reference; not production advice."'
+        self.assertEqual(text.count(old), 1)
+        stack.write_text(text.replace(old, '"description": "Synthetic reference; reviewed repository edit."'))
+
+    def output_files(self):
+        return {path: path.read_bytes() for path in sorted(self.output.rglob('*')) if path.is_file()}
+
+    def test_reopen_recognizes_a_repository_owned_edit_and_hands_off(self):
+        self.run_flow([POLICY, 'generate', 'finish'])
+        self.edit_policy_description()
+        before = self.output_files()
+        result = self.run_flow(['handoff'], supplied=False)
+        self.assertEqual(result['status'], 'repository_handoff')
+        self.assertFalse(result['execution_authorized'])
+        joined = '\n'.join(self.messages)
+        self.assertIn('Generated output for ' + POLICY + ' changed only in stacks/orgs/reference/dev.yaml', joined)
+        self.assertIn('workbench repository-import', joined)
+        self.assertIn('Handed off to the repository workflow', joined)
+        self.assertTrue(any(prompt.startswith('Guided generate [handoff/') for prompt in self.prompts))
+        self.assertEqual(self.output_files(), before)
+        self.assertEqual(load_json(self.session)['lifecycle'], 'repository_handoff')
+
+    def test_handoff_without_a_repository_owned_edit_is_refused(self):
+        self.run_flow([POLICY, 'generate', 'finish'])
+        (self.output / POLICY / 'README.md').write_text('edited')
+        result = self.run_flow(['handoff', 'save'], supplied=False)
+        self.assertEqual(result['status'], 'suspended')
+        self.assertIn('Nothing to hand off', '\n'.join(self.messages))
+
     def test_object_selection_changed_cohort_cannot_advance(self):
         self.run_flow(['save'])
         progress = self.api().preview_resume(self.session, {'cohort': {'ring': 'ring1', 'group_ids': []}})

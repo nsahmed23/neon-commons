@@ -547,6 +547,22 @@ def resolve_component(root, stack, component):
     return _Repository(root).resolve(stack, component)
 
 
+def parse_stack_manifest(root, relative):
+    """One manifest parsed under the same literal rules as resolution, as plain values.
+
+    Duplicate keys, aliases, templates and unsupported scalars are refused as
+    resolution refuses them. Returns {'status': 'parsed', 'value': ...} or
+    {'status': 'blocked', 'blocker': {...}}. Configuration may contain secrets.
+    """
+    repository = _Repository(root)
+    try:
+        return {'status': 'parsed', 'value': _plain(repository._parse(repository.root / relative))}
+    except _Blocked as error:
+        return {'status': 'blocked', 'blocker': error.item}
+    except (OSError, ValueError, RecursionError):
+        return {'status': 'blocked', 'blocker': {'code': 'repository_unreadable', 'status': 'unknown'}}
+
+
 def discover_repository(root):
     """Discover physical manifests/components without returning arbitrary config values."""
     return _discover(_Repository(root))

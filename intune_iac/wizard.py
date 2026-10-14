@@ -113,7 +113,7 @@ def _validate_session_generated(generated):
 
 
 def _validate_session_checkpoint(value):
-    if value.get("conflict_reason") not in (None, "output_changed", "output_conflict", "outcome_unknown"):
+    if value.get("conflict_reason") not in (None, "output_changed", "output_conflict", "outcome_unknown", "repository_owned_edit"):
         raise AppError("invalid_wizard_session", "Session conflict is invalid.")
     if value["step"] == "review":
         _validate_review_checkpoint(value)
@@ -492,8 +492,15 @@ class _WizardSession:
             except (AppError, OSError, ValueError):
                 output_matches = False
             if not output_matches:
-                self.output_fn('Generated output or ownership manifest changed. Existing files will be preserved.')
-                self.state.update(step='conflict', conflict_reason='output_changed')
+                edit = self.classify_output()
+                if edit is not None and edit['classification'] == 'repository_owned_policy_edit':
+                    self.output_fn('Generated output changed only in ' + edit['stack_file'] + ', inside ' + edit['pointer'] +
+                                   ': a repository-owned edit of the desired policy. Its verification is now stale; the wizard will not '
+                                   'regenerate over it or call it verified. Enter review for the exact change, or handoff.')
+                    self.state.update(step='conflict', conflict_reason='repository_owned_edit')
+                else:
+                    self.output_fn('Generated output or ownership manifest changed. Existing files will be preserved.')
+                    self.state.update(step='conflict', conflict_reason='output_changed')
                 return False
         if self.state['step'] != 'conflict' and self.state['generated'] is not None:
             try:
@@ -620,7 +627,37 @@ class _WizardSession:
             self.output_fn("Supported plugin captures may include inactive candidates/**/*.tf.txt for review. Candidate text is not executable IaC and does not establish ownership of the selected component.")
 
     def display_conflict(self):
+        if self.state["conflict_reason"] == "repository_owned_edit":
+            self.output_fn("Repository-owned edit: use handoff to continue in the repository workflow, review for the exact change, "
+                           "new-path for a fresh staging directory, or cancel. Existing output will not be overwritten.")
+            return
         self.output_fn("File conflict: use new-path, review, or cancel. Existing output will not be overwritten.")
+
+    def classify_output(self):
+        """What changed in the generated output, read-only; None when it cannot be established."""
+        from .output_edit import classify
+        try:
+            return classify(self.state["paths"]["input"], self.state["paths"]["context"], self.state["paths"]["output"])
+        except (AppError, OSError, ValueError, KeyError):
+            return None
+
+    def review_output_edit(self):
+        from .workbench_screens import change_lines
+        edit = self.classify_output()
+        if edit is None or edit["classification"] != "repository_owned_policy_edit":
+            self.output_fn("The output no longer shows only a repository-owned policy edit: " +
+                           ("unknown" if edit is None else edit["classification"] + " (" + str(edit.get("reason", "none")) + ")") +
+                           ". Use new-path or preserve these files and suspend.")
+            return None
+        self.output_fn("Changed file: " + edit["stack_file"] + "; policy " + edit["pointer"] + "; verification stale.")
+        if edit["values_changed"]:
+            for line in change_lines(edit["field_changes"], 100, "BEFORE (generated)", "AFTER (edited)"):
+                self.output_fn("  " + line)
+        else:
+            self.output_fn("  No value changed (formatting or comments only).")
+        for step in edit["next_steps"]:
+            self.output_fn("Next: " + step)
+        return edit
 
     def prompt(self, step):
         prompt = {
@@ -639,6 +676,8 @@ class _WizardSession:
             return "Staging output directory [default: " + default + "; back/save/cancel]: "
         if step in {"preview", "review"} and "repository" in self.state:
             return prompt.replace("edit source|context|output", "edit source|stack|component|policy|output")
+        if step == "conflict" and self.state["conflict_reason"] == "repository_owned_edit":
+            return "Conflict [handoff/review/new-path/back/save/cancel]: "
         return prompt
 
     def dispatch(self, step, answer, choices):
@@ -750,12 +789,22 @@ class _WizardSession:
         self.refresh_repository()
 
     def handle_conflict(self, command):
+        repository_edit = self.state["conflict_reason"] == "repository_owned_edit"
         if command == "new-path":
             self.state["step"] = "output"
+        elif command == "review" and repository_edit:
+            self.output_fn("Conflict review: repository_owned_edit.")
+            self.review_output_edit()
         elif command == "review":
             self.output_fn("Conflict review: " + self.state["conflict_reason"] + ". Use a new staging directory or preserve these files and suspend.")
+        elif command == "handoff" and repository_edit:
+            # Recheck now: the hand-off states what the files show at this moment, never a saved classification.
+            if self.review_output_edit() is None:
+                return None
+            self.output_fn("Handed off to the repository workflow. The generated output keeps its stale verification; nothing was regenerated.")
+            return self.finish("repository_handoff")
         else:
-            self.output_fn("Choose new-path, review, back, save, or cancel.")
+            self.output_fn("Choose " + ("handoff, " if repository_edit else "") + "new-path, review, back, save, or cancel.")
 
     def handle_inspection_handoff(self, argument):
         if self.inspection is None:

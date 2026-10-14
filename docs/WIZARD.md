@@ -55,6 +55,7 @@ At the preview, `review` completes an inspection handoff without generating file
 | `save` | Save the current decision screen and exit suspended. |
 | `cancel` | Preserve local files and exit; at conflicts it suspends the session. |
 | `new-path` | From a conflict, enter a new staging output directory. |
+| `handoff` | At a repository-owned edit (below), end the session in the repository workflow; the result status is `repository_handoff`. |
 
 Selection never edits the original context. In prepared-context mode the session copy retains only the supported bounded context fields; repository mode reconstructs its owned context from the current resolution and capture. Choosing an observed UUID does not prove that its settings or assignments were captured: inspection reports missing or denied relationships as blockers. Names, unknown UUIDs and unsupported context formats are rejected.
 
@@ -72,7 +73,20 @@ Only one wizard may use a session at a time. A second invocation receives `wizar
 
 Repository sessions also save selection hints. On resume and before generation or completion, the wizard re-resolves current repository files and reconstructs the expected context. Repository changes invalidate generated milestones and preserve existing output for review. A saved repository fingerprint alone is never proof: changing that fingerprint cannot keep an old generated milestone. Newly dynamic or unresolved configuration blocks further generation and completion until the local repository can be resolved again.
 
-Conflicts preserve existing output. Choose `review` to see the bounded reason, `new-path` to stage elsewhere, or `cancel` to stop. The wizard never merges or overwrites a conflicting project. An interrupted or uncertain runner write retains its attempt evidence and target lock; the wizard offers review or a new destination rather than replaying the uncertain operation.
+Conflicts preserve existing output. Choose `review` to see the bounded reason, `new-path` to stage elsewhere, or `cancel` to stop. The wizard never merges or overwrites a conflicting project.
+
+**A repository-owned edit.** One conflict has its own name. Suppose the engineer edited the desired policy in the generated project itself. On reopen, the wizard recognizes it only when all of the following hold:
+- `stacks/orgs/reference/dev.yaml` is the only changed file: nothing added or removed, and the ownership manifest is intact;
+- the edited file still parses under the repository's literal rules (no duplicate keys, aliases, templates or unsupported scalars), so `workbench repository-import` reads it the same way;
+- its values differ from the generated ones only inside `components.terraform.intune-reference.vars.policies.<key>`, which still holds exactly that one key.
+
+The conflict reason is then `repository_owned_edit`:
+- `review` shows the exact field changes (strings quoted) and the next steps.
+- `handoff` rechecks the files at that moment and ends the session with status `repository_handoff`. The CLI exits 2, as for review-only results.
+
+The generated output keeps its now-stale verification. The wizard never regenerates over it and never calls it verified. The next steps say to copy the edited project into the repository you maintain, commit it, and record it with `workbench repository-import`. `workbench repository-status` then reports whether the repository still matches that intent, and `propose-from-intent` prepares the reviewed change.
+
+Any other change, or one that cannot be established (for example, the source changed too), stays an ordinary `output_changed` conflict. The 17-stage journey (`--journey`) and the guided workflow (`--guided`) recognize the same edit when they fall back to generation. They offer `handoff` the same way and record the lifecycle `repository_handoff`. A handed-off journey cannot be adopted with `workbench adopt`: the first repository intent comes from an explicit `repository-import`. An interrupted or uncertain runner write retains its attempt evidence and target lock; the wizard offers review or a new destination rather than replaying the uncertain operation.
 
 Generated review starts with `README.md` and `generated-files.json`. Synthetic proposals also include `adoption/coverage.json`, `adoption/field-accounting.json` and `adoption/capability.json`; blocked synthetic proposals have `BLOCKED.json`. Production capture reviews include `review/normalized.json` and `BLOCKED.json`, and emit no active `.tf` files or executable command cards. The source export remains the restricted original input.
 

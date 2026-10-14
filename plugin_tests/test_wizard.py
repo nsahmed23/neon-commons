@@ -115,6 +115,58 @@ class WizardTests(unittest.TestCase):
         self.assertEqual(result["step"], "conflict")
         self.assertEqual(target.read_text(), "user-owned edit")
 
+    def edit_stack_description(self):
+        stack = self.output / "stacks/orgs/reference/dev.yaml"
+        text = stack.read_text()
+        old = '"description": "Synthetic reference; not production advice."'
+        self.assertEqual(text.count(old), 1)
+        stack.write_text(text.replace(old, '"description": "Synthetic reference; reviewed repository edit."'))
+
+    def files(self):
+        return {path: path.read_bytes() for path in sorted(self.output.rglob("*")) if path.is_file()}
+
+    def test_reopen_recognizes_a_repository_owned_policy_edit_and_hands_off(self):
+        self.run_script(["generate", "save"])
+        self.edit_stack_description()
+        before = self.files()
+        result = self.run_script(["review", "handoff"], supplied=False)
+        self.assertEqual((result["status"], result["step"]), ("repository_handoff", "conflict"))
+        self.assertFalse(result["execution_authorized"])
+        joined = "\n".join(self.messages)
+        self.assertIn("a repository-owned edit of the desired policy", joined)
+        self.assertIn("Conflict [handoff/review/new-path/back/save/cancel]: ", self.prompts)
+        self.assertIn('"Synthetic reference; not production advice."', joined)
+        self.assertIn('"Synthetic reference; reviewed repository edit."', joined)
+        self.assertIn("workbench repository-import", joined)
+        self.assertIn("Handed off to the repository workflow", joined)
+        # Nothing was regenerated or rewritten, and the session keeps its stale evidence.
+        self.assertEqual(self.files(), before)
+        self.assertEqual(json.loads(self.session.read_text())["conflict_reason"], "repository_owned_edit")
+        receipts = [json.loads(p.read_text()) for p in (self.root / "attempts").glob("*.result.json")]
+        self.assertEqual(sum(r["action"] == "generate" for r in receipts), 1)
+
+    def test_an_edit_outside_the_policy_stays_a_plain_output_conflict(self):
+        self.run_script(["generate", "save"])
+        (self.output / "README.md").write_text("user-owned edit")
+        result = self.run_script(["handoff", "review", "cancel"], supplied=False)
+        self.assertEqual((result["status"], result["step"]), ("suspended", "conflict"))
+        joined = "\n".join(self.messages)
+        self.assertIn("Generated output or ownership manifest changed", joined)
+        self.assertIn("Choose new-path, review, back, save, or cancel.", joined)
+        self.assertIn("Conflict review: output_changed", joined)
+
+    def test_handoff_rechecks_the_files_at_that_moment(self):
+        self.run_script(["generate", "save"])
+        self.edit_stack_description()
+
+        def edit_readme_then_hand_off():
+            (self.output / "README.md").write_text("edited after the review")
+            return "handoff"
+
+        result = self.run_script(["review", edit_readme_then_hand_off, "cancel"], supplied=False)
+        self.assertEqual(result["status"], "suspended")
+        self.assertIn("no longer shows only a repository-owned policy edit", "\n".join(self.messages))
+
     def test_forged_session_and_manifest_cannot_claim_verified_review(self):
         self.run_script(["generate", "save"])
         target = self.output / "README.md"

@@ -64,6 +64,33 @@ class JourneyCompletionTests(unittest.TestCase):
         value['files']['README.md'] = file_sha(target); write_json(manifest, value)
         result = self.api().reconstruct_progress(self.session)
         self.assertEqual(result['next_state'], 'generation'); self.assertNotIn('execute', result['verified_completed'])
+    def edit_policy_description(self):
+        stack = self.output / POLICY / 'stacks/orgs/reference/dev.yaml'
+        text = stack.read_text(); old = '"description": "Synthetic reference; not production advice."'
+        self.assertEqual(text.count(old), 1)
+        stack.write_text(text.replace(old, '"description": "Synthetic reference; reviewed repository edit."'))
+    def output_files(self):
+        return {path: path.read_bytes() for path in sorted(self.root.rglob('*')) if path.is_file() and self.session.name + '.journey' not in str(path)}
+    def test_reopen_recognizes_a_repository_owned_edit_and_hands_off(self):
+        self.complete(); self.edit_policy_description(); before = self.output_files()
+        receipts = sorted(p.name for p in (Path(str(self.session) + '.journey') / 'receipts').iterdir())
+        result = self.run_flow(['handoff'], supplied=False)
+        self.assertEqual((result['status'], result['next_state']), ('repository_handoff', 'generation'))
+        self.assertFalse(result['execution_authorized'])
+        joined = '\n'.join(self.messages)
+        self.assertIn('Generated output for ' + POLICY + ' changed only in stacks/orgs/reference/dev.yaml', joined)
+        self.assertIn('a repository-owned edit of the desired policy', joined)
+        self.assertIn('workbench repository-import', joined)
+        self.assertIn('Handed off to the repository workflow', joined)
+        # Nothing regenerated or rewritten; earlier receipts are kept, not relabelled.
+        self.assertEqual({p: b for p, b in self.output_files().items() if p != self.session}, {p: b for p, b in before.items() if p != self.session})
+        self.assertEqual(sorted(p.name for p in (Path(str(self.session) + '.journey') / 'receipts').iterdir()), receipts)
+        self.assertEqual(load_json(self.session)['lifecycle'], 'repository_handoff')
+    def test_handoff_without_a_repository_owned_edit_is_refused(self):
+        self.complete(); (self.output / POLICY / 'README.md').write_text('edited')
+        result = self.run_flow(['handoff', 'save'], supplied=False)
+        self.assertEqual(result['status'], 'suspended')
+        self.assertIn('Nothing to hand off', '\n'.join(self.messages))
     def test_rehashed_forged_receipt_cannot_create_target_evidence(self):
         self.complete(); path = Path(str(self.session) + '.journey') / 'receipts/target.json'
         value = load_json(path); value['payload']['tenant_assurance'] = 'authenticated'; write_json(path, value)

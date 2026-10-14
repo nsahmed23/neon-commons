@@ -280,7 +280,7 @@ def exit_code(result):
     if status in {'INCONCLUSIVE','BLOCKED','NOT_RUN','blocked_live_qualification','unknown_outcome','denied','throttled','interrupted'}:return 2
     if status in {'partial_or_divergent','service_converged_state_unreconciled','readback_unresolved','desired_state_observed_execution_unconfirmed'}:return 2
     if status == 'missing_dependencies':return 5
-    if status in {'blocked','needs_review','unavailable','partial','abstained','abstain','review_only','changes_require_review'}:return 2
+    if status in {'blocked','needs_review','unavailable','partial','abstained','abstain','review_only','changes_require_review','repository_handoff'}:return 2
     if status in {'output_conflict','conflict','locked'}:return 4
     if status in {'rejected','failed','outcome_unknown','failed_no_effect_verified','invalid','mismatch','reconciliation_required'}:
         return 4 if result.get('error',{}).get('code')=='output_conflict' else 3

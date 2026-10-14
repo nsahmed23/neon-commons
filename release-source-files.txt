@@ -498,6 +498,7 @@ intune_iac/native_pins.py
 intune_iac/observation_contract.py
 intune_iac/observation_jobs.py
 intune_iac/observation_reader.py
+intune_iac/output_edit.py
 intune_iac/production.py
 intune_iac/production_oracle.py
 intune_iac/protected.py
@@ -720,6 +721,7 @@ plugin_tests/test_native_smoke_observation_epoch.py
 plugin_tests/test_observation_jobs_r4.py
 plugin_tests/test_observation_reader_r4.py
 plugin_tests/test_oracle_edge_types.py
+plugin_tests/test_output_edit.py
 plugin_tests/test_powershell_preview.py
 plugin_tests/test_preservation_audit.py
 plugin_tests/test_process_cleanup.py

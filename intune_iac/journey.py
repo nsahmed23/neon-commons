@@ -108,7 +108,7 @@ def _load(session):
     if (not isinstance(state, dict) or not keys <= set(state) <= keys | {'atmos_executable', 'tofu_executable'}
             or state['schema_version'] != VERSION):
         raise AppError('journey_invalid_session', 'Use a separate session for the full journey.')
-    if state['mode'] not in ('simulation', 'live') or state['lifecycle'] not in ('active', 'suspended', 'cancelled', 'complete_simulation'):
+    if state['mode'] not in ('simulation', 'live') or state['lifecycle'] not in ('active', 'suspended', 'cancelled', 'complete_simulation', 'repository_handoff'):
         raise AppError('journey_invalid_session', 'Unsupported journey mode or lifecycle.')
     if not isinstance(state['paths'], dict) or set(state['paths']) != {'input', 'context', 'output'} or any(not isinstance(p, str) or not p or len(p) > 4096 for p in state['paths'].values()):
         raise AppError('journey_invalid_session', 'Bounded source, context and output paths are required.')
@@ -172,6 +172,40 @@ def _inspect_selected(state, context, source, policy_id, *, verify=False):
             source_path = Path(temporary) / 'capture.json'; write_json(source_path, selected)
         if verify: return engine.verify_project(source_path, context_path, Path(state['paths']['output']) / policy_id)
         return engine.inspect_source(source_path, context_path)
+
+
+def _classify_selected(state, observed, policy_id):
+    """How one selected policy's generated output changed, from the same per-policy source and context as generation."""
+    from .output_edit import classify
+    selected = _selected_source(observed['raw_capture'], policy_id)
+    with tempfile.TemporaryDirectory(prefix='intune-journey-edit-') as temporary:
+        context_path = Path(temporary) / 'context.json'
+        write_json(context_path, dict(observed['context'], selected_policy_id=policy_id))
+        source_path = state['paths']['input']
+        if selected != observed['raw_capture']:
+            source_path = Path(temporary) / 'capture.json'; write_json(source_path, selected)
+        return classify(source_path, context_path, Path(state['paths']['output']) / policy_id)
+
+
+def _output_edits(state, observed, progress):
+    """Repository-owned policy edits that explain an invalid generation stage, or None.
+
+    None whenever any selected policy's output changed in another way, or the change
+    cannot be established: only then is the ordinary output conflict the right answer.
+    """
+    if progress['invalid_at'] != 'generation' or not state['selected_ids']:
+        return None
+    edits = {}
+    for policy_id in state['selected_ids']:
+        try:
+            value = _classify_selected(state, observed, policy_id)
+        except (AppError, OSError, ValueError):
+            return None
+        if value['classification'] == 'other_change':
+            return None
+        if value['classification'] == 'repository_owned_policy_edit':
+            edits[policy_id] = value
+    return edits or None
 
 
 def _generation_evidence(state, observed):
@@ -605,8 +639,15 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
             output_fn('Journey ' + step + ' | local ' + str(len(progress['verified_completed'])) + '/' + str(len(STAGES)) + '; live gates remain blocked.')
             if step == 'selection': output_fn('Observed policy UUIDs: ' + ', '.join(observed['observed_ids']))
             if step == 'mapping': output_fn('Mapping review: ' + str(_payload('mapping', session, state, observed)))
+            edits = _output_edits(state, observed, progress) if step == 'generation' and state['in_flight'] is None else None
+            for policy_id, edit in (edits or {}).items():
+                output_fn('Generated output for ' + policy_id + ' changed only in ' + edit['stack_file'] + ', inside ' + edit['pointer'] +
+                          ': a repository-owned edit of the desired policy. Its verification is now stale; the journey will not '
+                          'regenerate over it or call it verified.')
+                for line in edit['next_steps'][1:]: output_fn('Next: ' + line)
+            if edits: output_fn('Enter handoff to end this journey in the repository workflow, or back STAGE / edit to change course.')
             output_fn('Action reads/writes and recovery: ' + (str(action_contract()['actions'][STAGES.index(step)]) if step in STAGES else 'Review completed evidence or reconcile an uncertain local operation.'))
-            answer = input_fn('Journey [continue/UUIDs/generate/plan/approve/execute/reconcile/finish/back STAGE/edit FIELD VALUE/resume/save/cancel]: ').strip()
+            answer = input_fn('Journey [' + ('handoff/' if edits else '') + 'continue/UUIDs/generate/plan/approve/execute/reconcile/finish/back STAGE/edit FIELD VALUE/resume/save/cancel]: ').strip()
             if len(answer) > 8192: raise AppError('journey_input_limit', 'Command exceeds bounded input limits.')
             guard(); command, _, argument = answer.partition(' '); command = command.lower()
             if command in ('save', 'cancel'): return finish('suspended' if command == 'save' else 'cancelled')
@@ -614,6 +655,14 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                 if command == 'resume': state['lifecycle'] = 'active'; write_json(session, state)
                 else: output_fn('Cancelled: enter resume before another local action.')
                 continue
+            if command == 'handoff':
+                # Recheck the files now; the hand-off states what they show at this moment.
+                fresh_observed = _observe(session, state); fresh_progress = _progress(session, state, fresh_observed)
+                current = _output_edits(state, fresh_observed, fresh_progress) if fresh_progress['next_state'] == 'generation' and state['in_flight'] is None else None
+                if not current:
+                    output_fn('Nothing to hand off: the generated output does not show only a repository-owned policy edit.'); continue
+                output_fn('Handed off to the repository workflow. The generated output keeps its stale verification; nothing was regenerated.')
+                return finish('repository_handoff')
             try:
                 if state['in_flight']:
                     if command != 'reconcile':
