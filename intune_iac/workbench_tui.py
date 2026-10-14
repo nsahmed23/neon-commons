@@ -186,7 +186,7 @@ VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'hi
                            'help', 'health', 'queue', 'start', 'families', 'dictionary', 'dictionary-page', 'lineage',
                            'diagnostics', 'estate-overview', 'repository-status', 'delivery', 'repository-entry',
                            'operations', 'review', 'workflows', 'search', 'search-page', 'views-page'})
-LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions'}
+LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions', 'filters': 'filters'}
 # The repository state the strip shows when the Inspector's diagnostics checked it.
 REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'not_recorded': 'none recorded',
                          'unavailable': 'not checked', 'partly_checked': 'not checked'}
@@ -220,13 +220,32 @@ def fit(value, width, ellipsis='...'):
 LAYER_KEYS = {'details': (('e details', 'e summary'),), 'raw': (('r raw record', 'r summary'), ('r raw', 'r summary'))}
 ACTION_KEY_LINES = ('? help | Up/Down choose | Enter stages | Esc closes | q exit', '? help | Enter stages | Esc closes | q exit',
                     'Enter stages | Esc closes | q exit')
+FILTER_KEY_LINES = ('? help | Up/Down choose | Enter applies | Esc closes | q exit', 'Enter applies | Esc closes | q exit')
+
+
+def filter_choices():
+    """Every estate filter, by dimension, then 'any' to clear that dimension."""
+    from .workbench_views import COVERAGE_FILTERS, HEALTH_FILTERS, OWNERSHIP_FILTERS
+    return [(dimension, value) for dimension, values in (('ownership', OWNERSHIP_FILTERS), ('coverage', COVERAGE_FILTERS),
+                                                         ('health', HEALTH_FILTERS))
+            for value in tuple(values) + (None,)]
+
+
+def page_filters(page_command):
+    """The limit, query and filters of the estate page in use, from the command this workspace built for it."""
+    parts = shlex.split(page_command or '')
+    limit = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 10
+    if not parts or parts[0] != 'views-page':
+        return limit, {}
+    keys = ('query', 'ownership', 'coverage', 'health')
+    return limit, {key: value for key, value in zip(keys, parts[3:]) if value != '-'}
 
 
 def help_line(width, layer='summary', lead=()):
     """The key line for the width; keys the hazard band names (lead) come first in every form, so a key the band
     offers is never missing from the line below. The actions list has its own keys."""
-    if layer == 'actions':
-        lines = ACTION_KEY_LINES
+    if layer in ('actions', 'filters'):
+        lines = ACTION_KEY_LINES if layer == 'actions' else FILTER_KEY_LINES
         return next((line for line in lines if cell_width(line) <= width), lines[-1])
     lines = list(HELP_LINES)
     for old, new in LAYER_KEYS.get(layer, ()):
@@ -1072,6 +1091,10 @@ class Workspace:
             facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
             return actions_lines(self._actions(), getattr(self, 'action_focus', 0), width, facts.get('name'), self.selected,
                                  submit=self._submit_word())
+        if layer == 'filters':
+            from .workbench_screens import filter_lines
+            return filter_lines(filter_choices(), getattr(self, 'filter_focus', 0),
+                                page_filters(getattr(self, 'page_command', ''))[1], width)
         if layer == 'raw':
             return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
@@ -1595,6 +1618,19 @@ class Workspace:
                     if sent: return sent
                 self.draw()
                 continue
+            if getattr(self, 'layer', 'summary') == 'filters' and key in ('up', 'down', 'enter'):
+                choices = filter_choices()
+                focus = max(0, min(len(choices) - 1, getattr(self, 'filter_focus', 0) + {'up': -1, 'down': 1}.get(key, 0)))
+                self.filter_focus = focus
+                if key == 'enter':
+                    dimension, value = choices[focus]
+                    limit, current = page_filters(getattr(self, 'page_command', ''))
+                    current = dict(current, **{dimension: value}) if value else {k: v for k, v in current.items() if k != dimension}
+                    self.layer = 'summary'; self.tab = 0
+                    return self._send('views-page %d 0 %s' % (limit, ' '.join(
+                        shlex.quote(current.get(key) or '-') for key in ('query', 'ownership', 'coverage', 'health'))))
+                self.draw()
+                continue
             if key == 'escape' and getattr(self, 'layer', 'summary') != 'summary':
                 self.layer = 'summary'; self.scroll = 0; self.notice = 'Summary shown.'
             elif key == 'escape': self.notice = 'Nothing to close. :clear-selection clears the selected policy.'
@@ -1631,9 +1667,9 @@ class Workspace:
                 if char in (':', '/'):
                     self.mode = 'search' if char == '/' else 'command'; self.buffer = ''; self.cursor = 0
                 elif char == 'f':
-                    self.mode = 'command'
-                    self.buffer = self.page_command if self.page_command.startswith('views-page ') else 'views-page 10 0 - - - -'
-                    self.cursor = len(self.buffer)
+                    # A list of the filters, like the actions; the typed form stays available through :views-page.
+                    self.layer = 'filters'; self.scroll = 0; self.filter_focus = 0
+                    self.notice = 'Up and Down choose; Enter applies the filter (a read-only query); Esc closes.'
                 elif char == 'a':
                     command = self._read_actions()
                     if command: return command

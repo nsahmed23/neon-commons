@@ -504,6 +504,22 @@ def _rows(changes):
     return rows
 
 
+def filter_lines(choices, focus, current, width):
+    """The estate filters by dimension, the focus marked >, the filter in use marked *."""
+    lines = word_wrap('FILTERS  Up and Down choose; Enter applies one as a read-only query of the estate, keeping the '
+                      'others; Esc closes. * marks the filter in use.', width)
+    previous = None
+    for index, (dimension, value) in enumerate(choices):
+        if dimension != previous:
+            lines += ['', dimension.upper()]
+            previous = dimension
+        words = _as_words(value) if value else 'any (no %s filter)' % dimension
+        in_use = current.get(dimension) == value
+        lines += word_wrap('%s %s%s' % ('>' if index == focus else ' ', '* ' if in_use else '', words), width)
+    lines += [''] + word_wrap('Typed form: :views-page LIMIT OFFSET QUERY OWNERSHIP COVERAGE HEALTH (- means no filter).', width)
+    return lines
+
+
 def baseline_words(baseline):
     """A comparison baseline in words: what it is, its identities shortened, its time readable; never a JSON dump."""
     if not isinstance(baseline, dict):
@@ -893,7 +909,7 @@ HELP_KEYS = (
     ('a', 'actions for the selected policy, each with its exact command, what it does and whether it is available; '
           'Enter stages one in the command bar for review'),
     ('/', 'search the estate'),
-    ('f', 'estate filters'),
+    ('f', 'estate filters: a list of ownership, coverage and health filters; Enter applies one, keeping the others'),
     (':', 'command bar: Enter submits (Ctrl+Enter in the native Windows console), Esc discards; nothing runs until it '
           'is submitted'),
     ('b', 'back to the previous read-only view (also :back); never re-sends a change'),

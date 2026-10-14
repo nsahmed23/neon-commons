@@ -387,6 +387,66 @@ class SurfaceListTests(unittest.TestCase):
         self.assertIn('status=succeeded_verified (2 journal records)', text)
 
 
+class FilterLayerTests(unittest.TestCase):
+    """f lists every estate filter with the one in use marked; Enter applies one as a read-only query."""
+    def workspace(self, page_command='overview 10 0'):
+        from collections import deque
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(
+            tab=0, value={'objects': []}, selected=None, facts={}, highlight=0, scroll=0, mode=None, buffer='', cursor=0,
+            pasting=False, input_overflow=False, notice='', last_command='overview', view_command='overview',
+            page_command=page_command, rows=[{'object_id': OBJECT}], operation_rows=[], operation_highlight=0,
+            active_operation=None, execution_result=None, active_service=None, active_adoption=None,
+            active_adoption_plan=None, pending=deque(), size=(100, 40), submission_key='enter', entry_focus=0,
+            overview_focus=0, layer='summary', trail=[], _detail_cache=None, staged=None, action_focus=0, quiet=None,
+            store=type('S', (), {'tenant_id': TENANT})())
+        workspace.draw = lambda: None
+        workspace.save_context = lambda: None
+        return workspace
+
+    def keys(self, workspace, keys):
+        class Stop(Exception):
+            pass
+        class Reader:
+            def __init__(self, keys): self.keys = list(keys)
+            def read(self):
+                if not self.keys: raise Stop()
+                return self.keys.pop(0)
+        workspace.key_reader = Reader(keys)
+        try:
+            return workspace.input('')
+        except Stop:
+            return None
+
+    def test_f_lists_every_filter_in_words_with_the_one_in_use_marked(self):
+        workspace = self.workspace('views-page 10 0 - - stale_or_incomplete -')
+        self.assertIsNone(self.keys(workspace, [('char', 'f')]))
+        self.assertEqual(workspace.layer, 'filters')
+        text = '\n'.join(workspace._data_lines(100))
+        self.assertTrue(text.startswith('FILTERS'), text[:80])
+        for words in ('owned elsewhere', 'no ownership found in declared scope', 'complete fresh', 'reporting incomplete'):
+            self.assertIn(words, text)
+        self.assertIn('* stale or incomplete', text)  # the coverage filter in use
+        self.assertIn('> owned here', text)  # the focus starts on the first choice
+        self.assertIn('read-only', text)
+
+    def test_enter_applies_one_filter_and_keeps_the_others(self):
+        workspace = self.workspace('views-page 25 50 Privacy - stale_or_incomplete -')
+        command = self.keys(workspace, [('char', 'f'), 'down', 'enter'])
+        # Down moves to 'owned elsewhere'; the query and the coverage filter stay; the page starts again.
+        self.assertEqual(command, 'views-page 25 0 Privacy owned_elsewhere stale_or_incomplete -')
+        self.assertEqual((workspace.layer, workspace.tab), ('summary', 0))
+
+    def test_choosing_any_clears_that_filter_and_escape_closes(self):
+        workspace = self.workspace('views-page 10 0 - owned_here - -')
+        command = self.keys(workspace, [('char', 'f')] + ['down'] * 5 + ['enter'])
+        self.assertEqual(command, 'views-page 10 0 - - - -')
+        workspace = self.workspace()
+        self.assertIsNone(self.keys(workspace, [('char', 'f'), 'escape']))
+        self.assertEqual(workspace.layer, 'summary')
+
+
 class TypedDetailTests(unittest.TestCase):
     """P-PRES-01: label and value apart by two spaces or separate lines; empty, null and missing kept apart."""
     def lines(self, value, width=60):

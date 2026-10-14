@@ -49,7 +49,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | Page Up / Page Down | Scroll the exact result, including long values |
 | : | Command bar accepting the existing text commands |
 | / | Search policies/settings; preserve active global filters when using the four-view estate |
-| f | Edit the shared engine’s global ownership/coverage/health filter command |
+| f | Lists every ownership, coverage and health filter, with the one in use marked `*`; Up and Down choose, Enter applies it as a read-only `views-page` query that keeps the other filters and the search, Esc closes. The typed form is `:views-page` |
 | e / r / Esc | Typed details of the result shown / its complete raw record / back to the summary |
 | a | Actions for the selected policy: each with its exact command (arguments taken from the recorded evidence, never parsed from prose), what it does, and whether it is available now with the engine's own reason when it is not. Enter puts the chosen command in the command bar for review; Enter there submits it, Esc discards it. A staged action is bound to its policy and tenant and is discarded, unsent, if the selection changes |
 | b or :back | Back to the previous read-only view of this session; it never re-sends a command that prepares, approves, executes or records |
