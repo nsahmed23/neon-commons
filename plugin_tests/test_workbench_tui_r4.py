@@ -323,7 +323,7 @@ class VisualPTYTests(unittest.TestCase):
                                    body=body, if_match=str(service.snapshot()['revision']))
         self.assertEqual(response['status'], 200)
         self.store.collect(service)
-        self.launch('--theme', 'light'); self.read_until(b'Ready.')
+        self.launch('--theme', 'light', '--ascii'); self.read_until(b'Ready.')
         self.assertEqual(self.store.inspect(self.ids[0])['body']['name'], body['name'])
         self.assertNotIn(b'\x1b]', self.output)
         self.assertNotIn('\u202e'.encode(), self.output)
@@ -333,6 +333,22 @@ class VisualPTYTests(unittest.TestCase):
         self.key(b'\x1b[200~execute /not/approved invalid\nquit\x1b[201~\x1b', marker=b'EDIT CANCELLED')
         self.assertIsNone(self.proc.poll())
         self.assertEqual(self.store.operations(), [])
+        self.close_visual()
+
+    def test_utf8_terminal_draws_fine_rules_and_ascii_on_request(self):
+        from unittest.mock import patch
+        with patch.dict(os.environ, {'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'}):
+            self.launch('--theme', 'blueprint')
+        self.read_until(b'Ready.')
+        self.assertIn('┌─'.encode(), self.output)
+        self.assertIn(b'\x1b[48;5;17;', self.output)  # the blueprint background
+        self.close_visual()
+        self.output = bytearray()
+        with patch.dict(os.environ, {'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'}):
+            self.launch('--ascii', '--no-color')
+        self.read_until(b'Ready.')
+        self.assertNotIn('─'.encode(), self.output)
+        self.assertNotIn(b'\x1b[48;5;', self.output)
         self.close_visual()
 
     def test_eof_and_sigint_restore_terminal(self):

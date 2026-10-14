@@ -11,6 +11,7 @@ from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
+import re
 import select
 import shlex
 import sys
@@ -240,9 +241,55 @@ class KeyReader:
         except UnicodeError: return 'ignored'
 
 
+# 256-colour palette indices per theme. Every state is written in words; colour only reinforces them,
+# and the information architecture is the same in every theme.
+THEMES = {
+    'dark': {'bg': '234', 'fg': '252', 'accent': '81', 'ok': '114', 'warn': '179', 'bad': '174'},
+    'light': {'bg': '230', 'fg': '237', 'accent': '24', 'ok': '28', 'warn': '130', 'bad': '124'},
+    'blueprint': {'bg': '17', 'fg': '153', 'accent': '231', 'ok': '121', 'warn': '222', 'bad': '217'},
+    'high-contrast': {'bg': '16', 'fg': '231', 'accent': '226', 'ok': '46', 'warn': '214', 'bad': '196'},
+}
+# Fixed phrases and markers only: a bare word such as "verified" also appears in "NOT verified".
+TONES = (('ok', ('[x]', 'NO CONFIGURATION CHANGE', 'REPOSITORY MATCHES THE RECORDED INTENT', 'succeeded_verified',
+                 'desired_state_observed', 'matches desired')),
+         ('warn', ('[?]', 'REPOSITORY CHANGED SINCE THE RECORDED INTENT', 'CHANGE COMPARISON UNKNOWN', 'outcome unknown',
+                   'outcome_unknown', 'stale')),
+         ('bad', ('[!]', 'REFUSED', 'ERROR:', 'INPUT REJECTED:', 'REPOSITORY UNAVAILABLE', 'expired', 'not available', 'failed')))
+
+
+def _tone_pattern():
+    def phrase(text):
+        pattern = re.escape(text)
+        return ('(?<!\\w)' if text[0].isalnum() else '') + pattern + ('(?!\\w)' if text[-1].isalnum() else '')
+    return re.compile('|'.join('(?P<%s>%s)' % (tone, '|'.join(phrase(p) for p in sorted(phrases, key=len, reverse=True)))
+                               for tone, phrases in TONES))
+
+
+_TONES = _tone_pattern()
+_HEADING = re.compile(r'([|│]\s*)(\[[A-Z][A-Z0-9 /&,().-]*\])')
+RULES = {'unicode': (('┌', '─', '┐'), '│', ('└', '─', '┘')),
+         'ascii': (('+', '-', '+'), '|', ('+', '-', '+'))}
+
+
+def choose_rules(encoding, term, requested='auto'):
+    """Fine Unicode rules on a UTF-8 terminal that draws them; ASCII otherwise or when asked."""
+    if requested == 'ascii':
+        return 'ascii'
+    capable = (encoding or '').lower().replace('-', '').replace('_', '') == 'utf8'
+    return 'unicode' if capable and term not in ('linux', 'dumb', 'vt100', 'vt220', '') else 'ascii'
+
+
+def paint(line, palette, base=None):
+    """Bold a leading [HEADING] and tint fixed state phrases; the text is unchanged and the background is kept."""
+    base = base or palette['fg']
+    match = _HEADING.match(line)
+    head, rest = ('', line) if match is None else (match.group(1) + '\x1b[1m' + match.group(2) + '\x1b[22m', line[match.end():])
+    return head + _TONES.sub(lambda m: '\x1b[38;5;%sm%s\x1b[38;5;%sm' % (palette[m.lastgroup], m.group(0), base), rest)
+
+
 class Workspace:
     """UI state contains navigation only. Typed engine values remain authoritative."""
-    def __init__(self, root, *, theme='dark', no_color=False, reduced_motion=True, stdin=None, stdout=None, _native_binding=None):
+    def __init__(self, root, *, theme='dark', no_color=False, reduced_motion=True, stdin=None, stdout=None, _native_binding=None, rules='auto'):
         from .workbench_store import WorkbenchStore, _private
         self.native_binding = _native_binding
         if _native_binding is None:
@@ -261,6 +308,7 @@ class Workspace:
         self.stdout = sys.stdout if stdout is None else stdout
         self.theme = theme
         self.color = not no_color and 'NO_COLOR' not in os.environ
+        self.rules = choose_rules(getattr(self.stdout, 'encoding', None), os.environ.get('TERM', ''), rules)
         self.reduced_motion = reduced_motion  # Both modes are event-driven: no decorative motion.
         self.value = {}
         self.selected = None
@@ -734,14 +782,15 @@ class Workspace:
 
     def _data_lines(self, width):
         if self.tab == 0 and self.rows and isinstance(self.value.get('objects'), list):
-            lines = ['[SELECT] Exact identity / name / ownership / coverage / health']
+            lines = ['[SELECT] Exact identity / name / ownership / coverage / health  (> focus, * pinned selection)']
             if isinstance(self.value.get('filters'), dict):
                 lines.extend(wrap('Global filters: ' + json.dumps(self.value['filters'], ensure_ascii=False), width))
                 page = self.value.get('pagination', {})
                 lines.extend(wrap('Matching objects: %s / inventory: %s | page offset: %s' %
                     (page.get('total_objects', 'unknown'), self.value.get('total_inventory_objects', 'unknown'), page.get('offset', 'unknown')), width))
             for index, row in enumerate(self.rows):
-                mark = '>' if index == self.highlight else ' '
+                # Temporary keyboard focus and the pinned selection other surfaces show stay distinguishable.
+                mark = ('>' if index == self.highlight else ' ') + ('*' if row['object_id'] == self.selected else ' ')
                 lines.extend(wrap('%s %s' % (mark, row['object_id']), width))
                 coverage = row.get('coverage', 'unknown')
                 owner = coverage.get('management', 'unknown') if isinstance(coverage, dict) else row.get('ownership', 'unknown')
@@ -805,14 +854,20 @@ class Workspace:
             before_cursor = ''.join(reversed(tail))
             prompt = prefix + before_cursor + '|' + after_cursor
         else: prompt = self.notice
-        frame = [pad(header, width), pad(labels, width), pad(status, width), '+' + '-' * inner + '+']
-        frame.extend('|' + pad(line, inner) + '|' for line in visible)
-        frame.extend('|' + ' ' * inner + '|' for _ in range(available - len(visible)))
-        frame.extend(['+' + '-' * inner + '+', pad(footer, width), pad(prompt, width), pad('1-9 surfaces | Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | q detach', width)])
+        top, side, bottom = RULES[getattr(self, 'rules', 'ascii')]
+        frame = [pad(header, width), pad(labels, width), pad(status, width), top[0] + top[1] * inner + top[2]]
+        frame.extend(side + pad(line, inner) + side for line in visible)
+        frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
+        frame.extend([bottom[0] + bottom[1] * inner + bottom[2], pad(footer, width), pad(prompt, width), pad('1-9 surfaces | Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | q detach', width)])
         if self.color:
-            background, foreground, accent = ('48;5;234', '38;5;252', '38;5;81') if self.theme == 'dark' else ('48;5;230', '38;5;237', '38;5;24')
-            painted = ['\x1b[%s;%sm%s\x1b[0m' % (background, accent if i in (0, 1, len(frame) - 2) else foreground, line)
-                       for i, line in enumerate(frame)]
+            palette = THEMES.get(self.theme, THEMES['dark'])
+            painted = []
+            for i, line in enumerate(frame):
+                base = palette['accent'] if i in (0, 1, len(frame) - 2) else palette['fg']
+                # Body lines and the notice get word-level reinforcement; words never change.
+                if line.startswith(side) or i == len(frame) - 2:
+                    line = paint(line, palette, base)
+                painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
         else: painted = frame
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
@@ -973,12 +1028,13 @@ class Workspace:
             self.draw()
 
 
-def run_workspace(root, *, service_root=None, theme='dark', no_color=False, reduced_motion=True, stdin=None, stdout=None):
+def run_workspace(root, *, service_root=None, theme='dark', no_color=False, reduced_motion=True, stdin=None, stdout=None, rules='auto'):
     """Open visual POSIX profile or retain the entire reference text interface."""
     from .workbench import run_terminal
     stdin = sys.stdin if stdin is None else stdin
     stdout = sys.stdout if stdout is None else stdout
-    if theme not in ('dark', 'light'): raise AppError('workspace_theme_invalid', 'Choose dark or light theme.')
+    if theme not in THEMES: raise AppError('workspace_theme_invalid', 'Choose one of: ' + ', '.join(THEMES) + '.')
+    if rules not in ('auto', 'ascii'): raise AppError('workspace_rules_invalid', 'Choose auto or ascii rules.')
     if not visual_supported(stdin, stdout):
         input_closed = False
         def read_line(prompt):
@@ -1000,7 +1056,7 @@ def run_workspace(root, *, service_root=None, theme='dark', no_color=False, redu
             return value.rstrip('\r\n')
         return run_terminal(root, service_root=service_root, input_fn=read_line,
                             output_fn=lambda line: print(line, file=stdout))
-    workspace = Workspace(root, theme=theme, no_color=no_color, reduced_motion=reduced_motion, stdin=stdin, stdout=stdout)
+    workspace = Workspace(root, theme=theme, no_color=no_color, reduced_motion=reduced_motion, stdin=stdin, stdout=stdout, rules=rules)
     with terminal_session(stdin, stdout):
         return run_terminal(root, service_root=service_root, input_fn=workspace.input,
                             output_fn=lambda line: None, result_fn=workspace.receive)

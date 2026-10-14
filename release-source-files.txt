@@ -3517,6 +3517,7 @@ docs/continuation-evidence/20261011/checkpoint29/publisher04-admission.json
 docs/continuation-evidence/20261011/checkpoint29/selected-delivery-source-review.json
 intune_iac/worker_completed_readback.py
 plugin_tests/test_worker_completed_readback_r4.py
+plugin_tests/test_workspace_style.py
 docs/continuation-evidence/20261011/checkpoint30/core/application.json
 docs/continuation-evidence/20261011/checkpoint30/core/applied-admission.json
 docs/continuation-evidence/20261011/checkpoint30/core/changed-scope-preservation.json

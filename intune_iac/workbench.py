@@ -30,7 +30,8 @@ def add_parser(commands):
     workspace = sub.add_parser('workspace', help='Visual workspace over the complete text command engine; text fallback without a supported TTY')
     workspace.add_argument('--root', required=True)
     workspace.add_argument('--service-root')
-    workspace.add_argument('--theme', choices=('dark', 'light'), default='dark')
+    workspace.add_argument('--theme', choices=('dark', 'light', 'blueprint', 'high-contrast'), default='dark')
+    workspace.add_argument('--ascii', action='store_true', help='Draw ASCII rules even on a UTF-8 terminal')
     workspace.add_argument('--no-color', action='store_true')
     workspace.add_argument('--reduced-motion', action='store_true', default=True,
                            help='Keep all information without animation; also the default')
@@ -340,7 +341,7 @@ def command(args):
     if name == 'workspace':
         from .workbench_tui import run_workspace
         return run_workspace(args.root, service_root=args.service_root, theme=args.theme,
-                             no_color=args.no_color, reduced_motion=args.reduced_motion)
+                             no_color=args.no_color, reduced_motion=args.reduced_motion, rules='ascii' if args.ascii else 'auto')
     if name == 'init':
         from .workbench_store import WorkbenchStore
         store = WorkbenchStore.create(args.root, args.tenant)

@@ -8,7 +8,18 @@ The application entrypoint is:
 /workspace/intune-runtime/bin/python -B scripts/intune-iac.py workbench workspace --root /absolute/private/store --service-root /absolute/private/lab-service
 ```
 
-The optional service root selects the existing explicitly synthetic maintenance route. Omit it when investigating observations without a modeled service. It does not select a production tenant or authorize writes. `--theme dark` uses charcoal/navy surfaces and cyan labels; `--theme light` uses a warm light surface. `--no-color` or `NO_COLOR` retains every label and status. `--reduced-motion` is accepted; both modes are event-driven and contain no decorative animation, unmeasured ETA, fake percentage or inferred rollout action.
+The optional service root selects the existing explicitly synthetic maintenance route. Omit it when investigating observations without a modeled service. It does not select a production tenant or authorize writes. `--no-color` or `NO_COLOR` retains every label and status. `--reduced-motion` is accepted; both modes are event-driven and contain no decorative animation, unmeasured ETA, fake percentage or inferred rollout action.
+
+**Visual language.** The frame follows a technical drawing: fine, consistent rules, aligned labels and explicit connectors.
+- **Rules.** On a UTF-8 terminal (and not the Linux console or `TERM=dumb`), the frame uses light box-drawing rules (`┌─┐ │ └─┘`). `--ascii` keeps `+-+ |` everywhere.
+- **Themes.** Four themes share one information architecture: `dark` (charcoal surface, cyan labels; the default), `light` (a warm light surface), `blueprint` (a navy technical-drawing surface with light-blue text and white labels) and `high-contrast` (black surface, white text, yellow labels).
+- **Words first.** Every state is written in words. Colour only reinforces fixed phrases and markers:
+  - green: `[x]`, `NO CONFIGURATION CHANGE`, `REPOSITORY MATCHES THE RECORDED INTENT`, `succeeded_verified`, `desired_state_observed`, `matches desired`;
+  - amber: `[?]`, `REPOSITORY CHANGED SINCE THE RECORDED INTENT`, `CHANGE COMPARISON UNKNOWN`, `outcome unknown`, `stale`;
+  - red: `[!]`, `REFUSED`, `ERROR:`, `INPUT REJECTED:`, `REPOSITORY UNAVAILABLE`, `expired`, `not available`, `failed`.
+
+  A bare word such as "verified" is never tinted, because it also appears in "NOT verified". A surface heading such as `[CHANGE REVIEW]` is bold. With colour off, the text is identical.
+- **Focus and selection.** In Estate, `>` marks the row with keyboard focus and `*` the pinned selection that every other surface shows. They stay distinguishable when they differ.
 
 When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the workspace uses the entire reference line interface. The command syntax remains that displayed by `workbench terminal` and its `help`; JSON values stay escaped. The fallback is not native Windows qualification.
 
@@ -48,7 +59,7 @@ views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]]
 
 Use `-` for an unset field. For example, `:views-page 10 0 Privacy unknown complete_fresh -` searches the admitted inventory before selecting a page, shows matching versus inventory totals, and retains its filters for `n`, `p`, `/` and resume. Press `f` to edit these fields. Ownership admits `owned_here`, `owned_elsewhere`, `conflicting_claims`, `no_ownership_found_in_declared_scope` and `unknown`; coverage admits `complete_fresh`, `stale_or_incomplete` and `unknown`; health admits `fresh_failure`, `fresh_success`, `reporting_incomplete` and `unknown`. These are exact engine classifications, not new UI inference. A stale/incomplete ownership index remains unknown. Health does not dispatch a write.
 
-Every presentation surface includes readable semantic labels above its complete typed evidence: immutable policy identity and targeting counts, typed relationship rows, snapshot/time history, exact-plan bindings, execution/recovery outcomes and distinct comparison baselines. Long results expose the current line range and total, with scrolling; the selected estate row has a literal `>` marker, not only color. Unknown, denied and incomplete results remain engine values. Color never carries the sole meaning. Narrow layouts keep the same commands; resize redraws without running another engine action.
+Every presentation surface includes readable semantic labels above its complete typed evidence: immutable policy identity and targeting counts, typed relationship rows, snapshot/time history, exact-plan bindings, execution/recovery outcomes and distinct comparison baselines. Long results expose the current line range and total, with scrolling; the focused estate row has a literal `>` marker and the pinned selection a `*`, not only colour. Unknown, denied and incomplete results remain engine values. Color never carries the sole meaning. Narrow layouts keep the same commands; resize redraws without running another engine action.
 
 Use the command bar for the existing intentional-change flow: `propose DESIRED_JSON NEW_OPERATION_DIR`, `review OPERATION_DIR`, explicit `execute OPERATION_DIR EXACT_REVIEW_DIGEST`, and `reconcile OPERATION_DIR`. The actual engine validates every command and retains its original authority and scope. A visible plan does not confer approval. This module neither derives nor inserts a digest, and it never creates a replacement plan. Production dispatch remains the separately configured protected worker contract; the synthetic route must not be presented as live execution.
 
