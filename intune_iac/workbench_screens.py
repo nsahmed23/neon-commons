@@ -504,6 +504,27 @@ def _rows(changes):
     return rows
 
 
+def baseline_words(baseline):
+    """A comparison baseline in words: what it is, its identities shortened, its time readable; never a JSON dump."""
+    if not isinstance(baseline, dict):
+        return _as_words(baseline) if baseline is not None else 'not recorded'
+    text = _as_words(baseline.get('kind', 'baseline'))
+    for key in ('snapshot_id', 'artifact_id'):
+        if isinstance(baseline.get(key), str):
+            text += ' ' + baseline[key][:12]
+    if isinstance(baseline.get('operation_id'), str):
+        text += ' of operation ' + baseline['operation_id'][:12]
+    if isinstance(baseline.get('plan_sha256'), str):
+        text += ' (plan ' + baseline['plan_sha256'][:12] + ')'
+    for key, label in (('observed_at', 'observed'), ('recorded_at', 'recorded')):
+        value = baseline.get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            text += ', %s %s' % (label, _readable_epoch(value))
+        elif isinstance(value, str):
+            text += ', %s %s' % (label, _when(value))
+    return text
+
+
 def change_lines(changes, width, before_label='BEFORE (observed)', after_label='AFTER (desired)', remainder=None):
     """A field-change list as a table (wide) or stacked before and after rows (narrow).
 
@@ -957,8 +978,9 @@ def dictionary_lines(value, width):
             lines += _labelled('Applies to', ' | '.join(str(part) for part in (applies.get('scope'), applies.get('minimum_windows_release'),
                                ', '.join(applies.get('editions') or [])) if part) or 'not documented', width)
             source = vendor.get('documentation') or {}
-            lines += _labelled('Source', ' | '.join(str(part) for part in (source.get('publisher'), 'updated ' + str(source.get('published_update_at')),
-                               'retrieved ' + str(source.get('retrieved_at')), source.get('url')) if part), width)
+            lines += _labelled('Source', ' | '.join(str(part) for part in (
+                source.get('publisher'), 'updated ' + _when(source.get('published_update_at'), 'not recorded'),
+                'retrieved ' + _when(source.get('retrieved_at'), 'not recorded'), source.get('url')) if part), width)
         for mapping in entry.get('local_mapping') or []:
             rule = mapping.get('entry') if isinstance(mapping, dict) else None
             if isinstance(rule, dict):
@@ -1339,7 +1361,7 @@ def queue_lines(value, width):
             lines += word_wrap('  Owner role %s: %s | writer %s%s | source owner claim %s' % (
                 str(item.get('owner_role', 'unknown')).replace('_', ' '), item.get('owner') or 'none recorded',
                 writer.get('status', 'unknown'), ': ' + str(writer['reason']) if writer.get('reason') else '',
-                _value(claim.get('value')) if claim else 'none'), width)
+                _value(claim['value']) if claim.get('value') is not None else 'none recorded'), width)
         review = item.get('review_record') if isinstance(item.get('review_record'), dict) else {}
         state = str(review['reason']).replace('_', ' ') if review.get('reason') else 'review ' + str(review.get('status', 'not recorded'))
         lines += word_wrap('  %s | review due %s | exception expiry %s' % (
@@ -1810,6 +1832,9 @@ KNOWN_NEXT = {
     'collection_not_finished': 'Collect again (a lists it), then prepare the proposal again.'}
 
 
+# Where 'clear' could be read as more than the check establishes, the area says what was checked.
+AREA_CLEAR = {'device_evidence': 'clear: the capture is complete and its cohort consistent; h shows how many devices '
+                                 'reported'}
 CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',
                'not_imported': 'no device evidence imported',
                'explained_by_collection': 'stale; explained by the failed collection above',
@@ -1822,7 +1847,8 @@ def diagnostics_lines(value, width):
     partial = any(state in ('partly_checked', 'unavailable') for state in (value.get('checked') or {}).values())
     summary = (_plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention') if signals
                else 'no signal, but some areas were not fully read' if partial
-               else "nothing needs attention in this store's records")
+               else 'no signal in the areas checked below; reporting completeness and ownership are reviewed in the '
+                    'maintenance queue (m)')
     lines = ['[DIAGNOSTICS]']
     lines += word_wrap('%s (%s) | %s' % (value.get('name') or '(no name)', value.get('object_id'), summary), width)
     for signal in signals:
@@ -1838,7 +1864,8 @@ def diagnostics_lines(value, width):
     lines.append('')
     lines.append('CHECKED')
     for area, state in (value.get('checked') or {}).items():
-        lines += word_wrap('  %s %s' % (pad(area.replace('_', ' '), 16), CHECK_WORDS.get(state, str(state))), width)
+        shown = AREA_CLEAR[area] if state == 'clear' and area in AREA_CLEAR else CHECK_WORDS.get(state, str(state))
+        lines += word_wrap('  %s %s' % (pad(area.replace('_', ' '), 16), shown), width)
     for text in value.get('limitations') or []:
         lines += word_wrap('Limitation: ' + str(text), width)
     return lines

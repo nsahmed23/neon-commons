@@ -157,6 +157,20 @@ MIN_SIZE = (40, 12)
 MODE_CLASSES = frozenset({'synthetic', 'synthetic_local_process_only', 'synthetic_local_process_and_modeled_service_only',
                           'graph_capture_unverified', 'graph_reader_laboratory', 'graph_reader_attempt',
                           'graph_authenticated_observation', 'mixed_observations'})
+def operation_list(records):
+    """One row per operation, in the order first recorded: its latest record and how many journal records it has."""
+    latest, counts, order = {}, {}, []
+    for row in records:
+        if not isinstance(row, dict) or not isinstance(row.get('operation_root'), str):
+            continue
+        key = row.get('operation_id')
+        if key not in latest:
+            order.append(key)
+        counts[key] = counts.get(key, 0) + 1
+        latest[key] = row  # records arrive in store order, so the last one is the latest
+    return [dict(latest[key], journal_records=counts[key]) for key in order]
+
+
 # Short names for a staged action, so its instruction fits beside it; the full label stays in the action list.
 STAGED_NAMES = {'reconcile': 'reconcile', 'collect': 'collect', 'repository-refresh': 'refresh',
                 'propose-from-intent': 'proposal', 'propose': 'proposal', 'repository-entry': 'repository survey',
@@ -629,7 +643,7 @@ class Workspace:
                                              if isinstance(value.get('query'), str) and value['query'] else
                                              'overview %d %d' % (limit, offset))
             if isinstance(value.get('operations'), list):
-                self.operation_rows = [row for row in value['operations'] if isinstance(row, dict) and isinstance(row.get('operation_root'), str)]
+                self.operation_rows = operation_list(value['operations'])
                 self.operation_highlight = min(self.operation_highlight, max(0, len(self.operation_rows) - 1))
             if isinstance(value.get('operation_root'), str):
                 if self.active_operation != value['operation_root']: self.execution_result = None
@@ -1019,10 +1033,11 @@ class Workspace:
             if isinstance(repository, dict) and isinstance(repository.get('freshness'), dict):
                 field('Repository freshness', repository['freshness'].get('status', 'unknown'))
             rows.append('[DISTINCT COMPARISON BASELINES]')
+            from .workbench_screens import baseline_words
             for label, comparison in value.get('comparisons', {}).items():
                 if isinstance(comparison, dict):
-                    field(label, comparison.get('status', 'unknown'))
-                    field('  Baseline', comparison.get('baseline', comparison.get('reason', 'not recorded')))
+                    field(str(label).replace('_', ' ').capitalize(), str(comparison.get('status', 'unknown')).replace('_', ' '))
+                    field('  Baseline', baseline_words(comparison.get('baseline', comparison.get('reason'))))
             versus = value.get('comparisons', {}).get('repository_vs_observed')
             if isinstance(versus, dict) and isinstance(versus.get('field_changes'), dict):
                 from .workbench_screens import change_lines
@@ -1120,8 +1135,10 @@ class Workspace:
             for index, row in enumerate(self.operation_rows):
                 mark = '>' if index == self.operation_highlight else ' '
                 from .workbench_screens import _when
-                lines.extend(wrap('%s %s | recorded=%s | status=%s' %
-                                  (mark, row.get('operation_id'), _when(row.get('recorded_at'), 'unknown'), row.get('status', 'unknown')), width))
+                count = row.get('journal_records')
+                lines.extend(wrap('%s %s | recorded=%s | status=%s%s' %
+                                  (mark, row.get('operation_id'), _when(row.get('recorded_at'), 'unknown'), row.get('status', 'unknown'),
+                                   ' (%d journal records)' % count if isinstance(count, int) and count > 1 else ''), width))
                 lines.extend(wrap('  ' + row['operation_root'], width))
             lines.append('Enter reviews the highlighted plan as it is now; nothing is approved.')
         else:

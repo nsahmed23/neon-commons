@@ -216,6 +216,16 @@ class InspectorAndDictionaryTests(unittest.TestCase):
         self.assertIn('AI interpretation not implemented', joined)
         self.assertIn('Microsoft Learn', joined)
 
+    def test_dictionary_source_times_are_readable(self):
+        import copy
+        from intune_iac.workbench_screens import dictionary_lines
+        entry = copy.deepcopy(ENTRY)
+        entry['vendor_documentation'][0]['documentation'] = {'publisher': 'Microsoft Learn', 'url': 'https://example.invalid/doc',
+            'published_update_at': '2026-09-23T17:34:00Z', 'retrieved_at': '2026-10-07T03:21:49.096637+00:00'}
+        joined = ' '.join(' '.join(dictionary_lines({'entries': [entry], 'query': ''}, 120)).split())
+        self.assertIn('updated 2026-09-23 17:34:00 UTC', joined)
+        self.assertIn('retrieved 2026-10-07 03:21:49 UTC', joined)
+
     def test_empty_dictionary_says_so(self):
         from intune_iac.workbench_screens import dictionary_lines
         self.assertIn('No dictionary entries for this query.', dictionary_lines({'entries': [], 'query': 'none'}, 80))
@@ -363,6 +373,15 @@ class EstateScreensTests(unittest.TestCase):
         self.assertIn('review  reporting_incomplete  ' + POLICY_ID, joined)
         self.assertIn('Why: Missing or stale reporting', joined)
         self.assertIn('State review_required | owner unknown | freshness fresh | automatic remediation no', joined)
+
+    def test_an_absent_source_owner_claim_reads_as_words(self):
+        from intune_iac.workbench_screens import queue_lines
+        value = {'findings': [{'object_id': POLICY_ID, 'finding': 'ownership_unknown', 'priority': 'review',
+                               'owner_role': 'human_review_assignee', 'writer_ownership': {'status': 'unknown'},
+                               'source_owner_claim': {'value': None}}], 'pagination': {'total_objects': 1}}
+        joined = '\n'.join(queue_lines(value, 120))
+        self.assertIn('source owner claim none recorded', joined)
+        self.assertNotIn('null', joined)
 
 
 INTENT = 'bcffdf6f' + '0' * 56
@@ -543,8 +562,13 @@ class DiagnosticsLinesTests(unittest.TestCase):
 
     def test_nothing_to_report_is_said_plainly(self):
         from intune_iac.workbench_screens import diagnostics_lines
-        value = dict(DIAGNOSTICS, signals=[], checked={'collection': 'clear'})
-        self.assertIn('nothing needs attention', '\n'.join(diagnostics_lines(value, 120)))
+        value = dict(DIAGNOSTICS, signals=[], checked={'collection': 'clear', 'device_evidence': 'clear'})
+        text = ' '.join(' '.join(diagnostics_lines(value, 120)).split())
+        # Scoped to what diagnostics reads: reporting completeness and ownership are queue findings (journey 26).
+        self.assertIn('no signal in the areas checked below', text)
+        self.assertIn('the maintenance queue (m)', text)
+        self.assertNotIn('nothing needs attention', text)
+        self.assertIn('device evidence clear: the capture is complete and its cohort consistent; h shows how many devices reported', text)
 
     def test_partly_checked_and_unreadable_areas_are_not_shown_as_clear(self):
         from intune_iac.workbench_screens import diagnostics_lines
@@ -850,7 +874,7 @@ class EstateScreenEdgeTests(unittest.TestCase):
                                'evidence': {'evidence_class': 'synthetic', 'observed_at': 'T0', 'snapshot_id': 'a' * 64},
                                'related_proposals': records}]}
         joined = '\n'.join(queue_lines(value, 120))
-        self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership_index_missing | source owner claim null', joined)
+        self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership_index_missing | source owner claim none recorded', ' '.join(joined.split()))
         self.assertIn('  Review not recorded | review due none | exception expiry none', joined)
         self.assertIn('Compatibility synthetic_windows_settings_catalog | native provider not qualified', joined)
         self.assertIn('Related proposals (1)\n    b668ad2fa6c5 succeeded_verified (2 journal records; latest T2)', joined)

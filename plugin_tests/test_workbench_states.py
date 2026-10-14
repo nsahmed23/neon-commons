@@ -346,6 +346,47 @@ class ChangedContextTests(unittest.TestCase):
         self.assertNotIn('Cited repository intent', text)
 
 
+class SurfaceListTests(unittest.TestCase):
+    """Journey 26: Coverage baselines in words, one row per operation."""
+    surface = RefusalCauseTests.workspace
+
+    def test_coverage_baselines_read_as_words_with_readable_times(self):
+        workspace = self.surface()
+        workspace.tab = 6
+        workspace.value = {'schema_version': 'workbench-four-views/1', 'comparisons': {
+            'collector_snapshot_delta': {'status': 'different', 'baseline': {
+                'kind': 'prior_collector_snapshot', 'snapshot_id': '90a2985ff4957351' + '0' * 48,
+                'observed_at': '2026-10-14T22:23:00.049219Z'}},
+            'repository_vs_deployment': {'status': 'equal', 'baseline': {
+                'kind': 'verified_local_modeled_deployment', 'evidence_class': 'verified_local_modeled_deployment',
+                'artifact_id': '7a28be59af174923' + '0' * 48, 'operation_id': '54bbab727d1e4eee' + '0' * 16,
+                'recorded_at': 1792016581.3878012, 'plan_sha256': 'ea650a4d199fa3fd' + '0' * 48}},
+            'provider_refresh_vs_state': {'status': 'unknown', 'baseline': 'baseline_missing_or_incomplete'}}}
+        text = ' '.join(' '.join(workspace._summary_lines(118)).split())
+        self.assertNotIn('{"', text)
+        self.assertNotIn('1792016581', text)
+        self.assertIn('Collector snapshot delta: different', text)
+        self.assertIn('prior collector snapshot 90a2985ff495, observed 2026-10-14 22:23:00 UTC', text)
+        self.assertIn('verified local modeled deployment 7a28be59af17 of operation 54bbab727d1e (plan ea650a4d199f), '
+                      'recorded 2026-10-14', text)
+        self.assertIn('baseline missing or incomplete', text)
+
+    def test_each_operation_is_one_row_with_its_latest_status(self):
+        from intune_iac.workbench_tui import operation_list
+        records = [{'operation_id': 'a' * 32, 'operation_root': '/w/op', 'status': 'prepared', 'recorded_at': '2026-10-14T22:23:00Z'},
+                   {'operation_id': 'a' * 32, 'operation_root': '/w/op', 'status': 'succeeded_verified', 'recorded_at': '2026-10-14T22:23:01Z'},
+                   {'operation_id': 'b' * 32, 'operation_root': '/w/op2', 'status': 'prepared', 'recorded_at': '2026-10-14T22:24:00Z'}]
+        rows = operation_list(records)
+        self.assertEqual([(row['operation_id'][0], row['status'], row['journal_records']) for row in rows],
+                         [('a', 'succeeded_verified', 2), ('b', 'prepared', 1)])
+        workspace = self.surface()
+        workspace.tab, workspace.operation_rows, workspace.operation_highlight = 4, rows, 0
+        workspace.value = {'operations': records}
+        text = ' '.join(workspace._summary_lines(118))
+        self.assertEqual(text.count('a' * 32), 1)
+        self.assertIn('status=succeeded_verified (2 journal records)', text)
+
+
 class TypedDetailTests(unittest.TestCase):
     """P-PRES-01: label and value apart by two spaces or separate lines; empty, null and missing kept apart."""
     def lines(self, value, width=60):
