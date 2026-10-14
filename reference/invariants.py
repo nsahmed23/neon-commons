@@ -572,18 +572,31 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
         if active:
             errors.append('partial_has_active_infrastructure')
         return errors
+    return errors + component_errors({name: files[name] for name in active}, expected['key'], expected['pid'])
+
+
+def component_errors(sources, key, pid, *, allow_backend=False):
+    """Structural contract of the reference component, as safe error codes.
+
+    One resource keyed by ``var.policies``, the import of exactly this object,
+    the qualification guard, and no other input binding. ``sources`` maps
+    component file names to text. A maintained repository may add a terraform
+    block holding only a backend; ``allow_backend`` accepts exactly that.
+    """
+    errors = []
+    address = RESOURCE + '.policy["' + key + '"]'
     try:
         import hcl2
         from hcl2.utils import SerializationOptions
     except ImportError:
-        return errors + ['hcl_parser_unavailable']
+        return ['hcl_parser_unavailable']
     try:
         parsed = []
-        for name in active:
+        for name in sorted(sources):
             if name.endswith('.tf.json'):
                 errors.append('generated_hcl_json_unqualified')
             else:
-                parsed.append(hcl2.loads(files[name], serialization_options=SerializationOptions(
+                parsed.append(hcl2.loads(sources[name], serialization_options=SerializationOptions(
                     strip_string_quotes=True, explicit_blocks=False, with_comments=False)))
         if any(set(p) - {'terraform', 'variable', 'locals', 'resource', 'output', 'import'} for p in parsed):
             errors.append('generated_hcl_blocks_changed')
@@ -605,11 +618,13 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
             lifecycle = resource.get('lifecycle', [])
             if not _json_equal(lifecycle, [{'prevent_destroy': True, 'precondition': [{'condition': '${var.live_qualification_ack}', 'error_message': 'Reference materials only: qualify provider, target and authorization before execution.'}]}]):
                 errors.append('generated_guard_changed')
-        if imports != [{'to': '${' + address + '}', 'id': expected['pid']}]:
+        if imports != [{'to': '${' + address + '}', 'id': pid}]:
             errors.append('generated_import_identity_changed')
         if [v for p in parsed for v in p.get('locals', [])]:
             errors.append('generated_input_binding_changed')
         terraform = [v for p in parsed for v in p.get('terraform', [])]
+        if allow_backend:
+            terraform = [v for v in terraform if set(v) != {'backend'}]
         if len(terraform) != 1 or terraform[0] != {'required_version': '>= 1.10.0, < 1.11.0', 'required_providers': [{'microsoft365': {'source': PROVIDER, 'version': '1.0.0'}}]}:
             errors.append('generated_provider_changed')
         variables = [v for p in parsed for v in p.get('variable', [])]

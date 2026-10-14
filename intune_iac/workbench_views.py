@@ -22,7 +22,7 @@ from .repository import resolve_component, public_resolution, discover_repositor
 from .workbench_provenance import _read
 from . import workbench_semantics as semantics
 
-COMMANDS=frozenset({'repository-import','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','evidence-link','evidence-history','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
+COMMANDS=frozenset({'repository-import','repository-status','repository-refresh','propose-from-intent','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','evidence-link','evidence-history','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
 SCOPE_FIELDS=frozenset({'repository','stack','component','backend'})
 MAX_OBJECTS=1000
 MAX_ESTATE_ARTIFACTS=10000
@@ -131,6 +131,8 @@ def import_repository(store,repo,stack,component,object_id,pointer,revision,back
         revision_evidence=verify_revision(root,revision,report['sources'],git_executable=git_executable,git_sha256=git_sha256)
     scope=_scope({'repository':str(root),'stack':stack,'component':component,'backend':backend})
     data=_repository_intent(store,object_id,scope,revision,resource_address,pointer,body,report,analysis,revision_evidence)
+    from .workbench_repository import consumer_contract
+    data['consumer']=consumer_contract(report,pointer,store.tenant_id,object_id)
     # Global record permits repository-only objects absent from discovery/state.
     return store.record_artifact('repository_intent',None,data)
 
@@ -514,6 +516,10 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     intent=_latest(choices);repo=_unknown('repository_intent_missing')
     if intent:
         repo={'status':'recorded',**intent['data'],'object_id':object_id,'artifact_id':intent['artifact_id']}
+        if intent['data'].get('schema_version')=='workbench-repository-intent/1':
+            # Read-only: compares the recorded intent with a fresh resolution; never re-imports.
+            from .workbench_repository import intent_freshness
+            repo['freshness']=intent_freshness(intent['data'])
         if scope is None:scope=repo['scope']
     try:observed=store.inspect(object_id);observed=dict(observed,status='recorded')
     except AppError as exc:
@@ -537,7 +543,11 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
                     current={'snapshot_id':after['snapshot_id'],'observed_at':after['observed_at']},attribution='unknown',change_time='unknown')
             else:
                 comparisons['collector_snapshot_delta']=_unknown('history_current_observation_mismatch')
-        if intent and coverage_ok:comparisons['repository_vs_observed']=_comparison(repo['desired'],observed['body'],classification='desired_observed_difference',drift_established=False)
+        if intent and coverage_ok:
+            comparisons['repository_vs_observed']=_comparison(repo['desired'],observed['body'],classification='desired_observed_difference',drift_established=False)
+            from .workbench_diff import field_changes
+            # Exact before (observed) and after (repository) values, under the plan's equality.
+            comparisons['repository_vs_observed']['field_changes']=field_changes(observed['body'],repo['desired'])
     refresh=_latest([r for r in _rows(store,'provider_refresh') if r['data']['document']['object_id']==object_id and (scope is None or r['data']['document']['scope']==scope)])
     state_present=None
     if refresh:
@@ -697,6 +707,13 @@ def add_parser(sub):
     p=sub.add_parser('repository-import',help='Capture actual bounded literal Atmos intent; no provider or Git hooks execute')
     for name in ('root','repo','stack','component','object','pointer','revision','backend','resource-address'):p.add_argument('--'+name,required=True)
     p.add_argument('--git-executable');p.add_argument('--git-sha256')
+    p=sub.add_parser('repository-status',help='Compare the latest repository intent with a fresh resolution; never re-imports')
+    for name in ('root','object'):p.add_argument('--'+name,required=True)
+    p=sub.add_parser('repository-refresh',help='Re-import the latest intent with its recorded stack, component, pointer, backend and address')
+    for name in ('root','object','revision'):p.add_argument('--'+name,required=True)
+    p.add_argument('--git-executable');p.add_argument('--git-sha256')
+    p=sub.add_parser('propose-from-intent',help='Prepare a reviewed proposal from the current repository intent; nothing is approved')
+    for name in ('root','service-root','object','output'):p.add_argument('--'+name,required=True)
     for name in ('ownership-import','ownership-scan','provider-refresh-import','deployment-import'):
         p=sub.add_parser(name,help='Record explicitly declared evidence without execution authority');p.add_argument('--root',required=True);p.add_argument('--input',required=True)
     p=sub.add_parser('deployment-record',help='Reconstruct a successful local operation and readback as a scoped baseline')
@@ -726,6 +743,11 @@ def command(args):
     from .workbench_store import WorkbenchStore
     store=WorkbenchStore(args.root)
     if name=='repository-import':return import_repository(store,args.repo,args.stack,args.component,args.object,args.pointer,args.revision,args.backend,args.resource_address,git_executable=args.git_executable,git_sha256=args.git_sha256)
+    if name in ('repository-status','repository-refresh','propose-from-intent'):
+        from . import workbench_repository as repository
+        if name=='repository-status':return repository.status(store,args.object)
+        if name=='repository-refresh':return repository.refresh_intent(store,args.object,args.revision,git_executable=args.git_executable,git_sha256=args.git_sha256)
+        return repository.propose_from_intent(store.root,args.service_root,args.object,args.output)
     if name=='ownership-import':return import_ownership(store,args.input)
     if name=='ownership-scan':return scan_ownership(store,args.input)
     if name=='provider-refresh-import':return import_provider_refresh(store,args.input)

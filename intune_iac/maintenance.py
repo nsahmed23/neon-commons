@@ -268,13 +268,31 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
     return review(root)
 
 
+def _repository_review(plan):
+    """The cited repository intent and whether it still describes the repository."""
+    context = load_json(_safe(plan['context']['path'])) if plan['context'] else None
+    if not isinstance(context, dict) or 'repository_intent_id' not in context:
+        return {'cited': False}
+    from .workbench_repository import intent_freshness
+    rows = [row for row in _store(plan['store_root']).artifacts(kind='repository_intent')
+            if row['artifact_id'] == context['repository_intent_id']]
+    freshness = intent_freshness(rows[0]['data']) if len(rows) == 1 else {'status': 'unavailable', 'reason': 'intent_missing'}
+    return {'cited': True, 'repository_intent_id': context['repository_intent_id'], 'scope': context.get('scope'),
+            'freshness': freshness['status'], 'changed_sources': freshness.get('sources')}
+
+
 def review(operation_root):
+    from .workbench_diff import field_changes
     root, plan, journal, desired, request = _load(operation_root)
     protected.validate_native_operation(request, executor=protected.SyntheticExecutor(root / 'executor'))
+    before = plan['before_estate']['objects'][plan['object_id']]
     return {'operation_id': plan['operation_id'], 'operation_root': str(root),
         'approval_digest': digest(plan), 'status': journal['status'], 'object_id': plan['object_id'],
         'tenant_id': plan['tenant_id'], 'changes': plan['changes'],
-        'before': plan['before_estate']['objects'][plan['object_id']], 'desired': desired,
+        # Derived from the plan itself; field_changes follows the same equality.
+        'no_configuration_change': not plan['changes'], 'field_changes': field_changes(before, desired),
+        'repository': _repository_review(plan),
+        'before': before, 'desired': desired,
         'expires_at': plan['expires_at'], 'evidence_class': EVIDENCE, 'cloud_authority': False,
         'native_provider_qualified': False,
         'saved_plan_sha256': request['bindings']['saved_plan_sha256'],
@@ -327,6 +345,12 @@ def execute(operation_root, *, approve_digest, fault=None, visibility_delay_read
         if (state['source_sha256'] != plan['service_source_sha256'] or state['revision'] != plan['before_revision']
                 or digest(state['current']) != digest(plan['before_estate'])):
             _fail('maintenance_plan_stale')
+        context = load_json(_safe(plan['context']['path'])) if plan['context'] else None
+        if isinstance(context, dict) and 'repository_intent_id' in context:
+            # A cited repository intent must still describe the repository at
+            # dispatch time, not only when the proposal was prepared.
+            from .workbench_repository import require_current_intent
+            require_current_intent(_store(plan['store_root']), context['repository_intent_id'])
         executor = protected.SyntheticExecutor(root / 'executor')
         approval = protected.approve_synthetic_operation(request, executor=executor)
         # Durable uncertainty is committed before either engine or model write.

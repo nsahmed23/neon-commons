@@ -433,13 +433,16 @@ HELP = {
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
                    'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
+                   'repository-status (selected object: is its latest repository intent still current?)',
+                   'repository-refresh REVISION (selected object: record the current source as a new intent)',
                    'source-review PROPOSAL_DIR DIGEST',
                    'source-edit PROPOSAL_DIR DIGEST EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-edit-status SOURCE_ROOT OPERATION_ID',
                    'source-edit-recover SOURCE_ROOT OPERATION_ID complete|rollback|abort EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-acceptance-propose FIELD NEW_OUTPUT_DIR', 'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
                    'field-semantics', 'back', 'cancel', 'quit'],
-    'maintenance': ['propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
+    'maintenance': ['propose-from-intent NEW_OPERATION_DIR (selected object; desired body and citation from the current repository intent)',
+                    'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
     'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
@@ -586,6 +589,16 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'repository-import' and len(values) == 8:
                 from .workbench_views import import_repository
                 result = import_repository(store,*values)
+            elif name in ('repository-status', 'repository-refresh', 'propose-from-intent'):
+                from . import workbench_repository as repository
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                if name == 'repository-status' and not values: result = repository.status(store, selected)
+                elif name == 'repository-refresh' and len(values) == 1: result = repository.refresh_intent(store, selected, values[0])
+                elif name == 'propose-from-intent' and len(values) == 1:
+                    if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')
+                    result = repository.propose_from_intent(root, service_root, selected, values[0])
+                else: raise ValueError('invalid command arguments')
             elif name in ('source-review', 'source-edit', 'source-edit-status', 'source-edit-recover'):
                 if _store_capability is None:
                     raise AppError('source_edit_native_capability_required','This route requires the explicit inactive native store capability.')

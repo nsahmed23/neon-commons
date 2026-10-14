@@ -26,6 +26,53 @@ For that layout use `--stack orgs/reference/dev` (the physical manifest selector
 Generated output is adoption evidence: copy it into the repository you maintain
 and edit that copy, so `verify` keeps proving the original generation.
 
+For that layout `repository-import` also records a consumer contract
+(`consumer`). It is `verified` only when:
+- the component still consumes exactly `vars.policies.<IMPORT_KEY>` for exactly
+  this object;
+- no sibling policy key is present;
+- the qualification guard is unchanged;
+- the component passes the structural contract the oracle applies to generated
+  output (a backend-only `terraform` block is allowed).
+
+Other layouts are `not_applicable`.
+
+## Repository-owned changes
+
+```bash
+python3 -B scripts/intune-iac.py workbench repository-status --root PRIVATE_STORE --object OBJECT_UUID
+python3 -B scripts/intune-iac.py workbench repository-refresh --root PRIVATE_STORE --object OBJECT_UUID --revision FULL_COMMIT_SHA
+python3 -B scripts/intune-iac.py workbench propose-from-intent --root PRIVATE_STORE \
+  --service-root SERVICE --object OBJECT_UUID --output NEW_OPERATION_DIR
+```
+
+- `repository-status` compares the latest intent with a fresh, complete
+  resolution and never re-imports. The result is one of:
+  - `current`;
+  - `stale`, which names the added, removed and changed sources and the exact
+    field changes at the intent's pointer;
+  - `unavailable`.
+
+  It also states the next step.
+- `repository-refresh` re-imports with the latest intent's recorded repository,
+  stack, component, pointer, backend and resource address. The result is a new,
+  immutable intent; earlier intents stay in history.
+- `propose-from-intent` refuses a stale, unavailable or mismatched intent.
+  Otherwise it writes `NEW_OPERATION_DIR.intent-desired.json` and
+  `NEW_OPERATION_DIR.intent-context.json` beside the directory and runs the
+  existing `propose`.
+- `execute` rechecks a cited intent against the repository after its approval
+  checks and before dispatch. If the repository changed in between, it refuses
+  with `maintenance_repository_stale`.
+- `review` reports `field_changes` (exact before and after values under the
+  plan's own equality), `no_configuration_change` taken from the plan, and the
+  cited intent's freshness.
+- The text terminal offers the same routes for the selected object:
+  `repository-status`, `repository-refresh REVISION` and `propose-from-intent
+  NEW_OPERATION_DIR`.
+- Intents for one object from more than one scope are refused rather than
+  chosen silently.
+
 The policy is read from the actual selected literal effective inputs, not from a
 caller-supplied desired body. Every resolver source is reread and hash-checked.
 The narrow adapter accepts a policy under an explicitly selected effective JSON
