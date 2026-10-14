@@ -723,7 +723,7 @@ def _setting_summary(instance, width):
         children = choice.get('children') or []
         text = '= %s%s' % (_value(choice.get('value')), '  (%s)' % _count(len(children), 'child setting', 'child settings') if children else '')
         return (lines + _labelled('', text, width, 6)
-                + _labelled('', 'meaning not established; d shows what is known', width, 8))
+                + _labelled('', 'No verified meaning is available for this value. Press d to inspect the available setting metadata.', width, 8))
     return lines + _labelled('', '= ' + _setting_value(instance), width, 6)
 
 

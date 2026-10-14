@@ -156,13 +156,32 @@ class VisualPTYTests(unittest.TestCase):
         while time.monotonic() < deadline and select.select([self.master], [], [], .04)[0]:
             self.output.extend(os.read(self.master, 65536))
 
-    def key(self, value, marker=b'Ready.'):
+    def settle(self, start=0, timeout=5):
+        # A command draws a RUNNING frame, then the frame with its result. Every frame ends with ESC [ J, and
+        # no content can contain it (text is escaped), so wait for the end of the first complete frame after a
+        # RUNNING frame that does not itself say RUNNING.
+        self.read_until(b'RUNNING:', start, timeout=timeout)
+        position = bytes(self.output).find(b'RUNNING:', start)
+        while True:
+            self.read_until(b'\x1b[J', position, timeout=timeout)
+            end = bytes(self.output).find(b'\x1b[J', position) + 3
+            self.read_until(b'\x1b[J', end, timeout=timeout)
+            following = bytes(self.output).find(b'\x1b[J', end)
+            if b'RUNNING:' not in bytes(self.output)[end:following]:
+                return
+            position = end
+
+    def launched(self, start=0, timeout=5):
+        # A fresh launch draws its first view without a RUNNING frame; a resumed one re-sends its views. Either
+        # way the first view shown says where the engineer is.
+        self.read_until(b"Viewing ", start, timeout=timeout)
+
+    def key(self, value, marker=None):
         self.drain()
         before = len(self.output)
         os.write(self.master, value)
-        if marker == b'Ready.':
-            self.read_until(b'RUNNING:', before, timeout=3)
-            before = bytes(self.output).rfind(b'RUNNING:', before) + len(b'RUNNING:')
+        if marker is None:
+            return self.settle(before, timeout=3)
         self.read_until(marker, before, timeout=3)
 
     def close_visual(self, key=b'q'):
@@ -178,7 +197,7 @@ class VisualPTYTests(unittest.TestCase):
     def test_keyboard_navigation_edit_cancel_context_and_no_mutation(self):
         before = ModeledService(self.service).snapshot()
         started = time.monotonic(); self.launch('--no-color', '--reduced-motion')
-        self.read_until(b'Ready.')
+        self.launched()
         self.assertLess(time.monotonic() - started, 5)
         self.key(b'\r')  # actual Enter selects immutable row identity
         context = json.loads((self.store.root / 'workspace-context.json').read_text())
@@ -202,7 +221,7 @@ class VisualPTYTests(unittest.TestCase):
         desired['description'] = 'A reviewed visual fixture correction'
         desired_path = self.root / 'desired.json'; desired_path.write_text(json.dumps(desired))
         operation = self.root / 'operation'
-        self.launch('--no-color'); self.read_until(b'Ready.'); self.key(b'\r')
+        self.launch('--no-color'); self.launched(); self.key(b'\r')
         self.key((':propose ' + shlex.quote(str(desired_path)) + ' ' + shlex.quote(str(operation)) + '\r').encode())
         journal = json.loads((operation / 'journal.json').read_text())
         self.assertEqual(journal['status'], 'prepared')
@@ -224,7 +243,7 @@ class VisualPTYTests(unittest.TestCase):
         self.assertNotIn(journal['plan_sha256'], json.dumps(context))
 
     def test_page_navigation_and_exact_search_share_engine(self):
-        self.launch('--no-color'); self.read_until(b'Ready.')
+        self.launch('--no-color'); self.launched()
         self.key(b':overview 3 0\r')
         self.key(b'n')
         value = json.loads((self.store.root / 'workspace-context.json').read_text())
@@ -241,7 +260,7 @@ class VisualPTYTests(unittest.TestCase):
         self.assertEqual(self.store.operations(), [])
 
     def test_global_filter_pages_and_resume_preserve_declared_scope(self):
-        self.launch('--no-color'); self.read_until(b'Ready.')
+        self.launch('--no-color'); self.launched()
         self.key(b':views-page 3 0 Privacy unknown complete_fresh -\r')
         self.assertIn(b'Global filters:', self.output)
         self.assertIn(b'Matching objects: 8 / inventory: 8', self.output)
@@ -262,7 +281,7 @@ class VisualPTYTests(unittest.TestCase):
         self.close_visual()
 
     def test_oversized_bracketed_paste_is_rejected_without_dispatch(self):
-        self.launch('--no-color'); self.read_until(b'Ready.'); self.drain()
+        self.launch('--no-color'); self.launched(); self.drain()
         start = len(self.output)
         os.write(self.master, b'\x1b[200~' + b'x' * 16385 + b'\x1b[201~\r')
         self.read_until(b'INPUT REJECTED:', start)
@@ -270,7 +289,7 @@ class VisualPTYTests(unittest.TestCase):
         self.close_visual()
 
     def test_reopen_restores_readonly_selection_and_history(self):
-        self.launch(); self.read_until(b'Ready.'); self.key(b'\r'); self.key(b'4'); self.close_visual()
+        self.launch(); self.launched(); self.key(b'\r'); self.key(b'4'); self.close_visual()
         saved = json.loads((self.store.root / 'workspace-context.json').read_text())
         self.output = bytearray(); self.launch()
         self.read_until(b'[OBSERVATION HISTORY]')
@@ -288,7 +307,7 @@ class VisualPTYTests(unittest.TestCase):
         from plugin_tests.test_workbench_recent_history_r4 import retained_fixture
         fixture = self.root / 'retained-history'; fixture.mkdir()
         self.store, oid = retained_fixture(fixture)
-        self.launch(); self.read_until(b'Ready.'); self.key(b'\r'); self.key(b'4')
+        self.launch(); self.launched(); self.key(b'\r'); self.key(b'4')
         self.key(b':history-recent 2 0\r')
         self.key(b'n')
         context = json.loads((self.store.root / 'workspace-context.json').read_text())
@@ -323,7 +342,7 @@ class VisualPTYTests(unittest.TestCase):
                                    body=body, if_match=str(service.snapshot()['revision']))
         self.assertEqual(response['status'], 200)
         self.store.collect(service)
-        self.launch('--theme', 'light', '--ascii'); self.read_until(b'Ready.')
+        self.launch('--theme', 'light', '--ascii'); self.launched()
         self.assertEqual(self.store.inspect(self.ids[0])['body']['name'], body['name'])
         self.assertNotIn(b'\x1b]', self.output)
         self.assertNotIn('\u202e'.encode(), self.output)
@@ -340,21 +359,21 @@ class VisualPTYTests(unittest.TestCase):
         from unittest.mock import patch
         with patch.dict(os.environ, {'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'}):
             self.launch('--theme', 'blueprint')
-        self.read_until(b'Ready.')
+        self.launched()
         self.assertIn('┌─'.encode(), self.output)
         self.assertIn(b'\x1b[48;5;17;', self.output)  # the blueprint background
         self.close_visual()
         self.output = bytearray()
         with patch.dict(os.environ, {'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'}):
             self.launch('--ascii', '--no-color')
-        self.read_until(b'Ready.')
+        self.launched()
         self.assertNotIn('─'.encode(), self.output)
         self.assertNotIn(b'\x1b[48;5;', self.output)
         self.close_visual()
 
     def test_eof_and_sigint_restore_terminal(self):
-        self.launch(); self.read_until(b'Ready.'); self.close_visual(b'\x04')
-        self.output = bytearray(); self.launch(); self.read_until(b'Ready.')
+        self.launch(); self.launched(); self.close_visual(b'\x04')
+        self.output = bytearray(); self.launch(); self.launched()
         start = len(self.output); os.kill(self.proc.pid, signal.SIGINT)
         self.read_until(ANSI_END.encode(), start)
         self.proc.wait(timeout=3)

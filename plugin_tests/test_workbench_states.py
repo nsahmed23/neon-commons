@@ -259,10 +259,10 @@ class RefusalCauseTests(unittest.TestCase):
         workspace = self.workspace({}, 'reconcile /w/op')
         notice = workspace._notice_for({'operation_id': 'a' * 32, 'journal_status': 'reconciled',
                                         'classification': 'desired_state_observed'})
-        self.assertEqual(notice, 'Ready. reconcile ran; the journal is now reconciled (readback desired state observed).')
+        self.assertEqual(notice, 'reconcile ran; the journal is now reconciled (readback desired state observed).')
         workspace = self.workspace({}, 'repository-refresh ' + 'b' * 40)
         notice = workspace._notice_for({'artifact_id': 'c' * 64, 'kind': 'repository_intent', 'data': {}, 'created': True})
-        self.assertEqual(notice, 'Ready. repository-refresh recorded repository intent cccccccc.')
+        self.assertEqual(notice, 'repository-refresh recorded repository intent cccccccc.')
         self.assertNotIn('reported no status', workspace._notice_for({'other': 1}))
 
 

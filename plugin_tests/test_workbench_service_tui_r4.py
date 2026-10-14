@@ -231,7 +231,7 @@ class ServiceEntrypointTests(unittest.TestCase):
         self.master,self.slave=pty.openpty();self.addCleanup(os.close,self.master);self.addCleanup(os.close,self.slave)
         fcntl.ioctl(self.slave,termios.TIOCSWINSZ,struct.pack('HHHH',36,140,0,0))
         self.before_attrs=termios.tcgetattr(self.slave);self.output=bytearray();self.proc=None
-        for name in ('read_until','drain','key','close_visual','cleanup_child'):
+        for name in ('read_until','drain','key','settle','launched','close_visual','cleanup_child'):
             setattr(self,name,getattr(tui_tests.VisualPTYTests,name).__get__(self,type(self)))
         self.addCleanup(self.cleanup_child)
         def launch():
@@ -241,7 +241,7 @@ class ServiceEntrypointTests(unittest.TestCase):
             self.proc=subprocess.Popen(command,stdin=self.slave,stdout=self.slave,stderr=self.slave,
                 env=dict(os.environ,TERM='xterm-256color',PYTHONDONTWRITEBYTECODE='1'),cwd='/tmp',preexec_fn=session)
         before=self.fixture.job().status()
-        launch();self.read_until(b'Ready.')
+        launch();self.launched()
         self.key((':'+self.command('review')+'\n').encode())
         self.assertIn(b'[PROTECTED SERVICE REVIEW]',self.output)
         self.key(b'6');self.assertIn(b'[PROTECTED SERVICE EXECUTION]',self.output)
@@ -263,7 +263,7 @@ class ServiceEntrypointTests(unittest.TestCase):
         self.assertEqual(saved['service_navigation']['read_action'],'attach')
         self.assertEqual(saved['view_command'],self.command('attach'))
         start=len(self.output);launch();self.read_until(b'[PROTECTED SERVICE EXECUTION]',start)
-        self.read_until(b'Ready.',start);self.key(b'5');self.key(b'6');self.close_visual()
+        self.settle(start);self.key(b'5');self.key(b'6');self.close_visual()
         self.assertEqual(self.fixture.job().status(),recovered)
         self.assertEqual(self.fixture.fixture.calls,[])
 

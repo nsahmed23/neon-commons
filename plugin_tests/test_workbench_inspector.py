@@ -102,7 +102,7 @@ class InspectorSummaryTests(unittest.TestCase):
         self.assertIn('synthetic observation, run 4, 2026-10-14 12:25:00 UTC; policy list, settings and assignments read in full; '
                       'stale', joined.replace('\n          ', ' '))
         self.assertIn('device_vendor_msft_policy_config_privacy_letappsaccesslocation', joined)
-        self.assertIn('meaning not established', joined)
+        self.assertIn('No verified meaning is available for this value. Press d to inspect the available setting metadata.', ' '.join(joined.split()))
         self.assertIn('include  Unresolved group identity 44444444-4444-4444-8444-444444444444', joined)
         self.assertIn('filter include 77777777-7777-4777-8777-777777777777', joined)
         self.assertIn('exclude  Unresolved group identity 66666666-6666-4666-8666-666666666666', joined)
@@ -113,7 +113,9 @@ class InspectorSummaryTests(unittest.TestCase):
         self.assertIn('Collect again before preparing or judging a change.', joined)
 
     def test_nothing_is_invented(self):
-        joined = '\n'.join(self.lines(inspected())).lower()
+        joined = ' '.join('\n'.join(self.lines(inspected())).lower().split())
+        # The one use of 'verified' says that no verified meaning exists; nothing else may claim verification.
+        joined = joined.replace('no verified meaning is available for this value.', '')
         for word in ('all users', 'allowed', 'force deny', 'refresh now', 'verified'):
             self.assertNotIn(word, joined)
 
@@ -242,11 +244,17 @@ class EvidenceLayerTests(unittest.TestCase):
         workspace.last_command = 'execute operation digest'
         self.assertIn('execute ran; the engine reported status outcome_unknown', workspace._notice_for({'status': 'outcome_unknown'}))
         workspace.last_command = 'health'
-        self.assertEqual(workspace._notice_for({'stages': []}), 'Ready. Health shown; viewing changed nothing.')
+        # Navigation acknowledges where the engineer is, never a bare Ready (TASK-11 2.6 item 7).
+        self.assertEqual(workspace._notice_for({'stages': []}), 'Viewing Health.')
         # The notice no longer repeats the keys the key line lists, or the policy the strip names.
         workspace.last_command = 'select ' + OBJECT
         # Scoped to the action: an Inspector showing an earlier dispatch must not read as "nothing was executed".
-        self.assertEqual(workspace._notice_for(inspected()), 'Ready. Inspector shown; viewing changed nothing.')
+        self.assertEqual(workspace._notice_for(inspected()), 'Viewing Inspector.')
+        self.assertEqual(workspace._notice_for({'status': 'selection_cleared'}),
+                         'No policy is selected now; recorded evidence is unchanged and nothing was cancelled.')
+        for value in ({'status': 'outcome_unknown'}, {'journal_status': 'reconciled'}, {'other': 1},
+                      {'artifact_id': 'cccccccc-1', 'kind': 'repository_intent'}):
+            self.assertNotIn('Ready', workspace._notice_for(value))
 
     def test_a_refusal_without_an_explanation_says_only_what_is_on_the_screen(self):
         workspace = self.workspace()

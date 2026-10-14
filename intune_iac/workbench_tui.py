@@ -749,27 +749,28 @@ class Workspace:
         """One qualified line about the result just shown: what it is, its evidence mode, and where to look next."""
         from .workbench_screens import evidence_words
         if value.get('status') == 'selection_cleared':
-            return 'Ready. No policy is selected now; nothing was changed or cancelled.'
+            # The workspace context file records the cleared selection; no recorded evidence changes.
+            return 'No policy is selected now; recorded evidence is unchanged and nothing was cancelled.'
         name = self.last_command.split(' ', 1)[0] if isinstance(self.last_command, str) else ''
         if name not in VIEW_COMMANDS:
             # Only the views are known to be read-only; any other command may have prepared, recorded or run something.
             status = value.get('status')
             if isinstance(status, str):
-                return 'Ready. %s ran; the engine reported status %s.' % (name or 'The command', status)
+                return '%s ran; the engine reported status %s.' % (name or 'The command', status)
             # Results without a status still say what they recorded, never only that there was no status.
             if isinstance(value.get('journal_status'), str):
                 readback = value.get('classification')
-                return 'Ready. %s ran; the journal is now %s%s.' % (
+                return '%s ran; the journal is now %s%s.' % (
                     name, str(value['journal_status']).replace('_', ' '),
                     ' (readback %s)' % str(readback).replace('_', ' ') if readback else '')
             if isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str):
-                return 'Ready. %s recorded %s %s%s.' % (
+                return '%s recorded %s %s%s.' % (
                     name, value['kind'].replace('_', ' '), value['artifact_id'][:8],
                     '' if value.get('created', True) else ' (already recorded; nothing changed)')
-            return 'Ready. %s ran; its result is above.' % (name or 'The command')
+            return '%s ran; its result is above.' % (name or 'The command')
         view = SUBVIEWS.get(name) or TABS[self.tab]
-        # Scoped to this action: the screen may well show an operation that ran earlier.
-        return 'Ready. %s shown; viewing changed nothing.' % view
+        # Where the engineer is now; no Ready beside a hazard that is still unresolved (TASK-11 2.6 item 7).
+        return 'Viewing %s.' % view
 
     def _learn(self, value):
         """Keep the latest engine-reported facts about the selected object for the context strip."""
