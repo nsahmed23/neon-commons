@@ -176,6 +176,49 @@ class WizardTests(unittest.TestCase):
         self.assertTrue(any("blocked; review-only" in line for line in self.messages))
         self.assertFalse(self.output.exists())
 
+    def test_resume_with_same_paths_keeps_selected_policy(self):
+        result = self.run_script(["select " + OTHER_POLICY, "save"])
+        self.assertEqual(result["status"], "suspended")
+        saved_context = json.loads(self.session.read_text())["paths"]["context"]
+        start = len(self.messages)
+        # The README's "same command resumes": every path is supplied again, including the original context.
+        result = self.run_script(["save"])
+        self.assertEqual(result["status"], "suspended")
+        state = json.loads(self.session.read_text())
+        self.assertEqual(state["paths"]["context"], saved_context)
+        self.assertNotEqual(Path(state["paths"]["context"]), self.context)
+        shown = [line for line in self.messages[start:] if line.startswith("Selected policy ID: ")]
+        self.assertEqual(shown[0], "Selected policy ID: " + OTHER_POLICY)
+
+    def test_resume_with_same_paths_keeps_review_state_after_select_generate_save(self):
+        result = self.run_script(["select " + OTHER_POLICY, "select " + POLICY, "generate", "save"])
+        self.assertEqual(result["status"], "suspended")
+        self.assertEqual(json.loads(self.session.read_text())["step"], "review")
+        result = self.run_script(["finish"])
+        self.assertEqual(result["status"], "complete")
+        self.assertTrue(any("Review [finish" in prompt for prompt in self.prompts))
+        receipts = [json.loads(p.read_text()) for p in (self.root / "attempts").glob("*.result.json")]
+        self.assertEqual(sum(r["action"] == "generate" for r in receipts), 1)
+
+    def test_resume_with_edited_original_context_is_still_a_change(self):
+        self.run_script(["select " + OTHER_POLICY, "save"])
+        self.mutate_json(self.context, lambda value: value.update(state_key="changed/state-key"))
+        result = self.run_script(["save"])
+        self.assertEqual(result["status"], "suspended")
+        state = json.loads(self.session.read_text())
+        self.assertEqual(Path(state["paths"]["context"]), self.context.absolute())
+
+    def test_resume_with_a_different_context_file_is_still_a_change(self):
+        self.run_script(["select " + OTHER_POLICY, "save"])
+        other = self.root / "other-context.json"
+        other.write_bytes(self.context.read_bytes())
+        self.mutate_json(other, lambda value: value.update(state_key="other/state-key"))
+        self.context = other
+        result = self.run_script(["save"])
+        self.assertEqual(result["status"], "suspended")
+        state = json.loads(self.session.read_text())
+        self.assertEqual(Path(state["paths"]["context"]), other.absolute())
+
     def test_unknown_selection_and_credential_shaped_context_are_rejected(self):
         self.mutate_json(self.context, lambda value: value.update(authorization="CANARY-CREDENTIAL"))
         original = self.context.read_bytes()

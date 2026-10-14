@@ -181,6 +181,30 @@ def _selected_context(session_path, paths, selected):
     return str(own_path.absolute())
 
 
+def _is_session_context_copy(session_path, candidate):
+    """True when candidate is a selected-context copy this session made next to its own session file."""
+    path, session = Path(candidate), Path(session_path)
+    return path.parent == session.parent and path.name.startswith(session.name + ".selected-context.") and path.suffix == ".json"
+
+
+def _is_selection_origin(session_path, saved_context, supplied_context):
+    """True when the supplied context is the file the saved selected-context copy was made from.
+
+    `select <UUID>` keeps the choice in a session-owned copy: the original context plus selected_policy_id. Running the
+    same command again supplies the original path, which must not discard that choice. The two agree on every key except
+    selected_policy_id; any other difference is a real change and still invalidates the session.
+    """
+    if not saved_context or not _is_session_context_copy(session_path, saved_context):
+        return False
+    try:
+        copy, original = load_json(saved_context), load_json(supplied_context)
+    except (AppError, OSError, ValueError):
+        return False
+    if not isinstance(copy, dict) or not isinstance(original, dict):
+        return False
+    return {k: v for k, v in copy.items() if k != "selected_policy_id"} == {k: v for k, v in original.items() if k != "selected_policy_id"}
+
+
 def _validate_selection_context(context):
     pinned = {
         "schema_version": "1.0.0", "cloud": "public", "engine": "tofu",
@@ -355,6 +379,8 @@ class _WizardSession:
             if value is not None:
                 new_path = str(Path(value).absolute())
                 if self.state["paths"].get(name) != new_path:
+                    if name == "context" and _is_selection_origin(self.session_path, self.state["paths"].get("context"), new_path):
+                        continue
                     changed = True
                     self.state["paths"][name] = new_path
         if changed:
