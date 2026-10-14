@@ -407,15 +407,16 @@ def execute(operation_root, *, approve_digest, fault=None, visibility_delay_read
             _fail('maintenance_approval_required')
         if journal['status'] != 'prepared':
             _fail('maintenance_replay_forbidden')
-        for binding in (plan['desired_source'], plan['context']):
-            if binding and file_sha(_safe(binding['path'])) != binding['sha256']:
-                _fail('maintenance_source_changed')
+        binding = plan['desired_source']
+        if file_sha(_safe(binding['path'])) != binding['sha256']:
+            _fail('maintenance_source_changed')
+        # The one read of the bound context: checked here, in the same order as before, and used below.
+        context = _bound_context(plan)
         service = ModeledService(plan['service_root'])
         state = service.snapshot()
         if (state['source_sha256'] != plan['service_source_sha256'] or state['revision'] != plan['before_revision']
                 or digest(state['current']) != digest(plan['before_estate'])):
             _fail('maintenance_plan_stale')
-        context = _bound_context(plan)
         if isinstance(context, dict) and 'repository_intent_id' in context:
             # A cited repository intent must still describe the repository at
             # dispatch time, not only when the proposal was prepared.

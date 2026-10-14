@@ -1393,8 +1393,10 @@ def _receipt_text(stage, status):
 
 def _record_text(stage, status):
     if status == 'done':
-        return 'recorded %s | intent %s | %s | %s' % (_when(stage.get('recorded_at')), str(stage.get('intent_id'))[:12], stage.get('evidence_class'),
-                                                      'baseline admissible' if stage.get('baseline_admissible') else 'not a baseline')
+        admitted = ('context file changed since; no longer admitted as a baseline' if stage.get('context_changed') else
+                    'baseline admissible' if stage.get('baseline_admissible') else 'not a baseline')
+        return 'recorded %s | intent %s | %s | %s' % (_when(stage.get('recorded_at')), str(stage.get('intent_id'))[:12],
+                                                      stage.get('evidence_class'), admitted)
     if status == 'available':
         return 'available for intent %s; deployment-record performs the full check' % str(stage.get('intent_id'))[:12]
     if status in ('not_available', 'not_applicable'):
@@ -1531,6 +1533,8 @@ def delivery_lines(value, width, rules='ascii'):
                            '(workflow-import records one; it stays an inert claim).', width)
     if read.get('status') == 'partial':
         lines += word_wrap('(only the first %s imported runs for this policy were read)' % read.get('records_read'), width)
+    if read.get('cited_revision') == 'unknown':
+        lines += word_wrap('(runs for the cited revision cannot be matched: the context file changed since the proposal)', width)
     lines += word_wrap('Next: ' + str(value.get('next_action')), width)
     lines += word_wrap(MARK_LEGEND, width)
     lines += word_wrap('Evidence %s | %s | no cloud authority' % (

@@ -117,7 +117,9 @@ def _deployment(store, plan, journal, repository):
         return {'stage': 'deployment_record', 'status': 'done', 'artifact_id': receipts[-1]['artifact_id'],
                 'intent_id': latest.get('intent_id'), 'recorded_at': receipts[-1]['recorded_at'],
                 'evidence_class': latest.get('evidence_class'), 'baseline_admissible': latest.get('baseline_admissible'),
-                'platform_qualified': latest.get('platform_qualified')}
+                'platform_qualified': latest.get('platform_qualified'),
+                # The views recheck the bound context bytes, so a record whose context changed is no longer admitted.
+                **({'context_changed': True} if repository.get('context_changed') else {})}
     if repository.get('context_changed'):
         # deployment-record checks the bound context bytes; a changed file can never pass.
         return {'stage': 'deployment_record', 'status': 'not_available', 'reason': 'context_changed'}
@@ -191,7 +193,11 @@ def _workflow_runs(store, plan, repository):
                          'repository_revision': data.get('repository_revision'), 'observed_at': data.get('observed_at'),
                          'artifact_id': row['artifact_id'], 'evidence_class': 'caller_asserted',
                          'external_execution_verified': False})
-    return runs, {'status': 'complete' if complete else 'partial', 'records_read': len(rows)}
+    read = {'status': 'complete' if complete else 'partial', 'records_read': len(rows)}
+    if repository.get('context_changed'):
+        # Without the bound citation the cited revision is unknown, so its runs cannot be matched.
+        read['cited_revision'] = 'unknown'
+    return runs, read
 
 
 def _next_action(stages, operation_root, store_root):
@@ -221,6 +227,10 @@ def _next_action(stages, operation_root, store_root):
         return ('Record the deployment: in the workspace, deployment-record %s %s (a lists it); from a shell, '
                 'workbench deployment-record --root %s --operation %s --intent %s'
                 % (operation, record['intent_id'], store, operation, record['intent_id']))
+    if record['status'] == 'done' and record.get('context_changed'):
+        return ('The deployment was recorded, but the context file this operation bound has changed since, so the '
+                'record no longer passes its own check (the views reread those bytes); prepare a new proposal to '
+                'record a baseline again.')
     if record['status'] == 'not_available' and record.get('reason') == 'context_changed':
         return ('The context file this operation bound changed after it was prepared, so it cannot become a deployment '
                 'record; collect to observe the policy.')

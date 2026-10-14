@@ -265,14 +265,19 @@ and a retry with the same OUTPUT is refused until both are removed.
 
 A plan binds its context file by SHA-256, and every reader uses only those bytes.
 `restore-propose` checks the original context against the original plan's hash
-first and refuses with `maintenance_source_changed`, writing nothing, if the file
-changed; the restore's own plan then binds exactly the bytes that were checked
-(the original file, or the derived `OUTPUT.restore-context.json`). `execute`
-rechecks the citation from the bound bytes. `review` and the delivery view never
-read a citation from a changed file: `review` reports
+first and refuses with `maintenance_source_changed` if the file has already
+changed, before anything is written. The restore's own plan then binds exactly
+the bytes that were checked (the original file, or the derived
+`OUTPUT.restore-context.json`), so a change made while it prepares is refused by
+`propose` after the derived files exist; they stay, as above. `execute` reads the
+bound context once and rechecks the citation from those bytes. `review` and the
+delivery view never read a citation from a changed file: `review` reports
 `{"cited": null, "context_changed": true, "context_path": ...}`, the Plan review
 says the context file changed and that execute refuses it, and the delivery view's
-deployment-record stage is `not_available` (`context_changed`).
+deployment-record stage is `not_available` (`context_changed`). A deployment
+already recorded keeps its `done` stage but is marked as no longer admitted as a
+baseline, because the views recheck those bytes, and CI runs for the cited
+revision are reported as unmatched.
 
 Prepare maintenance with the existing `workbench propose --context FILE`, review
 and execute under its explicitly local approval contract. Then run:

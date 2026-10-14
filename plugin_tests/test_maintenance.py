@@ -132,6 +132,22 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 'maintenance_source_changed')
         self.assertEqual(self.patches(), [])
 
+    def test_execute_reads_the_bound_context_once(self):
+        context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
+        proposal = self.propose(context_path=context)
+        reads = []
+        real = maintenance.read_bytes
+        def counting(path):
+            if Path(path) == context: reads.append(path)
+            return real(path)
+        real_sha = maintenance.file_sha
+        def counting_sha(path):
+            if Path(path) == context: reads.append(path)
+            return real_sha(path)
+        with patch('intune_iac.maintenance.read_bytes', counting), patch('intune_iac.maintenance.file_sha', counting_sha):
+            self.assertEqual(self.execute(proposal)['status'], 'succeeded_verified')
+        self.assertEqual(len(reads), 1)
+
     def test_context_wrong_tenant_rejected_before_proposal(self):
         context = self.root / 'context.json'; write_json(context, {'tenant_id': self.ids[0]})
         with self.assertRaises(AppError) as raised: self.propose(context_path=context)
@@ -256,6 +272,7 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual((self.operation / 'plan.json').read_bytes(), original_plan)
 
     def test_restore_binds_exactly_the_context_the_original_plan_bound(self):
+        # A regression guard: it passes without the fix too; the refusals above are the discriminating tests.
         context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
         proposal = self.propose(context_path=context); self.execute(proposal)
         self.store.collect(self.service)

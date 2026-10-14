@@ -222,6 +222,41 @@ class DeliveryTests(unittest.TestCase):
             maintenance.execute(self.operation, approve_digest=review['approval_digest'])
         self.assertEqual(raised.exception.code, 'maintenance_source_changed')
 
+    def edit_bound_context(self):
+        context = Path(json.loads((self.operation / 'plan.json').read_text())['context']['path'])
+        value = json.loads(context.read_text()); value['note'] = 'edited after the plan'
+        context.write_text(json.dumps(value))
+
+    def test_a_context_changed_after_execution_blocks_the_record_and_says_why(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        self.edit_bound_context()
+        value, stages = self.view()
+        self.assertEqual((stages['deployment_record']['status'], stages['deployment_record']['reason']),
+                         ('not_available', 'context_changed'))
+        self.assertIn('cannot become a deployment record', value['next_action'])
+        self.assertEqual(value['workflow_runs_read'].get('cited_revision'), 'unknown')
+
+    def test_a_recorded_deployment_whose_context_changed_is_not_called_settled(self):
+        # The record exists, but the views recheck the bound bytes and no longer admit it as a baseline.
+        from intune_iac import maintenance
+        from intune_iac.workbench_screens import delivery_lines
+        from intune_iac.workbench_views import record_local_deployment
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
+        self.store.collect(self.service)
+        self.edit_bound_context()
+        value, stages = self.view()
+        self.assertEqual(stages['deployment_record']['status'], 'done')
+        self.assertTrue(stages['deployment_record']['context_changed'])
+        self.assertNotIn('Nothing pending', value['next_action'])
+        self.assertIn('no longer passes its own check', value['next_action'])
+        text = ' '.join(' '.join(delivery_lines(value, 140)).split())
+        self.assertIn('context file changed since; no longer admitted as a baseline', text)
+        self.assertNotIn('baseline admissible', text)
+
     def test_one_artifact_is_read_by_its_identity(self):
         intent = self.import_intent()
         self.assertEqual(self.store.artifact(intent['artifact_id'])['data']['target_object_id'], OBJECT)
