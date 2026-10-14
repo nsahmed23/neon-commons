@@ -1146,6 +1146,14 @@ REFUSALS = {
         'The repository changed since its recorded intent, or its component no longer consumes exactly this policy.',
         'Press 9 to see which; fix the component if it no longer consumes the policy, then repository-refresh REVISION '
         'records the current source.'),
+    'maintenance_observation_stale': (
+        'The newest observation of this policy is not fresh, or the service changed after it was collected; a change '
+        'is never prepared against it.',
+        'Collect again (:collect), then prepare the proposal again; i shows the observation\'s freshness. An observation '
+        'stamped later than this machine\'s clock is not fresh either.'),
+    'maintenance_observation_incomplete': (
+        'The newest observation of this policy is incomplete, or the last collection did not finish.',
+        'Collect again (:collect); i shows what was not read.'),
     'maintenance_plan_stale': (
         'The service changed while the plan was being prepared, or after it was prepared.',
         'Collect, then prepare a new proposal.'),

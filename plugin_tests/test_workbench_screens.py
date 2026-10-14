@@ -622,6 +622,15 @@ class RefusalLinesTests(unittest.TestCase):
         lines = refusal_lines({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}}, 80)
         self.assertEqual(lines, ['[REFUSED] something_new', 'Engine words.'])
 
+    def test_a_stale_or_incomplete_observation_refusal_says_which_and_what_to_do(self):
+        from intune_iac.workbench_screens import refusal_lines
+        message = 'Maintenance evidence is incomplete, changed, stale, or outside the local model profile.'
+        for code, words in (('maintenance_observation_stale', 'not fresh, or the service changed'),
+                            ('maintenance_observation_incomplete', 'incomplete, or the last collection did not finish')):
+            joined = '\n'.join(refusal_lines({'status': 'error', 'error': {'code': code, 'message': message}}, 200))
+            self.assertIn(words, joined)
+            self.assertIn('Next: Collect again (:collect)', joined)
+
     def test_a_meaning_the_engine_message_already_states_is_not_repeated(self):
         from intune_iac.workbench_screens import refusal_lines
         message = ('The repository changed since this intent was recorded, or its component no longer consumes exactly '
