@@ -248,6 +248,16 @@ class EvidenceLayerTests(unittest.TestCase):
         workspace._learn(inspected(attention={'status': 'clear', 'checked': {'repository': 'clear'}, 'signals': []}))
         self.assertEqual(workspace.facts['repository'], 'current')
 
+    def test_no_summary_says_evidence_follows_below_it(self):
+        from intune_iac.workbench_screens import change_lines
+        plan = {'operation_id': 'a' * 32, 'status': 'prepared', 'tenant_id': TENANT, 'object_id': OBJECT,
+                'field_changes': {'status': 'changed', 'complete': False, 'changes': [
+                    {'path': '/description', 'kind': 'replaced', 'before': 'x', 'after': 'y'}]}}
+        lines = self.workspace(plan, tab=4)._summary_lines(100) + change_lines(plan['field_changes'], 100)
+        joined = '\n'.join(lines).lower()
+        self.assertNotIn('follow', joined)
+        self.assertIn('e typed details', joined)
+
     def test_a_capture_whose_bytes_no_longer_verify_still_shows_its_integrity(self):
         value = {'object_id': OBJECT, 'name': 'Windows Privacy Pilot', 'relationships': [],
                  'raw_capture_observation': {'status': 'mapped'}, 'raw_mapping_status': 'mapped',

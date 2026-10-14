@@ -3,8 +3,8 @@
 Pure functions: an engine result and a width in, inert text lines out. Values
 are shown as exact JSON, so strings are quoted and null, empty and absent stay
 distinct. Every untrusted string passes through the workspace's own escaping.
-Nothing is normalized, inferred or hidden; the complete typed evidence still
-follows each screen.
+Nothing is normalized, inferred or hidden; the complete typed evidence is one
+key away from each screen (e typed details, r raw record).
 """
 from __future__ import annotations
 
@@ -166,7 +166,7 @@ def change_lines(changes, width, before_label='BEFORE (observed)', after_label='
     count = len(changes.get('changes', []))
     lines = word_wrap('%d FIELD CHANGE%s  (exact values; strings are quoted)' % (count, '' if count == 1 else 'S'), width)
     if not changes.get('complete', True):
-        lines += word_wrap('Only the first changes are listed; the complete result follows below.', width)
+        lines += word_wrap('Only the first changes are listed; e typed details and r raw record hold the complete result.', width)
     rows = _rows(changes.get('changes', []))
     column = (width - LABEL - 2) // 2
     if width >= WIDE:

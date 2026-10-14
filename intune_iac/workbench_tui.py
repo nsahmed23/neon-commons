@@ -827,7 +827,7 @@ class Workspace:
                                ('Approval binding', 'approval_digest'), ('Expiry', 'expires_at'), ('Evidence class', 'evidence_class')):
                 from .workbench_screens import utc_time
                 field(label, utc_time(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
-            rows.append('[BEFORE / DESIRED / TARGETING / RISKS] Exact engine values follow.')
+            rows.append('Before, desired, targeting and risks: e typed details | r raw record.')
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
