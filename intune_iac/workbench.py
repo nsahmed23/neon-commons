@@ -490,7 +490,7 @@ def _reason_words(problem):
     """The failed observation check in plain words, from the recorded facts; the code stays the engine's own."""
     reason = problem.get('reason')
     if reason == 'service_changed':
-        return ('the modeled service changed after this observation was collected (revision %s, now %s); collect again'
+        return ('the source changed since this observation was captured (revision %s, now %s); collect again'
                 % (problem.get('observed_revision'), problem.get('service_revision')))
     if reason == 'not_fresh':
         reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]

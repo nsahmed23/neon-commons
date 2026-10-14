@@ -202,7 +202,7 @@ class VisionReviewTests(unittest.TestCase):
         value = {'attention': {'status': 'clear', 'signals': [], 'checked': {'operations': 'clear'}},
                  'observation_eligibility': self.ELIGIBILITY, 'actions': []}
         text = '\n'.join(_attention_lines(value, 120))
-        self.assertIn('changed after this observation was collected (revision 1, now 2)', text)
+        self.assertIn('The source changed since this observation was captured (revision 1, now 2)', text)
         self.assertNotIn('No signal in the areas checked', text)
         # a lists the actions; it is not the collect key.
         self.assertIn('Collect again; a lists it', text)
@@ -212,7 +212,7 @@ class VisionReviewTests(unittest.TestCase):
         from intune_iac.workbench_screens import context_strip
         line = context_strip(TENANT, POLICY, {'name': 'Pilot', 'observation': 'fresh', 'eligibility': self.ELIGIBILITY},
                              200, 'synthetic')
-        self.assertIn('OBSERVED service changed', line)
+        self.assertIn('OBSERVED source changed', line)
         self.assertNotIn('fresh', line)
 
     def test_available_actions_say_so_in_the_inspector(self):

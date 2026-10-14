@@ -46,7 +46,7 @@ SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'o
 
 # States that are a hazard for the selected policy. When the strip is too long, routine states give way first.
 # The proposal's own observation checks, in the strip's words: fresh by age does not apply once the service moved on.
-OBSERVED_FROM_ELIGIBILITY = {'service_changed': 'service changed', 'policy_changed': 'policy changed',
+OBSERVED_FROM_ELIGIBILITY = {'service_changed': 'source changed', 'policy_changed': 'policy changed',
                              'source_mismatch': 'other source', 'tenant_mismatch': 'other tenant'}
 
 
@@ -56,7 +56,7 @@ def observed_state(facts, default='unknown'):
     return OBSERVED_FROM_ELIGIBILITY.get(eligibility.get('reason')) or facts.get('observation', default)
 
 
-HAZARD_STATES = {'OBSERVED': {'stale', 'service changed', 'policy changed', 'other source', 'other tenant'},
+HAZARD_STATES = {'OBSERVED': {'stale', 'source changed', 'policy changed', 'other source', 'other tenant'},
                  'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
                  'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable'}}
 
@@ -291,8 +291,8 @@ FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection d
                           'stamped_after_now': "stamped after this host's clock"}
 # The proposal's own observation check, as part of the observation's state.
 ELIGIBILITY_STATE_WORDS = {
-    'service_changed': 'the modeled service changed since (revision %(observed_revision)s, now %(service_revision)s)',
-    'policy_changed': 'this policy changed in the modeled service since',
+    'service_changed': 'the source has changed since capture (revision %(observed_revision)s, now %(service_revision)s)',
+    'policy_changed': 'this policy has changed at the source since capture',
     'source_mismatch': 'it came from another service than the one configured',
     'tenant_mismatch': 'the configured service is for another tenant'}
 INTENT_STATE_WORDS = {'current': 'current with the repository', 'changed': 'the repository changed since',
@@ -312,9 +312,12 @@ def state_lines(states, width, heading='STATE'):
         parts.append(coverage_words(observation['coverage']))
     freshness = observation.get('freshness')
     reasons = [FRESHNESS_REASON_WORDS.get(reason, reason) for reason in observation.get('freshness_reasons') or []]
-    parts.append(('fresh by age' if freshness == 'fresh' else str(freshness or 'freshness not recorded'))
-                 + (' (%s)' % '; '.join(reasons) if reasons and freshness != 'fresh' else ''))
     eligibility = observation.get('eligibility') if isinstance(observation.get('eligibility'), dict) else {}
+    # Recency is not currentness: an observation captured recently is out of date once the source moved on.
+    moved = eligibility.get('reason') in ('service_changed', 'policy_changed')
+    parts.append(('captured recently (fresh by age)' if freshness == 'fresh' and moved else 'fresh by age'
+                  if freshness == 'fresh' else str(freshness or 'freshness not recorded'))
+                 + (' (%s)' % '; '.join(reasons) if reasons and freshness != 'fresh' else ''))
     if eligibility.get('reason') in ELIGIBILITY_STATE_WORDS:
         parts.append(ELIGIBILITY_STATE_WORDS[eligibility['reason']] % eligibility)
     lines = ['', heading] + _labelled('  Observation', '; '.join(parts), width, 15)
@@ -846,10 +849,10 @@ def _attention_lines(value, width):
 
 # The proposal's own observation checks as findings: (what was found, from the recorded facts; the response).
 ELIGIBILITY_FINDINGS = {
-    'service_changed': ('The modeled service changed after this observation was collected (revision '
+    'service_changed': ('The source changed since this observation was captured (revision '
                         '%(observed_revision)s, now %(service_revision)s); a proposal needs a new collection.',
                         'Collect again; a lists it with the other actions.'),
-    'policy_changed': ('This policy changed in the modeled service after this observation was collected; a proposal '
+    'policy_changed': ('This policy changed at the source since this observation was captured; a proposal '
                        'needs a new collection.', 'Collect again; a lists it with the other actions.'),
     'source_mismatch': ('This observation came from another service than the one configured.', 'Collect again from '
                         'the configured service; a lists it with the other actions.'),
@@ -866,8 +869,8 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'service_required': 'needs a modeled service (--service-root)',
                'workbench_attention_not_established': 'diagnostics not read yet',
                # Which observation check failed, when the engine's code covers several.
-               'service_changed': 'the service changed since the observation', 'policy_changed': 'the policy changed '
-               'since the observation', 'not_fresh': 'the observation is not fresh', 'last_attempt_incomplete':
+               'service_changed': 'the source changed since capture', 'policy_changed': 'the policy changed at the '
+               'source since capture', 'not_fresh': 'the observation is not fresh', 'last_attempt_incomplete':
                'the last collection did not complete', 'coverage_incomplete': 'the observation is incomplete',
                'source_mismatch': 'the observation came from another service', 'tenant_mismatch': 'the observation is '
                'for another tenant', 'repository_changed': 'the repository changed since its intent',
@@ -994,8 +997,9 @@ HELP_WORDS = (
              'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '
              '(a read returned no policy) or MODE UNKNOWN (nothing observed yet, or a kind this version does not name).'),
     ('Context', 'Then the tenant and the selected policy. OBSERVED fresh means the newest complete observation is '
-                'inside the freshness window and no later collection of it failed or is pending; service changed '
-                'means the modeled service changed after it was collected, so a proposal needs a new collection. '
+                'inside the freshness window and no later collection of it failed or is pending; source changed '
+                'means the source has a newer revision than the one captured, so a proposal needs a new '
+                'collection; the observation itself stays as captured. '
                 'REPOSITORY current means the recorded repository intent still matches the repository files and '
                 'effective configuration. OPERATION is the newest operation\'s recorded status.'),
     ('! line', 'The bold line under it names the most important recorded condition and the key for its response; '

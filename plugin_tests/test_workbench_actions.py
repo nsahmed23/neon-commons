@@ -200,7 +200,7 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertTrue(actions[kinds.index('collect')]['available'])
         blocked = actions[kinds.index('propose-from-intent')]['blocked']
         self.assertEqual((blocked['code'], blocked['reason']), ('maintenance_observation_stale', 'service_changed'))
-        self.assertIn('changed after this observation was collected', blocked['message'])
+        self.assertIn('the source changed since this observation was captured', blocked['message'])
         # Collecting again clears it: the proposal becomes available.
         self.store.collect(self.service)
         self.assertTrue(self.actions()['propose-from-intent']['available'])

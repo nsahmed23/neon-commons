@@ -89,7 +89,8 @@ class StateRenderingTests(unittest.TestCase):
         text = self.lines()
         self.assertIn('STATE', text)
         self.assertIn('Observation', text)
-        self.assertIn('fresh by age; the modeled service changed since (revision 1, now 2)', text)
+        # Recency and currentness kept apart (TASK-11 2.6 item 2): captured recently, yet the source moved on.
+        self.assertIn('captured recently (fresh by age); the source has changed since capture (revision 1, now 2)', text)
         self.assertIn('Intent', text)
         self.assertIn('e9274102 from orgs/reference/dev / intune-reference at 21efad0e (content verified)', text)
         self.assertIn('(content verified); the repository changed since its recorded intent: changed '
@@ -247,7 +248,7 @@ class RefusalCauseTests(unittest.TestCase):
         workspace = self.workspace({'eligibility': eligibility}, 'propose-from-intent /w/op')
         workspace.receive({'status': 'error', 'error': {'code': 'maintenance_observation_stale', 'message': 'Refused.'}})
         text = ' '.join(' '.join(workspace._surface_summary(118)).split())
-        self.assertIn('Cause: The modeled service changed after this observation was collected (revision 1, now 2)', text)
+        self.assertIn('Cause: The source changed since this observation was captured (revision 1, now 2)', text)
 
     def test_the_verdict_is_said_once(self):
         workspace = self.workspace({}, 'propose /w/d.json /w/op')
