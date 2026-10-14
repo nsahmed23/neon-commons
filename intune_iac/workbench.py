@@ -372,6 +372,11 @@ def _proposal_blocker(store, object_id, attention, intent, service_root):
         try:
             _usable_intent(intent, code_prefix='workbench')
         except AppError as error:
+            # One code covers several causes; diagnostics records which one, with the changed paths.
+            found = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
+            for code, reason in REPOSITORY_REASONS:
+                if found.get(code, {}).get('observed'):
+                    return {'code': error.code, 'reason': reason, 'message': str(found[code]['observed']).rstrip('.')}
             return {'code': error.code, 'message': error.message}
     try:
         problem = maintenance.proposal_eligibility(store.root, service_root, object_id)
@@ -382,6 +387,9 @@ def _proposal_blocker(store, object_id, attention, intent, service_root):
     return {'code': problem['code'], 'reason': problem['reason'], 'message': _reason_words(problem)}
 
 
+# The recorded repository signal that names which cause a repository refusal had.
+REPOSITORY_REASONS = (('repository_stale', 'repository_changed'), ('repository_consumer_mismatch', 'consumer_changed'),
+                      ('repository_unavailable', 'repository_unreadable'))
 # Freshness reasons the store records, in plain words.
 FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection did not complete',
                           'older_than_window': 'older than the freshness window',

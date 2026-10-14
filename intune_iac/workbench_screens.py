@@ -487,7 +487,9 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'since the observation', 'not_fresh': 'the observation is not fresh', 'last_attempt_incomplete':
                'the last collection did not complete', 'coverage_incomplete': 'the observation is incomplete',
                'source_mismatch': 'the observation came from another service', 'tenant_mismatch': 'the observation is '
-               'for another tenant',
+               'for another tenant', 'repository_changed': 'the repository changed since its intent',
+               'consumer_changed': 'the component no longer consumes this policy',
+               'repository_unreadable': 'the repository cannot be read',
                'workbench_fresh_output_required': 'no fresh operation directory'}
 
 

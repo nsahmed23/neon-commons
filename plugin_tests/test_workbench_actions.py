@@ -81,6 +81,10 @@ class ActionReadModelTests(unittest.TestCase):
         blocked = actions['propose-from-intent']
         self.assertFalse(blocked['available'])
         self.assertEqual(blocked['blocked']['code'], 'workbench_repository_stale')
+        # The cause diagnostics recorded, not the generic either/or meaning of the code.
+        self.assertEqual(blocked['blocked']['reason'], 'repository_changed')
+        self.assertIn('changed since its recorded intent: changed ', blocked['blocked']['message'])
+        self.assertNotIn(' or ', blocked['blocked']['message'])
 
     def test_a_stale_observation_blocks_the_proposal_with_the_engines_own_code(self):
         from intune_iac import maintenance
