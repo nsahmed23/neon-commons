@@ -404,6 +404,24 @@ def _assignment_equal(actual, expected):
     return Counter(_canonical(v) for v in actual) == Counter(_canonical(v) for v in expected)
 
 
+def _stack_input_problems(value):
+    """Independent statement of what literal Atmos stack input cannot carry."""
+    found = set()
+    stack = [value]
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            found.update('template' for key in node if any(t in key for t in ('{{', '{%', '${')))
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+        elif isinstance(node, str) and any(t in node for t in ('{{', '{%', '${')):
+            found.add('template')
+        elif isinstance(node, int) and not isinstance(node, bool) and abs(node) > 2 ** 53 - 1:
+            found.add('integer')
+    return found
+
+
 def _desired_equal(actual, expected):
     if not isinstance(actual, dict) or set(actual) != set(expected):
         return False
@@ -493,10 +511,13 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
                 + '& $exe @nativeArgs\n$nativeStatus = $LASTEXITCODE\nexit $nativeStatus\n')
             if files.get('commands/PROPOSED-import.sh.txt') != bash or files.get('commands/PROPOSED-import.ps1.txt') != powershell:
                 errors.append('generated_command_preview_changed')
-        adoption_path = 'review/adoption-input.json' if partial else 'components/terraform/intune-reference/adoption-input.json'
-        adoption = _artifact_json(files[adoption_path])
-        if adoption.get('key') != expected['key'] or not _desired_equal(adoption.get('desired'), expected['desired']):
-            errors.append('generated_desired_changed')
+        if partial:
+            adoption = _artifact_json(files['review/adoption-input.json'])
+            if adoption.get('key') != expected['key'] or not _desired_equal(adoption.get('desired'), expected['desired']):
+                errors.append('generated_desired_changed')
+        elif 'components/terraform/intune-reference/adoption-input.json' in files:
+            # The stack input is the only desired source of an active project.
+            errors.append('generated_second_desired_source')
         if not _json_equal(_artifact_json(files['adoption/field-accounting.json']).get('records'), normalized.get('field_accounting')):
             errors.append('generated_accounting_changed')
         if not _json_equal(_artifact_json(files['adoption/coverage.json']).get('collections'), expected['coverage']):
@@ -533,6 +554,12 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
             expected_stack = {'vars': {'tenant': 'reference', 'stage': 'dev'},
                 'components': {'terraform': {'intune-reference': {'command': 'tofu',
                     'vars': {'live_qualification_ack': False}}}}}
+            component_vars = (stack.get('components', {}).get('terraform', {}).get('intune-reference', {}).get('vars')
+                              if isinstance(stack, dict) else None)
+            policies = component_vars.pop('policies', None) if isinstance(component_vars, dict) else None
+            if (not isinstance(policies, dict) or set(policies) != {expected['key']}
+                    or not _desired_equal(policies[expected['key']], expected['desired'])):
+                errors.append('generated_desired_changed')
             if not _json_equal(atmos, expected_atmos) or not _json_equal(stack, expected_stack):
                 errors.append('generated_stack_guard_changed')
             if files.get('.tool-versions') != 'opentofu 1.10.0\natmos 1.199.0\n':
@@ -569,7 +596,7 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
             mapped = {key: '${each.value.' + key + '}' for key in
                       ['name', 'description', 'platforms', 'technologies', 'role_scope_tag_ids', 'assignments']}
             mapped['settings'] = '${jsonencode(each.value.settings)}'
-            mapped['for_each'] = {'${(local.adoption.key)}': '${local.adoption.desired}'}
+            mapped['for_each'] = '${var.policies}'
             for field, expression in mapped.items():
                 if resource.get(field) != expression:
                     errors.append('generated_resource_field_changed')
@@ -580,15 +607,20 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
                 errors.append('generated_guard_changed')
         if imports != [{'to': '${' + address + '}', 'id': expected['pid']}]:
             errors.append('generated_import_identity_changed')
-        locals_ = [v for p in parsed for v in p.get('locals', [])]
-        if locals_ != [{'adoption': '${jsondecode(file("${path.module}/adoption-input.json"))}'}]:
+        if [v for p in parsed for v in p.get('locals', [])]:
             errors.append('generated_input_binding_changed')
         terraform = [v for p in parsed for v in p.get('terraform', [])]
         if len(terraform) != 1 or terraform[0] != {'required_version': '>= 1.10.0, < 1.11.0', 'required_providers': [{'microsoft365': {'source': PROVIDER, 'version': '1.0.0'}}]}:
             errors.append('generated_provider_changed')
         variables = [v for p in parsed for v in p.get('variable', [])]
-        if len(variables) != 1 or set(variables[0]) != {'live_qualification_ack'} or variables[0]['live_qualification_ack'].get('default') is not False or variables[0]['live_qualification_ack'].get('type') != 'bool':
+        declared = {name: body for v in variables for name, body in v.items()}
+        if (len(variables) != 2 or set(declared) != {'live_qualification_ack', 'policies'}
+                or declared['live_qualification_ack'].get('default') is not False
+                or declared['live_qualification_ack'].get('type') != 'bool'):
             errors.append('generated_guard_changed')
+        elif declared['policies'].get('type') != 'any' or 'default' in declared['policies']:
+            # No default: an absent stack input must fail, never plan zero policies.
+            errors.append('generated_input_binding_changed')
         outputs = [v for p in parsed for v in p.get('output', [])]
         if len(outputs) != 1 or set(outputs[0]) != {'adoption_object_ids'} or outputs[0]['adoption_object_ids'].get('value') != '${{for k, v in ' + RESOURCE + '.policy : k => v.id}}':
             errors.append('generated_output_changed')
@@ -731,6 +763,8 @@ def _compare(source, normalized, files, context, raw_digest):
                         'role_scope_tag_ids': safe_policy.get('roleScopeTagIds'),
                         'settings': {'settings': desired_settings},
                         'assignments': desired_assignments if safe_assignments or next((r['complete'] for r in coverage if r['kind'] == 'assignments'), False) else None}
+    if _stack_input_problems(expected_desired):
+        partial = True
     desired = normalized.get('desired', {})
     for a, b in [('name', 'name'), ('description', 'description'), ('platforms', 'platforms'),
                  ('technologies', 'technologies'), ('roleScopeTagIds', 'role_scope_tag_ids')]:

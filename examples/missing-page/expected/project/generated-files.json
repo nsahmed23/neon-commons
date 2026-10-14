@@ -10,7 +10,7 @@
     "adoption/unresolved-paths.json": "27e3a675708bb7d7b35e902dd59c722d9808ae35f8ba6954cd0e93d4a3238179",
     "commands/command-cards.json": "1b7849d76f76ec3e7165c2965d1bd28944737627d9a252a13709ec727f6d2242",
     "review/adoption-input.json": "d0ce89d160dacea0aa36da61b55314a188c6dd56087b223903b82154ae2d5be1",
-    "review/proposed-component.tf.txt": "c061b7e20f6905ed7c50ee72c692133ff879e458cf3b9587e00f56784b13e6f4"
+    "review/proposed-component.tf.txt": "e42ed1f7f517827aa709d81b88c68ca84a6e3ceb7cf6b00abadf61b9d9f2c7a1"
   },
   "schema_version": "1.0.0"
 }

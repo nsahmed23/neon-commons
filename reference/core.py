@@ -333,9 +333,13 @@ def normalize(bundle: dict, policy_id: str, expected_tenant: str) -> dict:
     owners=[o for o in b.get('ownership',[]) if isinstance(o,dict) and o.get('object_id')==policy_id]
     if len(owners)!=1:block('ownership_unknown','/ownership')
     elif owners[0].get('current_writer') not in {None,'this-repository'}:block('writer_conflict','/ownership')
+    desired={'name':policy_clean.get('name'),'description':policy_clean.get('description'),'platforms':policy_clean.get('platforms'),'technologies':[policy_clean['technologies']] if 'technologies' in policy_clean else [],'role_scope_tag_ids':policy_clean.get('roleScopeTagIds'),'settings':projected,'assignments':desired_assign if acomplete or assignments else None}
+    # The desired body becomes literal Atmos stack input, so a value the
+    # repository resolver would reject must block here, not after generation.
+    for code in stack_input_problems(desired):block(code,policy_pointer)
     result={'schema_version':'1.0.0','object_id':policy_id,'tenant_id':b['tenant_id'],'key':key,'source_canonical_sha256':source_digest,
       'observed':{'policy':policy_clean,'settings':observed_settings,'assignments':observed_assign},
-      'desired':{'name':policy_clean.get('name'),'description':policy_clean.get('description'),'platforms':policy_clean.get('platforms'),'technologies':[policy_clean['technologies']] if 'technologies' in policy_clean else [],'role_scope_tag_ids':policy_clean.get('roleScopeTagIds'),'settings':projected,'assignments':desired_assign if acomplete or assignments else None},
+      'desired':desired,
       'references':refs,'coverage':collection_results,'blockers':blockers,
       'field_accounting':records(b,policy_pointer,[(v,p) for v,p,_ in settings],[(v,p) for v,p,_ in assignments],retained,sensitive,source_digest),
       'offline_mapping_complete':not blockers,'live_qualification':'not_run','execution_authorized':False}
@@ -345,6 +349,46 @@ def normalize(bundle: dict, policy_id: str, expected_tenant: str) -> dict:
     return result
 
 def _json(x):return json.dumps(x,indent=2,ensure_ascii=False,sort_keys=True,allow_nan=False)+'\n'
+
+# Literal Atmos input limits enforced by the repository resolver (repository.py).
+STACK_TEMPLATE_TOKENS=('{{','{%','${')
+STACK_MAX_INTEGER=9007199254740991
+# YAML folds or rejects these characters when they appear raw in a scalar.
+_STACK_ESCAPE=re.compile('[\x7f-\x9f  ﻿]')
+
+def stack_input_problems(value) -> list[str]:
+    """Blocker codes for a desired body that cannot be literal Atmos stack input."""
+    found=set()
+    def visit(node):
+        if isinstance(node,dict):
+            for k,v in node.items():
+                if any(t in k for t in STACK_TEMPLATE_TOKENS):found.add('stack_input_template_syntax')
+                visit(v)
+        elif isinstance(node,list):
+            for v in node:visit(v)
+        elif isinstance(node,str):
+            if any(t in node for t in STACK_TEMPLATE_TOKENS):found.add('stack_input_template_syntax')
+        elif isinstance(node,int) and not isinstance(node,bool) and abs(node)>STACK_MAX_INTEGER:
+            found.add('stack_input_integer_range')
+    visit(value)
+    return sorted(found)
+
+def stack_input_text(value, indent: int) -> str:
+    """Key-sorted JSON, which is YAML, indented to continue under a block key.
+
+    JSON keeps every string quoted (a scope tag "0" stays a string) and its
+    bytes do not depend on a YAML library's formatting choices.
+    """
+    text=_STACK_ESCAPE.sub(lambda m:'\\u%04x'%ord(m.group()),json.dumps(value,indent=2,ensure_ascii=False,sort_keys=True,allow_nan=False))
+    return text.replace('\n','\n'+' '*(indent+2))
+
+def stack_file(normalized: dict) -> str:
+    """The generated stack manifest; vars.policies is the authoritative desired input."""
+    return ('vars:\n  tenant: reference\n  stage: dev\ncomponents:\n  terraform:\n    intune-reference:\n      command: tofu\n'
+            '      vars:\n        live_qualification_ack: false\n'
+            '        # Authoritative desired policy, keyed by import key. The component reads var.policies.\n'
+            '        policies:\n          # object '+normalized['object_id']+'\n'
+            '          '+normalized['key']+': '+stack_input_text(normalized['desired'],10)+'\n')
 
 def generate_files(normalized: dict, context: dict) -> dict[str,str]:
     from .validation import schema_errors,provider_settings,capability_errors
@@ -362,7 +406,7 @@ def generate_files(normalized: dict, context: dict) -> dict[str,str]:
     if c.get('authorization')!='emit_only' or not c.get('source_is_synthetic'):raise ValueError('This reference generator is synthetic and emit-only')
     active=not n['blockers'];p='components/terraform/intune-reference/'
     files={
-      'README.md':'# Generated offline reference project\n\nSynthetic input. NOT tenant-validated, provider-tested, or organization-approved.\nNo authentication, plan, import or apply was executed.\n'+('All input fields are accounted for in this bounded mapping.\n' if active else '**BLOCKED:** review-only output; no active IaC or import command is emitted.\n'),
+      'README.md':'# Generated offline reference project\n\nSynthetic input. NOT tenant-validated, provider-tested, or organization-approved.\nNo authentication, plan, import or apply was executed.\n'+('All input fields are accounted for in this bounded mapping.\n\nThe desired policy lives in one place: `stacks/orgs/reference/dev.yaml`, under `components.terraform.intune-reference.vars.policies`, keyed by the import key. The component reads it as `var.policies`; edit values there. `adoption/` records how this project was derived from the observation and is not an input.\n' if active else '**BLOCKED:** review-only output; no active IaC or import command is emitted.\n'),
       'adoption/field-accounting.json':_json({'schema_version':'1.0.0','records':n['field_accounting']}),
       'adoption/coverage.json':_json({'schema_version':'1.0.0','collections':n['coverage']}),
       'adoption/capability.json':_json({'schema_version':'1.0.0','provider':PROVIDER,'version':PROVIDER_VERSION,'offline_mapping_complete':active,'live_qualified':False,'execution_authorized':False,'blockers':n['blockers']}),
@@ -381,11 +425,12 @@ variable "live_qualification_ack" {
   default = false
   description = "Must remain false until independent qualification and approval."
 }
-locals {
-  adoption = jsondecode(file("${path.module}/adoption-input.json"))
+variable "policies" {
+  type = any
+  description = "Authoritative desired policies keyed by import key; set in the stack file."
 }
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "policy" {
-  for_each           = { (local.adoption.key) = local.adoption.desired }
+  for_each           = var.policies
   name               = each.value.name
   description        = each.value.description
   platforms          = each.value.platforms
@@ -414,7 +459,6 @@ output "adoption_object_ids" {
         return files
     files[p+'main.tf']=declaration
     files[p+'imports.tf']='# ID passthrough importer in pinned resource.go. Execution is not authorized.\nimport {\n  to = '+RESOURCE+'.policy["'+n['key']+'"]\n  id = "'+n['object_id']+'"\n}\n'
-    files[p+'adoption-input.json']=_json({'key':n['key'],'desired':n['desired']})
     files['atmos.yaml']='''base_path: "."
 components:
   terraform:
@@ -428,16 +472,7 @@ stacks:
   name_pattern: "{tenant}-{stage}"
 '''
     files['.tool-versions']='opentofu 1.10.0\natmos 1.199.0\n'
-    files['stacks/orgs/reference/dev.yaml']='''vars:
-  tenant: reference
-  stage: dev
-components:
-  terraform:
-    intune-reference:
-      command: tofu
-      vars:
-        live_qualification_ack: false
-'''
+    files['stacks/orgs/reference/dev.yaml']=stack_file(n)
     files['.gitignore']='.terraform/\n*.tfstate\n*.tfstate.*\n*.plan\n*.planfile\n*.tfplan\n# Keep .terraform.lock.hcl after independently approved provider initialization.\n'
     address=RESOURCE+'.policy["'+n['key']+'"]'
     args=['terraform','import','intune-reference','-s','reference-dev',address,n['object_id']]

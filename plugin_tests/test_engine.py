@@ -15,9 +15,11 @@ class EngineTests(unittest.TestCase):
             output=Path(td)/'project'
             source=ROOT/'examples/supported/input/export.json'; context=ROOT/'examples/context.json'
             generate(source,context,output)
-            path=output/'components/terraform/intune-reference/adoption-input.json'
-            value=json.loads(path.read_text());value['desired']['assignments']=[]
-            path.write_text(json.dumps(value))
+            import yaml
+            path=output/'stacks/orgs/reference/dev.yaml'
+            value=yaml.safe_load(path.read_text())
+            next(iter(value['components']['terraform']['intune-reference']['vars']['policies'].values()))['assignments']=[]
+            path.write_text(yaml.safe_dump(value))
             manifest=json.loads((output/'generated-files.json').read_text())
             manifest['files'][path.relative_to(output).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
             (output/'generated-files.json').write_text(json.dumps(manifest))

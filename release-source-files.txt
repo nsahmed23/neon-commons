@@ -375,7 +375,6 @@ examples/azure-integration/expected/project/commands/PROPOSED-import.ps1.txt
 examples/azure-integration/expected/project/commands/PROPOSED-import.sh.txt
 examples/azure-integration/expected/project/commands/README.md
 examples/azure-integration/expected/project/commands/command-cards.json
-examples/azure-integration/expected/project/components/terraform/intune-reference/adoption-input.json
 examples/azure-integration/expected/project/components/terraform/intune-reference/backend.tf
 examples/azure-integration/expected/project/components/terraform/intune-reference/imports.tf
 examples/azure-integration/expected/project/components/terraform/intune-reference/main.tf
@@ -437,7 +436,6 @@ examples/supported/expected/project/commands/PROPOSED-import.ps1.txt
 examples/supported/expected/project/commands/PROPOSED-import.sh.txt
 examples/supported/expected/project/commands/README.md
 examples/supported/expected/project/commands/command-cards.json
-examples/supported/expected/project/components/terraform/intune-reference/adoption-input.json
 examples/supported/expected/project/components/terraform/intune-reference/imports.tf
 examples/supported/expected/project/components/terraform/intune-reference/main.tf
 examples/supported/expected/project/generated-files.json
@@ -746,6 +744,7 @@ plugin_tests/test_runner.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
 plugin_tests/test_source_linkage_r4.py
+plugin_tests/test_stack_input.py
 plugin_tests/test_stateful_service_epoch.py
 plugin_tests/test_synthetic_completion.py
 plugin_tests/test_target.py

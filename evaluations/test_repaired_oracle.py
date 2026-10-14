@@ -144,17 +144,38 @@ class RepairedOracle(unittest.TestCase):
         files[name] = files[name].replace('settings           = jsonencode(each.value.settings)',
                                          'settings           = jsonencode({settings = []})')
         self.assertIn('generated_resource_field_changed', self.check(files=files))
+        import yaml
         for field, value in [('id', '1'), ('value', 'CHANGED')]:
             files = dict(self.files)
-            path = 'components/terraform/intune-reference/adoption-input.json'
-            adoption = json.loads(files[path])
-            setting = adoption['desired']['settings']['settings'][0]
+            path = 'stacks/orgs/reference/dev.yaml'
+            stack = yaml.safe_load(files[path])
+            policy = next(iter(stack['components']['terraform']['intune-reference']['vars']['policies'].values()))
+            setting = policy['settings']['settings'][0]
             if field == 'id':
                 setting['id'] = value
             else:
                 setting['settingInstance']['choiceSettingValue']['value'] = value
-            files[path] = json.dumps(adoption)
+            files[path] = yaml.safe_dump(stack)
             self.assertIn('generated_desired_changed', self.check(files=files))
+
+    def test_stack_input_is_the_single_exact_desired_source(self):
+        import yaml
+        path = 'stacks/orgs/reference/dev.yaml'
+        stack = yaml.safe_load(self.files[path])
+        policies = stack['components']['terraform']['intune-reference']['vars']['policies']
+        sibling = dict(stack); sibling_policies = dict(policies)
+        sibling_policies['p_sibling'] = next(iter(policies.values()))
+        sibling['components'] = {'terraform': {'intune-reference': dict(stack['components']['terraform']['intune-reference'],
+            vars=dict(stack['components']['terraform']['intune-reference']['vars'], policies=sibling_policies))}}
+        self.assertIn('generated_desired_changed', self.check(files=dict(self.files, **{path: yaml.safe_dump(sibling)})))
+        second = dict(self.files)
+        second['components/terraform/intune-reference/adoption-input.json'] = json.dumps({'desired': next(iter(policies.values()))})
+        self.assertIn('generated_second_desired_source', self.check(files=second))
+        name = 'components/terraform/intune-reference/main.tf'
+        defaulted = dict(self.files); defaulted[name] = defaulted[name].replace('  type = any\n', '  type = any\n  default = {}\n')
+        self.assertIn('generated_input_binding_changed', self.check(files=defaulted))
+        rebound = dict(self.files); rebound[name] = rebound[name].replace('resource "', 'locals {\n  extra = 1\n}\nresource "', 1)
+        self.assertIn('generated_input_binding_changed', self.check(files=rebound))
 
     def test_generated_object_map_and_extra_active_resource(self):
         files = dict(self.files)

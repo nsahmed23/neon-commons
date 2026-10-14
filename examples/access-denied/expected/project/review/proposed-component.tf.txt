@@ -10,11 +10,12 @@ variable "live_qualification_ack" {
   default = false
   description = "Must remain false until independent qualification and approval."
 }
-locals {
-  adoption = jsondecode(file("${path.module}/adoption-input.json"))
+variable "policies" {
+  type = any
+  description = "Authoritative desired policies keyed by import key; set in the stack file."
 }
 resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "policy" {
-  for_each           = { (local.adoption.key) = local.adoption.desired }
+  for_each           = var.policies
   name               = each.value.name
   description        = each.value.description
   platforms          = each.value.platforms
