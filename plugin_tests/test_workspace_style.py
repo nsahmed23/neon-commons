@@ -34,7 +34,9 @@ class RulesTests(unittest.TestCase):
     def test_unicode_frame_uses_fine_rules_and_ascii_keeps_its_glyphs(self):
         text = self.frame('unicode')
         self.assertIn('┌' + '─' * 38 + '┐', text)
-        self.assertIn('│[CHANGE REVIEW]', text)
+        # Without colour a heading is still bold; the words and the rule are unchanged.
+        self.assertIn('│\x1b[1m[CHANGE REVIEW]\x1b[22m', text)
+        self.assertNotIn('\x1b[38;', text)
         self.assertIn('└' + '─' * 38 + '┘', text)
         ascii_text = self.frame('ascii')
         self.assertIn('+' + '-' * 38 + '+', ascii_text)
@@ -160,6 +162,20 @@ class FrameChromeTests(unittest.TestCase):
         self.assertLessEqual(cell_width(line), 60)
         self.assertTrue(line.endswith(' rows 1-12/125 | no automatic approval'), line)
         self.assertTrue(line.startswith('[synthetic'))
+
+    def test_headings_and_signal_lines_stand_out_with_and_without_colour(self):
+        from intune_iac.workbench_tui import THEMES, emphasize, paint
+        palette = THEMES['dark']
+        signal = '│  ! The newest observation is stale.          │'
+        self.assertEqual(emphasize(signal), '│  \x1b[1m! The newest observation is stale.\x1b[22m          │')
+        painted = paint(signal, palette)
+        self.assertTrue(painted.startswith('│  \x1b[1m! The newest observation is '), painted)
+        self.assertIn('\x1b[38;5;%smstale' % palette['warn'], painted)
+        self.assertEqual(emphasize('│WHAT THE EVIDENCE SAYS IT DOES     │'), '│\x1b[1mWHAT THE EVIDENCE SAYS IT DOES\x1b[22m     │')
+        self.assertEqual(emphasize('│POLICY  Windows Privacy Pilot │'), '│\x1b[1mPOLICY\x1b[22m  Windows Privacy Pilot │')
+        # Ordinary lines, values and identities are left as they are.
+        for line in ('│Identity  2222 | windows10 │', '│      = "DEVICE_VALUE"   │', '│  include  4444-4444 │'):
+            self.assertEqual(emphasize(line), line)
 
     def test_a_border_announces_more_content(self):
         from intune_iac.workbench_tui import ruled

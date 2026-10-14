@@ -295,14 +295,13 @@ def _next_actions(value, attention, service_available):
                          'until it is read, whether anything needs attention is not established.'})
     elif not steps:
         needs = '' if service_available else ' (needs --service-root: a modeled service)'
-        prepared = (' prepares a proposal and its review digest%s; review OPERATION_DIR shows it, and nothing is approved '
-                    'until execute is given that digest.' % needs)
+        prepared = ', with the digest that review shows and execute requires%s.' % needs
         if value.get('selected_repository'):
-            steps.append({'source': 'repository_intent',
-                          'step': 'propose-from-intent NEW_OPERATION_DIR, from the recorded repository intent,' + prepared})
+            steps.append({'source': 'repository_intent', 'step': 'propose-from-intent NEW_OPERATION_DIR prepares a '
+                          'proposal from the recorded repository intent' + prepared})
         else:
             steps.append({'source': 'no_repository_intent', 'step': 'repository-entry REPOSITORY shows how to record where this '
-                          'policy is maintained. propose DESIRED_JSON NEW_OPERATION_DIR' + prepared})
+                          'policy is maintained. propose DESIRED_JSON NEW_OPERATION_DIR prepares a local proposal' + prepared})
     if len(steps) > NEXT_STEPS:
         more = len(steps) - NEXT_STEPS
         steps = steps[:NEXT_STEPS] + [{'source': 'more', 'step': '%d more %s under i (diagnostics).' % (

@@ -87,7 +87,8 @@ class InspectorSummaryTests(unittest.TestCase):
         self.assertEqual(lines[0], 'POLICY  Windows Privacy Pilot')
         self.assertIn(OBJECT, joined)
         self.assertIn('WHAT THE EVIDENCE SAYS IT DOES', joined)
-        self.assertIn('synthetic observation, run 4, 2026-10-14T12:25:00Z, coverage complete, stale', joined)
+        self.assertIn('synthetic observation, run 4, 2026-10-14T12:25:00Z; policy list, settings and assignments read in full; '
+                      'stale', joined.replace('\n          ', ' '))
         self.assertIn('device_vendor_msft_policy_config_privacy_letappsaccesslocation', joined)
         self.assertIn('meaning not established', joined)
         self.assertIn('include  44444444-4444-4444-8444-444444444444', joined)
@@ -111,6 +112,20 @@ class InspectorSummaryTests(unittest.TestCase):
         joined = '\n'.join(self.lines(value))
         self.assertIn('Nothing recorded needs attention', joined)
         self.assertIn('repository-entry REPOSITORY shows how.', joined)
+
+    def test_attention_and_next_come_before_a_long_settings_list(self):
+        many = [{'id': str(number), 'settingInstance': {'@odata.type': '#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance',
+                'settingDefinitionId': 'setting_%d' % number, 'simpleSettingValue': {'value': number}}} for number in range(40)]
+        value = inspected()
+        value['body'] = dict(value['body'], settings={'settings': many})
+        lines = self.lines(value)
+        self.assertLess(lines.index('NEEDS ATTENTION'), 6)
+        self.assertLess(lines.index('NEXT'), lines.index('WHAT THE EVIDENCE SAYS IT DOES'))
+
+    def test_coverage_says_what_was_read(self):
+        from intune_iac.workbench_screens import coverage_words
+        self.assertEqual(coverage_words('complete'), 'policy list, settings and assignments read in full')
+        self.assertEqual(coverage_words('partial'), 'collection partial (i shows what was not read)')
 
     def test_areas_that_were_not_examined_are_named_not_counted_as_checked(self):
         value = inspected(freshness='fresh', next_actions=[], attention={'status': 'clear', 'signals': [], 'checked': {
@@ -213,14 +228,17 @@ class EvidenceLayerTests(unittest.TestCase):
         workspace.last_command = 'execute operation digest'
         self.assertIn('execute ran; the engine reported status outcome_unknown', workspace._notice_for({'status': 'outcome_unknown'}))
         workspace.last_command = 'health'
-        self.assertIn('Health shown read-only; nothing was proposed, approved or executed', workspace._notice_for({'stages': []}))
+        self.assertEqual(workspace._notice_for({'stages': []}), 'Ready. Health shown; nothing was proposed, approved or executed.')
+        # The notice no longer repeats the keys the key line lists, or the policy the strip names.
+        workspace.last_command = 'select ' + OBJECT
+        self.assertEqual(workspace._notice_for(inspected()), 'Ready. Inspector shown; nothing was proposed, approved or executed.')
 
     def test_a_refusal_without_an_explanation_says_only_what_is_on_the_screen(self):
         workspace = self.workspace()
         workspace.receive({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}})
-        self.assertEqual(workspace.notice, "REFUSED something_new: the engine's message is on the screen.")
+        self.assertEqual(workspace.notice, "REFUSED: the engine's message is on the screen.")
         workspace.receive({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Stale.'}})
-        self.assertEqual(workspace.notice, 'REFUSED workbench_repository_stale: what it means and the next step are on the screen.')
+        self.assertEqual(workspace.notice, 'REFUSED: what it means and the next step are on the screen.')
 
     def test_back_from_a_result_that_is_not_a_view_returns_to_the_view_before_it(self):
         workspace = self.workspace()
@@ -285,8 +303,7 @@ class NextStepTests(unittest.TestCase):
     def test_the_change_route_says_what_it_prepares_and_that_nothing_is_approved(self):
         for repository in (True, False):
             step = self.next({'status': 'clear', 'signals': []}, repository=repository)[0]['step']
-            self.assertIn('review digest', step)
-            self.assertIn('nothing is approved', step)
+            self.assertIn('with the digest that review shows and execute requires', step)
             self.assertNotIn('reviewed proposal', step)
 
     def test_steps_past_the_limit_are_counted_not_dropped(self):

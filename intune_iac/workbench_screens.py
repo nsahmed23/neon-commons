@@ -242,6 +242,14 @@ MODE_WORDS = {'synthetic': 'SYNTHETIC', 'synthetic_local_process_only': 'SYNTHET
               'mixed_observations': 'MIXED'}
 
 
+# An observation's coverage in words: complete means this run read all three collections in full.
+COVERAGE_WORDS = {'complete': 'policy list, settings and assignments read in full'}
+
+
+def coverage_words(coverage):
+    return COVERAGE_WORDS.get(coverage, 'collection %s (i shows what was not read)' % str(coverage).replace('_', ' '))
+
+
 # Diagnostics area states that mean the area was not examined, in words.
 AREA_STATE_WORDS = {'not_recorded': '(no intent recorded)', 'not_imported': '(not imported)',
                     'partly_checked': '(partly read)', 'unavailable': '(could not be read)'}
@@ -281,14 +289,17 @@ def inspector_lines(value, width):
         identity += [str(body.get('platforms')), ', '.join(map(str, technologies)) if isinstance(technologies, list) else _value(technologies),
                      'scope tags ' + (' '.join(_value(tag) for tag in tags) if isinstance(tags, list) else _value(tags))]
     lines += _labelled('Identity', ' | '.join(identity), width, 10)
-    lines += ['', 'WHAT THE EVIDENCE SAYS IT DOES']
-    provenance = [evidence_words(value.get('evidence_class'))]
+    # Where the evidence comes from, then what that run covered, then its freshness: each a separate clause.
+    source = [evidence_words(value.get('evidence_class'))]
     if value.get('run_id') is not None:
-        provenance.append('run %s' % value['run_id'])
-    provenance += ['%s' % value['observed_at']] if value.get('observed_at') else ['time not recorded']
-    provenance += ['coverage %s' % value['coverage']] if value.get('coverage') else []
-    provenance += [str(value['freshness'])] if value.get('freshness') else []
-    lines += _labelled('  From', ', '.join(provenance), width, 15)
+        source.append('run %s' % value['run_id'])
+    source.append(str(value['observed_at']) if value.get('observed_at') else 'time not recorded')
+    clauses = [', '.join(source)]
+    clauses += [coverage_words(value['coverage'])] if value.get('coverage') else []
+    clauses += [str(value['freshness'])] if value.get('freshness') else []
+    lines += _labelled('From', '; '.join(clauses), width, 10)
+    lines += _attention_lines(value, width)
+    lines += ['', 'WHAT THE EVIDENCE SAYS IT DOES']
     settings = body.get('settings', {}).get('settings') if isinstance(body.get('settings'), dict) else None
     if isinstance(settings, list):
         lines.append('  ' + _count(len(settings), 'setting', 'settings'))
@@ -321,6 +332,12 @@ def inspector_lines(value, width):
     managed = 'ownership %s; %s' % (value.get('ownership', 'unknown'), 'repository intent recorded from %s (%s / %s)' % (
         scope.get('repository'), scope.get('stack'), scope.get('component')) if repository else 'no repository intent recorded')
     lines += _labelled('  Managed', managed, width, 15)
+    return lines
+
+
+def _attention_lines(value, width):
+    """What diagnostics records as needing attention, the areas it could not examine, and the next steps."""
+    lines = []
     attention = value.get('attention') if isinstance(value.get('attention'), dict) else None
     if attention is not None:
         lines += ['', 'NEEDS ATTENTION']
@@ -404,6 +421,11 @@ def help_lines(width):
                     'OPERATION_DIR reads the service when an outcome is unknown. Moving around never proposes, approves or executes.'),
         ('Session', 'q exits the workbench; the next start reopens the last read-only view. :clear-selection clears the '
                     'selected policy.'),
+        ('Context', 'The line under the tabs: the evidence mode, the tenant and the selected policy; OBSERVED fresh '
+                    'means the newest complete observation is inside the freshness window and no later collection '
+                    'of it failed or is pending; REPOSITORY current means the recorded repository intent still '
+                    'matches the repository files and effective configuration; OPERATION is the active '
+                    'operation\'s recorded status.'),
         ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled '
                  'service), CAPTURE (an unverified export), LABORATORY (recorded responses; the source is not '
                  'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '

@@ -77,7 +77,8 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertEqual(signals['repository_stale']['evidence']['changed'], [repository_tests.STACK])
         self.assertIn('repository-refresh', signals['repository_stale']['next_step'])
         self.assertIn('truncated', signals['device_capture_incomplete']['observed'])
-        self.assertIn('last-good', signals['collection_failed']['next_step'])
+        self.assertIn('last-good', signals['collection_failed']['observed'])
+        self.assertIn(':collect', signals['collection_failed']['next_step'])
         self.assertEqual(value['checked']['freshness'], 'explained_by_collection')
         for signal in value['signals']:
             self.assertTrue(signal['observed']); self.assertTrue(signal['next_step'])
@@ -188,8 +189,10 @@ class CollectionAndFreshnessTests(unittest.TestCase):
                                            'completed_at': '2026-10-14T00:00:00Z'}, {'run_id': 3}, True)
         self.assertTrue(failed)
         [signal] = signals
-        self.assertIn('run 3', signal['next_step']); self.assertIn('last-good', signal['next_step'])
+        # The observed sentence names the last-good observation; the step does not repeat it.
+        self.assertIn('run 3', signal['observed']); self.assertIn('last-good', signal['observed'])
         self.assertIn('kept', signal['observed'])
+        self.assertEqual(signal['next_step'], 'Collect again (:collect) when the source is reachable.')
 
     def test_a_failed_first_collection_does_not_promise_a_last_good_observation(self):
         signals, failed = self.collection({'run_id': 1, 'status': 'failed'}, None, False, 'unknown')

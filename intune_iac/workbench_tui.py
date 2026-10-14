@@ -327,7 +327,10 @@ def _tone_pattern():
 
 
 _TONES = _tone_pattern()
-_HEADING = re.compile(r'([|│]\s*)(\[[A-Z][A-Z0-9 /&,().-]*\])')
+# A bracketed [HEADING], or a section heading: capital words at the start, then two spaces or the line end.
+_HEADING = re.compile(r'([|│]\s*)(\[[A-Z][A-Z0-9 /&,().-]*\]|[A-Z][A-Z]+(?: [A-Z]+)*(?=  |\s*[|│]?$))')
+# A recorded signal line ('! ...'), emphasized in every mode so a warning never depends on colour.
+_MARK = re.compile(r'([|│]\s*)(! \S.*?)(\s*[|│]?)$')
 RULES = {'unicode': (('┌', '─', '┐'), '│', ('└', '─', '┘')),
          'ascii': (('+', '-', '+'), '|', ('+', '-', '+'))}
 
@@ -343,9 +346,22 @@ def choose_rules(encoding, term, requested='auto'):
 def paint(line, palette, base=None):
     """Bold a leading [HEADING] and tint fixed state phrases; the text is unchanged and the background is kept."""
     base = base or palette['fg']
+    mark = _MARK.match(line)
+    if mark:
+        tinted = _TONES.sub(lambda m: '\x1b[38;5;%sm%s\x1b[38;5;%sm' % (palette[m.lastgroup], m.group(0), base), mark.group(2))
+        return mark.group(1) + '\x1b[1m' + tinted + '\x1b[22m' + mark.group(3)
     match = _HEADING.match(line)
     head, rest = ('', line) if match is None else (match.group(1) + '\x1b[1m' + match.group(2) + '\x1b[22m', line[match.end():])
     return head + _TONES.sub(lambda m: '\x1b[38;5;%sm%s\x1b[38;5;%sm' % (palette[m.lastgroup], m.group(0), base), rest)
+
+
+def emphasize(line):
+    """Bold a heading and a signal line without colour, so --no-color and NO_COLOR keep the same structure."""
+    mark = _MARK.match(line)
+    if mark:
+        return mark.group(1) + '\x1b[1m' + mark.group(2) + '\x1b[22m' + mark.group(3)
+    match = _HEADING.match(line)
+    return line if match is None else match.group(1) + '\x1b[1m' + match.group(2) + '\x1b[22m' + line[match.end():]
 
 
 class Workspace:
@@ -508,8 +524,8 @@ class Workspace:
         if value.get('status') == 'error':
             from .workbench_screens import REFUSALS
             code = (value.get('error') if isinstance(value.get('error'), dict) else {}).get('code', 'unknown')
-            self.notice = ('REFUSED %s: what it means and the next step are on the screen.' if code in REFUSALS
-                           else "REFUSED %s: the engine's message is on the screen.") % code
+            self.notice = ('REFUSED: what it means and the next step are on the screen.' if code in REFUSALS
+                           else "REFUSED: the engine's message is on the screen.")
         else:
             object_id = value.get('object_id')
             if object_id and self.last_command.startswith('select '):
@@ -607,17 +623,14 @@ class Workspace:
         from .workbench_screens import evidence_words
         if value.get('status') == 'selection_cleared':
             return 'Ready. No policy is selected now; nothing was changed or cancelled.'
-        if 'snapshot_id' in value and isinstance(value.get('name'), str) and value.get('evidence_class') and value.get('freshness'):
-            return 'Ready. %s: %s, %s. e typed details | r raw record | ? help' % (
-                value['name'], evidence_words(value.get('evidence_class')), value.get('freshness', 'freshness unknown'))
         name = self.last_command.split(' ', 1)[0] if isinstance(self.last_command, str) else ''
         if name not in VIEW_COMMANDS:
             # Only the views are known to be read-only; any other command may have prepared, recorded or run something.
             status = value.get('status')
-            return 'Ready. %s ran; the engine reported %s. e typed details | r raw | ? help' % (
+            return 'Ready. %s ran; the engine reported %s.' % (
                 name or 'The command', 'status ' + status if isinstance(status, str) else 'no status')
         view = SUBVIEWS.get(name) or TABS[self.tab]
-        return 'Ready. %s shown read-only; nothing was proposed, approved or executed. e typed details | r raw | ? help' % view
+        return 'Ready. %s shown; nothing was proposed, approved or executed.' % view
 
     def _learn(self, value):
         """Keep the latest engine-reported facts about the selected object for the context strip."""
@@ -1036,7 +1049,7 @@ class Workspace:
                 if line.startswith(side) or i in (2, len(frame) - 2):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
-        else: painted = frame
+        else: painted = [emphasize(line) if line.startswith(side) else line for line in frame]
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
 
@@ -1252,8 +1265,7 @@ class Workspace:
                     self.layer = 'summary' if getattr(self, 'layer', 'summary') == wanted else wanted
                     self.scroll = 0
                     self.notice = ('Summary shown.' if self.layer == 'summary' else
-                                   ('Typed details: every field as recorded.' if wanted == 'details' else
-                                    'Raw record: the complete engine result as returned.') + ' Esc returns to the summary.')
+                                   'Typed details shown.' if wanted == 'details' else 'Raw record shown.')
                 elif char == '?': return self._send('help')
             self.draw()
 
