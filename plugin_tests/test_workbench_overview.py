@@ -149,8 +149,9 @@ class OverviewScreenTests(unittest.TestCase):
         self.assertIn('>  Second (p2)', joined)
         pinned = '\n'.join(overview_lines(self.VALUE, 100, rules='unicode', focus=1, selected='p2'))
         self.assertIn('>* Second (p2)', pinned)
-        self.assertIn('1 finding: observation_stale', joined)
+        self.assertIn('1 finding: observation stale', joined)
         self.assertIn('Nothing was left out', joined)
+        self.assertIn('every policy in the store has a complete observation; freshness is shown for each policy below', ' '.join(joined.split()))
         for width in (100, 60):
             for line in overview_lines(self.VALUE, width, rules='unicode'):
                 self.assertLessEqual(cell_width(line), width, line)

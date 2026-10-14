@@ -208,7 +208,7 @@ class FreshnessReasonTests(unittest.TestCase):
         sentence = signals['observation_stale']['observed']
         # Diagnostics reads the policy again, so its check time is its own, later than this inspect's.
         self.assertRegex(sentence, r"stamped later than this host's clock read when it was checked \(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d UTC\)\.$")
-        self.assertIn('until the clocks agree', signals['observation_stale']['next_step'])
+        self.assertIn("until this host's clock passes", signals['observation_stale']['next_step'])
 
     def test_an_observation_older_than_the_window_says_so(self):
         import time

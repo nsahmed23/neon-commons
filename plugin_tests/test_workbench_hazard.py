@@ -203,7 +203,7 @@ class VisionReviewTests(unittest.TestCase):
                  'observation_eligibility': self.ELIGIBILITY, 'actions': []}
         text = '\n'.join(_attention_lines(value, 120))
         self.assertIn('changed after this observation was collected (revision 1, now 2)', text)
-        self.assertNotIn('Nothing recorded needs attention', text)
+        self.assertNotIn('No signal in the areas checked', text)
         # a lists the actions; it is not the collect key.
         self.assertIn('Collect again; a lists it', text)
         self.assertNotIn('(a)', text)

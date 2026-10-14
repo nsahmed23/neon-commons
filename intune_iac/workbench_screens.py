@@ -362,11 +362,13 @@ def utc_time(value):
 LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'v Delivery'))
 
 
-def lifecycle_next(tab, value, now):
+def lifecycle_next(tab, value, now, eligibility=None):
     """The next step for the change shown, from its own recorded state; never a step that state refuses."""
     value = value if isinstance(value, dict) else {}
     if tab == 8:
         freshness = value.get('freshness') if isinstance(value.get('freshness'), dict) else {}
+        if freshness.get('status') == 'current' and isinstance(eligibility, dict) and eligibility.get('code'):
+            return 'a proposal is blocked now (%s); 2 Inspector says why and what to do' % eligibility['code']
         if freshness.get('status') == 'current':
             return 'a prepares a proposal from the recorded intent; 5 Plan reviews it'
         return 'record the current source first (a lists the refresh); a proposal follows from the new intent'
@@ -391,13 +393,13 @@ def lifecycle_next(tab, value, now):
     return 'v shows every delivery stage of this operation'
 
 
-def lifecycle_lines(tab, width, value=None, now=None):
+def lifecycle_lines(tab, width, value=None, now=None, eligibility=None):
     """Where this surface sits in a change's path and the next step for the state shown, in one line."""
     if tab not in (8, 4, 5):
         return []
     import time
     path = ' > '.join(name + (' (here)' if index == tab else '') for index, name in LIFECYCLE)
-    step = lifecycle_next(tab, value, time.time() if now is None else now)
+    step = lifecycle_next(tab, value, time.time() if now is None else now, eligibility)
     return word_wrap('Lifecycle: %s. Next: %s.' % (path, step), width)
 
 
@@ -793,7 +795,9 @@ def _attention_lines(value, width):
             lines += word_wrap('  Diagnostics could not be read (%s); i shows the details.' % attention.get('error_code'), width)
         elif not signals and not checked_now:
             clear = ', '.join(area.replace('_', ' ') for area, state in areas.items() if state == 'clear')
-            lines += word_wrap('  Nothing recorded needs attention%s.' % (' (checked: %s)' % clear if clear else ''), width)
+            # Scoped to what diagnostics reads; the maintenance queue holds reporting completeness and ownership.
+            lines += word_wrap('  No signal in the areas checked%s; reporting completeness and ownership are reviewed in the '
+                               'maintenance queue (m).' % (' (%s)' % clear if clear else ''), width)
         guided = isinstance(value.get('actions'), list)
         for signal in signals:
             lines += _labelled('  !', str(signal.get('observed')), width, 4)
@@ -1101,10 +1105,10 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
     lines += word_wrap('What several policies share comes first. Up and Down move between policies below (> focus, * selected); '
                        'Enter selects one.', width)
 
-    def section(heading, rows, describe):
+    def section(heading, rows, describe, empty='none observed'):
         lines.extend(['', heading])
         if not rows:
-            lines.append('  none observed')
+            lines.append('  ' + empty)
         for index, row in enumerate(rows):
             last = index == len(rows) - 1
             head, cont = '  ' + (tree[1] if last else tree[0]), '  ' + ('    ' if last else tree[2])
@@ -1123,7 +1127,8 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
     section('FILTERS', value.get('filters') or [], lambda row: '%s  %s' % (str(row['filter_id'])[:8], _users(row['used_by'], 'used by')))
     section('SCOPE TAGS', value.get('scope_tags') or [], lambda row: '"%s"  %s' % (row['tag'], _users(row['used_by'], 'used by')))
     section('SHARED SETTINGS  (%s distinct in the estate)' % value.get('distinct_settings', 'unknown'),
-            value.get('shared_settings') or [], lambda row: '%s  %s' % (row['setting'], _users(row['used_by'], 'used by')))
+            value.get('shared_settings') or [], lambda row: '%s  %s' % (row['setting'], _users(row['used_by'], 'used by')),
+            empty='none used by more than one policy')
     lines.extend(['', 'POLICIES'])
     for index, policy in enumerate(value.get('policies') or []):
         found = policy.get('findings') or []
@@ -1138,11 +1143,12 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
         for number, part in enumerate(word_wrap(text, max(1, width - 3))):
             lines.append((mark if number == 0 else '   ') + part)
         if found:
-            lines += word_wrap('    %s: %s' % (_count(len(found), 'finding', 'findings'), ', '.join(map(str, found))), width)
+            lines += word_wrap('    %s: %s' % (_count(len(found), 'finding', 'findings'), ', '.join(_as_words(item) for item in found)), width)
     lines.extend(['', 'NOT ESTABLISHED'])
     missing = value.get('not_established') or []
     if not missing:
-        lines += word_wrap('  Nothing was left out: every policy in the store was read with a complete observation.', width)
+        lines += word_wrap('  Nothing was left out: every policy in the store has a complete observation; freshness is shown '
+                           'for each policy below.', width)
     for item in missing:
         lines += word_wrap('  ' + ('%s more not read: beyond the read bound' % _count(item.get('count', 0), 'policy', 'policies')
                                    if item.get('reason') == 'beyond_read_bound' else

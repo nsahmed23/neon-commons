@@ -1000,7 +1000,8 @@ class Workspace:
                 rows.append('[CHANGE REVIEW]')
                 # The review result carries both full bodies, so a cut change list can say where the rest is.
                 whole = isinstance(value.get('before'), dict) and isinstance(value.get('desired'), dict)
-                rows.extend(change_lines(value['field_changes'], width, remainder=(
+                # The plan's before is the observation the plan was prepared from, not the newest one.
+                rows.extend(change_lines(value['field_changes'], width, 'BEFORE (observed when prepared)', remainder=(
                     'the complete before and desired bodies are in e typed details and r raw record' if whole else None)))
                 if isinstance(value.get('changes'), list):
                     field('Plan changes', ', '.join(map(str, value['changes'])) or 'none')
@@ -1185,7 +1186,8 @@ class Workspace:
             lines = self._surface_summary(width)
             if self._on_change_path(self.value):
                 from .workbench_screens import lifecycle_lines
-                lines = lines + [''] + lifecycle_lines(self.tab, width, self.value)
+                lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
+                                                       if self.facts.get('object_id') == self.selected else None)
         return lines
 
     def _on_change_path(self, value):

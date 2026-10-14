@@ -140,6 +140,24 @@ class DeliveryTests(unittest.TestCase):
             text = ' '.join(refusal_lines({'status': 'error', 'error': {'code': code, 'message': 'x'}}, 120))
             self.assertIn('Next:', text)
 
+    def test_observed_as_desired_is_qualified_when_that_observation_reads_stale(self):
+        from unittest import mock
+        from intune_iac import maintenance
+        from intune_iac.workbench_views import record_local_deployment
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
+        self.store.collect(self.service)
+        real = type(self.store).inspect
+        def stale(store, object_id):
+            return dict(real(store, object_id), freshness='stale', freshness_reasons=['stamped_after_now'])
+        with mock.patch.object(type(self.store), 'inspect', stale):
+            value, stages = self.view()
+        self.assertEqual(stages['observed_after']['status'], 'matches_desired')
+        self.assertEqual(stages['observed_after']['observation_freshness'], 'stale')
+        self.assertIn('the observation that shows it now reads stale', value['next_action'])
+        self.assertIn("stamped after this host's clock", value['next_action'])
+
     def test_imported_workflow_runs_appear_as_inert_delivery_evidence(self):
         from intune_iac.workbench_health import import_workflow_run
         review = self.prepare()

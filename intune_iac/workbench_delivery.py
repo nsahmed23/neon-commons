@@ -152,7 +152,11 @@ def _observed_after(store, plan, desired, journal):
         return {'stage': 'observed_after', 'status': 'not_yet', **found}
     changes = field_changes(desired, latest.get('body'))
     status = {'no_change': 'matches_desired', 'changed': 'differs'}.get(changes.get('status'), 'unknown')
-    return {'stage': 'observed_after', 'status': status, 'field_changes': changes, **found}
+    # Whether the observation that shows it still reads fresh, so a settled verdict is never drawn from a stale one.
+    current = store.inspect(plan['object_id'])
+    return {'stage': 'observed_after', 'status': status, 'field_changes': changes, **found,
+            'observation_freshness': current.get('freshness'),
+            'observation_freshness_reasons': list(current.get('freshness_reasons') or [])}
 
 
 RUN_PAGE = 200
@@ -250,10 +254,22 @@ def _next_action(stages, operation_root, store_root):
     if observed['status'] == 'unknown':
         return 'The latest observation cannot be compared with this change; see the observed-after stage.'
     if record['status'] == 'done':
-        return 'Nothing pending: the change is recorded and observed as desired.'
+        return 'Nothing pending: the change is recorded and observed as desired.' + _stale_note(observed)
     if observed['status'] == 'not_applicable':
         return 'Nothing pending: the plan had no configuration change to dispatch.'
-    return 'Nothing pending: the change is observed as desired; no repository intent was cited, so there is no deployment record.'
+    return ('Nothing pending: the change is observed as desired; no repository intent was cited, so there is no deployment '
+            'record.' + _stale_note(observed))
+
+
+def _stale_note(observed):
+    """A qualifier when the observation behind 'observed as desired' now reads stale; empty when it is fresh."""
+    if observed.get('observation_freshness') in (None, 'fresh'):
+        return ''
+    words = {'stamped_after_now': "stamped after this host's clock", 'older_than_window': 'older than the freshness window',
+             'later_collection_not_complete': 'a later collection did not complete'}
+    reasons = '; '.join(words.get(item, str(item)) for item in observed.get('observation_freshness_reasons') or [])
+    return (' But the observation that shows it now reads stale (%s); judge it again once a fresh observation exists.'
+            % (reasons or 'no reason recorded'))
 
 
 def _history(journal, records):

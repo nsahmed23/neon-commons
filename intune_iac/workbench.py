@@ -477,6 +477,10 @@ def _reason_words(problem):
                 % (problem.get('observed_revision'), problem.get('service_revision')))
     if reason == 'not_fresh':
         reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]
+        if 'stamped_after_now' in (problem.get('freshness_reasons') or []):
+            # The store keeps the newest observation by its stamp, so a new collection would not replace this one.
+            return ('the newest observation is not fresh (%s): it reads stale until this host\'s clock passes its time, '
+                    'and collecting again now would not replace it' % '; '.join(reasons))
         return 'the newest observation is not fresh (%s); collect again' % ('; '.join(reasons) or 'no reason recorded')
     if reason == 'last_attempt_incomplete':
         return 'the last collection attempt ended %s; collect again' % (problem.get('last_attempt_status') or 'without a status')

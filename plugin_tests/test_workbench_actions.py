@@ -82,6 +82,21 @@ class ActionReadModelTests(unittest.TestCase):
         self.lost_response()
         self.assertNotIn('deployment-record', self.actions())
 
+    def test_an_observation_stamped_ahead_of_the_clock_is_not_cured_by_collecting(self):
+        # Collecting now would not replace it as the newest, so the step is to wait or correct the clock.
+        from intune_iac.workbench import _reason_words
+        text = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['stamped_after_now']})
+        self.assertIn("stamped after this host's clock", text)
+        self.assertIn('collecting again now would not replace it', text)
+        self.assertNotIn('; collect again', text)
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, _ = _freshness({'observed_at': '2026-10-14T22:40:01Z', 'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                                 'freshness_checked_at': '2026-10-14T22:36:01Z', 'snapshot_id': 'b' * 64}, False)
+        step = signals[0]['next_step']
+        self.assertIn('2026-10-14 22:40:01 UTC', step)
+        self.assertIn('collecting again now would not replace it', step)
+        self.assertNotIn('Collect again (:collect) before', step)
+
     def test_one_read_judges_freshness_once(self):
         # Journey 26: the clock moved between two reads of one Inspector screen, so its states said fresh while its
         # proposal was blocked as not fresh. The proposal check now uses the observation the states show.

@@ -122,7 +122,7 @@ class InspectorSummaryTests(unittest.TestCase):
                           'checked': {'collection': 'clear', 'freshness': 'clear', 'repository': 'not_recorded'}},
                           next_actions=[{'source': 'no_repository_intent', 'step': 'repository-entry REPOSITORY shows how.'}])
         joined = '\n'.join(self.lines(value))
-        self.assertIn('Nothing recorded needs attention', joined)
+        self.assertIn('%s' % 'No signal in the areas checked', joined)
         self.assertIn('repository-entry REPOSITORY shows how.', joined)
 
     def test_attention_and_next_come_before_a_long_settings_list(self):
@@ -144,7 +144,9 @@ class InspectorSummaryTests(unittest.TestCase):
             'collection': 'clear', 'freshness': 'clear', 'operations': 'clear', 'repository': 'not_recorded',
             'device_evidence': 'not_imported'}})
         joined = '\n'.join(self.lines(value, 200))
-        self.assertIn('Nothing recorded needs attention (checked: collection, freshness, operations).', joined)
+        # Scoped: reporting completeness and ownership are queue findings, not checked here (journey 26 frame review).
+        self.assertIn('No signal in the areas checked (collection, freshness, operations); reporting completeness and '
+                      'ownership are reviewed in the maintenance queue (m).', ' '.join(joined.split()))
         self.assertIn('Not fully checked: repository (no intent recorded); device evidence (not imported).', joined)
 
     def test_an_unreadable_attention_is_not_shown_as_clear(self):
@@ -152,7 +154,7 @@ class InspectorSummaryTests(unittest.TestCase):
                           next_actions=[])
         joined = '\n'.join(self.lines(value))
         self.assertIn('could not be read (workbench_query_limit)', joined)
-        self.assertNotIn('Nothing recorded needs attention', joined)
+        self.assertNotIn('No signal in the areas checked', joined)
 
     def test_every_line_fits_narrow_and_wide(self):
         for width in (58, 100):

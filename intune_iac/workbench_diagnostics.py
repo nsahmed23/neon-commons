@@ -81,7 +81,9 @@ def _freshness(observed, failed):
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
     step = 'Collect again (:collect) before preparing or judging a change.'
     if 'stamped_after_now' in reasons:
-        step += " An observation stamped later than this host's clock stays stale until the clocks agree."
+        # The newest observation is kept by its stamp, so collecting again would not replace it.
+        step = ("It stays stale until this host's clock passes %s; collecting again now would not replace it as the "
+                'newest. Wait, or correct the host clock.' % readable_time(observed.get('observed_at')))
     return [_signal('freshness', 'observation_stale', sentence, step,
                     {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
                      'freshness_checked_at': observed.get('freshness_checked_at'), 'freshness_reasons': reasons})], 'attention'

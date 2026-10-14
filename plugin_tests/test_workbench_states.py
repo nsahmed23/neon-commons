@@ -315,6 +315,24 @@ class LifecycleTests(unittest.TestCase):
                                 'next_action': 'Nothing pending.'})
         self.assertNotIn('Lifecycle:', text)
 
+    def test_a_blocked_proposal_is_not_offered_as_next_on_the_repository(self):
+        workspace = self.surface()
+        workspace.facts['eligibility'] = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
+                                          'freshness_reasons': ['stamped_after_now']}
+        workspace.tab, workspace.value = 8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                                             'freshness': {'status': 'current'}}
+        text = ' '.join(' '.join(workspace._summary_lines(118)).split())
+        self.assertIn('a proposal is blocked now (maintenance_observation_stale); 2 Inspector says why', text)
+        self.assertNotIn('a prepares a proposal from the recorded intent', text)
+
+    def test_the_plan_review_labels_the_before_column_as_of_preparation(self):
+        workspace = self.surface()
+        workspace.tab, workspace.value = 4, {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'succeeded_verified',
+            'field_changes': {'status': 'changed', 'changes': [{'field': 'description', 'kind': 'changed', 'path': '/description',
+                                                               'before': 'old', 'after': 'new'}]}}
+        text = ' '.join(workspace._summary_lines(118))
+        self.assertIn('BEFORE (observed when prepared)', text)
+
     def test_other_surfaces_and_refusals_do_not(self):
         self.assertNotIn('Lifecycle:', self.summary(1, {'object_id': OBJECT, 'name': 'Pilot', 'body': {}}))
         self.assertNotIn('Lifecycle:', self.summary(4, {'status': 'error', 'error': {'code': 'x', 'message': 'y'}}))
