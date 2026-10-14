@@ -28,6 +28,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | Input | Effect |
 |---|---|
 | Up / Down, then Enter in Estate | Select the highlighted immutable object ID |
+| o | Relationship overview of the estate: shared groups, filters, scope tags and settings first, then each policy; Up / Down and Enter select a policy, and `o` returns to the same place |
 | 1 | Estate and the current bounded inventory page |
 | 2 | Selected-policy inspector |
 | 3 | Typed relationships with exact evidence and uncertainty |
@@ -124,6 +125,14 @@ The last observation on a page says it is the earliest on that page, and whether
 The full table fits 80 columns; narrower terminals get abbreviated columns with a legend, then sentences. For the deepest stage with any fresh report, the screen states the result in words ("8 of 100 targeted devices reported success at execution; 92 without a fresh report"), why the rest are not counted, and a device matrix with one cell per device (or per stated group of devices above 400). Endpoint health and outcome, service acceptance and configuration parity, and rollout readiness and approval follow on separate lines. Without imported evidence it says so. The estate-wide health result adds the collection's freshness, last success, last attempt, retained last-good state and pending observations.
 
 `m` shows `[MAINTENANCE QUEUE]`: each finding with its priority, affected object, the reason it matters, action state, owner assertion, freshness, review assignee role, writer ownership, source owner claim, review state, review due date, exception expiry, compatibility profile, evidence and related proposals (one line per operation with its latest journal status). The queue never remediates automatically. Both views resume after reopening.
+
+**Relationship overview (`o`, on Estate).** `[ESTATE OVERVIEW]` answers what the estate's policies have in common. It is built from the records Estate and Relationships already use: each policy's current observation and typed edges, its ownership and freshness, and the maintenance queue's findings.
+- The first line counts policies read against the store's total and those without a complete observation, and lists ownership.
+- Then, most-shared first, as connected trees: targeted groups (included and excluded by which policies), filters, scope tags, and settings configured by more than one policy, with the number of distinct settings.
+- Then each policy: groups, exclusions, filters, settings, owner, freshness and its findings.
+- Last, NOT ESTABLISHED: policies without a complete observation, and any beyond the read bound (200 by default). It says plainly when nothing was left out.
+
+Up and Down move the focus marker `>` over the policies, and Enter selects one. Selecting carries the policy into every surface, and `o` returns to the overview at the same policy. `workbench estate-overview --root STORE [--limit N]` prints the same value as JSON.
 
 **Families (`:families`, on Help).** `[POLICY FAMILIES]` lists every policy, application and script family from the product's `family-coverage.csv`, unchanged: its stage, route and material, the qualification it still needs, and its live status. One column is added: where the family appears in the workbench today. Settings Catalog policies are in the estate and every maintenance route. Groups, filters and scope tags appear as referenced targets, never managed. Every other family is "not in the estate". Estate's header says that it lists Settings Catalog policies only. `workbench families` prints the same table as JSON.
 

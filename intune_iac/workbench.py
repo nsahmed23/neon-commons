@@ -35,6 +35,8 @@ def add_parser(commands):
     workspace.add_argument('--no-color', action='store_true')
     workspace.add_argument('--reduced-motion', action='store_true', default=True,
                            help='Keep all information without animation; also the default')
+    overview = sub.add_parser('estate-overview', help='Groups, filters, scope tags and settings the observed policies share, and what was not established (read-only)')
+    overview.add_argument('--root', required=True); overview.add_argument('--limit', type=int, default=200)
     sub.add_parser('families', help='Every policy, application and script family with its support disposition (read-only)')
     init = sub.add_parser('init', help='Create a private tenant-scoped observation store; no IaC required')
     init.add_argument('--root', required=True)
@@ -384,6 +386,9 @@ def command(args):
                                                           visibility_delay_reads=args.visibility_delay_reads)
         if name == 'reconcile': return maintenance.reconcile(args.operation)
         return maintenance.propose(args.root, args.service_root, args.object, args.desired, args.output, context_path=args.context)
+    if name == 'estate-overview':
+        from .workbench_overview import estate_overview
+        return estate_overview(_store(args.root), limit=args.limit)
     if name == 'families':
         from .families import families
         return families()
@@ -443,6 +448,7 @@ HELP = {
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
+                   'estate-overview (groups, filters, scope tags and settings the observed policies share)',
                    'repository-entry REPOSITORY (the policies a repository holds and the exact command to record each)',
                    'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
                    'repository-status (selected object: is its latest repository intent still current?)',
@@ -599,6 +605,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 if values and selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 result = views(store, selected, operation=values[0] if values else None, limit=10)
+            elif name == 'estate-overview' and not values:
+                from .workbench_overview import estate_overview
+                result = estate_overview(store)
             elif name == 'repository-entry' and len(values) == 1:
                 from .repository_entry import entry
                 result = entry(store, values[0])

@@ -543,6 +543,7 @@ intune_iac/workbench_repository.py
 intune_iac/workbench_screens.py
 intune_iac/workbench_evidence_views.py
 intune_iac/workbench_health.py
+intune_iac/workbench_overview.py
 intune_iac/workbench_parsers.py
 intune_iac/workbench_provenance.py
 intune_iac/workbench_queue.py
@@ -802,6 +803,7 @@ plugin_tests/test_workbench_evidence_views_r4.py
 plugin_tests/test_workbench_families.py
 plugin_tests/test_workbench_health.py
 plugin_tests/test_workbench_independent.py
+plugin_tests/test_workbench_overview.py
 plugin_tests/test_workbench_paging.py
 plugin_tests/test_workbench_provenance.py
 plugin_tests/test_workbench_queue_r4.py

@@ -37,6 +37,11 @@ def short_id(value):
     return value[:8] if isinstance(value, str) else str(value)
 
 
+# Shorter words for long states, used only when nothing else lets the strip fit.
+SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'outcome_unknown': 'unknown',
+                'recorded_intent_not_revalidated': 'not revalidated', 'desired_state_observed': 'observed'}
+
+
 def context_strip(tenant, selected, facts, width):
     """Where the engineer is: tenant, policy, observation, repository and operation state, as last reported."""
     if not selected:
@@ -46,9 +51,11 @@ def context_strip(tenant, selected, facts, width):
     if facts.get('operation'):
         states.append(('OPERATION', 'OP', facts['operation']))
     bare = 'POLICY ' + short_id(selected)
-    for prefix, name, compact in ((['TENANT ' + short_id(tenant)], policy, False), ([], policy, False),
-                                  ([], policy, True), ([], bare, True)):
-        text = ' | '.join(prefix + [name] + [(short if compact else long) + ' ' + str(value) for long, short, value in states])
+    tiers = ((['TENANT ' + short_id(tenant)], policy, False, False), ([], policy, False, False),
+             ([], policy, True, False), ([], bare, True, False), ([], bare, True, True))
+    for prefix, name, compact, brief in tiers:
+        text = ' | '.join(prefix + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), str(value)) if brief else str(value))
+                                          for long, short, value in states])
         if cell_width(safe_text(text)) <= width:
             return text
     return text
@@ -308,7 +315,10 @@ def dictionary_lines(value, width):
 RELATION_GROUPS = (('TARGETING', ('assignment', 'exclusion', 'filter')),
                    ('CONFIGURATION', ('setting', 'scope_tag')),
                    ('SOURCE AND LINEAGE', ('generated_from', 'repository')))
-RELATION_LABELS = {'scope_tag': 'scope tag', 'generated_from': 'generated'}
+RELATION_LABELS = {'scope_tag': 'scope tag', 'generated_from': 'generated',
+                   'source_repository_path': 'repository', 'source_source_path': 'source path',
+                   'source_atmos_stack': 'stack', 'source_component': 'component',
+                   'related_operation': 'operation', 'observed_after': 'observed after'}
 
 
 def _edge_target(edge):
@@ -323,6 +333,68 @@ def _edge_target(edge):
 
 
 TREES = {'ascii': ('|-- ', '`-- ', '    '), 'unicode': ('├── ', '└── ', '│   ')}
+
+
+def _count(number, singular, plural):
+    return '%d %s' % (number, singular if number == 1 else plural)
+
+
+def _users(ids, verb):
+    shown = ', '.join(str(item)[:8] for item in ids[:4]) + (', ...' if len(ids) > 4 else '')
+    return '%s %s (%s)' % (verb, _count(len(ids), 'policy', 'policies'), shown)
+
+
+def overview_lines(value, width, rules='ascii', focus=None, selected=None):
+    """The estate's relationships: shared groups, filters, scope tags and settings first, then each policy."""
+    tree = TREES.get(rules, TREES['ascii'])
+    counts = value.get('counts') or {}
+    owners = ', '.join('%s %d' % item for item in sorted((value.get('ownership') or {}).items())) or 'none recorded'
+    lines = ['[ESTATE OVERVIEW]']
+    lines += word_wrap('%s of %s policies read | %s without a complete observation | ownership: %s' % (
+        counts.get('policies_read'), counts.get('policies_total'), counts.get('without_complete_observation'), owners), width)
+    lines += word_wrap('What several policies share comes first. Up and Down move between policies below (> focus, * selected); '
+                       'Enter selects one.', width)
+
+    def section(heading, rows, describe):
+        lines.extend(['', heading])
+        if not rows:
+            lines.append('  none observed')
+        for index, row in enumerate(rows):
+            last = index == len(rows) - 1
+            head, cont = '  ' + (tree[1] if last else tree[0]), '  ' + ('    ' if last else tree[2])
+            for number, part in enumerate(word_wrap(describe(row), max(1, width - len(head)))):
+                lines.append((head if number == 0 else cont) + part)
+
+    section('TARGETED GROUPS', value.get('groups') or [], lambda row: '%s  %s' % (str(row['group_id'])[:8], ', '.join(
+        part for part in ((_users(row['included_by'], 'included by') if row.get('included_by') else ''),
+                          (_users(row['excluded_by'], 'excluded by') if row.get('excluded_by') else '')) if part)))
+    section('FILTERS', value.get('filters') or [], lambda row: '%s  %s' % (str(row['filter_id'])[:8], _users(row['used_by'], 'used by')))
+    section('SCOPE TAGS', value.get('scope_tags') or [], lambda row: '"%s"  %s' % (row['tag'], _users(row['used_by'], 'used by')))
+    section('SHARED SETTINGS  (%s distinct in the estate)' % value.get('distinct_settings', 'unknown'),
+            value.get('shared_settings') or [], lambda row: '%s  %s' % (row['setting'], _users(row['used_by'], 'used by')))
+    lines.extend(['', 'POLICIES'])
+    for index, policy in enumerate(value.get('policies') or []):
+        found = policy.get('findings') or []
+        text = '%s (%s)  %s, %s, %s, %s | owner %s | %s%s' % (
+            policy.get('name') or '(no name)', str(policy.get('object_id'))[:8],
+            _count(policy.get('included_groups', 0), 'group', 'groups'), _count(policy.get('excluded_groups', 0), 'exclusion', 'exclusions'),
+            _count(policy.get('filters', 0), 'filter', 'filters'), _count(policy.get('settings', 0), 'setting', 'settings'),
+            policy.get('ownership'), policy.get('freshness'), '' if found else ' | no findings')
+        # As in Estate: > is the keyboard focus, * the pinned selection every surface shows.
+        mark = ('>' if index == focus else ' ') + ('*' if selected and policy.get('object_id') == selected else ' ') + ' '
+        for number, part in enumerate(word_wrap(text, max(1, width - 3))):
+            lines.append((mark if number == 0 else '   ') + part)
+        if found:
+            lines += word_wrap('    %s: %s' % (_count(len(found), 'finding', 'findings'), ', '.join(map(str, found))), width)
+    lines.extend(['', 'NOT ESTABLISHED'])
+    missing = value.get('not_established') or []
+    if not missing:
+        lines += word_wrap('  Nothing was left out: every policy in the store was read with a complete observation.', width)
+    for item in missing:
+        lines += word_wrap('  ' + ('%s more not read: beyond the read bound' % _count(item.get('count', 0), 'policy', 'policies')
+                                   if item.get('reason') == 'beyond_read_bound' else
+                                   '%s: no complete observation (last attempt %s)' % (item.get('object_id'), item.get('last_attempt'))), width)
+    return lines
 
 
 def relationship_lines(value, width, rules='ascii'):
@@ -357,7 +429,8 @@ def relationship_lines(value, width, rules='ascii'):
             connector = '  ' + (tree[1] if last else tree[0])
             guide = '  ' + ('    ' if last else tree[2])
             label = RELATION_LABELS.get(edge.get('relation'), str(edge.get('relation')).replace('_', ' '))
-            text = pad(label, 13) + _edge_target(edge) + ('' if shared else '  [' + safe_text(str(edge.get('assertion_class', 'unknown'))) + ']')
+            # A label longer than its column keeps every letter and a gap before the target.
+            text = (pad(label, 13) if cell_width(label) < 13 else label + '  ') + _edge_target(edge) + ('' if shared else '  [' + safe_text(str(edge.get('assertion_class', 'unknown'))) + ']')
             for number, part in enumerate(word_wrap(text, width - len(connector))):
                 lines.append((connector if number == 0 else guide) + part)
     ownership = value.get('ownership_evidence') if isinstance(value.get('ownership_evidence'), dict) else {}
