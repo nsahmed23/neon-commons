@@ -89,6 +89,28 @@ class EstateOverviewTests(unittest.TestCase):
         self.view()
         self.assertEqual(tree(self.store.root), before)
 
+    def test_all_devices_and_all_licensed_users_are_never_counted_as_groups(self):
+        import copy
+        from intune_iac.modeled_service import BASE
+        body = copy.deepcopy(self.service.snapshot()['current']['objects'][self.ids[0]])
+        groups = [row for row in body['assignments'] if 'group_id' in row]
+        body['assignments'] = groups + [{'type': 'allDevicesAssignmentTarget', 'filter_type': 'none'},
+                                        {'type': 'allLicensedUsersAssignmentTarget', 'filter_type': 'none'}]
+        response = self.service.request('PATCH', BASE + '/' + self.ids[0], tenant_id=self.truth['tenant_id'], body=body,
+                                        if_match=str(self.service.snapshot()['revision']))
+        self.assertEqual(response['status'], 200)
+        self.store.collect(self.service)
+        value = self.view()
+        group_ids = {row['group_id'] for row in value['groups']}
+        self.assertNotIn('allDevicesAssignmentTarget', group_ids)
+        self.assertNotIn('allLicensedUsersAssignmentTarget', group_ids)
+        self.assertEqual({row['target']: row['used_by'] for row in value['broad_targets']},
+                         {'allDevicesAssignmentTarget': [self.ids[0]], 'allLicensedUsersAssignmentTarget': [self.ids[0]]})
+        first = next(policy for policy in value['policies'] if policy['object_id'] == self.ids[0])
+        included = sum(1 for row in groups if row['type'] == 'groupAssignmentTarget')
+        self.assertEqual(first['included_groups'], included)
+        self.assertEqual(first['broad_targets'], ['allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget'])
+
 
 class OverviewScreenTests(unittest.TestCase):
     VALUE = {'schema_version': 'workbench-estate-overview/1', 'counts': {'policies_read': 2, 'policies_total': 2, 'without_complete_observation': 0},
@@ -104,6 +126,16 @@ class OverviewScreenTests(unittest.TestCase):
                            'settings': 1, 'scope_tags': ['0'], 'ownership': 'unknown', 'freshness': 'stale',
                            'findings': ['observation_stale']}],
              'not_established': []}
+
+    def test_broad_targets_are_named_in_words_apart_from_groups(self):
+        from intune_iac.workbench_screens import overview_lines
+        value = dict(self.VALUE, broad_targets=[{'target': 'allDevicesAssignmentTarget', 'used_by': ['p1']}])
+        value['policies'] = [dict(self.VALUE['policies'][0], broad_targets=['allDevicesAssignmentTarget']), self.VALUE['policies'][1]]
+        joined = '\n'.join(overview_lines(value, 100, rules='unicode'))
+        self.assertIn('ALL-DEVICE AND ALL-USER TARGETS', joined)
+        self.assertIn('all devices  targeted by 1 policy (p1)', joined)
+        self.assertIn('targets all devices', joined)
+        self.assertNotIn('allDevic', joined)
 
     def test_shared_relationships_lead_and_every_line_fits(self):
         from intune_iac.workbench_screens import overview_lines

@@ -508,7 +508,7 @@ HELP = {
                    'source-edit-status SOURCE_ROOT OPERATION_ID',
                    'source-edit-recover SOURCE_ROOT OPERATION_ID complete|rollback|abort EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-acceptance-propose FIELD NEW_OUTPUT_DIR', 'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
-                   'field-semantics', 'clear-selection (clears the selected policy; back and cancel do the same, nothing else is undone or cancelled)', 'back', 'cancel', 'quit or exit (exits; the last read-only view is kept for the next start)'],
+                   'field-semantics', 'clear-selection (clears the selected policy; in the text interface back and cancel do the same, nothing else is undone or cancelled; in the workspace :back returns to the previous view and :cancel cancels nothing)', 'back', 'cancel', 'quit or exit (exits; the last read-only view is kept for the next start)'],
     'maintenance': ['propose-from-intent NEW_OPERATION_DIR (selected object; desired body and citation from the current repository intent)',
                     'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'delivery OPERATION_DIR (read-only: proposal, approval, execution, readback, reconciliation, deployment record, observation)',

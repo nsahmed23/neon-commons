@@ -30,14 +30,20 @@ def estate_overview(store, *, limit=MAX_POLICIES):
     for finding in _queue(store, limit=limit)['findings']:
         if finding.get('object_id'):
             findings.setdefault(finding['object_id'], []).append(finding.get('finding'))
-    groups, filters, tags, settings, ownership, policies = {}, {}, {}, {}, {}, []
+    groups, broad_targets, filters, tags, settings, ownership, policies = {}, {}, {}, {}, {}, {}, []
     for row in objects:
         object_id = row['object_id']
         observed = store.inspect(object_id)
         edges = [edge for edge in observed.get('relationships') or [] if isinstance(edge, dict)]
         def targets(relation):
             return sorted({str(edge.get('target_id')) for edge in edges if edge.get('relation') == relation})
-        included, excluded = targets('assignment'), targets('exclusion')
+        def assigned(relation, grouped):
+            # Only a target that names a group is a group; "All devices" and "All licensed users" never are.
+            return sorted({str(edge.get('target_id')) for edge in edges if edge.get('relation') == relation
+                           and ('group_id' in (edge.get('details') if isinstance(edge.get('details'), dict) else {})) == grouped})
+        included, excluded, broad = assigned('assignment', True), assigned('exclusion', True), assigned('assignment', False)
+        for target in broad:
+            broad_targets.setdefault(target, set()).add(object_id)
         for group in included:
             groups.setdefault(group, {'included_by': set(), 'excluded_by': set()})['included_by'].add(object_id)
         for group in excluded:
@@ -50,6 +56,7 @@ def estate_overview(store, *, limit=MAX_POLICIES):
         ownership[owner] = ownership.get(owner, 0) + 1
         policies.append({'object_id': object_id, 'name': observed.get('name'), 'freshness': observed.get('freshness'),
                          'ownership': owner, 'included_groups': len(included), 'excluded_groups': len(excluded),
+                         'broad_targets': broad,
                          'filters': len(used_filters), 'scope_tags': used_tags, 'settings': len(used_settings),
                          'findings': findings.get(object_id, [])})
     not_established = [{'object_id': row.get('object_id'), 'reason': 'no_complete_observation',
@@ -62,6 +69,7 @@ def estate_overview(store, *, limit=MAX_POLICIES):
             'groups': _by_size([{'group_id': group, 'included_by': sorted(value['included_by']),
                                  'excluded_by': sorted(value['excluded_by'])} for group, value in groups.items()],
                                'included_by', 'excluded_by'),
+            'broad_targets': _by_size([{'target': key, 'used_by': sorted(value)} for key, value in broad_targets.items()], 'used_by'),
             'filters': _by_size([{'filter_id': key, 'used_by': sorted(value)} for key, value in filters.items()], 'used_by'),
             'scope_tags': _by_size([{'tag': key, 'used_by': sorted(value)} for key, value in tags.items()], 'used_by'),
             'shared_settings': _by_size([{'setting': key, 'used_by': sorted(value)} for key, value in settings.items()

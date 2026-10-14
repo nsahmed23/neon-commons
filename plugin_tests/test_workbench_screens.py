@@ -66,6 +66,25 @@ class ChangeLinesTests(unittest.TestCase):
         joined = '\n'.join(change_lines(field_changes(two, swapped), 100))
         self.assertIn('settings order  0, 1  ->  1, 0', joined)
 
+    def test_an_added_or_removed_setting_shows_its_value(self):
+        two = body(); two['settings']['settings'].append(setting('1', CAMERA, CAMERA + '_0'))
+        added = '\n'.join(change_lines(field_changes(body(), two), 140))
+        self.assertIn('settings 1 ' + CAMERA + '  added', added)
+        self.assertIn('(absent)', added)
+        self.assertIn('"' + CAMERA + '_0"', added)
+        removed = '\n'.join(change_lines(field_changes(two, body()), 140))
+        self.assertIn('settings 1 ' + CAMERA + '  removed', removed)
+        self.assertIn('"' + CAMERA + '_0"', removed)
+
+    def test_a_cut_comparison_says_where_the_rest_is_and_never_claims_more(self):
+        changes = {'status': 'changed', 'complete': False,
+                   'changes': [{'field': 'description', 'kind': 'changed', 'path': '/description', 'before': 'a', 'after': 'b'}]}
+        plain = ' '.join(change_lines(changes, 140))
+        self.assertIn('the comparison stopped there', plain)
+        self.assertNotIn('hold the complete result', plain)
+        located = ' '.join(change_lines(changes, 140, remainder='the complete before and desired bodies are in r'))
+        self.assertIn('the complete before and desired bodies are in r', located)
+
     def test_unknown_comparison_is_explicit(self):
         lines = change_lines(field_changes(body(), ['not', 'a', 'policy']), 80)
         self.assertEqual(lines[0], 'CHANGE COMPARISON UNKNOWN')
@@ -603,7 +622,8 @@ class HistoryLinesTests(unittest.TestCase):
         lines = history_event_lines(self.HISTORY, 120)
         joined = '\n'.join(lines)
         self.assertTrue(lines[0].startswith('HISTORY  journal events in order (chain verified)'))
-        self.assertIn('0   prepared          2026-10-14T16:35:31Z  approval digest aaaaaaaaaaaa', joined)
+        self.assertIn('0   prepared          2026-10-14T16:35:31Z  approval will need digest aaaaaaaaaaaa', joined)
+        self.assertIn('approved with digest aaaaaaaaaaaa', joined)
         self.assertIn('1   dispatch started  time not recorded', joined)
         self.assertIn('engine reported succeeded_verified (synthetic_local_process_only)', joined)
         self.assertIn('3   outcome unknown   2026-10-14T16:35:32Z  model_response_lost', joined)
@@ -617,8 +637,8 @@ class HistoryLinesTests(unittest.TestCase):
         history = copy.deepcopy(self.HISTORY)
         history['events'][0]['store_recorded_at'] = '2026-10-14T17:14:37.396288Z'
         lines = history_event_lines(history, 120)
-        self.assertIn('0   prepared          2026-10-14T17:14:37Z  approval digest', lines[1])
-        self.assertEqual(lines[1].index('approval'), lines[2].index('approval'))
+        self.assertIn('0   prepared          2026-10-14T17:14:37Z  approval will need digest', lines[1])
+        self.assertEqual(lines[1].index('approval will'), lines[2].index('approved with'))
 
     def test_unpaired_registrations_are_disclosed_and_no_history_draws_nothing(self):
         from intune_iac.workbench_screens import history_event_lines

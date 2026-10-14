@@ -303,7 +303,9 @@ class EvidenceLayerTests(unittest.TestCase):
         joined = '\n'.join(lines).lower()
         self.assertNotIn('follow', joined)
         # The plan's evidence line says what the layers hold, once; no second line repeats the keys.
-        self.assertEqual(joined.count('e typed details'), 2)  # the evidence line and the partial change list
+        self.assertEqual(joined.count('e typed details'), 1)  # only the evidence line
+        # This result holds no bodies, so the cut list claims nothing beyond itself.
+        self.assertIn('the comparison stopped there', joined)
         self.assertIn('evidence (before, desired, targeting and risks): e typed details | r complete raw record', joined)
 
     def test_a_capture_whose_bytes_no_longer_verify_still_shows_its_integrity(self):

@@ -141,7 +141,10 @@ def _rows(changes):
                                  _value(leaf['before']) if 'before' in leaf else '(absent)',
                                  _value(leaf['after']) if 'after' in leaf else '(absent)'))
             elif kind in ('added', 'removed'):
-                rows.append((label + '  ' + kind, None, None))
+                # The whole setting record is in the change; its exact value is shown against its absence.
+                record = change.get('value') if isinstance(change.get('value'), dict) else {}
+                shown = _setting_value(record.get('settingInstance')) if record else '(not in this result)'
+                rows.append((label + '  ' + kind, '(absent)' if kind == 'added' else shown, shown if kind == 'added' else '(absent)'))
             elif kind == 'reordered':
                 rows.append(('settings order  ' + ', '.join(map(str, change.get('before_order', []))) + '  ->  '
                              + ', '.join(map(str, change.get('after_order', []))), None, None))
@@ -152,8 +155,12 @@ def _rows(changes):
     return rows
 
 
-def change_lines(changes, width, before_label='BEFORE (observed)', after_label='AFTER (desired)'):
-    """A field-change list as a table (wide) or stacked before and after rows (narrow)."""
+def change_lines(changes, width, before_label='BEFORE (observed)', after_label='AFTER (desired)', remainder=None):
+    """A field-change list as a table (wide) or stacked before and after rows (narrow).
+
+    A comparison cut at its limit says so. ``remainder`` names where the complete bodies are, for callers whose
+    result holds them; without it nothing beyond the cut is claimed.
+    """
     status = changes.get('status') if isinstance(changes, dict) else None
     if status == 'no_change':
         return ['NO CONFIGURATION CHANGE'] + word_wrap(
@@ -166,7 +173,8 @@ def change_lines(changes, width, before_label='BEFORE (observed)', after_label='
     count = len(changes.get('changes', []))
     lines = word_wrap('%d FIELD CHANGE%s  (exact values; strings are quoted)' % (count, '' if count == 1 else 'S'), width)
     if not changes.get('complete', True):
-        lines += word_wrap('Only the first changes are listed; e typed details and r raw record hold the complete result.', width)
+        lines += word_wrap('Only the first %d changes are listed: the comparison stopped there, and this result holds no list '
+                           'beyond it%s.' % (count, '; ' + remainder if remainder else ''), width)
     rows = _rows(changes.get('changes', []))
     column = (width - LABEL - 2) // 2
     if width >= WIDE:
@@ -413,14 +421,15 @@ def help_lines(width):
         ('Evidence', 'Each view opens as a summary. e shows every field as typed details, r the complete raw engine record, '
                      'Esc returns to the summary.'),
         ('Moving', 'Up and Down choose, Enter selects, PgUp and PgDn scroll, n and p page through long lists, Tab moves '
-                   'to the next surface, / searches, f sets estate filters, b returns to the previous view.'),
+                   'to the next surface, / searches, f sets estate filters, b or :back returns to the previous view.'),
         ('Commands', ': opens the command bar; Enter submits and Esc discards. Every command the engine accepts is in the '
                      'typed details of this page (e).'),
         ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
                     'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
                     'OPERATION_DIR reads the service when an outcome is unknown. Moving around never proposes, approves or executes.'),
         ('Session', 'q exits the workbench; the next start reopens the last read-only view. :clear-selection clears the '
-                    'selected policy.'),
+                    'selected policy. Between commands nothing is running, so :cancel cancels nothing; Ctrl-C stops a '
+                    'running call and ends the session.'),
         ('Context', 'The line under the tabs: the evidence mode, the tenant and the selected policy; OBSERVED fresh '
                     'means the newest complete observation is inside the freshness window and no later collection '
                     'of it failed or is pending; REPOSITORY current means the recorded repository intent still '
@@ -547,6 +556,11 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
     section('TARGETED GROUPS', value.get('groups') or [], lambda row: '%s  %s' % (str(row['group_id'])[:8], ', '.join(
         part for part in ((_users(row['included_by'], 'included by') if row.get('included_by') else ''),
                           (_users(row['excluded_by'], 'excluded by') if row.get('excluded_by') else '')) if part)))
+    broad = value.get('broad_targets') or []
+    if broad:
+        # Targets that name no group, kept apart so they are never read as groups.
+        section('ALL-DEVICE AND ALL-USER TARGETS', broad, lambda row: '%s  %s' % (
+            TARGET_WORDS.get(row.get('target'), safe_text(str(row.get('target')))), _users(row['used_by'], 'targeted by')))
     section('FILTERS', value.get('filters') or [], lambda row: '%s  %s' % (str(row['filter_id'])[:8], _users(row['used_by'], 'used by')))
     section('SCOPE TAGS', value.get('scope_tags') or [], lambda row: '"%s"  %s' % (row['tag'], _users(row['used_by'], 'used by')))
     section('SHARED SETTINGS  (%s distinct in the estate)' % value.get('distinct_settings', 'unknown'),
@@ -554,11 +568,12 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
     lines.extend(['', 'POLICIES'])
     for index, policy in enumerate(value.get('policies') or []):
         found = policy.get('findings') or []
-        text = '%s (%s)  %s, %s, %s, %s | owner %s | %s%s' % (
+        reach = ', '.join('targets ' + TARGET_WORDS.get(target, safe_text(str(target))) for target in policy.get('broad_targets') or [])
+        text = '%s (%s)  %s, %s, %s, %s%s | owner %s | %s%s' % (
             policy.get('name') or '(no name)', str(policy.get('object_id'))[:8],
             _count(policy.get('included_groups', 0), 'group', 'groups'), _count(policy.get('excluded_groups', 0), 'exclusion', 'exclusions'),
             _count(policy.get('filters', 0), 'filter', 'filters'), _count(policy.get('settings', 0), 'setting', 'settings'),
-            policy.get('ownership'), policy.get('freshness'), '' if found else ' | no findings')
+            ', ' + reach if reach else '', policy.get('ownership'), policy.get('freshness'), '' if found else ' | no findings')
         # As in Estate: > is the keyboard focus, * the pinned selection every surface shows.
         mark = ('>' if index == focus else ' ') + ('*' if selected and policy.get('object_id') == selected else ' ') + ' '
         for number, part in enumerate(word_wrap(text, max(1, width - 3))):
@@ -973,8 +988,10 @@ def _event_text(event):
     """What one journal event recorded, from its own fields."""
     fields = event.get('fields') if isinstance(event.get('fields'), dict) else {}
     kind = event.get('kind')
-    if kind in ('prepared', 'dispatch_started'):
-        return 'approval digest ' + str(fields.get('approval_digest'))[:12]
+    if kind == 'prepared':
+        return 'approval will need digest ' + str(fields.get('approval_digest'))[:12]
+    if kind == 'dispatch_started':
+        return 'approved with digest ' + str(fields.get('approval_digest'))[:12]
     if kind == 'engine_result':
         result = fields.get('result') if isinstance(fields.get('result'), dict) else {}
         return 'engine reported %s (%s)' % (result.get('status'), result.get('assurance'))

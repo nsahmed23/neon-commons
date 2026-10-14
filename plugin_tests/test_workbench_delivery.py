@@ -235,6 +235,43 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(reconciled['fields']['classification'], 'desired_state_observed')
         self.assertEqual((value['history']['registrations'], value['history']['paired']), (3, 3))
 
+    def test_dispatch_is_not_established_after_a_lost_response(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        _, stages = self.view()
+        # The modeled service applied the change and lost its answer; no answer is not evidence of no dispatch.
+        self.assertIsNone(stages['execution']['mutation_dispatched'])
+        self.assertFalse(stages['execution']['no_change_dispatch'])
+
+    def test_dispatch_is_true_with_an_answer_and_false_when_nothing_was_sent(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        self.assertIs(self.view()[1]['execution']['mutation_dispatched'], True)
+        # A second proposal whose desired body is what the service now holds: nothing is sent.
+        self.store.collect(self.service)
+        desired = dict(self.store.inspect(OBJECT)['body'])
+        path = self.root / 'same.json'; path.write_text(json.dumps(desired))
+        self.operation = self.root / 'operation-same'
+        same = maintenance.propose(self.store.root, self.service.root, OBJECT, path, self.operation)
+        maintenance.execute(self.operation, approve_digest=same['approval_digest'])
+        execution = self.view()[1]['execution']
+        self.assertEqual((execution['mutation_dispatched'], execution['no_change_dispatch']), (False, True))
+
+    def test_a_receipt_gap_never_replaces_a_surviving_receipt(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        for _ in range(3):
+            maintenance.reconcile(self.operation)
+        (self.operation / 'reconciliation-1.json').unlink()
+        survivor = (self.operation / 'reconciliation-2.json').read_bytes()
+        maintenance.reconcile(self.operation)
+        self.assertEqual((self.operation / 'reconciliation-2.json').read_bytes(), survivor)
+        self.assertTrue((self.operation / 'reconciliation-3.json').exists())
+        self.assertFalse((self.operation / 'reconciliation-1.json').exists())
+
     def test_a_registration_that_does_not_pair_attaches_to_no_event(self):
         from intune_iac.workbench_delivery import _history
         journal = {'operation_id': 'a' * 32, 'plan_sha256': 'b' * 64, 'status': 'prepared',

@@ -150,7 +150,7 @@ class WizardTests(unittest.TestCase):
         self.assertFalse(result["execution_authorized"])
         joined = "\n".join(self.messages)
         self.assertIn("a repository-owned edit of the desired policy", joined)
-        self.assertIn("Conflict [handoff/review/new-path/back/save/restart/cancel]: ", self.prompts)
+        self.assertIn("Conflict [handoff/review/new-path/back/save/restart/cancel (keeps the session)]: ", self.prompts)
         self.assertIn('"Synthetic reference; not production advice."', joined)
         self.assertIn('"Synthetic reference; reviewed repository edit."', joined)
         self.assertIn("workbench repository-import", joined)

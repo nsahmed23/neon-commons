@@ -13,6 +13,7 @@ import fcntl
 import hashlib
 import os
 from pathlib import Path
+import re
 import stat
 from uuid import UUID, uuid4
 
@@ -316,9 +317,14 @@ def _readback(root, plan, *, kind):
                         'changes': desired_mismatches, 'evidence_class': 'modeled_semantic_comparison_only'},
         'evidence_class': EVIDENCE, 'replay_authorized': False, 'cloud_authority': False,
         'native_provider_qualified': False}
-    # Keep previous reconciliation and failure receipts, including negative ones.
-    number = len(list(root.glob(kind + '-*.json')))
-    write_json(root / (kind + '-' + str(number) + '.json'), result)
+    # Keep previous reconciliation and failure receipts, including negative ones. Numbering follows the highest
+    # existing receipt, not the count, so a missing receipt never makes the next one replace a surviving one.
+    numbers = [int(match.group(1)) for match in (re.fullmatch(re.escape(kind) + r'-([0-9]+)\.json', path.name)
+                                                 for path in root.glob(kind + '-*.json')) if match]
+    destination = root / (kind + '-' + str(max(numbers) + 1 if numbers else 0) + '.json')
+    if destination.exists():
+        _fail('maintenance_receipt_exists')
+    write_json(destination, result)
     return result
 
 

@@ -679,7 +679,9 @@ class _WizardSession:
         if step == "conflict" and self.state["conflict_reason"] == "repository_owned_edit":
             prompt = "Conflict [handoff/review/new-path/back/save/cancel]: "
         # restart is a real route from every screen: it keeps the previous session and touches no file.
-        return prompt.replace("save/cancel]", "save/restart/cancel]")
+        prompt = prompt.replace("save/cancel]", "save/restart/cancel]")
+        # At a conflict, cancel suspends: the session is kept for review, so the prompt says so.
+        return prompt.replace("cancel]", "cancel (keeps the session)]") if step == "conflict" else prompt
 
     def dispatch(self, step, answer, choices):
         command, _, argument = answer.partition(" ")

@@ -844,7 +844,10 @@ class Workspace:
             from .workbench_screens import change_lines
             if isinstance(value.get('field_changes'), dict):
                 rows.append('[CHANGE REVIEW]')
-                rows.extend(change_lines(value['field_changes'], width))
+                # The review result carries both full bodies, so a cut change list can say where the rest is.
+                whole = isinstance(value.get('before'), dict) and isinstance(value.get('desired'), dict)
+                rows.extend(change_lines(value['field_changes'], width, remainder=(
+                    'the complete before and desired bodies are in e typed details and r raw record' if whole else None)))
                 if isinstance(value.get('changes'), list):
                     field('Plan changes', ', '.join(map(str, value['changes'])) or 'none')
                 repository = value.get('repository')
@@ -1091,6 +1094,17 @@ class Workspace:
             return []
         return [item for item in value.get('candidates') or [] if isinstance(item, dict)]
 
+    def _back(self):
+        """The previous read-only view of this session, or a notice that there is none; never a change."""
+        if getattr(self, 'trail', []):
+            tab, command = self.trail[-1]
+            self.trail = self.trail[:-1]
+            self.tab = tab
+            return self._send(command, returning=True)
+        self.notice = 'Nothing to go back to in this session.'
+        self.draw()
+        return None
+
     def _send(self, command, *, returning=False):
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
@@ -1204,6 +1218,18 @@ class Workspace:
                             parts[2] = '0'; parts[3] = command or '-'
                             command = ' '.join(shlex.quote(part) for part in parts)
                         else: command = 'search ' + shlex.quote(command)
+                    if self.mode == 'command' and command.strip() in ('back', 'cancel'):
+                        # In the workspace these words mean what they say: back is b; between commands there is
+                        # nothing running to cancel. The text interface keeps its own meaning for both.
+                        self.mode = None; self.buffer = ''; self.cursor = 0
+                        if command.strip() == 'back':
+                            sent = self._back()
+                            if sent is not None: return sent
+                            continue
+                        self.notice = ('Nothing is running to cancel. Esc discards a command being typed; Ctrl-C stops a '
+                                       'running call and ends the session; :clear-selection clears the selected policy.')
+                        self.draw()
+                        continue
                     if command.strip(): return self._send(command)
                     self.mode = None
                 elif key == 'backspace' and self.cursor:
@@ -1266,12 +1292,9 @@ class Workspace:
                 elif char == 'n': return self._send('next')
                 elif char == 'p': return self._send('previous')
                 elif char == 'b':
-                    if getattr(self, 'trail', []):
-                        tab, command = self.trail[-1]
-                        self.trail = self.trail[:-1]
-                        self.tab = tab
-                        return self._send(command, returning=True)
-                    self.notice = 'Nothing to go back to in this session.'
+                    # With nothing to go back to, _back only sets the notice; the loop keeps reading keys.
+                    sent = self._back()
+                    if sent is not None: return sent
                 elif char == 'h': return self._send('health')
                 elif char == 'd': return self._send('dictionary')
                 elif char == 'm': return self._send('queue')

@@ -70,9 +70,13 @@ def _execution(journal, times):
     uncertain = _events(journal, 'uncertain')
     result = engine[-1].get('result') if engine and isinstance(engine[-1].get('result'), dict) else {}
     response = responses[-1].get('response') if responses and isinstance(responses[-1].get('response'), dict) else {}
+    no_change = bool(_events(journal, 'service_no_change'))
+    # A recorded service answer shows the change was sent; a recorded no-change shows nothing was. Otherwise, after
+    # dispatch started (a lost response, an interrupt), whether the change reached the service is not established.
+    dispatched = True if responses else False if no_change else None
     return {'stage': 'execution', 'status': 'done' if _events(journal, 'verified') else 'unknown',
             'engine_status': result.get('status'), 'service_status': response.get('status'),
-            'mutation_dispatched': bool(responses), 'no_change_dispatch': bool(_events(journal, 'service_no_change')),
+            'mutation_dispatched': dispatched, 'no_change_dispatch': no_change,
             'error_code': uncertain[-1].get('error_code') if uncertain else None,
             'recorded_at': times.get('succeeded_verified') or times.get('outcome_unknown')}
 
