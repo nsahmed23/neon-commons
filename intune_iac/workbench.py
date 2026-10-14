@@ -548,6 +548,13 @@ def _render(value, output_fn):
             output_fn(part)
 
 
+# What an interrupt means and what to do next. The workspace clears its frame when it restores the terminal, so the
+# returned result carries this too, not only the result drawn before it.
+INTERRUPTED_RECOVERY = ('Other processes, such as a scheduled collector, were not stopped. diagnostics names anything this '
+                        'interrupt left unfinished, such as a collection with no end or an execution whose outcome is '
+                        'unknown; reconcile before retrying any uncertain execution.')
+
+
 def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, _store_capability=None):
     """Retain interrupt intent even when a native callback translates its exception.
 
@@ -579,12 +586,12 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, resu
         return _run_terminal(root, service_root=service_root, input_fn=input_fn,
                              output_fn=output_fn, result_fn=result_fn, interrupt_check=check_interrupt, _store_capability=_store_capability)
     except KeyboardInterrupt:
-        value = {'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'}
+        value = {'status': 'interrupted', 'recovery': INTERRUPTED_RECOVERY}
         if result_fn is None:
             _render(value, print if output_fn is None else output_fn)
         else:
             result_fn(value)
-        return {'status': 'interrupted', 'evidence_class': 'local_interface_result'}
+        return {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'recovery': INTERRUPTED_RECOVERY}
     finally:
         if installed:
             signal.signal(signal.SIGINT, previous)
@@ -869,8 +876,8 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         except EOFError:
             return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
         except KeyboardInterrupt:
-            present({'status': 'interrupted', 'recovery': 'Inspect persisted operations and reconcile before retrying any uncertain execution.'})
-            return {'status': 'interrupted', 'evidence_class': 'local_interface_result'}
+            present({'status': 'interrupted', 'recovery': INTERRUPTED_RECOVERY})
+            return {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'recovery': INTERRUPTED_RECOVERY}
         except AppError as error:
             present({'status': 'error', 'error': {'code': error.code, 'message': error.message}})
         except (ValueError, TypeError, KeyError, OSError):

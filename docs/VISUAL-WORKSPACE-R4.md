@@ -55,6 +55,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | ? | Help: the one reference for keys and commands |
 | :clear-selection | Clear the selected policy (the engine words `back` and `cancel` do the same in the text interface; nothing else is undone or cancelled) |
 | q | Exit the workbench; the next start reopens the last read-only view. Durable operations and independently scheduled collection are not touched |
+| Ctrl-C | Stops a running engine call and ends the workspace (status `interrupted`, exit 2). The result printed after the terminal is restored says what to check: diagnostics names anything the interrupt left unfinished; other processes, such as a scheduled collector, are not stopped. The next start reopens the last read-only view |
 
 Global filters use the same engine before pagination, not a filter on the currently visible page:
 

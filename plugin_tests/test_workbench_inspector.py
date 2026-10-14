@@ -46,6 +46,18 @@ class InspectorReadModelTests(unittest.TestCase):
         self.assertEqual(value['next_actions'][0]['source'], 'collection_failed')
         self.assertIn('Collect again', value['next_actions'][0]['step'])
 
+    def test_an_interrupt_returns_its_recovery_guidance_not_only_draws_it(self):
+        # The workspace's frame is cleared when the terminal is restored; the returned result is what stays on screen.
+        from intune_iac.workbench import run_terminal
+        def interrupt(prompt):
+            raise KeyboardInterrupt
+        shown = []
+        value = run_terminal(self.store.root, input_fn=interrupt, result_fn=shown.append)
+        self.assertEqual(value['status'], 'interrupted')
+        self.assertIn('diagnostics names anything this interrupt left unfinished', value['recovery'])
+        self.assertIn('were not stopped', value['recovery'])
+        self.assertEqual(shown[-1]['recovery'], value['recovery'])
+
     def test_the_inspection_without_attention_is_unchanged(self):
         from intune_iac.workbench import _inspection
         plain = _inspection(self.store, OBJECT)
