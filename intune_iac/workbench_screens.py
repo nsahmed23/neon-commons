@@ -1675,6 +1675,39 @@ def families_lines(value, width):
 # What a refusal means and the next step, for the codes an engineer meets in ordinary work.
 # Unknown codes show only the engine's own message; nothing is guessed.
 REFUSALS = {
+    'workbench_deployment_intent': (
+        'The intent given is not exactly one repository intent recorded in this store.',
+        "Use the intent this operation's plan cites: v Delivery names it, and a lists the record with it."),
+    'workbench_deployment_identity': (
+        'The operation was prepared from another store or tenant, or the intent is for another policy.',
+        'Record the deployment in the store that prepared the operation, with the intent for the same policy '
+        '(v Delivery names it).'),
+    'workbench_deployment_intent_not_cited': (
+        "The intent given is not the one this operation's plan cites.",
+        'Record it with the intent it cites (the message above and v Delivery name it; a lists the record with it).'),
+    'workbench_deployment_unverified': (
+        "The operation was not verified by exactly one readback of its own, or the intent's desired policy is not "
+        'the one this operation applied.',
+        'Use the intent the operation cites (v Delivery names it). An operation whose own readback was never '
+        'verified cannot be recorded; collect to observe the policy instead.'),
+    'workbench_deployment_context_missing': (
+        "The operation's plan bound no context, so it cites no repository intent.",
+        'Only a proposal prepared from a repository intent (a: Prepare a proposal from the recorded intent) can '
+        'become a deployment record.'),
+    'workbench_deployment_context_mismatch': (
+        'The context file the plan bound has changed since, or it does not cite this intent, scope or tenant.',
+        'Use the intent the plan cites; if its context file changed, prepare a new proposal from the current '
+        'intent.'),
+    'workbench_deployment_engine_receipt': (
+        "The engine's receipt for this operation is missing, not verified, or not for this operation's request.",
+        'Open v Delivery for the operation; a record needs the engine receipt the execution wrote.'),
+    'workbench_deployment_readback': (
+        'No single readback of this operation matches its verified event with the desired state observed, no '
+        'pending visibility and a no-change second plan.',
+        'Reconcile reads the service again (a lists it); a record needs the operation\'s own verified readback.'),
+    'workbench_deployment_limit': (
+        'The operation directory holds more readbacks than the record reads (100).',
+        'Inspect the operation directory; nothing was recorded.'),
     'workbench_repository_intent_missing': (
         'No repository intent was recorded for this policy. Inspection, relationships, history, health and diagnostics '
         'work without one.',

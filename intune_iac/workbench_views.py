@@ -323,6 +323,15 @@ def _local_proof(store,operation,intent):
     from . import maintenance,protected
     root,plan,journal,desired,request=maintenance._load(operation)
     if str(store.root)!=plan['store_root'] or store.tenant_id!=plan['tenant_id'] or intent['data']['target_object_id']!=plan['object_id']:_fail('workbench_deployment_identity')
+    try:
+        cited=maintenance._bound_context(plan)
+    except AppError as error:
+        if error.code!='maintenance_source_changed':raise
+        cited=None  # A changed context file is refused below with workbench_deployment_context_mismatch.
+    if isinstance(cited,dict) and isinstance(cited.get('repository_intent_id'),str) and cited['repository_intent_id']!=intent['artifact_id']:
+        # Name the intent this operation cites, so the engineer can record it with the right one.
+        raise AppError('workbench_deployment_intent_not_cited','This operation cites repository intent %s, not the '
+                       'intent given; record the deployment with the intent it cites.'%cited['repository_intent_id'])
     if journal['status'] not in ('succeeded_verified','reconciled') or semantics.compare(intent['data']['desired'],desired)['status']!='equal':_fail('workbench_deployment_unverified')
     context_binding=plan.get('context')
     if type(context_binding) is not dict:_fail('workbench_deployment_context_missing')

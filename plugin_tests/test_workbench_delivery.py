@@ -117,6 +117,29 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual((stages['deployment_record']['status'], stages['deployment_record']['intent_id']),
                          ('done', self.intent['artifact_id']))
 
+    def test_a_record_with_another_intent_names_the_one_the_operation_cites(self):
+        # Journey 25: the wrong intent read only 'evidence is missing, changed, unsupported...'.
+        from intune_iac import maintenance
+        from intune_iac.io import AppError
+        from intune_iac.workbench_views import record_local_deployment
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        older = [row for row in self.store.artifacts(kind='repository_intent')
+                 if row['artifact_id'] != self.intent['artifact_id']][0]
+        with self.assertRaises(AppError) as raised:
+            record_local_deployment(self.store, self.operation, older['artifact_id'])
+        self.assertEqual(raised.exception.code, 'workbench_deployment_intent_not_cited')
+        self.assertIn(self.intent['artifact_id'], raised.exception.message)
+        _, stages = self.view()
+        self.assertEqual(stages['deployment_record']['status'], 'available')  # nothing was recorded
+
+    def test_every_record_refusal_has_its_meaning_and_next_step(self):
+        from intune_iac.workbench_screens import REFUSALS, refusal_lines
+        for code in ('workbench_deployment_intent', 'workbench_deployment_identity', 'workbench_deployment_intent_not_cited', 'workbench_deployment_unverified', 'workbench_deployment_context_missing', 'workbench_deployment_context_mismatch', 'workbench_deployment_engine_receipt', 'workbench_deployment_readback', 'workbench_deployment_limit'):
+            self.assertIn(code, REFUSALS)
+            text = ' '.join(refusal_lines({'status': 'error', 'error': {'code': code, 'message': 'x'}}, 120))
+            self.assertIn('Next:', text)
+
     def test_imported_workflow_runs_appear_as_inert_delivery_evidence(self):
         from intune_iac.workbench_health import import_workflow_run
         review = self.prepare()
