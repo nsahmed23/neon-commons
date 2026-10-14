@@ -430,8 +430,9 @@ class ActionStagingTests(unittest.TestCase):
         self.assertEqual(workspace.buffer, 'repository-refresh  ' + 'c' * 64)
         self.assertEqual(workspace.cursor, len('repository-refresh '))
         self.assertIn('difference', workspace.notice)
-        self.assertTrue(workspace.notice.startswith('STAGED Record the current source: type the REVISION at the cursor;'),
-                        workspace.notice)
+        self.assertTrue(workspace.notice.startswith('STAGED refresh: type the REVISION at the cursor; Enter records this '
+                                                    'difference; Esc discards.'), workspace.notice)
+        self.assertLessEqual(len(workspace.notice.split(' Not a commit')[0]), 100)
 
     def test_a_staged_action_never_follows_a_changed_evidence_mode(self):
         workspace = self.workspace()
@@ -475,8 +476,7 @@ class ActionStagingTests(unittest.TestCase):
         self.assertEqual(workspace.buffer, 'reconcile /work/op')
         self.assertIn('never replays', workspace.notice)
         # The instruction leads, so a narrow footer still shows how to submit and discard.
-        self.assertTrue(workspace.notice.startswith('STAGED Reconcile operation 651a8ce8: Enter submits, Esc discards.'),
-                        workspace.notice)
+        self.assertTrue(workspace.notice.startswith('STAGED reconcile: Enter submits, Esc discards.'), workspace.notice)
 
     def test_a_blocked_action_cannot_be_staged(self):
         workspace = self.workspace()

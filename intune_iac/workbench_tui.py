@@ -153,6 +153,10 @@ WIDE = 150
 # The documented minimum window (columns, rows): the hazard's shortest wording, its response and the whole short
 # identities fit. Below it a constrained state shows the session, the hazard and the prompt, never the body.
 MIN_SIZE = (40, 12)
+# Short names for a staged action, so its instruction fits beside it; the full label stays in the action list.
+STAGED_NAMES = {'reconcile': 'reconcile', 'collect': 'collect', 'repository-refresh': 'refresh',
+                'propose-from-intent': 'proposal', 'propose': 'proposal', 'repository-entry': 'repository survey',
+                'diagnostics': 'diagnostics'}
 # The longest that fits is shown, so narrow terminals get every key and no cut-off word.
 HELP_LINES = ('? help | a actions | : command | / search | e details | r raw record | b back | q exit',
               '? help | : command | / search | e details | r raw record | b back | q exit',
@@ -1259,8 +1263,8 @@ class Workspace:
         needs = [str(need).split(':')[0] for need in action.get('needs') or []]
         # The instruction leads, so a narrow footer still shows how to submit and discard; the effects follow.
         self.notice = 'STAGED %s: %s%s submits, Esc discards. %s' % (
-            action.get('label'), 'type the %s at the cursor; ' % ' and '.join(needs) if needs else '', self._submit_word(),
-            action.get('effects'))
+            STAGED_NAMES.get(action.get('kind'), action.get('kind')),
+            'type the %s at the cursor; ' % ' and '.join(needs) if needs else '', self._submit_word(), action.get('effects'))
         return None
 
     def _stage_after_difference(self, action, value):
@@ -1280,8 +1284,8 @@ class Workspace:
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
         self.staged = {'kind': action.get('kind'), 'label': action.get('label'),
                        'binding': dict(action.get('binding') or {}, resolution_sha256=shown)}
-        self.notice = ('STAGED %s: type the REVISION at the cursor; %s records the difference shown above (not a commit, '
-                       'approval or apply); Esc discards.' % (action.get('label'), self._submit_word()))
+        self.notice = ('STAGED refresh: type the REVISION at the cursor; %s records this difference; Esc discards. Not a '
+                       'commit, an approval or an apply.' % self._submit_word())
 
     def _submit_word(self):
         return 'Enter' if getattr(self, 'submission_key', 'enter') == 'enter' else 'Ctrl+Enter'
