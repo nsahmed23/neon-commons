@@ -81,6 +81,43 @@ class RefusalEffectTests(unittest.TestCase):
         error = self.refused(lambda: record_local_deployment(self.store, self.root / 'missing-operation', 'f' * 64))
         self.assertEqual(error.effects, {'deployment_recorded': False})
 
+    def executed(self, **kw):
+        from intune_iac import maintenance
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        self.import_intent()
+        self.edit_description('Edited.')
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        operation = self.root / 'operation'
+        review = propose_from_intent(self.store.root, self.service.root, OBJECT, operation)
+        return operation, maintenance.execute(operation, approve_digest=review['approval_digest'], **kw)
+
+    def test_execution_and_reconcile_state_their_effect(self):
+        from intune_iac import maintenance
+        operation, result = self.executed(fault='lost-response')
+        self.assertEqual(result['status'], 'outcome_unknown')
+        self.assertEqual(result['effects'], {'dispatched': True, 'service_change': 'unknown'})
+        reconciled = maintenance.reconcile(operation)
+        self.assertEqual(reconciled['effects'], {'replayed': False})
+
+    def test_a_verified_execution_says_the_change_was_observed(self):
+        _, result = self.executed()
+        self.assertEqual(result['effects'], {'dispatched': True, 'service_change': 'observed_as_desired'})
+
+    def test_the_execution_surface_words_the_effect(self):
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self)
+        workspace.tab = 5
+        workspace.value = {'operation_id': 'a' * 32, 'status': 'outcome_unknown', 'error_code': 'model_response_lost',
+                           'evidence_class': 'synthetic_local_process_and_modeled_service_only',
+                           'effects': {'dispatched': True, 'service_change': 'unknown'}}
+        text = ' '.join(' '.join(workspace._summary_lines(118)).split())
+        self.assertIn('[EXECUTION RESULT]', text)
+        self.assertIn('Status: outcome unknown', text)
+        self.assertIn('Effect: Dispatch started; whether the service applied the change is unknown '
+                      '(model_response_lost). Reconcile checks it without repeating the change.', text)
+        self.assertNotIn('[CHECKS / JOURNAL / RESULT]', text)
+        self.assertEqual(text.count('Next:'), 1)  # the lifecycle line's next step, not a second generic one
+
     def test_the_words_follow_the_facts(self):
         from intune_iac.workbench_screens import effect_lines, refusal_lines
         text = ' '.join(effect_lines({'intent_recorded': False, 'retained_intent': 'a' * 64}, 120))

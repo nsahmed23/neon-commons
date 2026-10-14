@@ -454,8 +454,10 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
         journal['status'] = 'outcome_unknown'
         progress['dispatched'] = True
         _event(root, journal, 'dispatch_started', approval_digest=approve_digest)
+        # From here dispatch has started: until a verified readback says otherwise, the service change is unknown.
         result = {'operation_id': plan['operation_id'], 'status': 'outcome_unknown',
-            'evidence_class': EVIDENCE, 'cloud_authority': False, 'native_provider_qualified': False}
+            'evidence_class': EVIDENCE, 'cloud_authority': False, 'native_provider_qualified': False,
+            'effects': {'dispatched': True, 'service_change': 'unknown'}}
         try:
             engine_result = protected.execute_native_operation(request, root / 'engine-receipts', executor=executor, approval=approval)
             _event(root, journal, 'engine_result', result=engine_result)
@@ -477,7 +479,9 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
                 _fail('maintenance_readback_mismatch')
             journal['status'] = 'succeeded_verified'
             _event(root, journal, 'verified', readback_sha256=digest(readback))
-            result.update(status='succeeded_verified', readback=readback)
+            result.update(status='succeeded_verified', readback=readback,
+                          effects={'dispatched': True,
+                                   'service_change': 'observed_as_desired' if plan['changes'] else 'no_change_needed'})
         except Exception as error:
             journal['status'] = 'outcome_unknown'
             _event(root, journal, 'uncertain', error_code=getattr(error, 'code', 'maintenance_execution_failed'))
@@ -502,6 +506,8 @@ def reconcile(operation_root):
             journal['status'] = 'reconciled'
         # The status the journal is left in, so a reader need not infer it from the classification.
         result['journal_status'] = journal['status']
+        # Reconcile only reads the service and records what it found; it has no path that sends the change again.
+        result['effects'] = {'replayed': False}
         _event(root, journal, 'reconciled', classification=result['classification'], previous_status=previous_status,
                visibility=result['visibility'])
         _register(root, plan, journal)

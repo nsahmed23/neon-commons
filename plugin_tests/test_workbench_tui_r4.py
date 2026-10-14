@@ -216,7 +216,7 @@ class VisualPTYTests(unittest.TestCase):
         self.assertEqual(service_before_pane['current']['objects'], expected)
         self.key(b'4')
         self.key(b'6', marker=b'LAST RESULT:')
-        self.assertIn(b'[EXECUTION AND RECOVERY]', self.output)
+        self.assertIn(b'[EXECUTION RESULT]', self.output)
         self.assertEqual(ModeledService(self.service).snapshot(), service_before_pane)
         self.close_visual()
         context = json.loads((self.store.root / 'workspace-context.json').read_text())

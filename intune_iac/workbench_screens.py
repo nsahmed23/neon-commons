@@ -1885,6 +1885,26 @@ def effect_lines(effects, width):
     return word_wrap('Effect: ' + ' '.join(said), width) if said else []
 
 
+EXECUTION_EFFECTS = {
+    'unknown': 'Dispatch started; whether the service applied the change is unknown%s. Reconcile checks it without '
+               'repeating the change.',
+    'observed_as_desired': 'The service applied the change, and an independent readback observed the desired state.',
+    'no_change_needed': 'No service change was needed or sent; the readback observed the desired state.'}
+
+
+def execution_effect_lines(result, width):
+    """What an execution or a reconcile established about the service, from the result's own effects."""
+    effects = result.get('effects') if isinstance(result.get('effects'), dict) else {}
+    change = effects.get('service_change')
+    if change in EXECUTION_EFFECTS:
+        error = result.get('error_code')
+        text = EXECUTION_EFFECTS[change] % (' (%s)' % error if error else '') if change == 'unknown' else EXECUTION_EFFECTS[change]
+        return word_wrap('Effect: ' + text, width)
+    if effects.get('replayed') is False:
+        return word_wrap('Effect: Reconcile read the service and recorded what it found; it did not repeat the change.', width)
+    return []
+
+
 def refusal_lines(value, width, known=None):
     """A refusal: the engine's code and message, then what it means and the next step when the code is known.
 

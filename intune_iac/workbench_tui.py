@@ -1023,24 +1023,24 @@ class Workspace:
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
-            rows.append('[EXECUTION AND RECOVERY]')
-            field('Observation scope', value.get('display_scope', 'current engine result'))
+            from .workbench_screens import execution_effect_lines
+            rows.append('[EXECUTION RESULT]')
             if isinstance(result, dict):
                 readback = result.get('readback') if isinstance(result.get('readback'), dict) else {}
                 error = result.get('error') if isinstance(result.get('error'), dict) else {}
                 field('Operation', result.get('operation_id', 'unknown'))
                 if 'status' not in result and isinstance(result.get('journal_status'), str):
                     # Reconcile reports the journal status it left and the one it found.
-                    field('Journal', '%s (was %s)' % (result['journal_status'], result.get('previous_status', 'not recorded')))
+                    field('Journal', '%s (was %s)' % (str(result['journal_status']).replace('_', ' '),
+                                                      str(result.get('previous_status', 'not recorded')).replace('_', ' ')))
                 else:
-                    field('Status', result.get('status', 'unknown'))
+                    field('Status', str(result.get('status', 'unknown')).replace('_', ' '))
+                rows.extend(execution_effect_lines(result, width))
                 # Execute nests its independent readback; reconcile returns it at the top level.
-                field('Readback', result.get('classification') or readback.get('classification') or 'not recorded')
+                field('Readback', str(result.get('classification') or readback.get('classification') or 'not recorded').replace('_', ' '))
                 field('Error', result.get('error_code') or error.get('code') or 'none recorded')
-                field('Evidence class', result.get('evidence_class', 'unknown'))
-            rows.extend(word_wrap('Next: inspect durable receipts; explicitly reconcile uncertain outcomes. No automatic replay or approval.', width))
-            rows.extend(word_wrap('v shows every delivery stage of this operation.', width))
-            rows.append('[CHECKS / JOURNAL / RESULT]')
+                field('Evidence', str(result.get('evidence_class', 'unknown')).replace('_', ' '))
+            # The lifecycle line below gives the next step for this state; v shows every delivery stage.
         elif self.tab == 6 and ('collection_health' in value or isinstance(value.get('stages'), dict)):
             from .workbench_screens import health_lines
             # A single-policy health result carries no name; use the one already read for that exact identity.
