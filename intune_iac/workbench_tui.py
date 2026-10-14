@@ -748,6 +748,8 @@ class Workspace:
             facts['actions'] = [action for action in value['actions'] if isinstance(action, dict)]
         if value.get('object_id') == self.selected and isinstance(attention.get('signals'), list):
             facts.pop('unverified', None)  # a read that answered
+        if value.get('object_id') == self.selected and isinstance(value.get('states'), dict):
+            facts['states'] = value['states']
         if value.get('object_id') == self.selected and 'observation_eligibility' in value:
             if isinstance(value['observation_eligibility'], dict): facts['eligibility'] = value['observation_eligibility']
             else: facts.pop('eligibility', None)
@@ -783,6 +785,11 @@ class Workspace:
         from .workbench_screens import word_wrap
         value = self.value
         rows = []
+        if self._states_here(value):
+            # The same three states as the Inspector, from the last read of this policy, before the surface's own detail.
+            from .workbench_screens import state_lines
+            rows.extend(state_lines(self.facts['states'], width, 'STATE (from the last read of this policy)')[1:])
+            rows.append('')
         def field(label, item):
             # Absent and yes/no values read as words; the exact record below keeps the literal.
             rendered = ('not recorded' if item is None else ('yes' if item else 'no') if isinstance(item, bool) else item
@@ -1210,6 +1217,16 @@ class Workspace:
             painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else line for i, line in enumerate(frame)]
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
+
+    def _states_here(self, value):
+        """Whether this surface shows the selected policy's states: the Repository status and the Plan review."""
+        facts = getattr(self, 'facts', None) or {}
+        if not self.selected or facts.get('object_id') != self.selected or not isinstance(facts.get('states'), dict):
+            return False
+        if value.get('status') == 'error':
+            return False
+        return ((self.tab == 8 and value.get('schema_version') == 'workbench-repository-status/1')
+                or (self.tab == 4 and bool(value.get('operation_id')) and value.get('object_id') in (None, self.selected)))
 
     def _overview_policies(self):
         """Policies listed by the estate overview on the Estate surface; empty elsewhere."""

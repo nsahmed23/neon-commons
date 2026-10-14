@@ -95,7 +95,7 @@ class StateRenderingTests(unittest.TestCase):
         self.assertIn('(content verified); the repository changed since its recorded intent: changed '
                       'stacks/orgs/reference/dev.yaml', text)
         self.assertIn('Operation', text)
-        self.assertIn('4d972e93 reconciled; readback desired_state_observed', text)
+        self.assertIn('4d972e93 reconciled; readback desired state observed', text)
 
     def test_the_summary_states_times_to_the_second_with_their_zone(self):
         text = self.lines()
@@ -119,6 +119,50 @@ class StateRenderingTests(unittest.TestCase):
         self.assertEqual(readable_time('2026-10-14T19:55:52+00:00'), '2026-10-14 19:55:52 UTC')
         self.assertEqual(readable_time('not a time'), 'not a time')
         self.assertIsNone(readable_time(None))
+
+
+class StateSurfaceTests(unittest.TestCase):
+    """The Repository and Plan surfaces show the same states, from the last read of the policy, labelled as such."""
+    def workspace(self, tab, value):
+        from collections import deque
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(
+            tab=tab, value=value, selected=OBJECT, facts={'object_id': OBJECT, 'states': StateRenderingTests.STATES},
+            scroll=0, mode=None, buffer='', cursor=0, notice='', last_command='', layer='summary', trail=[],
+            store=type('S', (), {'tenant_id': TENANT})(), staged=None, quiet=None, pending=deque(), rows=[],
+            operation_rows=[], active_operation=None, execution_result=None, active_service=None, active_adoption=None,
+            active_adoption_plan=None, size=(120, 40), _detail_cache=None)
+        return workspace
+
+    def summary(self, workspace):
+        return ' '.join(' '.join(workspace._surface_summary(118)).split())
+
+    def test_the_repository_surface_shows_the_states(self):
+        value = {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                 'freshness': {'status': 'stale', 'sources': {'added': [], 'removed': [], 'changed': ['a.yaml']}}}
+        text = self.summary(self.workspace(8, value))
+        self.assertIn('STATE (from the last read of this policy)', text)
+        self.assertIn('Observation', text)
+        self.assertIn('Operation 4d972e93 reconciled', text)
+
+    def test_the_plan_surface_shows_the_states(self):
+        value = {'operation_id': '4d972e93' + 'a' * 24, 'object_id': OBJECT, 'status': 'prepared',
+                 'tenant_id': TENANT, 'approval_digest': 'd' * 64, 'expires_at': 1792005916}
+        text = self.summary(self.workspace(4, value))
+        self.assertIn('STATE (from the last read of this policy)', text)
+        self.assertIn('Intent e9274102', text)
+
+    def test_other_surfaces_do_not_repeat_them(self):
+        text = self.summary(self.workspace(3, {'object_id': OBJECT, 'history': []}))
+        self.assertNotIn('STATE (from the last read', text)
+
+    def test_status_words_read_as_words(self):
+        from intune_iac.workbench_screens import state_lines
+        states = dict(StateRenderingTests.STATES, operation={'operation_id': '5f18aadb' + 'b' * 24, 'status': 'outcome_unknown',
+                                                             'journal_status': 'outcome_unknown', 'classification': None})
+        text = ' '.join(' '.join(state_lines(states, 160)).split())
+        self.assertIn('5f18aadb outcome unknown', text)
 
 
 if __name__ == '__main__':

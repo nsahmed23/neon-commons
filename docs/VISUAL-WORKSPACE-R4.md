@@ -237,7 +237,7 @@ Under the policy's identity, the Inspector shows three states, each from its own
 - **Intent:** the recorded repository intent (its id, stack and component, revision, whether that revision was verified against the files) and whether the repository still matches it, with the changed file when diagnostics recorded one; or `none recorded` with the command that finds where the policy is maintained.
 - **Operation:** the policy's newest operation as its journal says (with the store's record when the two differ) and its readback when reconciled; or `none recorded for this policy`.
 
-Summaries give times to the second with their zone (`2026-10-14 19:55:52 UTC`); the exact values stay in the typed details (`e`) and the raw record (`r`). The `Managed` line then states only ownership, since the intent has its own line.
+Summaries give times to the second with their zone (`2026-10-14 19:55:52 UTC`); the exact values stay in the typed details (`e`) and the raw record (`r`). The `Managed` line then states only ownership, since the intent has its own line. The Repository status and the Plan review open with the same three states, from the last read of the policy and labelled so; status words read as words (`outcome unknown`).
 
 ## Guided actions
 

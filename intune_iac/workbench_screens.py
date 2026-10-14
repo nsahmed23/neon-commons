@@ -300,7 +300,7 @@ INTENT_STATE_WORDS = {'current': 'current with the repository', 'changed': 'the 
                       'unreadable': 'the repository cannot be read now', 'not_checked': 'not checked'}
 
 
-def state_lines(states, width):
+def state_lines(states, width, heading='STATE'):
     """Observation, repository intent and the newest operation, each its own line, from the read model's states."""
     observation = states.get('observation') if isinstance(states.get('observation'), dict) else {}
     source = [evidence_words(observation.get('evidence_class'))]
@@ -317,7 +317,7 @@ def state_lines(states, width):
     eligibility = observation.get('eligibility') if isinstance(observation.get('eligibility'), dict) else {}
     if eligibility.get('reason') in ELIGIBILITY_STATE_WORDS:
         parts.append(ELIGIBILITY_STATE_WORDS[eligibility['reason']] % eligibility)
-    lines = ['', 'STATE'] + _labelled('  Observation', '; '.join(parts), width, 15)
+    lines = ['', heading] + _labelled('  Observation', '; '.join(parts), width, 15)
     intent = states.get('intent') if isinstance(states.get('intent'), dict) else {}
     if intent.get('status') in (None, 'none'):
         text = 'none recorded; repository-entry REPOSITORY finds where this policy is maintained'
@@ -336,15 +336,20 @@ def state_lines(states, width):
         text = 'none recorded for this policy'
     else:
         journal, recorded = operation.get('journal_status'), operation.get('status')
-        text = '%s %s' % (short_id(operation.get('operation_id')), journal or recorded or 'status not recorded')
+        # Status words read as words; the exact values stay in the typed details and the raw record.
+        text = '%s %s' % (short_id(operation.get('operation_id')), _as_words(journal or recorded or 'status not recorded'))
         if journal and recorded and journal != recorded:
-            text += ' (the store records %s)' % recorded
+            text += ' (the store records %s)' % _as_words(recorded)
         if operation.get('classification'):
-            text += '; readback %s' % operation['classification']
+            text += '; readback %s' % _as_words(operation['classification'])
         if operation.get('recorded_at'):
             text += '; recorded %s' % readable_time(operation['recorded_at'])
     lines += _labelled('  Operation', text, width, 15)
     return lines
+
+
+def _as_words(value):
+    return str(value).replace('_', ' ')
 
 
 def _clause(text):
