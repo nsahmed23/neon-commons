@@ -277,6 +277,62 @@ class ViewsR4Tests(unittest.TestCase):
         self.assertEqual(out['deployment']['evidence_class'],'verified_local_modeled_deployment')
         self.assertFalse(out['deployment']['platform_qualified'])
 
+    def propose_citing(self, intent, desired, name, scope=None, object_id=None):
+        from intune_iac import maintenance
+        path=self.root/(name+'-desired.json');write_json(path,desired);context=self.root/(name+'-context.json')
+        write_json(context,{'tenant_id':self.tenant,'cloud':'public','repository_intent_id':intent['artifact_id'],'scope':scope or self.scope})
+        return maintenance.propose(self.store.root,self.service.root,object_id or self.oid,path,self.root/name,context_path=context)
+
+    def test_proposal_rejects_desired_body_that_contradicts_cited_intent(self):
+        original=self.intent();edited=dict(self.body,description='Repository edit under review')
+        self.save_source(edited);changed=self.intent()
+        for name,intent,desired in (('edited-intent',changed,self.body),('original-intent',original,edited)):
+            with self.subTest(name=name):
+                with self.assertRaises(AppError) as caught:self.propose_citing(intent,desired,name)
+                self.assertEqual(caught.exception.code,'maintenance_desired_intent_mismatch')
+                self.assertIn('description',caught.exception.message)
+                self.assertFalse((self.root/name).exists())
+        self.assertEqual(self.store.operations(object_id=self.oid),[])
+
+    def test_proposal_matching_cited_intent_keeps_change_and_no_change_reviewable(self):
+        unchanged=self.propose_citing(self.intent(),self.body,'unchanged')
+        self.assertEqual((unchanged['status'],unchanged['changes']),('prepared',[]))
+        edited=dict(self.body,description='Repository edit under review');self.save_source(edited)
+        result=self.propose_citing(self.intent(),edited,'edited')
+        self.assertEqual((result['status'],result['changes']),('prepared',[self.oid+':description_changed']))
+        self.assertEqual(result['desired'],edited)
+
+    def test_proposal_rejects_invalid_unknown_or_mismatched_intent_reference(self):
+        intent=self.intent();other=dict(self.scope,stack='b',backend='lab-state-b')
+        second=copy.deepcopy(self.service.snapshot()['current']['objects'][self.ids[1]])
+        invalid,missing,target='maintenance_context_intent_invalid','maintenance_context_intent_missing','maintenance_context_intent_target_mismatch'
+        for name,cited,scope,object_id,code in (('null',dict(intent,artifact_id=None),None,None,invalid),
+                ('empty',dict(intent,artifact_id=''),None,None,invalid),('number',dict(intent,artifact_id=5),None,None,invalid),
+                ('unknown',dict(intent,artifact_id='0'*64),None,None,missing),('other-scope',intent,other,None,target),
+                ('other-object',intent,None,self.ids[1],target)):
+            with self.subTest(name=name):
+                with self.assertRaises(AppError) as caught:self.propose_citing(cited,second if object_id else self.body,name,scope,object_id)
+                self.assertEqual(caught.exception.code,code);self.assertFalse((self.root/name).exists())
+        self.assertEqual(self.store.operations(),[])
+
+    def test_proposal_reports_unknown_comparison_with_cited_intent_separately(self):
+        blocked=copy.deepcopy(self.body);blocked['technologies']=['mdm','mdm'];self.save_source(blocked)
+        with self.assertRaises(AppError) as caught:self.propose_citing(self.intent(),self.body,'unknown-comparison')
+        self.assertEqual(caught.exception.code,'maintenance_intent_comparison_unknown')
+        self.assertIn('/technologies',caught.exception.message);self.assertFalse((self.root/'unknown-comparison').exists())
+
+    def test_restore_of_a_cited_change_is_prepared_without_the_citation(self):
+        # restore-propose reuses the original context, and the restored body reverses the intent it cites.
+        from intune_iac import maintenance
+        edited=dict(self.body,description='Repository edit under review');self.save_source(edited)
+        forward=self.propose_citing(self.intent(),edited,'forward')
+        self.assertEqual(maintenance.execute(self.root/'forward',approve_digest=forward['approval_digest'])['status'],'succeeded_verified')
+        self.store.collect(self.service)
+        restore=maintenance.propose_restore(self.root/'forward',self.root/'restore')
+        self.assertEqual((restore['status'],restore['changes'],restore['desired']),('prepared',[self.oid+':description_changed'],self.body))
+        plan=json.loads((self.root/'restore'/'plan.json').read_text())
+        self.assertEqual(json.loads(Path(plan['context']['path']).read_text()),{'tenant_id':self.tenant,'cloud':'public'})
+
     def test_ordered_setting_sequence_and_null_absent_empty_are_distinct(self):
         base=copy.deepcopy(self.body)
         base['settings']['settings'][0]['settingInstance']={

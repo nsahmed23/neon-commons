@@ -187,6 +187,25 @@ its artifact ID and exact scope into the maintenance context:
 }
 ```
 
+When the context has `repository_intent_id`, `propose` checks the citation
+before it prepares anything. The value must be an intent artifact ID (`null` is
+refused); the intent must be held by this store and record the same object,
+tenant and scope; and its desired body must compare `equal` to the proposal's
+desired body under the comparison `deployment-record` applies. Otherwise `propose`
+refuses with `maintenance_context_intent_invalid`,
+`maintenance_context_intent_missing`, `maintenance_context_intent_target_mismatch`,
+`maintenance_intent_comparison_unknown` (either body has content the comparison
+does not support) or `maintenance_desired_intent_mismatch`, and creates no
+operation. The check binds the proposal to that recorded intent snapshot only: it
+does not show that the repository working tree is still current, and a context
+without `repository_intent_id` is not checked. `restore-propose` reverses the
+original change, so for an operation whose context cited an intent it writes
+`OUTPUT.restore-context.json` without `repository_intent_id` and `scope` and
+prepares the restore as an uncited change. `deployment-record` can therefore never
+admit such a restore against the original intent. If the restore's own `propose`
+then fails, `OUTPUT.restore-desired.json` and `OUTPUT.restore-context.json` stay,
+and a retry with the same OUTPUT is refused until both are removed.
+
 Prepare maintenance with the existing `workbench propose --context FILE`, review
 and execute under its explicitly local approval contract. Then run:
 

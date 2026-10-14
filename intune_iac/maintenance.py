@@ -16,7 +16,7 @@ from pathlib import Path
 import stat
 from uuid import UUID, uuid4
 
-from . import protected
+from . import protected, workbench_semantics
 from .io import AppError, digest, file_sha, load_json, read_bytes, parse_json, write_json, sync_directory
 from .modeled_service import BASE, FIELDS, VERSION as SERVICE_VERSION, MAX_VISIBILITY_DELAY_READS, ModeledService, compare_semantics
 
@@ -161,6 +161,42 @@ def _load(operation_root):
     return root, plan, journal, desired, request
 
 
+def _check_cited_intent(store, object_id, desired, context):
+    """Refuse a desired body that disagrees with the repository intent its context cites.
+
+    These are the identity, scope and semantic checks deployment-record applies
+    after execution, moved forward to preparation. They bind the proposal to one
+    recorded intent snapshot; they do not show that the repository is still
+    current, that every value is supported, or that execution is authorized.
+    """
+    if 'repository_intent_id' not in context:
+        return
+    cited = context['repository_intent_id']
+    # deployment-record refuses a null citation too, so it is not read as "none".
+    if type(cited) is not str or not cited:
+        raise AppError('maintenance_context_intent_invalid',
+                       'The context field repository_intent_id must name a repository intent artifact ID.')
+    found = [row['data'] for row in store.artifacts(kind='repository_intent') if row['artifact_id'] == cited]
+    if len(found) != 1:
+        raise AppError('maintenance_context_intent_missing', 'The context cites a repository intent this workbench '
+                       'store does not hold. Run repository-import again and cite the new intent ID.')
+    intent = found[0]
+    if (intent.get('target_object_id') != object_id or intent.get('tenant_id') != store.tenant_id
+            or context.get('scope') != intent.get('scope')):
+        raise AppError('maintenance_context_intent_target_mismatch', 'The cited repository intent is for another '
+                       'object, or the context scope is missing or differs from the scope the intent records.')
+    comparison = workbench_semantics.compare(intent.get('desired'), desired)
+    if comparison['status'] == 'unknown':
+        blockers = [('intent ' if side == 'left' else 'desired ') + (row['path'] or '/') + ' ' + row['code']
+                    for side in ('left', 'right') for row in comparison[side]['blockers']]
+        raise AppError('maintenance_intent_comparison_unknown', 'The desired body cannot be compared with the cited '
+                       'repository intent: ' + '; '.join(blockers[:5]) + '. Correct that content before preparing this proposal.')
+    if comparison['status'] != 'equal':
+        raise AppError('maintenance_desired_intent_mismatch', 'The desired body does not match the cited repository '
+                       'intent (' + ', '.join(comparison['changed_fields']) + '). Prepare it from that intent, or import '
+                       'the edited repository and cite the new intent.')
+
+
 def propose(store_root, service_root, object_id, desired_path, output, *, context_path=None):
     """Prepare a persisted single-object operation from a complete observation."""
     root, store_root, service_root = map(_safe, (output, store_root, service_root))
@@ -188,7 +224,10 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
         _uuid(tenant)
         if context and (context_value.get('tenant_id', tenant) != tenant or context_value.get('cloud', 'public') != 'public'):
             _fail('maintenance_context_target_mismatch')
-        observation = _store(store_root).inspect(object_id)
+        store = _store(store_root)
+        if context:
+            _check_cited_intent(store, object_id, desired, context_value)
+        observation = store.inspect(object_id)
         if observation['tenant_id'] != tenant or observation.get('coverage') != 'complete':
             _fail('maintenance_observation_incomplete')
         latest = observation.get('last_attempt')
@@ -350,12 +389,22 @@ def propose_restore(operation_root, output):
 
     The caller must first collect current observations. The original operation
     is retained and its consumed approval cannot authorize this new proposal.
+    A restore reverses any repository intent the original context cited, so it
+    is prepared from a derived context without that citation or its scope.
     """
     _, plan, _, _, _ = _load(operation_root)
     output = _safe(output)
     desired_path = _safe(str(output) + '.restore-desired.json')
-    if desired_path.exists() or output.exists():
+    context_path = plan['context']['path'] if plan['context'] else None
+    context_value = parse_json(read_bytes(_safe(context_path))) if context_path else None
+    restore_context = None
+    if type(context_value) is dict and 'repository_intent_id' in context_value:
+        restore_context = _safe(str(output) + '.restore-context.json')
+    if desired_path.exists() or output.exists() or (restore_context and restore_context.exists()):
         _fail('maintenance_fresh_output_required')
     write_json(desired_path, plan['before_estate']['objects'][plan['object_id']])
+    if restore_context:
+        write_json(restore_context, {k: v for k, v in context_value.items() if k not in ('repository_intent_id', 'scope')})
+        context_path = restore_context
     return propose(plan['store_root'], plan['service_root'], plan['object_id'], desired_path, output,
-                   context_path=plan['context']['path'] if plan['context'] else None)
+                   context_path=context_path)
