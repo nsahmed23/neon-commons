@@ -115,6 +115,22 @@ class WizardTests(unittest.TestCase):
         self.assertEqual(result["step"], "conflict")
         self.assertEqual(target.read_text(), "user-owned edit")
 
+    def test_restart_keeps_the_previous_session_and_every_file(self):
+        self.run_script(["generate", "save"])
+        previous = self.session.read_bytes()
+        before = {path: path.read_bytes() for path in sorted(self.output.rglob("*")) if path.is_file()}
+        result = self.run_script(["restart", "save"], supplied=False)
+        self.assertEqual(result["status"], "suspended")
+        self.assertEqual(result["step"], "source")
+        self.assertFalse(result["generated"])
+        backup = self.root / "session.json.restart-1.json"
+        self.assertEqual(backup.read_bytes(), previous)
+        self.assertTrue(any("Restarted" in line and "session.json.restart-1.json" in line for line in self.messages))
+        self.assertEqual({path: path.read_bytes() for path in sorted(self.output.rglob("*")) if path.is_file()}, before)
+        self.assertTrue(any("Local export path" in prompt and "restart" in prompt for prompt in self.prompts[-1:]))
+        self.run_script(["restart", "save"], supplied=False)
+        self.assertTrue((self.root / "session.json.restart-2.json").is_file())
+
     def edit_stack_description(self):
         stack = self.output / "stacks/orgs/reference/dev.yaml"
         text = stack.read_text()
@@ -134,7 +150,7 @@ class WizardTests(unittest.TestCase):
         self.assertFalse(result["execution_authorized"])
         joined = "\n".join(self.messages)
         self.assertIn("a repository-owned edit of the desired policy", joined)
-        self.assertIn("Conflict [handoff/review/new-path/back/save/cancel]: ", self.prompts)
+        self.assertIn("Conflict [handoff/review/new-path/back/save/restart/cancel]: ", self.prompts)
         self.assertIn('"Synthetic reference; not production advice."', joined)
         self.assertIn('"Synthetic reference; reviewed repository edit."', joined)
         self.assertIn("workbench repository-import", joined)

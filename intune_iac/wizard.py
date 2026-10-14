@@ -673,17 +673,19 @@ class _WizardSession:
         }[step]
         if step == "output" and "repository" in self.state:
             default = self.state["paths"].get("output", str(self.session_path.parent / "intune-proposal"))
-            return "Staging output directory [default: " + default + "; back/save/cancel]: "
+            prompt = "Staging output directory [default: " + default + "; back/save/cancel]: "
         if step in {"preview", "review"} and "repository" in self.state:
-            return prompt.replace("edit source|context|output", "edit source|stack|component|policy|output")
+            prompt = prompt.replace("edit source|context|output", "edit source|stack|component|policy|output")
         if step == "conflict" and self.state["conflict_reason"] == "repository_owned_edit":
-            return "Conflict [handoff/review/new-path/back/save/cancel]: "
-        return prompt
+            prompt = "Conflict [handoff/review/new-path/back/save/cancel]: "
+        # restart is a real route from every screen: it keeps the previous session and touches no file.
+        return prompt.replace("save/cancel]", "save/restart/cancel]")
 
     def dispatch(self, step, answer, choices):
         command, _, argument = answer.partition(" ")
         command = command.lower()
-        common = {"save": self.handle_save, "cancel": self.handle_cancel, "back": self.handle_back, "edit": self.handle_edit}
+        common = {"save": self.handle_save, "cancel": self.handle_cancel, "back": self.handle_back, "edit": self.handle_edit,
+                  "restart": self.handle_restart}
         if command in common:
             return common[command](step, argument)
         if step in {"stack", "component", "policy"}:
@@ -702,6 +704,33 @@ class _WizardSession:
     def handle_save(self, step, argument):
         self.output_fn("Session saved; resume with the same --session path.")
         return self.finish("suspended")
+
+    def handle_restart(self, step, argument):
+        """Start again from the first choice. The previous session is kept byte for byte; no output file is touched."""
+        backup = None
+        if self.session_path.exists():
+            for number in range(1, 1000):
+                candidate = self.session_path.with_name(self.session_path.name + ".restart-%d.json" % number)
+                try:
+                    with open(candidate, "xb") as stream:
+                        stream.write(self.session_path.read_bytes())
+                    backup = candidate
+                    break
+                except FileExistsError:
+                    continue
+            if backup is None:
+                raise AppError("wizard_restart_limit", "Too many earlier restarts are kept beside this session.")
+        repository = self.state.get("repository")
+        self.state = {"schema_version": "1.0.0", "step": "source", "paths": {}, "fingerprints": {}, "generated": None,
+                      "conflict_reason": None}
+        if repository is not None:
+            self.state["repository"] = {"root": repository["root"], "stack": None, "component": None,
+                                        "selected_policy_id": None, "source_fingerprint": None}
+        self.inspection = None
+        self.route_missing_inputs()
+        self.save()
+        self.output_fn("Restarted: " + ("the previous session is kept as " + backup.name if backup else "nothing was saved before")
+                       + "; existing output files are untouched. Choose again from the first step.")
 
     def handle_cancel(self, step, argument):
         return self.finish("suspended" if step == "conflict" else "cancelled")

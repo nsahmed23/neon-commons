@@ -84,6 +84,7 @@ At the preview, `review` completes an inspection handoff without generating file
 | `edit output` | Enter another staging output directory. |
 | `select UUID` | Validate the UUID against the observed local policy inventory, create a session-owned context copy, then reinspect it. |
 | `save` | Save the current decision screen and exit suspended. |
+| `restart` | Start again from the first choice. The previous session is kept byte for byte as `SESSION.restart-N.json` beside it, and no output file is touched; `start` lists the kept copy as an earlier session, not one to resume. In repository mode the repository stays chosen. |
 | `cancel` | Preserve local files and exit; at conflicts it suspends the session. |
 | `new-path` | From a conflict, enter a new staging output directory. |
 | `handoff` | At a repository-owned edit (below), end the session in the repository workflow; the result status is `repository_handoff`. |

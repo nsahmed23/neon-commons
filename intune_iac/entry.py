@@ -29,7 +29,7 @@ CONTEXT_KEYS = {'tenant_id', 'cloud', 'stack', 'component'}
 PROGRAM = 'intune-iac'
 OFFLINE = 'no_live_connection'
 ORDER = ('store', 'repository', 'wizard_session', 'journey_session', 'guided_session', 'generated_project', 'operation',
-         'modeled_service', 'export', 'context')
+         'modeled_service', 'export', 'context', 'session_backup')
 
 
 def _walk(root):
@@ -96,6 +96,12 @@ def _json_item(root, path, rel):
         return None
     if not isinstance(value, dict):
         return None
+    import re
+    kept = re.fullmatch(r'(.+)\.restart-(\d+)\.json', path.name)
+    if kept and {'step', 'paths'} <= set(value):
+        # Kept by the wizard's restart; an earlier state to read, not a session to resume.
+        return {'kind': 'session_backup', 'path': rel, 'session': Path(rel).with_name(kept.group(1)).as_posix(),
+                'number': int(kept.group(2)), 'step': value.get('step'), 'states': _states(True)}
     if value.get('schema_version') == '1.0.0' and {'step', 'paths', 'fingerprints', 'generated', 'conflict_reason'} <= set(value):
         from .wizard import _session
         try:
@@ -377,7 +383,8 @@ def survey(directory):
 
 LABELS = {'wizard_session': 'Wizard session', 'journey_session': 'Journey', 'guided_session': 'Guided session',
           'export': 'Export', 'context': 'Context', 'generated_project': 'Generated', 'store': 'Store',
-          'repository': 'Repository', 'modeled_service': 'Service', 'operation': 'Operation'}
+          'repository': 'Repository', 'modeled_service': 'Service', 'operation': 'Operation',
+          'session_backup': 'Kept session'}
 STATE_WORDS = {OFFLINE: 'not authenticated (no live connection)', 'source_asserted_not_authenticated': 'source-asserted, not authenticated',
                'modeled_service_no_authentication': 'modeled service, no authentication', 'synthetic_only': 'synthetic only',
                'not_qualified': 'not qualified'}
@@ -412,6 +419,8 @@ def _summary(item):
         return 'Git %s | %s' % ((item.get('git_revision') or 'none')[:12], ', '.join('%s / %s' % (c['stack'], c['component']) for c in item.get('components', [])) or 'no selectable component')
     if kind == 'modeled_service':
         return 'tenant %s | %s | revision %s' % (item.get('tenant_id'), _count(len(item.get('objects', [])), 'object'), item.get('revision'))
+    if kind == 'session_backup':
+        return 'kept by restart %d of %s | step %s' % (item.get('number'), item.get('session'), item.get('step'))
     if kind == 'operation':
         return '%s | %s' % (item.get('status'), ', '.join(item.get('changes', [])) or 'no configuration change')
     return ''

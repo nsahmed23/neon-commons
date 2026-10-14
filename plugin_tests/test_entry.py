@@ -113,6 +113,17 @@ class EntryTests(unittest.TestCase):
         self.assertEqual((generated['path'], generated['session'], generated['classification']), ('out/' + OBJECT, 'journey.json', 'unchanged'))
         self.assertIn('Resume the journey: intune-iac wizard --journey --session journey.json', '\n'.join(self.survey()['next_actions']))
 
+    def test_a_restart_backup_is_listed_as_kept_not_as_a_session_to_resume(self):
+        from intune_iac.wizard import run_wizard
+        self.build()
+        answers = iter(['restart', 'save'])
+        run_wizard(self.root / 'session.json', input_fn=lambda prompt: next(answers), output_fn=lambda line: None)
+        value = self.survey()
+        found = self.by_kind(value)
+        self.assertEqual([item['path'] for item in found['session_backup']], ['session.json.restart-1.json'])
+        self.assertEqual(found['session_backup'][0]['session'], 'session.json')
+        self.assertNotIn('session.json.restart-1.json', '\n'.join(value['next_actions']))
+
     def test_links_are_not_followed_and_nothing_is_written(self):
         self.build()
         outside = self.root.parent / 'outside'
