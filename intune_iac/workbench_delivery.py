@@ -200,6 +200,12 @@ def _workflow_runs(store, plan, repository):
     return runs, read
 
 
+def _when(epoch):
+    """A time for a sentence: to the second with its zone, as the stage lines give it."""
+    from .io import readable_time
+    return readable_time(_utc(epoch))
+
+
 def _next_action(stages, operation_root, store_root):
     """The one step that moves the change forward, with the real paths. The review digest is never filled in: the
     engineer copies it from the review they approve."""
@@ -211,12 +217,12 @@ def _next_action(stages, operation_root, store_root):
                 '(maintenance_source_changed); prepare a new proposal.')
     if approval['status'] == 'waiting':
         return ('Review the change (5), then approve it with execute %s EXACT_REVIEW_DIGEST before %s; the digest is the '
-                'one on the review, never filled in for you.' % (operation, _utc(approval['closes_at'])))
+                'one on the review, never filled in for you.' % (operation, _when(approval['closes_at'])))
     if approval['status'] == 'expired':
-        return 'The approval window closed at %s; prepare a new proposal from the current intent.' % _utc(approval['closes_at'])
+        return 'The approval window closed at %s; prepare a new proposal from the current intent.' % _when(approval['closes_at'])
     if approval['status'] == 'not_open':
         return ('The local clock reads earlier than this plan was prepared; approval is refused until it passes %s.'
-                % _utc(approval['opens_at']))
+                % _when(approval['opens_at']))
     if approval['status'] == 'rejected':
         return 'This operation was rejected; prepare a new proposal.'
     if reconciliation['status'] == 'required':

@@ -66,10 +66,15 @@ class DeliveryTests(unittest.TestCase):
         self.assertNotIn(review['approval_digest'], value['next_action'])
 
     def test_a_prepared_change_past_its_window_cannot_be_approved(self):
+        from datetime import datetime, timezone
         review = self.prepare()
         value, stages = self.view(now=review['expires_at'])
         self.assertEqual(stages['approval']['status'], 'expired')
         self.assertIn('new proposal', value['next_action'])
+        # The sentence gives the time the way the stage line does, to the second with its zone.
+        closes = datetime.fromtimestamp(review['expires_at'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+        self.assertIn('closed at %s;' % closes, value['next_action'])
+        self.assertNotRegex(value['next_action'], r'\d{4}-\d\d-\d\dT')
 
     def test_an_executed_change_shows_each_stage_then_its_record_and_observation(self):
         from intune_iac import maintenance
