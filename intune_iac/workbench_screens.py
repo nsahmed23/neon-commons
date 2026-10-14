@@ -166,14 +166,15 @@ def hazard_band(facts, signals, width):
     return rows[0] if rows else None
 
 
-def hazard_rows(facts, signals, width):
+def hazard_rows(facts, signals, width, *, routes=True):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
     for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
-    notes = (['+%d more: 2' % others] if others else []) + (
+    # routes=False where no surface can be shown (the constrained state): the count names no key there.
+    notes = (['+%d more: 2' % others if routes else '+%d more' % others] if others else []) + (
         ['not re-read after %s: 2 re-reads' % facts['unverified']]
         if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
     forms = _band_forms(primary)
@@ -199,7 +200,7 @@ def _pack(items, width):
     return lines
 
 
-def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt):
+def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt, typing=False):
     """The window below the minimum size: (lines, band_rows), never the body.
 
     When rows run out they are kept in this order: the primary hazard with its response, the evidence mode with the
@@ -215,10 +216,11 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     items = ['T ' + short_id(tenant), 'P ' + short_id(selected) if selected else 'no policy'] + [
         short + ' ' + SHORT_STATES.get(str(value), str(value)) for label, short, value in states
         if selected and str(value) in HAZARD_STATES[label]]
-    keys = next((text for text in ('q exits; Esc discards a typed command', 'q exits; Esc discards', 'q exits')
-                 if cell_width(text) <= width), '')
+    # Only keys that work here: while a command is typed q is part of it, so Enter and Esc are the keys.
+    forms = (('Enter submits; Esc discards', 'Esc discards') if typing else ('q exits; enlarge for the surfaces', 'q exits'))
+    keys = next((text for text in forms if cell_width(text) <= width), '')
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
-              'band': hazard_rows(facts, facts.get('signals') or [], width) if selected else []}
+              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False) if selected else []}
     budget, kept = height, {}
     for name in ('band', 'header', 'prompt', 'strip', 'keys'):
         kept[name] = groups[name][:max(0, budget)]
@@ -600,11 +602,11 @@ def _attention_lines(value, width):
 ELIGIBILITY_FINDINGS = {
     'service_changed': ('The modeled service changed after this observation was collected (revision '
                         '%(observed_revision)s, now %(service_revision)s); a proposal needs a new collection.',
-                        'Collect again (a).'),
+                        'Collect again; a lists it with the other actions.'),
     'policy_changed': ('This policy changed in the modeled service after this observation was collected; a proposal '
-                       'needs a new collection.', 'Collect again (a).'),
+                       'needs a new collection.', 'Collect again; a lists it with the other actions.'),
     'source_mismatch': ('This observation came from another service than the one configured.', 'Collect again from '
-                        'the configured service (a).'),
+                        'the configured service; a lists it with the other actions.'),
     'tenant_mismatch': ('The configured service is for another tenant than this store.', 'Restart with the '
                         '--service-root for this store\'s tenant.')}
 

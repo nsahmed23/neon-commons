@@ -204,11 +204,16 @@ def fit(value, width, ellipsis='...'):
 
 # Inside a layer the same key returns to the summary, so its label says so.
 LAYER_KEYS = {'details': (('e details', 'e summary'),), 'raw': (('r raw record', 'r summary'), ('r raw', 'r summary'))}
+ACTION_KEY_LINES = ('? help | Up/Down choose | Enter stages | Esc closes | q exit', '? help | Enter stages | Esc closes | q exit',
+                    'Enter stages | Esc closes | q exit')
 
 
 def help_line(width, layer='summary', lead=()):
     """The key line for the width; keys the hazard band names (lead) come first in every form, so a key the band
-    offers is never missing from the line below."""
+    offers is never missing from the line below. The actions list has its own keys."""
+    if layer == 'actions':
+        lines = ACTION_KEY_LINES
+        return next((line for line in lines if cell_width(line) <= width), lines[-1])
     lines = list(HELP_LINES)
     for old, new in LAYER_KEYS.get(layer, ()):
         lines = [line.replace(old, new) for line in lines]
@@ -1194,7 +1199,8 @@ class Workspace:
         selected = getattr(self, 'selected', None)
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
         lines, band_rows = constrained_rows(self.store.tenant_id, selected, known, getattr(self, 'mode_class', None), width,
-                                            height, '%dx%d' % MIN_SIZE, self._prompt_line(width, ellipsis))
+                                            height, '%dx%d' % MIN_SIZE, self._prompt_line(width, ellipsis),
+                                            typing=bool(self.mode))
         frame = [pad(safe_text(line), width) for line in lines] + [' ' * width] * (height - len(lines))
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
@@ -1306,8 +1312,8 @@ class Workspace:
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
         self.staged = {'kind': action.get('kind'), 'label': action.get('label'),
                        'binding': dict(action.get('binding') or {}, resolution_sha256=shown)}
-        self.notice = ("STAGED refresh: at the cursor type the repository's current commit; %s records this difference; "
-                       'Esc discards.' % self._submit_word())
+        self.notice = ("STAGED: type the repository's current commit. %s records, Esc discards; the digest after it pins "
+                       'this difference.' % self._submit_word())
 
     def _submit_word(self):
         return 'Enter' if getattr(self, 'submission_key', 'enter') == 'enter' else 'Ctrl+Enter'

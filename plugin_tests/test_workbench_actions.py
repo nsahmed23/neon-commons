@@ -430,8 +430,10 @@ class ActionStagingTests(unittest.TestCase):
         self.assertEqual(workspace.buffer, 'repository-refresh  ' + 'c' * 64)
         self.assertEqual(workspace.cursor, len('repository-refresh '))
         self.assertIn('difference', workspace.notice)
-        self.assertEqual(workspace.notice, "STAGED refresh: at the cursor type the repository's current commit; Enter "
-                                           'records this difference; Esc discards.')
+        # What to type, how to submit or discard, and what the value after the cursor is, within 120 columns.
+        self.assertEqual(workspace.notice, "STAGED: type the repository's current commit. Enter records, Esc discards; "
+                                           'the digest after it pins this difference.')
+        self.assertLessEqual(len(workspace.notice), 120)
         self.assertLessEqual(len(workspace.notice), 120)
 
     def test_a_staged_action_never_follows_a_changed_evidence_mode(self):

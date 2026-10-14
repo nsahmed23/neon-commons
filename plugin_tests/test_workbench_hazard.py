@@ -201,6 +201,9 @@ class VisionReviewTests(unittest.TestCase):
         text = '\n'.join(_attention_lines(value, 120))
         self.assertIn('changed after this observation was collected (revision 1, now 2)', text)
         self.assertNotIn('Nothing recorded needs attention', text)
+        # a lists the actions; it is not the collect key.
+        self.assertIn('Collect again; a lists it', text)
+        self.assertNotIn('(a)', text)
 
     def test_the_strip_never_says_fresh_beside_a_changed_service(self):
         from intune_iac.workbench_screens import context_strip
@@ -222,6 +225,29 @@ class VisionReviewTests(unittest.TestCase):
             self.assertLessEqual(cell_width(line), width, line)
             self.assertIn('a actions', line, width)
             self.assertIn('q exit', line, width)
+
+    def test_below_the_minimum_only_keys_that_work_there_are_offered(self):
+        from intune_iac.workbench_screens import constrained_rows
+        facts = {'object_id': POLICY, 'operation': 'outcome_unknown', 'signals': [UNKNOWN, DENIED]}
+        lines, _ = constrained_rows(TENANT, POLICY, facts, 'synthetic', 36, 10, '40x12', 'Ready.')
+        text = '\n'.join(lines)
+        self.assertIn('+1 more', text)
+        self.assertNotIn('more: 2', text)  # no surface can be shown here
+        self.assertNotIn('Esc', text)  # nothing is being typed
+        self.assertIn('q exits', text)
+        lines, _ = constrained_rows(TENANT, POLICY, facts, 'synthetic', 36, 10, '40x12', ':collect|', typing=True)
+        text = '\n'.join(lines)
+        self.assertIn('Esc discards', text)
+        self.assertNotIn('q exits', text)  # q is typed into the command
+
+    def test_the_actions_list_has_its_own_key_line(self):
+        from intune_iac.workbench_tui import help_line
+        for width in (120, 48, 40):
+            line = help_line(width, 'actions', lead=('a actions',))
+            self.assertLessEqual(cell_width(line), width, line)
+            self.assertIn('Enter stages', line)
+            self.assertIn('Esc closes', line)
+            self.assertNotIn('a actions', line)
 
     def test_the_footer_never_cuts_the_evidence_class_mid_word(self):
         from intune_iac.workbench_tui import status_line
