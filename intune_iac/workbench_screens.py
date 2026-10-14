@@ -722,10 +722,46 @@ def delivery_lines(value, width):
             lines += ['      ' + part for part in word_wrap(text, width - 6)]
         if stage.get('stage') == 'observed_after' and stage.get('status') == 'differs' and isinstance(stage.get('field_changes'), dict):
             lines += ['      ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
+    runs = [run for run in value.get('workflow_runs') or [] if isinstance(run, dict)]
+    if runs:
+        lines.append('CI WORKFLOW RUNS  (imported claims; not verified)')
+        for run in runs:
+            lines += word_wrap('  %s %s  %s | revision %s | observed %s | %s' % (
+                run.get('workflow') or 'workflow', run.get('run_id'), run.get('status'), str(run.get('repository_revision'))[:12],
+                run.get('observed_at'), 'tied to this operation' if run.get('relation') == 'related_operation' else 'for the cited revision'), width)
+            lines += word_wrap('     ' + str(run.get('run_url')), width)
+    else:
+        lines += word_wrap('CI workflow runs: none imported for this operation or its cited revision '
+                           '(workflow-import records one; it stays an inert claim).', width)
     lines += word_wrap('Next: ' + str(value.get('next_action')), width)
     lines += word_wrap(MARK_LEGEND, width)
     lines += word_wrap('Evidence %s | %s | no cloud authority' % (
         value.get('evidence_class'), 'native-provider qualified' if value.get('native_provider_qualified') else 'not native-provider qualified'), width)
+    return lines
+
+
+RECORD_WORDS = {'workflow_run': 'CI workflow run', 'device_evidence': 'device evidence', 'repository_intent': 'repository intent',
+                'deployment_receipt': 'deployment record', 'source_reference': 'source reference', 'schedule': 'schedule',
+                'adoption': 'adoption', 'ownership_index': 'ownership index', 'provider_refresh': 'provider refresh',
+                'queue_review': 'queue review', 'adoption_receipt': 'adoption receipt'}
+
+
+def recorded_lines(value, width):
+    """A record the store just accepted: what it is, whether it is new, and for a CI run what it claims."""
+    kind = str(value.get('kind'))
+    lines = word_wrap('[RECORDED] %s %s | %s | %s' % (
+        RECORD_WORDS.get(kind, kind), str(value.get('artifact_id'))[:12],
+        'new record' if value.get('created') else 'already recorded; nothing changed', value.get('recorded_at')), width)
+    data = value.get('data') if isinstance(value.get('data'), dict) else {}
+    if kind == 'workflow_run' and data:
+        links = ['linked to %s %s' % ('operation' if row.get('relation') == 'related_operation' else 'observation',
+                                       str(row.get('target_id'))[:12])
+                 for row in data.get('relationships') or [] if isinstance(row, dict)]
+        lines += word_wrap('%s %s: %s | revision %s | observed %s | %s' % (
+            data.get('workflow') or 'workflow', data.get('run_id'), data.get('status'),
+            str(data.get('repository_revision'))[:12], data.get('observed_at'), '; '.join(links) or 'no local links'), width)
+        lines += word_wrap('An imported claim, not verified: Delivery (v) lists it beside the stages, and it never marks '
+                           'a stage done.', width)
     return lines
 
 

@@ -355,6 +355,18 @@ class DeliveryLinesTests(unittest.TestCase):
         self.assertIn('[!] 8 Observed after  differs from the desired configuration at service revision 2', joined)
         self.assertIn('BEFORE (desired)', joined); self.assertIn('AFTER (observed)', joined)
 
+    def test_imported_workflow_runs_are_shown_as_claims(self):
+        from intune_iac.workbench_screens import delivery_lines
+        value = delivery_value()
+        self.assertIn('CI workflow runs: none imported for this operation or its cited revision',
+                      '\n'.join(delivery_lines(value, 140)))
+        value['workflow_runs'] = [{'relation': 'related_operation', 'workflow': 'plan', 'run_id': '42', 'status': 'success',
+                                   'repository_revision': 'b' * 40, 'observed_at': '2026-10-14T12:00:00Z',
+                                   'run_url': 'https://ci.example.invalid/runs/42'}]
+        joined = '\n'.join(delivery_lines(value, 140))
+        self.assertIn('CI WORKFLOW RUNS  (imported claims; not verified)', joined)
+        self.assertIn('  plan 42  success | revision bbbbbbbbbbbb | observed 2026-10-14T12:00:00Z | tied to this operation', joined)
+
     def test_narrow_terminals_stack_the_stage_text(self):
         from intune_iac.workbench_screens import delivery_lines
         lines = delivery_lines(delivery_value(), 50)
@@ -453,6 +465,27 @@ class DiagnosticsLinesTests(unittest.TestCase):
         self.assertIn('nothing needs attention', '\n'.join(diagnostics_lines(value, 120)))
 
 
+class RecordedLinesTests(unittest.TestCase):
+    RUN = {'artifact_id': 'a' * 64, 'kind': 'workflow_run', 'recorded_at': '2026-10-14T14:31:06Z', 'created': True,
+           'data': {'workflow': 'apply', 'run_id': '1002', 'status': 'success', 'repository_revision': 'b' * 40,
+                    'observed_at': '2026-10-14T14:21:05Z',
+                    'relationships': [{'relation': 'related_operation', 'target_id': 'c' * 32}]}}
+
+    def test_an_imported_ci_run_reads_as_a_claim_with_its_links(self):
+        from intune_iac.workbench_screens import recorded_lines
+        lines = recorded_lines(self.RUN, 120)
+        self.assertEqual(lines[0], '[RECORDED] CI workflow run aaaaaaaaaaaa | new record | 2026-10-14T14:31:06Z')
+        self.assertEqual(lines[1], 'apply 1002: success | revision bbbbbbbbbbbb | observed 2026-10-14T14:21:05Z | '
+                                   'linked to operation cccccccccccc')
+        self.assertIn('never marks a stage done', lines[2])
+
+    def test_a_repeated_record_says_nothing_changed(self):
+        from intune_iac.workbench_screens import recorded_lines
+        value = dict(self.RUN, created=False, kind='device_evidence', data={})
+        self.assertEqual(recorded_lines(value, 120),
+                         ['[RECORDED] device evidence aaaaaaaaaaaa | already recorded; nothing changed | 2026-10-14T14:31:06Z'])
+
+
 class RefusalLinesTests(unittest.TestCase):
     def test_a_known_refusal_explains_itself_and_names_the_next_step(self):
         from intune_iac.workbench_screens import refusal_lines
@@ -500,6 +533,10 @@ class SurfaceRoutingTests(unittest.TestCase):
         from intune_iac.families import families
         text = self.summary(7, families())
         self.assertIn('[POLICY FAMILIES]', text); self.assertIn('[EXACT FAMILY TABLE]', text)
+
+    def test_a_recorded_artifact_renders_its_header_on_any_surface(self):
+        text = self.summary(5, dict(RecordedLinesTests.RUN))
+        self.assertIn('[RECORDED] CI workflow run aaaaaaaaaaaa', text); self.assertIn('[EXACT RECORD]', text)
 
     def test_a_refusal_renders_on_any_surface(self):
         value = {'status': 'error', 'error': {'code': 'selection_required', 'message': 'Select an exact immutable object ID first.'}}

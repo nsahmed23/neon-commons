@@ -145,6 +145,31 @@ def _observed_after(store, plan, desired, journal):
     return {'stage': 'observed_after', 'status': status, 'field_changes': changes, **found}
 
 
+def _workflow_runs(store, plan, repository):
+    """Imported CI workflow runs tied to this operation, or unlinked runs for the repository revision its intent cites.
+
+    A run linked to another operation belongs to that operation only. Runs are caller-asserted claims kept apart
+    from the stages: an imported "success" never verifies delivery.
+    """
+    revision = None
+    if repository.get('cited'):
+        rows = [row for row in store.artifacts(kind='repository_intent') if row['artifact_id'] == repository.get('repository_intent_id')]
+        revision = rows[0]['data'].get('source_revision') if len(rows) == 1 else None
+    runs = []
+    for row in store.artifacts(kind='workflow_run', object_id=plan['object_id']):
+        data = row['data']
+        relation = ('related_operation' if data.get('related_operation') == plan['operation_id'] else
+                    'cited_revision' if 'related_operation' not in data and revision
+                    and data.get('repository_revision') == revision else None)
+        if relation:
+            runs.append({'relation': relation, 'workflow': data.get('workflow'), 'run_id': data.get('run_id'),
+                         'status': data.get('status'), 'run_url': data.get('run_url'),
+                         'repository_revision': data.get('repository_revision'), 'observed_at': data.get('observed_at'),
+                         'artifact_id': row['artifact_id'], 'evidence_class': 'caller_asserted',
+                         'external_execution_verified': False})
+    return runs
+
+
 def _next_action(stages):
     approval, readback, reconciliation = stages['approval'], stages['readback'], stages['reconciliation']
     record, observed = stages['deployment_record'], stages['observed_after']
@@ -213,5 +238,6 @@ def delivery(operation_root, *, now=None):
     return {'schema_version': VERSION, 'operation_id': plan['operation_id'], 'operation_root': str(root),
             'tenant_id': plan['tenant_id'], 'object_id': plan['object_id'], 'journal_status': journal['status'],
             'stages': stages, 'next_action': _next_action(named), 'viewed_at': _utc(now) if now >= 0 else None,
+            'workflow_runs': _workflow_runs(store, plan, repository),
             'evidence_class': review['evidence_class'], 'native_provider_qualified': False,
             'execution_authorized': False, 'cloud_authority': False}

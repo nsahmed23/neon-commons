@@ -572,6 +572,11 @@ class Workspace:
             from .workbench_screens import refusal_lines
             rows.extend(refusal_lines(value, width))
             rows.append('')
+        elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
+                and isinstance(value.get('data'), dict) and 'created' in value):
+            from .workbench_screens import recorded_lines
+            rows.extend(recorded_lines(value, width))
+            rows.append('[EXACT RECORD] Full engine values follow.')
         elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '

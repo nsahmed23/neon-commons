@@ -95,6 +95,34 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(stages['observed_after']['service_revision'], 2)
         self.assertEqual(value['next_action'], 'Nothing pending: the change is recorded and observed as desired.')
 
+    def test_imported_workflow_runs_appear_as_inert_delivery_evidence(self):
+        from intune_iac.workbench_health import import_workflow_run
+        review = self.prepare()
+        value, _ = self.view()
+        self.assertEqual(value['workflow_runs'], [])
+        envelope = {'schema_version': 'workbench-workflow-run/1', 'tenant_id': repository_tests.TENANT, 'object_id': OBJECT,
+                    'run_url': 'https://ci.example.invalid/runs/42', 'repository_revision': 'b' * 40, 'run_id': '42',
+                    'status': 'success', 'observed_at': '2026-10-14T12:00:00Z', 'workflow': 'plan',
+                    'related_operation': review['operation_id']}
+        path = self.root / 'run.json'; path.write_text(json.dumps(envelope))
+        import_workflow_run(self.store, path)
+        other = dict(envelope, run_id='43', related_operation=None, repository_revision='c' * 40)
+        other.pop('related_operation')
+        path.write_text(json.dumps(other)); import_workflow_run(self.store, path)
+        # A run for the revision the operation's intent cites, without an operation link.
+        cited = dict(other, run_id='44', repository_revision='b' * 40)
+        path.write_text(json.dumps(cited)); import_workflow_run(self.store, path)
+        # A run linked to a different operation for the same revision belongs to that operation only.
+        from intune_iac.workbench_repository import propose_from_intent
+        second = propose_from_intent(self.store.root, self.service.root, OBJECT, self.root / 'operation-2')
+        elsewhere = dict(envelope, run_id='45', related_operation=second['operation_id'])
+        path.write_text(json.dumps(elsewhere)); import_workflow_run(self.store, path)
+        value, _ = self.view()
+        runs = value['workflow_runs']
+        self.assertEqual([(run['run_id'], run['relation']) for run in runs],
+                         [('42', 'related_operation'), ('44', 'cited_revision')])
+        self.assertEqual((runs[0]['status'], runs[0]['evidence_class'], runs[0]['external_execution_verified']), ('success', 'caller_asserted', False))
+
     def test_a_lost_response_requires_reconciliation_then_shows_it(self):
         from intune_iac import maintenance
         review = self.prepare()
