@@ -509,6 +509,7 @@ intune_iac/provider_execution.py
 intune_iac/provider_journey.py
 intune_iac/reconciliation.py
 intune_iac/repository.py
+intune_iac/repository_entry.py
 intune_iac/runner.py
 intune_iac/service_cli.py
 intune_iac/synthetic.py
@@ -745,6 +746,7 @@ plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
 plugin_tests/test_release_transfer_r4.py
 plugin_tests/test_repository.py
+plugin_tests/test_repository_entry.py
 plugin_tests/test_repository_interfaces.py
 plugin_tests/test_restore_complete_layers_r4.py
 plugin_tests/test_restore_evidence_layer_r4.py

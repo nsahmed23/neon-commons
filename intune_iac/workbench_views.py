@@ -22,7 +22,7 @@ from .repository import resolve_component, public_resolution, discover_repositor
 from .workbench_provenance import _read
 from . import workbench_semantics as semantics
 
-COMMANDS=frozenset({'repository-import','repository-status','repository-refresh','propose-from-intent','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','evidence-link','evidence-history','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
+COMMANDS=frozenset({'repository-entry','repository-import','repository-status','repository-refresh','propose-from-intent','ownership-scan','ownership-import','provider-refresh-import','deployment-import','deployment-record','service-link','evidence-link','evidence-history','adoption-link','adoption-history','views','source-acceptance-propose','field-semantics'})
 SCOPE_FIELDS=frozenset({'repository','stack','component','backend'})
 MAX_OBJECTS=1000
 MAX_ESTATE_ARTIFACTS=10000
@@ -704,6 +704,8 @@ def propose_source_acceptance(store,object_id,field,output,*,scope=None):
 
 
 def add_parser(sub):
+    p=sub.add_parser('repository-entry',help='List the policies an existing Atmos repository holds and the exact command to record each; read-only')
+    for name in ('root','repo'):p.add_argument('--'+name,required=True)
     p=sub.add_parser('repository-import',help='Capture actual bounded literal Atmos intent; no provider or Git hooks execute')
     for name in ('root','repo','stack','component','object','pointer','revision','backend','resource-address'):p.add_argument('--'+name,required=True)
     p.add_argument('--git-executable');p.add_argument('--git-sha256')
@@ -742,6 +744,9 @@ def command(args):
     if name=='field-semantics':return semantics.contract()
     from .workbench_store import WorkbenchStore
     store=WorkbenchStore(args.root)
+    if name=='repository-entry':
+        from .repository_entry import entry
+        return entry(store,args.repo)
     if name=='repository-import':return import_repository(store,args.repo,args.stack,args.component,args.object,args.pointer,args.revision,args.backend,args.resource_address,git_executable=args.git_executable,git_sha256=args.git_sha256)
     if name in ('repository-status','repository-refresh','propose-from-intent'):
         from . import workbench_repository as repository

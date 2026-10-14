@@ -161,6 +161,19 @@ The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` un
 - `:propose-from-intent NEW_OPERATION_DIR` prepares a reviewed proposal from it.
 - Neither approves anything; approval still needs the exact review digest with `:execute`. Reopening the workspace restores the Repository surface like any other read-only view.
 
+**Entering an existing repository (`:repository-entry REPOSITORY`, on Repository).** `[REPOSITORY ENTRY]` surveys a repository without changing it and without asking anything first:
+1. It discovers the repository under the same literal Atmos rules as `repository-import`. It reads the checked-out commit from `.git` and lists each stack and component with how many policies it holds.
+2. It lists every entry of each component's `vars.policies` as a numbered policy. Each shows the observed name (from this store's observations only; no stack value is printed), the stack and component, its state in this store, the import key, the backend the component's files declare (`local` when none is declared), and the resource address when the generated reference component consumes exactly that policy.
+3. Each state says what happens next:
+   - ready to record;
+   - recorded (current or stale, with the refresh step);
+   - recorded from another repository (a second source would make status, refresh and proposals refuse the policy);
+   - refused because the component does not consume exactly this policy;
+   - needs the object ID, a commit, the backend or the resource address;
+   - belongs to another tenant.
+
+Up and Down move the focus marker `>` between policies. Enter on a policy puts its exact `repository-import` command in the command bar for review: nothing runs until the engineer submits it, and Esc discards it. A policy with nothing to run explains why instead. `workbench repository-entry --root STORE --repo REPOSITORY` prints the same survey with each command in shell form, and `start` points to it for every repository it finds.
+
 ## Editing, recovery and context
 
 The command bar supports Left/Right, Home/End, Backspace/Delete and Ctrl-U. Escape discards an unsubmitted edit; it does not cancel any operation. Bracketed multiline paste stays unsubmitted and becomes one bounded command; Enter must be deliberate. Input is bounded to 16,384 characters. Oversized edits are rejected in full. In redirected mode, the rest of an oversized physical line is drained without dispatching its suffix; draining stops after 64 KiB and closes input if no line boundary appears. The UI never writes arbitrary terminal-input escape sequences back to the screen.

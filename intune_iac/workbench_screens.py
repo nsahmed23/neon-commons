@@ -740,6 +740,63 @@ def delivery_lines(value, width):
     return lines
 
 
+ENTRY_STATES = {'ready': 'ready to record', 'recorded_elsewhere': 'recorded from another repository',
+                'blocked_by_component': 'refused: the component does not consume exactly this policy',
+                'needs_object': 'needs the object ID', 'other_tenant': 'belongs to another tenant'}
+ENTRY_MISSING = {'revision': 'a commit', 'backend': 'the backend', 'resource_address': 'the resource address'}
+
+
+def _entry_state(candidate):
+    state = candidate.get('state')
+    if state == 'recorded':
+        return 'recorded (%s)' % (candidate.get('recorded') or {}).get('freshness', 'unknown')
+    if state == 'needs_choice':
+        return 'needs ' + ' and '.join(ENTRY_MISSING.get(name, name) for name in candidate.get('missing') or [])
+    return ENTRY_STATES.get(state, str(state))
+
+
+def _entry_key(key):
+    key = str(key)
+    return key[:14] + '...' + key[-8:] if len(key) > 28 else key
+
+
+def repository_entry_lines(value, width, focus=0):
+    """The policies a repository holds, each with its state in this store; the focused one is marked."""
+    lines = word_wrap('[REPOSITORY ENTRY] %s' % value.get('repository'), width)
+    revision = value.get('revision')
+    lines += word_wrap(('Commit %s (read from .git)' % str(revision)[:12] if revision else 'No commit could be read from .git')
+                       + ' | store tenant %s' % str(value.get('tenant_id'))[:8], width)
+    for component in value.get('components') or []:
+        lines += word_wrap('Stack %s, component %s: %s' % (
+            component.get('stack'), component.get('component'),
+            '%d %s' % (component.get('policies', 0), 'policy' if component.get('policies') == 1 else 'policies')
+            if component.get('selectable') and 'reason' not in component else
+            {'not_selectable': 'not selectable (abstract or unresolved)', 'no_policies_input': 'no vars.policies input'}.get(
+                component.get('reason'), str(component.get('reason')))), width)
+    if value.get('status') != 'discovered' and value.get('blockers'):
+        lines += word_wrap('Blocked: ' + ', '.join(value['blockers']), width)
+    for index, candidate in enumerate(value.get('candidates') or []):
+        observed = candidate.get('observed') or {}
+        short = str(candidate.get('object_id'))[:8]
+        label = ('%s (%s)' % (observed.get('name'), short) if observed.get('present') else
+                 'not observed in this store' + (' (%s)' % short if candidate.get('object_id') else ''))
+        lines.append('')
+        lines += word_wrap('%s%d  %s | %s / %s' % ('> ' if index == focus else '  ', candidate.get('number', index + 1), label,
+                                                  candidate.get('stack'), candidate.get('component')), width)
+        backend = '%s (%s)' % (candidate.get('backend'), {'none_declared': 'none declared', 'component_declared': 'declared by the component'}.get(
+            candidate.get('backend_source'), candidate.get('backend_source'))) if candidate.get('backend') else 'backend unknown'
+        lines += word_wrap('     %s | key %s | backend %s' % (_entry_state(candidate), _entry_key(candidate.get('policy_key')), backend), width)
+        if candidate.get('resource_address'):
+            lines += word_wrap('     address ' + str(candidate['resource_address']), width)
+        lines += word_wrap('     ' + str(candidate.get('explanation', '')), width)
+    lines.append('')
+    lines += word_wrap('Next: ' + str(value.get('next_action')), width)
+    if value.get('candidates'):
+        lines += word_wrap('Enter on a policy puts its exact command in the command bar for review; nothing runs until you '
+                           'submit it, and Esc discards it. Up and Down move between policies.', width)
+    return lines
+
+
 RECORD_WORDS = {'workflow_run': 'CI workflow run', 'device_evidence': 'device evidence', 'repository_intent': 'repository intent',
                 'deployment_receipt': 'deployment record', 'source_reference': 'source reference', 'schedule': 'schedule',
                 'adoption': 'adoption', 'ownership_index': 'ownership index', 'provider_refresh': 'provider refresh',
@@ -791,7 +848,8 @@ REFUSALS = {
         'This policy is observed but no repository intent was recorded for it. Inspection, relationships, history, '
         'health and diagnostics work without one.',
         'To manage it from a repository: generate or adopt it with the wizard, copy the project into the repository '
-        'you maintain and commit it, then record it with repository-import (s shows what exists here).'),
+        'you maintain and commit it, then :repository-entry REPOSITORY lists its policies and fills in the exact '
+        'repository-import command for review (s shows what exists here).'),
     'selection_required': (
         'This view belongs to one policy, and none is selected.',
         'press 1 for Estate and Enter on a policy, then try again.'),

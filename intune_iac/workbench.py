@@ -443,6 +443,7 @@ HELP = {
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
+                   'repository-entry REPOSITORY (the policies a repository holds and the exact command to record each)',
                    'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
                    'repository-status (selected object: is its latest repository intent still current?)',
                    'repository-refresh REVISION (selected object: record the current source as a new intent)',
@@ -598,6 +599,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 if values and selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 result = views(store, selected, operation=values[0] if values else None, limit=10)
+            elif name == 'repository-entry' and len(values) == 1:
+                from .repository_entry import entry
+                result = entry(store, values[0])
             elif name == 'repository-import' and len(values) == 8:
                 from .workbench_views import import_repository
                 result = import_repository(store,*values)

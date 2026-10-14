@@ -59,7 +59,7 @@ class EntryTests(unittest.TestCase):
         joined = '\n'.join(value['next_actions'])
         self.assertIn('intune-iac wizard --session', joined)
         self.assertIn('--input EXPORT_JSON', joined)
-        self.assertIn('workbench repository-import', joined)
+        self.assertIn('workbench repository-entry', joined)
 
     def test_existing_work_is_recognized_with_distinct_states(self):
         self.build()
@@ -90,7 +90,7 @@ class EntryTests(unittest.TestCase):
         joined = '\n'.join(value['next_actions'])
         self.assertIn('intune-iac wizard --session session.json', joined)
         self.assertIn('intune-iac workbench workspace --root store --service-root service', joined)
-        self.assertIn('intune-iac workbench repository-import --root store --repo repository', joined)
+        self.assertIn('intune-iac workbench repository-entry --root store --repo repository', joined)
 
     def test_an_edited_generated_project_is_named_as_a_repository_owned_edit(self):
         self.build()

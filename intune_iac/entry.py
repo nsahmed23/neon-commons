@@ -316,11 +316,10 @@ def _next_actions(items):
             actions.append('Check the repository against its recorded intent: %s workbench repository-status --root %s --object %s' % (
                 PROGRAM, store['path'], intent['object_id']))
             continue
-        target = (repository.get('components') or [{'stack': 'STACK', 'component': 'COMPONENT'}])[0]
-        actions.append('Record the repository as the desired source: %s workbench repository-import --root %s --repo %s --stack %s '
-                       '--component %s --object OBJECT_ID --pointer /vars/policies/KEY --revision %s --backend local '
-                       '--resource-address ADDRESS' % (PROGRAM, stores[0]['path'] if stores else 'STORE', repository['path'],
-                                                       target['stack'], target['component'], repository.get('git_revision') or 'COMMIT'))
+        actions.append('See the policies the repository %s holds and the exact command to record each: %s workbench '
+                       'repository-entry --root %s --repo %s (in the workspace: :repository-entry %s)' % (
+                           repository['path'], PROGRAM, stores[0]['path'] if stores else 'STORE', repository['path'],
+                           repository['path']))
     used = {item.get('input') for item in kinds.get('wizard_session', [])}
     contexts = kinds.get('context', [])
     for export in kinds.get('export', []):
@@ -332,10 +331,9 @@ def _next_actions(items):
     if not items:
         actions = ['Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
                    '--output NEW_OUTPUT_DIR' % PROGRAM,
-                   'Or record an existing Atmos repository you maintain: %s workbench repository-import --root STORE --repo REPOSITORY '
-                   '--stack STACK --component COMPONENT --object OBJECT_ID --pointer /vars/policies/KEY --revision COMMIT '
-                   '--backend local --resource-address ADDRESS (create the store first with %s workbench init --root STORE '
-                   '--tenant TENANT_ID)' % (PROGRAM, PROGRAM)]
+                   'Or enter an existing Atmos repository you maintain: %s workbench repository-entry --root STORE --repo '
+                   'REPOSITORY lists its policies and the exact command to record each (create the store first with %s '
+                   'workbench init --root STORE --tenant TENANT_ID)' % (PROGRAM, PROGRAM)]
     return actions
 
 

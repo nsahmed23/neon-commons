@@ -335,6 +335,7 @@ class Workspace:
         self.active_service = None
         self.active_adoption = None
         self.active_adoption_plan = None
+        self.entry_focus = 0
         self.pending = deque()
         self.size = self._terminal_size()
         self.key_reader = None
@@ -434,6 +435,8 @@ class Workspace:
         # Initial help should not displace restored selection/navigation.
         self.value = value
         self.scroll = 0
+        if value.get('schema_version') == 'workbench-repository-entry/1':
+            self.entry_focus = 0
         if value.get('status') == 'error':
             self.notice = 'ERROR: ' + str(value.get('error', {}).get('code', 'unknown'))
         else:
@@ -593,6 +596,14 @@ class Workspace:
                                   'capture with the workbench import-capture command, or press s to see what exists beside '
                                   'the store and the next step.', width))
             rows.append('')
+        elif self.tab == 8 and value.get('schema_version') == 'workbench-repository-entry/1':
+            from .workbench_screens import repository_entry_lines, word_wrap
+            if getattr(self, 'mode', None) == 'command' and self.buffer.startswith('repository-import '):
+                rows.append('[COMMAND FOR REVIEW] Submit it to record the policy; Esc discards it. Nothing has run.')
+                rows.extend(word_wrap(self.buffer, width))
+                rows.append('')
+            rows.extend(repository_entry_lines(value, width, getattr(self, 'entry_focus', 0)))
+            rows.append('[EXACT SURVEY] Full engine values follow.')
         elif self.tab == 7 and value.get('schema_version') == 'workbench-families/1':
             from .workbench_screens import families_lines
             rows.extend(families_lines(value, width))
@@ -801,6 +812,7 @@ class Workspace:
                          's Start: what exists beside this store and the next step | :start DIRECTORY',
                          'i Investigate: what needs attention for the selected policy, with evidence and next steps',
                          ':families Every policy, application and script family with its support disposition',
+                         ':repository-entry REPOSITORY The policies a repository holds; Enter fills in the exact command to record one',
                          ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
@@ -903,6 +915,13 @@ class Workspace:
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
 
+    def _entry_candidates(self):
+        """Policies of a repository survey shown on the Repository surface; empty elsewhere."""
+        value = self.value if isinstance(self.value, dict) else {}
+        if self.tab != 8 or value.get('schema_version') != 'workbench-repository-entry/1':
+            return []
+        return [item for item in value.get('candidates') or [] if isinstance(item, dict)]
+
     def _send(self, command):
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
@@ -911,7 +930,7 @@ class Workspace:
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
                 'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'diagnostics': 6, 'families': 7,
-                'service-review': 4, 'service-status': 5, 'service-attach': 5,
+                'repository-entry': 8, 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
                 'adoption-history': 3, 'adoption-link': 3, 'adoption-plan-review': 4,
@@ -1021,6 +1040,15 @@ class Workspace:
             elif key == 'tab':
                 command = self._tab_command((self.tab + 1) % len(TABS))
                 if command: return command
+            elif key in ('up', 'down') and self._entry_candidates():
+                self.entry_focus = max(0, min(len(self._entry_candidates()) - 1, self.entry_focus + (-1 if key == 'up' else 1)))
+            elif key == 'enter' and self._entry_candidates():
+                candidate = self._entry_candidates()[min(self.entry_focus, len(self._entry_candidates()) - 1)]
+                if candidate.get('terminal_command'):
+                    self.mode = 'command'; self.buffer = candidate['terminal_command'][:MAX_COMMAND]; self.cursor = len(self.buffer)
+                    self.notice = 'REVIEW: this is the exact command; submit it to record the policy, or Esc discards it.'
+                else:
+                    self.notice = 'Nothing to run for policy %s; its explanation is above.' % candidate.get('number', '')
             elif key in ('up', 'down') and self.tab == 0 and self.rows:
                 self.highlight = max(0, min(len(self.rows) - 1, self.highlight + (-1 if key == 'up' else 1)))
             elif key in ('up', 'down') and self.tab in (4, 5) and self.operation_rows and 'operations' in self.value:
