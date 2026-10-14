@@ -374,6 +374,44 @@ class EstateScreensTests(unittest.TestCase):
         self.assertIn('Why: Missing or stale reporting', joined)
         self.assertIn('State review_required | owner unknown | freshness fresh | automatic remediation no', joined)
 
+    def test_each_finding_names_how_to_review_it(self):
+        from intune_iac.workbench_screens import queue_lines
+        value = {'findings': [{'object_id': POLICY_ID, 'finding': 'ownership_unknown', 'priority': 'review',
+                               'review_record': {'status': 'recorded', 'artifact_id': 'c' * 64}}],
+                 'pagination': {'total_objects': 1}}
+        text = ' '.join(' '.join(queue_lines(value, 120)).split())
+        self.assertIn('queue-review-template ownership_unknown NEW_JSON writes the form to fill', text)
+        self.assertIn('queue-amend FILE ' + 'c' * 64, text)
+
+    def test_review_results_read_as_words(self):
+        from intune_iac.workbench_screens import review_lines
+        form = {'status': 'review_form_written', 'path': '/w/form.json', 'object_id': POLICY_ID,
+                'finding': 'ownership_unknown', 'expected_prior': None}
+        text = ' '.join(' '.join(review_lines(form, 120)).split())
+        self.assertIn('[REVIEW FORM WRITTEN] /w/form.json', text)
+        self.assertIn("queue-amend '/w/form.json' none", text)
+        self.assertIn('never approval', text)
+        recorded = {'schema_version': 'workbench-queue-review/1', 'status': 'recorded', 'finding': 'ownership_unknown',
+                    'object_id': POLICY_ID, 'version': 2, 'recorded_at': '2026-10-14T22:40:00Z', 'owner': 'Platform team',
+                    'owner_assertion': 'organization_annotation_unverified', 'rationale': 'Confirm stack ownership.',
+                    'review_due': '2026-11-01T12:00:00Z', 'exception_expiry': None, 'review_overdue': False,
+                    'exception_expired': None, 'linked_proposals': [], 'limitations': ['Annotation only.']}
+        text = ' '.join(' '.join(review_lines(recorded, 120)).split())
+        self.assertIn('[REVIEW] ownership unknown, version 2, recorded 2026-10-14 22:40:00 UTC', text)
+        self.assertIn('Owner: Platform team (an unverified annotation)', text)
+        self.assertIn('Review due: 2026-11-01 12:00:00 UTC (not overdue)', text)
+        self.assertIn('Exception expiry: none', text)
+        self.assertNotIn('null', text)
+        missing = {'status': 'unknown', 'reason': 'review_not_recorded', 'finding': 'ownership_unknown', 'object_id': POLICY_ID}
+        self.assertIn('No review recorded for ownership unknown',
+                      ' '.join(' '.join(review_lines(missing, 120)).split()))
+        history = {'schema_version': 'workbench-queue-history/1', 'finding': 'ownership_unknown', 'object_id': POLICY_ID,
+                   'amendments': [{'artifact_id': 'a' * 64, 'recorded_at': '2026-10-14T22:40:00Z',
+                                   'data': {'version': 1, 'owner': 'Endpoint operations', 'rationale': 'First.'}}]}
+        text = ' '.join(' '.join(review_lines(history, 120)).split())
+        self.assertIn('[REVIEW HISTORY] ownership unknown: 1 version', text)
+        self.assertIn('version 1 recorded 2026-10-14 22:40:00 UTC | owner Endpoint operations | First.', text)
+
     def test_an_absent_source_owner_claim_reads_as_words(self):
         from intune_iac.workbench_screens import queue_lines
         value = {'findings': [{'object_id': POLICY_ID, 'finding': 'ownership_unknown', 'priority': 'review',

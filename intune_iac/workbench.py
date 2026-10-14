@@ -780,7 +780,10 @@ HELP = {
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)',
                     'deployment-record OPERATION_DIR INTENT_ID (records a verified local operation as the deployment of '
-                    'the intent it cites; sends nothing)'],
+                    'the intent it cites; sends nothing)',
+                    'queue-review-template FINDING NEW_JSON (selected object: writes the review form to fill; never '
+                    'overwrites)', 'queue-amend REVIEW_JSON PRIOR|none (records a review annotation; never approval)',
+                    'queue-review FINDING', 'queue-review-history FINDING'],
     'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
     'received_worker_evidence': ['evidence-link EVIDENCE_STORE REQUEST_SHA256 TRUST_PATH VERIFIER_PATH PRIVATE_SCRATCH',
                                  'evidence-history (selected object; every read rechecks signed bytes/current trust)'],
@@ -1124,6 +1127,16 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'delivery' and len(values) == 1:
                 from .workbench_delivery import delivery
                 result = delivery(values[0])
+            elif name in ('queue-review', 'queue-review-history', 'queue-review-template') and len(values) == (2 if name == 'queue-review-template' else 1):
+                from . import workbench_queue as queue
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                result = (queue.current(store, selected, values[0]) if name == 'queue-review' else
+                          queue.history(store, selected, values[0]) if name == 'queue-review-history' else
+                          queue.template(store, selected, values[0], values[1]))
+            elif name == 'queue-amend' and len(values) == 2:
+                from . import workbench_queue as queue
+                result = queue.amend(store, values[0], expected_prior=None if values[1] == 'none' else values[1])
             elif name == 'deployment-record' and len(values) == 2:
                 from .workbench_views import record_local_deployment
                 result = record_local_deployment(store, values[0], values[1])

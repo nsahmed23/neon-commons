@@ -30,6 +30,19 @@ python3 -B scripts/intune-iac.py workbench queue-review-history \
   --root PRIVATE_STORE --object OBJECT_UUID --finding ownership_unknown
 ```
 
+`workbench queue-review-template --root PRIVATE_STORE --object OBJECT_UUID
+--finding FINDING --output NEW_JSON` writes this input with the tenant, object and
+finding filled in, `owner` and the dates `null`, `linked_proposals` empty and the
+rationale empty, and returns the prior the next amendment must name. It never
+overwrites a file, and `queue-amend` refuses the form until a rationale is written.
+
+In the workspace, with the policy selected: `:queue-review-template FINDING
+NEW_JSON` writes the form; `:queue-amend REVIEW_JSON PRIOR` records it (`none` for
+the first version); `:queue-review FINDING` shows the current annotation with its
+dates and whether they have passed; `:queue-review-history FINDING` lists every
+version. The maintenance queue (`m`) names, for each finding, this route with the
+exact prior to use.
+
 The first amendment requires `--expected-prior none`. Each subsequent amendment
 requires the exact current artifact SHA-256. The store compares that prior and
 appends under one `BEGIN IMMEDIATE` transaction. Two concurrent callers using the

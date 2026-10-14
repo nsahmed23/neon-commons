@@ -21,6 +21,42 @@ class QueueReviewTests(unittest.TestCase):
             'exception_expiry':'2026-11-02T12:00:00Z','linked_proposals':[]}
     def write(self,value=None,name='review.json'):
         path=self.root/name;write_json(path,value or self.doc);return path
+    def test_the_form_names_the_identities_and_amend_refuses_it_until_filled(self):
+        form = queue.template(self.store, self.oid, 'ownership_unknown', self.root / 'form.json')
+        self.assertEqual(form['status'], 'review_form_written')
+        self.assertIsNone(form['expected_prior'])
+        value = json.loads((self.root / 'form.json').read_text())
+        self.assertEqual((value['tenant_id'], value['object_id'], value['finding']), (self.tenant, self.oid, 'ownership_unknown'))
+        with self.assertRaises(AppError):  # the rationale is required
+            queue.amend(self.store, self.root / 'form.json', expected_prior=None)
+        value['rationale'] = 'Confirm stack ownership.'
+        (self.root / 'form.json').write_text(json.dumps(value))
+        first = queue.amend(self.store, self.root / 'form.json', expected_prior=None)
+        again = queue.template(self.store, self.oid, 'ownership_unknown', self.root / 'form-2.json')
+        self.assertEqual(again['expected_prior'], first['artifact_id'])
+        with self.assertRaises(AppError):  # never overwrites a file
+            queue.template(self.store, self.oid, 'ownership_unknown', self.root / 'form.json')
+
+    def test_the_workspace_records_and_reads_a_review(self):
+        from intune_iac.workbench import run_terminal
+        form = self.root / 'form one.json'
+        def fill(_):
+            value = json.loads(form.read_text()); value['rationale'] = 'Confirm stack ownership.'
+            value['owner'] = 'Endpoint operations'; form.write_text(json.dumps(value))
+            return "queue-amend '%s' none" % form
+        steps = iter([lambda _: 'select ' + self.oid, lambda _: "queue-review-template ownership_unknown '%s'" % form, fill,
+                      lambda _: 'queue-review ownership_unknown', lambda _: 'queue-review-history ownership_unknown',
+                      lambda _: 'quit'])
+        results = []
+        run_terminal(self.store.root, input_fn=lambda prompt: next(steps)(prompt), result_fn=results.append)
+        errors = [item for item in results if item.get('status') == 'error']
+        self.assertEqual(errors, [])
+        self.assertTrue(any(item.get('status') == 'review_form_written' for item in results))
+        self.assertTrue(any(item.get('kind') == 'queue_review' for item in results))
+        current = [item for item in results if item.get('schema_version') == 'workbench-queue-review/1']
+        self.assertEqual((current[-1]['owner'], current[-1]['version']), ('Endpoint operations', 1))
+        self.assertTrue(any(item.get('schema_version') == 'workbench-queue-history/1' for item in results))
+
     def test_create_amend_reopen_history_preserves_typed_chain(self):
         first=queue.amend(self.store,self.write(),expected_prior=None)
         self.doc['owner']='Platform team';self.doc['rationale']='Owner corrected after review.'

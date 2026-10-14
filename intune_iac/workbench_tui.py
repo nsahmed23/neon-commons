@@ -852,6 +852,10 @@ class Workspace:
         elif value.get('status') in ('ready_local_model_handoff', 'adopted_local_model'):
             from .workbench_screens import adoption_lines
             rows.extend(adoption_lines(value, width))
+        elif (value.get('status') == 'review_form_written' or value.get('reason') == 'review_not_recorded'
+                or value.get('schema_version') in ('workbench-queue-review/1', 'workbench-queue-history/1')):
+            from .workbench_screens import review_lines
+            rows.extend(review_lines(value, width))
         elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '

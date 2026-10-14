@@ -1,13 +1,13 @@
 """Immutable, versioned maintenance-review annotations; never execution approval."""
 from __future__ import annotations
 from datetime import datetime,timezone
-import hashlib,math,re,time
+import hashlib,json,math,re,time
 from pathlib import Path
 from uuid import UUID
 from .io import AppError,canonical,digest,parse_json
 from .workbench_provenance import _read
 
-COMMANDS=frozenset({'queue-amend','queue-review','queue-review-history'})
+COMMANDS=frozenset({'queue-amend','queue-review','queue-review-history','queue-review-template'})
 FINDINGS=frozenset({'observation_stale','collection_incomplete','reporting_incomplete','ownership_unknown','ownership_conflicting_claims','ownership_stale','ownership_unclaimed','ownership_elsewhere','no_complete_observations'})
 SCHEMA='workbench-queue-review-input/1'
 RECORD_SCHEMA='workbench-queue-review/1'
@@ -126,6 +126,23 @@ def amend(store,path,*,expected_prior):
     return store.record_artifact('queue_review',doc['object_id'],data,expected_prior=expected_prior)
 
 
+def template(store,object_id,finding,output):
+    """Write the review form for one finding with its identities filled in; never overwrite a file.
+
+    The rationale is left empty, so recording refuses the form until a person writes one.
+    """
+    key,chain=_chain(store,object_id,finding)
+    path=Path(output).absolute()
+    if path.exists() or path.is_symlink() or not path.parent.is_dir():_fail('workbench_queue_fresh_output_required')
+    form={'schema_version':SCHEMA,'tenant_id':store.tenant_id,'object_id':object_id,'finding':finding,'owner':None,
+          'rationale':'','review_due':None,'exception_expiry':None,'linked_proposals':[]}
+    with open(path,'x',encoding='utf-8',newline='\n') as handle:
+        handle.write(json.dumps(form,indent=1,sort_keys=True)+'\n')
+    return {'status':'review_form_written','path':str(path),'tenant_id':store.tenant_id,'object_id':object_id,
+            'finding':finding,'queue_key':key,'expected_prior':chain[-1]['artifact_id'] if chain else None,
+            'cloud_authority':False,'execution_authorized':False,'exception_authorized':False}
+
+
 def current(store,object_id,finding,*,now=None,_records=None):
     key,chain=_chain(store,object_id,finding,_records)
     if not chain:return {'status':'unknown','queue_key':key,'tenant_id':store.tenant_id,'object_id':object_id,'finding':finding,
@@ -164,6 +181,9 @@ def decorate_findings(store,findings,*,now=None):
 def add_parser(sub):
     p=sub.add_parser('queue-amend',help='Append inert review metadata with an exact expected prior artifact')
     p.add_argument('--root',required=True);p.add_argument('--input',required=True);p.add_argument('--expected-prior',required=True)
+    p=sub.add_parser('queue-review-template',help='Write the review form for one finding; never overwrites a file')
+    for name in ('root','finding','output'):p.add_argument('--'+name,required=True)
+    p.add_argument('--object')
     for name in ('queue-review','queue-review-history'):
         p=sub.add_parser(name,help='Inspect current or historical maintenance review annotations')
         p.add_argument('--root',required=True);p.add_argument('--object');p.add_argument('--finding',required=True,choices=sorted(FINDINGS))
@@ -175,4 +195,5 @@ def command(args):
     if args.workbench_command=='queue-amend':return amend(store,args.input,expected_prior=None if args.expected_prior=='none' else args.expected_prior)
     if args.workbench_command=='queue-review':return current(store,args.object,args.finding)
     if args.workbench_command=='queue-review-history':return history(store,args.object,args.finding)
+    if args.workbench_command=='queue-review-template':return template(store,args.object,args.finding,args.output)
     _fail('workbench_queue_command')

@@ -504,6 +504,45 @@ def _rows(changes):
     return rows
 
 
+def review_lines(value, width):
+    """A maintenance review: the form written, the current annotation, none recorded, or its history."""
+    finding = _as_words(value.get('finding', 'finding'))
+    if value.get('status') == 'review_form_written':
+        lines = word_wrap('[REVIEW FORM WRITTEN] %s' % value.get('path'), width)
+        lines += word_wrap('For %s of policy %s. Fill in the rationale (required), the owner, the review due and '
+                           'exception expiry times (with their zone, or null; the expiry not before the review date) and '
+                           'any linked operation IDs.' % (finding, value.get('object_id')), width)
+        lines += word_wrap("Then: queue-amend '%s' %s records it. A review is an annotation, never approval or "
+                           'execution.' % (value.get('path'), value.get('expected_prior') or 'none'), width)
+        return lines
+    if value.get('schema_version') == 'workbench-queue-history/1':
+        rows = [row for row in value.get('amendments') or [] if isinstance(row, dict)]
+        lines = word_wrap('[REVIEW HISTORY] %s: %s, oldest first; every version is kept' % (
+            finding, _plural(len(rows), 'version')), width)
+        for row in rows:
+            data = row.get('data') if isinstance(row.get('data'), dict) else {}
+            lines += word_wrap('  version %s recorded %s | owner %s | %s' % (
+                data.get('version'), _when(row.get('recorded_at')), data.get('owner') or 'none recorded',
+                data.get('rationale') or 'no rationale'), width)
+        return lines
+    if value.get('status') != 'recorded':
+        return word_wrap('[REVIEW] No review recorded for %s of this policy. :queue-review-template %s NEW_JSON writes '
+                         'the form to fill.' % (finding, value.get('finding')), width)
+    def flag(when, state, yes, no):
+        return 'none' if when is None else '%s (%s)' % (_when(when), yes if state else no if state is False else 'unknown')
+    lines = word_wrap('[REVIEW] %s, version %s, recorded %s' % (finding, value.get('version'), _when(value.get('recorded_at'))), width)
+    lines += word_wrap('Owner: %s' % ('%s (an unverified annotation)' % value['owner'] if value.get('owner') else 'none recorded'), width)
+    lines += word_wrap('Review due: ' + flag(value.get('review_due'), value.get('review_overdue'), 'overdue', 'not overdue'), width)
+    lines += word_wrap('Exception expiry: ' + flag(value.get('exception_expiry'), value.get('exception_expired'), 'expired',
+                                                   'not expired'), width)
+    lines += word_wrap('Rationale: %s' % (value.get('rationale') or 'none'), width)
+    linked = [str(item) for item in value.get('linked_proposals') or []]
+    lines += word_wrap('Linked operations: %s' % (', '.join(item[:12] for item in linked) or 'none'), width)
+    for text in value.get('limitations') or []:
+        lines += word_wrap('Limitation: ' + str(text), width)
+    return lines
+
+
 def filter_lines(choices, focus, current, width):
     """The estate filters by dimension, the focus marked >, the filter in use marked *."""
     lines = word_wrap('FILTERS  Up and Down choose; Enter applies one as a read-only query of the estate, keeping the '
@@ -1382,6 +1421,10 @@ def queue_lines(value, width):
         state = str(review['reason']).replace('_', ' ') if review.get('reason') else 'review ' + str(review.get('status', 'not recorded'))
         lines += word_wrap('  %s | review due %s | exception expiry %s' % (
             state[:1].upper() + state[1:], item.get('review_due') or 'none', item.get('exception_expiry') or 'none'), width)
+        # The route to record or amend a review, with the exact prior it must name.
+        prior = review.get('artifact_id') if review.get('status') == 'recorded' and review.get('artifact_id') else 'none'
+        lines += word_wrap('  Review: :queue-review-template %s NEW_JSON writes the form to fill; then :queue-amend FILE %s '
+                           'records it (an annotation, never approval)' % (item.get('finding'), prior), width)
         compatibility = item.get('compatibility') if isinstance(item.get('compatibility'), dict) else None
         if compatibility:
             lines += word_wrap('  Compatibility %s | native provider %squalified' % (
