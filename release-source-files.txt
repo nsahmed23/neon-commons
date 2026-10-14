@@ -532,6 +532,7 @@ intune_iac/wizard.py
 intune_iac/workbench.py
 intune_iac/workbench_adoption.py
 intune_iac/workbench_adoption_views.py
+intune_iac/workbench_delivery.py
 intune_iac/workbench_diff.py
 intune_iac/workbench_repository.py
 intune_iac/workbench_screens.py
@@ -784,6 +785,7 @@ plugin_tests/test_workbench_capture_store.py
 plugin_tests/test_workbench_cli.py
 plugin_tests/test_workbench_dictionary_capacity.py
 plugin_tests/test_workbench_dictionary_taxonomy_r4.py
+plugin_tests/test_workbench_delivery.py
 plugin_tests/test_workbench_diff.py
 plugin_tests/test_workbench_repository.py
 plugin_tests/test_workbench_screens.py

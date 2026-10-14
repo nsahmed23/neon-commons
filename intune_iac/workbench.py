@@ -115,8 +115,8 @@ def add_parser(commands):
     restore_proposal = sub.add_parser('restore-propose', help='Propose historical restoration as a new change requiring independent fresh review')
     restore_proposal.add_argument('--operation', required=True)
     restore_proposal.add_argument('--output', required=True)
-    for name in ('review', 'execute', 'reconcile'):
-        item = sub.add_parser(name)
+    for name in ('review', 'execute', 'reconcile', 'delivery'):
+        item = sub.add_parser(name, **({'help': 'Read-only delivery stages of one operation'} if name == 'delivery' else {}))
         item.add_argument('--operation', required=True)
         if name == 'execute':
             item.add_argument('--approve-digest', required=True, help='Explicit digest from fresh review; local synthetic approval only')
@@ -371,6 +371,9 @@ def command(args):
         snapshot = service.snapshot()
         return {'status': 'created', 'evidence_class': 'synthetic', 'external_execution': False,
                 'tenant_id': snapshot['current']['tenant_id'], 'object_ids': sorted(snapshot['current']['objects'])}
+    if name == 'delivery':
+        from .workbench_delivery import delivery
+        return delivery(args.operation)
     if name in ('review', 'execute', 'reconcile', 'propose', 'restore-propose'):
         from . import maintenance
         if name == 'restore-propose': return maintenance.propose_restore(args.operation, args.output)
@@ -443,6 +446,7 @@ HELP = {
                    'field-semantics', 'back', 'cancel', 'quit'],
     'maintenance': ['propose-from-intent NEW_OPERATION_DIR (selected object; desired body and citation from the current repository intent)',
                     'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
+                    'delivery OPERATION_DIR (read-only: proposal, approval, execution, readback, reconciliation, deployment record, observation)',
                     'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST [FAULT [VISIBILITY_DELAY_READS]]', 'reconcile OPERATION_DIR',
                     'restore-propose PREVIOUS_OPERATION_DIR NEW_OUTPUT_DIR (fresh review required)'],
     'adoption': ['adoption-preview COMPLETED_JOURNEY_JSON', 'adopt COMPLETED_JOURNEY_JSON NEW_HANDOFF_DIR (separate local maintenance model)'],
@@ -757,6 +761,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     from .maintenance import propose
                     result = propose(root, service_root, selected, values[0], values[1], context_path=values[2] if len(values) == 3 else None)
                 else: raise ValueError('invalid command arguments')
+            elif name == 'delivery' and len(values) == 1:
+                from .workbench_delivery import delivery
+                result = delivery(values[0])
             elif name in ('review', 'execute', 'reconcile', 'restore-propose'):
                 from . import maintenance
                 if name == 'review' and len(values) == 1: result = maintenance.review(values[0])

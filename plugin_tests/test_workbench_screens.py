@@ -284,6 +284,86 @@ class EstateScreensTests(unittest.TestCase):
         self.assertIn('State review_required | owner unknown | freshness fresh | automatic remediation no', joined)
 
 
+INTENT = 'bcffdf6f' + '0' * 56
+DIGEST = 'd1072f31' + '0' * 56
+
+
+def delivery_value(**stages):
+    value = {'schema_version': 'workbench-delivery/1', 'operation_id': 'b6b3679d5d95457ea8645919a1059863', 'object_id': POLICY_ID,
+             'journal_status': 'succeeded_verified', 'evidence_class': 'synthetic_local_process_and_modeled_service_only',
+             'next_action': 'Nothing pending: the change is recorded and observed as desired.', 'stages': [
+        {'stage': 'proposal', 'status': 'done', 'recorded_at': '2026-10-14T12:24:54Z', 'repository_intent_id': INTENT, 'intent_freshness': 'current'},
+        {'stage': 'review', 'status': 'done', 'changes': [POLICY_ID + ':description_changed'], 'no_configuration_change': False,
+         'field_changes': {'status': 'changed', 'changes': [{'field': 'description', 'kind': 'changed', 'before': OBSERVED, 'after': EDITED}]},
+         'approval_digest': DIGEST, 'saved_plan_sha256': 'ab' * 32},
+        {'stage': 'approval', 'status': 'done', 'approval_digest': DIGEST, 'opens_at': 1791980697, 'closes_at': 1791980997},
+        {'stage': 'execution', 'status': 'done', 'engine_status': 'succeeded_verified', 'service_status': 200, 'mutation_dispatched': True,
+         'error_code': None, 'recorded_at': '2026-10-14T12:24:58Z'},
+        {'stage': 'readback', 'status': 'done', 'classification': 'desired_state_observed', 'visibility_pending': False,
+         'second_plan': 'no_change', 'mismatch_count': 0, 'committed_revision': 2},
+        {'stage': 'reconciliation', 'status': 'not_needed'},
+        {'stage': 'deployment_record', 'status': 'done', 'intent_id': INTENT, 'recorded_at': '2026-10-14T12:25:00Z',
+         'evidence_class': 'verified_local_modeled_deployment', 'baseline_admissible': True},
+        {'stage': 'observed_after', 'status': 'matches_desired', 'service_revision': 2, 'before_revision': 1,
+         'observed_at': '2026-10-14T12:25:00.854978Z'}]}
+    value['stages'] = [dict(stage, **stages.get(stage['stage'], {})) for stage in value['stages']]
+    return value
+
+
+class DeliveryLinesTests(unittest.TestCase):
+    def test_every_stage_is_shown_in_order_with_its_evidence(self):
+        from intune_iac.workbench_screens import delivery_lines
+        # 140 columns: every stage fits on one line, so the rows can be compared exactly.
+        lines = delivery_lines(delivery_value(), 140)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[DELIVERY]')
+        self.assertIn('Operation b6b3679d5d95457ea8645919a1059863 | policy ' + POLICY_ID + ' | journal succeeded_verified', joined)
+        expected = ['  [x] 1 Proposal        recorded 2026-10-14T12:24:54Z | repository intent bcffdf6f0000 (current)',
+                    '  [x] 2 Review          1 field change: description | plan sha256 abababababab',
+                    '  [x] 3 Approval        exact review digest d1072f310000 supplied at dispatch | window 2026-10-14T12:24:57Z to 2026-10-14T12:29:57Z',
+                    '  [x] 4 Execution       engine succeeded_verified | service 200 | recorded 2026-10-14T12:24:58Z',
+                    '  [x] 5 Readback        desired_state_observed | second plan no_change | visibility settled | 0 mismatches',
+                    '  [-] 6 Reconciliation  not needed',
+                    '  [x] 7 Deployment      recorded 2026-10-14T12:25:00Z | intent bcffdf6f0000 | verified_local_modeled_deployment | baseline admissible',
+                    '  [x] 8 Observed after  matches desired at service revision 2 (1 before the change) | observed 2026-10-14T12:25:00.854978Z']
+        rows = [line for line in lines if line.startswith('  [')]
+        self.assertEqual(rows, expected)
+        self.assertIn('Next: Nothing pending: the change is recorded and observed as desired.', joined)
+        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] failed, expired or refused', joined)
+
+    def test_waiting_required_and_refused_stages_are_marked_in_words(self):
+        from intune_iac.workbench_screens import delivery_lines
+        value = delivery_value(approval={'status': 'waiting'}, execution={'status': 'not_started'}, readback={'status': 'not_started'},
+                               deployment_record={'status': 'not_yet'}, observed_after={'status': 'not_yet'})
+        joined = '\n'.join(delivery_lines(value, 120))
+        self.assertIn('  [ ] 3 Approval        waiting for the exact review digest until 2026-10-14T12:29:57Z', joined)
+        self.assertIn('  [ ] 4 Execution       not started', joined)
+        value = delivery_value(approval={'status': 'expired'})
+        self.assertIn('  [!] 3 Approval        expired: the approval window closed at 2026-10-14T12:29:57Z', '\n'.join(delivery_lines(value, 120)))
+        value = delivery_value(execution={'status': 'unknown', 'error_code': 'model_response_lost', 'service_status': None},
+                               reconciliation={'status': 'required'},
+                               deployment_record={'status': 'not_available', 'reason': 'no_verified_readback'})
+        joined = '\n'.join(delivery_lines(value, 120))
+        self.assertIn('  [?] 4 Execution       outcome unknown: model_response_lost', joined)
+        self.assertIn('  [?] 6 Reconciliation  required: the outcome is unknown', joined)
+        self.assertIn('  [!] 7 Deployment      not available: no verified readback', joined)
+
+    def test_an_observation_that_differs_shows_the_exact_difference(self):
+        from intune_iac.workbench_screens import delivery_lines
+        value = delivery_value(observed_after={'status': 'differs', 'field_changes': field_changes(body(description=EDITED), body(description=OBSERVED))})
+        joined = '\n'.join(delivery_lines(value, 120))
+        self.assertIn('[!] 8 Observed after  differs from the desired configuration at service revision 2', joined)
+        self.assertIn('BEFORE (desired)', joined); self.assertIn('AFTER (observed)', joined)
+
+    def test_narrow_terminals_stack_the_stage_text(self):
+        from intune_iac.workbench_screens import delivery_lines
+        lines = delivery_lines(delivery_value(), 50)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 50, line)
+        self.assertIn('  [-] 6 Reconciliation', lines)
+        self.assertIn('      not needed', lines)
+
+
 class SurfaceRoutingTests(unittest.TestCase):
     """The terminal routes typed results to their readable screens."""
     def summary(self, tab, value, width=100):

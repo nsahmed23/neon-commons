@@ -597,6 +597,132 @@ def queue_lines(value, width):
     return lines
 
 
+STAGE_LABELS = {'proposal': 'Proposal', 'review': 'Review', 'approval': 'Approval', 'execution': 'Execution',
+                'readback': 'Readback', 'reconciliation': 'Reconciliation', 'deployment_record': 'Deployment',
+                'observed_after': 'Observed after'}
+# The marker repeats the stage's state; the words after it always say it too.
+MARKS = {'done': 'x', 'matches_desired': 'x', 'waiting': ' ', 'not_yet': ' ', 'not_started': ' ', 'available': ' ',
+         'not_needed': '-', 'not_applicable': '-', 'unknown': '?', 'required': '?', 'pending': '?', 'not_open': '?',
+         'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '!', 'differs': '!'}
+MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] failed, expired or refused'
+
+
+def _approval_text(stage, status):
+    if status == 'done':
+        return 'exact review digest %s supplied at dispatch | window %s to %s' % (
+            str(stage.get('approval_digest'))[:12], utc_time(stage.get('opens_at')), utc_time(stage.get('closes_at')))
+    if status == 'waiting':
+        return 'waiting for the exact review digest until %s' % utc_time(stage.get('closes_at'))
+    if status == 'expired':
+        return 'expired: the approval window closed at %s' % utc_time(stage.get('closes_at'))
+    if status == 'not_open':
+        return 'not open: the local clock reads before %s' % utc_time(stage.get('opens_at'))
+    return str(status).replace('_', ' ')
+
+
+def _execution_text(stage, status):
+    if status == 'not_started':
+        return 'not started'
+    parts = ['engine ' + str(stage.get('engine_status'))]
+    if stage.get('service_status') is not None:
+        parts.append('service ' + str(stage['service_status']))
+    elif stage.get('no_change_dispatch'):
+        parts.append('no service change dispatched')
+    if stage.get('recorded_at'):
+        parts.append('recorded ' + str(stage['recorded_at']))
+    if status == 'unknown':
+        return 'outcome unknown: %s | %s' % (stage.get('error_code') or 'no error recorded', ' | '.join(parts))
+    return ' | '.join(parts)
+
+
+def _receipt_text(stage, status):
+    if status in ('not_started', 'not_needed'):
+        return status.replace('_', ' ')
+    if status == 'not_recorded':
+        return 'not recorded: execution ended before an independent readback'
+    if status == 'required':
+        return 'required: the outcome is unknown; reconcile before any retry'
+    parts = [str(stage.get('classification'))]
+    if stage.get('stage') == 'readback':
+        count = stage.get('mismatch_count') or 0
+        parts += ['second plan ' + str(stage.get('second_plan')), 'visibility ' + ('pending' if stage.get('visibility_pending') else 'settled'),
+                  '%d mismatch%s' % (count, '' if count == 1 else 'es')]
+    else:
+        parts.append('after ' + str(stage.get('previous_status')))
+        if (stage.get('count') or 1) > 1:
+            parts.append('%d reconciliations' % stage['count'])
+        if stage.get('recorded_at'):
+            parts.append('recorded ' + str(stage['recorded_at']))
+    return ' | '.join(parts)
+
+
+def _record_text(stage, status):
+    if status == 'done':
+        return 'recorded %s | intent %s | %s | %s' % (stage.get('recorded_at'), str(stage.get('intent_id'))[:12], stage.get('evidence_class'),
+                                                      'baseline admissible' if stage.get('baseline_admissible') else 'not a baseline')
+    if status == 'available':
+        return 'available for intent %s; deployment-record performs the full check' % str(stage.get('intent_id'))[:12]
+    if status in ('not_available', 'not_applicable'):
+        return '%s: %s' % (status.replace('_', ' '), str(stage.get('reason', 'see exact evidence')).replace('_', ' '))
+    return 'not yet'
+
+
+def _observed_text(stage, status):
+    revision = 'service revision %s' % stage.get('service_revision')
+    if status == 'matches_desired':
+        return 'matches desired at %s (%s before the change) | observed %s' % (revision, stage.get('before_revision'), stage.get('observed_at'))
+    if status == 'differs':
+        return 'differs from the desired configuration at %s | observed %s' % (revision, stage.get('observed_at'))
+    if status == 'not_yet':
+        return 'not yet: no observation after the change' + (' (latest at %s)' % revision if stage.get('service_revision') is not None else '')
+    if status == 'not_applicable':
+        return 'not applicable: no configuration change was dispatched'
+    return 'unknown: ' + str(stage.get('reason', 'see exact evidence')).replace('_', ' ')
+
+
+def _stage_text(stage):
+    name, status = stage.get('stage'), stage.get('status')
+    if name == 'proposal':
+        cited = stage.get('repository_intent_id')
+        return 'recorded %s | %s' % (stage.get('recorded_at') or 'time not recorded',
+                                     'repository intent %s (%s)' % (str(cited)[:12], stage.get('intent_freshness')) if cited
+                                     else 'desired file; no repository intent cited')
+    if name == 'review':
+        changes = [c for c in ((stage.get('field_changes') or {}).get('changes') or []) if isinstance(c, dict)]
+        text = ('NO CONFIGURATION CHANGE' if stage.get('no_configuration_change') else
+                '%s: %s' % (_plural(len(changes), 'field change'), ', '.join(dict.fromkeys(str(c.get('field')) for c in changes))) if changes else
+                'changes ' + ', '.join(map(str, stage.get('changes') or [])))
+        return text + ' | plan sha256 ' + str(stage.get('saved_plan_sha256'))[:12]
+    texts = {'approval': _approval_text, 'execution': _execution_text, 'readback': _receipt_text, 'reconciliation': _receipt_text,
+             'deployment_record': _record_text, 'observed_after': _observed_text}
+    return texts[name](stage, status) if name in texts else str(status)
+
+
+def delivery_lines(value, width):
+    """One operation's delivery stages in order, each with a marker, its state in words and its evidence."""
+    lines = ['[DELIVERY]']
+    lines += word_wrap('Operation %s | policy %s | journal %s' % (value.get('operation_id'), value.get('object_id'), value.get('journal_status')), width)
+    for number, stage in enumerate(value.get('stages') or [], 1):
+        if not isinstance(stage, dict):
+            continue
+        mark = '  [%s] ' % MARKS.get(stage.get('status'), '?')
+        label = '%d %s' % (number, STAGE_LABELS.get(stage.get('stage'), str(stage.get('stage'))))
+        text = _stage_text(stage)
+        if width >= 60:
+            for index, part in enumerate(word_wrap(text, width - 24)):
+                lines.append((mark + pad(label, 18) if index == 0 else ' ' * 24) + part)
+        else:
+            lines.append(mark + label)
+            lines += ['      ' + part for part in word_wrap(text, width - 6)]
+        if stage.get('stage') == 'observed_after' and stage.get('status') == 'differs' and isinstance(stage.get('field_changes'), dict):
+            lines += ['      ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
+    lines += word_wrap('Next: ' + str(value.get('next_action')), width)
+    lines += word_wrap(MARK_LEGEND, width)
+    lines += word_wrap('Evidence %s | %s | no cloud authority' % (
+        value.get('evidence_class'), 'native-provider qualified' if value.get('native_provider_qualified') else 'not native-provider qualified'), width)
+    return lines
+
+
 TITLES = {'current': 'REPOSITORY MATCHES THE RECORDED INTENT',
           'stale': 'REPOSITORY CHANGED SINCE THE RECORDED INTENT',
           'unavailable': 'REPOSITORY UNAVAILABLE'}

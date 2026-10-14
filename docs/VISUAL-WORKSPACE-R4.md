@@ -31,6 +31,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | h / l | Health and reporting on the Coverage surface / repository lineage |
 | d | Setting dictionary for the selected policy's settings |
 | m | Maintenance queue on the Coverage surface |
+| v | Delivery stages of the active operation on the Execution surface (`:delivery OPERATION_DIR` for any operation) |
 | Page Up / Page Down | Scroll the exact result, including long values |
 | : | Command bar accepting the existing text commands |
 | / | Search policies/settings; preserve active global filters when using the four-view estate |
@@ -106,6 +107,18 @@ The full table fits 80 columns; narrower terminals get abbreviated columns with 
 - The plan's change tags and the cited repository intent's freshness follow, then the existing `[EXACT PLAN REVIEW]` fields, with expiry shown as a UTC time.
 
 **Coverage (7).** Adds the repository intent's freshness and a `[REPOSITORY VERSUS OBSERVED]` table in the same form.
+
+**Delivery (`v`, on Execution).** `[DELIVERY]` lists the active operation's eight stages in order, each with a marker and its state in words:
+1. **Proposal:** when it was recorded and the repository intent it cites, with that intent's freshness.
+2. **Review:** the changed fields (or `NO CONFIGURATION CHANGE`) and the plan digest.
+3. **Approval:** waiting until the plan's approval window closes, expired, not yet open (the local clock reads earlier than the plan's preparation), or done with the exact review digest supplied at dispatch.
+4. **Execution:** the engine and service results, or `outcome unknown` with its recorded error.
+5. **Readback:** the independent readback's classification, second plan, visibility and mismatches.
+6. **Reconciliation:** not needed, required, or its result.
+7. **Deployment record:** recorded, available, not available (for example after a lost response, because the execution's own readback was never verified), or not applicable when no repository intent was cited.
+8. **Observed after:** whether the newest observation from the same service, at a service revision later than the plan's, matches the desired configuration. The comparison uses the collector's service revision, not clock times, and a difference is shown field by field.
+
+The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` unknown or required and `[!]` failed, expired or refused. A `Next:` line names the one step that would move the change forward. It never inserts the review digest into a command. The view only reads the operation's records and the store, and it is not saved for reopening: the navigation record never holds operation paths.
 
 **Repository (9).** Runs the read-only `repository-status` for the selected policy:
 - whether the repository still matches the recorded intent;

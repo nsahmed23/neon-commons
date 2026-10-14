@@ -502,6 +502,8 @@ class Workspace:
         if (isinstance(value.get('operation_id'), str) and isinstance(value.get('status'), str)
                 and (value.get('object_id') == self.selected or (value.get('object_id') is None and operation_command))):
             facts['operation'] = value['status']
+        if value.get('schema_version') == 'workbench-delivery/1' and value.get('object_id') == self.selected:
+            facts['operation'] = str(value.get('journal_status'))
         self.facts = facts
 
     def _context_strip(self, width):
@@ -633,6 +635,10 @@ class Workspace:
                 from .workbench_screens import utc_time
                 field(label, utc_time(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
             rows.append('[BEFORE / DESIRED / TARGETING / RISKS] Exact engine values follow.')
+        elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
+            from .workbench_screens import delivery_lines
+            rows.extend(delivery_lines(value, width))
+            rows.append('[EXACT DELIVERY RECORDS] Full engine values follow.')
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
             rows.append('[EXECUTION AND RECOVERY]')
@@ -647,6 +653,7 @@ class Workspace:
                 field('Error', result.get('error_code') or error.get('code') or 'none recorded')
                 field('Evidence class', result.get('evidence_class', 'unknown'))
             rows.extend(word_wrap('Next: inspect durable receipts; explicitly reconcile uncertain outcomes. No automatic replay or approval.', width))
+            rows.extend(word_wrap('v shows every delivery stage of this operation.', width))
             rows.append('[CHECKS / JOURNAL / RESULT]')
         elif self.tab == 6 and ('collection_health' in value or isinstance(value.get('stages'), dict)):
             from .workbench_screens import health_lines
@@ -703,6 +710,7 @@ class Workspace:
             for text in ('1 Estate | 2 Inspector | 3 Relationships | 4 History',
                          '5 Exact plan | 6 Execution/recovery | 7 Coverage | 8 Help | 9 Repository',
                          'd Setting dictionary | h Health and reporting | m Maintenance queue | l Lineage | n/p Older/newer page',
+                         'v Delivery stages of the active operation | :delivery OPERATION_DIR',
                          ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
@@ -804,7 +812,7 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
-                'health': 6, 'queue': 6,
+                'health': 6, 'queue': 6, 'delivery': 5,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -944,6 +952,9 @@ class Workspace:
                 elif char == 'h': return self._send('health')
                 elif char == 'd': return self._send('dictionary')
                 elif char == 'm': return self._send('queue')
+                elif char == 'v':
+                    if self.active_operation is not None: return self._send('delivery ' + shlex.quote(self.active_operation))
+                    self.notice = 'No active operation: review one first (5, or :review OPERATION_DIR).'
                 elif char == 'l': return self._send('lineage')
                 elif char == '?': return self._send('help')
             self.draw()
