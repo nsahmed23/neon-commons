@@ -21,7 +21,7 @@ The optional service root selects the existing explicitly synthetic maintenance 
   A bare word such as "verified" is never tinted, because it also appears in "NOT verified". A surface heading such as `[CHANGE REVIEW]` is bold. With colour off, the text is identical.
 - **Focus and selection.** In Estate, `>` marks the row with keyboard focus and `*` the pinned selection that every other surface shows. They stay distinguishable when they differ.
 
-When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the workspace uses the entire reference line interface. The command syntax remains that displayed by `workbench terminal` and its `help`; JSON values stay escaped. The fallback is not native Windows qualification.
+When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the workspace uses the entire reference line interface. The command syntax remains that displayed by `workbench terminal` and its `help`; JSON values stay escaped. The fallback is not native Windows qualification. If the reader of the output leaves (for example `workbench workspace | head`), the session ends at its next write: it runs no further command and exits 141, as a writer stopped by SIGPIPE would, with nothing on standard error.
 
 ## Navigation and investigation
 

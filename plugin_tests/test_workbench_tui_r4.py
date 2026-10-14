@@ -56,6 +56,61 @@ class PresentationTests(unittest.TestCase):
             self.assertNotIn('\x1b', output.getvalue())
             self.assertFalse((store.root / 'workspace-context.json').exists())
 
+    def test_a_closed_output_ends_the_text_session_and_runs_nothing_more(self):
+        # A reader that has gone: writes are buffered, the flush fails. The session must end, not spin.
+        class Spinning(BaseException):
+            pass
+
+        class ClosedPipe:
+            flushes = 0
+
+            def write(self, text):
+                return len(text)
+
+            def flush(self):
+                self.flushes += 1
+                if self.flushes > 20:
+                    raise Spinning()
+                raise BrokenPipeError(32, 'Broken pipe')
+
+            def isatty(self):
+                return False
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            estate = generate_estate(seed=718, policy_count=1)
+            service = ModeledService.create(root / 'service', estate['capture'], [p['id'] for p in estate['truth']['policies']])
+            store = WorkbenchStore.create(root / 'store', estate['truth']['tenant_id'])
+            store.collect(service)
+            output = ClosedPipe()
+            result = run_workspace(store.root, service_root=service.root, stdin=io.StringIO('collect\nquit\n'), stdout=output)
+            self.assertEqual(result['status'], 'closed')
+            self.assertTrue(result['output_closed'])
+            self.assertLessEqual(output.flushes, 2)
+            self.assertEqual(len(store.collection_history()), 1, 'no command runs once nobody reads the output')
+
+    def test_a_reader_that_leaves_ends_the_piped_session_with_141(self):
+        # `workbench workspace | head -c 100`, through a real pipe: exit 128 + SIGPIPE, no traceback, nothing more run.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            estate = generate_estate(seed=718, policy_count=1)
+            service = ModeledService.create(root / 'service', estate['capture'], [p['id'] for p in estate['truth']['policies']])
+            store = WorkbenchStore.create(root / 'store', estate['truth']['tenant_id'])
+            store.collect(service)
+            process = subprocess.Popen([sys.executable, '-B', str(CLI), 'workbench', 'workspace', '--root', str(store.root),
+                                        '--service-root', str(service.root)],
+                                       stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.addCleanup(lambda: process.poll() is None and process.kill())
+            process.stdin.write(b'help\n'); process.stdin.flush()
+            process.stdout.read(100); process.stdout.close()
+            try:
+                process.stdin.write(b'help\ncollect\n'); process.stdin.flush()
+            except BrokenPipeError:
+                pass
+            self.assertEqual(process.wait(timeout=20), 141)
+            self.assertNotIn(b'Traceback', process.stderr.read())
+            self.assertEqual(len(store.collection_history()), 1)
+
     def test_no_tty_rejects_entire_oversized_physical_line(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

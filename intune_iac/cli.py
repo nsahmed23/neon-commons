@@ -308,7 +308,13 @@ def main(argv=None):
             print('\n'.join(start_lines(survey(args.directory),shutil.get_terminal_size((100,40)).columns)))
             return 0
         result=execute(args)
-        print(json.dumps(result,ensure_ascii=True,sort_keys=True,allow_nan=False))
+        try:
+            print(json.dumps(result,ensure_ascii=True,sort_keys=True,allow_nan=False));sys.stdout.flush()
+        except BrokenPipeError:
+            # The reader left (for example `| head`): exit as a writer killed by SIGPIPE would, quietly, and keep
+            # Python's own flush at exit from failing again.
+            os.dup2(os.open(os.devnull,os.O_WRONLY),sys.stdout.fileno())
+            return 141
         if args.command=='capture' and result.get('cancelled') is True:return 130
         return exit_code(result)
     except AppError as error:

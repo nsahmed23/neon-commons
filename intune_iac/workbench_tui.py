@@ -1786,11 +1786,31 @@ def run_workspace(root, *, service_root=None, theme='dark', no_color=False, redu
     if theme not in THEMES: raise AppError('workspace_theme_invalid', 'Choose one of: ' + ', '.join(THEMES) + '.')
     if rules not in ('auto', 'ascii'): raise AppError('workspace_rules_invalid', 'Choose auto or ascii rules.')
     if not visual_supported(stdin, stdout):
-        input_closed = False
-        def read_line(prompt):
+        input_closed = output_closed = False
+
+        def closed():
+            # Nobody reads the output any more (a pipe whose reader left): end the session, never answer into it.
+            nonlocal input_closed, output_closed
+            input_closed = output_closed = True
+            raise EOFError
+
+        def close_input():
             nonlocal input_closed
+            input_closed = True
+
+        def write_line(line):
+            if output_closed: raise EOFError
+            try:
+                print(line, file=stdout)
+            except BrokenPipeError:
+                closed()
+
+        def read_line(prompt):
             if input_closed: raise EOFError
-            stdout.write(prompt); stdout.flush()
+            try:
+                stdout.write(prompt); stdout.flush()
+            except BrokenPipeError:
+                closed()
             value = stdin.readline(MAX_COMMAND + 2)
             if value == '': raise EOFError
             if len(value.rstrip('\r\n')) > MAX_COMMAND:
@@ -1801,11 +1821,16 @@ def run_workspace(root, *, service_root=None, theme='dark', no_color=False, redu
                 while value and not value.endswith('\n') and remaining:
                     value = stdin.readline(min(4096, remaining))
                     remaining -= len(value)
-                if value and not value.endswith('\n'): input_closed = True
+                if value and not value.endswith('\n'): close_input()
                 return 'x' * (MAX_COMMAND + 1)
             return value.rstrip('\r\n')
-        return run_terminal(root, service_root=service_root, input_fn=read_line,
-                            output_fn=lambda line: print(line, file=stdout))
+        try:
+            result = run_terminal(root, service_root=service_root, input_fn=read_line, output_fn=write_line)
+        except EOFError:
+            # Raised while an error was being answered; only a closed output ends the session this way.
+            if not output_closed: raise
+            result = {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
+        return dict(result, output_closed=True) if output_closed else result
     workspace = Workspace(root, theme=theme, no_color=no_color, reduced_motion=reduced_motion, stdin=stdin, stdout=stdout, rules=rules)
     with terminal_session(stdin, stdout):
         return run_terminal(root, service_root=service_root, input_fn=workspace.input,
