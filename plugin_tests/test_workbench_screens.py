@@ -184,6 +184,203 @@ class InspectorAndDictionaryTests(unittest.TestCase):
         self.assertIn('No dictionary entries for this query.', dictionary_lines({'entries': [], 'query': 'none'}, 80))
 
 
+RELATIONSHIPS = {'object_id': POLICY_ID, 'name': 'Windows Privacy Pilot', 'coverage': 'complete', 'observed_at': '2026-10-14T12:34:41Z',
+    'relationships': [
+        {'relation': 'assignment', 'target_id': '44444444-4444-4444-8444-444444444444', 'assertion_class': 'observed',
+         'details': {'type': 'groupAssignmentTarget', 'group_id': '44444444-4444-4444-8444-444444444444', 'filter_type': 'include', 'filter_id': '77777777-7777-4777-8777-777777777777'}},
+        {'relation': 'exclusion', 'target_id': '66666666-6666-4666-8666-666666666666', 'assertion_class': 'observed', 'details': {}},
+        {'relation': 'filter', 'target_id': '77777777-7777-4777-8777-777777777777', 'assertion_class': 'observed', 'details': {}},
+        {'relation': 'scope_tag', 'target_id': '0', 'assertion_class': 'observed', 'details': {}},
+        {'relation': 'setting', 'target_id': LOCATION, 'assertion_class': 'observed', 'details': {}},
+        {'relation': 'generated_from', 'target_id': '/work/generated/' + POLICY_ID, 'assertion_class': 'historical_local_adoption', 'details': {}}],
+    'ownership_evidence': {'reason': 'ownership_index_missing', 'declared_scope_complete': False, 'fresh': False},
+    'ownership': 'unknown',
+    'selected_repository': {'artifact_id': 'f' * 64, 'evidence_class': 'local_literal_repository_read',
+                            'scope': {'repository': '/work/repository', 'stack': 'orgs/reference/dev', 'component': 'intune-reference'}}}
+
+
+class RelationshipLinesTests(unittest.TestCase):
+    def test_edges_are_grouped_typed_and_keep_their_evidence_class(self):
+        from intune_iac.workbench_screens import relationship_lines
+        lines = relationship_lines(RELATIONSHIPS, 140)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[TYPED RELATIONSHIPS]')
+        for heading in ('TARGETING', 'CONFIGURATION', 'SOURCE AND LINEAGE', 'OWNERSHIP'):
+            self.assertIn(heading, joined)
+        self.assertIn('TARGETING  [observed]', joined); self.assertIn('CONFIGURATION  [observed]', joined)
+        self.assertIn('  |-- assignment   44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', lines)
+        self.assertIn('  |-- exclusion    66666666-6666-4666-8666-666666666666', lines)
+        self.assertIn('  |-- scope tag    "0"', lines)
+        self.assertIn('generated    /work/generated/' + POLICY_ID + '  [historical_local_adoption]', joined)
+        self.assertIn('repository   /work/repository  orgs/reference/dev / intune-reference  [local_literal_repository_read]', joined)
+        self.assertIn('writer       unknown: ownership_index_missing', joined)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 140, line)
+
+    def test_no_relationships_is_said_plainly(self):
+        from intune_iac.workbench_screens import relationship_lines
+        lines = relationship_lines({'object_id': POLICY_ID, 'relationships': []}, 80)
+        self.assertIn('No typed relationships in this result.', lines)
+
+
+def stage(targeted=None, reporting=None, successful=None, unknown=None):
+    return {'targeted': targeted, 'reporting': reporting, 'successful': successful, 'unknown': unknown}
+
+
+EMPTY_STAGES = {name: stage() for name in ('object', 'assignment', 'cohort', 'execution', 'effective_state', 'outcome')}
+
+
+class EstateScreensTests(unittest.TestCase):
+    def test_history_names_what_changed_between_observations(self):
+        from intune_iac.workbench_screens import history_lines
+        newer = body(description=EDITED)
+        value = {'object_id': POLICY_ID, 'order': 'observed_at_desc_observation_id_desc',
+                 'pagination': {'total_observations': 2, 'returned_observations': 2},
+                 'history': [{'observed_at': '2026-10-14T13:00:00Z', 'snapshot_id': 'b' * 64, 'coverage': 'complete', 'run_id': 2, 'body': newer},
+                             {'observed_at': '2026-10-14T12:00:00Z', 'snapshot_id': 'a' * 64, 'coverage': 'complete', 'run_id': 1, 'body': body()}]}
+        joined = '\n'.join(history_lines(value, 120))
+        self.assertIn('[OBSERVATION HISTORY]', joined); self.assertIn('Newest first', joined)
+        self.assertIn('2026-10-14T13:00:00Z', joined); self.assertIn('2026-10-14T12:00:00Z', joined)
+        self.assertIn('Changed since the previous observation', joined)
+        self.assertIn('"' + EDITED + '"', joined)
+        self.assertIn('Earliest observation on this page', joined)
+
+    def test_health_keeps_reporting_coverage_and_endpoint_evidence_apart(self):
+        from intune_iac.workbench_screens import health_lines
+        reported = dict(EMPTY_STAGES, execution=stage(100, 8, 8, 92))
+        value = {'freshness': 'fresh', 'coverage': 'complete', 'age_seconds': 472.8, 'limitations': ['Synthetic capture.'],
+                 'objects': [{'object_id': POLICY_ID, 'name': 'Windows Privacy Pilot', 'health': {
+                     'stages': reported, 'endpoint_health': 'unknown', 'endpoint_outcome': 'unknown', 'rollout_ready': False}},
+                     {'object_id': '33333333-3333-4333-8333-333333333333', 'name': 'Other', 'health': {
+                     'stages': EMPTY_STAGES, 'reason': 'No policy-bound device evidence was imported.', 'endpoint_health': 'unknown'}}]}
+        lines = health_lines(value, 100)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[HEALTH AND REPORTING]')
+        self.assertIn('8 of 100 targeted devices reported success at execution; 92 without a fresh report', joined)
+        matrix = [line for line in lines if line.startswith('    [')]
+        self.assertEqual(sum(line.count('#') for line in matrix), 8)
+        self.assertEqual(sum(line.count('.') for line in matrix), 92)
+        self.assertIn('each cell is 1 device', joined)
+        self.assertIn('Endpoint health unknown', joined)
+        self.assertIn('No policy-bound device evidence was imported.', joined)
+        self.assertIn('No device evidence for any stage.', joined)
+        header = next(line for line in lines if line.startswith('  STAGE'))
+        self.assertTrue(header.endswith(' UNKNOWN NO REPORT'), header)
+        self.assertLessEqual(cell_width(header), 80)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 100, line)
+
+    def test_queue_lists_findings_with_their_reason_and_state(self):
+        from intune_iac.workbench_screens import queue_lines
+        value = {'findings': [{'object_id': POLICY_ID, 'finding': 'reporting_incomplete', 'priority': 'review', 'freshness': 'fresh',
+                               'priority_rationale': 'Missing or stale reporting cannot establish rollout readiness or endpoint success.',
+                               'action_state': 'review_required', 'owner_assertion': 'unknown', 'automatic_remediation': False,
+                               'review_due': None, 'exception_expiry': None, 'related_proposals': []}],
+                 'pagination': {'total_objects': 1}}
+        joined = '\n'.join(queue_lines(value, 100))
+        self.assertIn('[MAINTENANCE QUEUE]', joined)
+        self.assertIn('review  reporting_incomplete  ' + POLICY_ID, joined)
+        self.assertIn('Why: Missing or stale reporting', joined)
+        self.assertIn('State review_required | owner unknown | freshness fresh | automatic remediation no', joined)
+
+
+class SurfaceRoutingTests(unittest.TestCase):
+    """The terminal routes typed results to their readable screens."""
+    def summary(self, tab, value, width=100):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.tab, workspace.value, workspace.selected, workspace.facts = tab, value, POLICY_ID, {'name': 'Windows Privacy Pilot'}
+        return '\n'.join(workspace._surface_summary(width))
+
+    def test_health_and_queue_render_on_the_coverage_surface(self):
+        health = {'collection_health': {'targeted': None}, 'freshness': 'fresh',
+                  'objects': [{'object_id': POLICY_ID, 'name': 'P', 'health': {'stages': EMPTY_STAGES, 'endpoint_health': 'unknown'}}]}
+        self.assertIn('[HEALTH AND REPORTING]', self.summary(6, health))
+        self.assertIn('[MAINTENANCE QUEUE]', self.summary(6, {'findings': [], 'pagination': {'total_objects': 0}}))
+
+    def test_single_policy_health_uses_the_name_already_read_for_that_identity(self):
+        value = {'object_id': POLICY_ID, 'stages': EMPTY_STAGES, 'reason': 'No policy-bound device evidence was imported.'}
+        self.assertIn('Windows Privacy Pilot (' + POLICY_ID + ')', self.summary(6, value))
+        other = dict(value, object_id='33333333-3333-4333-8333-333333333333')
+        self.assertIn('(no name) (33333333-3333-4333-8333-333333333333)', self.summary(6, other))
+
+    def test_history_surface_uses_the_comparing_renderer(self):
+        value = {'object_id': POLICY_ID, 'order': 'observed_at_desc_observation_id_desc',
+                 'history': [{'observed_at': 'T2', 'body': body(description=EDITED)}, {'observed_at': 'T1', 'body': body()}]}
+        text = self.summary(3, value)
+        self.assertIn('[OBSERVATION HISTORY]', text); self.assertIn('Newest first', text)
+        self.assertIn('Changed since the previous observation (T1):', text)
+
+
+class EstateScreenEdgeTests(unittest.TestCase):
+    def test_history_does_not_claim_a_change_it_cannot_compare(self):
+        from intune_iac.workbench_screens import history_lines
+        uncollected = body(assignments=None)
+        value = {'object_id': POLICY_ID, 'pagination': {'total_observations': 3, 'has_more': True},
+                 'history': [{'observed_at': 'T2', 'body': uncollected, 'field_accounting': {'assignments': 'not_collected'}},
+                             {'observed_at': 'T1', 'body': body()}]}
+        joined = '\n'.join(history_lines(value, 100))
+        self.assertNotIn('Changed since the previous observation', joined)
+        self.assertIn('Comparison with the previous observation (T1):', joined)
+        self.assertIn('CHANGE COMPARISON UNKNOWN', joined)
+        self.assertIn('Not completely observed: assignments not_collected', joined)
+        self.assertIn('Earliest observation on this page; n shows older observations.', joined)
+
+    def test_history_says_when_nothing_changed(self):
+        from intune_iac.workbench_screens import history_lines
+        value = {'object_id': POLICY_ID, 'history': [{'observed_at': 'T2', 'body': body()}, {'observed_at': 'T1', 'body': body()}]}
+        self.assertIn('  No configuration change since the previous observation.', history_lines(value, 100))
+
+    def test_health_fits_narrow_terminals_and_scales_large_cohorts(self):
+        from intune_iac.workbench_screens import health_lines
+        stages = dict(EMPTY_STAGES, receipt=stage(1000, 900, 880, 120), execution=dict(stage(1000, 850, 800, 150), failed=30, pending=20, missing=150))
+        lines = health_lines({'object_id': POLICY_ID, 'stages': stages, 'endpoint_health': 'unknown'}, 60)
+        joined = '\n'.join(lines)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 60, line)
+        self.assertIn('800 of 1000 targeted devices reported success at execution; 30 reported failure; 20 pending; 150 without a fresh report', joined.replace('\n  ', ' '))
+        self.assertIn('Not counted as fresh success: 150 missing', joined)
+        self.assertIn('each cell is up to 3 devices; exact counts above', joined.replace('\n    ', ' '))
+        matrix = ''.join(line[5:-1] for line in lines if line.startswith('    ['))
+        self.assertEqual((matrix.count('#'), matrix.count('x'), matrix.count('~'), matrix.count('.')), (267, 10, 7, 50))
+        self.assert_aligned(lines, ['execution', '1000', '850', '800', '30', '20', '0', '150'], 'NONE')
+        self.assertIn('TGT targeted', joined)
+        tiny = health_lines({'object_id': POLICY_ID, 'stages': stages}, 40)
+        for line in tiny:
+            self.assertLessEqual(cell_width(line), 40, line)
+        self.assertIn('execution: 1000 targeted | 850 reported | 800 success', '\n'.join(tiny).replace('\n  ', ' '))
+
+    def assert_aligned(self, lines, cells, last_title):
+        header = next(line for line in lines if line.startswith('  STAGE'))
+        row = next(line for line in lines if line.startswith('  ' + cells[0] + ' '))
+        self.assertEqual(row.split(), cells)
+        self.assertEqual(len(row), len(header), (header, row))
+        self.assertTrue(header.endswith(last_title))
+
+    def test_full_stage_table_fits_an_80_column_terminal(self):
+        from intune_iac.workbench_screens import health_lines
+        lines = health_lines({'object_id': POLICY_ID, 'stages': dict(EMPTY_STAGES, execution=stage(100, 8, 8, 92))}, 78)
+        self.assert_aligned(lines, ['execution', '100', '8', '8', '0', '0', '0', '92'], 'NO REPORT')
+        self.assertEqual(max(cell_width(line) for line in lines), 78)
+
+    def test_queue_groups_journal_records_by_operation(self):
+        from intune_iac.workbench_screens import queue_lines
+        records = [{'operation_id': 'b668ad2fa6c54d20b94bd8677ce56735', 'sequence': 1, 'status': 'prepared', 'recorded_at': 'T1'},
+                   {'operation_id': 'b668ad2fa6c54d20b94bd8677ce56735', 'sequence': 2, 'status': 'succeeded_verified', 'recorded_at': 'T2'}]
+        value = {'findings': [{'object_id': POLICY_ID, 'finding': 'ownership_unknown', 'priority': 'review', 'owner': None,
+                               'owner_role': 'human_review_assignee', 'writer_ownership': {'status': 'unknown', 'reason': 'ownership_index_missing'},
+                               'source_owner_claim': {'assertion_class': 'source_declared', 'value': None},
+                               'review_record': {'status': 'unknown', 'reason': 'review_not_recorded'},
+                               'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
+                               'evidence': {'evidence_class': 'synthetic', 'observed_at': 'T0', 'snapshot_id': 'a' * 64},
+                               'related_proposals': records}]}
+        joined = '\n'.join(queue_lines(value, 120))
+        self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership_index_missing | source owner claim null', joined)
+        self.assertIn('  Review not recorded | review due none | exception expiry none', joined)
+        self.assertIn('Compatibility synthetic_windows_settings_catalog | native provider not qualified', joined)
+        self.assertIn('Related proposals (1)\n    b668ad2fa6c5 succeeded_verified (2 journal records; latest T2)', joined)
+
+
 class RepositoryLinesTests(unittest.TestCase):
     STATUS = {'schema_version': 'workbench-repository-status/1', 'object_id': '22222222-2222-4222-8222-222222222222',
               'repository_intent_id': 'a' * 64, 'scope': {'repository': '/home/engineer/repo', 'stack': 'orgs/reference/dev',

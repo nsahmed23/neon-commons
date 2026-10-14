@@ -28,7 +28,7 @@ SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
-              'repository-status', 'dictionary'}
+              'repository-status', 'dictionary', 'queue'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
@@ -313,7 +313,7 @@ class Workspace:
             self.pending.append(self.page_command)
             if self.selected:
                 self.pending.append('select ' + shlex.quote(self.selected))
-            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views')):
+            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views', 'queue')):
                 self.pending.append(self.view_command)
             self.context_valid = True
 
@@ -539,12 +539,8 @@ class Workspace:
                 rows.extend(word_wrap('Literal collected values are separate from normalized mapping; incomplete collection does not establish empty intent.', width))
             rows.append('[EXACT VALUES AND TARGETING] Full typed evidence follows.')
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
-            rows.append('[TYPED RELATIONSHIPS]')
-            for edge in value['relationships'][:20]:
-                if isinstance(edge, dict):
-                    field(str(edge.get('relation', 'unknown')) + ' ->', edge.get('target_id', 'unknown'))
-                    field('  Evidence class', edge.get('assertion_class', 'See exact edge details; not independently authenticated'))
-            if len(value['relationships']) > 20: rows.append('[SUMMARY] First 20 edges; complete edge records follow.')
+            from .workbench_screens import relationship_lines
+            rows.extend(relationship_lines(value, width))
             rows.append('[EDGE EVIDENCE AND UNCERTAINTY]')
             if 'raw_observed_assignments' in value:
                 field('Literal capture status', value.get('raw_mapping_status', 'unknown'))
@@ -553,16 +549,8 @@ class Workspace:
                 field('Captured assignment records', len(assignments) if isinstance(assignments, list) else 'unknown')
                 rows.append('[LITERAL TARGETING] Exact includes, exclusions, filters and mapping limitations follow.')
         elif self.tab == 3 and isinstance(value.get('history'), list):
-            rows.append('[OBSERVATION HISTORY]')
-            if value.get('order') == 'observed_at_desc_observation_id_desc':
-                field('Order', 'Newest first; n shows older observations, p shows newer observations.')
-                field('History page', value.get('pagination', {}))
-            rows.extend(word_wrap('Comparison baseline: collected snapshot to collected snapshot. Observation time does not establish actor or change time.', width))
-            for item in value['history'][:12]:
-                if isinstance(item, dict):
-                    field('Observed', item.get('observed_at', 'unknown'))
-                    field('Snapshot', item.get('snapshot_id', 'unknown'))
-            if len(value['history']) > 12: rows.append('[SUMMARY] First 12 records; full result follows.')
+            from .workbench_screens import history_lines
+            rows.extend(history_lines(value, width))
             rows.append('[EXACT HISTORY]')
         elif self.tab == 3 and value.get('schema_version') == 'workbench-protected-adoption-history/1':
             rows.append('[PROTECTED STATE-ONLY ADOPTION HISTORY]')
@@ -660,6 +648,15 @@ class Workspace:
                 field('Evidence class', result.get('evidence_class', 'unknown'))
             rows.extend(word_wrap('Next: inspect durable receipts; explicitly reconcile uncertain outcomes. No automatic replay or approval.', width))
             rows.append('[CHECKS / JOURNAL / RESULT]')
+        elif self.tab == 6 and ('collection_health' in value or isinstance(value.get('stages'), dict)):
+            from .workbench_screens import health_lines
+            # A single-policy health result carries no name; use the one already read for that exact identity.
+            rows.extend(health_lines(value, width, self.facts.get('name') if value.get('object_id') == self.selected else None))
+            rows.append('[EXACT HEALTH EVIDENCE] Full engine values follow.')
+        elif self.tab == 6 and isinstance(value.get('findings'), list):
+            from .workbench_screens import queue_lines
+            rows.extend(queue_lines(value, width))
+            rows.append('[EXACT FINDINGS] Full engine values follow.')
         elif self.tab == 6 and value.get('schema_version') == 'workbench-four-views/1':
             rows.append('[REPOSITORY / OBSERVED / PROPOSED / COVERAGE]')
             for label in ('repository', 'observed', 'proposed'):
@@ -705,6 +702,7 @@ class Workspace:
             rows.append('[WORKSPACE SHORTCUTS]')
             for text in ('1 Estate | 2 Inspector | 3 Relationships | 4 History',
                          '5 Exact plan | 6 Execution/recovery | 7 Coverage | 8 Help | 9 Repository',
+                         'd Setting dictionary | h Health and reporting | m Maintenance queue | l Lineage | n/p Older/newer page',
                          ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
@@ -806,6 +804,7 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
+                'health': 6, 'queue': 6,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -944,6 +943,7 @@ class Workspace:
                 elif char == 'b': return self._send('back')
                 elif char == 'h': return self._send('health')
                 elif char == 'd': return self._send('dictionary')
+                elif char == 'm': return self._send('queue')
                 elif char == 'l': return self._send('lineage')
                 elif char == '?': return self._send('help')
             self.draw()

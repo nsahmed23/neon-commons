@@ -299,6 +299,304 @@ def dictionary_lines(value, width):
     return lines
 
 
+RELATION_GROUPS = (('TARGETING', ('assignment', 'exclusion', 'filter')),
+                   ('CONFIGURATION', ('setting', 'scope_tag')),
+                   ('SOURCE AND LINEAGE', ('generated_from', 'repository')))
+RELATION_LABELS = {'scope_tag': 'scope tag', 'generated_from': 'generated'}
+
+
+def _edge_target(edge):
+    relation, target = edge.get('relation'), edge.get('target_id')
+    if relation == 'scope_tag':
+        return _value(target)
+    text = safe_text(str(target))
+    details = edge.get('details') if isinstance(edge.get('details'), dict) else {}
+    if relation == 'assignment' and details.get('filter_type') not in (None, 'none'):
+        text += '  filter ' + safe_text(str(details['filter_type'])) + ' ' + safe_text(str(details.get('filter_id')))
+    return text
+
+
+def relationship_lines(value, width):
+    """Typed edges grouped by what they mean, each with its exact target and its evidence class."""
+    lines = ['[TYPED RELATIONSHIPS]']
+    edges = [edge for edge in value.get('relationships') or [] if isinstance(edge, dict)]
+    lines += word_wrap('%s (%s)' % (value.get('name', '(no name)'), value.get('object_id', 'unknown')), width)
+    lines += word_wrap('%d edges | coverage %s | observed %s' % (
+        len(edges), value.get('coverage', 'unknown'), value.get('observed_at', 'unknown')), width)
+    if not edges:
+        lines.append('No typed relationships in this result.')
+    repository = value.get('selected_repository')
+    if isinstance(repository, dict) and isinstance(repository.get('scope'), dict):
+        scope = repository['scope']
+        edges = edges + [{'relation': 'repository', 'assertion_class': repository.get('evidence_class', 'unknown'),
+                          'target_id': '%s  %s / %s' % (scope.get('repository'), scope.get('stack'), scope.get('component'))}]
+    groups = list(RELATION_GROUPS)
+    others = [edge.get('relation') for edge in edges if not any(edge.get('relation') in members for _, members in RELATION_GROUPS)]
+    if others:
+        groups.append(('OTHER RELATIONSHIPS', tuple(dict.fromkeys(others))))
+    for heading, members in groups:
+        rows = [edge for edge in edges if edge.get('relation') in members]
+        if not rows:
+            continue
+        # One evidence class for the whole group is stated once, on its heading.
+        classes = {str(edge.get('assertion_class', 'unknown')) for edge in rows}
+        shared = classes.pop() if len(classes) == 1 else None
+        lines.append(heading + ('  [' + safe_text(shared) + ']' if shared else ''))
+        for index, edge in enumerate(rows):
+            connector = '  `-- ' if index == len(rows) - 1 else '  |-- '
+            label = RELATION_LABELS.get(edge.get('relation'), str(edge.get('relation')).replace('_', ' '))
+            text = pad(label, 13) + _edge_target(edge) + ('' if shared else '  [' + safe_text(str(edge.get('assertion_class', 'unknown'))) + ']')
+            for number, part in enumerate(word_wrap(text, width - len(connector))):
+                lines.append((connector if number == 0 else ' ' * len(connector)) + part)
+    ownership = value.get('ownership_evidence') if isinstance(value.get('ownership_evidence'), dict) else {}
+    lines.append('OWNERSHIP')
+    reason = ownership.get('reason')
+    lines += word_wrap('  `-- ' + pad('writer', 13) + str(value.get('ownership', 'unknown')) + (': ' + str(reason) if reason else ''), width)
+    return lines
+
+
+def history_lines(value, width):
+    """Observations newest first, each with what changed since the one before it on this page."""
+    from .workbench_diff import field_changes
+    lines = ['[OBSERVATION HISTORY]']
+    page = value.get('pagination') if isinstance(value.get('pagination'), dict) else {}
+    items = [item for item in value.get('history') or [] if isinstance(item, dict)]
+    lines += word_wrap('%s (%s)' % (value.get('name') or (items[0].get('name') if items else None) or '(no name)',
+                                    value.get('object_id', 'unknown')), width)
+    lines += word_wrap('%s observations | this page %d from offset %s' % (
+        page.get('total_observations', 'unknown'), len(items), page.get('offset', value.get('offset', 0))), width)
+    if value.get('order') == 'observed_at_desc_observation_id_desc':
+        lines += word_wrap('Newest first; n shows older observations, p shows newer observations.', width)
+    lines += word_wrap('Observation time is when collection saw the configuration; it does not establish who changed it or when.', width)
+    for index, item in enumerate(items):
+        lines.append('')
+        lines += word_wrap('%s | run %s | %s | snapshot %s' % (
+            item.get('observed_at', 'unknown'), item.get('run_id', 'unknown'), item.get('coverage', 'unknown'),
+            str(item.get('snapshot_id', 'unknown'))[:12]), width)
+        lines += word_wrap('  %s | changed at %s | attribution %s' % (
+            item.get('evidence_class', 'evidence unknown'), item.get('changed_at') or 'unknown', item.get('attribution') or 'unknown'), width)
+        accounting = item.get('field_accounting') if isinstance(item.get('field_accounting'), dict) else {}
+        partial = sorted('%s %s' % (field, status) for field, status in accounting.items() if status != 'observed_complete')
+        if partial:
+            lines += word_wrap('  Not completely observed: ' + ', '.join(partial), width)
+        if index + 1 == len(items):
+            lines += word_wrap('  Earliest observation on this page' + ('; n shows older observations.' if page.get('has_more') else '.'), width)
+            continue
+        previous = items[index + 1]
+        changes = field_changes(previous.get('body'), item.get('body'))
+        if changes.get('status') == 'no_change':
+            lines += word_wrap('  No configuration change since the previous observation.', width)
+            continue
+        heading = 'Changed since the previous observation' if changes.get('status') == 'changed' else 'Comparison with the previous observation'
+        lines += word_wrap('  %s (%s):' % (heading, previous.get('observed_at', 'unknown')), width)
+        lines += ['  ' + line for line in change_lines(changes, width - 2, 'BEFORE (previous)', 'AFTER (this observation)')]
+    if not items:
+        lines.append('No observations on this page.')
+    return lines
+
+
+CELLS = (('#', 'success'), ('x', 'failure'), ('~', 'pending'), ('?', 'reported unknown'), ('.', 'no fresh report'))
+MAX_CELLS = 400
+NOT_COUNTED = ('missing', 'stale', 'partial', 'access_denied', 'future', 'membership_conflicts', 'conflicting')
+
+
+def _counts(stage):
+    """(targeted, reported, success, failure, pending, reported unknown, no fresh report), or None without evidence."""
+    if not isinstance(stage, dict) or any(type(stage.get(key)) is not int for key in ('targeted', 'reporting', 'successful')):
+        return None
+    targeted, reporting, success = stage['targeted'], stage['reporting'], stage['successful']
+    failure = stage['failed'] if type(stage.get('failed')) is int else 0
+    pending = stage['pending'] if type(stage.get('pending')) is int else 0
+    return (targeted, reporting, success, failure, pending, reporting - success - failure - pending, targeted - reporting)
+
+
+def _matrix(counts, width):
+    """One cell per device (or per group of devices when the cohort is large), in a fixed category order."""
+    targeted = counts[0]
+    per = max(1, -(-targeted // MAX_CELLS))
+    cells = ''.join(symbol * -(-count // per) for (symbol, _), count in zip(CELLS, counts[2:]))
+    row = max(1, min(50, width - 6))
+    lines = ['    [' + cells[start:start + row] + ']' for start in range(0, len(cells), row)]
+    scale = 'each cell is 1 device' if per == 1 else 'each cell is up to %d devices; exact counts above' % per
+    return lines + word_wrap('    ' + '  '.join('%s %s' % pair for pair in CELLS), width) + word_wrap('    ' + scale, width)
+
+
+def _stage_lines(stages, width):
+    from .workbench_health import STAGES
+    names = list(STAGES) + sorted(set(stages) - set(STAGES))
+    counted = [(name, _counts(stages.get(name))) for name in names]
+    present = [(name, counts) for name, counts in counted if counts is not None]
+    absent = [name.replace('_', ' ') for name, counts in counted if counts is None]
+    if not present:
+        return ['  No device evidence for any stage.']
+    lines = []
+    # 78 is the inner width of an 80-column terminal; the compact table keeps columns down to 51.
+    wide = ((9, 'TARGETED'), (9, 'REPORTED'), (8, 'SUCCESS'), (8, 'FAILURE'), (8, 'PENDING'), (8, 'UNKNOWN'), (10, 'NO REPORT'))
+    compact = tuple((5, title) for title in ('TGT', 'RPT', 'OK', 'FAIL', 'PEND', 'UNK', 'NONE'))
+    columns, label = (wide, 16) if width >= 78 else (compact, 14) if width >= 51 else (None, 0)
+    if columns:
+        lines.append('  ' + pad('STAGE', label) + ''.join(title.rjust(size) for size, title in columns))
+        for name, counts in present:
+            lines.append('  ' + pad(name.replace('_', ' '), label) + ''.join(str(count).rjust(size) for (size, _), count in zip(columns, counts)))
+        if columns is compact:
+            lines += word_wrap('  TGT targeted | RPT reported | OK success | FAIL failure | PEND pending | UNK reported unknown | NONE no fresh report', width)
+    else:
+        for name, counts in present:
+            lines += word_wrap('  %s: %d targeted | %d reported | %d success | %d failure | %d pending | %d unknown | %d no fresh report' % (
+                (name.replace('_', ' '),) + counts), width)
+    if absent:
+        lines += word_wrap('  No device evidence for: ' + ', '.join(absent), width)
+    reported = [(name, counts) for name, counts in present if counts[1] > 0]
+    name, counts = (reported or [item for item in present if item[0] == 'execution'] or present)[-1]
+    if min(counts) < 0:
+        return lines + word_wrap('  Stage counts for %s are inconsistent; see the exact evidence.' % name, width)
+    text = '%d of %d targeted devices reported success at %s' % (counts[2], counts[0], name.replace('_', ' '))
+    for count, words in zip(counts[3:], ('reported failure', 'pending', 'reported an unknown or conflicting status', 'without a fresh report')):
+        if count:
+            text += '; %d %s' % (count, words)
+    lines += word_wrap('  ' + text, width)
+    stage = stages.get(name)
+    reasons = ['%d %s' % (stage[key], key.replace('_', ' ')) for key in NOT_COUNTED if type(stage.get(key)) is int and stage[key]]
+    if reasons:
+        lines += word_wrap('  Not counted as fresh success: ' + ', '.join(reasons), width)
+    if counts[0] > 0:
+        lines += _matrix(counts, width)
+    return lines
+
+
+def _object_health(row, health, width):
+    lines = ['']
+    lines += word_wrap('%s (%s)' % (row.get('name') or '(no name)', row.get('object_id') or health.get('object_id', 'unknown')), width)
+    if health.get('reason'):
+        lines += word_wrap('  ' + str(health['reason']), width)
+    if health.get('as_of') is not None:
+        capture = health.get('capture') if isinstance(health.get('capture'), dict) else {}
+        lines += word_wrap('  Evidence %s | as of %s | cohort %s%s' % (
+            health.get('evidence_class'), health.get('as_of'), health.get('cohort_version'),
+            ' | capture incomplete' if capture.get('truncated') or capture.get('access_errors') else ''), width)
+        denominator = '  Denominator %s targeted of %s eligible, %s excluded' % (health.get('targeted'), health.get('eligible'), health.get('excluded'))
+        if health.get('membership_conflicts'):
+            denominator += ' | %d membership conflicts' % len(health['membership_conflicts'])
+        if health.get('out_of_cohort_devices'):
+            denominator += ' | %d reports from devices outside the cohort' % len(health['out_of_cohort_devices'])
+        lines += word_wrap(denominator, width)
+        if health.get('source_sha256'):
+            lines += word_wrap('  Source %s sha256 %s' % (health.get('source_path'), str(health['source_sha256'])[:12]), width)
+    stages = health.get('stages') if isinstance(health.get('stages'), dict) else {}
+    lines += _stage_lines(stages, width)
+    lines += word_wrap('  Endpoint health %s | endpoint outcome %s' % (health.get('endpoint_health', 'unknown'), health.get('endpoint_outcome', 'unknown')), width)
+    if 'service_acceptance' in health or 'configuration_parity' in health:
+        lines += word_wrap('  Service acceptance %s | configuration parity %s' % (
+            health.get('service_acceptance', 'unknown'), health.get('configuration_parity', 'unknown')), width)
+    lines += word_wrap('  Rollout ready %s | rollout approval %s' % (
+        'yes' if health.get('rollout_ready') is True else 'no', health.get('rollout_approval', 'unknown')), width)
+    return lines
+
+
+def _collection_lines(value, width):
+    age = value.get('age_seconds')
+    age = '%dm %02ds' % divmod(int(age), 60) if isinstance(age, (int, float)) and not isinstance(age, bool) else 'unknown'
+    lines = word_wrap('Collection %s (%s) | coverage %s | age %s | %s inventory objects' % (
+        value.get('freshness', 'unknown'), value.get('freshness_scope', 'scope unknown'), value.get('coverage', 'unknown'),
+        age, value.get('total_inventory_objects', 'unknown')), width)
+    for label, key in (('Last success', 'last_success'), ('Last attempt', 'last_attempt')):
+        run = value.get(key)
+        if isinstance(run, dict):
+            lines += word_wrap('%s %s | run %s | %s | error %s' % (label, run.get('completed_at') or run.get('started_at'),
+                               run.get('run_id'), run.get('status'), run.get('error_code') or 'none'), width)
+        else:
+            lines += word_wrap(label + ' not recorded', width)
+    if value.get('retained_last_good'):
+        lines += word_wrap('Showing retained last-good observations: the last collection did not complete.', width)
+    pending = value.get('pending_observations') or []
+    if pending:
+        lines += word_wrap('%d observations pending admission' % len(pending), width)
+    aggregate = value.get('collection_health') if isinstance(value.get('collection_health'), dict) else None
+    if aggregate is not None:
+        counts = _counts(aggregate)
+        lines += word_wrap('Collection reporting ' + ('not imported' if counts is None else '%d of %d reporting | %d success | %d failure | %d pending' % (
+            counts[1], counts[0], counts[2], counts[3], counts[4])), width)
+    return lines
+
+
+def health_lines(value, width, name=None):
+    """Collection freshness, then per policy: stage denominators, a device matrix and endpoint evidence, kept apart.
+
+    A single-policy result carries no name; the caller may pass the name it already showed for that policy.
+    """
+    lines = ['[HEALTH AND REPORTING]']
+    if 'objects' in value:
+        lines += _collection_lines(value, width)
+        for row in value.get('objects') or []:
+            if isinstance(row, dict):
+                lines += _object_health(row, row.get('health') if isinstance(row.get('health'), dict) else {}, width)
+    else:
+        lines += _object_health({'name': name}, value, width)
+    for text in ([value['qualification']] if value.get('qualification') else []) + list(value.get('limitations') or []):
+        lines += word_wrap('Limitation: ' + str(text), width)
+    return lines
+
+
+def _proposals(related):
+    """Each related operation once, with its latest journal status and how many journal records it has."""
+    by_operation = {}
+    for record in related or []:
+        if isinstance(record, dict):
+            by_operation.setdefault(str(record.get('operation_id')), []).append(record)
+    lines = []
+    for operation, records in by_operation.items():
+        latest = max(records, key=lambda record: record['sequence'] if type(record.get('sequence')) is int else -1)
+        lines.append('%s %s (%s; latest %s)' % (operation[:12], latest.get('status'), _plural(len(records), 'journal record'), latest.get('recorded_at')))
+    return lines
+
+
+def _plural(count, noun):
+    return '%d %s%s' % (count, noun, '' if count == 1 else 's')
+
+
+def queue_lines(value, width):
+    """Findings as work: what, why, state, ownership, dates, compatibility, evidence and related proposals."""
+    lines = ['[MAINTENANCE QUEUE]']
+    findings = [item for item in value.get('findings') or [] if isinstance(item, dict)]
+    page = value.get('pagination') if isinstance(value.get('pagination'), dict) else {}
+    total = page.get('total_objects')
+    lines += word_wrap('%s | %s in scope | no automatic remediation' % (
+        _plural(len(findings), 'finding'), _plural(total, 'object') if type(total) is int else 'unknown objects'), width)
+    if not findings:
+        lines.append('No findings for the observations in scope.')
+    for item in findings:
+        lines.append('')
+        lines += word_wrap('%s  %s  %s' % (item.get('priority', 'unknown'), item.get('finding', 'unknown'), item.get('object_id', 'unknown')), width)
+        lines += word_wrap('  Why: ' + str(item.get('priority_rationale') or 'not recorded'), width)
+        lines += word_wrap('  State %s | owner %s | freshness %s | automatic remediation %s' % (
+            item.get('action_state', 'unknown'), item.get('owner_assertion', 'unknown'), item.get('freshness', 'unknown'),
+            'yes' if item.get('automatic_remediation') is True else 'no'), width)
+        writer = item.get('writer_ownership') if isinstance(item.get('writer_ownership'), dict) else {}
+        claim = item.get('source_owner_claim') if isinstance(item.get('source_owner_claim'), dict) else {}
+        if writer or 'owner_role' in item:
+            lines += word_wrap('  Owner role %s: %s | writer %s%s | source owner claim %s' % (
+                str(item.get('owner_role', 'unknown')).replace('_', ' '), item.get('owner') or 'none recorded',
+                writer.get('status', 'unknown'), ': ' + str(writer['reason']) if writer.get('reason') else '',
+                _value(claim.get('value')) if claim else 'none'), width)
+        review = item.get('review_record') if isinstance(item.get('review_record'), dict) else {}
+        state = str(review['reason']).replace('_', ' ') if review.get('reason') else 'review ' + str(review.get('status', 'not recorded'))
+        lines += word_wrap('  %s | review due %s | exception expiry %s' % (
+            state[:1].upper() + state[1:], item.get('review_due') or 'none', item.get('exception_expiry') or 'none'), width)
+        compatibility = item.get('compatibility') if isinstance(item.get('compatibility'), dict) else None
+        if compatibility:
+            lines += word_wrap('  Compatibility %s | native provider %squalified' % (
+                compatibility.get('profile', 'unknown'), '' if compatibility.get('native_provider_qualified') is True else 'not '), width)
+        evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else None
+        if evidence:
+            lines += word_wrap('  Evidence %s | observed %s | snapshot %s' % (
+                evidence.get('evidence_class', 'unknown'), evidence.get('observed_at', 'unknown'), str(evidence.get('snapshot_id', 'unknown'))[:12]), width)
+        proposals = _proposals(item.get('related_proposals'))
+        lines += word_wrap('  Related proposals ' + ('(%d)' % len(proposals) if proposals else 'none'), width)
+        for text in proposals:
+            lines += word_wrap('    ' + text, width)
+    return lines
+
+
 TITLES = {'current': 'REPOSITORY MATCHES THE RECORDED INTENT',
           'stale': 'REPOSITORY CHANGED SINCE THE RECORDED INTENT',
           'unavailable': 'REPOSITORY UNAVAILABLE'}

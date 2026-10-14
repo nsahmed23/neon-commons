@@ -28,8 +28,9 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | 9 | Repository status of the selected policy: is its recorded repository intent still current, and what changed |
 | Tab | Next surface |
 | n / p | Next / previous bounded engine page |
-| h / l | Health / repository lineage |
+| h / l | Health and reporting on the Coverage surface / repository lineage |
 | d | Setting dictionary for the selected policy's settings |
+| m | Maintenance queue on the Coverage surface |
 | Page Up / Page Down | Scroll the exact result, including long values |
 | : | Command bar accepting the existing text commands |
 | / | Search policies/settings; preserve active global filters when using the four-view estate |
@@ -76,6 +77,25 @@ The literal-capture fields remain. `d` opens the dictionary for these settings o
 - **Company, community and AI categories:** each with its availability.
 
 When the vendor record says the Graph-to-CSP value translation is unverified, the dictionary says so next to the CSP values instead of pairing them.
+
+**Relationships (3).** Typed edges are grouped as targeting, configuration, source and lineage, and ownership, drawn as a dependency list. Each edge shows its exact target; an assignment also shows its filter. The evidence class is stated once on a group's heading when every edge in the group shares it, and on each edge otherwise. The selected repository source appears as a lineage edge, and the writer ownership shows its status and reason.
+
+**History (4).** Observations newest first. Each shows its time, collection run, coverage and snapshot, then its evidence class, recorded change time and attribution (both `unknown` unless evidence records them). It then compares the observation with the one before it on the same page:
+- `No configuration change since the previous observation.`;
+- or the exact field changes, in the same form as the change review;
+- or, when a field was not completely observed, an unknown comparison with its reasons. Incompletely observed fields are listed by name.
+
+The last observation on a page says it is the earliest on that page, and whether `n` shows older ones. Observation time is when collection saw the configuration; the screen says it does not establish who changed it or when.
+
+**Coverage (7), health and maintenance.** `h` shows `[HEALTH AND REPORTING]` for the selected policy:
+- the imported device evidence: class, as-of time and cohort version;
+- the denominator: targeted, eligible and excluded devices, membership conflicts and reports from devices outside the cohort;
+- the source file and its digest;
+- a stage table (object, assignment, cohort, receipt, execution, effective state, outcome) with targeted, reported, success, failure, pending, unknown-status and no-fresh-report counts.
+
+The full table fits 80 columns; narrower terminals get abbreviated columns with a legend, then sentences. For the deepest stage with any fresh report, the screen states the result in words ("8 of 100 targeted devices reported success at execution; 92 without a fresh report"), why the rest are not counted, and a device matrix with one cell per device (or per stated group of devices above 400). Endpoint health and outcome, service acceptance and configuration parity, and rollout readiness and approval follow on separate lines. Without imported evidence it says so. The estate-wide health result adds the collection's freshness, last success, last attempt, retained last-good state and pending observations.
+
+`m` shows `[MAINTENANCE QUEUE]`: each finding with its priority, affected object, the reason it matters, action state, owner assertion, freshness, review assignee role, writer ownership, source owner claim, review state, review due date, exception expiry, compatibility profile, evidence and related proposals (one line per operation with its latest journal status). The queue never remediates automatically. Both views resume after reopening.
 
 **Plan (5).** A review starts with `[CHANGE REVIEW]`:
 - each changed field with its exact observed and desired values. Strings are quoted, and `null`, `""` and an absent value stay distinct.
