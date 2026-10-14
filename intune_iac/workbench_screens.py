@@ -409,11 +409,23 @@ def _value(value):
     return safe_text(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True))
 
 
+UNRESOLVED_GROUP = 'Unresolved group identity'
+
+
+def group_words(group_id, names=None):
+    """A group target in words: its captured name beside its identity, or what it is when no name was captured."""
+    names = names if isinstance(names, dict) else {}
+    identity = safe_text(str(group_id))
+    if group_id in names:
+        return '%s "%s"' % (identity, safe_text(str(names[group_id])))
+    return '%s %s' % (UNRESOLVED_GROUP, identity)
+
+
 def _target(item):
     if isinstance(item, dict) and isinstance(item.get('type'), str):
         text = item['type']
         if 'group_id' in item:
-            text += ' group ' + str(item['group_id'])
+            text += ' ' + group_words(item['group_id'])
         if item.get('filter_type') not in (None, 'none'):
             text += ' filter ' + str(item['filter_type']) + ' ' + str(item.get('filter_id'))
         return safe_text(text)
@@ -520,7 +532,7 @@ def _target_line(row):
         return _value(row)
     text = TARGET_WORDS.get(row.get('type'), safe_text(str(row.get('type'))))
     if 'group_id' in row:
-        text += '  group ' + safe_text(str(row['group_id']))
+        text += '  ' + group_words(row['group_id'])
     if row.get('filter_type') not in (None, 'none'):
         text += '  filter ' + safe_text(str(row['filter_type'])) + ' ' + safe_text(str(row.get('filter_id')))
     return text
@@ -620,16 +632,15 @@ def _evidence_says(value, body, width):
     assignments = body.get('assignments')
     if isinstance(assignments, list):
         names = value.get('target_names') if isinstance(value.get('target_names'), dict) else {}
-        grouped = any(isinstance(row, dict) and 'group_id' in row for row in assignments)
-        note = '; group names were not captured' if grouped and not names else ''
-        lines += word_wrap('  %s%s' % (_count(len(assignments), 'target', 'targets'), note), width)
+        # Each group says on its own line whether its name was captured; nothing is said once for all of them.
+        lines += word_wrap('  %s' % _count(len(assignments), 'target', 'targets'), width)
         for row in assignments:
             if not isinstance(row, dict):
                 lines += word_wrap('    ' + _value(row), width)
                 continue
             text = TARGET_WORDS.get(row.get('type'), safe_text(str(row.get('type'))))
             if 'group_id' in row:
-                text += '  ' + safe_text(str(row['group_id'])) + (('  "%s"' % safe_text(str(names[row['group_id']]))) if row['group_id'] in names else '')
+                text += '  ' + group_words(row['group_id'], names)
             lines += _labelled('', text, width, 4)
             if row.get('filter_type') not in (None, 'none'):
                 lines += _labelled('', 'filter ' + safe_text(str(row['filter_type'])) + ' ' + safe_text(str(row.get('filter_id'))), width, 13)
@@ -906,6 +917,8 @@ def _edge_target(edge):
         return _value(target)
     text = safe_text(str(target))
     details = edge.get('details') if isinstance(edge.get('details'), dict) else {}
+    if relation in ('assignment', 'exclusion') and details.get('group_id'):
+        text = group_words(target)
     if relation == 'assignment' and details.get('filter_type') not in (None, 'none'):
         text += '  filter ' + safe_text(str(details['filter_type'])) + ' ' + safe_text(str(details.get('filter_id')))
     return text
@@ -944,7 +957,8 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
             for number, part in enumerate(word_wrap(describe(row), max(1, width - len(head)))):
                 lines.append((head if number == 0 else cont) + part)
 
-    section('TARGETED GROUPS', value.get('groups') or [], lambda row: '%s  %s' % (str(row['group_id'])[:8], ', '.join(
+    # Said once for the list: no group name is captured, so each line is an unresolved group identity.
+    section('TARGETED GROUPS  (%s)' % UNRESOLVED_GROUP if value.get('groups') else 'TARGETED GROUPS', value.get('groups') or [], lambda row: '%s  %s' % (str(row['group_id'])[:8], ', '.join(
         part for part in ((_users(row['included_by'], 'included by') if row.get('included_by') else ''),
                           (_users(row['excluded_by'], 'excluded by') if row.get('excluded_by') else '')) if part)))
     broad = value.get('broad_targets') or []

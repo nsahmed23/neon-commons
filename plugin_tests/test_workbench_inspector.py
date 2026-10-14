@@ -103,10 +103,10 @@ class InspectorSummaryTests(unittest.TestCase):
                       'stale', joined.replace('\n          ', ' '))
         self.assertIn('device_vendor_msft_policy_config_privacy_letappsaccesslocation', joined)
         self.assertIn('meaning not established', joined)
-        self.assertIn('include  44444444-4444-4444-8444-444444444444', joined)
+        self.assertIn('include  Unresolved group identity 44444444-4444-4444-8444-444444444444', joined)
         self.assertIn('filter include 77777777-7777-4777-8777-777777777777', joined)
-        self.assertIn('exclude  66666666-6666-4666-8666-666666666666', joined)
-        self.assertIn('group names were not captured', joined)
+        self.assertIn('exclude  Unresolved group identity 66666666-6666-4666-8666-666666666666', joined)
+        self.assertIn('Unresolved group identity', joined)  # each group says its name was not captured
         self.assertIn('NEEDS ATTENTION', joined)
         self.assertIn('The newest observation (2026-10-14T12:25:00Z) is stale.', joined)
         self.assertIn('NEXT', joined)

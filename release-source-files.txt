@@ -804,6 +804,7 @@ plugin_tests/test_workbench_evidence_views_r4.py
 plugin_tests/test_workbench_families.py
 plugin_tests/test_workbench_hazard.py
 plugin_tests/test_workbench_health.py
+plugin_tests/test_workbench_identities.py
 plugin_tests/test_workbench_independent.py
 plugin_tests/test_workbench_inspector.py
 plugin_tests/test_workbench_overview.py

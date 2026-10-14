@@ -60,7 +60,8 @@ class ChangeLinesTests(unittest.TestCase):
     def test_added_and_removed_targets_and_reordered_settings(self):
         after = body(); after['assignments'].append({'type': 'exclusionGroupAssignmentTarget', 'group_id': GROUP_B, 'filter_type': 'none'})
         joined = '\n'.join(change_lines(field_changes(body(), after), 100))
-        self.assertIn('assignments  + exclusionGroupAssignmentTarget group ' + GROUP_B, joined)
+        # The longer line wraps; compared with the wrapping undone.
+        self.assertIn('assignments + exclusionGroupAssignmentTarget Unresolved group identity ' + GROUP_B, ' '.join(joined.split()))
         two = body(); two['settings']['settings'].append(setting('1', CAMERA, CAMERA + '_0'))
         swapped = copy.deepcopy(two); swapped['settings']['settings'].reverse()
         joined = '\n'.join(change_lines(field_changes(two, swapped), 100))
@@ -187,10 +188,11 @@ class InspectorAndDictionaryTests(unittest.TestCase):
         self.assertIn('Description  "Synthetic reference; not production advice."', joined)
         self.assertIn('  1 setting', joined)
         self.assertIn('= "' + LOCATION + '_2"', joined)
-        self.assertIn('  3 targets; group names were not captured', joined)
-        self.assertIn('include  44444444-4444-4444-8444-444444444444', joined)
+        self.assertIn('  3 targets', joined)
+        self.assertIn('Unresolved group identity', joined)
+        self.assertIn('include  Unresolved group identity 44444444-4444-4444-8444-444444444444', joined)
         self.assertIn('filter include 77777777-7777-4777-8777-777777777777', joined)
-        self.assertIn('exclude  66666666-6666-4666-8666-666666666666', joined)
+        self.assertIn('exclude  Unresolved group identity 66666666-6666-4666-8666-666666666666', joined)
         for line in lines:
             self.assertLessEqual(cell_width(line), 120, line)
 
@@ -239,7 +241,7 @@ class TreeAndSpineTests(unittest.TestCase):
     def test_relationships_hang_from_connected_tree_lines(self):
         from intune_iac.workbench_screens import relationship_lines
         lines = relationship_lines(RELATIONSHIPS, 140, rules='unicode')
-        self.assertIn('  ├── assignment   44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', lines)
+        self.assertIn('  ├── assignment   Unresolved group identity 44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', lines)
         self.assertTrue(any(line.startswith('  └── ') for line in lines))
         self.assertEqual(relationship_lines(RELATIONSHIPS, 140), relationship_lines(RELATIONSHIPS, 140, rules='ascii'))
 
@@ -287,7 +289,7 @@ class RelationshipLinesTests(unittest.TestCase):
         for heading in ('TARGETING', 'CONFIGURATION', 'SOURCE AND LINEAGE', 'OWNERSHIP'):
             self.assertIn(heading, joined)
         self.assertIn('TARGETING  [observed]', joined); self.assertIn('CONFIGURATION  [observed]', joined)
-        self.assertIn('  |-- assignment   44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', lines)
+        self.assertIn('  |-- assignment   Unresolved group identity 44444444-4444-4444-8444-444444444444  filter include 77777777-7777-4777-8777-777777777777', lines)
         self.assertIn('  |-- exclusion    66666666-6666-4666-8666-666666666666', lines)
         self.assertIn('  |-- scope tag    "0"', lines)
         self.assertIn('generated    /work/generated/' + POLICY_ID + '  [historical_local_adoption]', joined)
