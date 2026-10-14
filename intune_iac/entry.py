@@ -1,0 +1,453 @@
+"""Guided entry: what already exists in a working directory, and what to do next.
+
+Read-only and offline. Before asking anything, it inspects what the engineer
+already has: wizard, journey and guided sessions; workbench stores; Atmos
+repositories; supported exports and contexts; generated projects; modeled
+services; and maintenance operations. Each item is reported with distinct
+states (discovered, configured, authenticated, qualified) and the next concrete
+command. A missing live connection never hides what offline inspection and
+preparation can still do, and synthetic evidence stays labelled synthetic.
+
+The walk is bounded (depth, entries, file size), skips version-control,
+environment and evidence directories, never follows symbolic links, and reads
+through the product's own loaders. Opening a store uses the store's normal
+open, which may roll back an interrupted SQLite journal (engine crash recovery);
+nothing else is written.
+"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+VERSION = 'workbench-start/1'
+MAX_DEPTH = 4
+MAX_ENTRIES = 5000
+MAX_JSON_BYTES = 16 * 1024 * 1024
+SKIP_DIRS = {'.git', '.venv', 'venv', '.tox', '.mypy_cache', '.pytest_cache', '.terraform', 'node_modules',
+             '__pycache__', 'attempts'}
+CONTEXT_KEYS = {'tenant_id', 'cloud', 'stack', 'component'}
+PROGRAM = 'intune-iac'
+OFFLINE = 'no_live_connection'
+ORDER = ('store', 'repository', 'wizard_session', 'journey_session', 'guided_session', 'generated_project', 'operation',
+         'modeled_service', 'export', 'context')
+
+
+def _walk(root):
+    """JSON files and directories under root, bounded, never following links."""
+    files, dirs, links, pending, seen = [], [], [], [(root, 0)], 0
+    while pending:
+        directory, depth = pending.pop()
+        try:
+            entries = sorted(os.scandir(directory), key=lambda entry: entry.name)
+        except OSError:
+            continue
+        for entry in entries:
+            seen += 1
+            if seen > MAX_ENTRIES:
+                return files, dirs, links, True
+            path = Path(entry.path)
+            if entry.is_symlink():
+                links.append(path.relative_to(root).as_posix())
+            elif entry.is_dir(follow_symlinks=False):
+                if entry.name in SKIP_DIRS or entry.name.endswith(('.journey', '.evidence')):
+                    continue
+                dirs.append(path)
+                if depth + 1 < MAX_DEPTH:
+                    pending.append((path, depth + 1))
+            elif entry.is_file(follow_symlinks=False) and entry.name.endswith('.json'):
+                files.append(path)
+    return sorted(files), sorted(dirs), sorted(links), False
+
+
+def _states(configured, authenticated=OFFLINE, qualified='not_qualified', reason=None):
+    value = {'discovered': True, 'configured': configured, 'authenticated': authenticated, 'qualified': qualified}
+    return dict(value, configured_reason=reason) if reason else value
+
+
+def _git_revision(directory):
+    """The checked-out commit read from .git files; None when it is not a Git repository or cannot be read."""
+    import re
+    git = directory / '.git'
+    try:
+        head = (git / 'HEAD').read_text(encoding='ascii').strip()
+        if head.startswith('ref: '):
+            ref = head[5:]
+            if not re.fullmatch(r'refs/[A-Za-z0-9._/-]{1,200}', ref) or '..' in ref:
+                return None
+            path = git / ref
+            if path.is_file():
+                head = path.read_text(encoding='ascii').strip()
+            else:
+                packed = (git / 'packed-refs').read_text(encoding='ascii').splitlines()
+                head = next((line.split()[0] for line in packed if line.endswith(' ' + ref)), '')
+        return head if re.fullmatch(r'[0-9a-f]{40}', head) else None
+    except (OSError, UnicodeError):
+        return None
+
+
+def _json_item(root, path, rel):
+    from .io import load_json
+    from reference.validation import schema_errors
+    try:
+        if path.stat().st_size > MAX_JSON_BYTES:
+            return None
+        value = load_json(path)
+    except Exception:
+        return None
+    if not isinstance(value, dict):
+        return None
+    if value.get('schema_version') == '1.0.0' and {'step', 'paths', 'fingerprints', 'generated', 'conflict_reason'} <= set(value):
+        from .wizard import _session
+        try:
+            state = _session(path)
+        except Exception:
+            return {'kind': 'wizard_session', 'path': rel, 'valid': False, 'states': _states(False, reason='session_invalid')}
+        paths = {name: _relative(root, state['paths'].get(name)) for name in ('input', 'context', 'output')}
+        return {'kind': 'wizard_session', 'path': rel, 'valid': True, 'step': state['step'],
+                'conflict_reason': state.get('conflict_reason'), 'generated': state.get('generated') is not None,
+                'repository_mode': 'repository' in state, **paths,
+                'states': _states(all(state['paths'].get(name) for name in ('input', 'context', 'output')))}
+    if {'lifecycle', 'mode', 'selected_ids', 'in_flight'} <= set(value):
+        from . import journey
+        try:
+            state = journey._load(path)
+            progress = journey.reconstruct_progress(path)
+        except Exception:
+            return {'kind': 'journey_session', 'path': rel, 'valid': False, 'states': _states(False, reason='session_invalid')}
+        return {'kind': 'journey_session', 'path': rel, 'valid': True, 'lifecycle': state['lifecycle'], 'mode': state['mode'],
+                'next_state': progress['next_state'], 'verified': len(progress['verified_completed']),
+                'output': _relative(root, state['paths']['output']), 'states': _states(True, qualified='synthetic_only' if state['mode'] == 'simulation' else 'not_qualified')}
+    from .workflow import SESSION_KEYS
+    if set(value) == SESSION_KEYS:
+        from . import workflow
+        try:
+            state = workflow._load(path)
+        except Exception:
+            return {'kind': 'guided_session', 'path': rel, 'valid': False, 'states': _states(False, reason='session_invalid')}
+        return {'kind': 'guided_session', 'path': rel, 'valid': True, 'saved_state': state['saved_state'],
+                'lifecycle': state['lifecycle'], 'output': _relative(root, state['paths'].get('output')), 'states': _states(True)}
+    try:
+        is_export = not schema_errors('export-intake', value)
+    except Exception:
+        is_export = False
+    if is_export:
+        from .wizard import _policy_ids
+        try:
+            policies = sorted(_policy_ids(path))
+        except Exception:
+            policies = []
+        synthetic = value.get('synthetic') is True
+        return {'kind': 'export', 'path': rel, 'synthetic': synthetic, 'tenant_id': value.get('tenant_id'), 'policies': policies,
+                'states': _states(True, 'source_asserted_not_authenticated', 'synthetic_only' if synthetic else 'not_qualified')}
+    if CONTEXT_KEYS <= set(value) and 'collections' not in value:
+        return {'kind': 'context', 'path': rel, 'tenant_id': value.get('tenant_id'), 'stack': value.get('stack'),
+                'component': value.get('component'), 'synthetic': value.get('source_is_synthetic') is True, 'states': _states(True)}
+    return None
+
+
+def _relative(root, value):
+    if not value:
+        return None
+    path = Path(value)
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def _store_item(root, directory, rel):
+    from .workbench_store import WorkbenchStore
+    try:
+        store = WorkbenchStore(directory)
+        overview = store.overview(limit=1)
+        intents = store.artifacts(kind='repository_intent')
+        operations = store.operations()
+    except Exception as error:
+        return {'kind': 'store', 'path': rel, 'states': _states(False, reason=getattr(error, 'code', 'store_unreadable'))}
+    total = (overview.get('pagination') or {}).get('total_objects', 0)
+    return {'kind': 'store', 'path': rel, 'tenant_id': store.tenant_id, 'objects': total,
+            'freshness': overview.get('freshness'), 'coverage': overview.get('coverage'),
+            'intents': [{'object_id': row['data'].get('target_object_id'), 'repository': row['data'].get('scope', {}).get('repository'),
+                         'artifact_id': row['artifact_id']} for row in intents],
+            'operations': len(operations),
+            'states': _states(total > 0, qualified='synthetic_only' if overview.get('evidence_class') in (None, 'synthetic') else 'not_qualified',
+                              reason=None if total else 'no_observations')}
+
+
+def _service_item(directory, rel):
+    from .io import load_json
+    try:
+        value = load_json(directory / 'service.json')
+        current = value['current']
+        return {'kind': 'modeled_service', 'path': rel, 'tenant_id': current.get('tenant_id'), 'objects': sorted(current.get('objects', {})),
+                'revision': value.get('revision'), 'states': _states(True, 'modeled_service_no_authentication', 'synthetic_only')}
+    except Exception:
+        return {'kind': 'modeled_service', 'path': rel, 'states': _states(False, reason='service_unreadable')}
+
+
+def _repository_item(directory, rel):
+    from .repository import discover_repository
+    try:
+        report = discover_repository(directory)
+    except Exception:
+        return {'kind': 'repository', 'path': rel, 'states': _states(False, reason='repository_unreadable')}
+    stacks = [item.get('stack') for item in report.get('stacks', [])]
+    components = sorted({(item.get('stack'), component.get('name')) for item in report.get('stacks', [])
+                         for component in item.get('components', []) if component.get('selectable')})
+    revision = _git_revision(directory)
+    reason = None if report.get('status') == 'discovered' and components else 'no_selectable_component'
+    if revision is None:
+        reason = reason or 'not_a_git_repository'
+    return {'kind': 'repository', 'path': rel, 'status': report.get('status'), 'stacks': stacks,
+            'components': [{'stack': stack, 'component': name} for stack, name in components], 'git_revision': revision,
+            'blockers': [blocker.get('code') for blocker in report.get('blockers', [])],
+            'states': _states(reason is None, reason=reason)}
+
+
+def _operation_item(directory, rel):
+    from . import maintenance
+    try:
+        _, plan, journal, _, _ = maintenance._load(directory)
+    except Exception as error:
+        return {'kind': 'operation', 'path': rel, 'states': _states(False, reason=getattr(error, 'code', 'operation_unreadable'))}
+    return {'kind': 'operation', 'path': rel, 'object_id': plan['object_id'], 'status': journal['status'],
+            'changes': plan['changes'], 'states': _states(True, qualified='synthetic_only')}
+
+
+def _staged_classification(root, session, directory):
+    """Classify one policy's output written by a journey or guided session (output/<policy id>)."""
+    policy_id = directory.name
+    if session['kind'] == 'journey_session':
+        from . import journey
+        path = root / session['path']
+        state = journey._load(path)
+        if policy_id not in state['selected_ids']:
+            return None
+        return journey._classify_selected(state, journey._observe(path, state), policy_id)
+    from . import workflow
+    path = root / session['path']
+    state = workflow._load(path)
+    if policy_id not in state['selected_ids']:
+        return None
+    return workflow._classify_one(state, workflow._observe(path, state)['context'], policy_id)
+
+
+def _generated_item(root, directory, rel, sessions):
+    """A generated project, classified against the session that produced it when one is found."""
+    from .output_edit import classify
+    parent = Path(rel).parent.as_posix()
+    for session in sessions:
+        if session.get('kind') in ('journey_session', 'guided_session') and session.get('valid') and session.get('output') == parent:
+            try:
+                edit = _staged_classification(root, session, directory)
+            except Exception:
+                edit = None
+            if edit is not None:
+                return _classified(rel, session['path'], edit)
+    for session in sessions:
+        if session.get('kind') == 'wizard_session' and session.get('valid') and session.get('output') == rel:
+            try:
+                edit = classify(root / session['input'] if not Path(session['input']).is_absolute() else session['input'],
+                                root / session['context'] if not Path(session['context']).is_absolute() else session['context'],
+                                directory)
+            except Exception:
+                return {'kind': 'generated_project', 'path': rel, 'session': session['path'], 'classification': 'source_unavailable',
+                        'states': _states(False, reason='source_unavailable')}
+            return _classified(rel, session['path'], edit)
+    return {'kind': 'generated_project', 'path': rel, 'session': None, 'classification': 'source_unknown',
+            'states': _states(False, reason='source_unknown')}
+
+
+def _classified(rel, session_path, edit):
+    item = {'kind': 'generated_project', 'path': rel, 'session': session_path, 'classification': edit['classification'],
+            'states': _states(edit['classification'] == 'unchanged', qualified='synthetic_only',
+                              reason=None if edit['classification'] == 'unchanged' else 'verification_stale')}
+    if edit['classification'] == 'repository_owned_policy_edit':
+        item.update(pointer=edit['pointer'], field_changes=len((edit['field_changes'] or {}).get('changes', [])))
+    elif edit['classification'] == 'other_change':
+        item.update(reason=edit.get('reason'))
+    return item
+
+
+def _next_actions(items):
+    kinds = {}
+    for item in items:
+        kinds.setdefault(item['kind'], []).append(item)
+    actions = []
+    conflicts = {'repository_owned_edit': 'Review the repository-owned edit, or hand it off to the repository workflow',
+                 'output_changed': 'Resolve the changed output (new-path, review or cancel)',
+                 'output_conflict': 'Resolve the output conflict (new-path, review or cancel)',
+                 'outcome_unknown': 'Review the uncertain generation outcome before any retry'}
+    for item in kinds.get('wizard_session', []):
+        if item.get('valid') and item.get('step') != 'complete':
+            lead = conflicts.get(item.get('conflict_reason'), 'Resume the wizard session') if item.get('step') == 'conflict' else 'Resume the wizard session'
+            actions.append('%s: %s wizard --session %s' % (lead, PROGRAM, item['path']))
+    for item in kinds.get('journey_session', []):
+        if item.get('valid') and item.get('lifecycle') not in ('complete_simulation',):
+            actions.append('Resume the journey: %s wizard --journey --session %s' % (PROGRAM, item['path']))
+    for item in kinds.get('guided_session', []):
+        if item.get('valid') and item.get('lifecycle') != 'complete_local':
+            actions.append('Resume the guided session: %s wizard --guided --session %s' % (PROGRAM, item['path']))
+    for item in kinds.get('generated_project', []):
+        if item.get('classification') == 'repository_owned_policy_edit':
+            actions.append('The generated project %s holds a repository-owned policy edit: reopen its session and use handoff, '
+                           'or copy it into your repository and record it with repository-import.' % item['path'])
+    stores = [item for item in kinds.get('store', []) if item['states']['configured'] or item.get('tenant_id')]
+    services = kinds.get('modeled_service', [])
+    for store in stores:
+        service = next((s for s in services if s.get('tenant_id') == store.get('tenant_id')), None)
+        if not store['states']['configured']:
+            # An empty store shows nothing until something is collected into it.
+            actions.append('Collect into %s: %s workbench collect --root %s --service-root %s' % (
+                store['path'], PROGRAM, store['path'], service['path'] if service else 'SERVICE_ROOT'))
+        actions.append('Open the workspace: %s workbench workspace --root %s%s' % (
+            PROGRAM, store['path'], ' --service-root ' + service['path'] if service else ''))
+    for repository in kinds.get('repository', []):
+        recorded = [(store, intent) for store in stores for intent in store.get('intents', [])
+                    if intent.get('repository') and Path(intent['repository']).name == Path(repository['path']).name]
+        if recorded:
+            store, intent = recorded[-1]
+            actions.append('Check the repository against its recorded intent: %s workbench repository-status --root %s --object %s' % (
+                PROGRAM, store['path'], intent['object_id']))
+            continue
+        target = (repository.get('components') or [{'stack': 'STACK', 'component': 'COMPONENT'}])[0]
+        actions.append('Record the repository as the desired source: %s workbench repository-import --root %s --repo %s --stack %s '
+                       '--component %s --object OBJECT_ID --pointer /vars/policies/KEY --revision %s --backend local '
+                       '--resource-address ADDRESS' % (PROGRAM, stores[0]['path'] if stores else 'STORE', repository['path'],
+                                                       target['stack'], target['component'], repository.get('git_revision') or 'COMMIT'))
+    used = {item.get('input') for item in kinds.get('wizard_session', [])}
+    contexts = kinds.get('context', [])
+    for export in kinds.get('export', []):
+        if export['path'] not in used:
+            actions.append('Start from the export %s: %s wizard --session NEW_SESSION.json --input %s --context %s --output NEW_OUTPUT_DIR' % (
+                export['path'], PROGRAM, export['path'], contexts[0]['path'] if contexts else 'CONTEXT_JSON'))
+    for operation in kinds.get('operation', []):
+        actions.append('Follow the operation: %s workbench delivery --operation %s' % (PROGRAM, operation['path']))
+    if not items:
+        actions = ['Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
+                   '--output NEW_OUTPUT_DIR' % PROGRAM,
+                   'Or record an existing Atmos repository you maintain: %s workbench repository-import --root STORE --repo REPOSITORY '
+                   '--stack STACK --component COMPONENT --object OBJECT_ID --pointer /vars/policies/KEY --revision COMMIT '
+                   '--backend local --resource-address ADDRESS (create the store first with %s workbench init --root STORE '
+                   '--tenant TENANT_ID)' % (PROGRAM, PROGRAM)]
+    return actions
+
+
+def _missing(items):
+    kinds = {item['kind'] for item in items}
+    notes = ['No live discovery connection is configured: offline inspection and preparation remain available.']
+    if 'export' in kinds and 'context' not in kinds:
+        notes.append('An export needs a bounded context JSON (tenant, cloud, stack and component) before the wizard can '
+                     'generate; examples/context.json shows the shape.')
+    if 'store' in kinds and 'modeled_service' not in kinds:
+        notes.append('No modeled service or capture was found to collect from; the store keeps what it already observed.')
+    return notes
+
+
+def survey(directory):
+    """What already exists under a directory, with states and next actions; read-only."""
+    root = Path(directory).absolute()
+    files, dirs, links, truncated = _walk(root)
+    items = []
+    for path in files:
+        item = _json_item(root, path, path.relative_to(root).as_posix())
+        if item:
+            items.append(item)
+    sessions = list(items)
+    for directory_path in dirs:
+        rel = directory_path.relative_to(root).as_posix()
+        if (directory_path / 'observations.sqlite3').is_file():
+            items.append(_store_item(root, directory_path, rel))
+        if (directory_path / 'service.json').is_file():
+            items.append(_service_item(directory_path, rel))
+        if (directory_path / 'plan.json').is_file() and (directory_path / 'journal.json').is_file():
+            items.append(_operation_item(directory_path, rel))
+        # A generated project committed to Git is the engineer's repository, no longer generated output.
+        git = (directory_path / '.git').exists()
+        generated = (directory_path / 'generated-files.json').is_file() and not git
+        if generated:
+            items.append(_generated_item(root, directory_path, rel, sessions))
+        if (directory_path / 'atmos.yaml').is_file() and not generated:
+            items.append(_repository_item(directory_path, rel))
+    items.sort(key=lambda item: (ORDER.index(item['kind']) if item['kind'] in ORDER else len(ORDER), item['path']))
+    return {'schema_version': VERSION, 'directory': str(root), 'connection': 'offline', 'items': items,
+            'next_actions': _next_actions(items), 'missing': _missing(items), 'skipped_links': links,
+            'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False}
+
+
+LABELS = {'wizard_session': 'Wizard session', 'journey_session': 'Journey', 'guided_session': 'Guided session',
+          'export': 'Export', 'context': 'Context', 'generated_project': 'Generated', 'store': 'Store',
+          'repository': 'Repository', 'modeled_service': 'Service', 'operation': 'Operation'}
+STATE_WORDS = {OFFLINE: 'not authenticated (no live connection)', 'source_asserted_not_authenticated': 'source-asserted, not authenticated',
+               'modeled_service_no_authentication': 'modeled service, no authentication', 'synthetic_only': 'synthetic only',
+               'not_qualified': 'not qualified'}
+
+
+def _count(number, noun, plural=None):
+    return '%d %s' % (number, noun if number == 1 else plural or noun + 's')
+
+
+def _summary(item):
+    kind = item['kind']
+    if not item['states'].get('configured') and item['states'].get('configured_reason') in ('session_invalid', 'service_unreadable', 'repository_unreadable'):
+        return 'unreadable: ' + item['states']['configured_reason'].replace('_', ' ')
+    if kind == 'wizard_session':
+        return 'step %s%s | output %s' % (item.get('step'), ' (' + item['conflict_reason'] + ')' if item.get('conflict_reason') else '', item.get('output'))
+    if kind == 'journey_session':
+        return '%s | next %s | %s of 17 stages verify' % (item.get('lifecycle'), item.get('next_state'), item.get('verified'))
+    if kind == 'guided_session':
+        return '%s | %s' % (item.get('lifecycle'), item.get('saved_state'))
+    if kind == 'export':
+        return '%s | tenant %s | %s' % ('synthetic' if item.get('synthetic') else 'not synthetic', item.get('tenant_id'), _count(len(item.get('policies', [])), 'policy', 'policies'))
+    if kind == 'context':
+        return 'tenant %s | %s / %s' % (item.get('tenant_id'), item.get('stack'), item.get('component'))
+    if kind == 'generated_project':
+        text = item.get('classification', 'unknown').replace('_', ' ')
+        return text + (' at ' + item['pointer'] if item.get('pointer') else '') + (' | session ' + item['session'] if item.get('session') else '')
+    if kind == 'store':
+        return 'tenant %s | %s | %s | %s | %s' % (
+            item.get('tenant_id'), _count(item.get('objects') or 0, 'object'), item.get('freshness'),
+            _count(len(item.get('intents', [])), 'repository intent'), _count(item.get('operations', 0), 'operation'))
+    if kind == 'repository':
+        return 'Git %s | %s' % ((item.get('git_revision') or 'none')[:12], ', '.join('%s / %s' % (c['stack'], c['component']) for c in item.get('components', [])) or 'no selectable component')
+    if kind == 'modeled_service':
+        return 'tenant %s | %s | revision %s' % (item.get('tenant_id'), _count(len(item.get('objects', [])), 'object'), item.get('revision'))
+    if kind == 'operation':
+        return '%s | %s' % (item.get('status'), ', '.join(item.get('changes', [])) or 'no configuration change')
+    return ''
+
+
+def start_lines(value, width):
+    """The survey as a readable screen: what was found, each item's states, the next steps and what is missing."""
+    from .workbench_screens import word_wrap
+    lines = ['INTUNE WORKBENCH: START']
+    lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % value['directory'], width)
+    if value['items']:
+        lines.append('FOUND')
+        for item in value['items']:
+            label = '  %-16s' % LABELS.get(item['kind'], item['kind'])
+            text = item['path'] + '  ' + _summary(item)
+            for index, part in enumerate(word_wrap(text, max(10, width - len(label)))):
+                lines.append((label if index == 0 else ' ' * len(label)) + part)
+            states = item['states']
+            configured = 'configured' if states.get('configured') else 'not configured: ' + str(states.get('configured_reason', 'incomplete')).replace('_', ' ')
+            words = ' | '.join(['discovered', configured, STATE_WORDS.get(states['authenticated'], states['authenticated']),
+                                STATE_WORDS.get(states['qualified'], states['qualified'])])
+            for part in word_wrap(words, max(10, width - len(label))):
+                lines.append(' ' * len(label) + part)
+    else:
+        lines += word_wrap('Nothing recognized here yet.', width)
+    lines.append('NEXT')
+    for number, action in enumerate(value['next_actions'], 1):
+        prefix = '  %d. ' % number
+        for index, part in enumerate(word_wrap(action, width - len(prefix))):
+            lines.append((prefix if index == 0 else ' ' * len(prefix)) + part)
+    lines.append('MISSING')
+    for note in value['missing']:
+        for index, part in enumerate(word_wrap(note, width - 4)):
+            lines.append(('  - ' if index == 0 else '    ') + part)
+    if value.get('skipped_links'):
+        lines += word_wrap('Symbolic links not followed: ' + ', '.join(value['skipped_links']), width)
+    if value.get('truncated'):
+        lines += word_wrap('The walk stopped at %d entries; narrow the directory to see everything.' % MAX_ENTRIES, width)
+    return lines

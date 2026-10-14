@@ -1,5 +1,36 @@
 # Interactive local wizard
 
+## Start with what you already have
+
+```bash
+python scripts/intune-iac.py start /path/to/working-directory
+```
+
+`start` surveys a working directory before anything asks a question. It recognizes:
+- wizard, journey and guided sessions, with their step and any conflict;
+- workbench stores, with tenant, observed objects, freshness, repository intents and operations;
+- Atmos repositories, with Git revision and selectable stack/component pairs;
+- supported exports (with their policies) and contexts;
+- generated projects, checked against the session that produced them: unchanged, a repository-owned policy edit, or another change;
+- modeled services and maintenance operations.
+
+Each item shows four distinct states:
+- **discovered:** found on disk.
+- **configured:** has what it needs, or the reason it does not.
+- **authenticated:** "no live connection"; an export is "source-asserted, not authenticated".
+- **qualified:** synthetic evidence says "synthetic only"; nothing is natively or live qualified.
+
+`NEXT` lists concrete commands in a useful order: resume a session, resolve a conflict, collect into an empty store, open the workspace, record a repository with `repository-import` or check it with `repository-status`, start from an unused export, follow an operation with `delivery`. An empty directory gets the two ways to begin. `MISSING` says what is absent, and that offline inspection and preparation remain available without a live connection.
+
+The survey is read-only and offline:
+- the walk is bounded and never follows symbolic links (they are listed);
+- it skips version-control, environment and evidence directories;
+- it opens stores through their normal open, which may roll back an interrupted SQLite journal.
+
+`--json` prints the machine form. Inside the visual workspace, `s` (or `:start [DIRECTORY]`) shows the same survey for the store's parent directory, and an empty store's Estate explains how to get observations.
+
+## The wizard
+
 Run from the installed plugin or the build checkout with its documented Python dependencies:
 
 ```bash

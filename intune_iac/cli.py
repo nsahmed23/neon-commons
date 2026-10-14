@@ -89,6 +89,9 @@ def parser():
     from .artifact_vault import add_parser as add_artifact_parser
     add_artifact_parser(commands)
     commands.add_parser('doctor',help='Report installed prerequisites and capability boundaries')
+    start=commands.add_parser('start',help='Survey a working directory: what already exists, its states and the next step (read-only, offline)')
+    start.add_argument('directory',nargs='?',default='.')
+    start.add_argument('--json',action='store_true',help='Print the survey as JSON instead of the readable screen')
     _paths(commands.add_parser('inspect',help='Inspect one policy without writing output'))
     _paths(commands.add_parser('verify',help='Recheck an existing project against source-derived expectations'),True)
     gen=commands.add_parser('generate',help='Generate an owned local project and execution receipts')
@@ -152,6 +155,9 @@ def parser():
 
 
 def execute(args):
+    if args.command=='start':
+        from .entry import survey
+        return survey(args.directory)
     if args.command=='workbench':
         from .workbench import command
         return command(args)
@@ -296,6 +302,11 @@ def main(argv=None):
         if args.command=='mcp':
             from .mcp import serve, FilesystemAuthority
             return serve(authority=FilesystemAuthority(args.read_root,args.write_root) if args.read_root or args.write_root else None)
+        if args.command=='start' and not args.json:
+            # The guided entry is read by a person first; --json keeps the machine form.
+            from .entry import start_lines, survey
+            print('\n'.join(start_lines(survey(args.directory),shutil.get_terminal_size((100,40)).columns)))
+            return 0
         result=execute(args)
         print(json.dumps(result,ensure_ascii=True,sort_keys=True,allow_nan=False))
         if args.command=='capture' and result.get('cancelled') is True:return 130

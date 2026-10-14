@@ -479,6 +479,7 @@ intune_iac/capture.py
 intune_iac/capture_adapter.py
 intune_iac/cli.py
 intune_iac/engine.py
+intune_iac/entry.py
 intune_iac/execution.py
 intune_iac/graph.py
 intune_iac/graph_contract.py
@@ -698,6 +699,7 @@ plugin_tests/test_edge_input_audit.py
 plugin_tests/test_edge_workflow_audit.py
 plugin_tests/test_engine.py
 plugin_tests/test_enterprise_cli.py
+plugin_tests/test_entry.py
 plugin_tests/test_evidence_snapshot_r4.py
 plugin_tests/test_execution.py
 plugin_tests/test_generated_permissions.py

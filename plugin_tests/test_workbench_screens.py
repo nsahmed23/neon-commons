@@ -378,6 +378,20 @@ class SurfaceRoutingTests(unittest.TestCase):
         self.assertIn('[HEALTH AND REPORTING]', self.summary(6, health))
         self.assertIn('[MAINTENANCE QUEUE]', self.summary(6, {'findings': [], 'pagination': {'total_objects': 0}}))
 
+    def test_the_start_survey_renders_on_the_help_surface(self):
+        survey = {'schema_version': 'workbench-start/1', 'directory': '/work', 'connection': 'offline', 'items': [],
+                  'next_actions': ['Start from a supported export: intune-iac wizard --session session.json'],
+                  'missing': ['No live discovery connection is configured.'], 'skipped_links': [], 'truncated': False}
+        text = self.summary(7, survey)
+        self.assertIn('INTUNE WORKBENCH: START', text); self.assertIn('NEXT', text)
+        self.assertIn('[EXACT SURVEY]', text)
+
+    def test_an_empty_estate_explains_how_to_get_observations(self):
+        text = self.summary(0, {'objects': [], 'pending_observations': [], 'pagination': {'total_objects': 0}})
+        self.assertIn('[NO OBSERVATIONS YET]', text)
+        self.assertIn('press s to see what exists beside the store', text)
+        self.assertNotIn('[NO OBSERVATIONS YET]', self.summary(0, {'objects': [], 'query': 'none', 'pagination': {'total_objects': 0}}))
+
     def test_single_policy_health_uses_the_name_already_read_for_that_identity(self):
         value = {'object_id': POLICY_ID, 'stages': EMPTY_STAGES, 'reason': 'No policy-bound device evidence was imported.'}
         self.assertIn('Windows Privacy Pilot (' + POLICY_ID + ')', self.summary(6, value))

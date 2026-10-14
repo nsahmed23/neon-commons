@@ -32,6 +32,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | d | Setting dictionary for the selected policy's settings |
 | m | Maintenance queue on the Coverage surface |
 | v | Delivery stages of the active operation on the Execution surface (`:delivery OPERATION_DIR` for any operation) |
+| s | Start survey on the Help surface: what exists beside the store (sessions, repositories, exports, generated projects, services, operations), each with its states, and the next steps (`:start DIRECTORY` for another directory; see `WIZARD.md`) |
 | Page Up / Page Down | Scroll the exact result, including long values |
 | : | Command bar accepting the existing text commands |
 | / | Search policies/settings; preserve active global filters when using the four-view estate |

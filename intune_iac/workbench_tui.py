@@ -28,7 +28,7 @@ SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
-              'repository-status', 'dictionary', 'queue'}
+              'repository-status', 'dictionary', 'queue', 'start'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
@@ -313,7 +313,7 @@ class Workspace:
             self.pending.append(self.page_command)
             if self.selected:
                 self.pending.append('select ' + shlex.quote(self.selected))
-            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views', 'queue')):
+            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views', 'queue', 'start')):
                 self.pending.append(self.view_command)
             self.context_valid = True
 
@@ -518,7 +518,18 @@ class Workspace:
         def field(label, item):
             rendered = json.dumps(item, ensure_ascii=False, allow_nan=False) if not isinstance(item, str) else item
             rows.extend(word_wrap(label + ': ' + rendered, width))
-        if self.tab == 1 and isinstance(value.get('entries'), list) and 'fact_provenance_contract' in value:
+        if (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
+                and not value.get('pending_observations') and not isinstance(value.get('filters'), dict) and not value.get('query')):
+            rows.append('[NO OBSERVATIONS YET]')
+            rows.extend(word_wrap('This store has no observed policies. Collect from a modeled service (:collect), import a '
+                                  'capture with the workbench import-capture command, or press s to see what exists beside '
+                                  'the store and the next step.', width))
+            rows.append('')
+        elif self.tab == 7 and value.get('schema_version') == 'workbench-start/1':
+            from .entry import start_lines
+            rows.extend(start_lines(value, width))
+            rows.append('[EXACT SURVEY] Full engine values follow.')
+        elif self.tab == 1 and isinstance(value.get('entries'), list) and 'fact_provenance_contract' in value:
             from .workbench_screens import dictionary_lines
             rows.extend(dictionary_lines(value, width))
             rows.append('[EXACT DICTIONARY AND PROVENANCE] Full engine values follow.')
@@ -711,6 +722,7 @@ class Workspace:
                          '5 Exact plan | 6 Execution/recovery | 7 Coverage | 8 Help | 9 Repository',
                          'd Setting dictionary | h Health and reporting | m Maintenance queue | l Lineage | n/p Older/newer page',
                          'v Delivery stages of the active operation | :delivery OPERATION_DIR',
+                         's Start: what exists beside this store and the next step | :start DIRECTORY',
                          ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
@@ -812,7 +824,7 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
-                'health': 6, 'queue': 6, 'delivery': 5,
+                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -952,6 +964,7 @@ class Workspace:
                 elif char == 'h': return self._send('health')
                 elif char == 'd': return self._send('dictionary')
                 elif char == 'm': return self._send('queue')
+                elif char == 's': return self._send('start')
                 elif char == 'v':
                     if self.active_operation is not None: return self._send('delivery ' + shlex.quote(self.active_operation))
                     self.notice = 'No active operation: review one first (5, or :review OPERATION_DIR).'
