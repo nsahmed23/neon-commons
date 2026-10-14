@@ -176,7 +176,8 @@ def _check_cited_intent(store, object_id, desired, context):
     if type(cited) is not str or not cited:
         raise AppError('maintenance_context_intent_invalid',
                        'The context field repository_intent_id must name a repository intent artifact ID.')
-    found = [row['data'] for row in store.artifacts(kind='repository_intent') if row['artifact_id'] == cited]
+    row = store.artifact(cited, kind='repository_intent')
+    found = [row['data']] if row is not None else []
     if len(found) != 1:
         raise AppError('maintenance_context_intent_missing', 'The context cites a repository intent this workbench '
                        'store does not hold. Run repository-import again and cite the new intent ID.')
@@ -274,8 +275,8 @@ def _repository_review(plan):
     if not isinstance(context, dict) or 'repository_intent_id' not in context:
         return {'cited': False}
     from .workbench_repository import intent_freshness
-    rows = [row for row in _store(plan['store_root']).artifacts(kind='repository_intent')
-            if row['artifact_id'] == context['repository_intent_id']]
+    row = _store(plan['store_root']).artifact(context['repository_intent_id'], kind='repository_intent')
+    rows = [row] if row is not None else []
     freshness = intent_freshness(rows[0]['data']) if len(rows) == 1 else {'status': 'unavailable', 'reason': 'intent_missing'}
     return {'cited': True, 'repository_intent_id': context['repository_intent_id'], 'scope': context.get('scope'),
             'freshness': freshness['status'], 'changed_sources': freshness.get('sources')}

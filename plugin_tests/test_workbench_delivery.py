@@ -123,6 +123,71 @@ class DeliveryTests(unittest.TestCase):
                          [('42', 'related_operation'), ('44', 'cited_revision')])
         self.assertEqual((runs[0]['status'], runs[0]['evidence_class'], runs[0]['external_execution_verified']), ('success', 'caller_asserted', False))
 
+    def run_envelope(self, operation_id, run_id='42'):
+        return {'schema_version': 'workbench-workflow-run/1', 'tenant_id': repository_tests.TENANT, 'object_id': OBJECT,
+                'run_url': 'https://ci.example.invalid/runs/' + run_id, 'repository_revision': 'b' * 40, 'run_id': run_id,
+                'status': 'success', 'observed_at': '2026-10-14T12:00:00Z', 'workflow': 'apply',
+                'related_operation': operation_id}
+
+    def import_run(self, envelope):
+        from intune_iac.workbench_health import import_workflow_run
+        path = self.root / ('run-%s.json' % envelope['run_id']); path.write_text(json.dumps(envelope))
+        return import_workflow_run(self.store, path)
+
+    def artifacts_failing_for(self, failing_kind):
+        """The store's artifact query, refusing one kind as an oversized query would."""
+        from intune_iac.io import AppError
+        real = type(self.store).artifacts
+        def artifacts(store, kind=None, object_id=None, **kw):
+            if kind == failing_kind:
+                raise AppError('workbench_query_limit', 'Too many rows.')
+            return real(store, kind, object_id, **kw)
+        return artifacts
+
+    def test_a_ci_success_claim_never_changes_a_stage(self):
+        review = self.prepare()
+        _, before = self.view()
+        self.import_run(self.run_envelope(review['operation_id']))
+        value, after = self.view()
+        self.assertEqual(after, before)
+        self.assertEqual([run['run_id'] for run in value['workflow_runs']], ['42'])
+        self.assertEqual(value['workflow_runs_read'], {'status': 'complete', 'records_read': 1})
+
+    def test_unreadable_ci_runs_never_hide_the_stages(self):
+        from unittest import mock
+        self.prepare()
+        with mock.patch.object(type(self.store), 'artifacts', self.artifacts_failing_for('workflow_run')):
+            value, stages = self.view()
+        self.assertEqual((stages['proposal']['status'], stages['review']['status']), ('done', 'done'))
+        self.assertEqual(value['workflow_runs'], [])
+        self.assertEqual(value['workflow_runs_read'], {'status': 'unavailable', 'error_code': 'workbench_query_limit'})
+
+    def test_ci_runs_are_read_in_bounded_pages(self):
+        from unittest import mock
+        from intune_iac import workbench_delivery
+        review = self.prepare()
+        self.import_run(self.run_envelope(review['operation_id'], '42'))
+        self.import_run(self.run_envelope(review['operation_id'], '43'))
+        with mock.patch.object(workbench_delivery, 'RUN_PAGE', 1), mock.patch.object(workbench_delivery, 'MAX_RUN_RECORDS', 1):
+            value, _ = self.view()
+        self.assertEqual(value['workflow_runs_read'], {'status': 'partial', 'records_read': 1})
+        self.assertEqual(len(value['workflow_runs']), 1)
+
+    def test_the_cited_intent_is_found_by_identity_without_reading_every_intent(self):
+        from unittest import mock
+        self.prepare()
+        with mock.patch.object(type(self.store), 'artifacts', self.artifacts_failing_for('repository_intent')):
+            value, stages = self.view()
+        self.assertEqual(stages['proposal']['intent_freshness'], 'current')
+
+    def test_one_artifact_is_read_by_its_identity(self):
+        intent = self.import_intent()
+        self.assertEqual(self.store.artifact(intent['artifact_id'])['data']['target_object_id'], OBJECT)
+        self.assertEqual(self.store.artifact(intent['artifact_id'], kind='repository_intent')['artifact_id'], intent['artifact_id'])
+        self.assertIsNone(self.store.artifact(intent['artifact_id'], kind='workflow_run'))
+        self.assertIsNone(self.store.artifact('f' * 64))
+        self.assertIsNone(self.store.artifact('not-an-artifact-id'))
+
     def test_a_lost_response_requires_reconciliation_then_shows_it(self):
         from intune_iac import maintenance
         review = self.prepare()

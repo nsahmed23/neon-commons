@@ -113,6 +113,22 @@ class RepositoryOwnedChangeTests(unittest.TestCase):
         document['components']['terraform']['intune-reference']['vars']['policies'][KEY]['description'] = text
         (self.repo / STACK).write_text(yaml.safe_dump(document))
 
+    def test_a_secret_in_the_stack_is_refused_at_import_and_never_recorded_or_echoed(self):
+        from intune_iac.io import AppError
+        cases = ({'@odata.type': '#microsoft.graph.deviceManagementConfigurationSecretSettingValue',
+                  'value': 'hunter2-secret', 'valueState': 'notEncrypted'}, {'password': 'hunter2-secret'})
+        original = (self.repo / STACK).read_text()
+        for probe in cases:
+            document = yaml.safe_load(original)
+            document['components']['terraform']['intune-reference']['vars']['policies'][KEY]['settings']['probe'] = probe
+            (self.repo / STACK).write_text(yaml.safe_dump(document))
+            before = len(self.store.artifacts())
+            with self.assertRaises(AppError) as caught:
+                self.import_intent()
+            self.assertEqual(caught.exception.code, 'workbench_repository_secret_value')
+            self.assertNotIn('hunter2', str(caught.exception))
+            self.assertEqual(len(self.store.artifacts()), before)
+
     def test_import_records_the_consumer_contract(self):
         intent = self.import_intent()
         self.assertEqual(intent['data']['consumer']['status'], 'verified')

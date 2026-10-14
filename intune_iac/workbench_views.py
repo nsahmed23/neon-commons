@@ -107,6 +107,22 @@ def _intents(store,object_id=None,scope=None):
             and (scope is None or r['data']['scope']==scope)]
 
 
+def _refuse_secret_values(value):
+    """Generation never writes secret values (it keeps them in the restricted original), so one in the stack was
+    written by hand; it is refused before anything is recorded or shown, and the error never echoes it."""
+    from reference.core import SECRET_KEYS
+    if isinstance(value,dict):
+        secret_type='SecretSettingValue' in str(value.get('@odata.type',''))
+        for key,item in value.items():
+            if str(key).lower().replace('_','') in SECRET_KEYS or (secret_type and key=='value'):
+                raise AppError('workbench_repository_secret_value','The desired policy in the repository holds a secret value '
+                    '(a secret setting or a credential-named field). Secret values are never recorded or shown; keep them out '
+                    'of the repository and manage them outside the workbench.')
+            _refuse_secret_values(item)
+    elif isinstance(value,list):
+        for item in value:_refuse_secret_values(item)
+
+
 def import_repository(store,repo,stack,component,object_id,pointer,revision,backend,resource_address,*,git_executable=None,git_sha256=None):
     """Read effective policy from actual supported literal Atmos source files."""
     from .windows_workbench import WindowsWorkbenchStore
@@ -118,7 +134,7 @@ def import_repository(store,repo,stack,component,object_id,pointer,revision,back
     if type(revision) is not str or not re.fullmatch('[0-9a-f]{40}',revision):_fail('workbench_repository_revision')
     report=resolve_component(repo,_text(stack),_text(component))
     if report.get('status')!='resolved' or report.get('abstract') or not report.get('implementation_exists'):_fail('workbench_repository_unresolved')
-    body=copy.deepcopy(_pointer(report['effective'],pointer));analysis=semantics.analyze(body)
+    body=copy.deepcopy(_pointer(report['effective'],pointer));_refuse_secret_values(body);analysis=semantics.analyze(body)
     # Capture every selected source hash again after resolution; a racing edit
     # cannot silently turn a mixed snapshot into one revision claim.
     root=Path(report['root'])

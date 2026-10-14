@@ -93,5 +93,123 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertEqual(value['checked']['operations'], 'clear')
 
 
+class DiagnosticsEdgeTests(unittest.TestCase):
+    """Cases the review of 69da14d named: crash windows, bounds, consumer drift, scope conflicts, unreadable areas."""
+    RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = repository_tests.RepositoryOwnedChangeTests.setUp
+    import_intent = repository_tests.RepositoryOwnedChangeTests.import_intent
+    edit_description = repository_tests.RepositoryOwnedChangeTests.edit_description
+    view = DiagnosticsTests.view
+
+    def propose(self, name):
+        from intune_iac.workbench_repository import propose_from_intent
+        return propose_from_intent(self.store.root, self.service.root, OBJECT, self.root / name)
+
+    def test_a_dispatch_interrupted_before_registration_is_reported_from_the_journal(self):
+        from unittest import mock
+        from intune_iac import maintenance, protected
+        from intune_iac.workbench_repository import refresh_intent
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        review = self.propose('change one')
+        # The process stops after the journal records dispatch_started and before the store registers the result.
+        with mock.patch.object(protected, 'execute_native_operation', side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                maintenance.execute(self.root / 'change one', approve_digest=review['approval_digest'])
+        self.assertEqual(self.store.operations(object_id=OBJECT)[-1]['status'], 'prepared')
+        value, signals = self.view()
+        signal = signals['operation_outcome_unknown']
+        self.assertEqual((signal['evidence']['status'], signal['evidence']['journal_status']), ('prepared', 'outcome_unknown'))
+        self.assertIn('never registered', signal['observed'])
+        self.assertIn("reconcile '%s'" % (self.root / 'change one'), signal['next_step'])
+        self.assertEqual(value['checked']['operations'], 'attention')
+
+    def test_operations_beyond_the_read_bound_are_reported_as_partly_checked(self):
+        from unittest import mock
+        from intune_iac import workbench_diagnostics
+        self.import_intent()
+        self.propose('first'); self.propose('second')
+        with mock.patch.object(workbench_diagnostics, 'OPERATION_PAGE', 1), \
+                mock.patch.object(workbench_diagnostics, 'MAX_OPERATION_RECORDS', 1):
+            value, signals = self.view()
+        self.assertEqual(value['checked']['operations'], 'partly_checked')
+        self.assertTrue(any('operation records' in line.lower() for line in value['limitations']))
+
+    def test_a_component_that_no_longer_consumes_exactly_this_policy_is_named_while_unchanged(self):
+        import copy
+        from uuid import UUID
+        import yaml
+        document = yaml.safe_load((self.repo / repository_tests.STACK).read_text())
+        policies = document['components']['terraform']['intune-reference']['vars']['policies']
+        policies['p_' + UUID(TENANT).hex + '_' + 'd' * 32] = copy.deepcopy(policies[repository_tests.KEY])
+        (self.repo / repository_tests.STACK).write_text(yaml.safe_dump(document))
+        self.import_intent()
+        value, signals = self.view()
+        signal = signals['repository_consumer_mismatch']
+        self.assertIn('policy_keys_not_exactly_adopted', signal['evidence']['reasons'])
+        self.assertIn('refuse', signal['next_step'])
+        self.assertEqual(value['checked']['repository'], 'attention')
+
+    def test_two_repository_scopes_are_reported_without_promising_that_an_import_resolves_them(self):
+        import shutil
+        from intune_iac import workbench_views as views
+        self.import_intent()
+        other = self.root / 'other-repository'; shutil.copytree(self.repo, other)
+        views.import_repository(self.store, other, 'orgs/reference/dev', 'intune-reference', OBJECT,
+                                '/vars/policies/' + repository_tests.KEY, 'a' * 40, 'local', self.RESOURCE_ADDRESS)
+        value, signals = self.view()
+        signal = signals['workbench_repository_scope_ambiguous']
+        self.assertIn('does not resolve', signal['observed'])
+        self.assertNotIn('repository-import', signal['next_step'])
+
+    def test_an_unreadable_area_is_reported_and_the_other_areas_still_show(self):
+        from unittest import mock
+        from intune_iac.io import AppError
+        self.import_intent()
+        with mock.patch('intune_iac.workbench_health.device_health', side_effect=AppError('workbench_query_limit', 'Too many rows.')):
+            value, signals = self.view()
+        self.assertEqual((value['checked']['device_evidence'], value['checked']['repository']), ('unavailable', 'clear'))
+        self.assertIn('workbench_query_limit', signals['device_evidence_unavailable']['observed'])
+
+
+class CollectionAndFreshnessTests(unittest.TestCase):
+    """Collection evidence comes from this policy's own attempts, as inspect reports them."""
+    def collection(self, attempt, success=None, retained=False, freshness='stale'):
+        from intune_iac.workbench_diagnostics import _collection
+        return _collection({'last_attempt': attempt, 'last_success': success, 'retained_last_good': retained,
+                            'freshness': freshness})
+
+    def test_a_finished_collection_has_nothing_to_report(self):
+        self.assertEqual(self.collection({'run_id': 3, 'status': 'complete'}), ([], False))
+
+    def test_a_failed_collection_names_this_policys_last_good_observation(self):
+        signals, failed = self.collection({'run_id': 4, 'status': 'denied', 'error_code': 'workbench_collection_denied',
+                                           'completed_at': '2026-10-14T00:00:00Z'}, {'run_id': 3}, True)
+        self.assertTrue(failed)
+        [signal] = signals
+        self.assertIn('run 3', signal['next_step']); self.assertIn('last-good', signal['next_step'])
+        self.assertIn('kept', signal['observed'])
+
+    def test_a_failed_first_collection_does_not_promise_a_last_good_observation(self):
+        signals, failed = self.collection({'run_id': 1, 'status': 'failed'}, None, False, 'unknown')
+        self.assertTrue(failed)
+        self.assertNotIn('last-good', signals[0]['next_step'])
+        self.assertIn('no complete observation', signals[0]['next_step'])
+
+    def test_a_collection_without_a_recorded_end_is_not_called_failed(self):
+        signals, failed = self.collection({'run_id': 5, 'status': 'collecting', 'started_at': '2026-10-14T00:00:00Z'})
+        self.assertFalse(failed)
+        self.assertEqual(signals[0]['code'], 'collection_not_finished')
+        self.assertNotIn('ended', signals[0]['observed'])
+
+    def test_a_policy_never_observed_completely_is_described_as_such(self):
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, checked = _freshness({'freshness': 'unknown', 'observed_at': None}, failed=False)
+        self.assertEqual(checked, 'attention')
+        self.assertIn('No complete observation', signals[0]['observed'])
+        self.assertNotIn('None', signals[0]['observed'])
+
+
 if __name__ == '__main__':
     unittest.main()

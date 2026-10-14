@@ -1,4 +1,5 @@
 """Readable workspace screens: pure renderers with hand-written expectations."""
+from pathlib import Path
 import unittest
 
 from intune_iac.workbench_diff import field_changes
@@ -329,7 +330,7 @@ class DeliveryLinesTests(unittest.TestCase):
         rows = [line for line in lines if line.startswith('  [')]
         self.assertEqual(rows, expected)
         self.assertIn('Next: Nothing pending: the change is recorded and observed as desired.', joined)
-        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] failed, expired or refused', joined)
+        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: a failure, an expiry or a refusal', joined)
 
     def test_waiting_required_and_refused_stages_are_marked_in_words(self):
         from intune_iac.workbench_screens import delivery_lines
@@ -365,7 +366,7 @@ class DeliveryLinesTests(unittest.TestCase):
                                    'run_url': 'https://ci.example.invalid/runs/42'}]
         joined = '\n'.join(delivery_lines(value, 140))
         self.assertIn('CI WORKFLOW RUNS  (imported claims; not verified)', joined)
-        self.assertIn('  plan 42  success | revision bbbbbbbbbbbb | observed 2026-10-14T12:00:00Z | tied to this operation', joined)
+        self.assertIn('  plan 42  claims success | revision bbbbbbbbbbbb | observed 2026-10-14T12:00:00Z | tied to this operation', joined)
 
     def test_narrow_terminals_stack_the_stage_text(self):
         from intune_iac.workbench_screens import delivery_lines
@@ -464,6 +465,45 @@ class DiagnosticsLinesTests(unittest.TestCase):
         value = dict(DIAGNOSTICS, signals=[], checked={'collection': 'clear'})
         self.assertIn('nothing needs attention', '\n'.join(diagnostics_lines(value, 120)))
 
+    def test_partly_checked_and_unreadable_areas_are_not_shown_as_clear(self):
+        from intune_iac.workbench_screens import diagnostics_lines
+        value = dict(DIAGNOSTICS, signals=[], checked={'operations': 'partly_checked', 'device_evidence': 'unavailable'})
+        joined = '\n'.join(diagnostics_lines(value, 120))
+        self.assertIn('partly checked: the read bound was reached', joined)
+        self.assertIn('could not be read', joined)
+        self.assertNotIn('nothing needs attention', joined)
+
+
+class EvidenceReadStatusTests(unittest.TestCase):
+    def test_unreadable_ci_runs_are_said_to_be_unreadable_not_absent(self):
+        from intune_iac.workbench_screens import delivery_lines
+        value = dict(delivery_value(), workflow_runs=[], workflow_runs_read={'status': 'unavailable', 'error_code': 'workbench_query_limit'})
+        joined = '\n'.join(delivery_lines(value, 140))
+        self.assertIn('CI workflow runs could not be read (workbench_query_limit); the stages above are unaffected.', joined)
+        self.assertNotIn('none imported', joined)
+
+    def test_a_partial_read_of_ci_runs_says_so(self):
+        from intune_iac.workbench_screens import delivery_lines
+        run = {'relation': 'related_operation', 'workflow': 'plan', 'run_id': '42', 'status': 'success',
+               'repository_revision': 'b' * 40, 'observed_at': '2026-10-14T12:00:00Z', 'run_url': 'https://ci.example.invalid/runs/42'}
+        value = dict(delivery_value(), workflow_runs=[run], workflow_runs_read={'status': 'partial', 'records_read': 2000})
+        self.assertIn('only the first 2000 imported runs for this policy were read',
+                      '\n'.join(delivery_lines(value, 140)))
+
+    def test_a_malformed_family_table_is_explained(self):
+        from intune_iac.workbench_screens import families_lines
+        lines = families_lines({'available': False, 'reason': 'family_coverage_malformed', 'detail': 'missing columns: live',
+                                'families': []}, 100)
+        self.assertIn('could not be read: missing columns: live', '\n'.join(lines))
+
+    def test_the_estate_caption_fits_a_narrow_terminal(self):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(tab=0, value={'objects': [{'object_id': POLICY_ID}]}, highlight=0, selected=None,
+                                  rows=[{'object_id': POLICY_ID, 'name': 'Windows Privacy Pilot'}], _detail_cache=None)
+        for line in workspace._data_lines(58):
+            self.assertLessEqual(cell_width(line), 58, line)
+
 
 class RecordedLinesTests(unittest.TestCase):
     RUN = {'artifact_id': 'a' * 64, 'kind': 'workflow_run', 'recorded_at': '2026-10-14T14:31:06Z', 'created': True,
@@ -477,7 +517,8 @@ class RecordedLinesTests(unittest.TestCase):
         self.assertEqual(lines[0], '[RECORDED] CI workflow run aaaaaaaaaaaa | new record | 2026-10-14T14:31:06Z')
         self.assertEqual(lines[1], 'apply 1002: success | revision bbbbbbbbbbbb | observed 2026-10-14T14:21:05Z | '
                                    'linked to operation cccccccccccc')
-        self.assertIn('never marks a stage done', lines[2])
+        self.assertIn('never marks a stage done', ' '.join(lines[2:]))
+        self.assertIn(':workflows lists every imported run', ' '.join(lines[2:]))
 
     def test_a_repeated_record_says_nothing_changed(self):
         from intune_iac.workbench_screens import recorded_lines
@@ -495,10 +536,27 @@ class RefusalLinesTests(unittest.TestCase):
         joined = '\n'.join(lines)
         self.assertEqual(lines[0], '[REFUSED] workbench_repository_intent_missing')
         self.assertIn('Import the repository for this object before using its intent.', joined)
-        self.assertIn('observed but no repository intent', joined)
+        self.assertIn('No repository intent was recorded for this policy', joined)
         self.assertIn('repository-import', joined)
         for line in lines:
             self.assertLessEqual(cell_width(line), 100, line)
+
+    def test_every_explained_refusal_is_raised_by_the_engine(self):
+        from intune_iac.workbench_screens import REFUSALS
+        root = Path(__file__).resolve().parents[1] / 'intune_iac'
+        text = '\n'.join(path.read_text(encoding='utf-8') for path in sorted(root.glob('*.py')) if path.name != 'workbench_screens.py')
+        for code in REFUSALS:
+            prefix, _, suffix = code.partition('_')
+            literal = ("'%s'" % code) in text or ('"%s"' % code) in text
+            built = ("+ '_%s'" % suffix) in text and ("code_prefix='%s'" % prefix) in text
+            self.assertTrue(literal or built, code)
+
+    def test_a_stale_intent_refusal_names_both_causes(self):
+        from intune_iac.workbench_screens import REFUSALS
+        for code in ('workbench_repository_stale', 'maintenance_repository_stale'):
+            meaning, step = REFUSALS[code]
+            self.assertIn('no longer consumes exactly this policy', meaning)
+            self.assertIn('fix the component', step)
 
     def test_an_unknown_refusal_shows_only_what_the_engine_said(self):
         from intune_iac.workbench_screens import refusal_lines

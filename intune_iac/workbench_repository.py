@@ -135,7 +135,8 @@ def latest_intent(store, object_id):
         raise AppError('workbench_repository_intent_missing', 'Import the repository for this object before using its intent.')
     if len({digest(row['data'].get('scope')) for row in rows}) > 1:
         raise AppError('workbench_repository_scope_ambiguous', 'Intents for this object come from more than one '
-                       'repository scope; import or refresh one scope explicitly with repository-import.')
+                       'repository scope. The workbench will not choose between them, and a further import does not '
+                       'resolve this in this store.')
     return max(rows, key=lambda row: row['sequence'])
 
 
@@ -228,7 +229,8 @@ def capability_problems(desired):
 def require_current_intent(store, intent_id):
     """Execute-time recheck: the cited intent must still describe the repository exactly."""
     from .io import AppError
-    rows = [row for row in store.artifacts(kind='repository_intent') if row['artifact_id'] == intent_id]
+    row = store.artifact(intent_id, kind='repository_intent')
+    rows = [row] if row is not None else []
     if len(rows) != 1:
         raise AppError('maintenance_repository_unavailable', 'The cited repository intent is no longer in this store.')
     return _usable_intent(rows[0], code_prefix='maintenance')

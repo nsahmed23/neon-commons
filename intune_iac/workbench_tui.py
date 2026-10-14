@@ -824,8 +824,10 @@ class Workspace:
 
     def _data_lines(self, width):
         if self.tab == 0 and self.rows and isinstance(self.value.get('objects'), list):
-            lines = ['[SELECT] Exact identity / name / ownership / coverage / health  (> focus, * pinned selection)',
-                     'Settings Catalog policies; :families shows every family with its support disposition.']
+            # Short lines first, so the marker key stays on one line down to narrow terminals.
+            lines = (list(wrap('[SELECT] Exact identity / name / ownership / coverage / health', width))
+                     + list(wrap('> focus, * pinned selection | Settings Catalog policies; :families shows every family '
+                                 'with its support disposition.', width)))
             if isinstance(self.value.get('filters'), dict):
                 lines.extend(wrap('Global filters: ' + json.dumps(self.value['filters'], ensure_ascii=False), width))
                 page = self.value.get('pagination', {})

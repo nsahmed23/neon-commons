@@ -145,18 +145,34 @@ def _observed_after(store, plan, desired, journal):
     return {'stage': 'observed_after', 'status': status, 'field_changes': changes, **found}
 
 
+RUN_PAGE = 200
+MAX_RUN_RECORDS = 2000
+
+
 def _workflow_runs(store, plan, repository):
     """Imported CI workflow runs tied to this operation, or unlinked runs for the repository revision its intent cites.
 
     A run linked to another operation belongs to that operation only. Runs are caller-asserted claims kept apart
-    from the stages: an imported "success" never verifies delivery.
+    from the stages: an imported "success" never verifies delivery. They are optional evidence, so they are read in
+    bounded pages, and a failure to read them is reported beside the stages, never instead of them. Returns the runs
+    and how completely they were read.
     """
-    revision = None
-    if repository.get('cited'):
-        rows = [row for row in store.artifacts(kind='repository_intent') if row['artifact_id'] == repository.get('repository_intent_id')]
-        revision = rows[0]['data'].get('source_revision') if len(rows) == 1 else None
+    from .io import AppError
+    try:
+        intent = (store.artifact(repository.get('repository_intent_id'), kind='repository_intent')
+                  if repository.get('cited') else None)
+        revision = intent['data'].get('source_revision') if intent else None
+        rows, complete = [], False
+        while len(rows) < MAX_RUN_RECORDS:
+            page = store.artifacts(kind='workflow_run', object_id=plan['object_id'], limit=RUN_PAGE, offset=len(rows))
+            rows.extend(page)
+            if len(page) < RUN_PAGE:
+                complete = True
+                break
+    except AppError as error:
+        return [], {'status': 'unavailable', 'error_code': error.code}
     runs = []
-    for row in store.artifacts(kind='workflow_run', object_id=plan['object_id']):
+    for row in rows:
         data = row['data']
         relation = ('related_operation' if data.get('related_operation') == plan['operation_id'] else
                     'cited_revision' if 'related_operation' not in data and revision
@@ -167,7 +183,7 @@ def _workflow_runs(store, plan, repository):
                          'repository_revision': data.get('repository_revision'), 'observed_at': data.get('observed_at'),
                          'artifact_id': row['artifact_id'], 'evidence_class': 'caller_asserted',
                          'external_execution_verified': False})
-    return runs
+    return runs, {'status': 'complete' if complete else 'partial', 'records_read': len(rows)}
 
 
 def _next_action(stages):
@@ -235,9 +251,10 @@ def delivery(operation_root, *, now=None):
         _observed_after(store, plan, desired, journal),
     ]
     named = {stage['stage']: stage for stage in stages}
+    runs, runs_read = _workflow_runs(store, plan, repository)
     return {'schema_version': VERSION, 'operation_id': plan['operation_id'], 'operation_root': str(root),
             'tenant_id': plan['tenant_id'], 'object_id': plan['object_id'], 'journal_status': journal['status'],
             'stages': stages, 'next_action': _next_action(named), 'viewed_at': _utc(now) if now >= 0 else None,
-            'workflow_runs': _workflow_runs(store, plan, repository),
+            'workflow_runs': runs, 'workflow_runs_read': runs_read,
             'evidence_class': review['evidence_class'], 'native_provider_qualified': False,
             'execution_authorized': False, 'cloud_authority': False}

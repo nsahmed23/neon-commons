@@ -610,7 +610,8 @@ STAGE_LABELS = {'proposal': 'Proposal', 'review': 'Review', 'approval': 'Approva
 MARKS = {'done': 'x', 'matches_desired': 'x', 'waiting': ' ', 'not_yet': ' ', 'not_started': ' ', 'available': ' ',
          'not_needed': '-', 'not_applicable': '-', 'unknown': '?', 'required': '?', 'pending': '?', 'not_open': '?',
          'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '!', 'differs': '!'}
-MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] failed, expired or refused'
+# The legend names states without the alert phrases, so only its markers are tinted, never its words.
+MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: a failure, an expiry or a refusal'
 
 
 def _approval_text(stage, status):
@@ -723,16 +724,21 @@ def delivery_lines(value, width):
         if stage.get('stage') == 'observed_after' and stage.get('status') == 'differs' and isinstance(stage.get('field_changes'), dict):
             lines += ['      ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
     runs = [run for run in value.get('workflow_runs') or [] if isinstance(run, dict)]
-    if runs:
+    read = value.get('workflow_runs_read') if isinstance(value.get('workflow_runs_read'), dict) else {}
+    if read.get('status') == 'unavailable':
+        lines += word_wrap('CI workflow runs could not be read (%s); the stages above are unaffected.' % read.get('error_code'), width)
+    elif runs:
         lines.append('CI WORKFLOW RUNS  (imported claims; not verified)')
         for run in runs:
-            lines += word_wrap('  %s %s  %s | revision %s | observed %s | %s' % (
+            lines += word_wrap('  %s %s  claims %s | revision %s | observed %s | %s' % (
                 run.get('workflow') or 'workflow', run.get('run_id'), run.get('status'), str(run.get('repository_revision'))[:12],
                 run.get('observed_at'), 'tied to this operation' if run.get('relation') == 'related_operation' else 'for the cited revision'), width)
             lines += word_wrap('     ' + str(run.get('run_url')), width)
     else:
         lines += word_wrap('CI workflow runs: none imported for this operation or its cited revision '
                            '(workflow-import records one; it stays an inert claim).', width)
+    if read.get('status') == 'partial':
+        lines += word_wrap('(only the first %s imported runs for this policy were read)' % read.get('records_read'), width)
     lines += word_wrap('Next: ' + str(value.get('next_action')), width)
     lines += word_wrap(MARK_LEGEND, width)
     lines += word_wrap('Evidence %s | %s | no cloud authority' % (
@@ -817,8 +823,9 @@ def recorded_lines(value, width):
         lines += word_wrap('%s %s: %s | revision %s | observed %s | %s' % (
             data.get('workflow') or 'workflow', data.get('run_id'), data.get('status'),
             str(data.get('repository_revision'))[:12], data.get('observed_at'), '; '.join(links) or 'no local links'), width)
-        lines += word_wrap('An imported claim, not verified: Delivery (v) lists it beside the stages, and it never marks '
-                           'a stage done.', width)
+        lines += word_wrap('An imported claim, not verified. Delivery (v) lists it beside the stages of the operation it '
+                           'links to, or of an operation whose intent cites its revision; it never marks a stage done. '
+                           ':workflows lists every imported run for the selected policy.', width)
     return lines
 
 
@@ -826,6 +833,8 @@ def families_lines(value, width):
     """Each family with its stage, where it appears in the workbench, and the qualification it still needs."""
     lines = ['[POLICY FAMILIES]']
     if not value.get('available'):
+        if value.get('reason') == 'family_coverage_malformed':
+            return lines + word_wrap('The family coverage table could not be read: %s. Nothing from it is shown.' % value.get('detail'), width)
         return lines + word_wrap('The family coverage table is not packaged with this runtime (%s).' % value.get('reason'), width)
     source = value.get('source') or {}
     lines += word_wrap('From %s (sha256 %s); live qualification: %s.' % (
@@ -845,8 +854,8 @@ def families_lines(value, width):
 # Unknown codes show only the engine's own message; nothing is guessed.
 REFUSALS = {
     'workbench_repository_intent_missing': (
-        'This policy is observed but no repository intent was recorded for it. Inspection, relationships, history, '
-        'health and diagnostics work without one.',
+        'No repository intent was recorded for this policy. Inspection, relationships, history, health and diagnostics '
+        'work without one.',
         'To manage it from a repository: generate or adopt it with the wizard, copy the project into the repository '
         'you maintain and commit it, then :repository-entry REPOSITORY lists its policies and fills in the exact '
         'repository-import command for review (s shows what exists here).'),
@@ -860,20 +869,25 @@ REFUSALS = {
         'The digest supplied does not match the reviewed plan.',
         'Review the plan (5) and approve with its exact review digest.'),
     'maintenance_replay_forbidden': (
-        'This operation was already dispatched, and execution is never replayed.',
+        'This operation is no longer awaiting approval: it was already dispatched, or it was rejected. Execution is '
+        'never replayed.',
         'Use reconcile for an uncertain outcome; v shows where the operation stands.'),
     'maintenance_repository_stale': (
-        'The repository changed after this proposal cited its intent.',
-        'Press 9 to see the difference; repository-refresh REVISION records it, then prepare a new proposal.'),
+        'The repository changed after this proposal cited its intent, or its component no longer consumes exactly '
+        'this policy.',
+        'Press 9 to see which; fix the component if it no longer consumes the policy, then repository-refresh REVISION '
+        'records the current source, and prepare a new proposal.'),
     'workbench_repository_stale': (
-        'The repository changed since its recorded intent.',
-        'Press 9 to see the difference; repository-refresh REVISION records the current source.'),
+        'The repository changed since its recorded intent, or its component no longer consumes exactly this policy.',
+        'Press 9 to see which; fix the component if it no longer consumes the policy, then repository-refresh REVISION '
+        'records the current source.'),
     'maintenance_plan_stale': (
-        'The service changed after the plan was prepared.',
+        'The service changed while the plan was being prepared, or after it was prepared.',
         'Collect, then prepare a new proposal.'),
     'workbench_desired_capability': (
-        'A desired value is outside the supported capability map.',
-        'Use a supported value; the setting dictionary (d) shows the permitted Graph values.'),
+        'The desired policy uses a setting definition, value, platform or technology outside the supported capability map.',
+        "Change it in the repository's stack input to something the capability map accepts (the engine's message names "
+        'it), repository-refresh REVISION, then propose again.'),
 }
 
 
@@ -893,16 +907,19 @@ def refusal_lines(value, width):
 
 CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',
                'not_imported': 'no device evidence imported',
-               'explained_by_collection': 'stale; explained by the failed collection above'}
+               'explained_by_collection': 'stale; explained by the failed collection above',
+               'partly_checked': 'partly checked: the read bound was reached', 'unavailable': 'could not be read'}
 
 
 def diagnostics_lines(value, width):
     """What needs attention for one policy: each observed fact, its evidence and the next step; then what is clear."""
     signals = [signal for signal in value.get('signals') or [] if isinstance(signal, dict)]
+    partial = any(state in ('partly_checked', 'unavailable') for state in (value.get('checked') or {}).values())
+    summary = (_plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention') if signals
+               else 'no signal, but some areas were not fully read' if partial
+               else "nothing needs attention in this store's records")
     lines = ['[DIAGNOSTICS]']
-    lines += word_wrap('%s (%s) | %s' % (value.get('name') or '(no name)', value.get('object_id'),
-                                         _plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention')
-                                         if signals else 'nothing needs attention'), width)
+    lines += word_wrap('%s (%s) | %s' % (value.get('name') or '(no name)', value.get('object_id'), summary), width)
     for signal in signals:
         lines.append('')
         lines += word_wrap('[!] %s  %s' % (signal.get('area'), signal.get('code')), width)

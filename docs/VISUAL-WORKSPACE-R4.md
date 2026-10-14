@@ -118,11 +118,13 @@ The full table fits 80 columns; narrower terminals get abbreviated columns with 
 **Families (`:families`, on Help).** `[POLICY FAMILIES]` lists every policy, application and script family from the product's `family-coverage.csv`, unchanged: its stage, route and material, the qualification it still needs, and its live status. One column is added: where the family appears in the workbench today. Settings Catalog policies are in the estate and every maintenance route. Groups, filters and scope tags appear as referenced targets, never managed. Every other family is "not in the estate". Estate's header says that it lists Settings Catalog policies only. `workbench families` prints the same table as JSON.
 
 **Diagnostics (`i`, on Coverage).** `[DIAGNOSTICS]` shows what needs attention for the selected policy. It also lists every area it checked, so silence never means "not looked at". Each signal gives the observed fact, its evidence (run, operation, intent, source file) and the next step:
-- **collection:** the last collection failed. The retained last-good observation is named, now stale.
-- **freshness:** the newest observation is stale for another reason.
-- **operations:** an outcome is unknown, so reconcile it (never replayed); or a reconciled operation diverged from both the plan and its starting point.
-- **repository:** the repository changed since its recorded intent (changed, added and removed files), or it cannot be resolved.
+- **collection:** this policy's last collection failed (its retained last-good observation is named, now stale, or the view says none exists yet), or a run started and recorded no end.
+- **freshness:** the newest observation is stale for another reason, or the policy has never been observed completely.
+- **operations:** an outcome is unknown, so reconcile it (never replayed). That includes a dispatch that stopped before its result was registered: the journal is read for every prepared operation, so the store's "prepared" cannot hide it. Also a journal that disagrees with the store record, or a reconciled operation that diverged from both the plan and its starting point. Operations are read in bounded pages, newest first; past the bound the area says "partly checked".
+- **repository:** the repository changed since its recorded intent (changed, added and removed files), it cannot be resolved, its component no longer consumes exactly this policy (proposals refuse it), or intents come from two repository scopes (which no further import resolves in this store).
 - **device evidence:** a truncated capture or access errors, so missing devices are unknown, not failed; or cohort membership conflicts.
+
+An area that cannot be read is listed as "could not be read" with its error, and the other areas still show. With no signal, the summary says "nothing needs attention in this store's records", or that some areas were not fully read.
 
 It reads local records only, and the same view is `workbench diagnostics --root STORE --object OBJECT_ID`.
 
@@ -148,7 +150,7 @@ It reads local records only, and the same view is `workbench diagnostics --root 
 
 Below the stages, `CI WORKFLOW RUNS (imported claims; not verified)` lists the CI runs recorded with `workflow-import` that name this operation, and those that name no operation but the repository revision its intent cites (a run that names another operation belongs to that one): workflow, run, claimed status, revision, observation time and link. They stay apart from the stages: an imported `success` never marks a stage done. With none, one line says so and names `workflow-import`. On any surface, a record the store has just accepted (`workflow-import`, `device-evidence-import`, `repository-import` and the others) opens with `[RECORDED]`: its kind, short identity, whether it is new or was already recorded (nothing changed), and for a CI run what it claims and which local operation or observation it links to.
 
-The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` unknown or required and `[!]` failed, expired or refused. A `Next:` line names the one step that would move the change forward. It never inserts the review digest into a command. The view only reads the operation's records and the store, and it is not saved for reopening: the navigation record never holds operation paths.
+The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` unknown or required and `[!]` stopped by a failure, an expiry or a refusal (the legend avoids the alert words, so only its markers are tinted). A `Next:` line names the one step that would move the change forward. It never inserts the review digest into a command. The view only reads the operation's records and the store, and it is not saved for reopening: the navigation record never holds operation paths.
 
 **Repository (9).** Runs the read-only `repository-status` for the selected policy:
 - whether the repository still matches the recorded intent;

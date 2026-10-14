@@ -1021,6 +1021,16 @@ class WorkbenchStore:
             row=db.execute('SELECT * FROM artifacts WHERE artifact_id=?',(artifact_id,)).fetchone()
             return {**self._artifact(row),'created':True}
 
+    def artifact(self, artifact_id, kind=None):
+        """One artifact by its exact identity, or None; independent of how many artifacts the store holds."""
+        if kind is not None and (type(kind) is not str or kind not in _ARTIFACT_KINDS):_fail('workbench_artifact_invalid')
+        # A value that cannot be an artifact identity names nothing; callers keep their own refusal for "not found".
+        if type(artifact_id) is not str or not re.fullmatch('[0-9a-f]{64}',artifact_id) or self.schema_version==1:return None
+        with self._connection() as db:
+            row=db.execute('SELECT * FROM artifacts WHERE tenant_id=? AND artifact_id=? AND (? IS NULL OR kind=?)',
+                (self.tenant_id,artifact_id,kind,kind)).fetchone()
+        return None if row is None else self._artifact(row)
+
     def artifacts(self, kind=None, object_id=None, *, limit=None, offset=0):
         if kind is not None and (type(kind) is not str or kind not in _ARTIFACT_KINDS):_fail('workbench_artifact_invalid')
         if object_id is not None:_identity(object_id)
