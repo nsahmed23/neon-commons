@@ -82,6 +82,23 @@ class ActionReadModelTests(unittest.TestCase):
         self.lost_response()
         self.assertNotIn('deployment-record', self.actions())
 
+    def test_one_read_judges_freshness_once(self):
+        # Journey 26: the clock moved between two reads of one Inspector screen, so its states said fresh while its
+        # proposal was blocked as not fresh. The proposal check now uses the observation the states show.
+        from unittest import mock
+        self.import_intent()
+        real = type(self.store).inspect
+        calls = []
+        def later_reads_stale(store, object_id):
+            value = real(store, object_id)
+            calls.append(value['freshness'])
+            return value if len(calls) == 1 else dict(value, freshness='stale', freshness_reasons=['stamped_after_now'])
+        with mock.patch.object(type(self.store), 'inspect', later_reads_stale):
+            value = self.inspection()
+        self.assertEqual(value['freshness'], 'fresh')
+        self.assertIsNone(value['observation_eligibility'], value['observation_eligibility'])
+        self.assertTrue({action['kind']: action for action in value['actions']}['propose-from-intent']['available'])
+
     def test_a_clear_policy_offers_a_proposal_into_a_fresh_directory(self):
         self.import_intent()
         action = self.actions()['propose-from-intent']

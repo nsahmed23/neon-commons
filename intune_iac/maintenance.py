@@ -199,7 +199,7 @@ def _check_cited_intent(store, object_id, desired, context):
                        'the edited repository and cite the new intent.')
 
 
-def _observation_problem(store, object_id, tenant, service_root, snapshot):
+def _observation_problem(store, object_id, tenant, service_root, snapshot, observation=None):
     """Why the newest observation cannot ground a proposal: (code, reason, observation), or (None, None, observation).
 
     The code is what propose refuses with. The reason names which check failed, because one code covers several
@@ -207,7 +207,9 @@ def _observation_problem(store, object_id, tenant, service_root, snapshot):
     (under the service lock, where it is binding) and proposal_eligibility (advisory), so the workspace shows a
     blocker with the same code the submission would meet.
     """
-    observation = store.inspect(object_id)
+    # An advisory caller may pass the observation it already shows, so one screen judges freshness once; propose
+    # reads its own under the service lock.
+    observation = store.inspect(object_id) if observation is None else observation
     if observation['tenant_id'] != tenant:
         return 'maintenance_observation_incomplete', 'tenant_mismatch', observation
     if observation.get('coverage') != 'complete':
@@ -229,7 +231,7 @@ def _observation_problem(store, object_id, tenant, service_root, snapshot):
     return None, None, observation
 
 
-def proposal_eligibility(store_root, service_root, object_id):
+def proposal_eligibility(store_root, service_root, object_id, *, observation=None):
     """What propose would refuse with because of the observation, or None; read-only and advisory.
 
     The code is the engine's own; the reason and the recorded facts beside it say which check failed. No lock is
@@ -239,7 +241,8 @@ def proposal_eligibility(store_root, service_root, object_id):
     service_root = _safe(service_root)
     snapshot = ModeledService(service_root).snapshot()
     tenant = snapshot['current']['tenant_id']
-    problem, reason, observation = _observation_problem(_store(_safe(store_root)), _uuid(object_id), tenant, service_root, snapshot)
+    problem, reason, observation = _observation_problem(_store(_safe(store_root)), _uuid(object_id), tenant, service_root,
+                                                        snapshot, observation)
     if problem is None:
         return None
     latest = observation.get('last_attempt') if isinstance(observation.get('last_attempt'), dict) else {}

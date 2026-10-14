@@ -405,13 +405,16 @@ def _attention_established(attention):
             and not any(checked.get(area) in ('unavailable', 'partly_checked') for area in REQUIRED_AREAS))
 
 
-def _eligibility(store, object_id, service_root):
-    """The observation check a proposal makes, read on its own: None when it passes or no service is configured."""
+def _eligibility(store, object_id, service_root, observation=None):
+    """The observation check a proposal makes: None when it passes or no service is configured.
+
+    Given the observation a screen already shows, it judges that one, so the screen never disagrees with itself.
+    """
     from . import maintenance
     if service_root is None:
         return None
     try:
-        return maintenance.proposal_eligibility(store.root, service_root, object_id)
+        return maintenance.proposal_eligibility(store.root, service_root, object_id, observation=observation)
     except AppError as error:
         return {'code': error.code, 'reason': None, 'message': error.message}
 
@@ -586,7 +589,7 @@ def _inspection(store, object_id, *, attention=False, service_available=False, s
     if attention:
         found = _attention(store, object_id)
         service = None if service_root is None else str(service_root)
-        eligibility = _eligibility(store, object_id, service)
+        eligibility = _eligibility(store, object_id, service, observation=value)
         value = {**value, 'attention': found, 'observation_eligibility': eligibility,
                  'states': _states(value, intent, found, eligibility),
                  'next_actions': _next_actions({'selected_repository': intent}, found, service_available or service_root is not None),
