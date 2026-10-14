@@ -283,6 +283,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertIn('no longer passes its own check', value['next_action'])
         text = ' '.join(' '.join(delivery_lines(value, 140)).split())
         self.assertIn('context file changed since; no longer admitted as a baseline', text)
+        self.assertIn('[!] 7 Deployment', text)  # not marked done while it is no longer admitted
         self.assertNotIn('baseline admissible', text)
 
     def test_one_artifact_is_read_by_its_identity(self):

@@ -278,8 +278,15 @@ class AdoptionSummaryTests(unittest.TestCase):
         self.assertIn('Handoff: ' + str(self.handoff), text)
         self.assertIn('Modeled service: ' + str(self.handoff / 'service'), text)
         self.assertIn('Collection run %s recorded in this store' % result['collection_run_id'], text)
-        self.assertIn('original journey kept', text)
+        self.assertIn('Original journey kept', text)
         self.assertIn('--service-root', text)
+
+    def test_one_adopted_policy_is_named_in_the_singular(self):
+        from intune_iac.workbench_screens import adoption_lines
+        text = ' '.join(' '.join(adoption_lines({'status': 'adopted_local_model', 'object_ids': ['x'], 'adoptions': [],
+                                                 'service_root': '/s', 'original_journey_preserved': True}, 118)).split())
+        self.assertIn('1 policy handed off', text)
+        self.assertIn('lists the adopted policy.', text)
 
 
 if __name__ == '__main__':

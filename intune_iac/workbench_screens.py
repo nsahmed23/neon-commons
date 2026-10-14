@@ -1533,7 +1533,8 @@ def delivery_lines(value, width, rules='ascii'):
             cont = '  ' if last else '│ '
         else:
             head = cont = '  '
-        mark = head + '[%s] ' % MARKS.get(stage.get('status'), '?')
+        # A recorded deployment whose bound context changed is no longer admitted, so it is not marked done.
+        mark = head + '[%s] ' % ('!' if stage.get('context_changed') else MARKS.get(stage.get('status'), '?'))
         label = '%d %s' % (number, STAGE_LABELS.get(stage.get('stage'), str(stage.get('stage'))))
         text = _stage_text(stage)
         if width >= 60:
@@ -1912,10 +1913,11 @@ def adoption_lines(value, width):
         lines += word_wrap('Collection run %s recorded in this store, with %s (%s).' % (
             value.get('collection_run_id'), _plural(len(adoptions), 'adoption record'), ', '.join(adoptions) or 'none'), width)
         field('Ownership', str(value.get('ownership')))
-        lines += word_wrap('%s; %s.' % ('original journey kept' if value.get('original_journey_preserved') else
-                                         'original journey not confirmed kept', flags), width)
+        lines += word_wrap('%s; %s.' % ('Original journey kept' if value.get('original_journey_preserved') else
+                                         'Original journey not confirmed kept', flags), width)
         lines += word_wrap("Next: q, then reopen the workspace with --service-root '%s' so collect and proposals use "
-                           'the handoff\'s model; 1 Estate lists the adopted policies.' % value.get('service_root'), width)
+                           "the handoff's model; 1 Estate lists the adopted %s." % (
+                               value.get('service_root'), 'policy' if len(ids) == 1 else 'policies'), width)
         return lines
     binding = value.get('binding') if isinstance(value.get('binding'), dict) else {}
     ids = [str(item) for item in binding.get('object_ids') or []]

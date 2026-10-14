@@ -1140,6 +1140,9 @@ class Workspace:
         if self.tab == 4:
             return bool(value.get('operation_id'))
         if self.tab == 5:
+            # Delivery shows every stage with its own next step; it needs no line pointing back at itself.
+            if value.get('schema_version') == 'workbench-delivery/1':
+                return False
             return bool(value.get('operation_id')) or 'result' in value
         return False
 

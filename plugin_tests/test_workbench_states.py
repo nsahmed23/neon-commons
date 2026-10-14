@@ -309,6 +309,12 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('Next: v shows every delivery stage, including the deployment record', text)
         self.assertNotIn('unknown outcome', text)
 
+    def test_delivery_carries_its_own_stages_and_next_step(self):
+        # Delivery is the lifecycle in full; a second line pointing at it from itself would only repeat.
+        text = self.summary(5, {'schema_version': 'workbench-delivery/1', 'operation_id': 'a' * 32, 'stages': [],
+                                'next_action': 'Nothing pending.'})
+        self.assertNotIn('Lifecycle:', text)
+
     def test_other_surfaces_and_refusals_do_not(self):
         self.assertNotIn('Lifecycle:', self.summary(1, {'object_id': OBJECT, 'name': 'Pilot', 'body': {}}))
         self.assertNotIn('Lifecycle:', self.summary(4, {'status': 'error', 'error': {'code': 'x', 'message': 'y'}}))
