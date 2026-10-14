@@ -587,8 +587,9 @@ class Workspace:
         if value.get('status') == 'error':
             from .workbench_screens import REFUSALS
             code = (value.get('error') if isinstance(value.get('error'), dict) else {}).get('code', 'unknown')
-            self.notice = ('REFUSED: what it means and the next step are on the screen.' if code in REFUSALS
-                           else "REFUSED: the engine's message is on the screen.")
+            # The verdict is said once, in the body; the notice points to what to read there.
+            self.notice = ('The cause and the next step are above.' if code in REFUSALS
+                           else "The engine's message is above.")
         else:
             object_id = value.get('object_id')
             if object_id and self.last_command.startswith('select '):
@@ -698,8 +699,19 @@ class Workspace:
         if name not in VIEW_COMMANDS:
             # Only the views are known to be read-only; any other command may have prepared, recorded or run something.
             status = value.get('status')
-            return 'Ready. %s ran; the engine reported %s.' % (
-                name or 'The command', 'status ' + status if isinstance(status, str) else 'no status')
+            if isinstance(status, str):
+                return 'Ready. %s ran; the engine reported status %s.' % (name or 'The command', status)
+            # Results without a status still say what they recorded, never only that there was no status.
+            if isinstance(value.get('journal_status'), str):
+                readback = value.get('classification')
+                return 'Ready. %s ran; the journal is now %s%s.' % (
+                    name, str(value['journal_status']).replace('_', ' '),
+                    ' (readback %s)' % str(readback).replace('_', ' ') if readback else '')
+            if isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str):
+                return 'Ready. %s recorded %s %s%s.' % (
+                    name, value['kind'].replace('_', ' '), value['artifact_id'][:8],
+                    '' if value.get('created', True) else ' (already recorded; nothing changed)')
+            return 'Ready. %s ran; its result is above.' % (name or 'The command')
         view = SUBVIEWS.get(name) or TABS[self.tab]
         # Scoped to this action: the screen may well show an operation that ran earlier.
         return 'Ready. %s shown; viewing changed nothing.' % view
@@ -797,7 +809,8 @@ class Workspace:
             rows.extend(word_wrap(label + ': ' + rendered, width))
         if value.get('status') == 'error' and isinstance(value.get('error'), dict):
             from .workbench_screens import refusal_lines
-            rows.extend(refusal_lines(value, width))
+            code = (value.get('error') or {}).get('code')
+            rows.extend(refusal_lines(value, width, known=self._known_cause(code)))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -1217,6 +1230,26 @@ class Workspace:
             painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else line for i, line in enumerate(frame)]
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
+
+    def _known_cause(self, code):
+        """The cause the last read of this policy recorded, for a refusal code that covers several; else None."""
+        facts = getattr(self, 'facts', None) or {}
+        if not self.selected or facts.get('object_id') != self.selected:
+            return None
+        signals = [signal for signal in facts.get('signals') or [] if isinstance(signal, dict) and signal.get('observed')]
+        if code in ('workbench_repository_stale', 'maintenance_repository_stale'):
+            found = [signal for signal in signals if signal.get('code') in ('repository_stale', 'repository_consumer_mismatch')]
+            return str(found[0]['observed']) if found else None
+        if code in ('maintenance_observation_stale', 'maintenance_observation_incomplete',
+                    'maintenance_observation_source_mismatch'):
+            from .workbench_screens import ELIGIBILITY_FINDINGS
+            eligibility = facts.get('eligibility') if isinstance(facts.get('eligibility'), dict) else {}
+            if eligibility.get('code') == code and eligibility.get('reason') in ELIGIBILITY_FINDINGS:
+                return ELIGIBILITY_FINDINGS[eligibility['reason']][0] % eligibility
+            found = [signal for signal in signals
+                     if signal.get('code') in ('observation_stale', 'collection_failed', 'collection_not_finished')]
+            return str(found[0]['observed']) if found else None
+        return None
 
     def _states_here(self, value):
         """Whether this surface shows the selected policy's states: the Repository status and the Plan review."""

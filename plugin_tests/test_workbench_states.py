@@ -203,5 +203,64 @@ class ReadableTimeTests(unittest.TestCase):
         self.assertEqual(readable_time(self.STAMP), '2026-10-14 00:00:00 UTC')
 
 
+class RefusalCauseTests(unittest.TestCase):
+    """P-PRES-05: verdict once, the known cause, the next step, the exact code; P-PRES-08: no fragments."""
+    CHANGED = {'area': 'repository', 'code': 'repository_stale', 'evidence': {},
+               'observed': 'The repository changed since its recorded intent: changed stacks/orgs/reference/dev.yaml.'}
+
+    def workspace(self, facts=None, last_command=''):
+        from collections import deque
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(
+            tab=1, value={}, selected=OBJECT, facts=dict({'object_id': OBJECT}, **(facts or {})), scroll=0, mode=None,
+            buffer='', cursor=0, notice='', last_command=last_command, layer='summary', trail=[], view_command='inspect',
+            store=type('S', (), {'tenant_id': TENANT})(), staged=None, quiet=None, pending=deque(), rows=[], highlight=0,
+            operation_rows=[], operation_highlight=0, active_operation=None, execution_result=None, active_service=None,
+            active_adoption=None, active_adoption_plan=None, size=(120, 40), _detail_cache=None, entry_focus=0,
+            page_command='overview', pending_stage=None)
+        workspace.draw = lambda: None
+        workspace.save_context = lambda: None
+        return workspace
+
+    def test_a_known_cause_replaces_the_either_or_meaning(self):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Refused.'}}
+        text = ' '.join(' '.join(refusal_lines(value, 120, known=self.CHANGED['observed'])).split())
+        self.assertIn('Cause: The repository changed since its recorded intent: changed stacks/orgs/reference/dev.yaml.', text)
+        self.assertNotIn('or its component no longer consumes', text)
+        self.assertIn('[REFUSED] workbench_repository_stale', text)  # the exact code stays
+        self.assertIn('Next:', text)
+
+    def test_the_workspace_supplies_the_cause_it_read(self):
+        workspace = self.workspace({'signals': [self.CHANGED]}, 'propose-from-intent /w/op')
+        workspace.receive({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Refused.'}})
+        text = ' '.join(' '.join(workspace._surface_summary(118)).split())
+        self.assertIn('Cause: The repository changed since its recorded intent', text)
+
+    def test_an_observation_refusal_names_the_failed_check(self):
+        eligibility = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
+                       'service_revision': 2}
+        workspace = self.workspace({'eligibility': eligibility}, 'propose-from-intent /w/op')
+        workspace.receive({'status': 'error', 'error': {'code': 'maintenance_observation_stale', 'message': 'Refused.'}})
+        text = ' '.join(' '.join(workspace._surface_summary(118)).split())
+        self.assertIn('Cause: The modeled service changed after this observation was collected (revision 1, now 2)', text)
+
+    def test_the_verdict_is_said_once(self):
+        workspace = self.workspace({}, 'propose /w/d.json /w/op')
+        workspace.receive({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Refused.'}})
+        self.assertNotIn('REFUSED', workspace.notice)
+
+    def test_notices_say_what_a_command_recorded(self):
+        workspace = self.workspace({}, 'reconcile /w/op')
+        notice = workspace._notice_for({'operation_id': 'a' * 32, 'journal_status': 'reconciled',
+                                        'classification': 'desired_state_observed'})
+        self.assertEqual(notice, 'Ready. reconcile ran; the journal is now reconciled (readback desired state observed).')
+        workspace = self.workspace({}, 'repository-refresh ' + 'b' * 40)
+        notice = workspace._notice_for({'artifact_id': 'c' * 64, 'kind': 'repository_intent', 'data': {}, 'created': True})
+        self.assertEqual(notice, 'Ready. repository-refresh recorded repository intent cccccccc.')
+        self.assertNotIn('reported no status', workspace._notice_for({'other': 1}))
+
+
 if __name__ == '__main__':
     unittest.main()

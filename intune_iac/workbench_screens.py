@@ -1678,10 +1678,11 @@ def _restates(message, meaning):
     return bool(meant) and len(meant & _words(message)) * 5 >= len(meant) * 4
 
 
-def refusal_lines(value, width):
+def refusal_lines(value, width, known=None):
     """A refusal: the engine's code and message, then what it means and the next step when the code is known.
 
-    The meaning is left out when the engine's own message already says it.
+    The meaning is left out when the engine's own message already says it. When the code covers several causes and
+    the workspace's last read recorded which one applied (known), that cause replaces the general meaning.
     """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
     code = str(error.get('code', 'unknown'))
@@ -1689,9 +1690,11 @@ def refusal_lines(value, width):
     lines = word_wrap('[REFUSED] ' + code, width)
     if message:
         lines += word_wrap(message, width)
+    if known:
+        lines += word_wrap('Cause: ' + str(known), width)
     if code in REFUSALS:
         meaning, step = REFUSALS[code]
-        if not _restates(message, meaning):
+        if not known and not _restates(message, meaning):
             lines += word_wrap('What it means: ' + meaning, width)
         lines += word_wrap('Next: ' + step, width)
     return lines

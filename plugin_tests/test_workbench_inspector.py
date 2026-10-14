@@ -249,9 +249,9 @@ class EvidenceLayerTests(unittest.TestCase):
     def test_a_refusal_without_an_explanation_says_only_what_is_on_the_screen(self):
         workspace = self.workspace()
         workspace.receive({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}})
-        self.assertEqual(workspace.notice, "REFUSED: the engine's message is on the screen.")
+        self.assertEqual(workspace.notice, "The engine's message is above.")  # the verdict is said once, in the body
         workspace.receive({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Stale.'}})
-        self.assertEqual(workspace.notice, 'REFUSED: what it means and the next step are on the screen.')
+        self.assertEqual(workspace.notice, 'The cause and the next step are above.')
 
     def test_back_from_a_result_that_is_not_a_view_returns_to_the_view_before_it(self):
         workspace = self.workspace()
