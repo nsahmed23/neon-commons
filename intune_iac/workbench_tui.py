@@ -29,7 +29,7 @@ SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
-              'repository-status', 'dictionary', 'queue', 'start', 'diagnostics'}
+              'repository-status', 'dictionary', 'queue', 'start', 'diagnostics', 'families'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
@@ -361,7 +361,7 @@ class Workspace:
             self.pending.append(self.page_command)
             if self.selected:
                 self.pending.append('select ' + shlex.quote(self.selected))
-            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views', 'queue', 'start')):
+            if self.view_command != self.page_command and (self.selected or service_view or self.view_command in ('help', 'health', 'operations', 'views', 'queue', 'start', 'families')):
                 self.pending.append(self.view_command)
             self.context_valid = True
 
@@ -588,6 +588,10 @@ class Workspace:
                                   'capture with the workbench import-capture command, or press s to see what exists beside '
                                   'the store and the next step.', width))
             rows.append('')
+        elif self.tab == 7 and value.get('schema_version') == 'workbench-families/1':
+            from .workbench_screens import families_lines
+            rows.extend(families_lines(value, width))
+            rows.append('[EXACT FAMILY TABLE] Full engine values follow.')
         elif self.tab == 7 and value.get('schema_version') == 'workbench-start/1':
             from .entry import start_lines
             rows.extend(start_lines(value, width))
@@ -791,6 +795,7 @@ class Workspace:
                          'v Delivery stages of the active operation | :delivery OPERATION_DIR',
                          's Start: what exists beside this store and the next step | :start DIRECTORY',
                          'i Investigate: what needs attention for the selected policy, with evidence and next steps',
+                         ':families Every policy, application and script family with its support disposition',
                          ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
@@ -802,7 +807,8 @@ class Workspace:
 
     def _data_lines(self, width):
         if self.tab == 0 and self.rows and isinstance(self.value.get('objects'), list):
-            lines = ['[SELECT] Exact identity / name / ownership / coverage / health  (> focus, * pinned selection)']
+            lines = ['[SELECT] Exact identity / name / ownership / coverage / health  (> focus, * pinned selection)',
+                     'Settings Catalog policies; :families shows every family with its support disposition.']
             if isinstance(self.value.get('filters'), dict):
                 lines.extend(wrap('Global filters: ' + json.dumps(self.value['filters'], ensure_ascii=False), width))
                 page = self.value.get('pagination', {})
@@ -899,7 +905,7 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
-                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'diagnostics': 6,
+                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'diagnostics': 6, 'families': 7,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,

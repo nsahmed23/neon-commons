@@ -729,6 +729,25 @@ def delivery_lines(value, width):
     return lines
 
 
+def families_lines(value, width):
+    """Each family with its stage, where it appears in the workbench, and the qualification it still needs."""
+    lines = ['[POLICY FAMILIES]']
+    if not value.get('available'):
+        return lines + word_wrap('The family coverage table is not packaged with this runtime (%s).' % value.get('reason'), width)
+    source = value.get('source') or {}
+    lines += word_wrap('From %s (sha256 %s); live qualification: %s.' % (
+        source.get('path'), str(source.get('sha256'))[:12],
+        ', '.join(sorted({str(row.get('live')) for row in value.get('families') or []})) or 'unknown'), width)
+    for row in value.get('families') or []:
+        lines.append('')
+        lines += word_wrap(str(row.get('family')), width)
+        lines += _labelled('  Stage', str(row.get('stage')), width, 15)
+        lines += _labelled('  Workbench', str(row.get('workbench')), width, 15)
+        lines += _labelled('  Route', '%s | %s' % (row.get('route'), row.get('material')), width, 15)
+        lines += _labelled('  Still needs', str(row.get('qualification_needed')), width, 15)
+    return lines
+
+
 # What a refusal means and the next step, for the codes an engineer meets in ordinary work.
 # Unknown codes show only the engine's own message; nothing is guessed.
 REFUSALS = {

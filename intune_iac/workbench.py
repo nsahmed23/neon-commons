@@ -35,6 +35,7 @@ def add_parser(commands):
     workspace.add_argument('--no-color', action='store_true')
     workspace.add_argument('--reduced-motion', action='store_true', default=True,
                            help='Keep all information without animation; also the default')
+    sub.add_parser('families', help='Every policy, application and script family with its support disposition (read-only)')
     init = sub.add_parser('init', help='Create a private tenant-scoped observation store; no IaC required')
     init.add_argument('--root', required=True)
     init.add_argument('--tenant', required=True)
@@ -383,6 +384,9 @@ def command(args):
                                                           visibility_delay_reads=args.visibility_delay_reads)
         if name == 'reconcile': return maintenance.reconcile(args.operation)
         return maintenance.propose(args.root, args.service_root, args.object, args.desired, args.output, context_path=args.context)
+    if name == 'families':
+        from .families import families
+        return families()
     if name == 'terminal': return run_terminal(args.root, service_root=args.service_root)
     store = _store(args.root)
     if name == 'import-capture': return store.import_capture(args.capture)
@@ -435,7 +439,7 @@ def command(args):
 
 
 HELP = {
-    'navigation': ['start [DIRECTORY] (what exists beside the store and the next step; read-only)', 'diagnostics (selected object: what needs attention, with evidence and next steps)', 'overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
+    'navigation': ['start [DIRECTORY] (what exists beside the store and the next step; read-only)', 'diagnostics (selected object: what needs attention, with evidence and next steps)', 'families (every policy, application and script family with its support disposition)', 'overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
@@ -691,6 +695,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'health' and len(values) <= 2:
                 result = (_health(store, selected) if selected is not None and not values else
                           set_page('health', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0))
+            elif name == 'families' and not values:
+                from .families import families
+                result = families()
             elif name == 'diagnostics' and not values:
                 from .workbench_diagnostics import diagnostics
                 if selected is None:

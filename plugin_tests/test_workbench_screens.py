@@ -496,6 +496,11 @@ class SurfaceRoutingTests(unittest.TestCase):
         workspace._learn({'object_id': POLICY_ID, 'freshness': 'stale', 'name': 'P'})
         self.assertEqual(workspace.facts['observation'], 'stale')
 
+    def test_families_render_on_the_help_surface(self):
+        from intune_iac.families import families
+        text = self.summary(7, families())
+        self.assertIn('[POLICY FAMILIES]', text); self.assertIn('[EXACT FAMILY TABLE]', text)
+
     def test_a_refusal_renders_on_any_surface(self):
         value = {'status': 'error', 'error': {'code': 'selection_required', 'message': 'Select an exact immutable object ID first.'}}
         for tab in (0, 4, 8):

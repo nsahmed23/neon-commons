@@ -115,6 +115,8 @@ The full table fits 80 columns; narrower terminals get abbreviated columns with 
 
 `m` shows `[MAINTENANCE QUEUE]`: each finding with its priority, affected object, the reason it matters, action state, owner assertion, freshness, review assignee role, writer ownership, source owner claim, review state, review due date, exception expiry, compatibility profile, evidence and related proposals (one line per operation with its latest journal status). The queue never remediates automatically. Both views resume after reopening.
 
+**Families (`:families`, on Help).** `[POLICY FAMILIES]` lists every policy, application and script family from the product's `family-coverage.csv`, unchanged: its stage, route and material, the qualification it still needs, and its live status. One column is added: where the family appears in the workbench today. Settings Catalog policies are in the estate and every maintenance route. Groups, filters and scope tags appear as referenced targets, never managed. Every other family is "not in the estate". Estate's header says that it lists Settings Catalog policies only. `workbench families` prints the same table as JSON.
+
 **Diagnostics (`i`, on Coverage).** `[DIAGNOSTICS]` shows what needs attention for the selected policy. It also lists every area it checked, so silence never means "not looked at". Each signal gives the observed fact, its evidence (run, operation, intent, source file) and the next step:
 - **collection:** the last collection failed. The retained last-good observation is named, now stale.
 - **freshness:** the newest observation is stale for another reason.

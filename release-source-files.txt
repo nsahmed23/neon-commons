@@ -481,6 +481,7 @@ intune_iac/cli.py
 intune_iac/engine.py
 intune_iac/entry.py
 intune_iac/execution.py
+intune_iac/families.py
 intune_iac/graph.py
 intune_iac/graph_contract.py
 intune_iac/graph_validation.py
@@ -796,6 +797,7 @@ plugin_tests/test_workbench_diff.py
 plugin_tests/test_workbench_repository.py
 plugin_tests/test_workbench_screens.py
 plugin_tests/test_workbench_evidence_views_r4.py
+plugin_tests/test_workbench_families.py
 plugin_tests/test_workbench_health.py
 plugin_tests/test_workbench_independent.py
 plugin_tests/test_workbench_paging.py
