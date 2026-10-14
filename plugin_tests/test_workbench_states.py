@@ -371,6 +371,26 @@ class SurfaceListTests(unittest.TestCase):
                       'recorded 2026-10-14', text)
         self.assertIn('baseline missing or incomplete', text)
 
+    def test_a_filter_that_matches_nothing_says_so(self):
+        workspace = self.surface()
+        workspace.tab = 0
+        workspace.value = {'objects': [], 'total_inventory_objects': 1, 'pagination': {'total_objects': 0},
+                           'filters': {'query': None, 'ownership': 'owned_elsewhere', 'coverage': 'complete_fresh',
+                                       'health': None}}
+        text = ' '.join(' '.join(workspace._summary_lines(118)).split())
+        self.assertIn('[NO MATCH] No policy matches ownership owned elsewhere and coverage complete fresh', text)
+        self.assertIn('0 of 1 policy in the inventory', text)
+        self.assertIn('f changes the filters', text)
+
+    def test_coverage_values_read_as_words(self):
+        workspace = self.surface()
+        workspace.tab = 6
+        workspace.value = {'schema_version': 'workbench-four-views/1', 'comparisons': {},
+                           'coverage': {'observation': 'complete_fresh', 'mapping': 'supported_comparison_only'}}
+        text = ' '.join(' '.join(workspace._summary_lines(118)).split())
+        self.assertIn('Observation coverage: complete fresh', text)
+        self.assertIn('Mapping: supported comparison only', text)
+
     def test_each_operation_is_one_row_with_its_latest_status(self):
         from intune_iac.workbench_tui import operation_list
         records = [{'operation_id': 'a' * 32, 'operation_root': '/w/op', 'status': 'prepared', 'recorded_at': '2026-10-14T22:23:00Z'},

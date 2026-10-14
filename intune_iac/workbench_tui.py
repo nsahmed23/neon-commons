@@ -861,6 +861,18 @@ class Workspace:
             from .workbench_screens import lineage_lines
             rows.extend(lineage_lines(value, width))
         elif (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
+                and not value.get('pending_observations') and isinstance(value.get('filters'), dict)
+                and any(value['filters'].values())):
+            filters = value['filters']
+            asked = ['search "%s"' % filters['query'] if key == 'query' else '%s %s' % (key, str(filters[key]).replace('_', ' '))
+                     for key in ('query', 'ownership', 'coverage', 'health') if filters.get(key)]
+            total = value.get('total_inventory_objects')
+            rows.append('[NO MATCH]')
+            rows.extend(word_wrap('No policy matches %s (0 of %s in the inventory). f changes the filters; / searches '
+                                  'again.' % (' and '.join(asked), '%d %s' % (total, 'policy' if total == 1 else 'policies')
+                                              if isinstance(total, int) else 'an unknown number of policies'), width))
+            rows.append('')
+        elif (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
                 and not value.get('pending_observations') and not isinstance(value.get('filters'), dict) and not value.get('query')):
             rows.append('[NO OBSERVATIONS YET]')
             rows.extend(word_wrap('This store has no observed policies. Collect from a modeled service (:collect), import a '
@@ -1043,7 +1055,8 @@ class Workspace:
             if isinstance(coverage, dict):
                 for label, key in (('Observation coverage', 'observation'), ('Management', 'management'),
                                    ('State tracked', 'state_tracked'), ('Mapping', 'mapping'), ('Platform qualified', 'platform_qualified')):
-                    field(label, coverage.get(key, 'unknown'))
+                    item = coverage.get(key, 'unknown')
+                    field(label, item.replace('_', ' ') if isinstance(item, str) else item)
                 own = coverage.get('ownership', {})
                 if isinstance(own, dict):
                     field('Ownership scope complete', own.get('declared_scope_complete', 'unknown'))
