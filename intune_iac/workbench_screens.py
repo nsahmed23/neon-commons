@@ -964,6 +964,56 @@ def _stage_text(stage):
     return texts[name](stage, status) if name in texts else str(status)
 
 
+EVENT_LABELS = {'prepared': 'prepared', 'dispatch_started': 'dispatch started', 'engine_result': 'engine result',
+                'service_response': 'service response', 'service_no_change': 'nothing sent', 'verified': 'verified',
+                'uncertain': 'outcome unknown', 'reconciled': 'reconciled'}
+
+
+def _event_text(event):
+    """What one journal event recorded, from its own fields."""
+    fields = event.get('fields') if isinstance(event.get('fields'), dict) else {}
+    kind = event.get('kind')
+    if kind in ('prepared', 'dispatch_started'):
+        return 'approval digest ' + str(fields.get('approval_digest'))[:12]
+    if kind == 'engine_result':
+        result = fields.get('result') if isinstance(fields.get('result'), dict) else {}
+        return 'engine reported %s (%s)' % (result.get('status'), result.get('assurance'))
+    if kind == 'service_response':
+        response = fields.get('response') if isinstance(fields.get('response'), dict) else {}
+        return 'service answered status %s' % response.get('status')
+    if kind == 'service_no_change':
+        return 'the plan had no configuration change'
+    if kind == 'verified':
+        return 'readback observed the desired state | readback sha256 ' + str(fields.get('readback_sha256'))[:12]
+    if kind == 'uncertain':
+        return str(fields.get('error_code'))
+    if kind == 'reconciled':
+        return '%s, after %s' % (fields.get('classification'), fields.get('previous_status'))
+    return 'r shows what it recorded'
+
+
+def history_event_lines(history, width):
+    """The operation's journal events in order; a time only where the store's registration pairs with an event."""
+    events = [event for event in (history or {}).get('events') or [] if isinstance(event, dict)]
+    if not events:
+        return []
+    lines = word_wrap('HISTORY  journal events in order (chain verified); a time is when the store registered the '
+                      'journal after that event', width)
+    for event in events:
+        label = EVENT_LABELS.get(event.get('kind'), str(event.get('kind')).replace('_', ' '))
+        at = str(event.get('store_recorded_at') or 'time not recorded')
+        head = '  %-3s %-17s %-21s ' % (event.get('sequence'), label, at)
+        if width >= 90:
+            lines += _labelled(head, _event_text(event), width, len(head))
+        else:
+            lines += word_wrap(head.rstrip(), width) + word_wrap('      ' + _event_text(event), width)
+    unpaired = (history.get('registrations') or 0) - (history.get('paired') or 0)
+    if unpaired > 0:
+        lines += word_wrap('  %s could not be paired with an event; r shows %s.' % (
+            _plural(unpaired, 'store registration'), 'it' if unpaired == 1 else 'them'), width)
+    return lines
+
+
 def delivery_lines(value, width, rules='ascii'):
     """One operation's delivery stages in order, each with a marker, its state in words and its evidence.
 
@@ -990,6 +1040,7 @@ def delivery_lines(value, width, rules='ascii'):
             lines += [cont + '    ' + part for part in word_wrap(text, width - 6)]
         if stage.get('stage') == 'observed_after' and stage.get('status') == 'differs' and isinstance(stage.get('field_changes'), dict):
             lines += [cont + '    ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
+    lines += history_event_lines(value.get('history') if isinstance(value.get('history'), dict) else {}, width)
     runs = [run for run in value.get('workflow_runs') or [] if isinstance(run, dict)]
     read = value.get('workflow_runs_read') if isinstance(value.get('workflow_runs_read'), dict) else {}
     if read.get('status') == 'unavailable':

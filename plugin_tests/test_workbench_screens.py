@@ -586,6 +586,39 @@ class RecordedLinesTests(unittest.TestCase):
                          ['[RECORDED] device evidence aaaaaaaaaaaa | already recorded; nothing changed | 2026-10-14T14:31:06Z'])
 
 
+class HistoryLinesTests(unittest.TestCase):
+    HISTORY = {'events': [
+        {'sequence': 0, 'kind': 'prepared', 'fields': {'approval_digest': 'a' * 64},
+         'store_status': 'prepared', 'store_recorded_at': '2026-10-14T16:35:31Z'},
+        {'sequence': 1, 'kind': 'dispatch_started', 'fields': {'approval_digest': 'a' * 64},
+         'store_status': None, 'store_recorded_at': None},
+        {'sequence': 2, 'kind': 'engine_result', 'fields': {'result': {'status': 'succeeded_verified', 'assurance': 'synthetic_local_process_only'}},
+         'store_status': None, 'store_recorded_at': None},
+        {'sequence': 3, 'kind': 'uncertain', 'fields': {'error_code': 'model_response_lost'},
+         'store_status': 'outcome_unknown', 'store_recorded_at': '2026-10-14T16:35:32Z'}],
+        'chain': 'verified when the operation was loaded', 'registrations': 2, 'paired': 2}
+
+    def test_each_event_in_order_with_a_time_only_where_the_store_registered_it(self):
+        from intune_iac.workbench_screens import history_event_lines
+        lines = history_event_lines(self.HISTORY, 120)
+        joined = '\n'.join(lines)
+        self.assertTrue(lines[0].startswith('HISTORY  journal events in order (chain verified)'))
+        self.assertIn('0   prepared          2026-10-14T16:35:31Z  approval digest aaaaaaaaaaaa', joined)
+        self.assertIn('1   dispatch started  time not recorded', joined)
+        self.assertIn('engine reported succeeded_verified (synthetic_local_process_only)', joined)
+        self.assertIn('3   outcome unknown   2026-10-14T16:35:32Z  model_response_lost', joined)
+        self.assertNotIn('could not be paired', joined)
+        for width in (120, 60):
+            for line in history_event_lines(self.HISTORY, width):
+                self.assertLessEqual(cell_width(line), width, line)
+
+    def test_unpaired_registrations_are_disclosed_and_no_history_draws_nothing(self):
+        from intune_iac.workbench_screens import history_event_lines
+        lines = history_event_lines(dict(self.HISTORY, registrations=3), 120)
+        self.assertIn('  1 store registration could not be paired with an event; r shows it.', lines)
+        self.assertEqual(history_event_lines({}, 120), [])
+
+
 class RefusalLinesTests(unittest.TestCase):
     def test_a_known_refusal_explains_itself_and_names_the_next_step(self):
         from intune_iac.workbench_screens import refusal_lines

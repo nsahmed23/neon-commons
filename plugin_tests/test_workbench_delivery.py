@@ -208,6 +208,41 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual((stages['deployment_record']['status'], stages['deployment_record']['reason']), ('not_available', 'no_verified_readback'))
         self.assertIn('cannot become a deployment record', value['next_action'])
 
+    def test_the_history_lists_every_journal_event_with_store_times_only_where_they_pair(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        value, _ = self.view()
+        history = value['history']
+        journal = json.loads((self.operation / 'journal.json').read_text())
+        self.assertEqual([event['kind'] for event in history['events']], [event['kind'] for event in journal['events']])
+        self.assertEqual([event['sequence'] for event in history['events']], list(range(len(journal['events']))))
+        records = self.store.operations(object_id=OBJECT)
+        first, last = history['events'][0], history['events'][-1]
+        # The store registered the journal after the proposal and after the execution, each with its digest.
+        self.assertEqual((first['kind'], first['store_status'], first['store_recorded_at']), ('prepared', 'prepared', records[0]['recorded_at']))
+        self.assertEqual((last['kind'], last['store_status'], last['store_recorded_at']), ('uncertain', 'outcome_unknown', records[1]['recorded_at']))
+        self.assertEqual(last['fields'], {'error_code': 'model_response_lost'})
+        # Events between registrations have no recorded time; none is invented.
+        for event in history['events'][1:-1]:
+            self.assertIsNone(event['store_recorded_at']); self.assertIsNone(event['store_status'])
+        self.assertEqual((history['registrations'], history['paired']), (2, 2))
+        self.assertNotIn('previous_sha256', json.dumps(history['events']))
+        maintenance.reconcile(self.operation)
+        value, _ = self.view()
+        reconciled = value['history']['events'][-1]
+        self.assertEqual((reconciled['kind'], reconciled['store_status']), ('reconciled', 'reconciled'))
+        self.assertEqual(reconciled['fields']['classification'], 'desired_state_observed')
+        self.assertEqual((value['history']['registrations'], value['history']['paired']), (3, 3))
+
+    def test_a_registration_that_does_not_pair_attaches_to_no_event(self):
+        from intune_iac.workbench_delivery import _history
+        journal = {'operation_id': 'a' * 32, 'plan_sha256': 'b' * 64, 'status': 'prepared',
+                   'events': [{'sequence': 0, 'kind': 'prepared', 'previous_sha256': '0' * 64, 'approval_digest': 'c' * 64}]}
+        history = _history(journal, [{'status': 'prepared', 'journal_sha256': 'd' * 64, 'recorded_at': '2026-10-14T00:00:00Z'}])
+        self.assertIsNone(history['events'][0]['store_recorded_at'])
+        self.assertEqual((history['registrations'], history['paired']), (1, 0))
+
     def test_a_change_without_a_repository_citation_has_nothing_to_record(self):
         from intune_iac import maintenance
         desired = dict(self.store.inspect(OBJECT)['body'], description='Desired file, no repository citation.')

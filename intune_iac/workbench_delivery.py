@@ -226,6 +226,30 @@ def _next_action(stages, operation_root, store_root):
     return 'Nothing pending: the change is observed as desired; no repository intent was cited, so there is no deployment record.'
 
 
+def _history(journal, records):
+    """The journal's events in their chained order, each with what it recorded, and when the store registered it.
+
+    The journal records no times. After each engine action the store registers the journal's status with the
+    journal's digest. A registration is paired with an event only when the journal cut after that event, carrying
+    the registered status, has exactly the registered digest; every other event's time stays unrecorded.
+    """
+    from .io import digest
+    paired = {}
+    for record in records:
+        for count in range(1, len(journal['events']) + 1):
+            state = dict(journal, status=record.get('status'), events=journal['events'][:count])
+            if digest(state) == record.get('journal_sha256'):
+                paired.setdefault(count - 1, record)
+                break
+    events = [{'sequence': event['sequence'], 'kind': event['kind'],
+               'fields': {key: value for key, value in event.items() if key not in ('sequence', 'kind', 'previous_sha256')},
+               'store_status': paired[index]['status'] if index in paired else None,
+               'store_recorded_at': paired[index]['recorded_at'] if index in paired else None}
+              for index, event in enumerate(journal['events'])]
+    return {'events': events, 'chain': 'verified when the operation was loaded', 'registrations': len(records),
+            'paired': len(paired)}
+
+
 def delivery(operation_root, *, now=None):
     """The delivery stages of one maintenance operation; read-only."""
     from . import maintenance
@@ -236,10 +260,11 @@ def delivery(operation_root, *, now=None):
         maintenance._fail('maintenance_evidence_changed')
     now = time.time() if now is None else now
     store = maintenance._store(plan['store_root'])
+    records = [record for record in store.operations(object_id=plan['object_id'])
+               if record['operation_id'] == plan['operation_id']]
     times = {}
-    for record in store.operations(object_id=plan['object_id']):
-        if record['operation_id'] == plan['operation_id']:
-            times.setdefault(record['status'], record['recorded_at'])
+    for record in records:
+        times.setdefault(record['status'], record['recorded_at'])
     repository = review['repository']
     stages = [
         {'stage': 'proposal', 'status': 'done', 'recorded_at': times.get('prepared'), 'object_id': plan['object_id'],
@@ -260,6 +285,6 @@ def delivery(operation_root, *, now=None):
     return {'schema_version': VERSION, 'operation_id': plan['operation_id'], 'operation_root': str(root),
             'tenant_id': plan['tenant_id'], 'object_id': plan['object_id'], 'journal_status': journal['status'],
             'stages': stages, 'next_action': _next_action(named, root, plan['store_root']), 'viewed_at': _utc(now) if now >= 0 else None,
-            'workflow_runs': runs, 'workflow_runs_read': runs_read,
+            'workflow_runs': runs, 'workflow_runs_read': runs_read, 'history': _history(journal, records),
             'evidence_class': review['evidence_class'], 'native_provider_qualified': False,
             'execution_authorized': False, 'cloud_authority': False}
