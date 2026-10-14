@@ -507,7 +507,8 @@ class LineageAndNavigationTests(unittest.TestCase):
         tabs = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
         line = tab_line(tabs, 8, 58)
         self.assertLessEqual(cell_width(line), 58)
-        self.assertTrue(line.endswith('[9 Repo]'), line)
+        self.assertTrue(line.startswith('[9 Repository]'), line)
+        self.assertIn('1-9', line)  # never a row of bare digits
         self.assertLessEqual(cell_width(tab_line(tabs, 0, 20)), 20)
 
 

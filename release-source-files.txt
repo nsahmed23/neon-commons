@@ -786,6 +786,7 @@ plugin_tests/test_windows_workspace_binding_r4.py
 plugin_tests/test_windows_workspace_context_r4.py
 plugin_tests/test_wizard.py
 plugin_tests/test_wizard_repository.py
+plugin_tests/test_workbench_actions.py
 plugin_tests/test_workbench_adoption.py
 plugin_tests/test_workbench_adoption_recovery_tui_r4.py
 plugin_tests/test_workbench_adoption_tui_r4.py
@@ -801,6 +802,7 @@ plugin_tests/test_workbench_repository.py
 plugin_tests/test_workbench_screens.py
 plugin_tests/test_workbench_evidence_views_r4.py
 plugin_tests/test_workbench_families.py
+plugin_tests/test_workbench_hazard.py
 plugin_tests/test_workbench_health.py
 plugin_tests/test_workbench_independent.py
 plugin_tests/test_workbench_inspector.py

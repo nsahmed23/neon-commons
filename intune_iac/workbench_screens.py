@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 
-from .workbench_tui import cell_width, pad, safe_text
+from .workbench_tui import cell_width, fit, pad, safe_text
 
 WIDE = 96
 LABEL = 16
@@ -21,14 +21,16 @@ SHORT_TABS = {'Estate': 'Est', 'Inspector': 'Insp', 'Relationships': 'Rel', 'His
 def tab_line(tabs, active, width):
     """Numbered surfaces with the active one bracketed, shortening in tiers until the line fits.
 
-    Full names, then short names, then numbers with only the active surface named, then numbers alone.
+    Full names, then short names. Narrower than that, the line never becomes bare digits: it names the active
+    surface and says how to reach and list the others.
     """
     def line(names, gap):
         return gap.join(('[%d %s]' if index == active else '%d %s') % (index + 1, name) for index, name in enumerate(names))
     short = [SHORT_TABS.get(name, name) for name in tabs]
     tiers = (line(tabs, '  '), line(short, ' '),
-             ' '.join('[%d %s]' % (index + 1, name) if index == active else str(index + 1) for index, name in enumerate(short)),
-             ' '.join(('[%d]' if index == active else '%d') % (index + 1) for index in range(len(tabs))))
+             '[%d %s]  keys 1-9 switch surfaces; ? lists them' % (active + 1, tabs[active]),
+             '[%d %s]  1-9: surfaces, ? lists them' % (active + 1, short[active]),
+             '[%d %s]  1-9, ?' % (active + 1, short[active]))
     return next((text for text in tiers if cell_width(text) <= width), tiers[-1])
 
 
@@ -42,11 +44,17 @@ SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'o
                 'recorded_intent_not_revalidated': 'not revalidated', 'desired_state_observed': 'observed'}
 
 
+# States that are a hazard for the selected policy. When the strip is too long, routine states give way first.
+HAZARD_STATES = {'OBSERVED': {'stale'}, 'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
+                 'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable'}}
+
+
 def context_strip(tenant, selected, facts, width, mode_class=None):
     """Where the engineer is: evidence mode, tenant, policy, observation, repository and operation state, as last reported.
 
-    The mode and the tenant lead every form, so synthetic and live evidence cannot be confused at any width; the
-    operation and repository states give way first when the line is too long.
+    The mode and the tenant lead every form, so synthetic and live evidence cannot be confused at any width. When the
+    line is too long, labels and words shorten first; then routine states give way, and hazards last of all (the
+    hazard band below the strip always carries the primary one).
     """
     lead = [mode_word(mode_class), 'TENANT ' + short_id(tenant)]
     if not selected:
@@ -56,14 +64,81 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     if facts.get('operation'):
         states.append(('OPERATION', 'OP', facts['operation']))
     bare = 'POLICY ' + short_id(selected)
-    tiers = [(policy, False, False, len(states)), (policy, True, False, len(states)), (bare, True, False, len(states)),
-             (bare, True, True, len(states))] + [(bare, True, True, kept) for kept in range(len(states) - 1, 0, -1)]
-    for name, compact, brief, kept in tiers:
+    routine = [state for state in states if str(state[2]) not in HAZARD_STATES[state[0]]]
+    hazards = [state for state in states if state not in routine]
+    kept, shrinking = list(states), []
+    for state in list(reversed(routine)) + list(reversed(hazards)):
+        kept = [item for item in kept if item is not state]
+        shrinking.append(list(kept))
+    tiers = [(policy, False, False, states), (policy, True, False, states), (bare, True, False, states),
+             (bare, True, True, states)] + [(bare, True, True, remaining) for remaining in shrinking]
+    for name, compact, brief, remaining in tiers:
         text = ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), str(value)) if brief else str(value))
-                                           for long, short, value in states[:kept]])
+                                           for long, short, value in remaining])
         if cell_width(safe_text(text)) <= width:
             return text
     return text
+
+
+# The primary hazard's ranking, its words and the key that offers its response (a: the action list).
+BAND_RANK = ('operation_outcome_unknown', 'operation_diverged', 'operation_record_disagrees', 'operation_unreadable',
+             'collection_failed', 'collection_not_finished', 'repository_stale', 'repository_consumer_mismatch',
+             'repository_unavailable', 'observation_stale')
+OPERATION_SIGNAL = {'outcome_unknown': 'operation_outcome_unknown', 'diverged': 'operation_diverged',
+                    'records disagree': 'operation_record_disagrees', 'unreadable': 'operation_unreadable'}
+
+
+def _band_forms(primary):
+    """Longest to shortest wording of one hazard; every form keeps its response."""
+    code, evidence = primary.get('code'), primary.get('evidence') if isinstance(primary.get('evidence'), dict) else {}
+    operation = short_id(evidence.get('operation_id')) if evidence.get('operation_id') else ''
+    if code == 'operation_outcome_unknown':
+        return ['! Operation %s: outcome unknown. a: reconcile (never replays)' % operation if operation else
+                '! Operation outcome unknown. a: reconcile (never replays)',
+                '! Outcome unknown%s. a: reconcile' % (' (op %s)' % operation if operation else ''), '! Outcome unknown. a: reconcile']
+    if code in ('operation_diverged', 'operation_record_disagrees', 'operation_unreadable'):
+        words = {'operation_diverged': 'diverged from its plan', 'operation_record_disagrees': 'records disagree',
+                 'operation_unreadable': 'records unreadable'}[code]
+        return ['! Operation %s %s. a: reconcile, i: details' % (operation, words), '! Operation %s. a: reconcile' % words]
+    if code == 'collection_failed':
+        status = str(evidence.get('status') or 'failed')
+        return ['! Last collection %s; the kept observation is stale. a: collect again' % status,
+                '! Last collection %s. a: collect' % status]
+    if code == 'collection_not_finished':
+        return ['! A collection started and recorded no end. a: collect again', '! Collection unfinished. a: collect']
+    if code in ('repository_stale', 'repository_consumer_mismatch'):
+        words = 'changed since its intent' if code == 'repository_stale' else 'no longer consumes this policy'
+        return ['! Repository %s. 9: difference, a: refresh' % words, '! Repository %s. a: refresh' % words.split(' since')[0]]
+    if code == 'repository_unavailable':
+        return ['! Repository intent cannot be read. 9: repository, i: details', '! Repository unreadable. 9: repository']
+    return ['! Observation stale. a: collect again', '! Observation stale. a: collect']
+
+
+def hazard_band(facts, signals, width):
+    """The primary hazard for the selected policy and the key for its response, or None when nothing is recorded.
+
+    The operation's live status (from this session's results) wins over an older recorded signal: a reconciled
+    operation is no longer a hazard, and one known only from this session still is. Other recorded signals are
+    counted, with the key that lists them all.
+    """
+    operation = facts.get('operation')
+    live = [item for item in signals or [] if isinstance(item, dict)]
+    if operation not in OPERATION_SIGNAL:
+        live = [item for item in live if item.get('area') != 'operations']
+    ranked = sorted((item for item in live if item.get('code') in BAND_RANK), key=lambda item: BAND_RANK.index(item['code']))
+    primary = ranked[0] if ranked else None
+    if operation in OPERATION_SIGNAL and (primary is None or primary.get('area') != 'operations'):
+        recorded = next((item for item in live if item.get('code') == OPERATION_SIGNAL[operation]), None)
+        primary = recorded or {'area': 'operations', 'code': OPERATION_SIGNAL[operation], 'evidence': {}}
+    if primary is None:
+        return None
+    others = len([item for item in live if item is not primary and item.get('code') != primary.get('code')])
+    more = '  +%d more: i' % others if others else ''
+    forms = _band_forms(primary)
+    for text in [form + more for form in forms] + forms:
+        if cell_width(text) <= width:
+            return text
+    return fit(forms[-1], width)
 
 
 def utc_time(value):
@@ -356,18 +431,72 @@ def _attention_lines(value, width):
         elif not signals:
             clear = ', '.join(area.replace('_', ' ') for area, state in areas.items() if state == 'clear')
             lines += word_wrap('  Nothing recorded needs attention%s.' % (' (checked: %s)' % clear if clear else ''), width)
+        guided = isinstance(value.get('actions'), list)
         for signal in signals:
             lines += _labelled('  !', str(signal.get('observed')), width, 4)
+            if guided and signal.get('next_step'):
+                # Each condition carries its own response, so issue and action are read together.
+                lines += _labelled('    Next', str(signal.get('next_step')), width, 10)
         # Areas that were not examined stay named as such: nothing is known about them either way.
         unknown = ['%s %s' % (area.replace('_', ' '), AREA_STATE_WORDS[state]) for area, state in areas.items()
                    if state in AREA_STATE_WORDS]
         if unknown:
             lines += word_wrap('  Not fully checked: %s.' % '; '.join(unknown), width)
+    if isinstance(value.get('actions'), list):
+        offered = [action for action in value['actions'] if isinstance(action, dict)]
+        if offered:
+            lines += ['', 'ACTIONS']
+            lines += word_wrap('  a stages one for review; nothing runs until you submit it.', width)
+            for number, action in enumerate(offered, 1):
+                blocked = action.get('blocked') or {}
+                state = '' if action.get('available') else ' (blocked: %s)' % BLOCK_WORDS.get(
+                    blocked.get('code'), str(blocked.get('code') or 'not available'))
+                lines += _labelled('  %d.' % number, str(action.get('label')) + state, width, 6)
+        return lines
     actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
     if actions:
         lines += ['', 'NEXT']
         for action in actions:
             lines += _labelled('  ', str(action.get('step')), width, 2)
+    return lines
+
+
+# Why an action is blocked, in a few words; the actions layer (a) gives the engine's full meaning.
+BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
+               'maintenance_observation_incomplete': 'the observation is incomplete',
+               'maintenance_observation_source_mismatch': 'the observation came from another source',
+               'workbench_repository_stale': 'the repository changed since its intent',
+               'workbench_repository_unavailable': 'the repository cannot be read',
+               'service_required': 'needs a modeled service (--service-root)',
+               'workbench_attention_not_established': 'diagnostics not read yet',
+               'workbench_fresh_output_required': 'no fresh operation directory'}
+
+
+def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter'):
+    """The guided actions for the selected policy: what each is, whether it is available, its exact command and what
+    it does. A blocked action says why, with the engine's own code."""
+    lines = word_wrap('ACTIONS  for %s (%s)' % (name or 'the selected policy', short_id(object_id)), width)
+    lines += word_wrap('Nothing runs until you submit it: Enter puts the focused command in the command bar for review, '
+                       '%s there submits it, Esc discards it.' % submit, width)
+    for index, action in enumerate(actions):
+        lines.append('')
+        state = 'available' if action.get('available') else 'blocked'
+        lines += _labelled('%s %d.' % ('>' if index == focus else ' ', index + 1), '%s  (%s)' % (action.get('label'), state), width, 5)
+        if action.get('available'):
+            # A missing input is named where it goes, as the command bar's cursor will be.
+            command, cursor = str(action.get('command') or ''), action.get('cursor')
+            names = ' '.join(str(need).split(':')[0] for need in action.get('needs') or [])
+            if names and isinstance(cursor, int) and 0 <= cursor <= len(command):
+                command = (command[:cursor] + names + ' ' + command[cursor:].lstrip()).rstrip()
+            lines += _labelled('', 'command  ' + command.rstrip(), width, 5)
+            for need in action.get('needs') or []:
+                lines += _labelled('', 'needs  ' + str(need), width, 5)
+        else:
+            blocked = action.get('blocked') or {}
+            code = blocked.get('code')
+            meaning = REFUSALS[code][0] if code in REFUSALS else blocked.get('message')
+            lines += _labelled('', 'blocked  %s: %s' % (code, meaning), width, 5)
+        lines += _labelled('', str(action.get('effects')), width, 5)
     return lines
 
 
@@ -422,6 +551,10 @@ def help_lines(width):
                      'Esc returns to the summary.'),
         ('Moving', 'Up and Down choose, Enter selects, PgUp and PgDn scroll, n and p page through long lists, Tab moves '
                    'to the next surface, / searches, f sets estate filters, b or :back returns to the previous view.'),
+        ('Actions', 'a lists what can be done next for the selected policy, each with its exact command, what it does '
+                    'and whether it is available now. Enter puts the chosen command in the command bar for review; '
+                    'Enter there (Ctrl+Enter in the native Windows console) submits it and Esc discards it. Nothing '
+                    'runs until you submit it.'),
         ('Commands', ': opens the command bar; Enter submits and Esc discards. Every command the engine accepts is in the '
                      'typed details of this page (e).'),
         ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '

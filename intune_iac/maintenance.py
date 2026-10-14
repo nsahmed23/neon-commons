@@ -199,6 +199,45 @@ def _check_cited_intent(store, object_id, desired, context):
                        'the edited repository and cite the new intent.')
 
 
+def _observation_problem(store, object_id, tenant, service_root, snapshot):
+    """The first reason the newest observation cannot ground a proposal, as propose refuses it, or None.
+
+    Shared by propose (under the service lock, where it is binding) and proposal_eligibility (advisory), so the
+    workspace shows a blocker with the same code the submission would meet.
+    """
+    observation = store.inspect(object_id)
+    if observation['tenant_id'] != tenant or observation.get('coverage') != 'complete':
+        return 'maintenance_observation_incomplete', observation
+    latest = observation.get('last_attempt')
+    if latest and latest.get('status') != 'complete':
+        return 'maintenance_observation_incomplete', observation
+    if observation.get('freshness') != 'fresh':
+        return 'maintenance_observation_stale', observation
+    observed_source = observation.get('source', {})
+    if observed_source.get('service_kind') != 'ModeledService' or observed_source.get('service_root') != str(service_root):
+        return 'maintenance_observation_source_mismatch', observation
+    estate_sha = digest({'tenant_id': tenant, 'objects': snapshot['current']['objects']})
+    if (observed_source.get('service_revision') != snapshot['revision']
+            or observed_source.get('observed_estate_sha256') != estate_sha):
+        return 'maintenance_observation_stale', observation
+    if object_id not in snapshot['current']['objects'] or digest(observation['body']) != digest(snapshot['current']['objects'][object_id]):
+        return 'maintenance_observation_stale', observation
+    return None, observation
+
+
+def proposal_eligibility(store_root, service_root, object_id):
+    """The code propose would refuse with because of the observation, or None; read-only and advisory.
+
+    No lock is taken and nothing is written. Submission rechecks everything under the service lock, so this can
+    only say earlier what the proposal itself would say.
+    """
+    service_root = _safe(service_root)
+    snapshot = ModeledService(service_root).snapshot()
+    tenant = snapshot['current']['tenant_id']
+    problem, _ = _observation_problem(_store(_safe(store_root)), _uuid(object_id), tenant, service_root, snapshot)
+    return problem
+
+
 def propose(store_root, service_root, object_id, desired_path, output, *, context_path=None):
     """Prepare a persisted single-object operation from a complete observation."""
     root, store_root, service_root = map(_safe, (output, store_root, service_root))
@@ -229,23 +268,9 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
         store = _store(store_root)
         if context:
             _check_cited_intent(store, object_id, desired, context_value)
-        observation = store.inspect(object_id)
-        if observation['tenant_id'] != tenant or observation.get('coverage') != 'complete':
-            _fail('maintenance_observation_incomplete')
-        latest = observation.get('last_attempt')
-        if latest and latest.get('status') != 'complete':
-            _fail('maintenance_observation_incomplete')
-        if observation.get('freshness') != 'fresh':
-            _fail('maintenance_observation_stale')
-        observed_source = observation.get('source', {})
-        if observed_source.get('service_kind') != 'ModeledService' or observed_source.get('service_root') != str(service_root):
-            _fail('maintenance_observation_source_mismatch')
-        estate_sha = digest({'tenant_id': tenant, 'objects': snapshot['current']['objects']})
-        if (observed_source.get('service_revision') != snapshot['revision']
-                or observed_source.get('observed_estate_sha256') != estate_sha):
-            _fail('maintenance_observation_stale')
-        if object_id not in snapshot['current']['objects'] or digest(observation['body']) != digest(snapshot['current']['objects'][object_id]):
-            _fail('maintenance_observation_stale')
+        problem, observation = _observation_problem(store, object_id, tenant, service_root, snapshot)
+        if problem:
+            _fail(problem)
         before = service.readback(tenant_id=tenant)
         if digest(before) != digest(snapshot['current']) or service.snapshot()['revision'] != snapshot['revision']:
             _fail('maintenance_plan_stale')

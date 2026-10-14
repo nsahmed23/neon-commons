@@ -151,7 +151,8 @@ SUBVIEWS = {'estate-overview': 'Relationship overview', 'diagnostics': 'Diagnost
 # From this many body cells, the readable summary and the exact engine record sit side by side.
 WIDE = 150
 # The longest that fits is shown, so narrow terminals get every key and no cut-off word.
-HELP_LINES = ('? help | : command | / search | e details | r raw record | b back | q exit',
+HELP_LINES = ('? help | a actions | : command | / search | e details | r raw record | b back | q exit',
+              '? help | : command | / search | e details | r raw record | b back | q exit',
               '? help | : command | e details | r raw | b back | q exit',
               '? help | : command | e details | b back | q exit')
 # Read-only views that b (back) may return to; nothing that prepares, approves, executes or records is ever re-sent.
@@ -159,7 +160,7 @@ VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'hi
                            'help', 'health', 'queue', 'start', 'families', 'dictionary', 'dictionary-page', 'lineage',
                            'diagnostics', 'estate-overview', 'repository-status', 'delivery', 'repository-entry',
                            'operations', 'review', 'workflows', 'search', 'search-page', 'views-page'})
-LAYERS = {'details': 'typed details', 'raw': 'raw record'}
+LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions'}
 # The repository state the strip shows when the Inspector's diagnostics checked it.
 REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'not_recorded': 'none recorded',
                          'unavailable': 'not checked', 'partly_checked': 'not checked'}
@@ -429,6 +430,12 @@ class Workspace:
         self.layer = 'summary'
         # Read-only views visited this session, for b (back); never persisted, never a change.
         self.trail = []
+        # A staged action is bound to the policy it was offered for; action_focus is the actions layer's row.
+        self.staged = None
+        self.action_focus = 0
+        # A read of the selected policy for the band and the actions only: due after a command that may have written,
+        # sent when a lists the actions. Its result never replaces the screen.
+        self.quiet = None
         self.current_view = None
         self.pending = deque()
         self.size = self._terminal_size()
@@ -526,6 +533,11 @@ class Workspace:
     def receive(self, value):
         """Callback after the SAME engine has validated/executed an input."""
         if not isinstance(value, dict): value = {'result': value}
+        quiet = getattr(self, 'quiet', None)
+        if quiet and quiet.get('state') == 'sent' and value.get('status') != 'interrupted':
+            self.quiet = None
+            self._quiet_receive(value, quiet.get('purpose'))
+            return
         # Initial help should not displace restored selection/navigation.
         self.value = value
         self.scroll = 0
@@ -540,6 +552,7 @@ class Workspace:
             object_id = value.get('object_id')
             if object_id and self.last_command.startswith('select '):
                 if self.selected != object_id:
+                    self.staged = None
                     self.active_operation = None; self.execution_result = None
                     self.active_service = None; self.active_adoption = None; self.active_adoption_plan = None
                 self.selected = object_id
@@ -626,6 +639,10 @@ class Workspace:
             # saves read-only paths, never approvals, captures or credentials.
             self.save_context()
             self.notice = self._notice_for(value)
+        name = self.last_command.split(' ', 1)[0] if isinstance(self.last_command, str) else ''
+        if self.selected and name and name not in VIEW_COMMANDS and value.get('status') != 'interrupted':
+            # The command may have recorded something, so the band and the actions are read again, quietly.
+            self.quiet = {'purpose': 'refresh', 'state': 'due'}
         self.draw()
 
     def _notice_for(self, value):
@@ -673,6 +690,12 @@ class Workspace:
         recorded = next((OPERATION_FROM_SIGNAL[code] for code in operation_codes if code in OPERATION_FROM_SIGNAL), None)
         if value.get('object_id') == self.selected and recorded:
             facts['operation'] = recorded
+        # The recorded signals feed the hazard band on every surface while this policy stays selected, and the
+        # read model's actions feed the actions layer (a).
+        if value.get('object_id') == self.selected and isinstance(attention.get('signals'), list):
+            facts['signals'] = [signal for signal in attention['signals'] if isinstance(signal, dict)]
+        if value.get('object_id') == self.selected and isinstance(value.get('actions'), list):
+            facts['actions'] = [action for action in value['actions'] if isinstance(action, dict)]
         if value.get('object_id') == self.selected and 'snapshot_id' in value and isinstance(value.get('evidence_class'), str):
             facts['evidence_class'] = value['evidence_class']
         repository = value.get('repository')
@@ -940,6 +963,11 @@ class Workspace:
         if layer == 'details':
             return (word_wrap('TYPED DETAILS  Every field of this result, names spaced for reading; r shows the raw record '
                               'exactly as recorded, Esc returns to the summary.', width) + [''] + details_lines(self.value, width))
+        if layer == 'actions':
+            from .workbench_screens import actions_lines
+            facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
+            return actions_lines(self._actions(), getattr(self, 'action_focus', 0), width, facts.get('name'), self.selected,
+                                 submit=self._submit_word())
         if layer == 'raw':
             return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
@@ -1031,10 +1059,14 @@ class Workspace:
         self.size = self._terminal_size()
         width, height = self.size
         inner = width - 2
-        from .workbench_screens import tab_line
+        from .workbench_screens import hazard_band, tab_line
         header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value, getattr(self, 'layer', 'summary'))
         labels = tab_line(TABS, self.tab, width)
-        available = max(0, height - 8)
+        # The primary hazard is chrome, not body: layers, scrolling and narrow windows never move it out of view.
+        selected = getattr(self, 'selected', None)
+        known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
+        band = hazard_band(known, known.get('signals') or [], width) if selected else None
+        available = max(0, height - (9 if band else 8))
         data = self._body_lines(inner, RULES[getattr(self, 'rules', 'ascii')][1])
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
@@ -1060,8 +1092,9 @@ class Workspace:
         else: prompt = fit(self.notice, width, ellipsis)
         top, side, bottom = RULES[getattr(self, 'rules', 'ascii')]
         # Content beyond the frame is announced inside the border, not only by the row counter below it.
-        frame = [pad(header, width), pad(labels, width), pad(status, width),
+        frame = [pad(header, width), pad(labels, width), pad(status, width)] + ([pad(band, width)] if band else []) + [
                  ruled(top[0], top[1], top[2], inner, ' more above: PgUp ' if self.scroll > 0 else None)]
+        band_row = 3 if band else None
         frame.extend(side + pad(line, inner) + side for line in visible)
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
@@ -1071,12 +1104,17 @@ class Workspace:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
             for i, line in enumerate(frame):
+                if i == band_row:
+                    # The hazard band is bold in the warning colour; its words carry the meaning on their own.
+                    painted.append('\x1b[48;5;%s;38;5;%sm\x1b[1m%s\x1b[22m\x1b[0m' % (palette['bg'], palette['warn'], line))
+                    continue
                 base = palette['accent'] if i in (0, 1, len(frame) - 2) else palette['fg']
                 # Body lines, the context strip and the notice get word-level reinforcement; words never change.
                 if line.startswith(side) or i in (2, len(frame) - 2):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
-        else: painted = [emphasize(line) if line.startswith(side) else line for line in frame]
+        else: painted = ['\x1b[1m' + line + '\x1b[22m' if i == band_row else emphasize(line) if line.startswith(side) else line
+                         for i, line in enumerate(frame)]
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
 
@@ -1093,6 +1131,64 @@ class Workspace:
         if self.tab != 8 or value.get('schema_version') != 'workbench-repository-entry/1':
             return []
         return [item for item in value.get('candidates') or [] if isinstance(item, dict)]
+
+    def _actions(self):
+        """The guided actions the read model offered for the selected policy, as last reported."""
+        facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
+        return [action for action in facts.get('actions') or [] if isinstance(action, dict)]
+
+    def _read_actions(self):
+        """a: read this policy's actions again through the engine, then list them over the current screen."""
+        if not self.selected:
+            self.notice = 'Select a policy first: 1 (Estate), then Enter.'
+            return None
+        self.quiet = {'purpose': 'actions', 'state': 'sent'}
+        self.notice = 'READING: the actions for this policy; nothing runs until you submit one.'
+        self.draw()
+        return 'inspect'
+
+    def _quiet_receive(self, value, purpose):
+        """A read made for the band and the actions only; the screen keeps the result it was showing."""
+        if value.get('status') == 'error' or value.get('object_id') != self.selected:
+            # Nothing stale is offered: conditions and actions that could not be read again are dropped.
+            facts = dict(self.facts)
+            facts.pop('signals', None); facts.pop('actions', None)
+            self.facts = facts
+            if purpose == 'actions':
+                self.notice = 'The actions could not be read again; 2 (Inspector) shows why.'
+        else:
+            self._learn(value)
+            if purpose == 'actions':
+                self._open_actions()
+        self.draw()
+
+    def _open_actions(self):
+        if not self.selected:
+            self.notice = 'Select a policy first: 1 (Estate), then Enter.'
+        elif not self._actions():
+            self.notice = 'No actions read for this policy yet; 2 (Inspector) reads them.'
+        else:
+            self.layer = 'actions'; self.scroll = 0; self.action_focus = 0
+            self.notice = 'Up and Down choose, Enter stages the command for review; nothing runs until you submit it.'
+
+    def _stage(self, action):
+        """Put an available action's exact command in the command bar, bound to this policy; nothing is sent."""
+        if not action.get('available'):
+            blocked = action.get('blocked') or {}
+            self.notice = 'Blocked: %s. Nothing was staged.' % (blocked.get('message') or blocked.get('code') or 'not available')
+            return
+        command = str(action.get('command') or '')[:MAX_COMMAND]
+        cursor = action.get('cursor')
+        self.mode = 'command'; self.buffer = command
+        self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
+        self.staged = {'kind': action.get('kind'), 'label': action.get('label'), 'binding': dict(action.get('binding') or {})}
+        needs = [str(need).split(':')[0] for need in action.get('needs') or []]
+        self.notice = 'Staged for review: %s. %s %s submits it; Esc discards it.%s' % (
+            action.get('label'), action.get('effects'), self._submit_word(),
+            ' Type %s at the cursor first.' % ' and '.join(needs) if needs else '')
+
+    def _submit_word(self):
+        return 'Enter' if getattr(self, 'submission_key', 'enter') == 'enter' else 'Ctrl+Enter'
 
     def _back(self):
         """The previous read-only view of this session, or a notice that there is none; never a change."""
@@ -1174,6 +1270,12 @@ class Workspace:
     def input(self, _prompt):
         if self.pending:
             return self._send(self.pending.popleft())
+        if getattr(self, 'quiet', None) and self.quiet.get('state') == 'due':
+            if not self.selected:
+                self.quiet = None
+            else:
+                self.quiet = dict(self.quiet, state='sent')
+                return 'inspect'
         if self.key_reader is None:
             self.key_reader = self.native_binding.console.key_reader if self.native_binding is not None else KeyReader(self.stdin)
         self.draw()
@@ -1201,7 +1303,7 @@ class Workspace:
                 continue
             if self.mode:
                 if key == 'escape':
-                    self.mode = None; self.buffer = ''; self.cursor = 0; self.input_overflow = False
+                    self.mode = None; self.buffer = ''; self.cursor = 0; self.input_overflow = False; self.staged = None
                     self.notice = 'EDIT CANCELLED: no command submitted; active external runs are unchanged.'
                 elif key == 'enter' and self.submission_key != 'enter':
                     self.notice = 'Ctrl+Enter submits this edit; ordinary Enter does not submit pasted input.'
@@ -1230,6 +1332,16 @@ class Workspace:
                                        'running call and ends the session; :clear-selection clears the selected policy.')
                         self.draw()
                         continue
+                    staged, self.staged = getattr(self, 'staged', None), None
+                    bound = (staged or {}).get('binding') or {}
+                    if staged and self.mode == 'command' and (bound.get('object_id') != self.selected
+                                                              or bound.get('tenant_id') != self.store.tenant_id):
+                        # A staged action is bound to the policy it was offered for; it never follows a new selection.
+                        self.mode = None; self.buffer = ''; self.cursor = 0
+                        self.notice = ('The staged action was for policy %s; the selection changed since, so it was '
+                                       'discarded. Nothing was sent.' % str(bound.get('object_id'))[:8])
+                        self.draw()
+                        continue
                     if command.strip(): return self._send(command)
                     self.mode = None
                 elif key == 'backspace' and self.cursor:
@@ -1244,6 +1356,14 @@ class Workspace:
                     if len(self.buffer) < MAX_COMMAND:
                         self.buffer = self.buffer[:self.cursor] + key[1] + self.buffer[self.cursor:]; self.cursor += len(key[1])
                     else: self.input_overflow = True
+                self.draw()
+                continue
+            if getattr(self, 'layer', 'summary') == 'actions' and key in ('up', 'down', 'enter'):
+                actions = self._actions()
+                if key in ('up', 'down') and actions:
+                    self.action_focus = max(0, min(len(actions) - 1, getattr(self, 'action_focus', 0) + (-1 if key == 'up' else 1)))
+                elif key == 'enter' and actions:
+                    self._stage(actions[min(getattr(self, 'action_focus', 0), len(actions) - 1)])
                 self.draw()
                 continue
             if key == 'escape' and getattr(self, 'layer', 'summary') != 'summary':
@@ -1285,6 +1405,9 @@ class Workspace:
                     self.mode = 'command'
                     self.buffer = self.page_command if self.page_command.startswith('views-page ') else 'views-page 10 0 - - - -'
                     self.cursor = len(self.buffer)
+                elif char == 'a':
+                    command = self._read_actions()
+                    if command: return command
                 elif char in '123456789':
                     command = self._tab_command(int(char) - 1)
                     if command: return command
