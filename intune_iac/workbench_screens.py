@@ -461,8 +461,9 @@ def _attention_lines(value, width):
             lines += word_wrap('  a stages one for review; nothing runs until you submit it.', width)
             for number, action in enumerate(offered, 1):
                 blocked = action.get('blocked') or {}
-                state = '' if action.get('available') else ' (blocked: %s)' % BLOCK_WORDS.get(
-                    blocked.get('code'), str(blocked.get('code') or 'not available'))
+                state = '' if action.get('available') else ' (blocked: %s)' % (
+                    BLOCK_WORDS.get(blocked.get('reason')) or BLOCK_WORDS.get(blocked.get('code'))
+                    or str(blocked.get('code') or 'not available'))
                 lines += _labelled('  %d.' % number, str(action.get('label')) + state, width, 6)
         return lines
     actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
@@ -481,6 +482,12 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'workbench_repository_unavailable': 'the repository cannot be read',
                'service_required': 'needs a modeled service (--service-root)',
                'workbench_attention_not_established': 'diagnostics not read yet',
+               # Which observation check failed, when the engine's code covers several.
+               'service_changed': 'the service changed since the observation', 'policy_changed': 'the policy changed '
+               'since the observation', 'not_fresh': 'the observation is not fresh', 'last_attempt_incomplete':
+               'the last collection did not complete', 'coverage_incomplete': 'the observation is incomplete',
+               'source_mismatch': 'the observation came from another service', 'tenant_mismatch': 'the observation is '
+               'for another tenant',
                'workbench_fresh_output_required': 'no fresh operation directory'}
 
 
@@ -506,7 +513,8 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
         else:
             blocked = action.get('blocked') or {}
             code = blocked.get('code')
-            meaning = REFUSALS[code][0] if code in REFUSALS else blocked.get('message')
+            # The discriminating message when the engine's code covers several causes; otherwise its meaning.
+            meaning = blocked.get('message') if blocked.get('reason') or code not in REFUSALS else REFUSALS[code][0]
             lines += _labelled('', 'blocked  %s: %s' % (code, meaning), width, 5)
         lines += _labelled('', str(action.get('effects')), width, 5)
     return lines

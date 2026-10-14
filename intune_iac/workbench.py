@@ -377,7 +377,36 @@ def _proposal_blocker(store, object_id, attention, intent, service_root):
         problem = maintenance.proposal_eligibility(store.root, service_root, object_id)
     except AppError as error:
         return {'code': error.code, 'message': error.message}
-    return _refusal(problem) if problem else None
+    if problem is None:
+        return None
+    return {'code': problem['code'], 'reason': problem['reason'], 'message': _reason_words(problem)}
+
+
+# Freshness reasons the store records, in plain words.
+FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection did not complete',
+                          'older_than_window': 'older than the freshness window',
+                          'stamped_after_now': "stamped after this host's clock"}
+# Which observation check a proposal fails; collecting again answers all but another tenant.
+RECOLLECT_REASONS = frozenset({'coverage_incomplete', 'last_attempt_incomplete', 'not_fresh', 'source_mismatch',
+                               'service_changed', 'policy_changed'})
+
+
+def _reason_words(problem):
+    """The failed observation check in plain words, from the recorded facts; the code stays the engine's own."""
+    reason = problem.get('reason')
+    if reason == 'service_changed':
+        return ('the modeled service changed after this observation was collected (revision %s, now %s); collect again'
+                % (problem.get('observed_revision'), problem.get('service_revision')))
+    if reason == 'not_fresh':
+        reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]
+        return 'the newest observation is not fresh (%s); collect again' % ('; '.join(reasons) or 'no reason recorded')
+    if reason == 'last_attempt_incomplete':
+        return 'the last collection attempt ended %s; collect again' % (problem.get('last_attempt_status') or 'without a status')
+    words = {'tenant_mismatch': 'the newest observation is for another tenant',
+             'coverage_incomplete': 'the newest observation does not cover the whole estate; collect again',
+             'source_mismatch': 'the newest observation came from another service; collect again from this one',
+             'policy_changed': 'this policy changed in the modeled service after this observation was collected; collect again'}
+    return words.get(reason) or _refusal(problem['code'])['message']
 
 
 def _actions(store, object_id, attention, intent, service_root):
@@ -404,16 +433,19 @@ def _actions(store, object_id, attention, intent, service_root):
             offer('reconcile', 'Reconcile operation %s' % str(evidence.get('operation_id'))[:8],
                   'reconcile ' + shlex.quote(str(evidence['operation_root'])),
                   extra={'operation_id': evidence.get('operation_id'), 'operation_root': evidence['operation_root']})
+    no_service = None if service_root else {'code': 'service_required', 'message': 'needs --service-root (a modeled '
+                                            'service); a headless or scheduled collector can collect instead'}
     if any(code in found for code in ('collection_failed', 'collection_not_finished', 'observation_stale')):
-        offer('collect', 'Collect again', 'collect', blocked=None if service_root else {
-            'code': 'service_required', 'message': 'needs --service-root (a modeled service); a headless or scheduled '
-                                                   'collector can collect instead'})
+        offer('collect', 'Collect again', 'collect', blocked=no_service)
     if any(code in found for code in ('repository_stale', 'repository_consumer_mismatch')):
         offer('repository-refresh', "Record the repository's current source as a new intent (9 shows the difference first)",
               'repository-refresh ', cursor=len('repository-refresh '),
               needs=['REVISION: the 40-character commit the repository is at; with no pinned git here it is recorded as '
                      'asserted, not verified against the files'])
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root)
+    if (blocked or {}).get('reason') in RECOLLECT_REASONS and not any(action['kind'] == 'collect' for action in actions):
+        # The proposal's own check names collecting again as the fix, even when nothing recorded says so yet.
+        offer('collect', 'Collect again', 'collect', blocked=no_service)
     target = _fresh_operation(store, object_id)
     if target is None:
         blocked = blocked or {'code': 'workbench_fresh_output_required', 'message': 'no fresh operation directory could be chosen'}

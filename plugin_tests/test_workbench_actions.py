@@ -96,7 +96,28 @@ class ActionReadModelTests(unittest.TestCase):
         with self.assertRaises(AppError) as caught:
             maintenance.propose(self.store.root, self.service.root, OBJECT, desired, self.root / 'refused')
         self.assertEqual(blocked['blocked']['code'], caught.exception.code)
-        self.assertEqual(maintenance.proposal_eligibility(self.store.root, self.service.root, OBJECT), caught.exception.code)
+        self.assertEqual(maintenance.proposal_eligibility(self.store.root, self.service.root, OBJECT)['code'],
+                         caught.exception.code)
+
+    def test_a_service_changed_after_collection_names_why_and_offers_collect_first(self):
+        # The execute changed the modeled service after the last collection: the observation is fresh by age, but
+        # propose compares it with the service and refuses; the actions say which check failed and what fixes it.
+        from intune_iac import maintenance
+        operation, _ = self.lost_response()
+        maintenance.reconcile(operation)
+        eligibility = maintenance.proposal_eligibility(self.store.root, self.service.root, OBJECT)
+        self.assertEqual((eligibility['code'], eligibility['reason']), ('maintenance_observation_stale', 'service_changed'))
+        actions = self.inspection()['actions']
+        kinds = [action['kind'] for action in actions]
+        self.assertNotIn('reconcile', kinds)
+        self.assertLess(kinds.index('collect'), kinds.index('propose-from-intent'))
+        self.assertTrue(actions[kinds.index('collect')]['available'])
+        blocked = actions[kinds.index('propose-from-intent')]['blocked']
+        self.assertEqual((blocked['code'], blocked['reason']), ('maintenance_observation_stale', 'service_changed'))
+        self.assertIn('changed after this observation was collected', blocked['message'])
+        # Collecting again clears it: the proposal becomes available.
+        self.store.collect(self.service)
+        self.assertTrue(self.actions()['propose-from-intent']['available'])
 
     def test_unread_diagnostics_offer_the_diagnostics_and_no_change(self):
         # Whether anything needs attention is not established, so no change is offered (as the NEXT steps already said).
@@ -186,6 +207,16 @@ class ActionStagingTests(unittest.TestCase):
             workspace.input('')
         except Stop:
             pass
+
+    def test_a_blocked_action_shows_the_discriminating_reason(self):
+        from intune_iac.workbench_screens import actions_lines
+        action = {'kind': 'propose-from-intent', 'label': 'Prepare a proposal from the recorded intent', 'command': 'x',
+                  'cursor': None, 'needs': [], 'effects': 'Writes a new operation directory.', 'available': False,
+                  'blocked': {'code': 'maintenance_observation_stale', 'reason': 'service_changed',
+                              'message': 'the modeled service changed after this observation was collected (revision 1, now 2)'},
+                  'binding': {}}
+        joined = '\n'.join(actions_lines([action], 0, 120))
+        self.assertIn('maintenance_observation_stale: the modeled service changed after this observation was collected', joined)
 
     def test_a_missing_input_is_shown_where_it_goes(self):
         from intune_iac.workbench_screens import actions_lines

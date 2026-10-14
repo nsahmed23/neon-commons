@@ -200,42 +200,52 @@ def _check_cited_intent(store, object_id, desired, context):
 
 
 def _observation_problem(store, object_id, tenant, service_root, snapshot):
-    """The first reason the newest observation cannot ground a proposal, as propose refuses it, or None.
+    """Why the newest observation cannot ground a proposal: (code, reason, observation), or (None, None, observation).
 
-    Shared by propose (under the service lock, where it is binding) and proposal_eligibility (advisory), so the
-    workspace shows a blocker with the same code the submission would meet.
+    The code is what propose refuses with. The reason names which check failed, because one code covers several
+    (a stale observation may be old, or the service may have changed since it was collected). Shared by propose
+    (under the service lock, where it is binding) and proposal_eligibility (advisory), so the workspace shows a
+    blocker with the same code the submission would meet.
     """
     observation = store.inspect(object_id)
-    if observation['tenant_id'] != tenant or observation.get('coverage') != 'complete':
-        return 'maintenance_observation_incomplete', observation
+    if observation['tenant_id'] != tenant:
+        return 'maintenance_observation_incomplete', 'tenant_mismatch', observation
+    if observation.get('coverage') != 'complete':
+        return 'maintenance_observation_incomplete', 'coverage_incomplete', observation
     latest = observation.get('last_attempt')
     if latest and latest.get('status') != 'complete':
-        return 'maintenance_observation_incomplete', observation
+        return 'maintenance_observation_incomplete', 'last_attempt_incomplete', observation
     if observation.get('freshness') != 'fresh':
-        return 'maintenance_observation_stale', observation
+        return 'maintenance_observation_stale', 'not_fresh', observation
     observed_source = observation.get('source', {})
     if observed_source.get('service_kind') != 'ModeledService' or observed_source.get('service_root') != str(service_root):
-        return 'maintenance_observation_source_mismatch', observation
+        return 'maintenance_observation_source_mismatch', 'source_mismatch', observation
     estate_sha = digest({'tenant_id': tenant, 'objects': snapshot['current']['objects']})
     if (observed_source.get('service_revision') != snapshot['revision']
             or observed_source.get('observed_estate_sha256') != estate_sha):
-        return 'maintenance_observation_stale', observation
+        return 'maintenance_observation_stale', 'service_changed', observation
     if object_id not in snapshot['current']['objects'] or digest(observation['body']) != digest(snapshot['current']['objects'][object_id]):
-        return 'maintenance_observation_stale', observation
-    return None, observation
+        return 'maintenance_observation_stale', 'policy_changed', observation
+    return None, None, observation
 
 
 def proposal_eligibility(store_root, service_root, object_id):
-    """The code propose would refuse with because of the observation, or None; read-only and advisory.
+    """What propose would refuse with because of the observation, or None; read-only and advisory.
 
-    No lock is taken and nothing is written. Submission rechecks everything under the service lock, so this can
-    only say earlier what the proposal itself would say.
+    The code is the engine's own; the reason and the recorded facts beside it say which check failed. No lock is
+    taken and nothing is written. Submission rechecks everything under the service lock, so this can only say earlier
+    what the proposal itself would say.
     """
     service_root = _safe(service_root)
     snapshot = ModeledService(service_root).snapshot()
     tenant = snapshot['current']['tenant_id']
-    problem, _ = _observation_problem(_store(_safe(store_root)), _uuid(object_id), tenant, service_root, snapshot)
-    return problem
+    problem, reason, observation = _observation_problem(_store(_safe(store_root)), _uuid(object_id), tenant, service_root, snapshot)
+    if problem is None:
+        return None
+    latest = observation.get('last_attempt') if isinstance(observation.get('last_attempt'), dict) else {}
+    return {'code': problem, 'reason': reason, 'observed_revision': observation.get('source', {}).get('service_revision'),
+            'service_revision': snapshot['revision'], 'freshness_reasons': list(observation.get('freshness_reasons') or []),
+            'last_attempt_status': latest.get('status')}
 
 
 def propose(store_root, service_root, object_id, desired_path, output, *, context_path=None):
@@ -268,7 +278,7 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
         store = _store(store_root)
         if context:
             _check_cited_intent(store, object_id, desired, context_value)
-        problem, observation = _observation_problem(store, object_id, tenant, service_root, snapshot)
+        problem, _, observation = _observation_problem(store, object_id, tenant, service_root, snapshot)
         if problem:
             _fail(problem)
         before = service.readback(tenant_id=tenant)
