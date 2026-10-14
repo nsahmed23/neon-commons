@@ -13,7 +13,6 @@ from pathlib import Path
 import shlex
 import shutil
 import signal
-import textwrap
 import threading
 
 from .io import AppError, load_json
@@ -819,10 +818,10 @@ HELP = {
 def _render(value, output_fn):
     # Match the existing CLI's safe JSON presentation. Escaping all non-ASCII
     # also neutralizes bidi/C1/OSC controls without destroying stored evidence.
-    width = max(16, min(160, shutil.get_terminal_size(fallback=(80, 24)).columns))
+    # Never hard-wrap: a terminal soft-wraps a long line itself, and a pipe must get every value, command and
+    # path whole on its own line.
     for line in json.dumps(value, ensure_ascii=True, sort_keys=True, indent=2, allow_nan=False).splitlines():
-        for part in textwrap.wrap(line, width=width, replace_whitespace=False, drop_whitespace=False) or ['']:
-            output_fn(part)
+        output_fn(line)
 
 
 # What an interrupt means and what to do next. The workspace clears its frame when it restores the terminal, so the

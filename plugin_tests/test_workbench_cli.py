@@ -3,6 +3,7 @@ import copy
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -137,9 +138,21 @@ class WorkbenchCLITests(unittest.TestCase):
         self.assertIn('\\u001b', result.stdout)
         original = self.call('inspect', '--root', self.store, '--object', self.ids[0])
         self.assertEqual(original['body']['name'], hostile)
-        # Final CLI result is automation JSON, while terminal presentation wraps.
+        # The presentation never hard-wraps: a terminal soft-wraps long lines itself, and a pipe gets every value whole.
         terminal_lines = result.stdout.splitlines()[:-1]
-        self.assertTrue(all(len(line) <= 32 or line.startswith('workbench> ') for line in terminal_lines))
+        self.assertTrue(any(len(line) > 32 for line in terminal_lines))
+        for line in terminal_lines:
+            self.assertEqual(re.sub(r'\\.', '', line).count('"') % 2, 0, line)
+
+    def test_piped_commands_and_paths_stay_on_one_line(self):
+        # Journey 24 run 8's piped output split a staged command mid-path (inbox/PRODUCT-TASK-11.md section 2.6).
+        import json
+        from intune_iac.workbench import _render
+        command = "propose-from-intent '/home/engineer/work/journey with spaces/operation-%s'" % ('9' * 40)
+        lines = []
+        _render({'actions': [{'command': command, 'label': 'Prepare a proposal'}]}, lines.append)
+        self.assertIn('"command": %s' % json.dumps(command), '\n'.join(lines))
+        self.assertEqual(json.loads('\n'.join(lines))['actions'][0]['command'], command)
 
     def test_eof_and_cancel_do_not_dispatch_model_mutation(self):
         self.collect()
