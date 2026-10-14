@@ -27,9 +27,11 @@ ADOPTION_PLAN_NAVIGATION_VERSION = 'workbench-adoption-recovery-plan-navigation/
 SERVICE_READ_ACTIONS = frozenset({'review', 'status', 'attach'})
 SERVICE_ACTIONS = SERVICE_READ_ACTIONS | {'cancel', 'recover'}
 READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
-              'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help'}
-TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help')
-TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help')
+              'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
+              'repository-status'}
+TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
+TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
+                'repository-status')
 ANSI_START = '\x1b[?1049h\x1b[?25l\x1b[?2004h'
 ANSI_END = '\x1b[0m\x1b[?2004l\x1b[?25h\x1b[?1049l'
 
@@ -262,6 +264,9 @@ class Workspace:
         self.reduced_motion = reduced_motion  # Both modes are event-driven: no decorative motion.
         self.value = {}
         self.selected = None
+        # Last facts the engine reported about the selected object, for the
+        # context strip only; never a source of truth and never persisted.
+        self.facts = {}
         self.tab = 0
         self.highlight = 0
         self.scroll = 0
@@ -391,6 +396,7 @@ class Workspace:
                     self.active_service = None; self.active_adoption = None; self.active_adoption_plan = None
                 self.selected = object_id
                 self.view_command = 'inspect'
+            self._learn(value)
             history_page = value.get('pagination', {}).get('scope') == 'history_page'
             if value.get('status') == 'selection_cleared' or (self.last_command in ('next', 'previous') and not history_page): self.selected = None
             if self.selected is None and (self.view_command.startswith('history-recent') or self.view_command == 'adoption-history'):
@@ -474,12 +480,42 @@ class Workspace:
             self.notice = 'Ready. : opens the complete text command bar; Esc cancels editing.'
         self.draw()
 
+    def _learn(self, value):
+        """Keep the latest engine-reported facts about the selected object for the context strip."""
+        if not self.selected or value.get('object_id') not in (None, self.selected):
+            return
+        facts = self.facts if self.facts.get('object_id') == self.selected else {'object_id': self.selected}
+        if value.get('object_id') == self.selected and isinstance(value.get('name'), str):
+            facts['name'] = value['name']
+        if value.get('object_id') == self.selected and isinstance(value.get('freshness'), str):
+            facts['observation'] = value['freshness']
+        repository = value.get('repository')
+        if value.get('schema_version') == 'workbench-repository-status/1' and isinstance(value.get('freshness'), dict):
+            facts['repository'] = str(value['freshness'].get('status'))
+        elif isinstance(repository, dict) and isinstance(repository.get('freshness'), dict):
+            facts['repository'] = str(repository['freshness'].get('status'))
+        elif isinstance(repository, dict) and repository.get('cited') and isinstance(repository.get('freshness'), str):
+            facts['repository'] = repository['freshness']
+        # Execute and reconcile results name the operation, not the object; they
+        # concern the selected object's active operation.
+        operation_command = self.last_command.split(' ', 1)[0] in ('execute', 'reconcile')
+        if (isinstance(value.get('operation_id'), str) and isinstance(value.get('status'), str)
+                and (value.get('object_id') == self.selected or (value.get('object_id') is None and operation_command))):
+            facts['operation'] = value['status']
+        self.facts = facts
+
+    def _context_strip(self, width):
+        from .workbench_screens import context_strip
+        facts = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
+        return context_strip(self.store.tenant_id, self.selected, facts, width)
+
     def _surface_summary(self, width):
+        from .workbench_screens import word_wrap
         value = self.value
         rows = []
         def field(label, item):
             rendered = json.dumps(item, ensure_ascii=False, allow_nan=False) if not isinstance(item, str) else item
-            rows.extend(wrap(label + ': ' + rendered, width))
+            rows.extend(word_wrap(label + ': ' + rendered, width))
         if self.tab == 1 and value.get('object_id'):
             rows.append('[POLICY INSPECTOR]')
             for label, key in (('Identity', 'object_id'), ('Name', 'name'), ('Observed at', 'observed_at'),
@@ -501,7 +537,7 @@ class Workspace:
                     for key in ('settings', 'assignments'):
                         items = raw.get(key)
                         field('Captured ' + key + ' records', len(items) if isinstance(items, list) else 'unknown')
-                rows.extend(wrap('Literal collected values are separate from normalized mapping; incomplete collection does not establish empty intent.', width))
+                rows.extend(word_wrap('Literal collected values are separate from normalized mapping; incomplete collection does not establish empty intent.', width))
             rows.append('[EXACT VALUES AND TARGETING] Full typed evidence follows.')
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
             rows.append('[TYPED RELATIONSHIPS]')
@@ -522,7 +558,7 @@ class Workspace:
             if value.get('order') == 'observed_at_desc_observation_id_desc':
                 field('Order', 'Newest first; n shows older observations, p shows newer observations.')
                 field('History page', value.get('pagination', {}))
-            rows.extend(wrap('Comparison baseline: collected snapshot to collected snapshot. Observation time does not establish actor or change time.', width))
+            rows.extend(word_wrap('Comparison baseline: collected snapshot to collected snapshot. Observation time does not establish actor or change time.', width))
             for item in value['history'][:12]:
                 if isinstance(item, dict):
                     field('Observed', item.get('observed_at', 'unknown'))
@@ -533,7 +569,7 @@ class Workspace:
             rows.append('[PROTECTED STATE-ONLY ADOPTION HISTORY]')
             field('Object', value.get('object_id', 'unknown'))
             field('Linked operations', len(value.get('operations', [])))
-            rows.extend(wrap('Adoption records state ownership and independent qualification. This history does not establish a Graph deployment or a last-apply baseline.', width))
+            rows.extend(word_wrap('Adoption records state ownership and independent qualification. This history does not establish a Graph deployment or a last-apply baseline.', width))
             rows.append('[EXACT ADOPTION HISTORY] Full engine values follow.')
         elif self.tab in (4, 5) and value.get('evidence_class') == 'protected_adoption_recovery_plan_journal':
             rows.append('[ADOPTION RECOVERY PLAN ' + ('REVIEW]' if self.tab == 4 else 'JOURNAL]'))
@@ -545,7 +581,7 @@ class Workspace:
             original = value.get('original', {})
             field('Original status', original.get('status', manifest.get('original_facts', {}).get('status', 'unknown')))
             field('Original recorded outcome', original.get('outcome', 'see original adoption journal'))
-            rows.extend(wrap('This separately approved operation permits a native no-change plan only. Original import attribution remains unknown; no import or apply is replayed. Scope release requires fresh independent state and Graph readback.', width))
+            rows.extend(word_wrap('This separately approved operation permits a native no-change plan only. Original import attribution remains unknown; no import or apply is replayed. Scope release requires fresh independent state and Graph readback.', width))
             rows.append('[EXACT RECOVERY PLAN / ORIGINAL HISTORY] Full engine values follow.')
         elif self.tab in (4, 5) and value.get('evidence_class') == 'protected_adoption_journal':
             rows.append('[PROTECTED STATE-ONLY ADOPTION ' + ('REVIEW]' if self.tab == 4 else 'JOURNAL]'))
@@ -561,8 +597,8 @@ class Workspace:
                 field('Approval authority', value.get('authority', 'independent external signer required'))
             else:
                 field('Recorded outcome', value.get('outcome') or 'not recorded; outcome unknown')
-            rows.extend(wrap('State-only adoption does not deploy Graph changes or promote a last-apply baseline. Native import completion requires independent receiving-state, Graph and first-plan evidence.', width))
-            rows.extend(wrap('Attach and tab navigation are read-only. Cancellation does not prove termination; recovery never replays import.', width))
+            rows.extend(word_wrap('State-only adoption does not deploy Graph changes or promote a last-apply baseline. Native import completion requires independent receiving-state, Graph and first-plan evidence.', width))
+            rows.extend(word_wrap('Attach and tab navigation are read-only. Cancellation does not prove termination; recovery never replays import.', width))
             rows.append('[EXACT ADOPTION MANIFEST / JOURNAL] Full engine values follow.')
         elif self.tab == 4 and value.get('evidence_class') == 'protected_service_journal':
             rows.append('[PROTECTED SERVICE REVIEW]')
@@ -577,7 +613,7 @@ class Workspace:
                                ('Storage binding SHA-256', 'storage_binding_sha256'),
                                ('Identity binding SHA-256', 'identity_binding_sha256')):
                 field(label, manifest.get(key, 'unknown'))
-            rows.extend(wrap('Review is read-only. This terminal cannot sign or dispatch the protected service operation.', width))
+            rows.extend(word_wrap('Review is read-only. This terminal cannot sign or dispatch the protected service operation.', width))
             rows.append('[EXACT MANIFEST / SIGNATURE DOMAIN / APPROVAL SCOPE] Full engine values follow.')
         elif self.tab == 5 and value.get('evidence_class') == 'protected_service_journal':
             rows.append('[PROTECTED SERVICE EXECUTION]')
@@ -589,25 +625,41 @@ class Workspace:
                 field(label, value.get(key, 'unknown'))
             outcome = value.get('outcome')
             field('Recorded outcome', outcome if outcome is not None else 'not recorded; outcome unknown')
-            rows.extend(wrap('A cancellation request does not establish termination. Host completion does not establish independent service or device convergence.', width))
-            rows.extend(wrap('Attach reads the durable journal. Recovery is an explicit text command and never replays execution.', width))
+            rows.extend(word_wrap('A cancellation request does not establish termination. Host completion does not establish independent service or device convergence.', width))
+            rows.extend(word_wrap('Attach reads the durable journal. Recovery is an explicit text command and never replays execution.', width))
             rows.append('[EXACT JOURNAL / CANCELLATION / OUTCOME] Full engine values follow.')
         elif self.tab == 4 and value.get('operation_id'):
+            from .workbench_screens import change_lines
+            if isinstance(value.get('field_changes'), dict):
+                rows.append('[CHANGE REVIEW]')
+                rows.extend(change_lines(value['field_changes'], width))
+                if isinstance(value.get('changes'), list):
+                    field('Plan changes', ', '.join(map(str, value['changes'])) or 'none')
+                repository = value.get('repository')
+                if isinstance(repository, dict) and repository.get('cited'):
+                    field('Cited repository intent', str(repository.get('repository_intent_id'))[:16] + ' (' + str(repository.get('freshness')) + ')')
+                rows.append('')
             rows.append('[EXACT PLAN REVIEW]')
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
                                ('Approval binding', 'approval_digest'), ('Expiry', 'expires_at'), ('Evidence class', 'evidence_class')):
-                field(label, value.get(key, 'unknown'))
+                from .workbench_screens import utc_time
+                field(label, utc_time(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
             rows.append('[BEFORE / DESIRED / TARGETING / RISKS] Exact engine values follow.')
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
             rows.append('[EXECUTION AND RECOVERY]')
             field('Observation scope', value.get('display_scope', 'current engine result'))
             if isinstance(result, dict):
-                for label, key in (('Operation', 'operation_id'), ('Status', 'status'), ('Readback', 'classification'),
-                                   ('Error', 'error_code'), ('Evidence class', 'evidence_class')):
-                    field(label, result.get(key, 'unknown'))
-            rows.extend(wrap('Next: inspect durable receipts; explicitly reconcile uncertain outcomes. No automatic replay or approval.', width))
+                readback = result.get('readback') if isinstance(result.get('readback'), dict) else {}
+                error = result.get('error') if isinstance(result.get('error'), dict) else {}
+                field('Operation', result.get('operation_id', 'unknown'))
+                field('Status', result.get('status', 'unknown'))
+                # Execute nests its independent readback; reconcile returns it at the top level.
+                field('Readback', result.get('classification') or readback.get('classification') or 'not recorded')
+                field('Error', result.get('error_code') or error.get('code') or 'none recorded')
+                field('Evidence class', result.get('evidence_class', 'unknown'))
+            rows.extend(word_wrap('Next: inspect durable receipts; explicitly reconcile uncertain outcomes. No automatic replay or approval.', width))
             rows.append('[CHECKS / JOURNAL / RESULT]')
         elif self.tab == 6 and value.get('schema_version') == 'workbench-four-views/1':
             rows.append('[REPOSITORY / OBSERVED / PROPOSED / COVERAGE]')
@@ -623,20 +675,42 @@ class Workspace:
                 if isinstance(own, dict):
                     field('Ownership scope complete', own.get('declared_scope_complete', 'unknown'))
                     field('Ownership freshness', own.get('fresh', 'unknown'))
+            repository = value.get('repository', {})
+            if isinstance(repository, dict) and isinstance(repository.get('freshness'), dict):
+                field('Repository freshness', repository['freshness'].get('status', 'unknown'))
             rows.append('[DISTINCT COMPARISON BASELINES]')
             for label, comparison in value.get('comparisons', {}).items():
                 if isinstance(comparison, dict):
                     field(label, comparison.get('status', 'unknown'))
                     field('  Baseline', comparison.get('baseline', comparison.get('reason', 'not recorded')))
+            versus = value.get('comparisons', {}).get('repository_vs_observed')
+            if isinstance(versus, dict) and isinstance(versus.get('field_changes'), dict):
+                from .workbench_screens import change_lines
+                rows.append('[REPOSITORY VERSUS OBSERVED]')
+                rows.extend(change_lines(versus['field_changes'], width, 'BEFORE (observed)', 'AFTER (repository)'))
             rows.append('[COMPLETE VIEW EVIDENCE]')
+        elif self.tab == 8 and value.get('schema_version') == 'workbench-repository-status/1':
+            from .workbench_screens import repository_lines
+            rows.append('[REPOSITORY STATUS]')
+            rows.extend(repository_lines(value, width))
+            rows.append('[EXACT REPOSITORY STATUS] Full engine values follow.')
+        elif self.tab == 8 and value.get('kind') == 'repository_intent' and isinstance(value.get('data'), dict):
+            data = value['data']
+            rows.append('[NEW REPOSITORY INTENT RECORDED]')
+            field('Intent', str(value.get('artifact_id'))[:16])
+            field('Revision', str(data.get('source_revision')) + (' (content verified)' if data.get('revision_content_verified') else ' (caller asserted)'))
+            field('Consumer', (data.get('consumer') or {}).get('status', 'not recorded'))
+            rows.extend(word_wrap('Press 9 to compare it with the repository now. Earlier reviews of the previous intent are not current.', width))
+            rows.append('[EXACT INTENT RECORD] Full engine values follow.')
         elif self.tab == 7:
             rows.append('[WORKSPACE SHORTCUTS]')
             for text in ('1 Estate | 2 Inspector | 3 Relationships | 4 History',
-                         '5 Exact plan | 6 Execution/recovery | 7 Coverage | 8 Help',
+                         '5 Exact plan | 6 Execution/recovery | 7 Coverage | 8 Help | 9 Repository',
+                         ':repository-refresh REVISION | :propose-from-intent NEW_OPERATION_DIR',
                          ': Complete text commands | / Search | f Global filters | q Detach',
                          'Arrows select or scroll | Enter selects exact identity',
                          'Escape discards edit | Ctrl-U clears edit | no automatic approval'):
-                rows.extend(wrap(text, width))
+                rows.extend(word_wrap(text, width))
             rows.append('[COMPLETE ENGINE COMMANDS]')
         if rows: rows.append('')
         return rows
@@ -692,14 +766,14 @@ class Workspace:
         self.size = self._terminal_size()
         width, height = self.size
         inner = width - 2
+        from .workbench_screens import tab_line
         header = 'INTUNE WORKBENCH  /  ' + TABS[self.tab]
-        selection = self.selected or 'none'
-        labels = '  '.join('%d %s' % (i + 1, name) for i, name in enumerate(TABS))
+        labels = tab_line(TABS, self.tab, width)
         available = max(0, height - 8)
         data = self._data_lines(inner)
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
-        status = 'tenant=%s | selected=%s' % (self.store.tenant_id, selection)
+        status = self._context_strip(width)
         scope = self.value.get('evidence_class', 'unknown')
         footer = '[%s] rows %d-%d/%d | no automatic approval' % (scope, min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data))
         if self.mode:
@@ -717,7 +791,7 @@ class Workspace:
         frame = [pad(header, width), pad(labels, width), pad(status, width), '+' + '-' * inner + '+']
         frame.extend('|' + pad(line, inner) + '|' for line in visible)
         frame.extend('|' + ' ' * inner + '|' for _ in range(available - len(visible)))
-        frame.extend(['+' + '-' * inner + '+', pad(footer, width), pad(prompt, width), pad('Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | q detach', width)])
+        frame.extend(['+' + '-' * inner + '+', pad(footer, width), pad(prompt, width), pad('1-9 surfaces | Arrows select/scroll | PgUp/PgDn | : command | / search | f filters | q detach', width)])
         if self.color:
             background, foreground, accent = ('48;5;234', '38;5;252', '38;5;81') if self.theme == 'dark' else ('48;5;230', '38;5;237', '38;5;24')
             painted = ['\x1b[%s;%sm%s\x1b[0m' % (background, accent if i in (0, 1, len(frame) - 2) else foreground, line)
@@ -732,6 +806,7 @@ class Workspace:
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
+                'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4,
                 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -769,7 +844,7 @@ class Workspace:
             return None
         if tab == 6 and self.active_operation and self.selected is not None:
             return self._send('views ' + shlex.quote(self.active_operation))
-        if command in ('inspect', 'relationships', 'history', 'history-recent', 'evidence-history', 'views') and self.selected is None:
+        if command in ('inspect', 'relationships', 'history', 'history-recent', 'evidence-history', 'views', 'repository-status') and self.selected is None:
             self.notice = 'Select an exact identity from Estate first.'
             self.draw()
             return None
@@ -861,7 +936,7 @@ class Workspace:
                     self.mode = 'command'
                     self.buffer = self.page_command if self.page_command.startswith('views-page ') else 'views-page 10 0 - - - -'
                     self.cursor = len(self.buffer)
-                elif char in '12345678':
+                elif char in '123456789':
                     command = self._tab_command(int(char) - 1)
                     if command: return command
                 elif char == 'q': return self._send('quit')

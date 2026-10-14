@@ -25,6 +25,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | 6 | Explicitly labeled last execution/readback result, or persisted operation list; `:operations` refreshes and `:reconcile OPERATION_DIR` requests readback |
 | 7 | Repository/observed/proposed/coverage view from the shared engine |
 | 8 or ? | Complete text-command help |
+| 9 | Repository status of the selected policy: is its recorded repository intent still current, and what changed |
 | Tab | Next surface |
 | n / p | Next / previous bounded engine page |
 | h / l | Health / repository lineage |
@@ -48,6 +49,35 @@ Every presentation surface includes readable semantic labels above its complete 
 Use the command bar for the existing intentional-change flow: `propose DESIRED_JSON NEW_OPERATION_DIR`, `review OPERATION_DIR`, explicit `execute OPERATION_DIR EXACT_REVIEW_DIGEST`, and `reconcile OPERATION_DIR`. The actual engine validates every command and retains its original authority and scope. A visible plan does not confer approval. This module neither derives nor inserts a digest, and it never creates a replacement plan. Production dispatch remains the separately configured protected worker contract; the synthetic route must not be presented as live execution.
 
 While the synchronous engine is running, the frame says the outcome is not yet known. Returned typed results show actual completed/failed/unknown checks and journals. This UI does not invent sub-step progress during a blocking engine call. Persistent worker status remains inspectable through the command routes provided by that worker. Closing this terminal must not be advertised as cancellation of an external worker; no pause/resume button is exposed without engine support.
+
+## Context, changes and the repository
+
+**Header lines.**
+- The tab line numbers every surface and brackets the active one. When the full names do not fit, it uses short names (`[5 Plan]`, `9 Repo`).
+- The context strip below it shows the tenant, the selected policy (name and short ID), the observation freshness, the repository state and the active operation's status.
+- When the strip does not fit, it drops the tenant first, then uses short labels (`OBS`, `REPO`, `OP`), then the policy name.
+- These are the facts the engine last reported for the selected policy. "unknown" or "not checked" means no result has said yet; the workspace never makes a hidden engine call to fill them in. Exact identities appear on each surface.
+
+**Plan (5).** A review starts with `[CHANGE REVIEW]`:
+- each changed field with its exact observed and desired values. Strings are quoted, and `null`, `""` and an absent value stay distinct.
+- Side by side when the terminal is at least 96 columns wide and the values fit; otherwise, before and after on stacked lines.
+- Setting changes name the setting record, its definition and the changed path. Assignment changes list targets added and removed.
+- An order-only change to the settings list is named, because the plan treats it as a change.
+- An unchanged proposal says `NO CONFIGURATION CHANGE`. This label comes from the plan itself.
+- The plan's change tags and the cited repository intent's freshness follow, then the existing `[EXACT PLAN REVIEW]` fields, with expiry shown as a UTC time.
+
+**Coverage (7).** Adds the repository intent's freshness and a `[REPOSITORY VERSUS OBSERVED]` table in the same form.
+
+**Repository (9).** Runs the read-only `repository-status` for the selected policy:
+- whether the repository still matches the recorded intent;
+- the source, physical and logical stack, component, pointer and revision (content verified or asserted), and the consumer contract;
+- for a stale intent, the changed, added and removed sources and the exact field changes between the recorded intent and the repository now;
+- the next step.
+
+**Commands.**
+- `:repository-refresh REVISION` records the current source as a new intent.
+- `:propose-from-intent NEW_OPERATION_DIR` prepares a reviewed proposal from it.
+- Neither approves anything; approval still needs the exact review digest with `:execute`. Reopening the workspace restores the Repository surface like any other read-only view.
 
 ## Editing, recovery and context
 
