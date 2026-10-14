@@ -262,5 +262,41 @@ class RefusalCauseTests(unittest.TestCase):
         self.assertNotIn('reported no status', workspace._notice_for({'other': 1}))
 
 
+class LifecycleTests(unittest.TestCase):
+    """P-PRES-15: on each surface of a change, the path with its existing numbers, where you are, and the next step."""
+    surface = RefusalCauseTests.workspace
+
+    def summary(self, tab, value):
+        workspace = self.surface()
+        workspace.tab, workspace.value = tab, value
+        return ' '.join(' '.join(workspace._summary_lines(118)).split())
+
+    def test_the_plan_review_says_where_it_sits_and_what_comes_next(self):
+        text = self.summary(4, {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': 1792005916})
+        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > v Delivery', text)
+        self.assertIn('Next: execute OPERATION_DIR DIGEST', text)
+
+    def test_the_repository_and_execution_surfaces_say_it_too(self):
+        text = self.summary(8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                                'freshness': {'status': 'current'}})
+        self.assertIn('9 Repository (here)', text)
+        text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'outcome_unknown'})
+        self.assertIn('6 Execution (here)', text)
+
+    def test_other_surfaces_and_refusals_do_not(self):
+        self.assertNotIn('Lifecycle:', self.summary(1, {'object_id': OBJECT, 'name': 'Pilot', 'body': {}}))
+        self.assertNotIn('Lifecycle:', self.summary(4, {'status': 'error', 'error': {'code': 'x', 'message': 'y'}}))
+
+    def test_the_operations_list_gives_readable_times(self):
+        workspace = self.surface()
+        workspace.tab = 4
+        workspace.operation_rows = [{'operation_id': 'a' * 32, 'operation_root': '/w/op', 'status': 'prepared',
+                                     'recorded_at': '2026-10-14T19:57:00.5Z'}]
+        workspace.operation_highlight = 0
+        workspace.value = {'operations': workspace.operation_rows}
+        text = ' '.join(workspace._summary_lines(118))
+        self.assertIn('recorded=2026-10-14 19:57:00 UTC', text)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -358,6 +358,21 @@ def utc_time(value):
         return value
 
 
+# A change's path through the existing surfaces (P-PRES-15): numbers unchanged, where you are, what comes next.
+LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'v Delivery'))
+LIFECYCLE_NEXT = {8: 'a prepares a proposal from the recorded intent; 5 Plan reviews it',
+                  4: 'execute OPERATION_DIR DIGEST runs it with the review digest; 6 Execution shows the result',
+                  5: 'an unknown outcome is reconciled from a; v shows every delivery stage'}
+
+
+def lifecycle_lines(tab, width):
+    """Where this surface sits in a change's path and the next step, in one line."""
+    if tab not in LIFECYCLE_NEXT:
+        return []
+    path = ' > '.join(name + (' (here)' if index == tab else '') for index, name in LIFECYCLE)
+    return word_wrap('Lifecycle: %s. Next: %s.' % (path, LIFECYCLE_NEXT[tab]), width)
+
+
 def _when(value, missing='time not recorded'):
     """A recorded time for a summary, to the second with its zone; the exact value stays in the evidence layers."""
     if value is None or value == '':

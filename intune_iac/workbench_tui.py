@@ -1113,12 +1113,29 @@ class Workspace:
             lines = ['[OPERATIONS] Enter reviews exact current plan; no approval or execution.']
             for index, row in enumerate(self.operation_rows):
                 mark = '>' if index == self.operation_highlight else ' '
+                from .workbench_screens import _when
                 lines.extend(wrap('%s %s | recorded=%s | status=%s' %
-                                  (mark, row.get('operation_id'), row.get('recorded_at', 'unknown'), row.get('status', 'unknown')), width))
+                                  (mark, row.get('operation_id'), _when(row.get('recorded_at'), 'unknown'), row.get('status', 'unknown')), width))
                 lines.extend(wrap('  ' + row['operation_root'], width))
             lines.append('Enter reviews the highlighted plan as it is now; nothing is approved.')
-        else: lines = self._surface_summary(width)
+        else:
+            lines = self._surface_summary(width)
+            if self._on_change_path(self.value):
+                from .workbench_screens import lifecycle_lines
+                lines = lines + [''] + lifecycle_lines(self.tab, width)
         return lines
+
+    def _on_change_path(self, value):
+        """Whether the result shown is a step of a change: a repository status, a plan review, an execution result."""
+        if not isinstance(value, dict) or value.get('status') == 'error':
+            return False
+        if self.tab == 8:
+            return value.get('schema_version') == 'workbench-repository-status/1'
+        if self.tab == 4:
+            return bool(value.get('operation_id'))
+        if self.tab == 5:
+            return bool(value.get('operation_id')) or 'result' in value
+        return False
 
     def _detail_lines(self, width):
         """The exact engine record wrapped to `width`, cached per value and width."""
