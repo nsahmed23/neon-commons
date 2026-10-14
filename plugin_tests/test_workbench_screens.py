@@ -87,6 +87,13 @@ class WordWrapTests(unittest.TestCase):
         self.assertEqual(word_wrap('abcdefghij', 4), ['abcd', 'efgh', 'ij'])
         self.assertEqual(word_wrap('', 10), [''])
 
+    def test_a_token_split_anyway_starts_after_the_current_text(self):
+        from intune_iac.workbench_screens import word_wrap
+        # A lone '=' is not left on its own line when the value after it must be split regardless.
+        self.assertEqual(word_wrap('= "abcdefghijklmnopqrst"', 12), ['= "abcdefghi', 'jklmnopqrst"'])
+        # Without enough room for a useful piece, the token starts on the next line as before.
+        self.assertEqual(word_wrap('one two three abcdefghijklmnopq', 16), ['one two three', 'abcdefghijklmnop', 'q'])
+
 
 class FrameTextTests(unittest.TestCase):
     TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
@@ -614,6 +621,18 @@ class RefusalLinesTests(unittest.TestCase):
         from intune_iac.workbench_screens import refusal_lines
         lines = refusal_lines({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}}, 80)
         self.assertEqual(lines, ['[REFUSED] something_new', 'Engine words.'])
+
+    def test_a_meaning_the_engine_message_already_states_is_not_repeated(self):
+        from intune_iac.workbench_screens import refusal_lines
+        message = ('The repository changed since this intent was recorded, or its component no longer consumes exactly '
+                   'this policy. Refresh the intent, review the difference and prepare a new proposal.')
+        lines = refusal_lines({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': message}}, 100)
+        joined = '\n'.join(lines)
+        self.assertNotIn('What it means', joined)
+        self.assertIn('Next: Press 9 to see which', joined)
+        # A short technical message keeps the plain meaning.
+        terse = refusal_lines({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'stale'}}, 100)
+        self.assertIn('What it means: The repository changed since its recorded intent', '\n'.join(terse))
 
 
 class SurfaceRoutingTests(unittest.TestCase):

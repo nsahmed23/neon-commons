@@ -112,6 +112,14 @@ class InspectorSummaryTests(unittest.TestCase):
         self.assertIn('Nothing recorded needs attention', joined)
         self.assertIn('repository-entry REPOSITORY shows how.', joined)
 
+    def test_areas_that_were_not_examined_are_named_not_counted_as_checked(self):
+        value = inspected(freshness='fresh', next_actions=[], attention={'status': 'clear', 'signals': [], 'checked': {
+            'collection': 'clear', 'freshness': 'clear', 'operations': 'clear', 'repository': 'not_recorded',
+            'device_evidence': 'not_imported'}})
+        joined = '\n'.join(self.lines(value, 200))
+        self.assertIn('Nothing recorded needs attention (checked: collection, freshness, operations).', joined)
+        self.assertIn('Not fully checked: repository (no intent recorded); device evidence (not imported).', joined)
+
     def test_an_unreadable_attention_is_not_shown_as_clear(self):
         value = inspected(attention={'status': 'unavailable', 'error_code': 'workbench_query_limit', 'signals': [], 'checked': {}},
                           next_actions=[])
@@ -195,6 +203,113 @@ class EvidenceLayerTests(unittest.TestCase):
         for line in HELP_LINES:
             self.assertIn('q exit', line)
             self.assertNotIn('detach', line)
+
+    def test_a_command_that_is_not_a_view_is_never_called_read_only(self):
+        workspace = self.workspace()
+        workspace.last_command = 'propose desired.json operation'
+        notice = workspace._notice_for({'status': 'prepared', 'operation_id': 'x'})
+        self.assertIn('propose ran; the engine reported status prepared', notice)
+        self.assertNotIn('nothing was proposed', notice)
+        workspace.last_command = 'execute operation digest'
+        self.assertIn('execute ran; the engine reported status outcome_unknown', workspace._notice_for({'status': 'outcome_unknown'}))
+        workspace.last_command = 'health'
+        self.assertIn('Health shown read-only; nothing was proposed, approved or executed', workspace._notice_for({'stages': []}))
+
+    def test_a_refusal_without_an_explanation_says_only_what_is_on_the_screen(self):
+        workspace = self.workspace()
+        workspace.receive({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}})
+        self.assertEqual(workspace.notice, "REFUSED something_new: the engine's message is on the screen.")
+        workspace.receive({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Stale.'}})
+        self.assertEqual(workspace.notice, 'REFUSED workbench_repository_stale: what it means and the next step are on the screen.')
+
+    def test_back_from_a_result_that_is_not_a_view_returns_to_the_view_before_it(self):
+        workspace = self.workspace()
+        workspace.trail = [(0, 'overview')]
+        workspace.current_view = (1, 'inspect')
+        workspace._send('propose desired.json operation')
+        self.assertEqual(workspace.trail, [(0, 'overview'), (1, 'inspect')])
+        self.assertIsNone(workspace.current_view)
+        self.assertEqual(self.keys(workspace, [('char', 'b')]), 'inspect')
+        self.assertEqual(workspace.trail, [(0, 'overview')])
+
+    def test_an_empty_estate_names_no_mode_and_a_mixed_one_says_so(self):
+        workspace = self.workspace()
+        workspace.mode_class = None
+        workspace._learn({'objects': [], 'pending_observations': [], 'evidence_class': 'synthetic'})
+        self.assertIsNone(workspace.mode_class)
+        workspace._learn({'objects': [{'object_id': OBJECT}], 'pending_observations': [], 'evidence_class': 'mixed_observations'})
+        self.assertEqual(workspace.mode_class, 'mixed_observations')
+
+    def test_the_strip_uses_the_repository_view_words_for_a_recorded_signal(self):
+        workspace = self.workspace()
+        workspace._learn(inspected(attention={'status': 'attention', 'checked': {'repository': 'attention'}, 'signals': [
+            {'area': 'repository', 'code': 'repository_stale', 'observed': 'Changed.', 'next_step': 'Refresh.'}]}))
+        self.assertEqual(workspace.facts['repository'], 'stale')
+        workspace._learn(inspected(attention={'status': 'clear', 'checked': {'repository': 'clear'}, 'signals': []}))
+        self.assertEqual(workspace.facts['repository'], 'current')
+
+    def test_a_capture_whose_bytes_no_longer_verify_still_shows_its_integrity(self):
+        value = {'object_id': OBJECT, 'name': 'Windows Privacy Pilot', 'relationships': [],
+                 'raw_capture_observation': {'status': 'mapped'}, 'raw_mapping_status': 'mapped',
+                 'raw_evidence_integrity': {'status': 'unverified_or_changed'}, 'raw_observed_assignments': None}
+        joined = '\n'.join(self.workspace(value, tab=2)._summary_lines(100))
+        self.assertIn('[LITERAL CAPTURE]', joined)
+        self.assertIn('unverified_or_changed', joined)
+        self.assertIn('not read: the bytes did not verify', joined)
+        synthetic = self.workspace(dict(value, raw_capture_observation=None, raw_evidence_integrity={}), tab=2)
+        self.assertNotIn('[LITERAL CAPTURE]', '\n'.join(synthetic._summary_lines(100)))
+
+
+class NextStepTests(unittest.TestCase):
+    def next(self, attention, repository=True, service=True):
+        from intune_iac.workbench import _next_actions
+        return _next_actions({'selected_repository': {'artifact_id': 'a'} if repository else None}, attention, service)
+
+    def test_unread_diagnostics_offer_no_change(self):
+        for status in ('unavailable', 'partly_checked'):
+            steps = self.next({'status': status, 'signals': []})
+            self.assertEqual(steps[0]['source'], 'diagnostics_' + status)
+            self.assertIn('not established', steps[0]['step'])
+            self.assertNotIn('repository_intent', [step['source'] for step in steps])
+
+    def test_the_change_route_says_what_it_prepares_and_that_nothing_is_approved(self):
+        for repository in (True, False):
+            step = self.next({'status': 'clear', 'signals': []}, repository=repository)[0]['step']
+            self.assertIn('review digest', step)
+            self.assertIn('nothing is approved', step)
+            self.assertNotIn('reviewed proposal', step)
+
+    def test_steps_past_the_limit_are_counted_not_dropped(self):
+        signals = [{'code': 'c%d' % number, 'next_step': 'step %d' % number} for number in range(5)]
+        steps = self.next({'status': 'attention', 'signals': signals})
+        self.assertEqual([step['step'] for step in steps], ['step 0', 'step 1', 'step 2', '2 more steps under i (diagnostics).'])
+
+
+class ModeWordTests(unittest.TestCase):
+    def test_each_evidence_class_has_its_own_word_and_unknown_stays_unknown(self):
+        from intune_iac.workbench_screens import mode_word
+        expected = {'synthetic': 'SYNTHETIC', 'graph_capture_unverified': 'CAPTURE', 'graph_reader_laboratory': 'LABORATORY',
+                    'graph_reader_attempt': 'READ FAILED', 'graph_authenticated_observation': 'LIVE READ-ONLY',
+                    'mixed_observations': 'MIXED', 'graph_reader_future': 'MODE UNKNOWN', 'unknown': 'MODE UNKNOWN',
+                    None: 'MODE UNKNOWN'}
+        for evidence_class, word in expected.items():
+            self.assertEqual(mode_word(evidence_class), word, evidence_class)
+
+    def test_laboratory_evidence_is_never_called_live(self):
+        from intune_iac.workbench_screens import evidence_words, mode_word
+        self.assertNotIn('live', evidence_words('graph_reader_laboratory'))
+        self.assertNotIn('LIVE', mode_word('graph_reader_laboratory'))
+        self.assertNotIn('LIVE', mode_word('graph_reader_attempt'))
+
+
+class DetailsTests(unittest.TestCase):
+    def test_typed_details_keep_every_character_of_a_long_name(self):
+        from intune_iac.workbench_screens import details_lines
+        lines = details_lines({'service_authentication_reestablished': False, 'id': 'x'}, 60)
+        self.assertIn('service authentication reestablished', lines)
+        self.assertIn('    no', lines)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 60, line)
 
 
 if __name__ == '__main__':

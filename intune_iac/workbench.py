@@ -279,22 +279,35 @@ def _attention(store, object_id):
             'checked': value['checked']}
 
 
+# The Inspector names at most this many next steps and says how many more diagnostics holds.
+NEXT_STEPS = 3
+
+
 def _next_actions(value, attention, service_available):
     """What the engineer can do next: the recorded next steps first, otherwise the change route that exists.
 
     Every step names a real command; preparing a change always ends in a review that needs the exact digest.
     """
     steps = [{'source': signal['code'], 'step': signal['next_step']} for signal in attention.get('signals', [])]
-    if not steps:
+    if attention.get('status') in ('unavailable', 'partly_checked'):
+        # Whether anything needs attention is not established, so no change is offered yet.
+        steps.insert(0, {'source': 'diagnostics_' + attention['status'], 'step': 'i shows what could not be read and why; '
+                         'until it is read, whether anything needs attention is not established.'})
+    elif not steps:
         needs = '' if service_available else ' (needs --service-root: a modeled service)'
+        prepared = (' prepares a proposal and its review digest%s; review OPERATION_DIR shows it, and nothing is approved '
+                    'until execute is given that digest.' % needs)
         if value.get('selected_repository'):
-            steps.append({'source': 'repository_intent', 'step': 'propose-from-intent NEW_OPERATION_DIR prepares a reviewed '
-                          'proposal from the recorded repository intent' + needs + '.'})
+            steps.append({'source': 'repository_intent',
+                          'step': 'propose-from-intent NEW_OPERATION_DIR, from the recorded repository intent,' + prepared})
         else:
             steps.append({'source': 'no_repository_intent', 'step': 'repository-entry REPOSITORY shows how to record where this '
-                          'policy is maintained; propose DESIRED_JSON NEW_OPERATION_DIR prepares a reviewed local proposal'
-                          + needs + '.'})
-    return steps[:3]
+                          'policy is maintained. propose DESIRED_JSON NEW_OPERATION_DIR' + prepared})
+    if len(steps) > NEXT_STEPS:
+        more = len(steps) - NEXT_STEPS
+        steps = steps[:NEXT_STEPS] + [{'source': 'more', 'step': '%d more %s under i (diagnostics).' % (
+            more, 'step' if more == 1 else 'steps')}]
+    return steps
 
 
 def _inspection(store, object_id, *, attention=False, service_available=False):
@@ -496,7 +509,7 @@ HELP = {
                    'source-edit-status SOURCE_ROOT OPERATION_ID',
                    'source-edit-recover SOURCE_ROOT OPERATION_ID complete|rollback|abort EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-acceptance-propose FIELD NEW_OUTPUT_DIR', 'views [OPERATION_DIR]', 'views-page LIMIT OFFSET [QUERY [OWNERSHIP [COVERAGE [HEALTH]]]] (- means no filter)',
-                   'field-semantics', 'clear-selection (clears the selected policy; back and cancel do the same, nothing else is undone or cancelled)', 'back', 'cancel', 'quit (exits; navigation is kept for the next start)'],
+                   'field-semantics', 'clear-selection (clears the selected policy; back and cancel do the same, nothing else is undone or cancelled)', 'back', 'cancel', 'quit or exit (exits; the last read-only view is kept for the next start)'],
     'maintenance': ['propose-from-intent NEW_OPERATION_DIR (selected object; desired body and citation from the current repository intent)',
                     'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]', 'review OPERATION_DIR',
                     'delivery OPERATION_DIR (read-only: proposal, approval, execution, readback, reconciliation, deployment record, observation)',

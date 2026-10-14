@@ -94,6 +94,9 @@ def word_wrap(value, width):
         if cell_width(candidate) <= width:
             line = candidate
             continue
+        if line and cell_width(word) > width and width - cell_width(line) - 1 >= 4:
+            # The word must be split anyway: start it after the current text rather than leave that text alone.
+            word, line = line + ' ' + word, ''
         if line:
             lines.append(line)
         line = ''
@@ -226,10 +229,22 @@ def _target_line(row):
 # Where an observation came from, in words; anything else is shown as recorded.
 EVIDENCE_WORDS = {'synthetic': 'synthetic observation', 'graph_capture_unverified': 'unverified capture',
                   'graph_authenticated_observation': 'live read-only observation',
+                  'graph_reader_laboratory': 'laboratory observation (recorded responses; source not authenticated)',
+                  'graph_reader_attempt': 'failed read (no policy body)',
+                  'mixed_observations': 'observations of more than one kind',
                   'synthetic_local_process_and_modeled_service_only': 'synthetic (modeled service)'}
-# The mode word that leads the context strip, so synthetic and live evidence cannot be confused.
-MODE_WORDS = (('synthetic', 'SYNTHETIC'), ('graph_capture', 'CAPTURE'), ('graph_reader', 'LIVE READ-ONLY'),
-              ('graph_authenticated', 'LIVE READ-ONLY'))
+# The mode word that leads the context strip, so synthetic, laboratory and live evidence cannot be confused.
+# Exact classes only: a class not listed here is MODE UNKNOWN, never the nearest-sounding mode.
+MODE_WORDS = {'synthetic': 'SYNTHETIC', 'synthetic_local_process_only': 'SYNTHETIC',
+              'synthetic_local_process_and_modeled_service_only': 'SYNTHETIC',
+              'graph_capture_unverified': 'CAPTURE', 'graph_reader_laboratory': 'LABORATORY',
+              'graph_reader_attempt': 'READ FAILED', 'graph_authenticated_observation': 'LIVE READ-ONLY',
+              'mixed_observations': 'MIXED'}
+
+
+# Diagnostics area states that mean the area was not examined, in words.
+AREA_STATE_WORDS = {'not_recorded': '(no intent recorded)', 'not_imported': '(not imported)',
+                    'partly_checked': '(partly read)', 'unavailable': '(could not be read)'}
 
 
 def evidence_words(evidence_class):
@@ -237,8 +252,7 @@ def evidence_words(evidence_class):
 
 
 def mode_word(evidence_class):
-    text = str(evidence_class or '')
-    return next((word for prefix, word in MODE_WORDS if text.startswith(prefix)), 'MODE UNKNOWN')
+    return MODE_WORDS.get(evidence_class, 'MODE UNKNOWN') if isinstance(evidence_class, str) else 'MODE UNKNOWN'
 
 
 def _setting_summary(instance, width):
@@ -311,15 +325,19 @@ def inspector_lines(value, width):
     if attention is not None:
         lines += ['', 'NEEDS ATTENTION']
         signals = [signal for signal in attention.get('signals') or [] if isinstance(signal, dict)]
+        areas = attention.get('checked') if isinstance(attention.get('checked'), dict) else {}
         if attention.get('status') == 'unavailable':
             lines += word_wrap('  Diagnostics could not be read (%s); i shows the details.' % attention.get('error_code'), width)
         elif not signals:
-            checked = ', '.join(area.replace('_', ' ') for area in (attention.get('checked') or {}))
-            lines += word_wrap('  Nothing recorded needs attention%s.' % (' (checked: %s)' % checked if checked else ''), width)
-            if attention.get('status') == 'partly_checked':
-                lines += word_wrap('  Some areas were not fully read; i shows which.', width)
+            clear = ', '.join(area.replace('_', ' ') for area, state in areas.items() if state == 'clear')
+            lines += word_wrap('  Nothing recorded needs attention%s.' % (' (checked: %s)' % clear if clear else ''), width)
         for signal in signals:
             lines += _labelled('  !', str(signal.get('observed')), width, 4)
+        # Areas that were not examined stay named as such: nothing is known about them either way.
+        unknown = ['%s %s' % (area.replace('_', ' '), AREA_STATE_WORDS[state]) for area, state in areas.items()
+                   if state in AREA_STATE_WORDS]
+        if unknown:
+            lines += word_wrap('  Not fully checked: %s.' % '; '.join(unknown), width)
     actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
     if actions:
         lines += ['', 'NEXT']
@@ -341,14 +359,18 @@ def details_lines(value, width):
 
     def walk(item, indent):
         if isinstance(item, dict):
-            size = min(28, max([cell_width(str(key)) for key in item] + [0]) + 2)
+            size = min(max([cell_width(str(key)) for key in item] + [0]) + 2, max(12, (width - indent) // 2))
             for key, child in item.items():
                 label = ' ' * indent + str(key).replace('_', ' ')
                 if isinstance(child, (dict, list)) and child:
                     lines.extend(word_wrap(label + ('  (%d)' % len(child) if isinstance(child, list) else ''), width))
                     walk(child, indent + 2)
+                    continue
+                shown = scalar(child) if not isinstance(child, (dict, list)) else 'none'
+                if cell_width(label) > indent + size - 2:
+                    # A name longer than the label column keeps every character, with its value beneath.
+                    lines.extend(word_wrap(label, width) + word_wrap(' ' * (indent + 4) + shown, width))
                 else:
-                    shown = scalar(child) if not isinstance(child, (dict, list)) else 'none'
                     lines.extend(_labelled(label, shown, width, indent + size))
         elif isinstance(item, list):
             for number, child in enumerate(item, 1):
@@ -373,16 +395,19 @@ def help_lines(width):
                   'v delivery of the active operation, s what exists beside the store.'),
         ('Evidence', 'Each view opens as a summary. e shows every field as typed details, r the complete raw engine record, '
                      'Esc returns to the summary.'),
-        ('Moving', 'Up and Down choose, Enter selects, PgUp and PgDn scroll, / searches, f sets estate filters, '
-                   'b returns to the previous view.'),
+        ('Moving', 'Up and Down choose, Enter selects, PgUp and PgDn scroll, n and p page through long lists, Tab moves '
+                   'to the next surface, / searches, f sets estate filters, b returns to the previous view.'),
         ('Commands', ': opens the command bar; Enter submits and Esc discards. Every command the engine accepts is in the '
                      'typed details of this page (e).'),
         ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
                     'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
                     'OPERATION_DIR reads the service when an outcome is unknown. Moving around never proposes, approves or executes.'),
-        ('Session', 'q exits the workbench; the next start reopens the same view. :clear-selection clears the selected policy.'),
-        ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled service), '
-                 'CAPTURE (an unverified export) or LIVE READ-ONLY (an authenticated read).'),
+        ('Session', 'q exits the workbench; the next start reopens the last read-only view. :clear-selection clears the '
+                    'selected policy.'),
+        ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled '
+                 'service), CAPTURE (an unverified export), LABORATORY (recorded responses; the source is not '
+                 'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '
+                 '(a read returned no policy) or MODE UNKNOWN (nothing observed yet, or a kind this version does not name).'),
     )
     lines = ['HELP']
     for name, text in groups:
@@ -1109,16 +1134,31 @@ REFUSALS = {
 }
 
 
+def _words(text):
+    return set(''.join(char if char.isalnum() or char == '_' else ' ' for char in text.lower()).split())
+
+
+def _restates(message, meaning):
+    """True when the engine's message already says at least four fifths of what the meaning line would."""
+    meant = _words(meaning)
+    return bool(meant) and len(meant & _words(message)) * 5 >= len(meant) * 4
+
+
 def refusal_lines(value, width):
-    """A refusal: the engine's code and message, then what it means and the next step when the code is known."""
+    """A refusal: the engine's code and message, then what it means and the next step when the code is known.
+
+    The meaning is left out when the engine's own message already says it.
+    """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
     code = str(error.get('code', 'unknown'))
+    message = str(error.get('message') or '')
     lines = word_wrap('[REFUSED] ' + code, width)
-    if error.get('message'):
-        lines += word_wrap(str(error['message']), width)
+    if message:
+        lines += word_wrap(message, width)
     if code in REFUSALS:
         meaning, step = REFUSALS[code]
-        lines += word_wrap('What it means: ' + meaning, width)
+        if not _restates(message, meaning):
+            lines += word_wrap('What it means: ' + meaning, width)
         lines += word_wrap('Next: ' + step, width)
     return lines
 

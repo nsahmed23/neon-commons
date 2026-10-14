@@ -39,7 +39,7 @@ def _collection(observed):
         return [_signal('collection', 'collection_not_finished',
                         'Collection run %s for this policy started at %s and has not recorded an end.' % (
                             attempt.get('run_id'), attempt.get('started_at')),
-                        'If no collector is running now, the run was interrupted: collect again.', evidence)], False
+                        'If no collector is running now, the run was interrupted: collect again (:collect).', evidence)], False
     kept = (' The last-good observation of this policy (run %s) is kept, now marked %s.' % (
         success.get('run_id'), observed.get('freshness')) if success and observed.get('retained_last_good') else '')
     step = ('Collect again (:collect) when the source is reachable; until then views use the last-good observation of this policy '

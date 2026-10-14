@@ -141,7 +141,7 @@ def latest_intent(store, object_id):
 
 
 NEXT_ACTIONS = {
-    'current': 'The repository still matches this intent. propose-from-intent NEW_OPERATION_DIR prepares a reviewed proposal.',
+    'current': 'The repository still matches this intent. propose-from-intent NEW_OPERATION_DIR prepares a proposal for review.',
     'stale': 'The repository changed since this intent was recorded. Review the difference, then repository-refresh REVISION '
              'records the current source as a new intent; earlier reviews of the old intent are no longer current.',
     'unavailable': 'The repository cannot be resolved now. Restore it, or import it again with repository-import.',

@@ -116,7 +116,7 @@ def _recorded(store, intents, report, candidate):
     if freshness == 'current':
         return dict(candidate, state='recorded', recorded=recorded,
                     explanation=('Recorded as intent %s and still current. Select the policy in Estate and press 9 for its '
-                                 'status; propose-from-intent prepares a reviewed proposal from it.' % short))
+                                 'status; propose-from-intent prepares a proposal from it for review.' % short))
     if freshness == 'stale':
         command = (None if candidate['revision'] is None else _quote([
             PROGRAM, 'workbench', 'repository-refresh', '--root', store.root, '--object', candidate['object_id'],

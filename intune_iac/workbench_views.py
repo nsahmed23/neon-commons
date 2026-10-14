@@ -730,7 +730,7 @@ def add_parser(sub):
     p=sub.add_parser('repository-refresh',help='Re-import the latest intent with its recorded stack, component, pointer, backend and address')
     for name in ('root','object','revision'):p.add_argument('--'+name,required=True)
     p.add_argument('--git-executable');p.add_argument('--git-sha256')
-    p=sub.add_parser('propose-from-intent',help='Prepare a reviewed proposal from the current repository intent; nothing is approved')
+    p=sub.add_parser('propose-from-intent',help='Prepare a proposal for review from the current repository intent; nothing is approved')
     for name in ('root','service-root','object','output'):p.add_argument('--'+name,required=True)
     for name in ('ownership-import','ownership-scan','provider-refresh-import','deployment-import'):
         p=sub.add_parser(name,help='Record explicitly declared evidence without execution authority');p.add_argument('--root',required=True);p.add_argument('--input',required=True)

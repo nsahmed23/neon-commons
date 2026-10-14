@@ -174,6 +174,18 @@ class FrameChromeTests(unittest.TestCase):
                                   selected=None, facts={}, rows=[], operation_rows=[], _detail_cache=None, **extra)
         return workspace
 
+    def test_cached_record_lines_follow_the_value_not_its_address(self):
+        workspace = self.workspace(layer='raw')
+        workspace.value = {'a': [1, 2, 3]}
+        self.assertEqual(workspace._raw_count(), 7)
+        self.assertEqual(len(workspace._detail_lines(80)), 7)
+        # Replaced twice without a render: the first value is freed, and CPython's dict free list
+        # hands its address to the next dict. An address-keyed cache would return the first value's lines.
+        workspace.value = {'b': 1}
+        workspace.value = {'c': 1}
+        self.assertEqual(workspace._raw_count(), 3)
+        self.assertEqual(workspace._detail_lines(80), ['{', '  "c": 1', '}'])
+
     def test_a_wide_body_puts_the_raw_record_beside_the_summary(self):
         workspace = self.workspace(layer='raw')
         wide = workspace._body_lines(160, '│')

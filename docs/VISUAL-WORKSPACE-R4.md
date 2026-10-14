@@ -54,7 +54,7 @@ When either stream is redirected, the host is not POSIX, or `TERM=dumb`, the wor
 | b | Back to the previous read-only view of this session; it never re-sends a command that prepares, approves, executes or records |
 | ? | Help: the one reference for keys and commands |
 | :clear-selection | Clear the selected policy (the engine words `back` and `cancel` do the same in the text interface; nothing else is undone or cancelled) |
-| q | Exit the workbench; the next start reopens the same view. Durable operations and independently scheduled collection are not touched |
+| q | Exit the workbench; the next start reopens the last read-only view. Durable operations and independently scheduled collection are not touched |
 
 Global filters use the same engine before pagination, not a filter on the currently visible page:
 
@@ -74,7 +74,7 @@ While the synchronous engine is running, the frame says the outcome is not yet k
 
 **Header lines.**
 - The tab line numbers every surface and brackets the active one. When the full names do not fit, it uses short names (`[5 Plan]`, `9 Repo`).
-- The context strip below it leads with the evidence mode (`SYNTHETIC`, `CAPTURE`, `LIVE READ-ONLY`, or `MODE UNKNOWN` before any observation arrives) and the tenant. Then the selected policy (name and short ID), the observation freshness, the repository state (from the Inspector's own checks when it has run) and the active operation's status.
+- The context strip below it leads with the evidence mode and the tenant. The mode is one word per evidence class, never the nearest-sounding one: `SYNTHETIC` (a modeled service), `CAPTURE` (an unverified export), `LABORATORY` (recorded responses; the source is not authenticated), `LIVE READ-ONLY` (an authenticated read), `MIXED` (more than one of these), `READ FAILED` (a read returned no policy) and `MODE UNKNOWN` (nothing observed yet, or a class this version does not name). An empty estate does not set a mode. Then the selected policy (name and short ID), the observation freshness, the repository state (from the Inspector's own checks when it has run) and the active operation's status.
 - When the strip does not fit, it uses short labels (`OBS`, `REPO`, `OP`), then the policy's short ID, then short state words, then drops the operation and repository states. The mode and the tenant are never dropped.
 - These are the facts the engine last reported for the selected policy. "unknown" or "not checked" means no result has said yet; the workspace never makes a hidden engine call to fill them in. Exact identities appear on each surface. The strip's state words are tinted like the body's, and a lineage result never stands in for the observation's freshness.
 - The title names the surface and, when a key opens a view that belongs to it, that view too: `Coverage / Diagnostics`, `Coverage / Health`, `Execution / Delivery`, `Help / Families`, `Repository / Repository entry`.
@@ -82,17 +82,17 @@ While the synchronous engine is running, the frame says the outcome is not yet k
 **Frame lines.**
 - When the body continues above or below what fits, the border says so (`more above: PgUp`, `more below: PgDn`).
 - The status line gives the evidence class of the result, or of the selected policy's observation when a view has none. It shortens only that class to fit, so `rows` and `no automatic approval` always stay whole.
-- The notice starts with `Ready.` when the workbench waits for input. It then says what was shown: for a policy, its name, evidence mode and freshness; for other views, that the view is read-only and nothing was proposed, approved or executed. It is shortened at a word with an ellipsis.
+- The notice starts with `Ready.` when the workbench waits for input. It then says what was shown: for a policy, its name, evidence mode and freshness; for the read-only views, that nothing was proposed, approved or executed. After any other command (propose, execute, reconcile, collect, an import or a refresh) it says the command ran and the status the engine reported, never that nothing happened. A refusal notice says the meaning and next step are on the screen only when the workbench explains that code. It is shortened at a word with an ellipsis.
 - The key line shows the longest of three forms that fits, so every width keeps `? help`, `: command`, `b back` and `q exit`.
-- Evidence layers: each view ends with one line, `Evidence: e typed details | r complete raw record (N lines)`. `e` shows every field of the result as a readable outline (absent values and yes/no in words, lists numbered). `r` shows the complete raw engine record exactly as returned. Esc, or the same key again, returns to the summary. The title names the layer (`Inspector / typed details`). A record longer than the view limit says where it continues complete (the text interface).
+- Evidence layers: each view ends with one line, `Evidence: e typed details | r complete raw record (N lines)`. `e` shows every field of the result as a readable outline (names spaced for reading, absent values and yes/no in words, lists numbered); a name longer than its label column keeps every character on its own line, with the value beneath. `r` shows the complete raw engine record exactly as returned. Esc, or the same key again, returns to the summary. The title names the layer (`Inspector / typed details`). A record longer than the view limit says where it continues complete (the text interface).
 - From 150 body columns, typed details or the raw record open beside the summary instead of replacing it.
 - With box-drawing rules, Relationships draws connected tree lines and Delivery hangs its stages from one spine. ASCII rules keep the plain list.
 - Colour pairs meet WCAG AA (4.5:1) in every theme; a test measures each role against its background.
 
 **Inspector (2).** Answers three questions from the engine's read model:
 - **What it is and what the evidence says it does:** name and exact identity, platform, technologies and scope tags. Then one line of provenance (evidence mode, run, time, coverage, freshness), each setting's definition and exact value, and each target (include, exclude, all devices or all licensed users) with its group and filter. A choice value's meaning is never translated: the line says it is not established, and `d` shows what is known. Group names are shown only where they were captured; otherwise the line says they were not, and the identities stay. Then the description, ownership, and where a repository intent was recorded.
-- **What needs attention:** the signals diagnostics records for this policy, each as its recorded fact (for example the observation's own freshness, or a repository that changed; the two are never merged into one cause). When none is recorded, it says so and names what was checked; when diagnostics could not be read, it says that instead.
-- **What can be done next:** the recorded next steps first, otherwise the change route that exists (repository intent recorded: `propose-from-intent`; none: `repository-entry` or `propose`). Each names a real command, and any change still ends in a review that needs the exact digest.
+- **What needs attention:** the signals diagnostics records for this policy, each as its recorded fact (for example the observation's own freshness, or a repository that changed; the two are never merged into one cause). When none is recorded, it says so and names the areas that were checked. Areas that were not examined (no repository intent recorded, device evidence not imported, partly read, unreadable) are named on one line, `Not fully checked`, never counted as checked. When diagnostics could not be read, it says that instead.
+- **What can be done next:** the recorded next steps first, otherwise the change route that exists (repository intent recorded: `propose-from-intent`; none: `repository-entry` or `propose`). Each names a real command. A change step says it prepares a proposal and its review digest, that `review` shows it, and that nothing is approved until `execute` is given that digest. When diagnostics could not be read, or were read only in part, no change is offered: the first step is `i`, because whether anything needs attention is not established. At most three steps are shown; the line after them counts the rest, which `i` lists.
 
 The literal-capture fields are in the typed details and the raw record. `d` opens the dictionary for these settings on the same surface (`[SETTING DICTIONARY]`). It keeps four sources separate:
 - **Vendor documentation:** name, meaning, aliases, CSP path, type and default, the documented CSP values, applicability, publisher, dates and URL.
@@ -178,7 +178,7 @@ The markers are `[x]` done, `[ ]` waiting or not yet, `[-]` not needed, `[?]` un
 
 **Commands.**
 - `:repository-refresh REVISION` records the current source as a new intent.
-- `:propose-from-intent NEW_OPERATION_DIR` prepares a reviewed proposal from it.
+- `:propose-from-intent NEW_OPERATION_DIR` prepares a proposal from it, with the digest its review needs.
 - Neither approves anything; approval still needs the exact review digest with `:execute`. Reopening the workspace restores the Repository surface like any other read-only view.
 
 **Entering an existing repository (`:repository-entry REPOSITORY`, on Repository).** `[REPOSITORY ENTRY]` surveys a repository without changing it and without asking anything first:

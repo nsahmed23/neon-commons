@@ -162,7 +162,10 @@ VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'hi
 LAYERS = {'details': 'typed details', 'raw': 'raw record'}
 # The repository state the strip shows when the Inspector's diagnostics checked it.
 REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'not_recorded': 'none recorded',
-                         'unavailable': 'unreadable'}
+                         'unavailable': 'not checked', 'partly_checked': 'not checked'}
+# Recorded repository signals named in the Repository view's own words.
+REPOSITORY_FROM_SIGNAL = {'repository_stale': 'stale', 'repository_unavailable': 'unavailable',
+                          'repository_consumer_mismatch': 'consumer mismatch'}
 
 
 def title_line(tab, last_command, value, layer='summary'):
@@ -503,7 +506,10 @@ class Workspace:
         if value.get('schema_version') == 'workbench-repository-entry/1':
             self.entry_focus = 0
         if value.get('status') == 'error':
-            self.notice = 'REFUSED %s: what it means and the next step are on the screen.' % value.get('error', {}).get('code', 'unknown')
+            from .workbench_screens import REFUSALS
+            code = (value.get('error') if isinstance(value.get('error'), dict) else {}).get('code', 'unknown')
+            self.notice = ('REFUSED %s: what it means and the next step are on the screen.' if code in REFUSALS
+                           else "REFUSED %s: the engine's message is on the screen.") % code
         else:
             object_id = value.get('object_id')
             if object_id and self.last_command.startswith('select '):
@@ -605,12 +611,19 @@ class Workspace:
             return 'Ready. %s: %s, %s. e typed details | r raw record | ? help' % (
                 value['name'], evidence_words(value.get('evidence_class')), value.get('freshness', 'freshness unknown'))
         name = self.last_command.split(' ', 1)[0] if isinstance(self.last_command, str) else ''
+        if name not in VIEW_COMMANDS:
+            # Only the views are known to be read-only; any other command may have prepared, recorded or run something.
+            status = value.get('status')
+            return 'Ready. %s ran; the engine reported %s. e typed details | r raw | ? help' % (
+                name or 'The command', 'status ' + status if isinstance(status, str) else 'no status')
         view = SUBVIEWS.get(name) or TABS[self.tab]
         return 'Ready. %s shown read-only; nothing was proposed, approved or executed. e typed details | r raw | ? help' % view
 
     def _learn(self, value):
         """Keep the latest engine-reported facts about the selected object for the context strip."""
-        if isinstance(value.get('evidence_class'), str) and ('snapshot_id' in value or isinstance(value.get('objects'), list)):
+        # An overview with nothing observed yet says nothing about where evidence comes from.
+        empty = isinstance(value.get('objects'), list) and not value['objects'] and not value.get('pending_observations')
+        if isinstance(value.get('evidence_class'), str) and ('snapshot_id' in value or isinstance(value.get('objects'), list)) and not empty:
             # Observations say where the estate's evidence comes from; the strip's first word states it.
             self.mode_class = value['evidence_class']
         if not self.selected or value.get('object_id') not in (None, self.selected):
@@ -625,7 +638,11 @@ class Workspace:
         attention = value.get('attention') if isinstance(value.get('attention'), dict) else {}
         checked = (attention.get('checked') or {}).get('repository')
         if value.get('object_id') == self.selected and checked in REPOSITORY_FROM_CHECK:
-            facts['repository'] = REPOSITORY_FROM_CHECK[checked]
+            # The repository view's own words where a recorded signal names the condition.
+            codes = [signal.get('code') for signal in attention.get('signals') or []
+                     if isinstance(signal, dict) and signal.get('area') == 'repository']
+            facts['repository'] = next((REPOSITORY_FROM_SIGNAL[code] for code in codes if code in REPOSITORY_FROM_SIGNAL),
+                                       REPOSITORY_FROM_CHECK[checked])
         if value.get('object_id') == self.selected and 'snapshot_id' in value and isinstance(value.get('evidence_class'), str):
             facts['evidence_class'] = value['evidence_class']
         repository = value.get('repository')
@@ -723,12 +740,15 @@ class Workspace:
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
             from .workbench_screens import relationship_lines
             rows.extend(relationship_lines(value, width, getattr(self, 'rules', 'ascii')))
-            if isinstance(value.get('raw_observed_assignments'), list):
+            # Shown whenever a capture exists, above all when its retained bytes no longer verify.
+            if isinstance(value.get('raw_capture_observation'), dict):
                 rows.append('[LITERAL CAPTURE]')
+                integrity = (value.get('raw_evidence_integrity') or {}).get('status', 'unknown')
                 field('Literal capture status', value.get('raw_mapping_status', 'unknown'))
-                field('Literal byte integrity', value.get('raw_evidence_integrity', {}).get('status', 'unknown'))
-                assignments = value['raw_observed_assignments']
-                field('Captured assignment records', len(assignments) if isinstance(assignments, list) else 'unknown')
+                field('Literal byte integrity', integrity)
+                assignments = value.get('raw_observed_assignments')
+                field('Captured assignment records', len(assignments) if isinstance(assignments, list) else
+                      'not in the capture' if integrity == 'verified_local_bytes' else 'not read: the bytes did not verify')
         elif self.tab == 3 and isinstance(value.get('history'), list):
             from .workbench_screens import history_lines
             rows.extend(history_lines(value, width))
@@ -886,8 +906,8 @@ class Workspace:
         from .workbench_screens import details_lines, word_wrap
         layer = getattr(self, 'layer', 'summary')
         if layer == 'details':
-            return (word_wrap('TYPED DETAILS  Every field of this result as recorded; r shows the raw record, Esc returns to the '
-                              'summary.', width) + [''] + details_lines(self.value, width))
+            return (word_wrap('TYPED DETAILS  Every field of this result, names spaced for reading; r shows the raw record '
+                              'exactly as recorded, Esc returns to the summary.', width) + [''] + details_lines(self.value, width))
         if layer == 'raw':
             return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
@@ -896,10 +916,10 @@ class Workspace:
 
     def _raw_count(self):
         """Lines of the raw record before wrapping, so the count does not change with the terminal width."""
-        key = id(self.value)
+        # The cache holds the value itself: an id() key could match a later value that reused a freed address.
         cached = getattr(self, '_raw_count_cache', None)
-        if cached is None or cached[0] != key:
-            cached = (key, len(json.dumps(self.value, ensure_ascii=False, indent=2, allow_nan=False).splitlines()))
+        if cached is None or cached[0] is not self.value:
+            cached = (self.value, len(json.dumps(self.value, ensure_ascii=False, indent=2, allow_nan=False).splitlines()))
             self._raw_count_cache = cached
         return cached[1]
 
@@ -951,9 +971,9 @@ class Workspace:
 
     def _detail_lines(self, width):
         """The exact engine record wrapped to `width`, cached per value and width."""
-        cache_key = (id(self.value), width)
-        if self._detail_cache is not None and self._detail_cache[0] == cache_key:
-            return self._detail_cache[1]
+        cached = self._detail_cache
+        if cached is not None and cached[0] is self.value and cached[1] == width:
+            return cached[2]
         detail = []
         for line in json.dumps(self.value, ensure_ascii=False, indent=2, allow_nan=False).splitlines():
             detail.extend(wrap(line, width))
@@ -964,7 +984,7 @@ class Workspace:
                 detail.append('[VIEW LIMIT] The record continues past %d lines here; the text interface '
                               '(intune-iac workbench terminal) prints it complete.' % MAX_RENDER_LINES)
                 break
-        self._detail_cache = (cache_key, detail)
+        self._detail_cache = (self.value, width, detail)
         return detail
 
     def draw(self):
@@ -1038,11 +1058,12 @@ class Workspace:
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
         self.layer = 'summary'
-        if name in VIEW_COMMANDS:
-            current = getattr(self, 'current_view', None)
-            if current is not None and not returning and current[1] != command:
-                self.trail = (getattr(self, 'trail', []) + [current])[-50:]
-            self.current_view = None
+        current = getattr(self, 'current_view', None)
+        # A view is kept for b; so is the view shown before a command that is not a view, whose own result
+        # is never re-sent. returning marks b itself, which must not push the view it leaves.
+        if current is not None and not returning and current[1] != command:
+            self.trail = (getattr(self, 'trail', []) + [current])[-50:]
+        self.current_view = None
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
@@ -1078,6 +1099,12 @@ class Workspace:
         if tab == 4 and self.active_operation:
             return self._send('review ' + shlex.quote(self.active_operation))
         if tab == 5 and self.execution_result is not None:
+            # Shown without the engine; b returns to the view before it, like any other result that is not a view.
+            current = getattr(self, 'current_view', None)
+            if current is not None:
+                self.trail = (getattr(self, 'trail', []) + [current])[-50:]
+            self.current_view = None
+            self.layer = 'summary'
             self.value = {'display_scope': 'last engine result in this interface; refresh durable operations for later activity',
                           'operation_root': self.active_operation, 'result': self.execution_result,
                           'recovery': 'Use :reconcile OPERATION_DIR for explicit independent readback; never blindly replay execution.'}
