@@ -54,17 +54,30 @@ def _collection(observed):
                     step, evidence)], True
 
 
+# The store's own reasons for a stale observation, in words. A later incomplete collection is explained by the
+# collection signal itself, so it never reaches the freshness sentence.
+FRESHNESS_WORDS = {'older_than_window': 'older than the freshness window of %(window)s seconds',
+                   'stamped_after_now': "stamped later than this host's clock read when it was checked (%(checked)s)"}
+
+
 def _freshness(observed, failed):
     if observed.get('freshness') == 'fresh':
         return [], 'clear'
     # A failed collection already explains a retained last-good observation; say it once.
     if failed:
         return [], 'explained_by_collection'
-    sentence = ('The newest observation (%s) is %s.' % (observed['observed_at'], observed.get('freshness'))
+    reasons = [reason for reason in observed.get('freshness_reasons') or [] if reason in FRESHNESS_WORDS]
+    because = '; '.join(FRESHNESS_WORDS[reason] % {'window': observed.get('freshness_window_seconds'),
+                                                   'checked': observed.get('freshness_checked_at')} for reason in reasons)
+    sentence = ('The newest observation (%s) is %s%s.' % (observed['observed_at'], observed.get('freshness'), ': ' + because if because else '')
                 if observed.get('observed_at') else
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
-    return [_signal('freshness', 'observation_stale', sentence, 'Collect again (:collect) before preparing or judging a change.',
-                    {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at')})], 'attention'
+    step = 'Collect again (:collect) before preparing or judging a change.'
+    if 'stamped_after_now' in reasons:
+        step += " An observation stamped later than this host's clock stays stale until the clocks agree."
+    return [_signal('freshness', 'observation_stale', sentence, step,
+                    {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
+                     'freshness_reasons': reasons})], 'attention'
 
 
 def _operation_records(store, object_id):

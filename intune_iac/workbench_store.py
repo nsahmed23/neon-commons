@@ -596,9 +596,13 @@ class WorkbenchStore:
         object_success = db.execute('SELECT * FROM collection_runs WHERE run_id=?',(row['run_id'],)).fetchone()
         last_good = object_attempt is not None and object_attempt['status']!='complete'
         age = max(0,now-row['observed_at'])
+        # Each condition that makes the observation stale is kept by name, so a reader can say which held.
+        reasons = ((['later_collection_not_complete'] if last_good else []) + (['older_than_window'] if age>max_age_seconds else [])
+                   + (['stamped_after_now'] if row['observed_at']>now else []))
         obj.update(last_attempt=self._run(object_attempt,db),last_success=self._run(object_success,db),
             retained_last_good=last_good,age_seconds=age,
-            freshness='stale' if last_good or age>max_age_seconds or row['observed_at']>now else 'fresh',health=health)
+            freshness='stale' if reasons else 'fresh',freshness_reasons=reasons,freshness_window_seconds=max_age_seconds,
+            freshness_checked_at=_iso(now),health=health)
         obj['collections'] = obj['last_attempt'].get('collections',[]) if obj['last_attempt'] else []
         return obj
 

@@ -174,6 +174,40 @@ class DiagnosticsEdgeTests(unittest.TestCase):
         self.assertIn('workbench_query_limit', signals['device_evidence_unavailable']['observed'])
 
 
+class FreshnessReasonTests(unittest.TestCase):
+    """A stale observation says which of the store's conditions made it stale; nothing is inferred from the age alone."""
+    RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = repository_tests.RepositoryOwnedChangeTests.setUp
+    view = DiagnosticsTests.view
+
+    def test_an_observation_stamped_after_the_hosts_clock_says_so(self):
+        import time
+        self.store.collect(self.service, observed_at=time.time() + 600)
+        observed = self.store.inspect(OBJECT)
+        self.assertEqual((observed['freshness'], observed['freshness_reasons']), ('stale', ['stamped_after_now']))
+        self.assertIn('freshness_checked_at', observed)
+        _, signals = self.view()
+        sentence = signals['observation_stale']['observed']
+        # Diagnostics reads the policy again, so its check time is its own, later than this inspect's.
+        self.assertRegex(sentence, r"stamped later than this host's clock read when it was checked \(\d{4}-\d\d-\d\dT[0-9:.]+Z\)\.$")
+        self.assertIn('until the clocks agree', signals['observation_stale']['next_step'])
+
+    def test_an_observation_older_than_the_window_says_so(self):
+        import time
+        from unittest import mock
+        real = time.time
+        # Checked three hours after the fixture's collection: the observation has aged out of the window.
+        with mock.patch('time.time', lambda: real() + 3600 * 3):
+            observed = self.store.inspect(OBJECT)
+            _, signals = self.view()
+        self.assertEqual((observed['freshness'], observed['freshness_reasons']), ('stale', ['older_than_window']))
+        self.assertEqual(observed['freshness_window_seconds'], 3600)
+        self.assertIn('older than the freshness window of 3600 seconds', signals['observation_stale']['observed'])
+
+    def test_a_fresh_observation_has_no_reasons(self):
+        self.assertEqual((self.store.inspect(OBJECT)['freshness'], self.store.inspect(OBJECT)['freshness_reasons']), ('fresh', []))
+
+
 class CollectionAndFreshnessTests(unittest.TestCase):
     """Collection evidence comes from this policy's own attempts, as inspect reports them."""
     def collection(self, attempt, success=None, retained=False, freshness='stale'):
