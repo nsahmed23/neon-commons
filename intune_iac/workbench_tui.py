@@ -818,6 +818,8 @@ class Workspace:
             facts.pop('unverified', None)  # a read that answered
         if value.get('object_id') == self.selected and isinstance(value.get('states'), dict):
             facts['states'] = value['states']
+        if value.get('object_id') == self.selected and isinstance(value.get('identity_prefixes'), dict):
+            facts['identity_prefixes'] = value['identity_prefixes']
         if value.get('object_id') == self.selected and 'observation_eligibility' in value:
             if isinstance(value['observation_eligibility'], dict): facts['eligibility'] = value['observation_eligibility']
             else: facts.pop('eligibility', None)
@@ -856,7 +858,8 @@ class Workspace:
         if self._states_here(value):
             # The same three states as the Inspector, from the last read of this policy, before the surface's own detail.
             from .workbench_screens import state_lines
-            rows.extend(state_lines(self.facts['states'], width, 'STATE (from the last read of this policy)')[1:])
+            rows.extend(state_lines(self.facts['states'], width, 'STATE (from the last read of this policy)',
+                                    prefixes=self.facts.get('identity_prefixes'))[1:])
             rows.append('')
         def field(label, item):
             # Absent and yes/no values read as words; the exact record below keeps the literal.
@@ -1131,7 +1134,7 @@ class Workspace:
             from .workbench_screens import actions_lines
             facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
             return actions_lines(self._actions(), getattr(self, 'action_focus', 0), width, facts.get('name'), self.selected,
-                                 submit=self._submit_word())
+                                 submit=self._submit_word(), prefixes=facts.get('identity_prefixes'))
         if layer == 'filters':
             from .workbench_screens import filter_lines
             return filter_lines(filter_choices(), getattr(self, 'filter_focus', 0),

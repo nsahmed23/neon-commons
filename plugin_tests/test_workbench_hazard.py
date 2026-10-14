@@ -375,3 +375,49 @@ class FrameTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SharedPrefixTests(unittest.TestCase):
+    """Eight characters are not assumed unique (TASK-11 2.6 item 6). The read model gives each shortened identity the
+    shortest prefix no other policy or operation in the store shares; every short form on these surfaces uses it."""
+    PREFIXES = {POLICY: POLICY[:10], OPERATION: OPERATION[:9]}
+
+    def test_the_strip_and_the_constrained_state_name_the_policy_by_its_unique_prefix(self):
+        from intune_iac.workbench_screens import constrained_rows, context_strip
+        facts = {'name': 'Windows Privacy Pilot', 'identity_prefixes': self.PREFIXES}
+        self.assertIn('(22222222-2)', context_strip(TENANT, POLICY, facts, 200, 'synthetic'))
+        self.assertIn('P 22222222-2', context_strip(TENANT, POLICY, facts, 40, 'synthetic'))
+        # Width-only and height-only below the 40x12 minimum, then the minimum's own strip.
+        for width, height in ((39, 12), (40, 11)):
+            lines, _ = constrained_rows(TENANT, POLICY, dict(facts, signals=[UNKNOWN]), 'synthetic', width, height,
+                                        '40x12', 'Viewing Inspector.')
+            joined = '\n'.join(lines)
+            self.assertIn('P 22222222-2', joined)
+            self.assertIn('below 40x12', joined)
+            self.assertTrue(all(cell_width(line) <= width for line in lines), lines)
+
+    def test_the_band_and_the_state_name_the_operation_by_its_unique_prefix(self):
+        from intune_iac.workbench_screens import hazard_rows, state_lines
+        rows = hazard_rows({'identity_prefixes': self.PREFIXES}, [UNKNOWN], 120)
+        self.assertTrue(rows[0].startswith('! Operation 651a8ce8f: outcome unknown.'), rows)
+        lines = state_lines({'operation': {'operation_id': OPERATION, 'journal_status': 'outcome_unknown'}}, 120,
+                            prefixes=self.PREFIXES)
+        self.assertIn('651a8ce8f outcome unknown', ' '.join(' '.join(lines).split()))
+
+    def test_the_actions_heading_names_the_policy_by_its_unique_prefix(self):
+        from intune_iac.workbench_screens import actions_lines
+        lines = actions_lines([], 0, 120, 'Windows Privacy Pilot', POLICY, prefixes=self.PREFIXES)
+        self.assertIn('(22222222-2)', lines[0])
+
+    def test_a_prefix_that_is_not_the_identity_s_own_is_never_shown(self):
+        from intune_iac.workbench_screens import short_id
+        self.assertEqual(short_id(POLICY, {POLICY: 'ffffffff-f'}), '22222222')
+        self.assertEqual(short_id(POLICY, {POLICY: '2222'}), '22222222')  # never shorter than eight
+        self.assertEqual(short_id(POLICY), '22222222')
+
+    def test_unique_prefixes_extend_only_where_identities_share_a_head(self):
+        from intune_iac.io import unique_prefixes
+        twin = POLICY[:9] + '3333-4333-8333-333333333333'
+        self.assertEqual(unique_prefixes([POLICY, twin, TENANT]),
+                         {POLICY: '22222222-2', twin: '22222222-3', TENANT: '11111111'})
+        self.assertEqual(unique_prefixes(['abcdefgh'], others=['abcdefghij']), {'abcdefgh': 'abcdefgh'})

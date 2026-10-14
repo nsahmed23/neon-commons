@@ -95,3 +95,28 @@ class HelpTableTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SharedPrefixListTests(unittest.TestCase):
+    """Identities listed together are shortened to the shortest prefix unique among what the screen shows."""
+    TWIN = POLICY[:9] + '3333-4333-8333-333333333333'
+    FILTER = '77777777-7777-4777-8777-777777777777'
+
+    def test_the_overview_tells_two_policies_with_one_head_apart(self):
+        from intune_iac.workbench_screens import overview_lines
+        value = {'counts': {}, 'groups': [], 'filters': [{'filter_id': self.FILTER, 'used_by': [POLICY, self.TWIN]}],
+                 'policies': [{'name': 'Pilot', 'object_id': POLICY}, {'name': 'Pilot copy', 'object_id': self.TWIN}]}
+        rendered = text(overview_lines(value, 160))
+        self.assertIn('77777777 used by 2 policies (22222222-2, 22222222-3)', rendered)
+        self.assertIn('Pilot (22222222-2)', rendered)
+        self.assertIn('Pilot copy (22222222-3)', rendered)
+
+    def test_repository_candidates_with_one_head_are_told_apart(self):
+        from intune_iac.workbench_screens import repository_entry_lines
+        value = {'status': 'discovered', 'components': [], 'candidates': [
+            {'number': 1, 'object_id': POLICY, 'observed': {'present': True, 'name': 'Pilot'}, 'stack': 's', 'component': 'c'},
+            {'number': 2, 'object_id': self.TWIN, 'observed': {'present': True, 'name': 'Pilot copy'}, 'stack': 's',
+             'component': 'c'}]}
+        rendered = text(repository_entry_lines(value, 160))
+        self.assertIn('Pilot (22222222-2)', rendered)
+        self.assertIn('Pilot copy (22222222-3)', rendered)

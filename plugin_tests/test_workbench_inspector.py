@@ -288,6 +288,11 @@ class EvidenceLayerTests(unittest.TestCase):
             {'area': 'operations', 'code': 'operation_outcome_unknown', 'observed': 'Unknown.', 'next_step': 'reconcile'}]}))
         self.assertEqual(workspace.facts['operation'], 'outcome_unknown')
 
+    def test_the_workspace_keeps_the_identity_prefixes_of_the_selected_policy(self):
+        workspace = self.workspace()
+        workspace._learn(inspected(identity_prefixes={OBJECT: OBJECT[:10]}))
+        self.assertEqual(workspace.facts['identity_prefixes'], {OBJECT: OBJECT[:10]})
+
     def test_an_empty_estate_names_no_mode_and_a_mixed_one_says_so(self):
         workspace = self.workspace()
         workspace.mode_class = None

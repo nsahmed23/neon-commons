@@ -34,9 +34,16 @@ def tab_line(tabs, active, width):
     return next((text for text in tiers if cell_width(text) <= width), tiers[-1])
 
 
-def short_id(value):
-    """The first eight characters of an identity, for orientation only; exact identities appear on each surface."""
-    return value[:8] if isinstance(value, str) else str(value)
+def short_id(value, prefixes=None):
+    """An identity shortened for orientation: the read model's unique prefix for it when one is given (at least eight
+    characters, extended where another identity shares them), else its first eight characters. Exact identities
+    appear on each surface."""
+    if not isinstance(value, str):
+        return str(value)
+    known = prefixes.get(value) if isinstance(prefixes, dict) else None
+    if isinstance(known, str) and len(known) >= 8 and value.startswith(known):
+        return known
+    return value[:8]
 
 
 # Shorter words for long states, used only when nothing else lets the strip fit.
@@ -73,11 +80,12 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     if not selected:
         forms = [' | '.join(lead + ['POLICY none selected']), ' | '.join(tight + ['no policy']), ' | '.join(tight)]
         return next((text for text in forms if cell_width(safe_text(text)) <= width), forms[-1])
-    policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + short_id(selected) + ')'
+    own = short_id(selected, facts.get('identity_prefixes'))
+    policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + own + ')'
     states = [('OBSERVED', 'OBS', observed_state(facts)), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
     if facts.get('operation'):
         states.append(('OPERATION', 'OP', facts['operation']))
-    bare = 'POLICY ' + short_id(selected)
+    bare = 'POLICY ' + own
     routine = [state for state in states if str(state[2]) not in HAZARD_STATES[state[0]]]
     hazards = [state for state in states if state not in routine]
     kept, shrinking = list(states), []
@@ -93,7 +101,7 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
             return text
     # Narrower still: short labels, the whole short policy id, and hazards before nothing.
     for remaining in (hazards, hazards[:1], []):
-        text = ' | '.join(tight + ['P ' + short_id(selected)] + [short + ' ' + SHORT_STATES.get(str(value), str(value))
+        text = ' | '.join(tight + ['P ' + own] + [short + ' ' + SHORT_STATES.get(str(value), str(value))
                                                                  for long, short, value in remaining])
         if cell_width(safe_text(text)) <= width:
             return text
@@ -111,14 +119,14 @@ OPERATION_SIGNAL = {'outcome_unknown': 'operation_outcome_unknown', 'diverged': 
                     'records disagree': 'operation_record_disagrees', 'unreadable': 'operation_unreadable'}
 
 
-def _band_forms(primary):
+def _band_forms(primary, prefixes=None):
     """Longest to shortest wording of one hazard; every form keeps its response, named as the actions list names it.
 
     The key opens that list (a: actions); it never performs the named action itself. The shortest form of each
     response fits 40 columns, so at the minimum width the hazard and its response share a row.
     """
     code, evidence = primary.get('code'), primary.get('evidence') if isinstance(primary.get('evidence'), dict) else {}
-    operation = short_id(evidence.get('operation_id')) if evidence.get('operation_id') else ''
+    operation = short_id(evidence.get('operation_id'), prefixes) if evidence.get('operation_id') else ''
     if code == 'operation_outcome_unknown':
         return ['! Operation %s: outcome unknown. Next: Reconcile it (a: actions); it never replays the change' % operation
                 if operation else '! Operation outcome unknown. Next: Reconcile it (a: actions); it never replays the change',
@@ -188,7 +196,7 @@ def hazard_rows(facts, signals, width, *, routes=True):
     notes = (['+%d more: 2' % others if routes else '+%d more' % others] if others else []) + (
         ['not re-read after %s: 2 re-reads' % facts['unverified']]
         if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
-    forms = _band_forms(primary)
+    forms = _band_forms(primary, facts.get('identity_prefixes'))
     suffix = '  ' + ' | '.join(notes) if notes else ''
     for form in forms:
         if cell_width(form + suffix) <= width:
@@ -224,7 +232,7 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
                   fit('Below %s' % need, width))
     states = [('OBSERVED', 'OBS', observed_state(facts, None)), ('REPOSITORY', 'REPO', facts.get('repository')),
               ('OPERATION', 'OP', facts.get('operation'))]
-    items = ['T ' + short_id(tenant), 'P ' + short_id(selected) if selected else 'no policy'] + [
+    items = ['T ' + short_id(tenant), 'P ' + short_id(selected, facts.get('identity_prefixes')) if selected else 'no policy'] + [
         short + ' ' + SHORT_STATES.get(str(value), str(value)) for label, short, value in states
         if selected and str(value) in HAZARD_STATES[label]]
     # Only keys that work here: while a command is typed q is part of it, so Enter and Esc are the keys.
@@ -300,7 +308,7 @@ INTENT_STATE_WORDS = {'current': 'current with the repository', 'changed': 'the 
                       'unreadable': 'the repository cannot be read now', 'not_checked': 'not checked'}
 
 
-def state_lines(states, width, heading='STATE'):
+def state_lines(states, width, heading='STATE', prefixes=None):
     """Observation, repository intent and the newest operation, each its own line, from the read model's states."""
     observation = states.get('observation') if isinstance(states.get('observation'), dict) else {}
     source = [evidence_words(observation.get('evidence_class'))]
@@ -330,7 +338,7 @@ def state_lines(states, width, heading='STATE'):
         verified = ('content verified' if intent.get('revision_content_verified') else
                     'asserted, not verified against the files')
         text = '%s from %s / %s at %s (%s); %s' % (
-            short_id(intent.get('artifact_id')), scope.get('stack'), scope.get('component'),
+            short_id(intent.get('artifact_id'), prefixes), scope.get('stack'), scope.get('component'),
             short_id(revision) if revision else 'no revision', verified,
             _clause(intent['reason']) if intent.get('reason') else INTENT_STATE_WORDS.get(intent.get('status'), str(intent.get('status'))))
     lines += _labelled('  Intent', text, width, 15)
@@ -340,7 +348,8 @@ def state_lines(states, width, heading='STATE'):
     else:
         journal, recorded = operation.get('journal_status'), operation.get('status')
         # Status words read as words; the exact values stay in the typed details and the raw record.
-        text = '%s %s' % (short_id(operation.get('operation_id')), _as_words(journal or recorded or 'status not recorded'))
+        text = '%s %s' % (short_id(operation.get('operation_id'), prefixes),
+                          _as_words(journal or recorded or 'status not recorded'))
         if journal and recorded and journal != recorded:
             text += ' (the store records %s)' % _as_words(recorded)
         if operation.get('classification'):
@@ -740,7 +749,7 @@ def inspector_lines(value, width):
     lines += _labelled('Identity', ' | '.join(identity), width, 10)
     if isinstance(value.get('states'), dict):
         # Three distinct states replace the one provenance line; nothing is folded into the observation's freshness.
-        lines += state_lines(value['states'], width)
+        lines += state_lines(value['states'], width, prefixes=value.get('identity_prefixes'))
         lines += _attention_lines(value, width)
         return lines + _evidence_says(value, body, width)
     # Where the evidence comes from, then what that run covered, then its freshness: each a separate clause.
@@ -879,10 +888,10 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'workbench_fresh_output_required': 'no fresh operation directory'}
 
 
-def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter'):
+def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter', prefixes=None):
     """The guided actions for the selected policy: what each is, whether it is available, its exact command and what
     it does. A blocked action says why, with the engine's own code."""
-    lines = word_wrap('ACTIONS  for %s (%s)' % (name or 'the selected policy', short_id(object_id)), width)
+    lines = word_wrap('ACTIONS  for %s (%s)' % (name or 'the selected policy', short_id(object_id, prefixes)), width)
     lines += word_wrap('Nothing runs until you submit it: Enter puts the focused command in the command bar for review, '
                        '%s there submits it, Esc discards it.' % submit, width)
     for index, action in enumerate(actions):
@@ -1112,8 +1121,8 @@ def _count(number, singular, plural):
     return '%d %s' % (number, singular if number == 1 else plural)
 
 
-def _users(ids, verb):
-    shown = ', '.join(str(item)[:8] for item in ids[:4]) + (', ...' if len(ids) > 4 else '')
+def _users(ids, verb, short=None):
+    shown = ', '.join(short_id(str(item), short) for item in ids[:4]) + (', ...' if len(ids) > 4 else '')
     return '%s %s (%s)' % (verb, _count(len(ids), 'policy', 'policies'), shown)
 
 
@@ -1121,6 +1130,14 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
     """The estate's relationships: shared groups, filters, scope tags and settings first, then each policy."""
     tree = TREES.get(rules, TREES['ascii'])
     counts = value.get('counts') or {}
+    from .io import unique_prefixes
+    # Each kind of identity is shortened to the shortest prefix unique among those this screen shows.
+    rows_of = lambda key: [row for row in value.get(key) or [] if isinstance(row, dict)]
+    users = [item for key in ('groups', 'broad_targets', 'filters', 'scope_tags', 'shared_settings') for row in rows_of(key)
+             for field in ('included_by', 'excluded_by', 'used_by') for item in row.get(field) or []]
+    policy_short = unique_prefixes([str(row.get('object_id')) for row in rows_of('policies')] + [str(item) for item in users])
+    group_short = unique_prefixes([str(row.get('group_id')) for row in rows_of('groups')])
+    filter_short = unique_prefixes([str(row.get('filter_id')) for row in rows_of('filters')])
     owners = ', '.join('%s %d' % item for item in sorted((value.get('ownership') or {}).items())) or 'none recorded'
     lines = ['[ESTATE OVERVIEW]']
     lines += word_wrap('%s of %s policies read | %s without a complete observation | ownership: %s' % (
@@ -1139,25 +1156,26 @@ def overview_lines(value, width, rules='ascii', focus=None, selected=None):
                 lines.append((head if number == 0 else cont) + part)
 
     # Said once for the list: no group name is captured, so each line is an unresolved group identity.
-    section('TARGETED GROUPS  (%s)' % UNRESOLVED_GROUP if value.get('groups') else 'TARGETED GROUPS', value.get('groups') or [], lambda row: '%s  %s' % (str(row['group_id'])[:8], ', '.join(
-        part for part in ((_users(row['included_by'], 'included by') if row.get('included_by') else ''),
-                          (_users(row['excluded_by'], 'excluded by') if row.get('excluded_by') else '')) if part)))
+    section('TARGETED GROUPS  (%s)' % UNRESOLVED_GROUP if value.get('groups') else 'TARGETED GROUPS', value.get('groups') or [], lambda row: '%s  %s' % (short_id(str(row['group_id']), group_short), ', '.join(
+        part for part in ((_users(row['included_by'], 'included by', policy_short) if row.get('included_by') else ''),
+                          (_users(row['excluded_by'], 'excluded by', policy_short) if row.get('excluded_by') else '')) if part)))
     broad = value.get('broad_targets') or []
     if broad:
         # Targets that name no group, kept apart so they are never read as groups.
         section('ALL-DEVICE AND ALL-USER TARGETS', broad, lambda row: '%s  %s' % (
-            TARGET_WORDS.get(row.get('target'), safe_text(str(row.get('target')))), _users(row['used_by'], 'targeted by')))
-    section('FILTERS', value.get('filters') or [], lambda row: '%s  %s' % (str(row['filter_id'])[:8], _users(row['used_by'], 'used by')))
-    section('SCOPE TAGS', value.get('scope_tags') or [], lambda row: '"%s"  %s' % (row['tag'], _users(row['used_by'], 'used by')))
+            TARGET_WORDS.get(row.get('target'), safe_text(str(row.get('target')))), _users(row['used_by'], 'targeted by', policy_short)))
+    section('FILTERS', value.get('filters') or [], lambda row: '%s  %s' % (short_id(str(row['filter_id']), filter_short),
+                                                                       _users(row['used_by'], 'used by', policy_short)))
+    section('SCOPE TAGS', value.get('scope_tags') or [], lambda row: '"%s"  %s' % (row['tag'], _users(row['used_by'], 'used by', policy_short)))
     section('SHARED SETTINGS  (%s distinct in the estate)' % value.get('distinct_settings', 'unknown'),
-            value.get('shared_settings') or [], lambda row: '%s  %s' % (row['setting'], _users(row['used_by'], 'used by')),
+            value.get('shared_settings') or [], lambda row: '%s  %s' % (row['setting'], _users(row['used_by'], 'used by', policy_short)),
             empty='none used by more than one policy')
     lines.extend(['', 'POLICIES'])
     for index, policy in enumerate(value.get('policies') or []):
         found = policy.get('findings') or []
         reach = ', '.join('targets ' + TARGET_WORDS.get(target, safe_text(str(target))) for target in policy.get('broad_targets') or [])
         text = '%s (%s)  %s, %s, %s, %s%s | owner %s | %s%s' % (
-            policy.get('name') or '(no name)', str(policy.get('object_id'))[:8],
+            policy.get('name') or '(no name)', short_id(str(policy.get('object_id')), policy_short),
             _count(policy.get('included_groups', 0), 'group', 'groups'), _count(policy.get('excluded_groups', 0), 'exclusion', 'exclusions'),
             _count(policy.get('filters', 0), 'filter', 'filters'), _count(policy.get('settings', 0), 'setting', 'settings'),
             ', ' + reach if reach else '', policy.get('ownership'), policy.get('freshness'), '' if found else ' | no findings')
@@ -1711,9 +1729,12 @@ def repository_entry_lines(value, width, focus=0):
                 component.get('reason'), str(component.get('reason')))), width)
     if value.get('status') != 'discovered' and value.get('blockers'):
         lines += word_wrap('Blocked: ' + ', '.join(value['blockers']), width)
+    from .io import unique_prefixes
+    shown = unique_prefixes([str(candidate.get('object_id')) for candidate in value.get('candidates') or []
+                             if isinstance(candidate, dict) and candidate.get('object_id')])
     for index, candidate in enumerate(value.get('candidates') or []):
         observed = candidate.get('observed') or {}
-        short = str(candidate.get('object_id'))[:8]
+        short = short_id(str(candidate.get('object_id')), shown)
         label = ('%s (%s)' % (observed.get('name'), short) if observed.get('present') else
                  'not observed in this store' + (' (%s)' % short if candidate.get('object_id') else ''))
         lines.append('')
@@ -2080,7 +2101,9 @@ def adoption_lines(value, width):
             lines += word_wrap('  ' + object_id, width)
         field('Handoff', value.get('handoff_root'))
         field('Modeled service', value.get('service_root'))
-        adoptions = [str(row.get('artifact_id'))[:8] for row in value.get('adoptions') or [] if isinstance(row, dict)]
+        from .io import unique_prefixes
+        listed = [str(row.get('artifact_id')) for row in value.get('adoptions') or [] if isinstance(row, dict)]
+        adoptions = [short_id(item, unique_prefixes(listed)) for item in listed]
         lines += word_wrap('Collection run %s recorded in this store, with %s (%s).' % (
             value.get('collection_run_id'), _plural(len(adoptions), 'adoption record'), ', '.join(adoptions) or 'none'), width)
         field('Ownership', str(value.get('ownership')))

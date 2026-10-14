@@ -35,6 +35,23 @@ def readable_time(value):
     return parsed.astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
 
 
+def unique_prefixes(values, minimum=8, others=()):
+    """Each value's shortest prefix of at least `minimum` characters that no other value (in values or others)
+    starts with; the whole value when no shorter prefix is unique. Shortened identities orient the reader, so a
+    shared head is extended rather than assumed unique."""
+    pool = {value for value in list(values) + list(others) if isinstance(value, str)}
+    result = {}
+    for value in values:
+        if not isinstance(value, str) or value in result:
+            continue
+        rivals = [other for other in pool if other != value and other[:minimum] == value[:minimum]]
+        length = min(minimum, len(value))
+        while length < len(value) and any(other.startswith(value[:length]) for other in rivals):
+            length += 1
+        result[value] = value[:length]
+    return result
+
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False).encode('utf-8')
 

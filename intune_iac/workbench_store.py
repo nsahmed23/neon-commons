@@ -793,6 +793,28 @@ class WorkbenchStore:
             if len(canonical(value))>MAX_QUERY_BYTES: _fail('workbench_query_limit')
             return value
 
+    def identity_prefixes(self, *, objects=(), operations=(), artifacts=(), minimum=8):
+        """For each identity, the shortest prefix of at least `minimum` characters that no other policy, operation
+        or artifact of its kind in this store starts with (TASK-11 2.6 item 6); identities this store does not
+        hold keep their first `minimum` characters unless a held one shares them."""
+        from .io import unique_prefixes
+        queries = [('SELECT DISTINCT object_id FROM %s WHERE substr(object_id,1,?)=? LIMIT 1001'
+                    % ('observations' if self.schema_version == 1 else 'object_heads'), objects)]
+        if self.schema_version != 1:
+            queries += [('SELECT DISTINCT operation_id FROM operations WHERE substr(operation_id,1,?)=? LIMIT 1001',
+                         operations),
+                        ('SELECT artifact_id FROM artifacts WHERE substr(artifact_id,1,?)=? LIMIT 1001', artifacts)]
+        result = {}
+        with self._connection() as db:
+            for sql, values in queries:
+                for value in values:
+                    if type(value) is not str or not value or value in result:
+                        continue
+                    head = value[:minimum]
+                    rivals = [row[0] for row in db.execute(sql, (len(head), head))]
+                    result.update(unique_prefixes([value], minimum, rivals))
+        return result
+
     def history(self, object_id, *, limit=None, offset=0):
         """Observed-time ordered history; explicit pages or fail on oversized result."""
         _identity(object_id)

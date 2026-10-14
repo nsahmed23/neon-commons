@@ -524,7 +524,26 @@ def _record_offer(attention):
             'intent_id': stage['intent_id']}
 
 
-def _actions(store, object_id, attention, intent, service_root, *, eligibility=_UNREAD, evidence_class=None):
+def _short(store, prefixes, operation_id):
+    """An operation's unique prefix as the read model gives it; looked up when the read model has none."""
+    operation_id = str(operation_id)
+    known = prefixes.get(operation_id) if isinstance(prefixes, dict) else None
+    return known or store.identity_prefixes(operations=[operation_id]).get(operation_id, operation_id[:8])
+
+
+def _referenced_operations(found, states):
+    """The operations the attention signals and the operation state name, for their unique prefixes."""
+    named = {str(signal['evidence']['operation_id']) for signal in (found or {}).get('signals') or []
+             if isinstance(signal, dict) and isinstance(signal.get('evidence'), dict)
+             and signal['evidence'].get('operation_id')}
+    operation = (states or {}).get('operation') if isinstance((states or {}).get('operation'), dict) else {}
+    if operation.get('operation_id'):
+        named.add(str(operation['operation_id']))
+    return sorted(named)
+
+
+def _actions(store, object_id, attention, intent, service_root, *, eligibility=_UNREAD, evidence_class=None,
+             prefixes=None):
     """The guided actions for one policy, built from structured evidence, never parsed from prose.
 
     Each has the exact command where every argument is known (or the cursor where a missing input goes), the inputs
@@ -555,7 +574,7 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
         if not operation_root or operation_root in seen:
             continue
         seen.add(operation_root)
-        short = str(evidence.get('operation_id'))[:8]
+        short = _short(store, prefixes, evidence.get('operation_id'))
         label = ('Reconcile operation %s again (reads only; a divergence needs a reviewed change)' % short
                  if signal['code'] == 'operation_diverged' else 'Reconcile operation %s' % short)
         offer('reconcile', label, 'reconcile ' + shlex.quote(str(operation_root)),
@@ -575,7 +594,7 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
                      'stated, not checked against the files'])
     record = _record_offer(attention)
     if record:
-        offer('deployment-record', 'Record the deployment of operation %s' % str(record['operation_id'])[:8],
+        offer('deployment-record', 'Record the deployment of operation %s' % _short(store, prefixes, record['operation_id']),
               'deployment-record %s %s' % (shlex.quote(str(record['operation_root'])), record['intent_id']),
               extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
                      'intent_id': record['intent_id']})
@@ -618,11 +637,15 @@ def _inspection(store, object_id, *, attention=False, service_available=False, s
         found = _attention(store, object_id)
         service = None if service_root is None else str(service_root)
         eligibility = _eligibility(store, object_id, service, observation=value)
-        value = {**value, 'attention': found, 'observation_eligibility': eligibility,
-                 'states': _states(value, intent, found, eligibility),
+        states = _states(value, intent, found, eligibility)
+        # Shortened identities on every surface use these, never an assumed-unique first eight characters.
+        prefixes = store.identity_prefixes(objects=[object_id], operations=_referenced_operations(found, states),
+                                           artifacts=[intent['artifact_id']] if intent else [])
+        value = {**value, 'attention': found, 'observation_eligibility': eligibility, 'states': states,
+                 'identity_prefixes': prefixes,
                  'next_actions': _next_actions({'selected_repository': intent}, found, service_available or service_root is not None),
                  'actions': _actions(store, object_id, found, intent, service, eligibility=eligibility,
-                                     evidence_class=value.get('evidence_class'))}
+                                     evidence_class=value.get('evidence_class'), prefixes=prefixes)}
     return {**value, 'raw_capture_observation': raw_capture,
             'ownership': writer['status'], 'ownership_evidence': writer,
             'selected_repository': None if intent is None else {

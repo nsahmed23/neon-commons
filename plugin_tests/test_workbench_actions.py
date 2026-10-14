@@ -588,3 +588,38 @@ class ActionStagingTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class IdentityPrefixTests(unittest.TestCase):
+    """The store gives each shortened identity the shortest prefix that no other identity of its kind in the store
+    shares, at least eight characters (TASK-11 2.6 item 6); the Inspector's read model carries them."""
+
+    def setUp(self):
+        import tempfile
+        from intune_iac.modeled_service import ModeledService
+        from intune_iac.synthetic import generate_estate
+        from intune_iac.workbench_store import WorkbenchStore
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name)
+        estate = generate_estate(seed=717, policy_count=3)
+        self.ids = [policy['id'] for policy in estate['truth']['policies']]
+        # A second policy whose identity shares its first nine characters with the first one's.
+        self.twin = self.ids[0][:9] + self.ids[1][9:]
+        capture = json.loads(json.dumps(estate['capture']).replace(self.ids[1], self.twin))
+        ModeledService.create(root / 'service', capture, [self.ids[0], self.twin, self.ids[2]])
+        self.store = WorkbenchStore.create(root / 'store', estate['truth']['tenant_id'])
+        self.store.collect(ModeledService(root / 'service'))
+        self.length = next(index for index in range(len(self.twin)) if self.ids[0][index] != self.twin[index]) + 1
+
+    def test_a_shared_head_is_extended_until_it_is_unique(self):
+        prefixes = self.store.identity_prefixes(objects=[self.ids[0], self.twin, self.ids[2]])
+        self.assertGreater(self.length, 9)
+        self.assertEqual(prefixes[self.ids[0]], self.ids[0][:self.length])
+        self.assertEqual(prefixes[self.twin], self.twin[:self.length])
+        self.assertEqual(prefixes[self.ids[2]], self.ids[2][:8])
+
+    def test_the_inspection_carries_the_policy_s_unique_prefix(self):
+        from intune_iac.workbench import _inspection
+        value = _inspection(self.store, self.twin, attention=True)
+        self.assertEqual(value['identity_prefixes'][self.twin], self.twin[:self.length])
