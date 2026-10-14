@@ -160,6 +160,15 @@ class MinimumTests(unittest.TestCase):
             self.assertNotIn('...', line); self.assertNotIn('\u2026', line)
             self.assertRegex(line, r'[a9i]: [a-z]', line)  # a: action, 9: repository, i: details
 
+    def test_the_key_line_and_footer_stay_whole_at_the_minimum_width(self):
+        from intune_iac.workbench_tui import help_line, status_line
+        keys = help_line(MINIMUM[0])
+        self.assertLessEqual(cell_width(keys), MINIMUM[0], keys)
+        self.assertIn('q exit', keys)
+        footer = status_line('synthetic', 1, 2, 66, MINIMUM[0])
+        self.assertLessEqual(cell_width(footer), MINIMUM[0], footer)
+        self.assertTrue(footer.endswith(('no automatic approval', 'no auto-approval')), footer)
+
     def test_the_strip_keeps_mode_tenant_and_whole_policy_at_the_minimum_width(self):
         from intune_iac.workbench_screens import context_strip
         facts = {'name': 'A very long policy name ' * 3, 'observation': 'stale', 'repository': 'stale',

@@ -157,7 +157,8 @@ MIN_SIZE = (40, 12)
 HELP_LINES = ('? help | a actions | : command | / search | e details | r raw record | b back | q exit',
               '? help | : command | / search | e details | r raw record | b back | q exit',
               '? help | : command | e details | r raw | b back | q exit',
-              '? help | : command | e details | b back | q exit')
+              '? help | : command | e details | b back | q exit',
+              '? help | : command | b back | q exit')
 # Read-only views that b (back) may return to; nothing that prepares, approves, executes or records is ever re-sent.
 VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'history', 'history-recent', 'views',
                            'help', 'health', 'queue', 'start', 'families', 'dictionary', 'dictionary-page', 'lineage',
@@ -205,10 +206,14 @@ def help_line(width, layer='summary'):
 
 
 def status_line(scope, first, last, total, width, ellipsis='...'):
-    """Evidence class, rows and the approval statement; only the evidence class is shortened to fit."""
-    tail = ' rows %d-%d/%d | no automatic approval' % (first, last, total)
-    room = width - cell_width(tail) - 2
-    return '[%s]%s' % (fit(scope, max(4, room), ellipsis), tail)
+    """Evidence class, rows and the approval statement. The evidence class shortens first, then the statement takes
+    its short form; neither is cut mid-word."""
+    rows = ' rows %d-%d/%d' % (first, last, total)
+    for tail in (rows + ' | no automatic approval', rows + ' | no auto-approval'):
+        room = width - cell_width(tail) - 2
+        if room >= 4:
+            return '[%s]%s' % (fit(scope, room, ellipsis), tail)
+    return '[%s]%s' % (fit(scope, 4, ellipsis), rows + ' | no auto-approval')
 
 
 def ruled(left, fill, right, inner, label=None):
