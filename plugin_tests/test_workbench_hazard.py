@@ -29,6 +29,14 @@ DENIED = signal('collection', 'collection_failed', 'The last collection of this 
 CHANGED = signal('repository', 'repository_stale', 'The repository changed since its recorded intent.',
                  'Review the difference on the Repository surface, then repository-refresh REVISION records the current source.')
 STALE = signal('freshness', 'observation_stale', 'The newest observation is stale.', 'Collect again (:collect).')
+ALL = [UNKNOWN, DENIED, CHANGED, STALE,
+       signal('operations', 'operation_diverged', operation_id=OPERATION, operation_root='/work/op'),
+       signal('operations', 'operation_record_disagrees', operation_id=OPERATION, operation_root='/work/op'),
+       signal('operations', 'operation_unreadable'),
+       signal('collection', 'collection_not_finished'),
+       signal('repository', 'repository_consumer_mismatch'),
+       signal('repository', 'repository_unavailable')]
+MINIMUM = (40, 12)
 
 
 class StripTests(unittest.TestCase):
@@ -96,9 +104,29 @@ class BandTests(unittest.TestCase):
             self.assertIn(response, line, line)
             self.assertLessEqual(cell_width(line), 80, line)
 
-    def test_a_reconciled_operation_is_no_longer_a_hazard(self):
-        # This session's newer result for the same operation wins over its older recorded signal.
-        self.assertIsNone(self.band({'operation': 'reconciled', 'operation_id': OPERATION}, [UNKNOWN], 80))
+    def test_a_newer_result_never_hides_a_recorded_condition(self):
+        # Only a newer read retires a recorded condition; the workspace reads again after any command that may write.
+        self.assertIn('a: reconcile', self.band({'operation': 'reconciled', 'operation_id': OPERATION}, [UNKNOWN], 80))
+
+    def test_the_count_survives_at_the_minimum_width(self):
+        from intune_iac.workbench_screens import hazard_rows
+        rows = hazard_rows({}, [ALL[6], DENIED], MINIMUM[0])
+        self.assertTrue(all(cell_width(row) <= MINIMUM[0] for row in rows), rows)
+        self.assertIn('+1 more: i', ' '.join(rows))
+
+    def test_a_service_changed_since_the_observation_shows_when_nothing_outranks_it(self):
+        eligibility = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
+                       'service_revision': 2}
+        line = self.band({'eligibility': eligibility}, [], 80)
+        self.assertIn('a: collect', line)
+        self.assertIn('changed', line.lower())
+        line = self.band({'eligibility': eligibility, 'operation': 'outcome_unknown'}, [UNKNOWN], 120)
+        self.assertIn('a: reconcile', line)
+        self.assertIn('+1 more: i', line)
+
+    def test_another_tenant_leads_the_band(self):
+        eligibility = {'code': 'maintenance_observation_incomplete', 'reason': 'tenant_mismatch'}
+        self.assertIn('tenant', self.band({'eligibility': eligibility}, [UNKNOWN, DENIED], 120).lower())
 
     def test_another_operations_result_never_hides_an_unknown_outcome(self):
         line = self.band({'operation': 'prepared', 'operation_id': 'f' * 32}, [UNKNOWN], 120)
@@ -116,6 +144,35 @@ class BandTests(unittest.TestCase):
 
     def test_no_hazard_draws_no_band(self):
         self.assertIsNone(self.band({'observation': 'fresh', 'repository': 'current'}, [], 80))
+
+
+class MinimumTests(unittest.TestCase):
+    """At the documented minimum the hazard, its response and the identities are whole, never cut."""
+    def test_the_documented_minimum_is_40_by_12(self):
+        from intune_iac.workbench_tui import MIN_SIZE
+        self.assertEqual(MIN_SIZE, MINIMUM)
+
+    def test_every_condition_fits_whole_at_the_minimum_width(self):
+        from intune_iac.workbench_screens import hazard_band
+        for found in ALL:
+            line = hazard_band({}, [found], MINIMUM[0])
+            self.assertLessEqual(cell_width(line), MINIMUM[0], line)
+            self.assertNotIn('...', line); self.assertNotIn('\u2026', line)
+            self.assertRegex(line, r'[a9i]: [a-z]', line)  # a: action, 9: repository, i: details
+
+    def test_the_strip_keeps_mode_tenant_and_whole_policy_at_the_minimum_width(self):
+        from intune_iac.workbench_screens import context_strip
+        facts = {'name': 'A very long policy name ' * 3, 'observation': 'stale', 'repository': 'stale',
+                 'operation': 'outcome_unknown'}
+        for mode, word in (('synthetic', 'SYNTHETIC'), ('graph_authenticated_observation', 'LIVE READ-ONLY'),
+                           (None, 'MODE UNKNOWN')):
+            line = context_strip(TENANT, POLICY, facts, MINIMUM[0], mode)
+            self.assertLessEqual(cell_width(line), MINIMUM[0], line)
+            self.assertTrue(line.startswith(word + ' | '), line)
+            self.assertIn('11111111', line); self.assertIn('22222222', line)
+            line = context_strip(TENANT, None, {}, MINIMUM[0], mode)
+            self.assertLessEqual(cell_width(line), MINIMUM[0], line)
+            self.assertTrue(line.startswith(word + ' | '), line); self.assertIn('11111111', line)
 
 
 class FrameTests(unittest.TestCase):
@@ -146,6 +203,25 @@ class FrameTests(unittest.TestCase):
                     self.assertIn('a: reconcile', band[0], (size, band[0]))
                     for row in rows:
                         self.assertLessEqual(cell_width(row.replace('\x1b[1m', '').replace('\x1b[22m', '')), size[0], row)
+
+    def test_at_the_minimum_size_the_full_frame_is_drawn(self):
+        rows = self.frame(MINIMUM)
+        self.assertEqual(len(rows), MINIMUM[1])
+        self.assertTrue(any('a: reconcile' in row for row in rows))
+        self.assertTrue(any(row.startswith('\u250c') for row in rows), rows)
+
+    def test_below_the_minimum_a_constrained_state_keeps_the_hazard(self):
+        for size in ((39, 30), (60, 11), (30, 8), (24, 3)):
+            rows = self.frame(size)
+            plain = [row.replace('\x1b[1m', '').replace('\x1b[22m', '') for row in rows]
+            self.assertEqual(len(rows), size[1], size)
+            for row in plain:
+                self.assertLessEqual(cell_width(row), size[0], (size, row))
+            joined = '\n'.join(plain)
+            self.assertIn('a: reconcile', joined, size)
+            self.assertIn('unknown', joined.lower(), size)
+            self.assertIn('below 40x12', joined.lower(), size)
+            self.assertNotIn('metadata line', joined, size)  # no body below the minimum
 
     def test_the_band_sits_above_the_body_in_the_first_rows(self):
         rows = self.frame((48, 20))

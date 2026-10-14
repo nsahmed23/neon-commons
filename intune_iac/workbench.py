@@ -316,15 +316,19 @@ def _next_actions(value, attention, service_available):
 # local evidence, so "reads" never stands for "changes nothing".
 ACTION_EFFECTS = {
     'reconcile': 'Reads the modeled service on its own, then records a reconciliation receipt and a journal entry for '
-                 'this operation. It never replays the write.',
+                 'this operation and records the operation in this store. It never replays the write.',
     'collect': 'Reads the configured modeled service and records a new collection run in the store, including a denied '
                'or partial result.',
-    'repository-refresh': "Reads the repository's current files and records them as a new intent; the earlier intent is "
-                          'kept. It is not a Git commit, an approval or an apply.',
-    'propose-from-intent': 'Checks the observation and the recorded intent, then writes a new operation directory and two '
-                           'input files beside it. Nothing is approved or sent.',
-    'propose': 'Checks the observation and the desired file, then writes a new operation directory. Nothing is approved '
-               'or sent.',
+    'repository-refresh': 'Shows the source difference first (Repository surface) and binds the command to it. Then reads '
+                          "the repository's current files and records them as a new intent, refusing if they changed since "
+                          'the difference was shown; the earlier intent is kept. It is not a Git commit, an approval or an '
+                          'apply.',
+    'propose-from-intent': 'Checks the recorded intent, then writes the two input files beside a new operation directory '
+                           'before the remaining checks; if one of them refuses (a stale observation, for example), the two '
+                           'files stay. Otherwise it writes the operation directory and records the operation in this '
+                           'store. Nothing is approved or sent.',
+    'propose': 'Checks the desired file and the observation, then writes a new operation directory and records the '
+               'operation in this store. Nothing is approved or sent.',
     'repository-entry': 'Reads the repository and lists its policies with the exact command to record each. It writes '
                         'nothing.',
     'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why. It '
@@ -357,18 +361,44 @@ def _refusal(code):
         return {'code': error.code, 'message': error.message}
 
 
-def _proposal_blocker(store, object_id, attention, intent, service_root):
+# Areas that must be read completely before a change is offered; device evidence is reported apart.
+REQUIRED_AREAS = ('collection', 'freshness', 'operations', 'repository')
+# Signals that offer reconcile, in the band's order.
+RECONCILE_CODES = ('operation_outcome_unknown', 'operation_diverged', 'operation_record_disagrees')
+_UNREAD = object()
+
+
+def _attention_established(attention):
+    """Whether diagnostics read every area a change depends on; findings in a partly read area do not count."""
+    checked = attention.get('checked') if isinstance(attention.get('checked'), dict) else {}
+    return (attention.get('status') not in ('unavailable', 'partly_checked')
+            and not any(checked.get(area) in ('unavailable', 'partly_checked') for area in REQUIRED_AREAS))
+
+
+def _eligibility(store, object_id, service_root):
+    """The observation check a proposal makes, read on its own: None when it passes or no service is configured."""
+    from . import maintenance
+    if service_root is None:
+        return None
+    try:
+        return maintenance.proposal_eligibility(store.root, service_root, object_id)
+    except AppError as error:
+        return {'code': error.code, 'reason': None, 'message': error.message}
+
+
+def _proposal_blocker(store, object_id, attention, intent, service_root, eligibility=_UNREAD):
     """Why a proposal cannot be prepared now, from the same checks the proposal makes; None when nothing blocks it."""
+    import copy
     from . import maintenance
     if service_root is None:
         return {'code': 'service_required', 'message': 'needs --service-root (a modeled service) to prepare a proposal'}
-    if attention.get('status') in ('unavailable', 'partly_checked'):
+    if not _attention_established(attention):
         # The Inspector's own rule: until diagnostics are read, whether anything needs attention is not established,
         # so no change is offered. The engine would still accept the command typed by hand.
         return {'code': 'workbench_attention_not_established',
                 'message': 'not offered until diagnostics are read: whether anything needs attention is not established'}
     if intent is not None:
-        from .workbench_repository import _usable_intent
+        from .workbench_repository import _usable_intent, capability_problems
         try:
             _usable_intent(intent, code_prefix='workbench')
         except AppError as error:
@@ -378,12 +408,19 @@ def _proposal_blocker(store, object_id, attention, intent, service_root):
                 if found.get(code, {}).get('observed'):
                     return {'code': error.code, 'reason': reason, 'message': str(found[code]['observed']).rstrip('.')}
             return {'code': error.code, 'message': error.message}
-    try:
-        problem = maintenance.proposal_eligibility(store.root, service_root, object_id)
-    except AppError as error:
-        return {'code': error.code, 'message': error.message}
+        # The checks propose_from_intent and propose make on the desired body, in their order.
+        if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
+            return {'code': 'workbench_desired_capability', 'message': 'the desired settings include a definition or value '
+                    'outside the supported offline capability map, so the reference component cannot propose them'}
+        try:
+            maintenance._desired(copy.deepcopy(intent['data']['desired']))
+        except AppError as error:
+            return {'code': error.code, 'message': error.message}
+    problem = _eligibility(store, object_id, service_root) if eligibility is _UNREAD else eligibility
     if problem is None:
         return None
+    if not problem.get('reason'):
+        return {'code': problem['code'], 'message': problem.get('message') or _refusal(problem['code'])['message']}
     return {'code': problem['code'], 'reason': problem['reason'], 'message': _reason_words(problem)}
 
 
@@ -417,7 +454,7 @@ def _reason_words(problem):
     return words.get(reason) or _refusal(problem['code'])['message']
 
 
-def _actions(store, object_id, attention, intent, service_root):
+def _actions(store, object_id, attention, intent, service_root, *, eligibility=_UNREAD, evidence_class=None):
     """The guided actions for one policy, built from structured evidence, never parsed from prose.
 
     Each has the exact command where every argument is known (or the cursor where a missing input goes), the inputs
@@ -425,32 +462,43 @@ def _actions(store, object_id, attention, intent, service_root):
     everything; these only say earlier what the action itself would say.
     """
     binding = {'tenant_id': store.tenant_id, 'object_id': object_id}
-    found = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
+    if evidence_class:
+        binding['evidence_class'] = evidence_class
+    signals = [signal for signal in attention.get('signals') or [] if isinstance(signal, dict)]
+    found = {signal.get('code'): signal for signal in signals}
     actions = []
 
-    def offer(kind, label, command, *, cursor=None, needs=(), blocked=None, extra=None):
+    def offer(kind, label, command, *, cursor=None, needs=(), blocked=None, extra=None, show_first=None):
         actions.append({'kind': kind, 'label': label, 'command': command, 'cursor': cursor, 'needs': list(needs),
                         'effects': ACTION_EFFECTS[kind], 'available': blocked is None, 'blocked': blocked,
-                        'binding': dict(binding, **(extra or {}))})
+                        'show_first': show_first, 'binding': dict(binding, **(extra or {}))})
 
-    if attention.get('status') in ('unavailable', 'partly_checked'):
+    if not _attention_established(attention):
         offer('diagnostics', 'Show what diagnostics could not read', 'diagnostics')
-    for code in ('operation_outcome_unknown', 'operation_diverged', 'operation_record_disagrees'):
-        evidence = (found.get(code) or {}).get('evidence') or {}
-        if evidence.get('operation_root'):
-            offer('reconcile', 'Reconcile operation %s' % str(evidence.get('operation_id'))[:8],
-                  'reconcile ' + shlex.quote(str(evidence['operation_root'])),
-                  extra={'operation_id': evidence.get('operation_id'), 'operation_root': evidence['operation_root']})
+    # One reconcile per operation, in the band's order, so the band and the list name the same operation first.
+    seen = set()
+    for signal in sorted((item for item in signals if item.get('code') in RECONCILE_CODES),
+                         key=lambda item: RECONCILE_CODES.index(item['code'])):
+        evidence = signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}
+        operation_root = evidence.get('operation_root')
+        if not operation_root or operation_root in seen:
+            continue
+        seen.add(operation_root)
+        short = str(evidence.get('operation_id'))[:8]
+        label = ('Reconcile operation %s again (reads only; a divergence needs a reviewed change)' % short
+                 if signal['code'] == 'operation_diverged' else 'Reconcile operation %s' % short)
+        offer('reconcile', label, 'reconcile ' + shlex.quote(str(operation_root)),
+              extra={'operation_id': evidence.get('operation_id'), 'operation_root': operation_root})
     no_service = None if service_root else {'code': 'service_required', 'message': 'needs --service-root (a modeled '
                                             'service); a headless or scheduled collector can collect instead'}
     if any(code in found for code in ('collection_failed', 'collection_not_finished', 'observation_stale')):
         offer('collect', 'Collect again', 'collect', blocked=no_service)
     if any(code in found for code in ('repository_stale', 'repository_consumer_mismatch')):
-        offer('repository-refresh', "Record the repository's current source as a new intent (9 shows the difference first)",
-              'repository-refresh ', cursor=len('repository-refresh '),
+        offer('repository-refresh', "Record the repository's current source as a new intent (shows the difference first)",
+              'repository-refresh ', cursor=len('repository-refresh '), show_first='repository-status',
               needs=['REVISION: the 40-character commit the repository is at; with no pinned git here it is recorded as '
                      'asserted, not verified against the files'])
-    blocked = _proposal_blocker(store, object_id, attention, intent, service_root)
+    blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
     if (blocked or {}).get('reason') in RECOLLECT_REASONS and not any(action['kind'] == 'collect' for action in actions):
         # The proposal's own check names collecting again as the fix, even when nothing recorded says so yet.
         offer('collect', 'Collect again', 'collect', blocked=no_service)
@@ -485,9 +533,12 @@ def _inspection(store, object_id, *, attention=False, service_available=False, s
     writer = ownership(store, object_id, scope)
     if attention:
         found = _attention(store, object_id)
-        value = {**value, 'attention': found,
+        service = None if service_root is None else str(service_root)
+        eligibility = _eligibility(store, object_id, service)
+        value = {**value, 'attention': found, 'observation_eligibility': eligibility,
                  'next_actions': _next_actions({'selected_repository': intent}, found, service_available or service_root is not None),
-                 'actions': _actions(store, object_id, found, intent, None if service_root is None else str(service_root))}
+                 'actions': _actions(store, object_id, found, intent, service, eligibility=eligibility,
+                                     evidence_class=value.get('evidence_class'))}
     return {**value, 'raw_capture_observation': raw_capture,
             'ownership': writer['status'], 'ownership_evidence': writer,
             'selected_repository': None if intent is None else {
@@ -662,7 +713,8 @@ HELP = {
                    'repository-entry REPOSITORY (the policies a repository holds and the exact command to record each)',
                    'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
                    'repository-status (selected object: is its latest repository intent still current?)',
-                   'repository-refresh REVISION (selected object: record the current source as a new intent)',
+                   'repository-refresh REVISION [RESOLUTION_SHA256] (selected object: record the current source as a new '
+                   'intent; with the digest the Repository surface showed, refused if the source changed since)',
                    'source-review PROPOSAL_DIR DIGEST',
                    'source-edit PROPOSAL_DIR DIGEST EXPIRY ACK-LOCAL-FILE-EDIT',
                    'source-edit-status SOURCE_ROOT OPERATION_ID',
@@ -836,7 +888,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 if selected is None:
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 if name == 'repository-status' and not values: result = repository.status(store, selected)
-                elif name == 'repository-refresh' and len(values) == 1: result = repository.refresh_intent(store, selected, values[0])
+                elif name == 'repository-refresh' and len(values) in (1, 2):
+                    result = repository.refresh_intent(store, selected, values[0],
+                                                       expected_resolution=values[1] if len(values) == 2 else None)
                 elif name == 'propose-from-intent' and len(values) == 1:
                     if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')
                     result = repository.propose_from_intent(root, service_root, selected, values[0])

@@ -126,6 +126,24 @@ class DiagnosticsEdgeTests(unittest.TestCase):
         self.assertIn("reconcile '%s'" % (self.root / 'change one'), signal['next_step'])
         self.assertEqual(value['checked']['operations'], 'attention')
 
+    def test_an_incomplete_operations_read_with_findings_is_still_partly_checked(self):
+        from unittest import mock
+        from intune_iac import maintenance, workbench_diagnostics
+        from intune_iac.workbench_repository import refresh_intent
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        # The bounded read takes the oldest records, so the operation with the unknown outcome comes first.
+        review = self.propose('first')
+        maintenance.execute(self.root / 'first', approve_digest=review['approval_digest'], fault='lost-response')
+        self.store.collect(self.service)  # the lost response still changed the service
+        self.propose('second')
+        with mock.patch.object(workbench_diagnostics, 'OPERATION_PAGE', 1), \
+                mock.patch.object(workbench_diagnostics, 'MAX_OPERATION_RECORDS', 1):
+            value, signals = self.view()
+        self.assertIn('operation_outcome_unknown', signals)
+        self.assertEqual(value['checked']['operations'], 'partly_checked')
+
     def test_operations_beyond_the_read_bound_are_reported_as_partly_checked(self):
         from unittest import mock
         from intune_iac import workbench_diagnostics

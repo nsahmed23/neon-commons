@@ -236,7 +236,8 @@ def diagnostics(store, object_id):
         found, complete = _operations(store, object_id)
         if not complete:
             limitations.append('Operation records for this policy exceed the read bound; the oldest were not checked.')
-        return found, 'attention' if found else 'clear' if complete else 'partly_checked'
+        # An incomplete read stays partly checked even when it found something: what it did not read is unknown.
+        return found, 'partly_checked' if not complete else 'attention' if found else 'clear'
 
     _area(signals, checked, 'operations', operations)
     _area(signals, checked, 'repository', lambda: _repository(store, object_id))

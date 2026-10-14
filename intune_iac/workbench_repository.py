@@ -95,7 +95,7 @@ def intent_freshness(data):
     removed and changed sources and the desired difference at the intent's
     pointer. ``unavailable`` means the repository cannot be resolved now.
     """
-    from .io import AppError, canonical
+    from .io import AppError, canonical, digest
     from .repository import public_resolution, resolve_component
     from .workbench_diff import field_changes
     from .workbench_views import _pointer
@@ -118,6 +118,8 @@ def intent_freshness(data):
         desired_now = None
     result.update(
         status='current' if canonical(fresh) == canonical(recorded) else 'stale',
+        # What a reader is shown; a refresh bound to it refuses a repository that moved on since.
+        resolution_sha256=digest(fresh),
         sources={'added': sorted(set(after) - set(before)), 'removed': sorted(set(before) - set(after)),
                  'changed': sorted(path for path in set(before) & set(after) if before[path] != after[path])},
         pointer_present=desired_now is not None,
@@ -161,10 +163,18 @@ def status(store, object_id):
             'next_action': NEXT_ACTIONS[freshness['status']], 'execution_authorized': False, 'cloud_authority': False}
 
 
-def refresh_intent(store, object_id, revision, *, git_executable=None, git_sha256=None):
-    """Re-import the latest intent's exact repository, stack, component, pointer, backend and address."""
+def refresh_intent(store, object_id, revision, *, expected_resolution=None, git_executable=None, git_sha256=None):
+    """Re-import the latest intent's exact repository, stack, component, pointer, backend and address.
+
+    With expected_resolution (the resolution_sha256 of the difference that was shown), a repository that changed
+    again since is refused, so a refresh never records a difference nobody was shown.
+    """
+    from .io import AppError
     from .workbench_views import import_repository
     data = latest_intent(store, object_id)['data']
+    if expected_resolution is not None and intent_freshness(data).get('resolution_sha256') != expected_resolution:
+        raise AppError('workbench_difference_changed', 'The repository changed again after its difference was shown; '
+                       'review the difference again before recording it.')
     scope = data['scope']
     return import_repository(store, scope['repository'], scope['stack'], scope['component'], object_id,
                              data['effective_pointer'], revision, scope['backend'], data['resource_address'],

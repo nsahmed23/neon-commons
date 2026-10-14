@@ -329,7 +329,8 @@ class VisualPTYTests(unittest.TestCase):
         self.assertNotIn('\u202e'.encode(), self.output)
         start = len(self.output)
         fcntl.ioctl(self.slave, termios.TIOCSWINSZ, struct.pack('HHHH', 14, 32, 0, 0))
-        self.read_until(b'+' + b'-' * 30 + b'+', start)
+        # 32 columns is below the documented minimum (40x12): the constrained state, which still takes input.
+        self.read_until(b'below 40x12', start)
         self.key(b'\x1b[200~execute /not/approved invalid\nquit\x1b[201~\x1b', marker=b'EDIT CANCELLED')
         self.assertIsNone(self.proc.poll())
         self.assertEqual(self.store.operations(), [])

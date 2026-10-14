@@ -57,8 +57,10 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     hazard band below the strip always carries the primary one).
     """
     lead = [mode_word(mode_class), 'TENANT ' + short_id(tenant)]
+    tight = [mode_word(mode_class), 'T ' + short_id(tenant)]
     if not selected:
-        return ' | '.join(lead + ['POLICY none selected'])
+        forms = [' | '.join(lead + ['POLICY none selected']), ' | '.join(tight + ['no policy']), ' | '.join(tight)]
+        return next((text for text in forms if cell_width(safe_text(text)) <= width), forms[-1])
     policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + short_id(selected) + ')'
     states = [('OBSERVED', 'OBS', facts.get('observation', 'unknown')), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
     if facts.get('operation'):
@@ -77,13 +79,22 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
                                            for long, short, value in remaining])
         if cell_width(safe_text(text)) <= width:
             return text
+    # Narrower still: short labels, the whole short policy id, and hazards before nothing.
+    for remaining in (hazards, hazards[:1], []):
+        text = ' | '.join(tight + ['P ' + short_id(selected)] + [short + ' ' + SHORT_STATES.get(str(value), str(value))
+                                                                 for long, short, value in remaining])
+        if cell_width(safe_text(text)) <= width:
+            return text
     return text
 
 
 # The primary hazard's ranking, its words and the key that offers its response (a: the action list).
-BAND_RANK = ('operation_outcome_unknown', 'operation_diverged', 'operation_record_disagrees', 'operation_unreadable',
-             'collection_failed', 'collection_not_finished', 'repository_stale', 'repository_consumer_mismatch',
-             'repository_unavailable', 'observation_stale')
+BAND_RANK = ('observation_tenant_mismatch', 'operation_outcome_unknown', 'operation_diverged', 'operation_record_disagrees',
+             'operation_unreadable', 'collection_failed', 'collection_not_finished', 'repository_stale',
+             'repository_consumer_mismatch', 'repository_unavailable', 'observation_stale', 'observation_service_changed',
+             'observation_policy_changed', 'observation_source_mismatch', 'conditions_not_reread')
+# The proposal's own observation checks that diagnostics does not record, shown in the band when they fail.
+BAND_ELIGIBILITY = ('tenant_mismatch', 'service_changed', 'policy_changed', 'source_mismatch')
 OPERATION_SIGNAL = {'outcome_unknown': 'operation_outcome_unknown', 'diverged': 'operation_diverged',
                     'records disagree': 'operation_record_disagrees', 'unreadable': 'operation_unreadable'}
 
@@ -96,45 +107,144 @@ def _band_forms(primary):
         return ['! Operation %s: outcome unknown. a: reconcile (never replays)' % operation if operation else
                 '! Operation outcome unknown. a: reconcile (never replays)',
                 '! Outcome unknown%s. a: reconcile' % (' (op %s)' % operation if operation else ''), '! Outcome unknown. a: reconcile']
-    if code in ('operation_diverged', 'operation_record_disagrees', 'operation_unreadable'):
-        words = {'operation_diverged': 'diverged from its plan', 'operation_record_disagrees': 'records disagree',
-                 'operation_unreadable': 'records unreadable'}[code]
-        return ['! Operation %s %s. a: reconcile, i: details' % (operation, words), '! Operation %s. a: reconcile' % words]
+    if code == 'observation_tenant_mismatch':
+        return ['! The configured service is for another tenant than this store. Restart with the right --service-root',
+                '! Service is for another tenant. Fix --service-root', '! Other tenant. Fix --service-root']
+    if code == 'observation_service_changed':
+        return ['! The modeled service changed since this observation (revision %s, now %s). a: collect again'
+                % (evidence.get('observed_revision'), evidence.get('service_revision')),
+                '! Service changed since this observation. a: collect', '! Service changed. a: collect']
+    if code == 'observation_policy_changed':
+        return ['! This policy changed in the service since this observation. a: collect again',
+                '! Policy changed in the service. a: collect', '! Policy changed. a: collect']
+    if code == 'observation_source_mismatch':
+        return ['! The observation came from another service. a: collect from this one',
+                '! Observation from another service. a: collect', '! Other source. a: collect']
+    if code == 'conditions_not_reread':
+        command = evidence.get('command') or 'the last command'
+        return ['! Conditions not re-read after %s. 2: re-read' % command, '! Not re-read after %s. 2: re-read' % command,
+                '! Not re-read. 2: re-read']
+    if code == 'operation_unreadable':
+        # No reconcile is offered for records that cannot be read; diagnostics say which and why.
+        return ['! Operation %s records unreadable. i: details' % operation, '! Op records unreadable. i: details']
+    if code in ('operation_diverged', 'operation_record_disagrees'):
+        words, short = {'operation_diverged': ('diverged from its plan', 'diverged'),
+                        'operation_record_disagrees': ('records disagree', 'records disagree')}[code]
+        return ['! Operation %s %s. a: reconcile, i: details' % (operation, words), '! Operation %s. a: reconcile' % words,
+                '! Op %s. a: reconcile' % short]
     if code == 'collection_failed':
         status = str(evidence.get('status') or 'failed')
         return ['! Last collection %s; the kept observation is stale. a: collect again' % status,
-                '! Last collection %s. a: collect' % status]
+                '! Last collection %s. a: collect' % status, '! Collection %s. a: collect' % status]
     if code == 'collection_not_finished':
         return ['! A collection started and recorded no end. a: collect again', '! Collection unfinished. a: collect']
     if code in ('repository_stale', 'repository_consumer_mismatch'):
-        words = 'changed since its intent' if code == 'repository_stale' else 'no longer consumes this policy'
-        return ['! Repository %s. 9: difference, a: refresh' % words, '! Repository %s. a: refresh' % words.split(' since')[0]]
+        words, short = (('changed since its intent', 'changed') if code == 'repository_stale' else
+                        ('no longer consumes this policy', 'consumer changed'))
+        return ['! Repository %s. 9: difference, a: refresh' % words, '! Repository %s. a: refresh' % short,
+                '! Repo %s. a: refresh' % short]
     if code == 'repository_unavailable':
         return ['! Repository intent cannot be read. 9: repository, i: details', '! Repository unreadable. 9: repository']
     return ['! Observation stale. a: collect again', '! Observation stale. a: collect']
 
 
 def hazard_band(facts, signals, width):
-    """The primary hazard for the selected policy and the key for its response, or None when nothing is recorded.
+    """The band's first row: the primary hazard and the key for its response, or None when nothing is recorded."""
+    rows = hazard_rows(facts, signals, width)
+    return rows[0] if rows else None
+
+
+def hazard_rows(facts, signals, width):
+    """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
+    findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
+    for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded."""
+    primary, others = _band_primary(facts, signals)
+    if primary is None:
+        return []
+    notes = (['+%d more: i' % others] if others else []) + (
+        ['not re-read after %s: 2 re-reads' % facts['unverified']]
+        if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
+    forms = _band_forms(primary)
+    suffix = '  ' + ' | '.join(notes) if notes else ''
+    for form in forms:
+        if cell_width(form + suffix) <= width:
+            return [form + suffix]
+    rows = next(([form] for form in forms if cell_width(form) <= width), None)
+    if rows is None:
+        condition, response = forms[-1].rsplit('. ', 1)
+        rows = word_wrap(condition + '.', width) + word_wrap(response, width)
+    return rows + _pack(notes, width)
+
+
+def _pack(items, width):
+    """Items joined by ' | ' into as few lines as fit the width; an item wider than the width is cut."""
+    lines = []
+    for item in items:
+        if lines and cell_width(lines[-1] + ' | ' + item) <= width:
+            lines[-1] += ' | ' + item
+        else:
+            lines.append(item if cell_width(item) <= width else fit(item, width))
+    return lines
+
+
+def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt):
+    """The window below the minimum size: (lines, band_rows), never the body.
+
+    When rows run out they are kept in this order: the primary hazard with its response, the evidence mode with the
+    constraint, the prompt, the tenant and policy with their hazard states, the keys. They are shown top to bottom as
+    mode, identities, hazard, prompt, keys.
+    """
+    mode = mode_word(mode_class)
+    header = next((text for text in ('%s | window below %s: enlarge it' % (mode, need), '%s; window below %s' % (mode, need),
+                                     '%s; below %s' % (mode, need), 'Below %s' % need) if cell_width(text) <= width),
+                  fit('Below %s' % need, width))
+    states = [('OBSERVED', 'OBS', facts.get('observation')), ('REPOSITORY', 'REPO', facts.get('repository')),
+              ('OPERATION', 'OP', facts.get('operation'))]
+    items = ['T ' + short_id(tenant), 'P ' + short_id(selected) if selected else 'no policy'] + [
+        short + ' ' + SHORT_STATES.get(str(value), str(value)) for label, short, value in states
+        if selected and str(value) in HAZARD_STATES[label]]
+    keys = next((text for text in ('q exits; Esc discards a typed command', 'q exits; Esc discards', 'q exits')
+                 if cell_width(text) <= width), '')
+    groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
+              'band': hazard_rows(facts, facts.get('signals') or [], width) if selected else []}
+    budget, kept = height, {}
+    for name in ('band', 'header', 'prompt', 'strip', 'keys'):
+        kept[name] = groups[name][:max(0, budget)]
+        budget -= len(kept[name])
+    lines, band_rows = [], []
+    for name in ('header', 'strip', 'band', 'prompt', 'keys'):
+        for line in kept[name]:
+            if name == 'band':
+                band_rows.append(len(lines))
+            lines.append(line)
+    return lines, band_rows
+
+
+def _band_primary(facts, signals):
+    """The primary hazard and the number of other findings, or (None, 0).
 
     The operation's live status (from this session's results) wins over an older recorded signal: a reconciled
     operation is no longer a hazard, and one known only from this session still is. Other recorded signals are
     counted, with the key that lists them all.
     """
+    # A recorded condition is retired only by a newer read (the workspace reads again after any command that may
+    # write), never by a status from a result, which can describe the journal and not the condition.
     operation, operation_id = facts.get('operation'), facts.get('operation_id')
     live = [item for item in signals or [] if isinstance(item, dict)]
 
     def about(item):
         evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else {}
         return evidence.get('operation_id')
-    if operation_id and operation not in OPERATION_SIGNAL:
-        # This session's newer result for that operation resolved it; only that operation's older signal is set aside.
-        live = [item for item in live if not (item.get('area') == 'operations' and about(item) == operation_id)]
+    eligibility = facts.get('eligibility') if isinstance(facts.get('eligibility'), dict) else {}
+    if eligibility.get('reason') in BAND_ELIGIBILITY:
+        live.append({'area': 'eligibility', 'code': 'observation_' + eligibility['reason'], 'evidence': dict(eligibility)})
     if operation in OPERATION_SIGNAL and not any(item.get('code') == OPERATION_SIGNAL[operation]
                                                  and (not operation_id or about(item) in (None, operation_id)) for item in live):
         # Known from this session's own result before diagnostics recorded it.
         live.append({'area': 'operations', 'code': OPERATION_SIGNAL[operation],
                      'evidence': {'operation_id': operation_id} if operation_id else {}})
+    if facts.get('unverified') and not live:
+        live.append({'area': 'workspace', 'code': 'conditions_not_reread', 'evidence': {'command': facts['unverified']}})
     unique = {}
     for item in live:
         unique.setdefault((item.get('code'), about(item)), item)
@@ -142,15 +252,9 @@ def hazard_band(facts, signals, width):
     ranked = sorted((item for item in live if item.get('code') in BAND_RANK), key=lambda item: BAND_RANK.index(item['code']))
     primary = ranked[0] if ranked else None
     if primary is None:
-        return None
+        return None, 0
     # Every other finding is counted, the same kind for another operation included.
-    others = len([item for item in live if item is not primary])
-    more = '  +%d more: i' % others if others else ''
-    forms = _band_forms(primary)
-    for text in [form + more for form in forms] + forms:
-        if cell_width(text) <= width:
-            return text
-    return fit(forms[-1], width)
+    return primary, len([item for item in live if item is not primary])
 
 
 def utc_time(value):

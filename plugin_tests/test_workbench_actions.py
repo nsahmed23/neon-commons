@@ -123,6 +123,96 @@ class ActionReadModelTests(unittest.TestCase):
         self.store.collect(self.service)
         self.assertTrue(self.actions()['propose-from-intent']['available'])
 
+    def test_a_value_outside_the_capability_map_blocks_the_proposal_as_the_engine_would(self):
+        import yaml
+        from intune_iac.workbench_repository import refresh_intent
+        self.import_intent()
+        stack = self.repo / repository_tests.STACK
+        document = yaml.safe_load(stack.read_text())
+        policy = document['components']['terraform']['intune-reference']['vars']['policies'][repository_tests.KEY]
+        instance = policy['settings']['settings'][0]['settingInstance']
+        instance['choiceSettingValue']['value'] = instance['settingDefinitionId'] + '_1'
+        stack.write_text(yaml.safe_dump(document))
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        blocked = self.actions()['propose-from-intent']
+        self.assertFalse(blocked['available'])
+        self.assertEqual(blocked['blocked']['code'], 'workbench_desired_capability')
+
+    def test_a_shown_difference_binds_the_refresh(self):
+        from intune_iac.io import AppError
+        from intune_iac.workbench_repository import intent_freshness, latest_intent, refresh_intent
+        self.import_intent()
+        self.edit_description('First edit, shown.')
+        shown = intent_freshness(latest_intent(self.store, OBJECT)['data'])['resolution_sha256']
+        self.edit_description('Second edit, never shown.')
+        with self.assertRaises(AppError) as caught:
+            refresh_intent(self.store, OBJECT, 'b' * 40, expected_resolution=shown)
+        self.assertEqual(caught.exception.code, 'workbench_difference_changed')
+        current = intent_freshness(latest_intent(self.store, OBJECT)['data'])['resolution_sha256']
+        refresh_intent(self.store, OBJECT, 'b' * 40, expected_resolution=current)
+        self.assertEqual(intent_freshness(latest_intent(self.store, OBJECT)['data'])['status'], 'current')
+
+    def test_the_refresh_action_shows_the_difference_before_it_is_staged(self):
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        refresh = self.actions()['repository-refresh']
+        self.assertEqual(refresh['show_first'], 'repository-status')
+        self.assertIn('Shows the source difference first', refresh['effects'])
+
+    def test_the_observation_check_is_reported_on_its_own(self):
+        from intune_iac import maintenance
+        operation, _ = self.lost_response()
+        maintenance.reconcile(operation)
+        eligibility = self.inspection()['observation_eligibility']
+        self.assertEqual((eligibility['code'], eligibility['reason']), ('maintenance_observation_stale', 'service_changed'))
+        self.store.collect(self.service)
+        self.assertIsNone(self.inspection()['observation_eligibility'])
+
+    def test_an_incomplete_check_area_withholds_the_change_even_with_findings(self):
+        from intune_iac.workbench import _actions
+        from intune_iac.workbench_views import _intents, _latest
+        self.import_intent()
+        intent = _latest(_intents(self.store, OBJECT, None))
+        attention = {'status': 'attention', 'checked': {'operations': 'unavailable', 'repository': 'clear'},
+                     'signals': [{'area': 'operations', 'code': 'operations_unavailable', 'observed': 'x',
+                                  'next_step': 'y', 'evidence': {}}]}
+        actions = _actions(self.store, OBJECT, attention, intent, str(self.service.root))
+        self.assertEqual(actions[0]['kind'], 'diagnostics')
+        proposal = {action['kind']: action for action in actions}['propose-from-intent']
+        self.assertEqual(proposal['blocked']['code'], 'workbench_attention_not_established')
+
+    def test_every_unknown_outcome_gets_its_own_reconcile_in_band_order(self):
+        from intune_iac.workbench import _actions
+        def unknown(operation, path):
+            return {'area': 'operations', 'code': 'operation_outcome_unknown', 'observed': 'x', 'next_step': 'y',
+                    'evidence': {'operation_id': operation, 'operation_root': path}}
+        attention = {'status': 'attention', 'checked': {}, 'signals': [unknown('1' * 32, '/w/one'), unknown('2' * 32, '/w/two')]}
+        reconciles = [action for action in _actions(self.store, OBJECT, attention, None, str(self.service.root))
+                      if action['kind'] == 'reconcile']
+        self.assertEqual([action['binding']['operation_root'] for action in reconciles], ['/w/one', '/w/two'])
+
+    def test_a_diverged_operation_is_reconciled_again_as_a_read(self):
+        from intune_iac.workbench import _actions
+        attention = {'status': 'attention', 'checked': {}, 'signals': [
+            {'area': 'operations', 'code': 'operation_diverged', 'observed': 'x', 'next_step': 'y',
+             'evidence': {'operation_id': '1' * 32, 'operation_root': '/w/one'}}]}
+        action = [item for item in _actions(self.store, OBJECT, attention, None, str(self.service.root))
+                  if item['kind'] == 'reconcile'][0]
+        self.assertIn('again', action['label'])
+        self.assertIn('reads only', action['label'])
+
+    def test_effects_say_what_is_written_and_when(self):
+        from intune_iac.workbench import ACTION_EFFECTS
+        self.assertIn('before', ACTION_EFFECTS['propose-from-intent'])
+        self.assertIn('stay', ACTION_EFFECTS['propose-from-intent'])
+        for kind in ('propose-from-intent', 'propose', 'reconcile'):
+            self.assertIn('records the operation in this store', ACTION_EFFECTS[kind])
+
+    def test_the_binding_names_the_evidence_mode(self):
+        self.import_intent()
+        binding = self.actions()['propose-from-intent']['binding']
+        self.assertEqual(binding['evidence_class'], self.store.inspect(OBJECT)['evidence_class'])
+
     def test_unread_diagnostics_offer_the_diagnostics_and_no_change(self):
         # Whether anything needs attention is not established, so no change is offered (as the NEXT steps already said).
         from intune_iac.workbench import _actions
@@ -297,13 +387,72 @@ class ActionStagingTests(unittest.TestCase):
         workspace.receive(actions_value())
         self.assertIsNone(workspace.quiet)
 
-    def test_a_failed_read_keeps_nothing_stale(self):
+    def test_a_failed_read_keeps_the_conditions_marked_not_re_read(self):
+        from intune_iac.workbench_screens import hazard_rows
         workspace = self.workspace()
-        workspace.facts['signals'] = [{'code': 'collection_failed', 'area': 'collection'}]
+        workspace.facts['signals'] = [{'code': 'collection_failed', 'area': 'collection', 'evidence': {'status': 'denied'}}]
+        workspace.last_command = 'collect'
         workspace.quiet = {'purpose': 'refresh', 'state': 'sent'}
         workspace.receive({'status': 'error', 'error': {'code': 'diagnostics_unavailable', 'message': 'unreadable'}})
-        self.assertNotIn('signals', workspace.facts)
+        self.assertEqual([signal['code'] for signal in workspace.facts['signals']], ['collection_failed'])
+        self.assertEqual(workspace.facts['unverified'], 'collect')
         self.assertNotIn('actions', workspace.facts)
+        self.assertIn('could not be read again', workspace.notice)
+        self.assertIn('not re-read', ' '.join(hazard_rows(workspace.facts, workspace.facts['signals'], 100)))
+
+    def test_with_nothing_recorded_a_failed_read_is_itself_shown(self):
+        from intune_iac.workbench_screens import hazard_rows
+        rows = hazard_rows({'unverified': 'collect'}, [], 100)
+        self.assertTrue(rows and rows[0].startswith('! '), rows)
+        self.assertIn('2: re-read', rows[0])
+
+    def test_a_successful_read_clears_the_mark(self):
+        workspace = self.workspace()
+        workspace.facts['unverified'] = 'collect'
+        workspace.quiet = {'purpose': 'refresh', 'state': 'sent'}
+        workspace.receive(actions_value())
+        self.assertNotIn('unverified', workspace.facts)
+
+    def test_staging_a_refresh_shows_the_difference_first_and_binds_it(self):
+        workspace = self.workspace()
+        refresh = {'kind': 'repository-refresh', 'label': 'Record the current source', 'command': 'repository-refresh ',
+                   'cursor': len('repository-refresh '), 'needs': ['REVISION: the commit'], 'available': True,
+                   'effects': 'Shows the source difference first.', 'blocked': None, 'show_first': 'repository-status',
+                   'binding': {'tenant_id': TENANT, 'object_id': OBJECT}}
+        value = actions_value()
+        value['actions'] = [refresh]
+        self.press_a(workspace, value)
+        self.assertEqual(self.keys(workspace, ['enter']), 'repository-status')  # the difference is shown first
+        self.assertIsNone(workspace.mode)
+        workspace.receive({'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                           'freshness': {'status': 'stale', 'resolution_sha256': 'c' * 64}})
+        self.assertEqual(workspace.mode, 'command')
+        self.assertEqual(workspace.buffer, 'repository-refresh  ' + 'c' * 64)
+        self.assertEqual(workspace.cursor, len('repository-refresh '))
+        self.assertIn('difference', workspace.notice)
+
+    def test_a_staged_action_never_follows_a_changed_evidence_mode(self):
+        workspace = self.workspace()
+        value = actions_value()
+        value['actions'][0]['binding']['evidence_class'] = 'synthetic'
+        workspace.facts['evidence_class'] = 'synthetic'
+        self.press_a(workspace, value)
+        class Stop(Exception):
+            pass
+        class Reader:
+            def __init__(self, keys): self.keys = list(keys)
+            def read(self):
+                if not self.keys: raise Stop()
+                return self.keys.pop(0)
+        workspace.key_reader = Reader(['enter'])
+        try:
+            workspace.input('')
+        except Stop:
+            pass
+        workspace.facts['evidence_class'] = 'graph_authenticated_observation'
+        with self.assertRaises(EOFError):
+            self.keys(workspace, ['enter', 'eof'])
+        self.assertIn('evidence mode changed', workspace.notice)
 
     def test_an_interruption_during_the_read_is_shown(self):
         workspace = self.workspace()
@@ -311,6 +460,7 @@ class ActionStagingTests(unittest.TestCase):
         interrupted = {'status': 'interrupted', 'recovery': 'Reopen the workbench.'}
         workspace.receive(interrupted)
         self.assertIs(workspace.value, interrupted)
+        self.assertIsNone(workspace.quiet)  # never left waiting to swallow a later result
 
     def test_enter_stages_the_exact_command_and_escape_discards_it(self):
         workspace = self.workspace()
