@@ -810,41 +810,70 @@ def details_lines(value, width):
     return lines
 
 
+# Keys first, one per row, in the order an engineer reaches for them (P-PRES-10). Each is bound in the workspace.
+HELP_KEYS = (
+    ('1-9', 'switch surface: 1 Estate, 2 Inspector, 3 Relationships, 4 History, 5 Plan, 6 Execution, 7 Coverage, '
+            '8 Help, 9 Repository'),
+    ('Tab', 'next surface'),
+    ('Up, Down', 'choose; Enter selects (a policy on Estate, an operation on Plan and Execution)'),
+    ('PgUp, PgDn', 'scroll'),
+    ('n', 'next page of a long list'),
+    ('p', 'previous page of a long list'),
+    ('e', 'typed details of the result shown; e again or Esc returns to the summary'),
+    ('r', 'the complete raw engine record; r again or Esc returns to the summary'),
+    ('a', 'actions for the selected policy, each with its exact command, what it does and whether it is available; '
+          'Enter stages one in the command bar for review'),
+    ('/', 'search the estate'),
+    ('f', 'estate filters'),
+    (':', 'command bar: Enter submits (Ctrl+Enter in the native Windows console), Esc discards; nothing runs until it '
+          'is submitted'),
+    ('b', 'back to the previous read-only view (also :back); never re-sends a change'),
+    ('o', 'relationship overview of the estate'),
+    ('d', 'setting dictionary'),
+    ('l', 'lineage: where each effective value comes from in the repository'),
+    ('h', 'health'),
+    ('m', 'maintenance queue'),
+    ('i', 'diagnostics: every recorded finding and what could not be checked'),
+    ('v', 'delivery of the active operation'),
+    ('s', 'survey: what exists beside the store'),
+    ('?', 'this help'),
+    ('q', 'exit the workbench'),
+    ('Ctrl-C', 'stop a running call; the session ends'),
+)
+# The words the screens use, then how changes and the session work.
+HELP_WORDS = (
+    ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled '
+             'service), CAPTURE (an unverified export), LABORATORY (recorded responses; the source is not '
+             'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '
+             '(a read returned no policy) or MODE UNKNOWN (nothing observed yet, or a kind this version does not name).'),
+    ('Context', 'Then the tenant and the selected policy. OBSERVED fresh means the newest complete observation is '
+                'inside the freshness window and no later collection of it failed or is pending; service changed '
+                'means the modeled service changed after it was collected, so a proposal needs a new collection. '
+                'REPOSITORY current means the recorded repository intent still matches the repository files and '
+                'effective configuration. OPERATION is the newest operation\'s recorded status.'),
+    ('! line', 'The bold line under it names the most important recorded condition and the key for its response; '
+               '+N more: 2 counts the others, which the Inspector lists.'),
+    ('STATE', 'The Inspector, the Repository status and the Plan review show the observation, the repository intent '
+              'and the newest operation as three separate states.'),
+    ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
+                'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
+                'OPERATION_DIR reads the service when an outcome is unknown and never replays. Moving around never '
+                'proposes, approves or executes. Every command the engine accepts is in the typed details of this '
+                'page (e).'),
+    ('Session', 'The next start reopens the last read-only view of the selected policy; Delivery and '
+                'repository-entry views, which hold paths, are not reopened. :clear-selection clears the selected '
+                'policy. Between commands nothing is running, so :cancel cancels nothing.'),
+)
+
+
 def help_lines(width):
-    """The one reference for keys and commands, grouped by what the engineer is doing."""
-    groups = (
-        ('Surfaces', '1 Estate, 2 Inspector, 3 Relationships, 4 History, 5 Plan, 6 Execution, 7 Coverage, 8 Help, 9 Repository.'),
-        ('Views', 'o relationship overview, d setting dictionary, l lineage, h health, m maintenance queue, i diagnostics, '
-                  'v delivery of the active operation, s what exists beside the store.'),
-        ('Evidence', 'Each view opens as a summary. e shows every field as typed details, r the complete raw engine record, '
-                     'Esc returns to the summary.'),
-        ('Moving', 'Up and Down choose, Enter selects, PgUp and PgDn scroll, n and p page through long lists, Tab moves '
-                   'to the next surface, / searches, f sets estate filters, b or :back returns to the previous view.'),
-        ('Actions', 'a lists what can be done next for the selected policy, each with its exact command, what it does '
-                    'and whether it is available now. Enter puts the chosen command in the command bar for review; '
-                    'Enter there (Ctrl+Enter in the native Windows console) submits it and Esc discards it. Nothing '
-                    'runs until you submit it.'),
-        ('Commands', ': opens the command bar; Enter submits and Esc discards. Every command the engine accepts is in the '
-                     'typed details of this page (e).'),
-        ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
-                    'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
-                    'OPERATION_DIR reads the service when an outcome is unknown. Moving around never proposes, approves or executes.'),
-        ('Session', 'q exits the workbench; the next start reopens the last read-only view. :clear-selection clears the '
-                    'selected policy. Between commands nothing is running, so :cancel cancels nothing; Ctrl-C stops a '
-                    'running call and ends the session.'),
-        ('Context', 'The line under the tabs: the evidence mode, the tenant and the selected policy; OBSERVED fresh '
-                    'means the newest complete observation is inside the freshness window and no later collection '
-                    'of it failed or is pending; REPOSITORY current means the recorded repository intent still '
-                    'matches the repository files and effective configuration; OPERATION is the active '
-                    'operation\'s recorded status.'),
-        ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled '
-                 'service), CAPTURE (an unverified export), LABORATORY (recorded responses; the source is not '
-                 'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '
-                 '(a read returned no policy) or MODE UNKNOWN (nothing observed yet, or a kind this version does not name).'),
-    )
-    lines = ['HELP']
-    for name, text in groups:
-        lines += _labelled('  ' + name, text, width, 12)
+    """The one reference: keys first, one per row, then the words the screens use."""
+    lines = ['HELP', 'KEYS']
+    for key, text in HELP_KEYS:
+        lines += _labelled('  ' + key, text, width, 14)
+    lines += ['', 'WORDS AND RULES']
+    for name, text in HELP_WORDS:
+        lines += _labelled('  ' + name, text, width, 14)
     return lines
 
 

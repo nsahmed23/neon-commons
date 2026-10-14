@@ -61,5 +61,37 @@ class IdentityTests(unittest.TestCase):
         self.assertIn('TARGETED GROUPS', rendered)
 
 
+class HelpTableTests(unittest.TestCase):
+    """Help is a table of keys first, one key per row, then the words the screens use (P-PRES-10)."""
+    def lines(self, width=100):
+        from intune_iac.workbench_screens import help_lines
+        return help_lines(width)
+
+    def row(self, key):
+        return next((line for line in self.lines() if line.startswith('  ' + key + ' ')), None)
+
+    def test_keys_come_first_one_per_row(self):
+        lines = self.lines()
+        self.assertEqual(lines[1], 'KEYS')
+        expected = {'1-9': 'Estate', 'Tab': 'next surface', 'a': 'actions', 'e': 'typed details', 'r': 'raw',
+                    'b': 'back', '/': 'search', 'f': 'filters', ':': 'command bar', 'p': 'page', 'n': 'page',
+                    's': 'survey', 'i': 'diagnostics', 'v': 'delivery', 'o': 'overview', 'd': 'dictionary',
+                    'l': 'lineage', 'h': 'health', 'm': 'maintenance queue', '?': 'help', 'q': 'exit'}
+        for key, word in expected.items():
+            row = self.row(key)
+            self.assertIsNotNone(row, key)
+            self.assertIn(word, row, (key, row))
+
+    def test_every_row_fits(self):
+        from intune_iac.workbench_tui import cell_width
+        for width in (100, 60, 40):
+            for line in self.lines(width):
+                self.assertLessEqual(cell_width(line), width, (width, line))
+
+    def test_the_session_claim_names_what_is_not_reopened(self):
+        joined = ' '.join(' '.join(self.lines()).split())
+        self.assertIn('Delivery and repository-entry views', joined)
+
+
 if __name__ == '__main__':
     unittest.main()

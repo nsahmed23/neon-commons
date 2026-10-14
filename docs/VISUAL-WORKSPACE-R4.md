@@ -239,6 +239,10 @@ Under the policy's identity, the Inspector shows three states, each from its own
 
 Summaries give times to the second with their zone (`2026-10-14 19:55:52 UTC`); the exact values stay in the typed details (`e`) and the raw record (`r`). The `Managed` line then states only ownership, since the intent has its own line. The Repository status and the Plan review open with the same three states, from the last read of the policy and labelled so; status words read as words (`outcome unknown`).
 
+## Help
+
+Help (`?`, surface 8) opens with KEYS: one key per row, each bound in the workspace, in the order an engineer reaches for them. WORDS AND RULES follow: the mode words, the context strip, the `!` line and its count, the STATE block, how changes work, and what the next start reopens (the last read-only view of the selected policy; Delivery and repository-entry views, which hold paths, are not reopened).
+
 ## Group identities
 
 No surface captures group names today. Every group target says so beside its identity, `Unresolved group identity 4444…`, in the Inspector, the change review and Relationships; the estate overview says it once for its list. A group is never given an invented name or read as all users; a name the evidence carries is shown with its identity.
