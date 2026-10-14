@@ -173,6 +173,20 @@ class RepositoryOwnedChangeTests(unittest.TestCase):
         self.assertFalse((self.root / 'stale').exists())
         self.assertFalse(Path(str(self.root / 'stale') + '.intent-desired.json').exists())
 
+    def test_propose_from_intent_refuses_a_value_outside_the_capability_map(self):
+        from intune_iac.io import AppError
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        self.import_intent()
+        document = yaml.safe_load((self.repo / STACK).read_text())
+        instance = document['components']['terraform']['intune-reference']['vars']['policies'][KEY]['settings']['settings'][0]['settingInstance']
+        instance['choiceSettingValue']['value'] = instance['settingDefinitionId'] + '_1'
+        (self.repo / STACK).write_text(yaml.safe_dump(document))
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        with self.assertRaises(AppError) as caught:
+            propose_from_intent(self.store.root, self.service.root, OBJECT, self.root / 'unsupported')
+        self.assertEqual(caught.exception.code, 'workbench_desired_capability')
+        self.assertFalse((self.root / 'unsupported').exists())
+
     def test_execute_refuses_when_the_repository_changed_after_the_proposal(self):
         from intune_iac import maintenance
         from intune_iac.io import AppError

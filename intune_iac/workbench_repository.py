@@ -199,6 +199,9 @@ def propose_from_intent(store_root, service_root, object_id, output):
     store = WorkbenchStore(store_root)
     intent = latest_intent(store, object_id)
     _usable_intent(intent, code_prefix='workbench')
+    if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
+        raise AppError('workbench_desired_capability', 'The desired settings include a definition or value outside the '
+                       'supported offline capability map, so the reference component cannot propose them.')
     output = Path(output).absolute()
     desired_path, context_path = Path(str(output) + '.intent-desired.json'), Path(str(output) + '.intent-context.json')
     if any(path.exists() or path.is_symlink() for path in (output, desired_path, context_path)) or not output.parent.is_dir():
@@ -208,6 +211,18 @@ def propose_from_intent(store_root, service_root, object_id, output):
     write_json(context_path, {'tenant_id': store.tenant_id, 'cloud': 'public',
                               'repository_intent_id': intent['artifact_id'], 'scope': data['scope']})
     return maintenance.propose(store_root, service_root, object_id, desired_path, output, context_path=context_path)
+
+
+def capability_problems(desired):
+    """The capability map the generator enforces, applied to a repository desired body."""
+    from reference.validation import capability_errors
+    settings = desired.get('settings', {}).get('settings') if isinstance(desired, dict) else None
+    technologies = desired.get('technologies') if isinstance(desired, dict) else None
+    if not isinstance(settings, list) or not isinstance(technologies, list):
+        return ['unqualified_setting_capability']
+    records = [dict(row, **{'@odata.type': '#microsoft.graph.deviceManagementConfigurationSetting'})
+               if isinstance(row, dict) else row for row in settings]
+    return capability_errors(records, desired.get('platforms'), ','.join(t for t in technologies if isinstance(t, str)))
 
 
 def require_current_intent(store, intent_id):
