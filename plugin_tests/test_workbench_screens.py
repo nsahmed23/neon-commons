@@ -453,6 +453,26 @@ class DiagnosticsLinesTests(unittest.TestCase):
         self.assertIn('nothing needs attention', '\n'.join(diagnostics_lines(value, 120)))
 
 
+class RefusalLinesTests(unittest.TestCase):
+    def test_a_known_refusal_explains_itself_and_names_the_next_step(self):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'workbench_repository_intent_missing',
+                                              'message': 'Import the repository for this object before using its intent.'}}
+        lines = refusal_lines(value, 100)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[REFUSED] workbench_repository_intent_missing')
+        self.assertIn('Import the repository for this object before using its intent.', joined)
+        self.assertIn('observed but no repository intent', joined)
+        self.assertIn('repository-import', joined)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 100, line)
+
+    def test_an_unknown_refusal_shows_only_what_the_engine_said(self):
+        from intune_iac.workbench_screens import refusal_lines
+        lines = refusal_lines({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}}, 80)
+        self.assertEqual(lines, ['[REFUSED] something_new', 'Engine words.'])
+
+
 class SurfaceRoutingTests(unittest.TestCase):
     """The terminal routes typed results to their readable screens."""
     def summary(self, tab, value, width=100):
@@ -475,6 +495,13 @@ class SurfaceRoutingTests(unittest.TestCase):
         self.assertEqual(workspace.facts['observation'], 'fresh')
         workspace._learn({'object_id': POLICY_ID, 'freshness': 'stale', 'name': 'P'})
         self.assertEqual(workspace.facts['observation'], 'stale')
+
+    def test_a_refusal_renders_on_any_surface(self):
+        value = {'status': 'error', 'error': {'code': 'selection_required', 'message': 'Select an exact immutable object ID first.'}}
+        for tab in (0, 4, 8):
+            text = self.summary(tab, value)
+            self.assertIn('[REFUSED] selection_required', text)
+            self.assertIn('press 1 for Estate', text)
 
     def test_diagnostics_render_on_the_coverage_surface(self):
         text = self.summary(6, DIAGNOSTICS)

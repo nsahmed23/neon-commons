@@ -729,6 +729,55 @@ def delivery_lines(value, width):
     return lines
 
 
+# What a refusal means and the next step, for the codes an engineer meets in ordinary work.
+# Unknown codes show only the engine's own message; nothing is guessed.
+REFUSALS = {
+    'workbench_repository_intent_missing': (
+        'This policy is observed but no repository intent was recorded for it. Inspection, relationships, history, '
+        'health and diagnostics work without one.',
+        'To manage it from a repository: generate or adopt it with the wizard, copy the project into the repository '
+        'you maintain and commit it, then record it with repository-import (s shows what exists here).'),
+    'selection_required': (
+        'This view belongs to one policy, and none is selected.',
+        'press 1 for Estate and Enter on a policy, then try again.'),
+    'expired_request': (
+        'The plan\'s approval window has closed, or the local clock reads outside it.',
+        'Prepare a new proposal; v shows the window of the active operation.'),
+    'maintenance_approval_required': (
+        'The digest supplied does not match the reviewed plan.',
+        'Review the plan (5) and approve with its exact review digest.'),
+    'maintenance_replay_forbidden': (
+        'This operation was already dispatched, and execution is never replayed.',
+        'Use reconcile for an uncertain outcome; v shows where the operation stands.'),
+    'maintenance_repository_stale': (
+        'The repository changed after this proposal cited its intent.',
+        'Press 9 to see the difference; repository-refresh REVISION records it, then prepare a new proposal.'),
+    'workbench_repository_stale': (
+        'The repository changed since its recorded intent.',
+        'Press 9 to see the difference; repository-refresh REVISION records the current source.'),
+    'maintenance_plan_stale': (
+        'The service changed after the plan was prepared.',
+        'Collect, then prepare a new proposal.'),
+    'workbench_desired_capability': (
+        'A desired value is outside the supported capability map.',
+        'Use a supported value; the setting dictionary (d) shows the permitted Graph values.'),
+}
+
+
+def refusal_lines(value, width):
+    """A refusal: the engine's code and message, then what it means and the next step when the code is known."""
+    error = value.get('error') if isinstance(value.get('error'), dict) else {}
+    code = str(error.get('code', 'unknown'))
+    lines = word_wrap('[REFUSED] ' + code, width)
+    if error.get('message'):
+        lines += word_wrap(str(error['message']), width)
+    if code in REFUSALS:
+        meaning, step = REFUSALS[code]
+        lines += word_wrap('What it means: ' + meaning, width)
+        lines += word_wrap('Next: ' + step, width)
+    return lines
+
+
 CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',
                'not_imported': 'no device evidence imported',
                'explained_by_collection': 'stale; explained by the failed collection above'}

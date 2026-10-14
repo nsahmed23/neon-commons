@@ -568,7 +568,11 @@ class Workspace:
         def field(label, item):
             rendered = json.dumps(item, ensure_ascii=False, allow_nan=False) if not isinstance(item, str) else item
             rows.extend(word_wrap(label + ': ' + rendered, width))
-        if value.get('status') == 'selection_cleared':
+        if value.get('status') == 'error' and isinstance(value.get('error'), dict):
+            from .workbench_screens import refusal_lines
+            rows.extend(refusal_lines(value, width))
+            rows.append('')
+        elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '
                                   'changed or cancelled.', width))
