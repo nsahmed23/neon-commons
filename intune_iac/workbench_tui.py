@@ -535,8 +535,10 @@ class Workspace:
         facts = self.facts if self.facts.get('object_id') == self.selected else {'object_id': self.selected}
         if value.get('object_id') == self.selected and isinstance(value.get('name'), str):
             facts['name'] = value['name']
-        if value.get('object_id') == self.selected and isinstance(value.get('freshness'), str):
-            facts['observation'] = value['freshness']
+        # Lineage reports its own freshness and keeps the observation's beside it.
+        observed = value.get('observation_freshness', value.get('freshness'))
+        if value.get('object_id') == self.selected and isinstance(observed, str):
+            facts['observation'] = observed
         repository = value.get('repository')
         if value.get('schema_version') == 'workbench-repository-status/1' and isinstance(value.get('freshness'), dict):
             facts['repository'] = str(value['freshness'].get('status'))
@@ -566,7 +568,16 @@ class Workspace:
         def field(label, item):
             rendered = json.dumps(item, ensure_ascii=False, allow_nan=False) if not isinstance(item, str) else item
             rows.extend(word_wrap(label + ': ' + rendered, width))
-        if (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
+        if value.get('status') == 'selection_cleared':
+            rows.append('[SELECTION CLEARED]')
+            rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '
+                                  'changed or cancelled.', width))
+            rows.append('')
+        elif self.tab == 2 and 'provenance_origin' in value and isinstance(value.get('fields'), list):
+            from .workbench_screens import lineage_lines
+            rows.extend(lineage_lines(value, width))
+            rows.append('[EXACT LINEAGE] Full engine values follow.')
+        elif (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
                 and not value.get('pending_observations') and not isinstance(value.get('filters'), dict) and not value.get('query')):
             rows.append('[NO OBSERVATIONS YET]')
             rows.extend(word_wrap('This store has no observed policies. Collect from a modeled service (:collect), import a '

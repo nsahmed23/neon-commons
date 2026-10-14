@@ -118,6 +118,27 @@ class RepositoryOwnedChangeTests(unittest.TestCase):
         self.assertEqual(intent['data']['consumer']['status'], 'verified')
         self.assertEqual(intent['data']['consumer']['logical_stack'], 'reference-dev')
 
+    def test_lineage_follows_the_recorded_intent_through_atmos_inheritance(self):
+        from intune_iac.workbench_provenance import repository_lineage
+        before = repository_lineage(self.store, OBJECT)
+        self.assertEqual((before['status'], before['reason']), ('unknown', 'repository_resolution_not_collected'))
+        intent = self.import_intent()
+        value = repository_lineage(self.store, OBJECT)
+        self.assertEqual(value['status'], 'available')
+        self.assertEqual(value['provenance_origin']['kind'], 'repository_intent')
+        self.assertEqual(value['provenance_origin']['artifact_id'], intent['artifact_id'])
+        self.assertEqual(value['freshness'], 'recorded_intent_not_revalidated')
+        self.assertEqual(value['repository']['stack'], 'orgs/reference/dev')
+        fields = {row['effective_pointer']: row for row in value['fields']}
+        description = fields['/vars/policies/' + KEY + '/description']
+        self.assertEqual(description['winner']['path'], STACK)
+        self.assertEqual(description['winner']['pointer'], '/components/terraform/intune-reference/vars/policies/' + KEY + '/description')
+        command = fields['/command']
+        self.assertEqual([origin['path'] for origin in command['history']], ['atmos.yaml', STACK])
+        self.assertEqual(command['earlier_origins'][0]['path'], 'atmos.yaml')
+        only = repository_lineage(self.store, OBJECT, '/vars/policies/' + KEY + '/description')
+        self.assertEqual([row['effective_pointer'] for row in only['fields']], ['/vars/policies/' + KEY + '/description'])
+
     def test_edit_makes_the_intent_stale_and_names_what_changed(self):
         from intune_iac.workbench_repository import intent_freshness
         intent = self.import_intent()

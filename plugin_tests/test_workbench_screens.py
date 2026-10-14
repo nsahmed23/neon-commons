@@ -364,6 +364,62 @@ class DeliveryLinesTests(unittest.TestCase):
         self.assertIn('      not needed', lines)
 
 
+KEY = 'p_11111111111141118111111111111111_22222222222242228222222222222222'
+STACK_FILE = 'stacks/orgs/reference/dev.yaml'
+
+
+def origin(path, line, column, pointer):
+    return {'path': path, 'line': line, 'column': column, 'pointer': pointer, 'sha256': 'a' * 64, 'source_kind': 'captured_repository_file'}
+
+
+LINEAGE = {'object_id': POLICY_ID, 'status': 'available', 'freshness': 'recorded_intent_not_revalidated',
+           'provenance_origin': {'kind': 'repository_intent', 'artifact_id': 'f' * 64, 'recorded_at': '2026-10-14T12:25:00Z',
+                                 'source_revision': 'b' * 40, 'revision_content_verified': True},
+           'repository': {'path': '/work/repository', 'stack': 'orgs/reference/dev', 'component': 'intune-reference'},
+           'sources': [{'path': 'atmos.yaml', 'sha256': 'a' * 64}, {'path': STACK_FILE, 'sha256': 'b' * 64}],
+           'fields': [{'effective_pointer': '/command', 'winner': origin(STACK_FILE, 7, 16, '/components/terraform/intune-reference/command'),
+                       'history': [origin('atmos.yaml', 5, 14, '/components/terraform/command'), origin(STACK_FILE, 7, 16, '/components/terraform/intune-reference/command')],
+                       'earlier_origins': [origin('atmos.yaml', 5, 14, '/components/terraform/command')]},
+                      {'effective_pointer': '/vars/policies/' + KEY + '/description',
+                       'winner': origin(STACK_FILE, 33, 30, '/components/terraform/intune-reference/vars/policies/' + KEY + '/description'),
+                       'history': [origin(STACK_FILE, 33, 30, '/components/terraform/intune-reference/vars/policies/' + KEY + '/description')],
+                       'earlier_origins': []}],
+           'edges': [], 'blockers': []}
+
+
+class LineageAndNavigationTests(unittest.TestCase):
+    def test_lineage_names_where_each_value_is_defined_and_what_it_overrides(self):
+        from intune_iac.workbench_screens import lineage_lines
+        lines = lineage_lines(LINEAGE, 120)
+        joined = '\n'.join(lines)
+        self.assertEqual(lines[0], '[REPOSITORY LINEAGE]')
+        self.assertIn('repository intent ffffffffffff', joined)
+        self.assertIn('revision bbbbbbbbbbbb (content verified)', joined)
+        self.assertIn('/work/repository | orgs/reference/dev / intune-reference', joined)
+        self.assertIn('<key> = ' + KEY, joined)
+        self.assertIn('  /vars/policies/<key>/description', lines)
+        self.assertIn('      defined in  ' + STACK_FILE + ':33:30', lines)
+        self.assertIn('  /command', lines)
+        self.assertIn('      defined in  ' + STACK_FILE + ':7:16', lines)
+        self.assertIn('      overrides   atmos.yaml:5:14  /components/terraform/command', lines)
+        for line in lines:
+            self.assertLessEqual(cell_width(line), 120, line)
+
+    def test_lineage_without_a_source_says_how_to_get_one(self):
+        from intune_iac.workbench_screens import lineage_lines
+        joined = '\n'.join(lineage_lines({'status': 'unknown', 'reason': 'repository_resolution_not_collected', 'fields': []}, 80))
+        self.assertIn('No repository resolution was captured or recorded for this policy', joined)
+        self.assertIn('repository-import', joined)
+
+    def test_the_tab_line_keeps_the_active_surface_whole_at_60_columns(self):
+        from intune_iac.workbench_screens import tab_line
+        tabs = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
+        line = tab_line(tabs, 8, 58)
+        self.assertLessEqual(cell_width(line), 58)
+        self.assertTrue(line.endswith('[9 Repo]'), line)
+        self.assertLessEqual(cell_width(tab_line(tabs, 0, 20)), 20)
+
+
 class SurfaceRoutingTests(unittest.TestCase):
     """The terminal routes typed results to their readable screens."""
     def summary(self, tab, value, width=100):
@@ -377,6 +433,23 @@ class SurfaceRoutingTests(unittest.TestCase):
                   'objects': [{'object_id': POLICY_ID, 'name': 'P', 'health': {'stages': EMPTY_STAGES, 'endpoint_health': 'unknown'}}]}
         self.assertIn('[HEALTH AND REPORTING]', self.summary(6, health))
         self.assertIn('[MAINTENANCE QUEUE]', self.summary(6, {'findings': [], 'pagination': {'total_objects': 0}}))
+
+    def test_the_context_strip_keeps_observation_freshness_apart_from_lineage_freshness(self):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(selected=POLICY_ID, facts={}, last_command='lineage')
+        workspace._learn(dict(LINEAGE, observation_freshness='fresh'))
+        self.assertEqual(workspace.facts['observation'], 'fresh')
+        workspace._learn({'object_id': POLICY_ID, 'freshness': 'stale', 'name': 'P'})
+        self.assertEqual(workspace.facts['observation'], 'stale')
+
+    def test_lineage_and_a_cleared_selection_have_readable_screens(self):
+        text = self.summary(2, LINEAGE)
+        self.assertIn('[REPOSITORY LINEAGE]', text); self.assertIn('[EXACT LINEAGE]', text)
+        for tab in (0, 8):
+            text = self.summary(tab, {'status': 'selection_cleared', 'mutation_dispatched': False})
+            self.assertIn('[SELECTION CLEARED]', text)
+            self.assertIn('Press 1 for Estate', text)
 
     def test_the_start_survey_renders_on_the_help_surface(self):
         survey = {'schema_version': 'workbench-start/1', 'directory': '/work', 'connection': 'offline', 'items': [],

@@ -19,11 +19,17 @@ SHORT_TABS = {'Estate': 'Est', 'Inspector': 'Insp', 'Relationships': 'Rel', 'His
 
 
 def tab_line(tabs, active, width):
-    """Numbered surfaces with the active one bracketed; compact names when the full line does not fit."""
+    """Numbered surfaces with the active one bracketed, shortening in tiers until the line fits.
+
+    Full names, then short names, then numbers with only the active surface named, then numbers alone.
+    """
     def line(names, gap):
         return gap.join(('[%d %s]' if index == active else '%d %s') % (index + 1, name) for index, name in enumerate(names))
-    full = line(tabs, '  ')
-    return full if cell_width(full) <= width else line([SHORT_TABS.get(name, name) for name in tabs], ' ')
+    short = [SHORT_TABS.get(name, name) for name in tabs]
+    tiers = (line(tabs, '  '), line(short, ' '),
+             ' '.join('[%d %s]' % (index + 1, name) if index == active else str(index + 1) for index, name in enumerate(short)),
+             ' '.join(('[%d]' if index == active else '%d') % (index + 1) for index in range(len(tabs))))
+    return next((text for text in tiers if cell_width(text) <= width), tiers[-1])
 
 
 def short_id(value):
@@ -720,6 +726,56 @@ def delivery_lines(value, width):
     lines += word_wrap(MARK_LEGEND, width)
     lines += word_wrap('Evidence %s | %s | no cloud authority' % (
         value.get('evidence_class'), 'native-provider qualified' if value.get('native_provider_qualified') else 'not native-provider qualified'), width)
+    return lines
+
+
+ORIGIN_WORDS = {'repository_intent': 'repository intent', 'historical_adoption': 'historical adoption',
+                'current_observation': 'current observation'}
+
+
+def _place(origin):
+    return '%s:%s:%s' % (origin.get('path'), origin.get('line'), origin.get('column'))
+
+
+def lineage_lines(value, width):
+    """Where each effective value is defined, and what it overrides, through Atmos inheritance."""
+    import re
+    lines = ['[REPOSITORY LINEAGE]']
+    if value.get('status') != 'available':
+        if value.get('status') == 'blocked':
+            lines += word_wrap('The recorded resolution is blocked: ' + ', '.join(str(b.get('code')) for b in value.get('blockers', [])), width)
+        else:
+            lines += word_wrap('No repository resolution was captured or recorded for this policy (%s). Record the repository '
+                               'you maintain with repository-import, or press s to see what exists here.' % value.get('reason', 'unknown'), width)
+        return lines
+    origin = value.get('provenance_origin') if isinstance(value.get('provenance_origin'), dict) else {}
+    source = ORIGIN_WORDS.get(origin.get('kind'), str(origin.get('kind')))
+    if origin.get('artifact_id'):
+        source += ' ' + str(origin['artifact_id'])[:12]
+    if origin.get('recorded_at'):
+        source += ' recorded ' + str(origin['recorded_at'])
+    if origin.get('source_revision'):
+        source += ' | revision %s (%s)' % (str(origin['source_revision'])[:12], 'content verified' if origin.get('revision_content_verified') else 'caller asserted')
+    lines += _labelled('Source', source + ' | ' + str(value.get('freshness')).replace('_', ' '), width, 11)
+    repository = value.get('repository') if isinstance(value.get('repository'), dict) else {}
+    lines += _labelled('Repository', '%s | %s / %s' % (repository.get('path'), repository.get('stack'), repository.get('component')), width, 11)
+    fields = [row for row in value.get('fields') or [] if isinstance(row, dict)]
+    lines += _labelled('Contents', '%s from %s; values are not shown here' % (
+        _plural(len(fields), 'effective field'), _plural(len(value.get('sources') or []), 'source file')), width, 11)
+    keys = sorted({match for row in fields for match in re.findall(r'p_[0-9a-f]{32}_[0-9a-f]{32}', str(row.get('effective_pointer')))})
+    if len(keys) == 1:
+        lines += word_wrap('<key> = ' + keys[0], width)
+    for row in fields:
+        pointer = str(row.get('effective_pointer'))
+        if len(keys) == 1:
+            pointer = pointer.replace(keys[0], '<key>')
+        lines += word_wrap('  ' + pointer, width)
+        winner = row.get('winner') if isinstance(row.get('winner'), dict) else {}
+        lines += word_wrap('      defined in  ' + _place(winner), width)
+        for earlier in reversed(row.get('earlier_origins') or []):
+            if isinstance(earlier, dict):
+                text = '      overrides   %s  %s' % (_place(earlier), earlier.get('pointer'))
+                lines += word_wrap(text.replace(keys[0], '<key>') if len(keys) == 1 else text, width)
     return lines
 
 

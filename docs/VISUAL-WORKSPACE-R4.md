@@ -93,6 +93,10 @@ When the vendor record says the Graph-to-CSP value translation is unverified, th
 
 **Relationships (3).** Typed edges are grouped as targeting, configuration, source and lineage, and ownership, drawn as a dependency list. Each edge shows its exact target; an assignment also shows its filter. The evidence class is stated once on a group's heading when every edge in the group shares it, and on each edge otherwise. The selected repository source appears as a lineage edge, and the writer ownership shows its status and reason.
 
+**Lineage (`l`, on Relationships).** `[REPOSITORY LINEAGE]` follows each effective value of the selected policy's component through Atmos inheritance to the repository file, line and column that defines it, and lists the earlier definitions it overrides (for example `/command` defined in the stack file over `atmos.yaml`). Long policy keys are written once as `<key> = p_…` and abbreviated as `<key>` below. Values are never shown here; they stay in the Inspector and the change review.
+
+The source is one of three, in this order: a resolution captured with the observation, one recorded by an adoption, or else the policy's latest repository intent from `repository-import` or `repository-refresh`. The source is named with its revision and whether its content was verified. Lineage from an intent is "recorded intent not revalidated"; the Repository surface (9) says whether the repository still matches it. The context strip keeps the observation's freshness, not lineage's. A cleared selection (`b`) says so and how to select again.
+
 **History (4).** Observations newest first. Each shows its time, collection run, coverage and snapshot, then its evidence class, recorded change time and attribution (both `unknown` unless evidence records them). It then compares the observation with the one before it on the same page:
 - `No configuration change since the previous observation.`;
 - or the exact field changes, in the same form as the change review;

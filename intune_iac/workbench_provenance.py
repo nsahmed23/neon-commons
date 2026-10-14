@@ -282,6 +282,25 @@ def repository_lineage(store, object_id, pointer=None):
                 result['assertion_class'] = 'historical_local_adoption_resolution'
                 source = {}  # Historical repository differs legitimately from later observation metadata.
     if report is None:
+        intents = [row for row in store.artifacts(kind='repository_intent') if row['data'].get('target_object_id') == object_id]
+        if intents:
+            # Repository-owned work: the engineer's recorded intent is the last source of lineage,
+            # after a captured or adopted resolution, and is labelled as such.
+            from .workbench_repository import latest_intent
+            latest = latest_intent(store, object_id)
+            data = latest['data']
+            if (data.get('schema_version') != 'workbench-repository-intent/1' or data.get('tenant_id') != store.tenant_id
+                    or data.get('execution_authorized') is not False):
+                _fail('workbench_lineage_intent_invalid')
+            report = data.get('resolution')
+            result['provenance_origin'] = {'kind': 'repository_intent', 'artifact_id': latest['artifact_id'],
+                'recorded_at': latest.get('recorded_at'), 'source_revision': data.get('source_revision'),
+                'revision_content_verified': data.get('revision_content_verified')}
+            result['observation_freshness'] = result['freshness']
+            result['freshness'] = 'recorded_intent_not_revalidated'
+            result['assertion_class'] = 'recorded_repository_intent_resolution'
+            source = {}  # The recorded repository is the engineer's; observation metadata may name another.
+    if report is None:
         result['reason'] = 'repository_resolution_not_collected'
         return result
     if (type(report) is not dict or report.get('schema_version') != '1.0'
