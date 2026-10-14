@@ -301,6 +301,22 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('recorded=2026-10-14 19:57:00 UTC', text)
 
 
+class ChangedContextTests(unittest.TestCase):
+    """A plan whose bound context file changed: the Plan review says so instead of a citation."""
+    surface = RefusalCauseTests.workspace
+
+    def test_the_plan_review_says_the_context_changed(self):
+        workspace = self.surface()
+        workspace.tab = 4
+        workspace.value = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'changes': [],
+                           'field_changes': {'status': 'no_change', 'changes': []},
+                           'repository': {'cited': None, 'context_changed': True, 'context_path': '/w/op.intent-context.json'}}
+        text = ' '.join(' '.join(workspace._summary_lines(118)).split())
+        self.assertIn('Context file: changed since this proposal was prepared', text)
+        self.assertIn('execute refuses it (maintenance_source_changed)', text)
+        self.assertNotIn('Cited repository intent', text)
+
+
 class TypedDetailTests(unittest.TestCase):
     """P-PRES-01: label and value apart by two spaces or separate lines; empty, null and missing kept apart."""
     def lines(self, value, width=60):

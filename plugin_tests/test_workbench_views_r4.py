@@ -333,6 +333,18 @@ class ViewsR4Tests(unittest.TestCase):
         plan=json.loads((self.root/'restore'/'plan.json').read_text())
         self.assertEqual(json.loads(Path(plan['context']['path']).read_text()),{'tenant_id':self.tenant,'cloud':'public'})
 
+    def test_restore_refuses_a_cited_context_changed_since_its_plan(self):
+        # Removing the citation from the original context must not turn the restore into an unchecked uncited one.
+        from intune_iac import maintenance
+        edited=dict(self.body,description='Repository edit under review');self.save_source(edited)
+        forward=self.propose_citing(self.intent(),edited,'forward')
+        self.assertEqual(maintenance.execute(self.root/'forward',approve_digest=forward['approval_digest'])['status'],'succeeded_verified')
+        self.store.collect(self.service)
+        write_json(self.root/'forward-context.json',{'tenant_id':self.tenant,'cloud':'public'})
+        with self.assertRaises(AppError) as caught: maintenance.propose_restore(self.root/'forward',self.root/'restore')
+        self.assertEqual(caught.exception.code,'maintenance_source_changed')
+        self.assertEqual(sorted(p.name for p in self.root.iterdir() if p.name.startswith('restore')),[])
+
     def test_ordered_setting_sequence_and_null_absent_empty_are_distinct(self):
         base=copy.deepcopy(self.body)
         base['settings']['settings'][0]['settingInstance']={

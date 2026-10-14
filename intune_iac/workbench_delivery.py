@@ -118,6 +118,9 @@ def _deployment(store, plan, journal, repository):
                 'intent_id': latest.get('intent_id'), 'recorded_at': receipts[-1]['recorded_at'],
                 'evidence_class': latest.get('evidence_class'), 'baseline_admissible': latest.get('baseline_admissible'),
                 'platform_qualified': latest.get('platform_qualified')}
+    if repository.get('context_changed'):
+        # deployment-record checks the bound context bytes; a changed file can never pass.
+        return {'stage': 'deployment_record', 'status': 'not_available', 'reason': 'context_changed'}
     if not repository.get('cited'):
         return {'stage': 'deployment_record', 'status': 'not_applicable', 'reason': 'no_repository_intent_cited'}
     # These are the conditions deployment-record checks first; it still performs every check itself.
@@ -197,6 +200,9 @@ def _next_action(stages, operation_root, store_root):
     approval, readback, reconciliation = stages['approval'], stages['readback'], stages['reconciliation']
     record, observed = stages['deployment_record'], stages['observed_after']
     operation, store = shlex.quote(str(operation_root)), shlex.quote(str(store_root))
+    if approval['status'] == 'waiting' and stages['proposal'].get('context_changed'):
+        return ('The context file this proposal bound changed after it was prepared, so execute refuses it '
+                '(maintenance_source_changed); prepare a new proposal.')
     if approval['status'] == 'waiting':
         return ('Review the change (5), then approve it with execute %s EXACT_REVIEW_DIGEST before %s; the digest is the '
                 'one on the review, never filled in for you.' % (operation, _utc(approval['closes_at'])))
@@ -214,6 +220,9 @@ def _next_action(stages, operation_root, store_root):
     if record['status'] == 'available':
         return ('Record the deployment: workbench deployment-record --root %s --operation %s --intent %s'
                 % (store, operation, record['intent_id']))
+    if record['status'] == 'not_available' and record.get('reason') == 'context_changed':
+        return ('The context file this operation bound changed after it was prepared, so it cannot become a deployment '
+                'record; collect to observe the policy.')
     if record['status'] == 'not_available':
         return ('Reconciled as %s. This operation cannot become a deployment record because its own readback was never '
                 'verified; collect to observe the policy.' % reconciliation.get('classification'))
@@ -273,7 +282,8 @@ def delivery(operation_root, *, now=None):
     stages = [
         {'stage': 'proposal', 'status': 'done', 'recorded_at': times.get('prepared'), 'object_id': plan['object_id'],
          'desired_sha256': plan['desired_sha256'], 'repository_intent_id': repository.get('repository_intent_id'),
-         'intent_freshness': repository.get('freshness') if repository.get('cited') else None},
+         'intent_freshness': repository.get('freshness') if repository.get('cited') else None,
+         **({'context_changed': True} if repository.get('context_changed') else {})},
         {'stage': 'review', 'status': 'done', 'changes': plan['changes'], 'no_configuration_change': review['no_configuration_change'],
          'field_changes': review['field_changes'], 'approval_digest': review['approval_digest'],
          'saved_plan_sha256': review['saved_plan_sha256']},

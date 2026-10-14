@@ -165,7 +165,9 @@ It reads local records only, and the same view is `workbench diagnostics --root 
 **Coverage (7).** Adds the repository intent's freshness and a `[REPOSITORY VERSUS OBSERVED]` table in the same form.
 
 **Delivery (`v`, on Execution).** `[DELIVERY]` lists the active operation's eight stages in order, each with a marker and its state in words:
-1. **Proposal:** when it was recorded and the repository intent it cites, with that intent's freshness.
+1. **Proposal:** when it was recorded and the repository intent it cites, with that intent's freshness. If the context
+   file the plan bound has changed since, it says so and that the citation is unknown; it never reads one from the
+   changed file.
 2. **Review:** the changed fields (or `NO CONFIGURATION CHANGE`) and the plan digest.
 3. **Approval:** waiting until the plan's approval window closes, expired, not yet open (the local clock reads earlier than the plan's preparation), or done with the exact review digest supplied at dispatch.
 4. **Execution:** the engine and service results, or `outcome unknown` with its recorded error.

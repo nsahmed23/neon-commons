@@ -242,6 +242,34 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual(self.service.snapshot()['current'], self.before)
         self.assertEqual((self.operation / 'plan.json').read_bytes(), original_plan)
 
+    def test_restore_refuses_an_original_context_changed_since_its_plan(self):
+        # The restore reads the original context only as the bytes the original plan bound.
+        context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
+        proposal = self.propose(context_path=context); self.execute(proposal)
+        self.store.collect(self.service)
+        original_plan = (self.operation / 'plan.json').read_bytes()
+        write_json(context, {'tenant_id': self.tenant, 'note': 'edited after the plan'})
+        with self.assertRaises(AppError) as raised:
+            maintenance.propose_restore(self.operation, self.root / 'restore')
+        self.assertEqual(raised.exception.code, 'maintenance_source_changed')
+        self.assertEqual(sorted(p.name for p in self.root.iterdir() if p.name.startswith('restore')), [])
+        self.assertEqual((self.operation / 'plan.json').read_bytes(), original_plan)
+
+    def test_restore_binds_exactly_the_context_the_original_plan_bound(self):
+        context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
+        proposal = self.propose(context_path=context); self.execute(proposal)
+        self.store.collect(self.service)
+        maintenance.propose_restore(self.operation, self.root / 'restore')
+        self.assertEqual(load_json(self.root / 'restore' / 'plan.json')['context'],
+                         load_json(self.operation / 'plan.json')['context'])
+
+    def test_a_proposal_given_an_expected_context_hash_refuses_other_bytes(self):
+        context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
+        with self.assertRaises(AppError) as raised:
+            self.propose(context_path=context, context_sha256='0' * 64)
+        self.assertEqual(raised.exception.code, 'maintenance_source_changed')
+        self.assertFalse(self.operation.exists())
+
     def test_abrupt_process_exit_after_committed_patch_reconciles_without_replay(self):
         proposal = self.propose()
         script = '''import os,sys

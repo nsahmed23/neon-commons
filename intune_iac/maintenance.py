@@ -18,7 +18,7 @@ import stat
 from uuid import UUID, uuid4
 
 from . import protected, workbench_semantics
-from .io import AppError, digest, file_sha, load_json, read_bytes, parse_json, write_json, sync_directory
+from .io import AppError, canonical, digest, file_sha, load_json, read_bytes, parse_json, write_json, sync_directory
 from .modeled_service import BASE, FIELDS, VERSION as SERVICE_VERSION, MAX_VISIBILITY_DELAY_READS, ModeledService, compare_semantics
 
 VERSION = 'intune-maintenance/1.0'
@@ -248,8 +248,12 @@ def proposal_eligibility(store_root, service_root, object_id):
             'last_attempt_status': latest.get('status')}
 
 
-def propose(store_root, service_root, object_id, desired_path, output, *, context_path=None):
-    """Prepare a persisted single-object operation from a complete observation."""
+def propose(store_root, service_root, object_id, desired_path, output, *, context_path=None, context_sha256=None):
+    """Prepare a persisted single-object operation from a complete observation.
+
+    With ``context_sha256`` the context bytes read must have exactly that hash, so a caller that checked a
+    context binds the same bytes it checked.
+    """
     root, store_root, service_root = map(_safe, (output, store_root, service_root))
     desired_path = _safe(desired_path)
     if root.exists() or not root.parent.is_dir():
@@ -268,6 +272,8 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
         if type(context_value) is not dict:
             _fail('maintenance_context_invalid')
         context = {'path': str(context_path), 'sha256': hashlib.sha256(context_bytes).hexdigest()}
+        if context_sha256 is not None and context['sha256'] != context_sha256:
+            _fail('maintenance_source_changed')
     service = ModeledService(service_root)
     with _lock(service_root):
         snapshot = service.snapshot()
@@ -305,9 +311,31 @@ def propose(store_root, service_root, object_id, desired_path, output, *, contex
     return review(root)
 
 
+def _bound_context(plan):
+    """The context this plan bound, parsed from bytes checked against the recorded hash; None if it bound none.
+
+    Every reader of a plan's context uses this, so no decision rests on a context file edited after the plan.
+    """
+    binding = plan['context']
+    if not binding:
+        return None
+    data = read_bytes(_safe(binding['path']))
+    if hashlib.sha256(data).hexdigest() != binding['sha256']:
+        _fail('maintenance_source_changed')
+    return parse_json(data)
+
+
 def _repository_review(plan):
-    """The cited repository intent and whether it still describes the repository."""
-    context = load_json(_safe(plan['context']['path'])) if plan['context'] else None
+    """The cited repository intent and whether it still describes the repository.
+
+    A context file changed since the plan bound it is reported as changed, with its citation unknown.
+    """
+    try:
+        context = _bound_context(plan)
+    except AppError as error:
+        if error.code != 'maintenance_source_changed':
+            raise
+        return {'cited': None, 'context_changed': True, 'context_path': plan['context']['path']}
     if not isinstance(context, dict) or 'repository_intent_id' not in context:
         return {'cited': False}
     from .workbench_repository import intent_freshness
@@ -387,7 +415,7 @@ def execute(operation_root, *, approve_digest, fault=None, visibility_delay_read
         if (state['source_sha256'] != plan['service_source_sha256'] or state['revision'] != plan['before_revision']
                 or digest(state['current']) != digest(plan['before_estate'])):
             _fail('maintenance_plan_stale')
-        context = load_json(_safe(plan['context']['path'])) if plan['context'] else None
+        context = _bound_context(plan)
         if isinstance(context, dict) and 'repository_intent_id' in context:
             # A cited repository intent must still describe the repository at
             # dispatch time, not only when the proposal was prepared.
@@ -459,12 +487,15 @@ def propose_restore(operation_root, output):
     is retained and its consumed approval cannot authorize this new proposal.
     A restore reverses any repository intent the original context cited, so it
     is prepared from a derived context without that citation or its scope.
+    The original context is used only as the bytes the original plan bound: a
+    changed file is refused before anything is written.
     """
     _, plan, _, _, _ = _load(operation_root)
     output = _safe(output)
     desired_path = _safe(str(output) + '.restore-desired.json')
     context_path = plan['context']['path'] if plan['context'] else None
-    context_value = parse_json(read_bytes(_safe(context_path))) if context_path else None
+    context_sha256 = plan['context']['sha256'] if plan['context'] else None
+    context_value = _bound_context(plan)
     restore_context = None
     if type(context_value) is dict and 'repository_intent_id' in context_value:
         restore_context = _safe(str(output) + '.restore-context.json')
@@ -472,7 +503,8 @@ def propose_restore(operation_root, output):
         _fail('maintenance_fresh_output_required')
     write_json(desired_path, plan['before_estate']['objects'][plan['object_id']])
     if restore_context:
-        write_json(restore_context, {k: v for k, v in context_value.items() if k not in ('repository_intent_id', 'scope')})
-        context_path = restore_context
+        derived = {k: v for k, v in context_value.items() if k not in ('repository_intent_id', 'scope')}
+        write_json(restore_context, derived)
+        context_path, context_sha256 = restore_context, hashlib.sha256(canonical(derived) + b'\n').hexdigest()
     return propose(plan['store_root'], plan['service_root'], plan['object_id'], desired_path, output,
-                   context_path=context_path)
+                   context_path=context_path, context_sha256=context_sha256)

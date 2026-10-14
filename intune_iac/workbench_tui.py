@@ -955,6 +955,9 @@ class Workspace:
                 repository = value.get('repository')
                 if isinstance(repository, dict) and repository.get('cited'):
                     field('Cited repository intent', str(repository.get('repository_intent_id'))[:16] + ' (' + str(repository.get('freshness')) + ')')
+                elif isinstance(repository, dict) and repository.get('context_changed'):
+                    field('Context file', 'changed since this proposal was prepared, so its citation is unknown and '
+                                          'execute refuses it (maintenance_source_changed)')
                 rows.append('')
             rows.append('[PLAN REVIEW]')
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),

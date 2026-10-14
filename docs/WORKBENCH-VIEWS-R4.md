@@ -263,6 +263,17 @@ admit such a restore against the original intent. If the restore's own `propose`
 then fails, `OUTPUT.restore-desired.json` and `OUTPUT.restore-context.json` stay,
 and a retry with the same OUTPUT is refused until both are removed.
 
+A plan binds its context file by SHA-256, and every reader uses only those bytes.
+`restore-propose` checks the original context against the original plan's hash
+first and refuses with `maintenance_source_changed`, writing nothing, if the file
+changed; the restore's own plan then binds exactly the bytes that were checked
+(the original file, or the derived `OUTPUT.restore-context.json`). `execute`
+rechecks the citation from the bound bytes. `review` and the delivery view never
+read a citation from a changed file: `review` reports
+`{"cited": null, "context_changed": true, "context_path": ...}`, the Plan review
+says the context file changed and that execute refuses it, and the delivery view's
+deployment-record stage is `not_available` (`context_changed`).
+
 Prepare maintenance with the existing `workbench propose --context FILE`, review
 and execute under its explicitly local approval contract. Then run:
 

@@ -180,6 +180,31 @@ class DeliveryTests(unittest.TestCase):
             value, stages = self.view()
         self.assertEqual(stages['proposal']['intent_freshness'], 'current')
 
+    def test_a_changed_context_is_never_read_as_a_citation(self):
+        # The review and the delivery view read the citation only from the bytes the plan bound.
+        from intune_iac import maintenance
+        from intune_iac.io import AppError
+        from intune_iac.workbench_screens import delivery_lines
+        review = self.prepare()
+        context = Path(json.loads((self.operation / 'plan.json').read_text())['context']['path'])
+        value = json.loads(context.read_text()); value.pop('repository_intent_id'); value.pop('scope')
+        context.write_text(json.dumps(value))
+        self.assertEqual(maintenance.review(self.operation)['repository'],
+                         {'cited': None, 'context_changed': True, 'context_path': str(context)})
+        value, stages = self.view(now=review['expires_at'] - 10)
+        self.assertTrue(stages['proposal']['context_changed'])
+        self.assertIsNone(stages['proposal']['repository_intent_id'])
+        self.assertEqual((stages['deployment_record']['status'], stages['deployment_record']['reason']),
+                         ('not_available', 'context_changed'))
+        self.assertIn('changed after it was prepared', value['next_action'])
+        self.assertIn('prepare a new proposal', value['next_action'])
+        text = ' '.join(' '.join(delivery_lines(value, 140)).split())
+        self.assertIn('context changed since this proposal was prepared', text)
+        self.assertNotIn('no repository intent cited', text)
+        with self.assertRaises(AppError) as raised:
+            maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        self.assertEqual(raised.exception.code, 'maintenance_source_changed')
+
     def test_one_artifact_is_read_by_its_identity(self):
         intent = self.import_intent()
         self.assertEqual(self.store.artifact(intent['artifact_id'])['data']['target_object_id'], OBJECT)

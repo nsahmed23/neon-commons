@@ -1419,6 +1419,9 @@ def _stage_text(stage):
     name, status = stage.get('stage'), stage.get('status')
     if name == 'proposal':
         cited = stage.get('repository_intent_id')
+        if stage.get('context_changed'):
+            return 'recorded %s | context changed since this proposal was prepared; its citation is unknown' % (
+                _when(stage.get('recorded_at')))
         return 'recorded %s | %s' % (_when(stage.get('recorded_at')),
                                      'repository intent %s (%s)' % (str(cited)[:12], stage.get('intent_freshness')) if cited
                                      else 'desired file; no repository intent cited')
