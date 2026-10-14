@@ -153,6 +153,10 @@ WIDE = 150
 # The documented minimum window (columns, rows): the hazard's shortest wording, its response and the whole short
 # identities fit. Below it a constrained state shows the session, the hazard and the prompt, never the body.
 MIN_SIZE = (40, 12)
+# Evidence classes whose mode word may stand in for them when the footer is narrow.
+MODE_CLASSES = frozenset({'synthetic', 'synthetic_local_process_only', 'synthetic_local_process_and_modeled_service_only',
+                          'graph_capture_unverified', 'graph_reader_laboratory', 'graph_reader_attempt',
+                          'graph_authenticated_observation', 'mixed_observations'})
 # Short names for a staged action, so its instruction fits beside it; the full label stays in the action list.
 STAGED_NAMES = {'reconcile': 'reconcile', 'collect': 'collect', 'repository-refresh': 'refresh',
                 'propose-from-intent': 'proposal', 'propose': 'proposal', 'repository-entry': 'repository survey',
@@ -202,22 +206,38 @@ def fit(value, width, ellipsis='...'):
 LAYER_KEYS = {'details': (('e details', 'e summary'),), 'raw': (('r raw record', 'r summary'), ('r raw', 'r summary'))}
 
 
-def help_line(width, layer='summary'):
+def help_line(width, layer='summary', lead=()):
+    """The key line for the width; keys the hazard band names (lead) come first in every form, so a key the band
+    offers is never missing from the line below."""
     lines = list(HELP_LINES)
     for old, new in LAYER_KEYS.get(layer, ()):
         lines = [line.replace(old, new) for line in lines]
+    if lead:
+        def led(line):
+            missing = [key for key in lead if key not in line]
+            return line.replace('? help | ', '? help | ' + ''.join(key + ' | ' for key in missing), 1) if missing else line
+        lines = [led(line) for line in lines] + ['? help | ' + ' | '.join(lead) + ' | b back | q exit']
     return next((line for line in lines if cell_width(line) <= width), lines[-1])
 
 
-def status_line(scope, first, last, total, width, ellipsis='...'):
-    """Evidence class, rows and the approval statement. The evidence class shortens first, then the statement takes
-    its short form; neither is cut mid-word."""
-    rows = ' rows %d-%d/%d' % (first, last, total)
+def band_keys(rows):
+    """The keys a hazard band offers, as the key line names them."""
+    text = ' '.join(rows or [])
+    return tuple(name for key, name in (('a: ', 'a actions'), ('i: ', 'i details')) if key in text)
+
+
+def status_line(scope, first, last, total, width, ellipsis='...', short=None):
+    """Evidence class, rows and the approval statement, never cut mid-word: the class, else its mode word (short),
+    else nothing (the context strip leads with the mode); the statement takes its short form last."""
+    rows = 'rows %d-%d/%d' % (first, last, total)
     for tail in (rows + ' | no automatic approval', rows + ' | no auto-approval'):
-        room = width - cell_width(tail) - 2
-        if room >= 4:
-            return '[%s]%s' % (fit(scope, room, ellipsis), tail)
-    return '[%s]%s' % (fit(scope, 4, ellipsis), rows + ' | no auto-approval')
+        for label in (scope, short):
+            if label and cell_width('[%s] %s' % (label, tail)) <= width:
+                return '[%s] %s' % (label, tail)
+    for tail in (rows + ' | no automatic approval', rows + ' | no auto-approval'):
+        if cell_width(tail) <= width:
+            return tail
+    return fit(rows + ' | no auto-approval', width, ellipsis)
 
 
 def ruled(left, fill, right, inner, label=None):
@@ -1116,8 +1136,9 @@ class Workspace:
         facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
         scope = (self.value.get('evidence_class') or facts.get('evidence_class')
                  or 'evidence class not stated')
+        from .workbench_screens import mode_word
         footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data),
-                             width, ellipsis)
+                             width, ellipsis, short=mode_word(scope) if scope in MODE_CLASSES else None)
         if self.mode == 'command' and getattr(self, 'staged', None):
             # While a staged action's command is edited, its instruction stays on the row above the command bar.
             footer = fit(self.notice, width, ellipsis)
@@ -1131,7 +1152,8 @@ class Workspace:
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
                             ' more below: PgDn ' if self.scroll + available < len(data) else None),
-                      pad(footer, width), pad(prompt, width), pad(help_line(width, getattr(self, 'layer', 'summary')), width)])
+                      pad(footer, width), pad(prompt, width),
+                      pad(help_line(width, getattr(self, 'layer', 'summary'), band_keys(band)), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
@@ -1240,7 +1262,7 @@ class Workspace:
             self.notice = 'No actions read for this policy yet; 2 (Inspector) reads them.'
         else:
             self.layer = 'actions'; self.scroll = 0; self.action_focus = 0
-            self.notice = 'Up and Down choose, Enter stages the command for review; nothing runs until you submit it.'
+            self.notice = 'Up and Down choose; Enter stages the command for review.'
 
     def _stage(self, action):
         """Put an available action's exact command in the command bar, bound to this policy; nothing is sent.
@@ -1284,8 +1306,8 @@ class Workspace:
         self.cursor = cursor if isinstance(cursor, int) and 0 <= cursor <= len(command) else len(command)
         self.staged = {'kind': action.get('kind'), 'label': action.get('label'),
                        'binding': dict(action.get('binding') or {}, resolution_sha256=shown)}
-        self.notice = ('STAGED refresh: type the REVISION at the cursor; %s records this difference; Esc discards. Not a '
-                       'commit, an approval or an apply.' % self._submit_word())
+        self.notice = ("STAGED refresh: at the cursor type the repository's current commit; %s records this difference; "
+                       'Esc discards.' % self._submit_word())
 
     def _submit_word(self):
         return 'Enter' if getattr(self, 'submission_key', 'enter') == 'enter' else 'Ctrl+Enter'

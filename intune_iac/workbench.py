@@ -323,10 +323,9 @@ ACTION_EFFECTS = {
                           "the repository's current files and records them as a new intent, refusing if they changed since "
                           'the difference was shown; the earlier intent is kept. It is not a Git commit, an approval or an '
                           'apply.',
-    'propose-from-intent': 'Checks the recorded intent, then writes the two input files beside a new operation directory '
-                           'before the remaining checks; if one of them refuses (a stale observation, for example), the two '
-                           'files stay. Otherwise it writes the operation directory and records the operation in this '
-                           'store. Nothing is approved or sent.',
+    'propose-from-intent': 'Checks the recorded intent, then writes two input files beside a new operation directory '
+                           'before checking the observation; if that check refuses, the two files stay. Otherwise it '
+                           'writes the directory and records the operation in this store. Nothing is approved or sent.',
     'propose': 'Checks the desired file and the observation, then writes a new operation directory and records the '
                'operation in this store. Nothing is approved or sent.',
     'repository-entry': 'Reads the repository and lists its policies with the exact command to record each. It writes '
@@ -496,8 +495,8 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
     if any(code in found for code in ('repository_stale', 'repository_consumer_mismatch')):
         offer('repository-refresh', "Record the repository's current source as a new intent (shows the difference first)",
               'repository-refresh ', cursor=len('repository-refresh '), show_first='repository-status',
-              needs=['REVISION: the 40-character commit the repository is at; with no pinned git here it is recorded as '
-                     'asserted, not verified against the files'])
+              needs=["REVISION: the repository's current 40-character commit; without a pinned git it is recorded as "
+                     'stated, not checked against the files'])
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
     if (blocked or {}).get('reason') in RECOLLECT_REASONS and not any(action['kind'] == 'collect' for action in actions):
         # The proposal's own check names collecting again as the fix, even when nothing recorded says so yet.

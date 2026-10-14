@@ -94,7 +94,7 @@ class BandTests(unittest.TestCase):
         line = self.band({'operation': 'outcome_unknown', 'observation': 'stale', 'repository': 'stale'},
                          [STALE, CHANGED, DENIED, UNKNOWN], 120)
         self.assertIn('a: reconcile', line)
-        self.assertIn('+3 more: i', line)
+        self.assertIn('+3 more: 2', line)
 
     def test_each_condition_names_its_own_response(self):
         cases = ((DENIED, {'observation': 'stale'}, 'a: collect'), (CHANGED, {'repository': 'stale'}, 'a: refresh'),
@@ -112,7 +112,7 @@ class BandTests(unittest.TestCase):
         from intune_iac.workbench_screens import hazard_rows
         rows = hazard_rows({}, [ALL[6], DENIED], MINIMUM[0])
         self.assertTrue(all(cell_width(row) <= MINIMUM[0] for row in rows), rows)
-        self.assertIn('+1 more: i', ' '.join(rows))
+        self.assertIn('+1 more: 2', ' '.join(rows))
 
     def test_a_service_changed_since_the_observation_shows_when_nothing_outranks_it(self):
         eligibility = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
@@ -122,7 +122,7 @@ class BandTests(unittest.TestCase):
         self.assertIn('changed', line.lower())
         line = self.band({'eligibility': eligibility, 'operation': 'outcome_unknown'}, [UNKNOWN], 120)
         self.assertIn('a: reconcile', line)
-        self.assertIn('+1 more: i', line)
+        self.assertIn('+1 more: 2', line)
 
     def test_another_tenant_leads_the_band(self):
         eligibility = {'code': 'maintenance_observation_incomplete', 'reason': 'tenant_mismatch'}
@@ -136,7 +136,7 @@ class BandTests(unittest.TestCase):
     def test_two_unknown_outcomes_are_both_counted(self):
         second = signal('operations', 'operation_outcome_unknown', 'Another operation is unknown.', 'Reconcile it.',
                         operation_id='e' * 32, operation_root='/work/other')
-        self.assertIn('+1 more: i', self.band({}, [UNKNOWN, second], 120))
+        self.assertIn('+1 more: 2', self.band({}, [UNKNOWN, second], 120))
 
     def test_an_operation_known_only_from_this_session_still_shows(self):
         line = self.band({'operation': 'outcome_unknown'}, [], 80)
@@ -182,6 +182,52 @@ class MinimumTests(unittest.TestCase):
             line = context_strip(TENANT, None, {}, MINIMUM[0], mode)
             self.assertLessEqual(cell_width(line), MINIMUM[0], line)
             self.assertTrue(line.startswith(word + ' | '), line); self.assertIn('11111111', line)
+
+
+class VisionReviewTests(unittest.TestCase):
+    """Findings of the rendered-frame review (Gemini, run I) that were accepted."""
+    ELIGIBILITY = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
+                   'service_revision': 2}
+
+    def test_the_count_points_where_every_finding_is_listed(self):
+        from intune_iac.workbench_screens import hazard_band
+        line = hazard_band({'eligibility': self.ELIGIBILITY}, [UNKNOWN], 120)
+        self.assertIn('+1 more: 2', line)
+
+    def test_the_inspector_lists_the_proposal_check_with_the_findings(self):
+        from intune_iac.workbench_screens import _attention_lines
+        value = {'attention': {'status': 'clear', 'signals': [], 'checked': {'operations': 'clear'}},
+                 'observation_eligibility': self.ELIGIBILITY, 'actions': []}
+        text = '\n'.join(_attention_lines(value, 120))
+        self.assertIn('changed after this observation was collected (revision 1, now 2)', text)
+        self.assertNotIn('Nothing recorded needs attention', text)
+
+    def test_the_strip_never_says_fresh_beside_a_changed_service(self):
+        from intune_iac.workbench_screens import context_strip
+        line = context_strip(TENANT, POLICY, {'name': 'Pilot', 'observation': 'fresh', 'eligibility': self.ELIGIBILITY},
+                             200, 'synthetic')
+        self.assertIn('OBSERVED service changed', line)
+        self.assertNotIn('fresh', line)
+
+    def test_available_actions_say_so_in_the_inspector(self):
+        from intune_iac.workbench_screens import _attention_lines
+        value = {'attention': {'status': 'clear', 'signals': [], 'checked': {}},
+                 'actions': [{'kind': 'collect', 'label': 'Collect again', 'available': True, 'blocked': None}]}
+        self.assertIn('Collect again (available)', '\n'.join(_attention_lines(value, 120)))
+
+    def test_the_key_line_offers_the_bands_key_at_every_width(self):
+        from intune_iac.workbench_tui import help_line
+        for width in (120, 80, 48, 40):
+            line = help_line(width, lead=('a actions',))
+            self.assertLessEqual(cell_width(line), width, line)
+            self.assertIn('a actions', line, width)
+            self.assertIn('q exit', line, width)
+
+    def test_the_footer_never_cuts_the_evidence_class_mid_word(self):
+        from intune_iac.workbench_tui import status_line
+        self.assertEqual(status_line('synthetic_local_process_and_modeled_service_only', 1, 15, 17, 80, short='SYNTHETIC'),
+                         '[SYNTHETIC] rows 1-15/17 | no automatic approval')
+        self.assertEqual(status_line('synthetic', 1, 2, 66, 40, short='SYNTHETIC'), 'rows 1-2/66 | no automatic approval')
 
 
 class FrameTests(unittest.TestCase):
@@ -242,6 +288,11 @@ class FrameTests(unittest.TestCase):
             text = '\n'.join(rows)
             self.assertIn('STAGED refresh: type the REVISION', text, size)
             self.assertIn(':repository-refresh', text, size)
+
+    def test_the_key_line_names_the_bands_key(self):
+        for size in ((120, 40), (48, 20), (40, 12)):
+            rows = self.frame(size)
+            self.assertIn('a actions', rows[-1], (size, rows[-1]))
 
     def test_the_band_sits_above_the_body_in_the_first_rows(self):
         rows = self.frame((48, 20))

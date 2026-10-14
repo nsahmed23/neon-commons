@@ -45,7 +45,19 @@ SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'o
 
 
 # States that are a hazard for the selected policy. When the strip is too long, routine states give way first.
-HAZARD_STATES = {'OBSERVED': {'stale'}, 'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
+# The proposal's own observation checks, in the strip's words: fresh by age does not apply once the service moved on.
+OBSERVED_FROM_ELIGIBILITY = {'service_changed': 'service changed', 'policy_changed': 'policy changed',
+                             'source_mismatch': 'other source', 'tenant_mismatch': 'other tenant'}
+
+
+def observed_state(facts, default='unknown'):
+    """The observation's state for the strip: the failed proposal check when there is one, otherwise freshness."""
+    eligibility = facts.get('eligibility') if isinstance(facts.get('eligibility'), dict) else {}
+    return OBSERVED_FROM_ELIGIBILITY.get(eligibility.get('reason')) or facts.get('observation', default)
+
+
+HAZARD_STATES = {'OBSERVED': {'stale', 'service changed', 'policy changed', 'other source', 'other tenant'},
+                 'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
                  'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable'}}
 
 
@@ -62,7 +74,7 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
         forms = [' | '.join(lead + ['POLICY none selected']), ' | '.join(tight + ['no policy']), ' | '.join(tight)]
         return next((text for text in forms if cell_width(safe_text(text)) <= width), forms[-1])
     policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + short_id(selected) + ')'
-    states = [('OBSERVED', 'OBS', facts.get('observation', 'unknown')), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
+    states = [('OBSERVED', 'OBS', observed_state(facts)), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
     if facts.get('operation'):
         states.append(('OPERATION', 'OP', facts['operation']))
     bare = 'POLICY ' + short_id(selected)
@@ -161,7 +173,7 @@ def hazard_rows(facts, signals, width):
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
-    notes = (['+%d more: i' % others] if others else []) + (
+    notes = (['+%d more: 2' % others] if others else []) + (
         ['not re-read after %s: 2 re-reads' % facts['unverified']]
         if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
     forms = _band_forms(primary)
@@ -198,7 +210,7 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     header = next((text for text in ('%s | window below %s: enlarge it' % (mode, need), '%s; window below %s' % (mode, need),
                                      '%s; below %s' % (mode, need), 'Below %s' % need) if cell_width(text) <= width),
                   fit('Below %s' % need, width))
-    states = [('OBSERVED', 'OBS', facts.get('observation')), ('REPOSITORY', 'REPO', facts.get('repository')),
+    states = [('OBSERVED', 'OBS', observed_state(facts, None)), ('REPOSITORY', 'REPO', facts.get('repository')),
               ('OPERATION', 'OP', facts.get('operation'))]
     items = ['T ' + short_id(tenant), 'P ' + short_id(selected) if selected else 'no policy'] + [
         short + ' ' + SHORT_STATES.get(str(value), str(value)) for label, short, value in states
@@ -542,9 +554,11 @@ def _attention_lines(value, width):
         lines += ['', 'NEEDS ATTENTION']
         signals = [signal for signal in attention.get('signals') or [] if isinstance(signal, dict)]
         areas = attention.get('checked') if isinstance(attention.get('checked'), dict) else {}
+        eligibility = value.get('observation_eligibility') if isinstance(value.get('observation_eligibility'), dict) else {}
+        checked_now = ELIGIBILITY_FINDINGS.get(eligibility.get('reason'))
         if attention.get('status') == 'unavailable':
             lines += word_wrap('  Diagnostics could not be read (%s); i shows the details.' % attention.get('error_code'), width)
-        elif not signals:
+        elif not signals and not checked_now:
             clear = ', '.join(area.replace('_', ' ') for area, state in areas.items() if state == 'clear')
             lines += word_wrap('  Nothing recorded needs attention%s.' % (' (checked: %s)' % clear if clear else ''), width)
         guided = isinstance(value.get('actions'), list)
@@ -553,6 +567,10 @@ def _attention_lines(value, width):
             if guided and signal.get('next_step'):
                 # Each condition carries its own response, so issue and action are read together.
                 lines += _labelled('    Next', str(signal.get('next_step')), width, 10)
+        if checked_now:
+            # Not a recorded signal: the check a proposal makes, read now against the configured service.
+            lines += _labelled('  !', checked_now[0] % eligibility, width, 4)
+            lines += _labelled('    Next', checked_now[1], width, 10)
         # Areas that were not examined stay named as such: nothing is known about them either way.
         unknown = ['%s %s' % (area.replace('_', ' '), AREA_STATE_WORDS[state]) for area, state in areas.items()
                    if state in AREA_STATE_WORDS]
@@ -565,7 +583,7 @@ def _attention_lines(value, width):
             lines += word_wrap('  a stages one for review; nothing runs until you submit it.', width)
             for number, action in enumerate(offered, 1):
                 blocked = action.get('blocked') or {}
-                state = '' if action.get('available') else ' (blocked: %s)' % (
+                state = ' (available)' if action.get('available') else ' (blocked: %s)' % (
                     BLOCK_WORDS.get(blocked.get('reason')) or BLOCK_WORDS.get(blocked.get('code'))
                     or str(blocked.get('code') or 'not available'))
                 lines += _labelled('  %d.' % number, str(action.get('label')) + state, width, 6)
@@ -576,6 +594,19 @@ def _attention_lines(value, width):
         for action in actions:
             lines += _labelled('  ', str(action.get('step')), width, 2)
     return lines
+
+
+# The proposal's own observation checks as findings: (what was found, from the recorded facts; the response).
+ELIGIBILITY_FINDINGS = {
+    'service_changed': ('The modeled service changed after this observation was collected (revision '
+                        '%(observed_revision)s, now %(service_revision)s); a proposal needs a new collection.',
+                        'Collect again (a).'),
+    'policy_changed': ('This policy changed in the modeled service after this observation was collected; a proposal '
+                       'needs a new collection.', 'Collect again (a).'),
+    'source_mismatch': ('This observation came from another service than the one configured.', 'Collect again from '
+                        'the configured service (a).'),
+    'tenant_mismatch': ('The configured service is for another tenant than this store.', 'Restart with the '
+                        '--service-root for this store\'s tenant.')}
 
 
 # Why an action is blocked, in a few words; the actions layer (a) gives the engine's full meaning.
