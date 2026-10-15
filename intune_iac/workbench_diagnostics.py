@@ -268,7 +268,9 @@ def diagnostics(store, object_id):
     checked = dict.fromkeys(AREAS, 'clear')
     signals, failed = _collection(observed)
     checked['collection'] = 'attention' if signals else 'clear'
-    found, checked['freshness'] = _freshness(observed, failed)
+    # A failed collection, or one with no end, already explains a kept observation; its one step says collect again.
+    unfinished = any(signal.get('code') == 'collection_not_finished' for signal in signals)
+    found, checked['freshness'] = _freshness(observed, failed or unfinished)
     signals += found
     limitations = ['Read from local records only; nothing was collected, reconciled or refreshed to produce this view.',
                    'Synthetic and caller-asserted evidence stays labelled as such in each source record.']

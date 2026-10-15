@@ -143,7 +143,7 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertTrue(target.parent.is_dir())
         for path in (target, Path(str(target) + '.intent-desired.json'), Path(str(target) + '.intent-context.json')):
             self.assertFalse(path.exists(), path)
-        self.assertIn('Nothing is approved or sent', action['effects'])
+        self.assertIn('nothing is approved or sent', action['summary'])  # said once, in the summary
         self.assertEqual(action['binding']['object_id'], OBJECT)
         self.assertEqual(action['binding']['tenant_id'], TENANT)
 

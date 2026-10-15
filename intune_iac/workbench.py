@@ -351,9 +351,9 @@ ACTION_EFFECTS = {
                           'apply.',
     'propose-from-intent': 'Checks the recorded intent, then writes two input files beside a new operation directory '
                            'before checking the observation; if that check refuses, the two files stay. Otherwise it '
-                           'writes the directory and records the operation in this store. Nothing is approved or sent.',
+                           'writes the directory and records the operation in this store.',
     'propose': 'Checks the desired file and the observation, then writes a new operation directory and records the '
-               'operation in this store. Nothing is approved or sent.',
+               'operation in this store.',
     'repository-entry': 'Reads the repository and lists its policies with the exact command to record each. It writes '
                         'nothing.',
     'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why. It '

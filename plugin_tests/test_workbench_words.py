@@ -249,3 +249,24 @@ class ReviewWordTests(unittest.TestCase):
         lines = text(inspector_lines(value, 160))
         self.assertIn('a opens the actions; Enter there stages one for review', lines)
         self.assertNotIn('a stages one', lines)
+
+
+class JourneyTwentyEightWordsTests(unittest.TestCase):
+    """Journey 28 run 2's frame review (logs/journey-28/FRAME-REVIEW-run2.md), items S6, G2 and G4."""
+
+    def test_a_changed_source_refusal_says_its_cause_and_next_step(self):
+        from intune_iac.workbench_screens import refusal_lines
+        lines = text(refusal_lines({'error': {'code': 'maintenance_source_changed', 'message': 'Maintenance evidence is '
+                                              'incomplete, changed, stale, or outside the local model profile.'}}, 160))
+        self.assertIn('Cause: A file this proposal bound changed after it was prepared', lines)
+        self.assertIn('Next: Prepare a proposal again (a: actions)', lines)
+
+    def test_the_refused_refresh_names_the_same_next_action_as_the_band(self):
+        from intune_iac.workbench_screens import REFUSALS
+        self.assertIn('then Refresh the repository intent (a: actions)', REFUSALS['workbench_difference_changed'][1])
+
+    def test_a_proposal_action_says_nothing_is_approved_or_sent_once(self):
+        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        for kind in ('propose-from-intent', 'propose'):
+            said = (ACTION_SUMMARY[kind] + ' ' + ACTION_EFFECTS[kind]).lower().count('nothing is approved or sent')
+            self.assertEqual(said, 1, kind)

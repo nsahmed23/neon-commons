@@ -214,3 +214,19 @@ class InterruptedSessionWordsTests(unittest.TestCase):
                 code = cli.main(['workbench', 'workspace', '--root', str(self.root / 'store')])
             self.assertEqual(code, 2)
             self.assertEqual(stream.getvalue().startswith('{'), json_expected, stream.getvalue()[:80])
+
+
+class InterruptedCollectionAttentionTests(unittest.TestCase):
+    """Journey 28 review G5: a collection with no end explains the kept observation, so one item says collect again."""
+    setUp = InterruptedOperationTests.setUp
+    requests = InterruptedOperationTests.requests
+    interrupt_on = InterruptedOperationTests.interrupt_on
+
+    def test_one_attention_item_says_collect_again(self):
+        from intune_iac.workbench_diagnostics import diagnostics
+        with patch.dict(os.environ, {VARIABLE: '5'}), patch.object(modeled_service, 'sleep', self.interrupt_on('GET')):
+            with self.assertRaises(Interrupted):
+                self.store.collect(self.service)
+        codes = [signal['code'] for signal in diagnostics(self.store, self.ids[0])['signals']]
+        self.assertIn('collection_not_finished', codes)
+        self.assertNotIn('observation_stale', codes)

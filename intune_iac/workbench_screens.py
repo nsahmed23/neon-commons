@@ -1906,7 +1906,11 @@ def families_lines(value, width):
 REFUSALS = {
     'workbench_difference_changed': (
         'The repository changed after you reviewed its difference.',
-        'Review the new difference (9) before submitting again.'),
+        'Review the new difference (9), then Refresh the repository intent (a: actions).'),
+    'maintenance_source_changed': (
+        'A file this proposal bound changed after it was prepared (its context file), so its review no longer '
+        'describes what would run.',
+        'Prepare a proposal again (a: actions); nothing from this one is used.'),
     'workbench_deployment_intent': (
         'The intent given is not exactly one repository intent recorded in this store.',
         "Use the intent this operation's plan cites: v Delivery names it, and a lists the record with it."),
