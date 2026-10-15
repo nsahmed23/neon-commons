@@ -236,7 +236,8 @@ class KeyLineTests(MapTruth):
         from intune_iac.workbench_tui import help_line
         line = help_line(60, map_keys=True)
         self.assertLessEqual(len(line), 60)
-        for key in ('a actions', 'Enter inspect', 'Left/Right', 'q exit', '? help'):
+        # PKG-PRES-RUN10: the key that moves the focus is named too, so Enter gives up its word first.
+        for key in ('a actions', 'Up/Down', 'Enter', 'Left/Right', 'q exit', '? help'):
             self.assertIn(key, line)
         self.assertNotIn('b back', line)
         no_route = help_line(60, map_keys=True, inspect=False)
@@ -251,13 +252,13 @@ class KeyLineTests(MapTruth):
     def test_the_60x20_frame_names_the_keys_that_work_for_the_focused_node(self):
         ws = self.workspace((60, 20))
         last = self.plain(ws)[-1]
-        for key in ('a actions', 'Enter inspect', 'Left/Right'):
+        for key in ('a actions', 'Up/Down', 'Enter', 'Left/Right'):
             self.assertIn(key, last)
         # Focus on a node with no inspect route: Enter is no longer named, the others stay.
         ws.map_focus, ws.follow_focus = ws._map_nodes()[1], True
         last = self.plain(ws)[-1]
         self.assertNotIn('Enter', last)
-        for key in ('a actions', 'Left/Right'):
+        for key in ('a actions', 'Up/Down', 'Left/Right'):
             self.assertIn(key, last)
         self.assertFalse(ws._map_focus_inspectable())
 

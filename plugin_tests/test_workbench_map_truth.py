@@ -247,7 +247,9 @@ class SmallWindowTests(MapTruth):
                 for pan in (True, False):
                     line = help_line(width, map_keys=True, inspect=inspect, pan=pan)
                     self.assertLessEqual(cell_width(line), max(width, 1) if width >= 40 else 10 ** 9)
-                    self.assertNotRegex(line, r'\bEnter\b(?! inspect)', (width, inspect, pan, line))
+                    # Enter is named only where it works; its word "inspect" goes at 65 cells and below (PKG-PRES-RUN10).
+                    if not inspect:
+                        self.assertNotIn('Enter', line, (width, pan, line))
                     if not pan:
                         self.assertNotIn('Left/Right', line)
 

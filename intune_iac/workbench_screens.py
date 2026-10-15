@@ -1809,6 +1809,8 @@ def map_legends(rules='ascii'):
         ('%s %s | [ ] %s means the kind has no operation state | %s' % (states, operations, word, MAP_FOCUS_LEGEND),),
         (states, '%s | [ ] %s means the kind has no operation state | %s' % (operations, word, MAP_FOCUS_LEGEND)),
         ('%s | %s means no operation state | marks: ? help' % (MAP_FOCUS_LEGEND, word),),
+        # The 60x20 pane: the rows show the no-state word, so this form defines it in the fewest words.
+        ('%s | %s means no state | marks: ? help' % (MAP_FOCUS_LEGEND, word),),
         ('%s | marks: ? help lists them' % MAP_FOCUS_LEGEND,),
         (MAP_FOCUS_LEGEND,),
     )

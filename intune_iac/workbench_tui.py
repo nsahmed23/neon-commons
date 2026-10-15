@@ -317,7 +317,7 @@ def page_filters(page_command):
 # The key line while a relationship map is shown: the map's own keys, by the width that holds them, ranked by what a
 # reader loses least. As the width shrinks a form only ever gives up keys, never swaps one for another: ": command", then
 # "Home edge", then the words after Up/Down and Left/Right, then "b back" (the numbered tabs, named in the strip, and
-# "q exit" still leave the surface), then Up/Down, Left/Right, Enter. "a actions" (the only route to the companion and
+# "q exit" still leave the surface), then "inspect" after Enter, then Up/Down, Left/Right, Enter. "a actions" (the only route to the companion and
 # the other actions) and Enter outlast "b back". help_line removes the keys with no work behind them from every form
 # (Enter without an inspect route, Left/Right without a pan), so a key is named only where it works.
 MAP_HELP_LINES = ('? help | a actions | : command | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
@@ -325,6 +325,8 @@ MAP_HELP_LINES = ('? help | a actions | : command | Up/Down node | Home edge | L
                   '? help | a actions | Up/Down node | Left/Right pan | Enter inspect | b back | q exit',
                   '? help | a actions | Up/Down | Left/Right pan | Enter inspect | b back | q exit',
                   '? help | a actions | Up/Down | Left/Right | Enter inspect | q exit',
+                  # 58 cells: the word after Enter goes before the key that moves the focus does (a 60-column window).
+                  '? help | a actions | Up/Down | Left/Right | Enter | q exit',
                   '? help | a actions | Left/Right | Enter inspect | q exit',
                   '? help | a actions | Enter inspect | q exit',
                   '? help | a actions | q exit',
@@ -341,7 +343,7 @@ def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan
         return next((line for line in lines if cell_width(line) <= width), lines[-1])
     lines = list(MAP_HELP_LINES if map_keys and layer == 'summary' else LAYER_HELP_LINES if layer in LAYER_KEYS else HELP_LINES)
     if map_keys and layer == 'summary' and not inspect:
-        lines = [line.replace(' | Enter inspect', '') for line in lines]
+        lines = [line.replace(' | Enter inspect', '').replace(' | Enter', '') for line in lines]
     if map_keys and layer == 'summary' and not pan:
         lines = [line.replace(' | Left/Right pan', '').replace(' | Left/Right', '') for line in lines]
     for old, new in LAYER_KEYS.get(layer, ()):

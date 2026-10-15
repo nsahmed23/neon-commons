@@ -83,3 +83,38 @@ class CompanionWordingTests(companion_tests.Fixture):
         self.assertIn('workbench companion --root STORE --object ID --serve', page)
         self.assertNotIn('the same workbench companion command', page)
         self.assertRegex(page, r'--serve[^.]*prints? (the|its) (secret )?address')
+
+
+class NarrowMapTests(MapTruth):
+    """Item 3: at 60x20 the key line names a key that moves the focus and the legend defines the no-state word."""
+
+    def narrow(self, size=(60, 20), rules="unicode", hscroll=0):
+        ws = self.workspace(size, rules=rules)
+        ws.hscroll = hscroll
+        return MapTruth.plain(self, ws)
+
+    def test_the_key_line_at_60x20_names_the_way_to_move_the_focus(self):
+        for hscroll in (0, 8):
+            line = self.narrow(hscroll=hscroll)[-1]
+            for key in ('? help', 'a actions', 'Up/Down', 'Left/Right', 'Enter', 'q exit'):
+                self.assertIn(key, line, (hscroll, line))
+            self.assertLessEqual(len(line), 60)
+
+    def test_a_key_is_named_only_where_it_works(self):
+        from intune_iac.workbench_tui import help_line
+        for inspect in (True, False):
+            for pan in (True, False):
+                line = help_line(60, map_keys=True, inspect=inspect, pan=pan)
+                self.assertIn('Up/Down', line)
+                self.assertIn('a actions', line)
+                self.assertEqual('Enter' in line, inspect, (inspect, pan, line))
+                self.assertEqual('Left/Right' in line, pan, (inspect, pan, line))
+
+    def test_the_legend_at_60x20_defines_the_word_its_rows_show(self):
+        for rules, word in (('unicode', '—'), ('ascii', 'n/a')):
+            # Panned until the state column is in view: the rows show the word the legend must define.
+            rows = [row.strip('│| ').rstrip() for row in self.narrow(rules=rules, hscroll=12)]
+            self.assertTrue(any(row.endswith(' ' + word) for row in rows), (rules, rows))
+            legend = next(row for row in rows if '> focus * selected' in row)
+            self.assertIn('%s means no state' % word, legend, rules)
+            self.assertIn('? help', legend)
