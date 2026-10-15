@@ -259,18 +259,19 @@ class ApprovalAuthority:
             _sync(self.root)
         except (sqlite3.Error, OSError): _fail('approval_store_unavailable')
 
-    def _reading(self):
-        """One judgement of the wall clock against the time this authority recorded (clock.py): the effective time
-        never goes back, and a reading earlier than the recorded time by more than the tolerance is flagged backward.
-        The recorded time lives beside the consumption store, so it survives a restart."""
-        floor = clock.Floor(self.root/'clock.json')
-        try:
-            with floor.locked(): return floor.observe_locked(time.time())
-        except OSError: _fail('approval_store_unavailable')
-
     def hold_if_clock_behind(self):
-        """Refuse with the clock hold when this host's clock reads earlier than the recorded time (nothing else)."""
-        self._hold_if_backward(self._reading())
+        """Explain a backward step before an unauthenticated input is refused for its wall-relative time.
+
+        This runs before authentication, so it only reads the persisted high-water mark (a rename replaces the file,
+        so a lockless read is whole) and records nothing: not the file, not this process's anchor. A damaged or
+        unreadable record falls through to the caller's original refusal, never to acceptance. The recorded time is
+        written only inside _critical, after authentication."""
+        try: recorded = clock.Floor(self.root/'clock.json').high_water()
+        except AppError: return
+        wall = time.time()
+        if recorded is None or type(wall) not in (int, float): return
+        self._hold_if_backward({'wall': wall, 'floor': recorded, 'effective': max(wall, recorded),
+                                'backward': wall < recorded - clock.TOLERANCE_SECONDS})
 
     @contextmanager
     def _critical(self, payload, request_sha256, deadline=None, expired_code='approval_expired'):
@@ -280,6 +281,21 @@ class ApprovalAuthority:
         backward step is held. Otherwise it yields the open transaction and the caller commits its insert inside it,
         so no other process can latch the expiry between the judgment and the effect."""
         floor = clock.Floor(self.root/'clock.json')
+        # Lock order: the store directory, then the recorded-time lock, then the SQLite write transaction. The
+        # recorded-time lock is per inode, so deleting clock.lock would let a second process lock a new file; the
+        # directory is the one object that cannot be replaced under a running critical section.
+        directory = os.open(self.root, os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+        try:
+            opened, current = os.fstat(directory), os.stat(self.root)
+            if (opened.st_dev, opened.st_ino) != (current.st_dev, current.st_ino): _fail('approval_store_not_private')
+            _private(self.root, directory=True)
+            fcntl.flock(directory, fcntl.LOCK_EX)
+            closed = yield from self._judged(floor, payload, request_sha256, deadline)
+        finally:
+            os.close(directory)
+        if closed: _fail(expired_code)
+
+    def _judged(self, floor, payload, request_sha256, deadline):
         closed = False
         with floor.locked():
             reading = floor.observe_locked(time.time())
@@ -299,7 +315,7 @@ class ApprovalAuthority:
                 else:
                     self._hold_if_backward(reading)
                     yield db
-        if closed: _fail(expired_code)
+        return closed
 
     def _hold_if_backward(self, reading):
         """A backward step means validity cannot be established, so the approval is held, not judged."""

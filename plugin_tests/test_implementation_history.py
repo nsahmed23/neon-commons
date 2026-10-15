@@ -58,6 +58,9 @@ AUTHZ_R2_LABEL = 'authz-expiry-latch-r2'
 AUTHZ_R2_WORKER_FILES = dict(AUTHZ_WORKER_FILES, **{
     'approval_authority.py': 'bf29d3bbbc035c1a713d7c682164ab22e648fcb30a461f789bdaf00828616660',
     'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371'})
+AUTHZ_R3_LABEL = 'authz-expiry-latch-r3'
+AUTHZ_R3_WORKER_FILES = dict(AUTHZ_R2_WORKER_FILES, **{
+    'approval_authority.py': '189da8ac643b188de8e4edc525a14e8bc06dd63a48b3637d70b7cc5d9bb097b0'})
 
 
 def frozen_digests():
@@ -89,7 +92,8 @@ class InventoryPinTests(unittest.TestCase):
             [dict(entry) for entry in history.WORKER_INVENTORY],
             [{'label': LABEL, 'files': FROZEN_WORKER_FILES}, {'label': P3B_LABEL, 'files': P3B_WORKER_FILES},
              {'label': AUTHZ_LABEL, 'files': AUTHZ_WORKER_FILES},
-             {'label': AUTHZ_R2_LABEL, 'files': AUTHZ_R2_WORKER_FILES}])
+             {'label': AUTHZ_R2_LABEL, 'files': AUTHZ_R2_WORKER_FILES},
+             {'label': AUTHZ_R3_LABEL, 'files': AUTHZ_R3_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         for inventory, components in ((history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS),

@@ -286,6 +286,47 @@ class ClockHoldExplanationTests(RecoveryWordsMixin, unittest.TestCase):
         self.attempt_after_a_thirty_second_step_back(self.start, self.start + 30)
 
 
+class UnauthenticatedInputTests(unittest.TestCase):
+    """Input that has not authenticated must not write the recorded time or move this process's anchor."""
+    setUp_base = ReceiptExpiryLatchTests.setUp_base
+    receipt = ReceiptExpiryLatchTests.receipt
+    authorize = ReceiptExpiryLatchTests.authorize
+    refused = ReceiptExpiryLatchTests.refused
+    consumed = ReceiptExpiryLatchTests.consumed
+    setUp = ReceiptExpiryLatchTests.setUp
+
+    def future_dated(self, prepared_at, issued_at):
+        self.clocks.elapse(30)  # build the objects at T+30, as a host clock that later reads T would see them
+        request = dict(self.request, prepared_at=prepared_at)
+        guard = aa.make_laboratory_guard(request, lambda: None)
+        forged = self.receipt(request, issued_at=issued_at, expires_at=issued_at + LIFETIME)
+        forged['signature'] = forged['signature'][:-4] + 'AAAA'
+        self.clocks.step(-30)
+        return request, guard, forged
+
+    def check(self, prepared_at, issued_at, code):
+        floor = self.root / 'authority' / 'clock.json'
+        request, guard, forged = self.future_dated(prepared_at, issued_at)
+        floor.unlink(missing_ok=True)
+        anchors = dict(clock._ANCHORS)
+        self.assertEqual(self.refused(lambda: self.authorize(forged, request, guard)).code, code)
+        self.assertFalse(floor.exists())
+        self.assertEqual(dict(clock._ANCHORS), anchors)
+        # A legitimate approval at the current time is not held because of the rejected input.
+        with self.authorize(self.signed): pass
+
+    def test_an_unsigned_request_dated_ahead_records_nothing(self):
+        self.check(self.start + 30, self.start + 30, 'approval_preparation_time')
+
+    def test_an_unsigned_receipt_issued_ahead_records_nothing(self):
+        self.check(self.start, self.start + 30, 'approval_receipt_time')
+
+    def test_a_damaged_recorded_time_falls_through_to_the_original_refusal(self):
+        request, guard, forged = self.future_dated(self.start + 30, self.start + 30)
+        (self.root / 'authority' / 'clock.json').write_bytes(b'not json')
+        self.assertEqual(self.refused(lambda: self.authorize(forged, request, guard)).code, 'approval_preparation_time')
+
+
 class RevokedSignerTests(unittest.TestCase):
     setUp_base = ReceiptExpiryLatchTests.setUp_base
     receipt = ReceiptExpiryLatchTests.receipt
@@ -354,6 +395,16 @@ class ConcurrentLatchTests(unittest.TestCase):
         return rows(self.authority, 'SELECT * FROM executions')
 
     def test_a_replaced_clock_record_during_expired_authorization_cannot_reopen_the_approval(self):
+        authority = self.root / 'authority'
+        self.sequence_a(lambda: write_json(authority / 'clock.json',
+                                           {'schema_version': clock.SCHEMA, 'high_water': self.expires - 100}))
+
+    def test_deleting_the_clock_lock_and_record_during_expired_authorization_cannot_reopen_the_approval(self):
+        # flock is per inode: a second process locking a fresh clock.lock must still wait for the first.
+        authority = self.root / 'authority'
+        self.sequence_a(lambda: [(authority / name).unlink() for name in ('clock.lock', 'clock.json')])
+
+    def sequence_a(self, tamper):
         paused, release, second_paused, release_second = (FORK.Event() for _ in range(4))
 
         def process_a():
@@ -385,7 +436,7 @@ class ConcurrentLatchTests(unittest.TestCase):
         a_process, a_queue = self.start_process(process_a)
         self.assertTrue(paused.wait(BOUND))
         # While process A has recorded an expired time but not yet the expiry, replace the recorded time.
-        write_json(self.root / 'authority' / 'clock.json', {'schema_version': clock.SCHEMA, 'high_water': self.expires - 100})
+        tamper()
         b_process, b_queue = self.start_process(process_b)
         time.sleep(1)
         self.assertTrue(b_queue.empty())  # process B waits for the critical section; it does not get through
