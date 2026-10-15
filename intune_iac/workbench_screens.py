@@ -1519,7 +1519,8 @@ def history_lines(value, width, current=None):
 
 CELLS = (('#', 'success'), ('x', 'failure'), ('~', 'pending'), ('?', 'reported unknown'), ('.', 'no fresh report'))
 MAX_CELLS = 400
-NOT_COUNTED = ('missing', 'stale', 'partial', 'access_denied', 'future', 'membership_conflicts', 'conflicting')
+NOT_COUNTED = ('missing', 'stale', 'age_unknown', 'partial', 'access_denied', 'future', 'membership_conflicts',
+               'conflicting')
 
 
 def _counts(stage):

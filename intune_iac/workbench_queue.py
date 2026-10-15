@@ -147,12 +147,14 @@ def current(store,object_id,finding,*,now=None,_records=None):
     key,chain=_chain(store,object_id,finding,_records)
     if not chain:return {'status':'unknown','queue_key':key,'tenant_id':store.tenant_id,'object_id':object_id,'finding':finding,
                           'reason':'review_not_recorded','cloud_authority':False,'execution_authorized':False,'exception_authorized':False}
-    now=time.time() if now is None else now
+    # The store's never-decreasing time, as every freshness verdict in the workspace: a clock that steps back does not
+    # make an expired exception current again.
+    now=store._clock_reading(bind=False)[1] if now is None else now
     if type(now) not in (int,float) or not math.isfinite(now) or now<0:_fail('workbench_queue_date')
     row=chain[-1];data=row['data']
     return {**data,'status':'recorded','artifact_id':row['artifact_id'],'recorded_at':row['recorded_at'],
             'review_overdue':None if data['review_due'] is None else now>_stamp(data['review_due']),
-            'exception_expired':None if data['exception_expiry'] is None else now>_stamp(data['exception_expiry']),
+            'exception_expired':None if data['exception_expiry'] is None else now>=_stamp(data['exception_expiry']),
             'evaluated_at':now,'annotation_only':True,'finding_resolution_established':False,
             'limitations':['Owner/review/exception metadata is a local unverified annotation, not organizational approval.',
                            'Proposal identity was verified at recording; linking does not approve, execute, extend expiry or suppress findings.',

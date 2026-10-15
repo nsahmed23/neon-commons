@@ -502,10 +502,8 @@ class OverviewClockTests(FreshnessClockTestCase):
         self.assertIn('age unknown (%s)' % QUEUE_HOLD_WORDS['clock_moved_backward'], text)
         self.assertIn(CLOCK_HOLD_STEPS['clock_moved_backward'].split(';')[0], text)
 
-    @unittest.expectedFailure  # 2026-10-15: remove this line once workbench_queue.current compares with >= (see report)
     def test_queue_exception_expiry_treats_the_expiry_instant_as_expired(self):
-        # An approval treats its expiry instant as expired; a queue exception must too. The comparison is in
-        # workbench_queue.current, which PKG-TIME-OVERVIEW does not permit this package to edit.
+        # An approval treats its expiry instant as expired; a queue exception must too.
         from intune_iac import workbench_queue
         expiry = '2027-01-15T09:00:00Z'
         at = datetime.fromisoformat(expiry.replace('Z', '+00:00')).timestamp()
@@ -518,6 +516,38 @@ class OverviewClockTests(FreshnessClockTestCase):
         self.assertIs(read(at - 1), False)
         self.assertIs(read(at), True)
         self.assertIs(read(at + 1), True)
+
+    def test_an_expired_queue_exception_stays_expired_after_the_clock_steps_back(self):
+        # Judged on the store's never-decreasing time: once the recorded time passed the expiry, a wall clock that
+        # steps back before it does not make the exception current again.
+        from intune_iac import workbench_queue
+        expiry_at = self.clocks.time() + 600 - BACKWARD_STEP // 2
+        expiry = datetime.fromtimestamp(expiry_at, timezone.utc).isoformat().replace('+00:00', 'Z')
+        document = {'schema_version': workbench_queue.SCHEMA, 'tenant_id': self.tenant, 'object_id': self.oid,
+                    'finding': 'ownership_unknown', 'owner': 'Endpoint operations', 'rationale': 'Confirm ownership.',
+                    'review_due': expiry, 'exception_expiry': expiry, 'linked_proposals': []}
+        write_json(self.root / 'review.json', document)
+        workbench_queue.amend(self.store, self.root / 'review.json', expected_prior=None)
+        self.hold(elapsed=600)
+        self.assertLess(self.clocks.time(), expiry_at)  # the wall alone would call the exception current
+        value = workbench_queue.current(self.store, self.oid, 'ownership_unknown')
+        self.assertIs(value['exception_expired'], True)
+
+    def test_held_ownership_names_the_clock_recovery_not_collecting_again(self):
+        self.import_ownership()
+        self.hold()
+        held = [f for f in self.queue_findings() if f['finding'] == 'ownership_stale']
+        self.assertTrue(held)  # one per policy the ownership index covers
+        for finding in held:
+            text = ' '.join(str(value) for value in finding.values())
+            self.assertNotIn('collect every scope again', text)
+            self.assertIn('collecting again does not clear this', text)
+
+    def test_the_device_health_screen_names_devices_whose_report_age_is_unknown(self):
+        from intune_iac.workbench_screens import _stage_lines
+        stage = {'targeted': 4, 'reporting': 4, 'successful': 1, 'age_unknown': 3}
+        text = ' '.join('\n'.join(_stage_lines({'execution': stage}, 100)).split())
+        self.assertIn('Not counted as fresh success: 3 age unknown', text)
 
     # Item 5: agreement.
 

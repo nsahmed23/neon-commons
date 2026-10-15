@@ -244,7 +244,14 @@ def _queue(store, *, limit=None, offset=0):
             reasons.append(('ownership_elsewhere', 'The declared writer belongs to another selected stack/component/backend scope; coordinate its owner before proposing a change.'))
         elif writer_status == 'unknown':
             if ownership_index is not None and not writer['fresh']:
-                reasons.append(('ownership_stale', 'Declared ownership evidence is stale or future-dated; collect every scope again before assessing the writer.'))
+                held = clock_hold(ownership_hold)
+                if held:
+                    # Collecting again is judged against the same recorded time, so it is not the way out of a clock hold.
+                    reasons.append(('ownership_stale', 'The age of the declared ownership evidence cannot be established '
+                                    '(%s); collecting again does not clear this: %s.' % (OWNERSHIP_HOLD_CAUSE[held],
+                                                                                   CLOCK_HOLD_RECOVERY[held])))
+                else:
+                    reasons.append(('ownership_stale', 'Declared ownership evidence is stale or future-dated; collect every scope again before assessing the writer.'))
             else:
                 reasons.append(('ownership_unknown', 'Writer ownership is unknown because the index, selected scope, complete scope coverage, or object and assignment writer evidence is missing.'))
         writer_evidence = {key: writer[key] for key in ('status', 'claims', 'conflicting_parts', 'scope',
@@ -566,6 +573,9 @@ FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection d
                           'older_than_window': 'older than the freshness window',
                           'stamped_after_now': "stamped after this host's clock", **CLOCK_HOLD_WORDS}
 # What a clock hold's refusal says is the way out; collecting again is never it.
+# Why ownership evidence cannot be judged under a clock hold, in words.
+OWNERSHIP_HOLD_CAUSE = {'clock_moved_backward': "this host's clock reads earlier than a time this workspace recorded",
+                        'clock_floor_invalid': 'the time this workspace recorded cannot be read'}
 CLOCK_HOLD_RECOVERY = {
     'clock_moved_backward': ('correct the host clock, or wait until it reads at or after the time this workspace '
                              'recorded, then restart the workbench'),
