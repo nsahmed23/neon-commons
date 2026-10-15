@@ -480,3 +480,94 @@ class BlockedRecoveryTests(unittest.TestCase):
                       'entry, Prepare a proposal from the recorded intent, can be staged.', text)
         self.assertNotIn('then Refresh the repository intent and Prepare', text)
         self.assertNotIn('(a: actions)', text)
+
+
+class StripKeyTests(MapTruth):
+    """Item 12: wherever the strip shows an abbreviated width form, the same screen defines it once: in the pinned legend
+    row where the screen has one (the map), otherwise on a row above the key line, at 40x12, 60x20 and 80x24."""
+    SIZES = ((40, 12), (60, 20), (80, 24))
+    WIDER = ((100, 30), (110, 30), (120, 40))  # frame 19: OP verified is shown at 120x40 too
+    BATTERY = (
+        {'operation': 'succeeded_verified', 'observation': 'fresh', 'repository': 'current'},
+        {'operation': 'outcome_unknown', 'observation': 'source changed', 'repository': 'current'},
+        {'operation': 'reconciled', 'observation': 'stale (later collection incomplete)', 'repository': 'not checked'},
+        {'operation': 'held', 'observation': 'age unknown (stamped ahead)', 'repository': 'recorded_intent_not_revalidated'},
+        {'operation': 'unreadable', 'observation': 'fresh', 'repository': 'desired_state_observed'},
+        {'operation': 'succeeded_verified', 'observation': 'source changed', 'repository': 'current'})
+    # The form as the strip spells it, and the definition the screen must carry once.
+    FORMS = (
+        (r'\| T [0-9a-f]{8}', 'T = tenant'), (r'\| P [0-9a-f]{8}', 'P = policy'),
+        (r'OP (?:[0-9a-f]{8} )?verified\b', 'verified = succeeded verified'),
+        (r'OP (?:[0-9a-f]{8} )?unknown\b', 'unknown = outcome unknown'),
+        (r'REPO unchecked', 'unchecked = not checked'),
+        (r'REPO not revalidated', 'not revalidated = recorded intent not revalidated'),
+        (r'REPO observed', 'observed = desired state observed'),
+        (r'OBS age\?', 'age? = age unknown'),
+        (r'OBS stale(?! \()', 'stale = stale, a later collection did not complete'))
+
+    def screen(self, size, facts, tab=1):
+        ws = self.workspace(size, tab=tab, facts=dict({'object_id': self.object_id, 'name': 'Windows Privacy Pilot'}, **facts))
+        rows = self.plain(ws)
+        return rows, '\n'.join(rows)
+
+    def test_every_abbreviated_form_on_the_strip_is_defined_once_on_its_screen(self):
+        import re
+        seen = set()
+        for size in self.SIZES + self.WIDER:
+            for facts in self.BATTERY:
+                rows, text = self.screen(size, facts)
+                strip = rows[2]
+                for pattern, meaning in self.FORMS:
+                    if re.search(pattern, strip):
+                        seen.add(meaning)
+                        self.assertEqual(text.count(meaning), 1, (size, facts, strip, meaning, rows))
+                        self.assertNotIn(meaning, strip)
+        # The battery reached the width forms the brief names, at the sizes it names.
+        for meaning in ('T = tenant', 'P = policy', 'verified = succeeded verified', 'unknown = outcome unknown'):
+            self.assertIn(meaning, seen)
+
+    def test_a_strip_with_no_abbreviated_form_carries_no_key(self):
+        rows, text = self.screen((140, 40), self.BATTERY[1])
+        self.assertNotIn(' = tenant', text)
+        self.assertNotIn(' = outcome unknown', text)
+
+    def test_the_map_screen_defines_them_in_its_pinned_legend_row(self):
+        for size in ((60, 20), (80, 24)):
+            rows, text = self.screen(size, self.BATTERY[1], tab=2)
+            self.assertEqual(text.count('unknown = outcome unknown'), 1, rows)
+            holder = next(row for row in rows if 'unknown = outcome unknown' in row)
+            self.assertTrue(holder.startswith('│'), holder)  # inside the frame, with the map's legend
+            self.assertNotIn('unknown = outcome unknown', rows[-1] + rows[-2])
+            legend = rows.index(holder)
+            self.assertTrue(any('focus' in row for row in rows[legend - 3:legend + 1]), rows[legend - 3:legend + 1])
+
+    def test_every_definition_fits_the_window_whole(self):
+        from intune_iac.workbench_tui import cell_width
+        for size in self.SIZES:
+            for facts in self.BATTERY:
+                rows, _ = self.screen(size, facts)
+                for row in rows:
+                    self.assertLessEqual(cell_width(row), size[0], (size, row))
+
+
+class ConstrainedStripKeyTests(unittest.TestCase):
+    """Item 12: below the minimum the abbreviated forms are defined too, in what room the window leaves."""
+
+    def rows(self, width, height):
+        from intune_iac.workbench_screens import constrained_rows
+        facts = {'name': 'P', 'operation': 'outcome_unknown', 'observation': 'fresh', 'repository': 'current'}
+        lines, _ = constrained_rows(TENANT, OBJECT, facts, 'synthetic', width, height, '40x12', 'Ready.')
+        return lines
+
+    def test_the_forms_the_window_shows_are_defined_once(self):
+        lines = self.rows(36, 10)
+        text = '\n'.join(lines)
+        self.assertIn('T 11111111', text)
+        for meaning in ('T = tenant', 'P = policy'):
+            self.assertEqual(text.count(meaning), 1, lines)
+
+    def test_the_definitions_give_way_before_the_hazard_when_rows_run_out(self):
+        lines = self.rows(36, 5)
+        self.assertEqual(len(lines), 5)
+        self.assertNotIn('= tenant', '\n'.join(lines))
+        self.assertTrue(any(line.startswith('!') for line in lines), lines)

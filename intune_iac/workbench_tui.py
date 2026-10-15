@@ -1023,9 +1023,21 @@ class Workspace:
         self.facts = facts
 
     def _context_strip(self, width):
-        from .workbench_screens import context_strip
+        return self._strip_choice(width)[0]
+
+    def _strip_choice(self, width):
+        """The strip's text and the definitions of the abbreviated width forms it shows."""
+        from .workbench_screens import strip_choice
         facts = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
-        return context_strip(self.store.tenant_id, self.selected, facts, width, getattr(self, 'mode_class', None))
+        return strip_choice(self.store.tenant_id, self.selected, facts, width, getattr(self, 'mode_class', None))
+
+    def _strip_key_rows(self, width):
+        """The rows that define the strip's abbreviated forms, or [] where there are none or the screen's own pinned
+        legend row (the map's) carries them."""
+        from .workbench_screens import strip_key_rows
+        if self._map_shown():
+            return []
+        return strip_key_rows(self._strip_choice(width)[1], width)
 
     def _surface_summary(self, width):
         from .workbench_screens import collection_result_lines, is_collection_run, word_wrap
@@ -1578,7 +1590,8 @@ class Workspace:
             # A staged action's boundary and its mechanics each get a row, each in the longest complete form that fits.
             pick = lambda forms: next((form for form in forms if cell_width(form) <= width), forms[-1])
             staged_rows = [pick(staged['boundary']), pick(staged.get('mechanics') or ('',))]
-        available = max(0, height - 8 - len(band) - (1 if staged_rows else 0))
+        key_rows = self._strip_key_rows(width)
+        available = max(0, height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows))
         # One column of space inside each border: text never touches the frame (journey 27 review, Sonnet 23).
         content = inner - 2
         data = self._body_lines(content, RULES[getattr(self, 'rules', 'ascii')][1])
@@ -1637,7 +1650,7 @@ class Workspace:
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
                             ' more below: PgDn ' if self.scroll + room < len(data) else None),
                       pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
-                      pad(prompt, width),
+                      pad(prompt, width)] + [pad(row, width) for row in key_rows] + [
                       pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
                           running_keys(getattr(self, 'last_command', ''), width)
                           if str(getattr(self, 'notice', '')).startswith('RUNNING:') else
@@ -1652,12 +1665,12 @@ class Workspace:
                     # The hazard band is bold in the warning colour; its words carry the meaning on their own.
                     painted.append('\x1b[48;5;%s;38;5;%sm\x1b[1m%s\x1b[22m\x1b[0m' % (palette['bg'], palette['warn'], line))
                     continue
-                base = palette['accent'] if i in (0, 1, len(frame) - 2) else palette['fg']
+                base = palette['accent'] if i in (0, 1, len(frame) - 2 - len(key_rows)) else palette['fg']
                 # Body lines, the context strip and the notice get word-level reinforcement; words never change.
                 # A map row's marks are tinted; each mark is also written as its state word beside it.
                 if i in map_rows:
                     line = paint_marks(line, palette, base)
-                elif line.startswith(side) or i in (2, len(frame) - 2):
+                elif line.startswith(side) or i in (2, len(frame) - 2 - len(key_rows)):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
         else: painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else emphasize(line) if line.startswith(side) else line
@@ -1950,7 +1963,9 @@ class Workspace:
         facts = getattr(self, 'facts', None) or {}
         prefixes = facts.get('identity_prefixes') if facts.get('object_id') == self.value.get('object_id') else None
         return map_lines(graph, width, getattr(self, 'rules', 'ascii'), focus=self._map_focus(),
-                         selected=getattr(self, 'selected', None), prefixes=prefixes, hscroll=getattr(self, 'hscroll', 0)) + ['']
+                         selected=getattr(self, 'selected', None), prefixes=prefixes, hscroll=getattr(self, 'hscroll', 0),
+                         strip_key=self._strip_choice(self.size[0])[1] if getattr(self, 'store', None) is not None
+                         and getattr(self, 'size', None) else ()) + ['']
 
     def _map_move(self, key):
         """Up and Down: the previous and next node of the map; Home: along the focused node's edge to its other end."""

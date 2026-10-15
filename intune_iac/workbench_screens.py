@@ -120,18 +120,39 @@ def _operation_from_states(facts):
     return 'expired' if state == 'prepared' and operation.get('approval_window') in ('closed', 'closed_recorded') else state
 
 
+# What each abbreviated width form of the strip stands for, by the key a form reports: 'T' and 'P' for the tenant and
+# the policy, otherwise the full state value whose short word the strip shows. The pinned forms are unchanged
+# (P-PRES-15); the screen defines each one it shows, once (run 11 item 12).
+STRIP_DEFINITIONS = {
+    'T': 'T = tenant', 'P': 'P = policy',
+    'succeeded_verified': 'verified = succeeded verified', 'not checked': 'unchecked = not checked',
+    'outcome_unknown': 'unknown = outcome unknown',
+    'recorded_intent_not_revalidated': 'not revalidated = recorded intent not revalidated',
+    'desired_state_observed': 'observed = desired state observed', 'age unknown': 'age? = age unknown',
+    'age unknown (stamped ahead)': "age? = age unknown, stamped ahead of this host's clock",
+    'stale (later collection incomplete)': 'stale = stale, a later collection did not complete'}
+
+
 def context_strip(tenant, selected, facts, width, mode_class=None):
+    """The strip's text; see strip_choice."""
+    return strip_choice(tenant, selected, facts, width, mode_class)[0]
+
+
+def strip_choice(tenant, selected, facts, width, mode_class=None):
     """Where the engineer is: evidence mode, tenant, policy, observation, repository and operation state, as last reported.
 
     The mode and the tenant lead every form, so synthetic and live evidence cannot be confused at any width. When the
     line is too long, labels and words shorten first; then routine states give way, and hazards last of all (the
     hazard band below the strip always carries the primary one).
+
+    Returns (text, definitions): the form chosen and the definition of each abbreviated width form it shows.
     """
     lead = [mode_word(mode_class), 'TENANT ' + short_id(tenant)]
     tight = [mode_word(mode_class), 'T ' + short_id(tenant)]
     if not selected:
-        forms = [' | '.join(lead + ['POLICY none selected']), ' | '.join(tight + ['no policy']), ' | '.join(tight)]
-        return next((text for text in forms if cell_width(safe_text(text)) <= width), forms[-1])
+        forms = [(' | '.join(lead + ['POLICY none selected']), []), (' | '.join(tight + ['no policy']), ['T']),
+                 (' | '.join(tight), ['T'])]
+        return _chosen(forms, width)
     own = short_id(selected, facts.get('identity_prefixes'))
     policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + own + ')'
     states = [('OBSERVED', 'OBS', observed_state(facts)), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
@@ -161,13 +182,19 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
                 MEDIUM_STATES.get(str(value), _as_words(value)) if brief == 1 else _as_words(value))
         return short + (' ' + named if short == 'OP' and named else '') + ' ' + word
 
+    def short_words(remaining):
+        # The keys of the state values whose short word the line shows.
+        return [str(value) for long, short, value in remaining if str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
+
     def labelled(name, brief, head, remaining):
-        return ' | '.join(head + [name] + [segment(short, value, brief) for long, short, value in remaining])
+        text = ' | '.join(head + [name] + [segment(short, value, brief) for long, short, value in remaining])
+        return text, (['T'] if head is tight else []) + (short_words(remaining) if brief == 2 else [])
 
     def narrow(remaining):
         # Short labels and the whole short policy id.
-        return ' | '.join(tight + ['P ' + own] + [segment(short, SHORT_STATES.get(str(value), str(value)), 0)
+        text = ' | '.join(tight + ['P ' + own] + [segment(short, SHORT_STATES.get(str(value), str(value)), 0)
                                                  for long, short, value in remaining])
+        return text, ['T', 'P'] + short_words(remaining)
 
     def keeps_hazard(remaining):
         return not hazards or any(state in remaining for state in hazards)
@@ -176,7 +203,27 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     forms = ([labelled(*tier) for tier in tiers if keeps_hazard(tier[3])]
              + [narrow([state for state in states if state in hazards[:count]]) for count in range(len(hazards), 0, -1)]
              + [labelled(*tier) for tier in tiers if not keeps_hazard(tier[3])] + [narrow([])])
-    return next((text for text in forms if cell_width(safe_text(text)) <= width), forms[-1])
+    return _chosen(forms, width)
+
+
+def _chosen(forms, width):
+    """The first (text, keys) that fits the width, with the definitions of the abbreviated forms it shows."""
+    text, keys = next((form for form in forms if cell_width(safe_text(form[0])) <= width), forms[-1])
+    return text, [STRIP_DEFINITIONS[key] for key in dict.fromkeys(keys)]
+
+
+def strip_key_rows(definitions, width):
+    """The definitions of the abbreviated forms the strip shows, packed into as few rows as fit; a definition wider than
+    the row wraps whole and is never cut. [] when the strip shows no abbreviated form."""
+    rows = []
+    for definition in definitions:
+        if rows and cell_width(rows[-1] + ' | ' + definition) <= width:
+            rows[-1] += ' | ' + definition
+        elif cell_width(definition) <= width:
+            rows.append(definition)
+        else:
+            rows.extend(word_wrap(definition, width))
+    return rows
 
 
 # The primary hazard's ranking, its words and the key that offers its response (a: the action list).
@@ -431,14 +478,19 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     # Only keys that work here: while a command is typed q is part of it, so Enter and Esc are the keys.
     forms = (('Enter submits; Esc discards', 'Esc discards') if typing else ('q exits; enlarge for the surfaces', 'q exits'))
     keys = next((text for text in forms if cell_width(text) <= width), '')
+    # The abbreviated forms the strip shows are defined in the rows the window has left, after the keys.
+    shown = ['T'] + (['P'] if selected else []) + [str(value) for label, short, value in states
+                                                   if selected and str(value) in HAZARD_STATES[label]
+                                                   and str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
-              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False) if selected else []}
+              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False) if selected else [],
+              'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
     budget, kept = height, {}
-    for name in ('band', 'header', 'prompt', 'strip', 'keys'):
+    for name in ('band', 'header', 'prompt', 'strip', 'keys', 'legend'):
         kept[name] = groups[name][:max(0, budget)]
         budget -= len(kept[name])
     lines, band_rows = [], []
-    for name in ('header', 'strip', 'band', 'prompt', 'keys'):
+    for name in ('header', 'strip', 'band', 'prompt', 'keys', 'legend'):
         for line in kept[name]:
             if name == 'band':
                 band_rows.append(len(lines))
@@ -2016,13 +2068,14 @@ def _filter_notes(graph, shorts):
     return notes
 
 
-def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=None, hscroll=0):
+def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=None, hscroll=0, strip_key=()):
     """The one-hop relationship map, then its legend and the focused node's rows, for a pane `width` cells wide.
 
     Layered by relation group in the order of RELATION_GROUPS, each layer sorted by identifier, one hop only: a layer
     longer than MAP_LAYER_LIMIT says how many are not drawn (the typed tree below lists them all). The rows are
     MapLines; the header and the pan statement are ordinary text; the legend and the focused node's rows are PinnedRows,
-    which the pane keeps in view when the map is taller than it."""
+    which the pane keeps in view when the map is taller than it. strip_key: the definitions of the abbreviated forms
+    the context strip shows, which the pinned legend carries on this screen (run 11 item 12)."""
     from .graph_projection import count_words, distinct_labels
     from .io import unique_prefixes
     glyph = MAP_GLYPHS.get(rules, MAP_GLYPHS['ascii'])
@@ -2074,6 +2127,7 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
         if cut:
             lines.append(_map_row('   ' + guide + glyph['last'] + '%d more not drawn; the tree below lists them' % cut))
     lines.extend(PinnedRow(row) for row in _map_legend(width, rules))
+    lines.extend(PinnedRow(row) for row in strip_key_rows(strip_key, width))
     identity, detail = _focus_lines(graph, nodes[focus], width)
     return lines + identity + detail
 
