@@ -643,8 +643,8 @@ def utc_time(value):
 
 
 # A change's path through the existing surfaces (P-PRES-15): numbers unchanged, where you are, what comes next.
-# Delivery has no surface number of its own: v opens it, and the line names it that way.
-LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Delivery (key v)'))
+# Delivery has no surface number of its own: v opens it, and the line says so where it names the key.
+LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Delivery (v opens it)'))
 # The band and a screen name one first action. Where a deployment record is available and the band's response is a
 # collection, both say record the deployment, then collect (PKG-PRES-RUN10 item 5): the order the change moves in, since
 # Delivery's stage 8 waits for a collection after the change. It is advice, not a rule the product enforces:
@@ -2737,18 +2737,18 @@ REFUSALS = {
         'Prepare a proposal from the recorded intent (a: actions); nothing from this one is used.'),
     'workbench_deployment_intent': (
         'The intent given is not exactly one repository intent recorded in this store.',
-        "Use the intent this operation's plan cites: v Delivery names it, and a lists the record with it."),
+        "Use the intent this operation's plan cites: v opens Delivery, which names it, and a lists the record with it."),
     'workbench_deployment_identity': (
         'The operation was prepared from another store or tenant, or the intent is for another policy.',
         'Record the deployment in the store that prepared the operation, with the intent for the same policy '
-        '(v Delivery names it).'),
+        '(v opens Delivery, which names it).'),
     'workbench_deployment_intent_not_cited': (
         "The intent given is not the one this operation's plan cites.",
         'Record {operation} with the intent it cites (the cause above names it).'),
     'workbench_deployment_unverified': (
         "The operation was not verified by exactly one readback of its own, or the intent's desired policy is not "
         'the one this operation applied.',
-        'Use the intent the operation cites (v Delivery names it). An operation whose own readback was never '
+        'Use the intent the operation cites (v opens Delivery, which names it). An operation whose own readback was never '
         'verified cannot be recorded; collect to observe the policy instead.'),
     'workbench_deployment_context_missing': (
         "The operation's plan bound no context, so it cites no repository intent.",
@@ -2760,7 +2760,7 @@ REFUSALS = {
         '(a: actions).'),
     'workbench_deployment_engine_receipt': (
         "The engine's receipt for this operation is missing, not verified, or not for this operation's request.",
-        'Open v Delivery for the operation; a record needs the engine receipt the execution wrote.'),
+        'v opens Delivery for the operation; a record needs the engine receipt the execution wrote.'),
     'workbench_deployment_readback': (
         'No single readback of this operation matches its verified event with the desired state observed, no '
         'pending visibility and a no-change second plan.',

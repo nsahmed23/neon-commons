@@ -104,7 +104,7 @@ class PlaceholderTemplateTests(CommandRows, unittest.TestCase):
         for width in (80, 118):
             rows = lifecycle_lines(4, width, value)
             self.assert_command_alone(rows, 'execute OPERATION_DIR DIGEST')
-            self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (key v)', text_of(rows))
+            self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (v opens it)', text_of(rows))
 
     def test_each_queue_finding_prints_its_review_commands_alone(self):
         from intune_iac.workbench_screens import queue_lines
@@ -271,7 +271,7 @@ class OneNextOnTheRepositorySurfaceTests(unittest.TestCase):
     def test_the_band_names_the_refresh_and_the_lifecycle_line_does_not_repeat_it(self):
         text = self.surface([{'area': 'repository', 'code': 'repository_stale', 'observed': 'Changed.', 'evidence': {}}])
         self.assertEqual(text.count('Refresh the repository intent'), 1, text)
-        self.assertIn('Lifecycle: 9 Repository (here) > 5 Plan > 6 Execution > Delivery (key v).', text)
+        self.assertIn('Lifecycle: 9 Repository (here) > 5 Plan > 6 Execution > Delivery (v opens it).', text)
         self.assertIn('A proposal follows from the new intent.', text)
 
     def test_without_a_band_the_lifecycle_line_keeps_its_next(self):

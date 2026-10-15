@@ -515,6 +515,55 @@ class MoreFindingsTests(unittest.TestCase):
                 self.assertRegex(text, r'\+%d more findings? \(2 Inspector\)' % others, (width, text))
 
 
+class KeyNamesTests(unittest.TestCase):
+    """Item 11: a key the body names (v, d, n, p) is in the key line or explained where it is named."""
+
+    def unexplained(self, text):
+        found = []
+        for match in re.finditer(r'(?<![\w/:.-])([dvnp])(?![\w/:.-])', text):
+            if not re.match(r'(shows?|opens?|to open|reads?|lists?)\b', text[match.end():].lstrip()):
+                found.append(text[max(0, match.start() - 25):match.end() + 25])
+        return found
+
+    def lifecycles(self):
+        import time
+        from intune_iac.workbench_screens import lifecycle_lines
+        now = time.time()
+        prepared = {'operation_id': 'a' * 32, 'status': 'prepared', 'expires_at': now + 200}
+        values = {8: ({'freshness': {'status': 'current'}}, {'freshness': {'status': 'stale'}}),
+                  4: (prepared, dict(prepared, expires_at=now - 1), dict(prepared, changes=[], no_configuration_change=True),
+                      dict(prepared, repository={'cited': None, 'context_changed': True})),
+                  5: ({'status': 'outcome_unknown'}, {'status': 'reconciled'}, {'status': 'succeeded_verified'})}
+        for tab, items in values.items():
+            for value in items:
+                for width in (80, 118):
+                    yield tab, ' '.join(' '.join(lifecycle_lines(tab, width, value, now)).split())
+
+    def test_the_lifecycle_line_explains_the_key_it_names(self):
+        seen = 0
+        for tab, text in self.lifecycles():
+            seen += 1
+            self.assertEqual(self.unexplained(text), [], (tab, text))
+            self.assertIn('Delivery (v opens it)', text)
+            self.assertNotIn('key v', text)
+        self.assertGreater(seen, 10)
+
+    def test_no_refusal_or_next_text_names_a_key_without_saying_what_it_does(self):
+        from intune_iac import workbench_screens as screens
+        texts = [part for pair in screens.REFUSALS.values() for part in pair]
+        texts += [part for triple in screens.RESTORE_REFUSALS.values() for part in triple] + list(screens.KNOWN_NEXT.values())
+        for text in texts:
+            self.assertEqual(self.unexplained(text), [], text)
+
+    def test_the_history_and_the_setting_hint_explain_n_p_and_d(self):
+        from intune_iac.workbench_screens import history_lines
+        value = {'object_id': 'o', 'order': 'observed_at_desc_observation_id_desc', 'pagination': {'has_more': True, 'total_observations': 3},
+                 'history': [{'observed_at': '2026-10-15T10:00:00Z', 'run_id': 1, 'coverage': 'complete', 'snapshot_id': 'a' * 64, 'body': {}}]}
+        text = ' '.join(' '.join(history_lines(value, 118)).split())
+        self.assertIn('n shows older observations, p shows newer observations', text)
+        self.assertEqual(self.unexplained(text), [], text)
+
+
 class StripOperationTests(unittest.TestCase):
     """Item 10: an operation the strip shows and the screen does not discuss is named once in the body."""
     surface = states_tests.RefusalCauseTests.workspace

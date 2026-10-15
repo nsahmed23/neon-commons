@@ -282,7 +282,7 @@ class LifecycleTests(unittest.TestCase):
         text = self.summary(4, {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared',
                                 'expires_at': time.time() + 200})
         # PKG-PRES-RUN4 item 17: Delivery has no surface number, so it is named as the key that opens it.
-        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (key v)', text)
+        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (v opens it)', text)
         # Run 9 (frame 18): the placeholder template stands on its own row after the sentence, so a copied row carries
         # no words; the sentence and the template are both still said.
         self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). Command: '
@@ -1308,7 +1308,7 @@ class RunEightWorkspaceTests(unittest.TestCase):
         # and the status's own Next (still in the typed details, e) is not stacked beside it.
         text = _said(self.workspace(8, self.repository_status())._summary_lines(118))
         self.assertEqual(text.count('Next:'), 1, text)
-        self.assertIn('Lifecycle: 9 Repository (here) > 5 Plan > 6 Execution > Delivery (key v). Next: Refresh the '
+        self.assertIn('Lifecycle: 9 Repository (here) > 5 Plan > 6 Execution > Delivery (v opens it). Next: Refresh the '
                       'repository intent first (a: actions)', text)
         self.assertNotIn('The repository changed. Review it, then refresh.', text)
         current = _said(self.workspace(8, self.repository_status('current'))._summary_lines(118))

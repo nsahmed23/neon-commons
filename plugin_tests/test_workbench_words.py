@@ -581,7 +581,7 @@ class RunFourWordsTests(unittest.TestCase):
         # Item 17 (run 3 G3): "v Delivery" had no tab number, as the other entries do.
         from intune_iac.workbench_screens import lifecycle_lines
         lines = text(lifecycle_lines(4, 160, {'status': 'prepared', 'expires_at': 4102444800}, now=0))
-        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (key v).', lines)
+        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (v opens it).', lines)
         self.assertNotIn('v Delivery', lines)
 
     def test_the_delivery_rows_read_codes_as_words(self):
