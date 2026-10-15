@@ -16,8 +16,16 @@ from urllib.parse import urlsplit
 from jsonschema import Draft202012Validator
 
 from .io import AppError, canonical, digest, parse_json
+from .native_pins import ATMOS_PINS, OPENTOFU_PINS
 
-VERSION = 'target-evidence/1.0'
+# Version 1 names the legacy tool pair (OpenTofu 1.10.0, Atmos 1.199.0) and stays readable for reproduction only: it is
+# labelled legacy_reproduction_only, and nothing here ever writes a version 1 document back as version 2. Version 2
+# names the current local qualification from native_pins.py: version and SHA-256 of both executables.
+VERSION_V1 = 'target-evidence/1.0'
+VERSION_V2 = 'target-evidence/2.0'
+VERSION = VERSION_V2
+CURRENT_PROFILE = 'current_local_qualification'
+LEGACY_PROFILE = 'legacy_reproduction_only'
 MAX_DOCUMENT_BYTES = 65536
 MAX_RESPONSE_BYTES = 1024 * 1024
 GUID_PATTERN = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
@@ -30,6 +38,19 @@ TIMESTAMP = {'type': 'string', 'maxLength': 32, 'pattern': r'^\d{4}-\d{2}-\d{2}T
 STORAGE_RESOURCE = re.compile(
     r'^/subscriptions/([0-9a-f-]{36})/resourceGroups/([A-Za-z0-9_()-][A-Za-z0-9_.()-]{0,89})'
     r'/providers/Microsoft\.Storage/storageAccounts/([a-z0-9]{3,24})$')
+
+
+def _only(pins, profile):
+    matches = [(sha, entry['version']) for sha, entry in pins.items() if entry['profile'] == profile]
+    if len(matches) != 1:
+        raise RuntimeError('native_pins.py must hold exactly one ' + profile + ' entry per tool')
+    return matches[0]
+
+
+CURRENT_ATMOS_SHA256, CURRENT_ATMOS_VERSION = _only(ATMOS_PINS, CURRENT_PROFILE)
+CURRENT_ENGINE_SHA256, CURRENT_ENGINE_VERSION = _only(OPENTOFU_PINS, CURRENT_PROFILE)
+_LEGACY_ATMOS_VERSION = _only(ATMOS_PINS, LEGACY_PROFILE)[1]
+_LEGACY_ENGINE_VERSION = _only(OPENTOFU_PINS, LEGACY_PROFILE)[1]
 
 
 def _object(properties):
@@ -51,50 +72,66 @@ IDENTITY = _object({
     'auth_kind': {'enum': ['workload_federation', 'managed_identity', 'application_certificate']},
     'federation': {'anyOf': [FEDERATION, {'type': 'null'}]},
 })
-SCHEMA = _object({
-    'schema_version': _constant(VERSION), 'observed_at': TIMESTAMP,
-    'binding': _object({
-        'cloud': _constant('public'), 'tenant_id': GUID,
-        'subscription_id': {'anyOf': [GUID, {'type': 'null'}]},
-        'endpoints': _object({
-            'graph': _constant('https://graph.microsoft.com'),
-            'authority': _constant('https://login.microsoftonline.com'),
-            'management': _constant('https://management.azure.com'),
-            'storage_audience': _constant('https://storage.azure.com/'),
+
+
+def _schema(version, toolchain):
+    return _object({
+        'schema_version': _constant(version), 'observed_at': TIMESTAMP,
+        'binding': _object({
+            'cloud': _constant('public'), 'tenant_id': GUID,
+            'subscription_id': {'anyOf': [GUID, {'type': 'null'}]},
+            'endpoints': _object({
+                'graph': _constant('https://graph.microsoft.com'),
+                'authority': _constant('https://login.microsoftonline.com'),
+                'management': _constant('https://management.azure.com'),
+                'storage_audience': _constant('https://storage.azure.com/'),
+            }),
+            'identity': IDENTITY,
+            'repository': _object({
+                'git_revision': {'type': 'string', 'pattern': r'^[0-9a-f]{40}$'},
+                'dirty_files_sha256': SHA, 'source_sha256': SHA,
+                'configuration_sha256': SHA, 'logical_stack': NAME,
+                'physical_stack': RELATIVE, 'component': RELATIVE,
+                'implementation_path': RELATIVE, 'runtime_layers_sha256': SHA,
+            }),
+            'backend': _object({
+                'type': _constant('azurerm'), 'cloud': _constant('public'),
+                'tenant_id': GUID, 'subscription_id': GUID, 'identity': IDENTITY,
+                'storage_account_resource_id': {'type': 'string', 'maxLength': 256},
+                'blob_endpoint': {'type': 'string', 'maxLength': 128},
+                'container': {'type': 'string', 'minLength': 3, 'maxLength': 63,
+                              'pattern': r'^[a-z0-9]+(-[a-z0-9]+)*$'},
+                'key': RELATIVE, 'workspace': NAME,
+                'resolved_blob_name': {'type': 'string', 'minLength': 1, 'maxLength': 1024},
+                'state_lineage': GUID, 'state_serial': {'type': 'integer', 'minimum': 0, 'maximum': 9007199254740991},
+                'state_sha256': SHA,
+            }),
+            'ownership': _object({
+                'mode': _constant('single_writer'), 'writer_id': NAME,
+                'scope_sha256': SHA, 'lease_id': GUID, 'lease_expires_at': TIMESTAMP,
+            }),
+            'toolchain': toolchain,
         }),
-        'identity': IDENTITY,
-        'repository': _object({
-            'git_revision': {'type': 'string', 'pattern': r'^[0-9a-f]{40}$'},
-            'dirty_files_sha256': SHA, 'source_sha256': SHA,
-            'configuration_sha256': SHA, 'logical_stack': NAME,
-            'physical_stack': RELATIVE, 'component': RELATIVE,
-            'implementation_path': RELATIVE, 'runtime_layers_sha256': SHA,
-        }),
-        'backend': _object({
-            'type': _constant('azurerm'), 'cloud': _constant('public'),
-            'tenant_id': GUID, 'subscription_id': GUID, 'identity': IDENTITY,
-            'storage_account_resource_id': {'type': 'string', 'maxLength': 256},
-            'blob_endpoint': {'type': 'string', 'maxLength': 128},
-            'container': {'type': 'string', 'minLength': 3, 'maxLength': 63,
-                          'pattern': r'^[a-z0-9]+(-[a-z0-9]+)*$'},
-            'key': RELATIVE, 'workspace': NAME,
-            'resolved_blob_name': {'type': 'string', 'minLength': 1, 'maxLength': 1024},
-            'state_lineage': GUID, 'state_serial': {'type': 'integer', 'minimum': 0, 'maximum': 9007199254740991},
-            'state_sha256': SHA,
-        }),
-        'ownership': _object({
-            'mode': _constant('single_writer'), 'writer_id': NAME,
-            'scope_sha256': SHA, 'lease_id': GUID, 'lease_expires_at': TIMESTAMP,
-        }),
-        'toolchain': _object({
-            'atmos_version': _constant('1.199.0'), 'atmos_sha256': SHA,
-            'engine': _constant('tofu'), 'engine_version': _constant('1.10.0'),
-            'engine_sha256': SHA, 'provider_source': _constant('deploymenttheory/microsoft365'),
-            'provider_version': _constant('1.0.0'), 'provider_lock_sha256': SHA,
-        }),
-    }),
-})
-VALIDATOR = Draft202012Validator(SCHEMA)
+    })
+
+
+def _toolchain(atmos_version, atmos_sha256, engine_version, engine_sha256):
+    return _object({
+        'atmos_version': _constant(atmos_version), 'atmos_sha256': atmos_sha256,
+        'engine': _constant('tofu'), 'engine_version': _constant(engine_version),
+        'engine_sha256': engine_sha256, 'provider_source': _constant('deploymenttheory/microsoft365'),
+        'provider_version': _constant('1.0.0'), 'provider_lock_sha256': SHA,
+    })
+
+
+SCHEMA_V1 = _schema(VERSION_V1, _toolchain(_LEGACY_ATMOS_VERSION, SHA, _LEGACY_ENGINE_VERSION, SHA))
+SCHEMA_V2 = _schema(VERSION_V2, _toolchain(
+    CURRENT_ATMOS_VERSION, _constant(CURRENT_ATMOS_SHA256),
+    CURRENT_ENGINE_VERSION, _constant(CURRENT_ENGINE_SHA256)))
+SCHEMA = SCHEMA_V2
+VALIDATORS = {VERSION_V1: Draft202012Validator(SCHEMA_V1), VERSION_V2: Draft202012Validator(SCHEMA_V2)}
+PROFILES = {VERSION_V1: LEGACY_PROFILE, VERSION_V2: CURRENT_PROFILE}
+VALIDATOR = VALIDATORS[VERSION_V2]
 UNVERIFIED = (
     'evidence_not_authenticated', 'principal_not_authenticated',
     'federation_not_authenticated', 'runtime_configuration_not_observed',
@@ -205,15 +242,21 @@ def inspect_target(document: dict) -> dict:
     """Validate supplied target binding; return only hashes, paths and fixed reasons."""
     result = {'schema_version': VERSION, 'valid': False, 'status': 'invalid',
               'assurance': 'supplied_consistency_only', 'execution_authorized': False,
-              'blockers': [_issue(code) for code in UNVERIFIED]}
+              'pin_profile': None, 'blockers': [_issue(code) for code in UNVERIFIED]}
     document = _snapshot(document)
     if document is None:
         result['issues'] = [_issue('invalid_or_unbounded_document')]
         return result
+    # The declared version selects the schema and the label. A version this module does not know is judged against
+    # the current schema, which reports the unsupported version at /schema_version, and carries no pin profile.
+    declared = document.get('schema_version') if type(document) is dict else None
+    known = type(declared) is str and declared in VALIDATORS
+    if known:
+        result.update(schema_version=declared, pin_profile=PROFILES[declared])
     # Validator paths are schema-known fields; additional-property names and
     # error messages are deliberately never copied into reports.
     issues = []
-    for error in VALIDATOR.iter_errors(document):
+    for error in VALIDATORS[declared if known else VERSION].iter_errors(document):
         path = '/' + '/'.join(str(part) for part in error.absolute_path) if error.absolute_path else ''
         issues.append(_issue('schema_' + error.validator, path))
         if len(issues) == 32:
@@ -243,7 +286,10 @@ def compare_targets(expected: dict, observed: dict) -> dict:
               'assurance': 'supplied_consistency_only', 'expected': left, 'observed': right,
               'differences': []}
     if left['valid'] and right['valid']:
-        differences = _differences(expected['binding'], observed['binding'])
+        # A legacy descriptor never matches a current one, even where every binding leaf agrees.
+        differences = ([{'path': '/schema_version', 'reason': 'changed'}]
+                       if expected['schema_version'] != observed['schema_version'] else [])
+        differences += _differences(expected['binding'], observed['binding'])
         result.update(status='mismatch' if differences else 'match', differences=differences)
     return result
 

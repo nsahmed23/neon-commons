@@ -882,6 +882,7 @@ plugin_tests/test_oracle_edge_types.py
 plugin_tests/test_output_edit.py
 plugin_tests/test_pin_history_p3b.py
 plugin_tests/test_pin_history_p3b_adoption.py
+plugin_tests/test_pin_migration_p3c.py
 plugin_tests/test_powershell_preview.py
 plugin_tests/test_pre_pin_migration.py
 plugin_tests/test_preservation_audit.py
