@@ -172,3 +172,78 @@ class FilterBlockTests(MapTruth):
                 self.assertTrue(body.startswith('(') and body.endswith(')'), (rules, note))
             index = next(i for i, row in enumerate(text) if 'filter 5aa36291' in row and MARK.search(row))
             self.assertIn('(applies to b564fc9a)', text[index + 1], rules)
+
+
+class DeliveryFirstActionTests(unittest.TestCase):
+    """Item 5: with a deployment record available and a stale observation, the band, the body and the list agree on one
+    first action, and say the order: record the deployment, then collect."""
+
+    RECORD = {'kind': 'deployment-record', 'available': True}
+    COLLECT = {'kind': 'collect', 'available': True}
+    # The band's collect-again findings by the evidence that makes them: (eligibility or signal, its code, its evidence).
+    CASES = (('eligibility', 'service_changed', {'observed_revision': 1, 'service_revision': 2}),
+             ('eligibility', 'policy_changed', {}),
+             ('eligibility', 'source_mismatch', {}),
+             ('signal', 'observation_stale', {'freshness_reasons': ['older_than_window']}),
+             ('signal', 'collection_failed', {'status': 'failed'}),
+             ('signal', 'collection_not_finished', {}),
+             ('signal', 'observation_stale', {'freshness_reasons': ['stamped_after_now'], 'collect_cures': True}))
+
+    def band(self, case, width, actions=True):
+        from intune_iac.workbench_screens import hazard_rows
+        kind, code, evidence = case
+        facts = {'object_id': 'o', 'actions': [self.RECORD, self.COLLECT] if actions else [self.COLLECT]}
+        signals = []
+        if kind == 'eligibility':
+            facts['eligibility'] = dict(evidence, reason=code, code='maintenance_observation_stale')
+        else:
+            signals = [{'area': 'freshness', 'code': code, 'evidence': evidence}]
+        return ' '.join(' '.join(hazard_rows(facts, signals, width)).split())
+
+    def test_the_band_names_the_deployment_record_before_the_collection_at_every_width(self):
+        for case in self.CASES:
+            for width in (140, 120, 100, 80, 60, 40):
+                text = self.band(case, width)
+                self.assertRegex(text, r'Record the deployment, then collect', (case, width, text))
+                self.assertNotIn('then collection', text)
+
+    def test_without_a_record_the_band_is_unchanged(self):
+        for case in self.CASES:
+            for width in (120, 80, 60):
+                text = self.band(case, width, actions=False)
+                self.assertNotIn('Record', text, (case, width))
+                self.assertIn('ollect', text, (case, width))
+
+    def test_the_body_says_the_same_order(self):
+        from plugin_tests.test_workbench_run9 import next_step
+        step = next_step(record={'status': 'available', 'intent_id': 'a' * 64})
+        first = step.split('\n')[0]
+        self.assertRegex(first, r'^Record the deployment \(a lists it\), then collect', first)
+        self.assertIn('deployment-record /w/op ' + 'a' * 64, step)
+
+    def test_the_body_names_no_collection_where_none_follows(self):
+        from intune_iac.workbench_delivery import _next_action
+        stages = {'proposal': {}, 'approval': {'status': 'done'}, 'readback': {'status': 'done'},
+                  'reconciliation': {'status': 'not_needed'}, 'deployment_record': {'status': 'available', 'intent_id': 'a' * 64},
+                  'observed_after': {'status': 'differs'}}
+        self.assertNotIn('collect', _next_action(stages, '/w/op', '/w/store').split('\n')[0])
+
+    def test_the_actions_list_puts_the_record_before_the_collection(self):
+        from unittest import mock
+        from intune_iac import workbench
+        from plugin_tests import test_workbench_repository as repository_tests
+        case = type('Case', (unittest.TestCase,), {'setUp': repository_tests.RepositoryOwnedChangeTests.setUp,
+                                                   'runTest': lambda self: None})('runTest')
+        case.setUp()
+        try:
+            record = {'operation_id': 'f' * 32, 'operation_root': case.root / 'operation', 'intent_id': 'a' * 64}
+            attention = {'status': 'ok', 'checked': {},
+                         'signals': [{'area': 'freshness', 'code': 'observation_stale',
+                                      'evidence': {'freshness_reasons': ['older_than_window']}}]}
+            with mock.patch.object(workbench, '_record_offer', return_value=record):
+                actions = workbench._actions(case.store, repository_tests.OBJECT, attention, None, case.service.root)
+            kinds = [action['kind'] for action in actions]
+            self.assertIn('collect', kinds)
+            self.assertLess(kinds.index('deployment-record'), kinds.index('collect'), kinds)
+        finally:
+            case.doCleanups()

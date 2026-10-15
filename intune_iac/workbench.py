@@ -731,20 +731,28 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
                      and not (stale.get('evidence') or {}).get('collect_cures'))
     # A clock hold on the age is not cured by collecting either: a new observation is judged against the same time.
     held = clock_hold((stale.get('evidence') or {}).get('freshness_reasons')) is not None
+    record = _record_offer(attention)
+
+    def offer_record():
+        offer('deployment-record', 'Record the deployment of operation %s' % _short(store, prefixes, record['operation_id']),
+              'deployment-record %s %s' % (shlex.quote(str(record['operation_root'])), record['intent_id']),
+              extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
+                     'intent_id': record['intent_id']})
+
     if (any(code in found for code in ('collection_failed', 'collection_not_finished'))
             or ('observation_stale' in found and not stamped_ahead and not held)):
+        # One first action: the record comes before the collection whenever both are offered, as the band and Delivery
+        # say (the order the change moves in: record the deployment, then collect to observe the policy after it).
+        if record:
+            offer_record()
         offer('collect', 'Collect again', 'collect', blocked=no_service)
     if any(code in found for code in ('repository_stale', 'repository_consumer_mismatch')):
         offer('repository-refresh', 'Refresh the repository intent',
               'repository-refresh ', cursor=len('repository-refresh '), show_first='repository-status',
               needs=['REVISION: the full 40-character commit ID; without a pinned git it is recorded as '
                      'stated, not checked against the files'])
-    record = _record_offer(attention)
-    if record:
-        offer('deployment-record', 'Record the deployment of operation %s' % _short(store, prefixes, record['operation_id']),
-              'deployment-record %s %s' % (shlex.quote(str(record['operation_root'])), record['intent_id']),
-              extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
-                     'intent_id': record['intent_id']})
+    if record and not any(action['kind'] == 'deployment-record' for action in actions):
+        offer_record()
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
     # A stamp ahead that collecting cannot cure, or a clock hold: the proposal's own check does not make collecting the fix.
     ahead = ((_stamped_ahead_only(eligibility.get('freshness_reasons')) and not _collect_cures(eligibility, service_root))

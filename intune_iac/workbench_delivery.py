@@ -269,9 +269,11 @@ def _next_step(stages, operation_root, store_root):
     if 'pending' in (readback['status'], reconciliation['status']):
         return 'The service has not yet shown the change; reconcile again later with:\n  reconcile %s' % operation
     if record['status'] == 'available':
-        return ('Record the deployment (a lists it). In the workspace:\n  deployment-record %s %s\nFrom a shell:\n'
+        # The order the band says too (a collection that follows is the one stage 8 waits for).
+        then = ', then collect to observe the policy after the change' if observed['status'] == 'not_yet' else ''
+        return ('Record the deployment (a lists it)%s. In the workspace:\n  deployment-record %s %s\nFrom a shell:\n'
                 '  workbench deployment-record --root %s --operation %s --intent %s'
-                % (operation, record['intent_id'], store, operation, record['intent_id']))
+                % (then, operation, record['intent_id'], store, operation, record['intent_id']))
     if record['status'] == 'done' and record.get('context_changed'):
         return ('The deployment was recorded, but the context file this operation bound has changed since, so the '
                 'record no longer passes its own check (the views reread those bytes); prepare a new proposal to '

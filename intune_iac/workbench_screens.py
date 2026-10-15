@@ -9,6 +9,7 @@ key away from each screen (e typed details, r raw record).
 from __future__ import annotations
 
 import json
+import re
 
 from .workbench_diagnostics import (CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_STEPS, clock_hold, CLOCK_HOLD_WORDS,
                                     clock_times, with_clock_times)
@@ -270,6 +271,13 @@ def _band_forms(primary, prefixes=None):
     return ['! Observation stale. Next: Collect again (a: actions)', '! Observation stale. Collect (a actions)']
 
 
+def _record_before_collect(form):
+    """A band form whose response is a collection, with the deployment record named first: one first action on every
+    surface, the one the actions list and Delivery's Next also name."""
+    return re.sub(r'(Next: )?Collect( again)?(?![a-z])', lambda found: (found.group(1) or '') + 'Record the deployment, then collect'
+                  + (found.group(2) or ''), form)
+
+
 def hazard_band(facts, signals, width):
     """The band's first row: the primary hazard and the key for its response, or None when nothing is recorded."""
     rows = hazard_rows(facts, signals, width)
@@ -311,6 +319,10 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False):
     counts = ([['+%d more' % others]] if not routes else [['+%d more in NEEDS ATTENTION' % others]] if here else
               [['+%d more: 2' % others]]) if others else [[]]
     forms = _band_forms(primary, facts.get('identity_prefixes'))
+    if any(isinstance(action, dict) and action.get('kind') == 'deployment-record' and action.get('available')
+           for action in facts.get('actions') or []):
+        # The actions list puts the record first, so the band names the order: record the deployment, then collect.
+        forms = [_record_before_collect(form) for form in forms]
     if not routes:
         forms = [_without_routes(form) for form in forms]
         reread = [_without_routes(note).replace(': 2 re-reads', '') for note in reread]
@@ -595,10 +607,11 @@ def utc_time(value):
 # A change's path through the existing surfaces (P-PRES-15): numbers unchanged, where you are, what comes next.
 # Delivery has no surface number of its own: v opens it, and the line names it that way.
 LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Delivery (key v)'))
-# The band and a screen each name their own step. No order is claimed between them: nothing the product enforces puts
-# collecting again before recording a deployment (deployment-record reads the operation, its readback and the cited
-# intent, never the observation; execute and reconcile check their own records), so a line saying one comes first
-# would be a claim the code does not make (run 8, frames 19 to 21).
+# The band and a screen name one first action. Where a deployment record is available and the band's response is a
+# collection, both say record the deployment, then collect (PKG-PRES-RUN10 item 5): the order the change moves in, since
+# Delivery's stage 8 waits for a collection after the change. It is advice, not a rule the product enforces:
+# deployment-record reads the operation, its readback and the cited intent, never the observation, so nothing refuses
+# collecting first (run 8, frames 19 to 21).
 
 
 def lifecycle_next(tab, value, now, eligibility=None):
