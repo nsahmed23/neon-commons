@@ -117,3 +117,24 @@ def project(value, *, names=None, states=None, freshness=None):
     revision = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
                                          allow_nan=False).encode('utf-8')).hexdigest()
     return dict(body, revision=revision)
+
+
+def drawn_layers(graph, per_layer=None):
+    """Each layer of a graph with the edges a renderer draws (the first `per_layer`, in order; all when None) and how
+    many it does not draw. The terminal map and the companion page cut with the same rule and differ only in the limit."""
+    layers = []
+    for heading in graph['layers']:
+        edges = [edge for edge in graph['edges'] if edge['layer'] == heading]
+        shown = edges if per_layer is None else edges[:per_layer]
+        layers.append((heading, shown, len(edges) - len(shown)))
+    return layers
+
+
+def traversal_order(graph, per_layer=None):
+    """The node references in the order the keyboard visits them: the selected object, then layer by layer, each node once."""
+    order = [graph['center']]
+    for _, edges, _ in drawn_layers(graph, per_layer):
+        for edge in edges:
+            if edge['target'] not in order:
+                order.append(edge['target'])
+    return order
