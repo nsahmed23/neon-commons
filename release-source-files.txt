@@ -924,6 +924,7 @@ plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
+plugin_tests/test_sim_cases.py
 plugin_tests/test_sim_evaluator.py
 plugin_tests/test_sim_filters.py
 plugin_tests/test_sim_snapshot.py
