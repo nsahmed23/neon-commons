@@ -270,3 +270,19 @@ class JourneyTwentyEightWordsTests(unittest.TestCase):
         for kind in ('propose-from-intent', 'propose'):
             said = (ACTION_SUMMARY[kind] + ' ' + ACTION_EFFECTS[kind]).lower().count('nothing is approved or sent')
             self.assertEqual(said, 1, kind)
+
+
+class SayItOnceTests(unittest.TestCase):
+    """Journey 28 run 3, frame 24: a refusal says each fact once; the engine's effect facts win over the cause's copy."""
+
+    def test_a_clock_hold_says_nothing_was_dispatched_once(self):
+        from intune_iac.workbench_screens import refusal_lines
+        lines = text(refusal_lines({'error': {'code': 'clock_moved_backward', 'message': 'Refused.',
+                                              'effects': {'dispatched': False}}}, 160))
+        self.assertEqual(lines.count('Nothing was dispatched.'), 1, lines)
+        self.assertIn('Effect: Nothing was dispatched.', lines)
+
+    def test_without_the_engine_facts_the_cause_keeps_it(self):
+        from intune_iac.workbench_screens import refusal_lines
+        lines = text(refusal_lines({'error': {'code': 'clock_moved_backward', 'message': 'Refused.'}}, 160))
+        self.assertEqual(lines.count('Nothing was dispatched.'), 1, lines)

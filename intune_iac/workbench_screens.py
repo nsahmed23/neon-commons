@@ -2166,6 +2166,8 @@ def refusal_lines(value, width, known=None):
         return lines + effect_lines(error.get('effects'), width)
     # The cause is said once. The engine's message stays on screen only when it names something the general
     # meaning cannot (a setting, a path, a value); otherwise it is one key away (Gemini review K, problem 3).
+    effects = effect_lines(error.get('effects'), width)
+    meaning = _without_said(meaning, effects)
     specific = bool(message) and _names_specifics(message)
     if specific:
         lines += word_wrap(message, width)
@@ -2174,12 +2176,22 @@ def refusal_lines(value, width, known=None):
     else:
         lines += word_wrap('Cause: ' + meaning, width)
     # What the refusal established about what changed, from the engine's own facts, before the next step.
-    lines += effect_lines(error.get('effects'), width)
+    lines += effects
     if step:
         lines += word_wrap('Next: ' + step, width)
     if message and not specific:
         lines += word_wrap("The engine's own message is in the typed details (e).", width)
     return lines
+
+
+def _without_said(meaning, said):
+    """The meaning without its closing sentences that the effect lines already say (journey 28 run 3, frame 24)."""
+    import re
+    flat = ' '.join(' '.join(said).split())
+    sentences = re.split(r'(?<=\.) ', str(meaning).strip())
+    while len(sentences) > 1 and sentences[-1].strip() and sentences[-1].strip() in flat:
+        sentences.pop()
+    return ' '.join(sentences)
 
 
 def _names_specifics(message):
