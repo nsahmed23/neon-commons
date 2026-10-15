@@ -84,7 +84,7 @@ class OwnershipTests(unittest.TestCase):
 class ProtectedUnderAnOlderHistoryTests(unittest.TestCase):
     def test_a_request_prepared_under_an_older_history_module_is_refused_after_clock_changes(self):
         with tempfile.TemporaryDirectory() as work, older_history():
-            executor = protected.create_synthetic_executor(Path(work) / 'executor', initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.10.0')
+            executor = protected.create_synthetic_executor(Path(work) / 'executor', initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.13.1')
             request = protected.prepare_native_operation(executor, ttl_seconds=300)
             protected.approve_synthetic_operation(request, executor=executor)  # the control: approvable as prepared
             copy = copy_of(BOUND, ['clock.py'])

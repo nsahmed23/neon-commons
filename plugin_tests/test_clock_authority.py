@@ -66,7 +66,7 @@ class ApprovalWindowTests(unittest.TestCase):
         self.base = Path(temp.name)
         self.clocks = Clocks()
         inject(self, self.clocks)
-        self.executor = protected.create_synthetic_executor(self.base / 'fixture', initial_value={}, desired_value={'x': 1}, engine_version='1.10.0')
+        self.executor = protected.create_synthetic_executor(self.base / 'fixture', initial_value={}, desired_value={'x': 1}, engine_version='1.13.1')
         self.request = protected.prepare_native_operation(self.executor)
         self.receipts = self.base / 'receipts'
 

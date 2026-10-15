@@ -169,18 +169,33 @@ def _load(operation_root):
     return root, plan, journal, desired, request
 
 
-def _engine_profile(context):
-    """The engine version a new operation's modeled executor names, and the profile it belongs to.
-
-    A context whose schema_version is one of the two known versions selects that profile, as generation does. A context
-    that carries no schema_version selects no pins, and so does no context at all: the operation is new and takes the build's
-    current profile. A schema_version that is present but not recognised is refused, never defaulted."""
+def _context_profile(context):
+    """The engine version and profile a context selects: its schema_version, as generation does; a context with no
+    schema_version, or none at all, selects no pins and gets the build's current profile. A schema_version that is present
+    but not recognised is refused, never defaulted. Reading a stored operation uses this (a legacy one reads as legacy)."""
     if context is not None and 'schema_version' in context:
         selected = context_profile(context)
         if selected is None:
             _fail('maintenance_context_version')
         return selected['engine_version'], selected['profile']
     return tools(CURRENT)['engine_version'], CURRENT
+
+
+def _engine_profile(context):
+    """The engine version a NEW operation's modeled executor names. A versioned legacy context is refused here, before
+    anything is written: a legacy profile can be read and reviewed but is never approved or executed."""
+    version, profile = _context_profile(context)
+    if profile == LEGACY:
+        raise protected.LegacyProfileNotExecutable(version)
+    return version, profile
+
+
+def _plan_profile(plan):
+    """The engine version and profile a stored plan records. A pre-migration plan records neither: it was made by a legacy
+    executor and is read as legacy."""
+    if 'engine_version' in plan or 'pin_profile' in plan:
+        return plan.get('engine_version'), plan.get('pin_profile')
+    return tools(LEGACY)['engine_version'], LEGACY
 
 
 def _check_cited_intent(store, object_id, desired, context):
@@ -415,7 +430,14 @@ def review(operation_root):
     root, plan, journal, desired, request = _load(operation_root)
     protected.validate_native_operation(request, executor=protected.SyntheticExecutor(root / 'executor'))
     before = plan['before_estate']['objects'][plan['object_id']]
+    version, profile = _plan_profile(plan)
+    cannot_run = None if profile == CURRENT else {
+        'code': 'legacy_profile_not_executable',
+        'recovery': 'Prepare a new proposal under the current pins (OpenTofu %s); this record stays readable as history.'
+                    % tools(CURRENT)['engine_version']}
     return {'operation_id': plan['operation_id'], 'operation_root': str(root),
+        'engine_version': version, 'pin_profile': profile, 'executable': cannot_run is None,
+        **({} if cannot_run is None else {'not_executable': cannot_run}),
         'approval_digest': digest(plan), 'status': journal['status'], 'object_id': plan['object_id'],
         'tenant_id': plan['tenant_id'], 'changes': plan['changes'],
         # Derived from the plan itself; field_changes follows the same equality.
@@ -469,6 +491,9 @@ def execute(operation_root, *, approve_digest, fault=None, visibility_delay_read
 
 def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, progress):
     root, plan, journal, desired, request = _load(operation_root)
+    # A legacy (or pre-migration) operation is refused before anything is read further or written, with the upgrade reason.
+    if _plan_profile(plan)[1] != CURRENT:
+        raise protected.LegacyProfileNotExecutable(_plan_profile(plan)[0])
     if fault not in (None, 'lost-response', 'after-policy', 'deny', 'throttle'):
         _fail('maintenance_fault_invalid')
     if type(visibility_delay_reads) is not int or not 0 <= visibility_delay_reads <= MAX_VISIBILITY_DELAY_READS:

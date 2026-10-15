@@ -603,8 +603,17 @@ def _generate(session, state, observed, guard):
     state['in_flight'] = None; write_json(session, state)
 
 
+def _require_current_profile(observed):
+    """A journey under the legacy pins is generated and read, never planned, approved or executed."""
+    from .protected import LegacyProfileNotExecutable
+    profile = context_profile(observed['context'])
+    if profile is None: raise AppError('journey_context_version', 'The target context does not select a recognised pin profile.')
+    if profile['profile'] == _PIN_LEGACY: raise LegacyProfileNotExecutable(profile['engine_version'])
+
+
 def _prepare_plan(session, state, observed):
     if state['mode'] != 'simulation': raise AppError('journey_live_blocked', 'Live readiness gates are not qualified.')
+    _require_current_profile(observed)
     if any(not value['normalized'].get('candidate_mapping_complete', value['status'] == 'ready') for value in observed['inspections'].values()):
         raise AppError('journey_mapping_incomplete', 'Unsupported mapping cannot enter the executable simulation.')
     from .protected import create_synthetic_executor, create_native_local_executor, prepare_native_operation
@@ -785,6 +794,7 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                             execute(state['repository'], observed['context']['stack'], observed['context']['component'],
                                     state['atmos_executable'], _root(session) / 'native-atmos.json')
                         if step == 'plan': _prepare_plan(session, state, observed)
+                        if step in ('approval', 'execute'): _require_current_profile(observed)
                         if step == 'approval':
                             from .protected import approve_synthetic_operation, approve_native_local_operation
                             approve = approve_native_local_operation if state.get('tofu_executable') else approve_synthetic_operation

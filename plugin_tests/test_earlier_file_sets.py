@@ -95,7 +95,7 @@ class ProtectedRequestOnAnEarlierFileSetTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.work = Path(temporary.name)
-        self.executor = protected.create_synthetic_executor(self.work / 'executor', initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.10.0')
+        self.executor = protected.create_synthetic_executor(self.work / 'executor', initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.13.1')
         self.earlier = last_entry_with(history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS_EARLIER)['implementation_sha256']
         self.assertNotEqual(self.earlier, protected._implementation_sha256())
         with patch.object(protected, '_implementation_sha256', return_value=self.earlier):

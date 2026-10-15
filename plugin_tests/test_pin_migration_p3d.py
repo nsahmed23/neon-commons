@@ -156,18 +156,26 @@ class JourneyPinsTests(unittest.TestCase):
         # context, shown in the progress and the messages, never a new field in an old record.
         self.assertNotIn('pin_profile', self.receipt('generation')['payload'])
 
-    def test_a_complete_journey_runs_the_modeled_executor_under_the_profile_of_its_project(self):
-        for profile, version in ((CURRENT, CURRENT_TOFU), (LEGACY, LEGACY_TOFU)):
-            with self.subTest(profile=profile):
-                self.setUp()
-                self.use(profile)
-                result = self.run_flow(self.BEFORE + self._base.AFTER_GENERATE)
-                self.assertEqual(result['status'], 'complete_simulation', result)
-                self.assertEqual(json.loads(self.work('main.tf.json').read_text())['terraform']['required_version'], '= ' + version)
-                self.assertEqual(json.loads(self.work('plan.json').read_text())['terraform_version'], version)
-                progress = self.api().reconstruct_progress(self.session)
-                self.assertEqual(progress['verified_completed'], list(self.api().STAGES))
-                self.assertEqual(progress['pin_profile'], profile)
+    def test_a_complete_journey_runs_the_modeled_executor_under_the_current_profile(self):
+        self.use(CURRENT)
+        result = self.run_flow(self.BEFORE + self._base.AFTER_GENERATE)
+        self.assertEqual(result['status'], 'complete_simulation', result)
+        self.assertEqual(json.loads(self.work('main.tf.json').read_text())['terraform']['required_version'], '= ' + CURRENT_TOFU)
+        self.assertEqual(json.loads(self.work('plan.json').read_text())['terraform_version'], CURRENT_TOFU)
+        progress = self.api().reconstruct_progress(self.session)
+        self.assertEqual(progress['verified_completed'], list(self.api().STAGES))
+        self.assertEqual(progress['pin_profile'], CURRENT)
+
+    def test_a_legacy_journey_generates_and_reads_but_is_never_planned_for_execution(self):
+        self.use(LEGACY)
+        result = self.run_flow(self.BEFORE + ['generate', 'continue', 'continue', 'plan', 'save'])
+        self.assertEqual(result['status'], 'suspended')
+        stopped = [line for line in self.messages if line.startswith('Local action stopped:')]
+        self.assertEqual(stopped, ['Local action stopped: legacy_profile_not_executable'], self.messages)
+        progress = self.api().reconstruct_progress(self.session)
+        self.assertEqual((progress['next_state'], progress['pin_profile']), ('plan', LEGACY))  # generated and readable
+        self.assertIn('generation', progress['verified_completed'])
+        self.assertFalse((self.session.parent / (self.session.name + '.journey') / 'synthetic-executor').exists())
 
 
 
@@ -682,6 +690,39 @@ def native_pins_sha(profile):
 # ---------------------------------------------------------------------------------------------------------------------
 # Round 3, item 1: no silent legacy executor. The engine version is a required argument and every caller passes one.
 # ---------------------------------------------------------------------------------------------------------------------
+class LegacyExecutorIsNotExecutedTests(unittest.TestCase):
+    """The protected execute boundary: a legacy executor (version 1.10.0, or a pre-migration one that records none) is
+    refused before any journal event, with the upgrade reason; a current one executes."""
+
+    def prepared(self, version):
+        from intune_iac import protected
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        executor = protected.create_synthetic_executor(folder / 'executor', initial_value={'a': 1}, desired_value={'a': 2},
+                                                       engine_version=version)
+        request = protected.prepare_native_operation(executor)
+        return protected, folder, executor, request
+
+    def test_a_current_executor_executes(self):
+        protected, folder, executor, request = self.prepared(CURRENT_TOFU)
+        grant = protected.approve_synthetic_operation(request, executor=executor)
+        result = protected.execute_native_operation(request, folder / 'state', executor=executor, approval=grant)
+        self.assertEqual(result['status'], 'succeeded_verified', result)
+
+    def test_a_legacy_executor_is_refused_before_the_state_directory_the_lock_or_any_event(self):
+        protected, folder, executor, request = self.prepared(LEGACY_TOFU)
+        self.assertNotIn('engine_version', json.loads((folder / 'executor/executor.json').read_text()))  # as every earlier one
+        grant = protected.approve_synthetic_operation(request, executor=executor)
+        before = sorted(p.name for p in (folder / 'executor').iterdir())
+        result = protected.execute_native_operation(request, folder / 'state', executor=executor, approval=grant)
+        self.assertEqual((result['status'], result['error']['code']), ('rejected', 'legacy_profile_not_executable'))
+        self.assertIn('new proposal', result['error']['reason'])
+        self.assertFalse((folder / 'state').exists())
+        self.assertEqual(sorted(p.name for p in (folder / 'executor').iterdir()), before)
+        self.assertFalse((folder / 'executor/consumed.json').exists())
+
+
 class NoSilentLegacyExecutorTests(unittest.TestCase):
     def test_the_engine_version_has_no_default(self):
         import inspect
@@ -743,6 +784,7 @@ class WorkbenchProposeEngineVersionTests(unittest.TestCase):
     setUp = _maintenance.MaintenanceTests.setUp
     propose = _maintenance.MaintenanceTests.propose
     execute = _maintenance.MaintenanceTests.execute
+    patches = _maintenance.MaintenanceTests.patches
 
     def context(self, **fields):
         path = self.root / 'context.json'
@@ -773,12 +815,77 @@ class WorkbenchProposeEngineVersionTests(unittest.TestCase):
         self.propose(context_path=self.context())
         self.check(CURRENT, CURRENT_TOFU)
 
-    def test_the_schema_version_of_the_context_selects_the_profile_as_generation_does(self):
-        for version, profile, tofu in ((CONTEXT_V2, CURRENT, CURRENT_TOFU), (CONTEXT_V1, LEGACY, LEGACY_TOFU)):
-            with self.subTest(version=version):
-                self.setUp()
-                self.propose(context_path=self.context(schema_version=version))
-                self.check(profile, tofu)
+    def test_a_version_2_context_selects_the_current_profile_as_generation_does(self):
+        self.propose(context_path=self.context(schema_version=CONTEXT_V2))
+        self.check(CURRENT, CURRENT_TOFU)
+
+    def test_a_versioned_legacy_context_is_refused_at_propose_time_with_the_upgrade_reason(self):
+        from intune_iac.io import AppError
+        with self.assertRaises(AppError) as raised:
+            self.propose(context_path=self.context(schema_version=CONTEXT_V1))
+        self.assertEqual(raised.exception.code, 'legacy_profile_not_executable')
+        self.assertIn('new proposal', raised.exception.message)
+        self.assertIn(CURRENT_TOFU, raised.exception.message)
+        self.assertFalse(self.operation.exists())
+        self.assertEqual(self.patches(), [])
+
+    def legacy_operation(self, fieldless=False):
+        """A stored operation made under the legacy profile (as one made before this round could be), and its approval digest."""
+        from unittest.mock import patch
+        from intune_iac import maintenance
+        from intune_iac.io import digest, write_json
+        with patch.object(maintenance, '_engine_profile', return_value=(LEGACY_TOFU, LEGACY)):
+            proposal = self.propose(context_path=self.context(schema_version=CONTEXT_V1))
+        if not fieldless:
+            return proposal['approval_digest']
+        # A pre-migration plan names neither field: remove them and re-seal the plan as the journal recorded it.
+        plan = self.recorded()
+        del plan['pin_profile'], plan['engine_version']
+        write_json(self.operation / 'plan.json', plan)
+        journal = json.loads((self.operation / 'journal.json').read_text())
+        journal['plan_sha256'] = digest(plan)
+        write_json(self.operation / 'journal.json', journal)
+        return maintenance.review(self.operation)['approval_digest']
+
+    def assert_cannot_run(self, approval_digest):
+        from intune_iac import maintenance
+        from intune_iac.io import AppError
+        journal_before = (self.operation / 'journal.json').read_bytes()
+        with self.assertRaises(AppError) as raised:
+            maintenance.execute(self.operation, approve_digest=approval_digest)
+        self.assertEqual(raised.exception.code, 'legacy_profile_not_executable')
+        self.assertIn('new proposal', raised.exception.message)
+        self.assertFalse(raised.exception.effects['dispatched'])
+        self.assertEqual((self.operation / 'journal.json').read_bytes(), journal_before)  # no dispatched or applied event
+        self.assertFalse((self.operation / 'executor/consumed.json').exists())
+        self.assertEqual(self.patches(), [])
+
+    def test_a_stored_legacy_operation_reads_and_reviews_and_says_it_cannot_run_then_execution_is_refused(self):
+        from intune_iac import maintenance
+        approval_digest = self.legacy_operation()
+        review = maintenance.review(self.operation)
+        self.assertEqual((review['pin_profile'], review['engine_version']), (LEGACY, LEGACY_TOFU))
+        self.assertFalse(review['executable'])
+        self.assertEqual(review['not_executable']['code'], 'legacy_profile_not_executable')
+        self.assertIn('new proposal', review['not_executable']['recovery'])
+        self.assert_cannot_run(approval_digest)
+
+    def test_an_operation_stored_before_the_change_still_reads_as_recorded_and_cannot_run(self):
+        from intune_iac import maintenance
+        approval_digest = self.legacy_operation(fieldless=True)
+        review = maintenance.review(self.operation)
+        self.assertEqual((review['pin_profile'], review['engine_version']), (LEGACY, LEGACY_TOFU))  # read as it was made
+        self.assertFalse(review['executable'])
+        self.assertEqual(self.modeled_plan()['terraform_version'], LEGACY_TOFU)
+        self.assert_cannot_run(review['approval_digest'])
+        self.assertNotEqual(approval_digest, '')
+
+    def test_a_current_operation_reviews_as_executable(self):
+        from intune_iac import maintenance
+        self.propose()
+        review = maintenance.review(self.operation)
+        self.assertEqual((review['pin_profile'], review['engine_version'], review['executable']), (CURRENT, CURRENT_TOFU, True))
+        self.assertNotIn('not_executable', review)
 
     def test_an_unrecognised_context_version_is_refused_before_anything_is_written(self):
         from intune_iac.io import AppError
@@ -794,23 +901,6 @@ class WorkbenchProposeEngineVersionTests(unittest.TestCase):
         proposal = self.propose()
         result = self.execute(proposal)
         self.assertEqual(result['status'], 'succeeded_verified', result)
-
-    def test_an_operation_stored_before_the_change_still_reads_as_recorded(self):
-        from intune_iac import maintenance
-        from intune_iac.io import digest, write_json
-        proposal = self.propose(context_path=self.context(schema_version=CONTEXT_V1))
-        # An earlier operation recorded no profile: remove the two fields and re-seal the plan as the journal recorded it.
-        plan = self.recorded()
-        del plan['pin_profile'], plan['engine_version']
-        write_json(self.operation / 'plan.json', plan)
-        journal = json.loads((self.operation / 'journal.json').read_text())
-        journal['plan_sha256'] = digest(plan)
-        write_json(self.operation / 'journal.json', journal)
-        resealed = maintenance.review(self.operation)  # the plan changed, so its approval digest is the new one
-        self.assertEqual(resealed['operation_id'], plan['operation_id'])
-        self.assertEqual(self.modeled_plan()['terraform_version'], LEGACY_TOFU)
-        done = maintenance.execute(self.operation, approve_digest=resealed['approval_digest'])
-        self.assertEqual(done['status'], 'succeeded_verified')
 
     def test_a_recorded_engine_version_that_the_executor_does_not_have_is_refused(self):
         from intune_iac import maintenance

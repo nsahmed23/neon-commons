@@ -753,6 +753,24 @@ class ImplementationChanged(AppError):
                          'readable as history.' % (recorded[:12], current[:12]))
 
 
+class LegacyProfileNotExecutable(AppError):
+    """The operation names the legacy engine (OpenTofu 1.10.0, legacy_reproduction_only), or is a pre-migration one that
+    names none. It can be read, reviewed and kept as history; it is never approved or executed. Raised before anything is
+    written, so nothing was dispatched."""
+    def __init__(self, version=None):
+        named = 'OpenTofu ' + version if version else 'a pre-migration engine'
+        super().__init__('legacy_profile_not_executable',
+                         'This operation names %s, the legacy profile (legacy_reproduction_only), which is kept to reproduce earlier '
+                         'output and is never approved or executed; nothing was dispatched. Prepare a new proposal under the current '
+                         'pins (OpenTofu %s); the earlier record stays readable as history.' % (named, _CURRENT_ENGINE))
+
+
+def _engine_gate(executor):
+    """Execution requires the current qualified engine: a legacy executor is refused by name."""
+    version=_engine_version(executor)
+    if version==_LEGACY_ENGINE:raise LegacyProfileNotExecutable(version)
+
+
 _PURPOSES=('current','recorded')
 
 
@@ -907,6 +925,8 @@ def execute_native_operation(request, state_dir, *, executor, approval):
     try:
         request=_validate_request(request,executor,implementation='current')
         if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
+        # Before the state directory, the lock, the journal or the consumed marker: nothing is written for a legacy executor.
+        _engine_gate(executor)
         result.update(operation_id=request['operation_id'],assurance=executor.mode)
         if type(approval)is not _LocalGrant or approval.seal is not _SECRET or approval.consumed or approval.request_sha256!=digest(request) or approval.expires_at<=_window(request,executor):_fail('approval_required')
         directory=_path(state_dir)
@@ -937,7 +957,7 @@ def execute_native_operation(request, state_dir, *, executor, approval):
         result.update(status='succeeded_verified',receipt_sha256=receipt_sha)
     except Exception as exc:
         result.update(status='outcome_unknown' if dispatched else 'rejected',error={'code':getattr(exc,'code','protected_operation_failed')})
-        if isinstance(exc,ImplementationChanged):result['error']['reason']=exc.message
+        if isinstance(exc,(ImplementationChanged,LegacyProfileNotExecutable)):result['error']['reason']=exc.message
     return result
 
 
