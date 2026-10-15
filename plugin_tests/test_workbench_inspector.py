@@ -103,7 +103,7 @@ class InspectorSummaryTests(unittest.TestCase):
         self.assertIn('synthetic observation, run 4, 2026-10-14 12:25:00 UTC; policy list, settings and assignments read in full; '
                       'stale', joined.replace('\n          ', ' '))
         self.assertIn('device_vendor_msft_policy_config_privacy_letappsaccesslocation', joined)
-        self.assertIn('No verified meaning is available for this value. Press d to inspect the available setting metadata.', ' '.join(joined.split()))
+        self.assertIn('No verified meaning is available for this value. Press d to open the setting dictionary and inspect the available setting metadata.', ' '.join(joined.split()))
         self.assertIn('include  Unresolved group identity 44444444-4444-4444-8444-444444444444', joined)
         self.assertIn('filter include 77777777-7777-4777-8777-777777777777', joined)
         self.assertIn('exclude  Unresolved group identity 66666666-6666-4666-8666-666666666666', joined)

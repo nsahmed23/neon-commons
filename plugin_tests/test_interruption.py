@@ -259,6 +259,20 @@ class InterruptCommandQuotingTests(unittest.TestCase):
                          ['intune-iac', 'workbench', 'collect', '--root', self.STORE, '--service-root', self.SERVICE])
 
 
+    def test_the_first_sentence_quotes_the_path_as_the_command_does(self):
+        # PKG-PRES-RUN4 item 10 (run 4 frame 33): the sentence left a path with spaces bare beside the quoted command.
+        import shlex
+        from intune_iac.workbench import interrupted_lines
+        for verb, sentence in (('execute', 'Interrupted while executing operation %s.'),
+                               ('reconcile', 'Interrupted while reconciling operation %s.')):
+            lines = interrupted_lines({'interrupted_during': {'command': verb, 'operation_root': self.OPERATION},
+                                       'store_root': self.STORE})
+            self.assertEqual(lines[0], sentence % shlex.quote(self.OPERATION))
+            self.assertTrue(lines[0].startswith(sentence.split('%s')[0] + "'"), lines[0])
+        plain = interrupted_lines({'interrupted_during': {'command': 'execute', 'operation_root': '/w/op'}, 'store_root': '/w/s'})
+        self.assertEqual(plain[0], 'Interrupted while executing operation /w/op.')
+
+
 class InterruptTextOnATerminalTests(unittest.TestCase):
     """Journey 28 run 3, frames 38 and 46: on a terminal the sentences wrap at spaces and the command stays whole."""
 
@@ -288,6 +302,28 @@ class RunningLineTests(unittest.TestCase):
         self.assertTrue(notice.startswith('RUNNING: '), notice)
         self.assertIn('operation-22222222-b29ebd66ff89', notice)
         self.assertIn('not yet known', notice)
+
+    def test_an_execution_names_its_operation_by_the_id_prefix_the_band_uses(self):
+        # PKG-PRES-RUN4 item 10 (run 4 frames 32 and 34): the RUNNING line named the directory, the band the id prefix.
+        from intune_iac.workbench_tui import running_notice
+        command = "execute '/w/journey 28/operation-22222222-b29ebd66ff89' " + 'a' * 64
+        operation_id = '1316840f6cf748fdbde4e67dc2a1735f'
+        notice = running_notice(command, operation_id, None)
+        self.assertEqual(notice, 'RUNNING: executing operation 1316840f; its outcome is not yet known.')
+        self.assertEqual(running_notice(command, operation_id, {operation_id: '1316840f6cf7'}),
+                         'RUNNING: executing operation 1316840f6cf7; its outcome is not yet known.')
+        self.assertIn('reconciling operation 1316840f ', running_notice("reconcile '/w/op'", operation_id, None))
+
+    def test_the_workspace_knows_the_id_of_an_operation_it_has_seen(self):
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self)
+        workspace.receive({'operation_id': '1316840f6cf748fdbde4e67dc2a1735f', 'operation_root': '/w/journey 28/op one',
+                           'status': 'prepared', 'object_id': workspace.selected})
+        workspace._send("execute '/w/journey 28/op one' " + 'a' * 64)
+        self.assertIn('executing operation 1316840f;', workspace.notice)
+        # An operation it has not seen keeps the directory name; nothing is invented.
+        workspace._send("execute '/w/journey 28/op two' " + 'a' * 64)
+        self.assertIn('executing operation op two;', workspace.notice)
 
     def test_a_collection_and_anything_else(self):
         from intune_iac.workbench_tui import running_notice

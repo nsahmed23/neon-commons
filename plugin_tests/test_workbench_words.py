@@ -345,7 +345,11 @@ class ClockHoldWordTests(unittest.TestCase):
         for code, words in self.CODES:
             states = {'observation': {'freshness': 'stale', 'freshness_reasons': [code], 'observed_at': '2026-10-14T22:40:01Z'}}
             lines = text(state_lines(states, 200))
-            self.assertIn('stale (%s)' % words, lines)
+            # PKG-PRES-RUN4 item 18: a held age reads "age not known", as the strip and the attention item do, never
+            # "stale", and the cause is said once.
+            self.assertIn('age not known (%s)' % words.split(': ', 1)[1], lines)
+            self.assertNotIn('stale', lines)
+            self.assertNotIn('cannot be established', lines.replace('cannot be read', ''))
             self.assertNotIn(code, lines)
 
     def test_diagnostics_evidence_reads_each_code_as_words(self):
@@ -373,3 +377,244 @@ class ClockHoldWordTests(unittest.TestCase):
             self.assertIn(words.split(': ', 1)[1], sentence)
             self.assertEqual(sentence.count('age cannot be established'), 1, sentence)
             self.assertNotIn(code, sentence)
+
+
+class RunFourWordsTests(unittest.TestCase):
+    """PKG-PRES-RUN4: the presentation defects of journey 28 runs 4 and 5 (FRAME-REVIEW-run4-5.md, triage items 7 to 18)."""
+    workspace = ReviewWordTests.workspace
+    CLOSED = {'operation_id': 'a' * 32, 'object_id': POLICY, 'status': 'prepared', 'saved_plan_sha256': 'c' * 64,
+              'approval_digest': 'b' * 64, 'expires_at': 1791980997,
+              'evidence_class': 'synthetic_local_process_and_modeled_service_only',
+              'approval_window': {'opens_at': 1791980697, 'closes_at': 1791980997, 'state': 'closed'}}
+    ELIGIBILITY = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
+                   'service_revision': 2}
+
+    def closed(self, state):
+        return dict(self.CLOSED, approval_window=dict(self.CLOSED['approval_window'], state=state))
+
+    def test_an_expired_plan_review_does_not_offer_the_review_digest(self):
+        # Item 7 (run 4 frame 70): "Review digest (execute needs it)" beside "Approval window: closed".
+        for state in ('closed', 'closed_recorded'):
+            lines = text(self.workspace(4, self.closed(state))._surface_summary(160))
+            self.assertNotIn('execute needs it', lines, state)
+            self.assertNotIn('b' * 64, lines)
+            self.assertIn('Review digest: not offered; the approval window closed, so execute can no longer run this '
+                          'plan. Prepare a new proposal (a: actions)', lines)
+        still_open = text(self.workspace(4, self.closed('open'))._surface_summary(160))
+        self.assertIn('Review digest (execute needs it): ' + 'b' * 64, still_open)
+
+    def test_the_strip_says_the_window_closed_not_prepared(self):
+        # Item 9 (run 3 R5, run 4 frames 72 to 77): "OP prepared" beside an expired approval.
+        for state in ('closed', 'closed_recorded'):
+            workspace = self.workspace(4, {})
+            workspace.last_command = 'review /w/op'
+            workspace._learn(self.closed(state))
+            line = workspace._context_strip(120)
+            self.assertIn('OP expired', line, state)
+            self.assertNotIn('OP prepared', line)
+        workspace = self.workspace(4, {})
+        workspace.last_command = 'review /w/op'
+        workspace._learn(self.closed('open'))
+        self.assertIn('OP prepared', workspace._context_strip(120))
+
+    def test_the_strip_says_the_window_closed_from_the_delivery_view_too(self):
+        value = {'schema_version': 'workbench-delivery/1', 'object_id': POLICY, 'operation_id': 'a' * 32,
+                 'journal_status': 'prepared', 'stages': [{'stage': 'approval', 'status': 'expired', 'recorded': True}]}
+        workspace = self.workspace(5, {})
+        workspace.last_command = 'delivery /w/op'
+        workspace._learn(value)
+        self.assertIn('OP expired', workspace._context_strip(120))
+        value['stages'] = [{'stage': 'approval', 'status': 'waiting'}]
+        workspace._learn(value)
+        self.assertIn('OP prepared', workspace._context_strip(120))
+
+    def test_a_reconcile_after_an_interruption_says_so_beside_no_error(self):
+        # Item 11 (frame 38): "Recorded before reconcile: no error" beside an outcome that was unknown.
+        result = {'operation_id': 'a' * 32, 'journal_status': 'reconciled', 'previous_status': 'outcome_unknown',
+                  'previous_error_code': None, 'classification': 'desired_state_observed',
+                  'evidence_class': 'synthetic_local_process_and_modeled_service_only', 'effects': {'replayed': False}}
+        lines = text(self.workspace(5, {'result': result})._surface_summary(160))
+        self.assertIn('Recorded before reconcile: no error recorded; the run was interrupted', lines)
+        lines = text(self.workspace(5, {'result': dict(result, previous_error_code='model_response_lost')})._surface_summary(160))
+        self.assertIn("Recorded before reconcile: the modeled service's response was lost (model_response_lost)", lines)
+        self.assertNotIn('interrupted', lines)
+        lines = text(self.workspace(5, {'result': dict(result, previous_status='prepared')})._surface_summary(160))
+        self.assertIn('Recorded before reconcile: no error', lines)
+        self.assertNotIn('interrupted', lines)
+
+    def test_a_message_that_says_the_meaning_leaves_what_it_means_out(self):
+        # Item 12 (run 4 frame 67): the message and "What it means" said the same thing.
+        from intune_iac.workbench_screens import refusal_lines
+        message = ('This operation cites repository intent ' + '8559b6b3b2471ed098e8f602a61c3d616c1a61d2c0468e1a4346b3a731709b78' + ', not the intent given; record the deployment '
+                   'with the intent it cites.')
+        lines = text(refusal_lines({'error': {'code': 'workbench_deployment_intent_not_cited', 'message': message,
+                                              'effects': {'deployment_recorded': False}}}, 200))
+        self.assertIn(message, lines)
+        self.assertNotIn('What it means', lines)
+        self.assertIn('Effect: No deployment receipt was recorded.', lines)
+        # A message that names something the meaning cannot, and does not repeat it, keeps the meaning's line.
+        specific = 'The desired policy uses device_vendor_msft_policy_config_x_1, outside the capability map.'
+        lines = text(refusal_lines({'error': {'code': 'workbench_desired_capability', 'message': specific}}, 200))
+        self.assertIn('What it means', lines)
+
+    def test_the_band_leads_the_next_step_when_the_screen_gives_another(self):
+        # Item 13 (run 4 frames 19 and 20; Gemini N 3): the band says "Collect again", the lifecycle line says "v".
+        from plugin_tests.test_workbench_screens import delivery_value
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self, {'eligibility': self.ELIGIBILITY})
+        workspace.tab = 5
+        workspace.value = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified',
+                                      'evidence_class': 'synthetic_local_process_and_modeled_service_only'}}
+        order = 'The step in the band above comes first.'
+        self.assertIn(order, text(workspace._summary_lines(118)))
+        workspace.value = delivery_value()
+        self.assertIn(order, text(workspace._summary_lines(118)))
+        # Nothing in the band, nothing to put in order.
+        workspace.facts = {'object_id': workspace.facts['object_id']}
+        self.assertNotIn(order, text(workspace._summary_lines(118)))
+        workspace.value = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified'}}
+        self.assertNotIn(order, text(workspace._summary_lines(118)))
+
+    def test_a_key_named_in_the_footer_cannot_be_mistaken_for_another(self):
+        # Item 14 (Gemini O 6): both i and e were labelled "details".
+        from intune_iac.workbench_tui import band_keys, help_line
+        keys = band_keys(['! Observation stale. Next: Collect again (a: actions)', '! Age unknown. Correct it (i: details)'])
+        self.assertEqual(keys, ('a actions', 'i diagnostics'))
+        line = help_line(120, lead=keys)
+        self.assertIn('i diagnostics', line)
+        self.assertNotIn('i details', line)
+        self.assertIn('e details', line)
+        self.assertLessEqual(len(help_line(60, lead=keys)), 60)
+
+    def test_a_key_named_in_a_refusal_or_the_inspector_is_explained_where_it_is_named(self):
+        # Item 14 (Gemini N 1; Gemini O 5): v on an Execution refusal, d on the Inspector.
+        from intune_iac.workbench_screens import REFUSALS, _setting_summary
+        self.assertIn('v opens Delivery', REFUSALS['maintenance_replay_forbidden'][1])
+        self.assertIn('v opens Delivery', REFUSALS['expired_request'][1])
+        instance = {'@odata.type': '#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance',
+                    'settingDefinitionId': 'device_vendor_msft_x',
+                    'choiceSettingValue': {'value': 'device_vendor_msft_x_1', 'children': []}}
+        lines = text(_setting_summary(instance, 160))
+        self.assertIn('Press d to open the setting dictionary and inspect the available setting metadata', lines)
+
+    def test_one_label_means_one_thing_on_adjacent_lines(self):
+        # Item 15 (Gemini N 2): "Evidence synthetic_local_process_..." above "Evidence: e typed details | r raw record".
+        from plugin_tests.test_workbench_screens import delivery_value
+        from intune_iac.workbench_screens import delivery_lines
+        lines = delivery_lines(delivery_value(), 160)
+        found = [line for line in lines if line.startswith('Evidence')]
+        self.assertEqual(found, ['Evidence class synthetic local process and modeled service only | not native-provider '
+                                 'qualified | no cloud authority'])
+        value = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified',
+                            'evidence_class': 'synthetic_local_process_and_modeled_service_only'}}
+        lines = self.workspace(5, value)._data_lines(160)
+        self.assertEqual(len([line for line in lines if line.startswith('Evidence:')]), 1, lines)
+        self.assertIn('Evidence class: synthetic local process and modeled service only', text(lines))
+
+    def test_the_strip_keeps_the_policy_name_beside_the_hazards_at_120_columns(self):
+        # Item 15 (Gemini N 6): the name fell away on Execution while the other surfaces showed it.
+        from intune_iac.workbench_screens import context_strip
+        facts = {'name': 'Windows Privacy Pilot', 'observation': 'fresh', 'repository': 'current',
+                 'operation': 'outcome_unknown', 'eligibility': self.ELIGIBILITY}
+        line = context_strip('11111111-1111-4111-8111-111111111111', POLICY, facts, 120,
+                             'synthetic_local_process_and_modeled_service_only')
+        self.assertLessEqual(len(line), 120, line)
+        self.assertIn('POLICY Windows Privacy Pilot (22222222)', line)
+        self.assertIn('OBS source changed', line)
+        self.assertIn('OP unknown', line)
+
+    def test_an_unreadable_file_names_the_file_and_the_next_step(self):
+        # Item 16 (Sonnet 6; Gemini O 4): "A required local file could not be read." with no file and no way on.
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        refused = {'status': 'error', 'error': {'code': 'unreadable_file', 'message': 'A required local file could not be read.'}}
+        with tempfile.TemporaryDirectory() as directory:
+            operation = Path(directory) / 'op dir'
+            operation.mkdir()
+            for name in ('journal.json', 'desired.json'):
+                (operation / name).write_text('{}')
+            workspace = RefusalCauseTests.workspace(self, None, "execute '%s' %s" % (operation, 'd' * 64))
+            workspace.receive(dict(refused))
+            lines = text(workspace._surface_summary(300))
+            self.assertIn('[REFUSED] unreadable_file', lines)
+            self.assertIn('could not be read: %s (it does not exist)' % (operation / 'plan.json'), lines)
+            self.assertNotIn(str(operation / 'journal.json'), lines)
+            self.assertIn("Next: Check that the file exists and this account can read it", lines)
+            # A typed path that is missing is named; nothing outside the typed command is named, and no content is read.
+            missing = Path(directory) / 'missing.json'
+            workspace = RefusalCauseTests.workspace(self, None, "propose '%s' /w/new" % missing)
+            workspace.receive(dict(refused))
+            self.assertIn('%s (it does not exist)' % missing, text(workspace._surface_summary(300)))
+            # Nothing found unreadable: the screen says the engine did not name the file, and what to check.
+            workspace = RefusalCauseTests.workspace(self, None, 'inspect')
+            workspace.receive(dict(refused))
+            lines = text(workspace._surface_summary(300))
+            self.assertIn('the engine does not name it', lines)
+            self.assertIn('Next: Check that the files the command names exist', lines)
+
+    def test_a_quoted_path_is_not_split_where_the_line_can_hold_it(self):
+        # Item 17 (frames 20 and 41): a journey path split inside a quoted argument.
+        from intune_iac.workbench_screens import word_wrap
+        quoted = "'/home/nsahm/work/journey 28 run 4/operation-22222222-1e1bf77b8586'"
+        lines = word_wrap('Next: Record the deployment: in the workspace, deployment-record %s %s (a lists it)' % (quoted, 'f' * 64), 100)
+        self.assertEqual(len([line for line in lines if quoted in line]), 1, lines)
+        # An apostrophe in a sentence is not a quote.
+        sentence = "this host's clock reads earlier than a time it recorded; the workspace's file cannot be read"
+        self.assertEqual(' '.join(word_wrap(sentence, 40)), sentence)
+        # A quoted argument wider than the line is still split (a token that cannot fit).
+        for line in word_wrap("x '" + 'a b ' * 40 + "'", 30):
+            self.assertLessEqual(len(line), 30)
+
+    def test_the_modeled_service_line_keeps_its_flag_whole(self):
+        # Item 17 (frame 04): "...; --" then "service-root chooses another)".
+        workspace = self.workspace(0, {'objects': [{'object_id': POLICY}], 'modeled_service': {
+            'source': 'adoption', 'root': '/home/nsahm/work/journey 28 run 4/handoff/service',
+            'artifact_id': '6c0ef6390596' + 'a' * 52}})
+        workspace.rows, workspace.highlight = [{'object_id': POLICY, 'name': 'Pilot'}], 0
+        lines = list(workspace._summary_lines(116))
+        self.assertTrue(any('--service-root' in line for line in lines), lines)
+        self.assertFalse(any(line.rstrip().endswith('--') for line in lines), lines)
+
+    def test_delivery_in_the_lifecycle_line_reads_as_a_key_not_a_surface(self):
+        # Item 17 (run 3 G3): "v Delivery" had no tab number, as the other entries do.
+        from intune_iac.workbench_screens import lifecycle_lines
+        lines = text(lifecycle_lines(4, 160, {'status': 'prepared', 'expires_at': 4102444800}, now=0))
+        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (key v).', lines)
+        self.assertNotIn('v Delivery', lines)
+
+    def test_the_delivery_rows_read_codes_as_words(self):
+        # Item 8: the codes stay in the typed details (e) and the raw record (r); the rows say them as words.
+        from plugin_tests.test_workbench_screens import delivery_value
+        from intune_iac.workbench_screens import delivery_lines
+        lines = text(delivery_lines(delivery_value(), 200))
+        for words in ('engine succeeded verified', 'desired state observed | second plan no change',
+                      'verified local modeled deployment'):
+            self.assertIn(words, lines)
+        for code in ('engine succeeded_verified', 'desired_state_observed', 'second plan no_change',
+                     'verified_local_modeled_deployment', 'synthetic_local_process_and_modeled_service_only'):
+            self.assertNotIn(code, lines)
+        self.assertIn('Evidence class synthetic local process and modeled service only', lines)
+
+    def test_a_clock_held_delivery_note_says_the_age_is_not_known(self):
+        # Item 18: "now reads stale (...)" for a clock hold.
+        from intune_iac.workbench_delivery import _stale_note
+        for code, cause in (('clock_moved_backward', "this host's clock reads earlier than a time this workspace recorded"),
+                            ('clock_floor_invalid', 'the time this workspace recorded cannot be read')):
+            note = _stale_note({'observation_freshness': 'stale', 'observation_freshness_reasons': [code]})
+            self.assertIn('the age of the observation that shows it is not known (%s)' % cause, note)
+            self.assertNotIn('stale', note)
+            self.assertNotIn(code, note)
+        note = _stale_note({'observation_freshness': 'stale', 'observation_freshness_reasons': ['older_than_window']})
+        self.assertIn('now reads stale (older than the freshness window)', note)
+
+    def test_the_unreadable_record_sentence_is_one_sentence_with_one_bracket(self):
+        # Item 18: "(Diagnostics shows where it is kept) (this host's clock reads ...)".
+        from intune_iac.workbench_diagnostics import with_clock_times
+        from intune_iac.workbench_screens import KNOWN_NEXT
+        step = with_clock_times(KNOWN_NEXT['observation_clock_floor_invalid'], {'reads': 1800000000.0, 'recorded': None})
+        self.assertEqual(step.count('('), 1, step)
+        self.assertEqual(step.count(')'), 1, step)
+        self.assertIn("(Diagnostics shows where it is kept; this host's clock reads 2027-01-15 08:00:00 UTC; "
+                      'the time this workspace recorded cannot be read)', step)
+        moved = with_clock_times('Correct the clock.', {'reads': 1800000000.0, 'recorded': 1800000100.0})
+        self.assertEqual(moved, "Correct the clock (this host's clock reads 2027-01-15 08:00:00 UTC; this workspace "
+                                'recorded 2027-01-15 08:01:40 UTC).')

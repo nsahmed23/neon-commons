@@ -552,6 +552,19 @@ def reconcile(operation_root):
 
 
 def propose_restore(operation_root, output):
+    """Restore the original object through a fresh separately reviewed plan; a refusal lists the input files this
+    call wrote beside the operation it never created, and whether an operation directory now exists."""
+    written = []
+    try:
+        return _propose_restore(operation_root, output, written)
+    except AppError as error:
+        # Read, not assumed: only files this call wrote, and only those still on disk. Additive; no decision changes.
+        error.effects = dict(error.effects or {}, files_written=[str(path) for path in written if path.exists()],
+                             operation_created=bool((error.effects or {}).get('operation_created')))
+        raise
+
+
+def _propose_restore(operation_root, output, written):
     """Restore the original object only through a fresh separately reviewed plan.
 
     The caller must first collect current observations. The original operation
@@ -573,9 +586,11 @@ def propose_restore(operation_root, output):
     if desired_path.exists() or output.exists() or (restore_context and restore_context.exists()):
         _fail('maintenance_fresh_output_required')
     write_json(desired_path, plan['before_estate']['objects'][plan['object_id']])
+    written.append(desired_path)
     if restore_context:
         derived = {k: v for k, v in context_value.items() if k not in ('repository_intent_id', 'scope')}
         write_json(restore_context, derived)
+        written.append(restore_context)
         context_path, context_sha256 = restore_context, hashlib.sha256(canonical(derived) + b'\n').hexdigest()
     return propose(plan['store_root'], plan['service_root'], plan['object_id'], desired_path, output,
                    context_path=context_path, context_sha256=context_sha256)

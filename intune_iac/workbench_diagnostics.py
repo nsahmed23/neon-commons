@@ -116,7 +116,11 @@ def with_clock_times(text, fact):
     if times is None:
         return text
     stop = '.' if text.endswith('.') else ''
-    return '%s (%s)%s' % (text.rstrip('.'), times, stop)
+    body = text.rstrip('.')
+    if body.endswith(')'):
+        # One bracket, not two in a row: the times join what the text already says in brackets.
+        return '%s; %s)%s' % (body[:-1], times, stop)
+    return '%s (%s)%s' % (body, times, stop)
 
 
 def _freshness(observed, failed):
@@ -250,7 +254,7 @@ def _operations(store, object_id, newest=None):
             observed = ('Operation %s was dispatched and its outcome is unknown: %s.' % (record['operation_id'],
                                                                                       unknown_outcome_words(code))
                         if status != 'prepared' else
-                        'Operation %s started dispatch (its journal records dispatch_started), but the result was never '
+                        'Operation %s started dispatch (its journal records that dispatch started), but the result was never '
                         'registered: the store still says prepared.' % record['operation_id'])
             signals.append(_signal('operations', 'operation_outcome_unknown', observed,
                                    'reconcile %s reads the service independently; execution is never replayed.'

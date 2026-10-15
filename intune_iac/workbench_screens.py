@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import json
 
-from .workbench_diagnostics import CLOCK_HOLD_STEPS, clock_hold, CLOCK_HOLD_WORDS, clock_times, with_clock_times
+from .workbench_diagnostics import (CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_STEPS, clock_hold, CLOCK_HOLD_WORDS,
+                                    clock_times, with_clock_times)
 from .workbench_tui import cell_width, fit, pad, safe_text
 
 WIDE = 96
@@ -105,8 +106,9 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     for state in list(reversed(routine)) + list(reversed(hazards)):
         kept = [item for item in kept if item is not state]
         shrinking.append(list(kept))
-    tiers = [(policy, False, False, states), (policy, True, False, states), (bare, True, False, states),
-             (bare, True, True, states)] + [(bare, True, True, remaining) for remaining in shrinking]
+    # The shortest state words keep the policy's name before the name gives way to its bare identity.
+    tiers = [(policy, False, False, states), (policy, True, False, states), (policy, True, True, states),
+             (bare, True, False, states), (bare, True, True, states)] + [(bare, True, True, remaining) for remaining in shrinking]
 
     def labelled(name, compact, brief, remaining):
         return ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), _as_words(value)) if brief else _as_words(value))
@@ -216,6 +218,13 @@ def _band_forms(primary, prefixes=None):
         return ["! Observation stamped after this host's clock; stale until the clock passes it. i: details",
                 '! Observation stamped ahead of the clock. i: details', '! Stamped ahead of clock. i: details']
     return ['! Observation stale. Next: Collect again (a: actions)', '! Observation stale. Collect (a actions)']
+
+
+def band_gives_a_step(facts, signals):
+    """Whether the band shows a response with a key of its own (a: actions); a screen that gives another Next
+    beside it says which comes first."""
+    primary, _ = _band_primary(facts, signals)
+    return primary is not None and '(a: actions)' in _band_forms(primary, facts.get('identity_prefixes'))[0]
 
 
 def hazard_band(facts, signals, width):
@@ -406,12 +415,16 @@ def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None):
     if observation.get('coverage'):
         parts.append(coverage_words(observation['coverage']))
     freshness = observation.get('freshness')
-    reasons = [FRESHNESS_REASON_WORDS.get(reason, reason) for reason in observation.get('freshness_reasons') or []]
+    hold = clock_hold(observation.get('freshness_reasons')) if freshness != 'fresh' else None
+    # A held age is not known, so the line does not say stale; the cause is the clock's own words, said once.
+    reasons = ([CLOCK_HOLD_CAUSES[hold]] if hold else []) + [
+        FRESHNESS_REASON_WORDS.get(reason, reason) for reason in observation.get('freshness_reasons') or []
+        if reason not in (CLOCK_HOLD_REASONS if hold else ())]
     eligibility = observation.get('eligibility') if isinstance(observation.get('eligibility'), dict) else {}
     # Recency is not currentness: an observation captured recently is out of date once the source moved on.
     moved = eligibility.get('reason') in ('service_changed', 'policy_changed')
     parts.append(('captured recently (fresh by age)' if freshness == 'fresh' and moved else 'fresh by age'
-                  if freshness == 'fresh' else str(freshness or 'freshness not recorded'))
+                  if freshness == 'fresh' else 'age not known' if hold else str(freshness or 'freshness not recorded'))
                  + (' (%s)' % '; '.join(reasons) if reasons and freshness != 'fresh' else ''))
     if eligibility.get('reason') in ELIGIBILITY_STATE_WORDS:
         parts.append(ELIGIBILITY_STATE_WORDS[eligibility['reason']] % eligibility)
@@ -482,7 +495,10 @@ def utc_time(value):
 
 
 # A change's path through the existing surfaces (P-PRES-15): numbers unchanged, where you are, what comes next.
-LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'v Delivery'))
+# Delivery has no surface number of its own: v opens it, and the line names it that way.
+LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Delivery (key v)'))
+# Said when the hazard band above gives a step of its own and this screen gives another.
+BAND_FIRST = 'The step in the band above comes first.'
 
 
 def lifecycle_next(tab, value, now, eligibility=None):
@@ -524,14 +540,14 @@ def lifecycle_next(tab, value, now, eligibility=None):
     return 'v shows every delivery stage of this operation'
 
 
-def lifecycle_lines(tab, width, value=None, now=None, eligibility=None):
+def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, after_band=False):
     """Where this surface sits in a change's path and the next step for the state shown, in one line."""
     if tab not in (8, 4, 5):
         return []
     import time
     path = ' > '.join(name + (' (here)' if index == tab else '') for index, name in LIFECYCLE)
     step = lifecycle_next(tab, value, time.time() if now is None else now, eligibility)
-    return word_wrap('Lifecycle: %s. Next: %s.' % (path, step), width)
+    return word_wrap('Lifecycle: %s. Next: %s.%s' % (path, step, ' ' + BAND_FIRST if after_band else ''), width)
 
 
 def _when(value, missing='time not recorded'):
@@ -547,6 +563,26 @@ def _readable_epoch(value):
     return readable_time(converted) if isinstance(converted, str) else converted
 
 
+def _quote_units(words, width):
+    """The words of a line, a single-quoted argument that holds spaces kept whole when the line can hold it (a
+    shell-quoted path in a command shown for copying). An apostrophe inside a word is not a quote, and a quote
+    that never closes nearby, or is wider than the line, stays words."""
+    import re
+    units, index = [], 0
+    while index < len(words):
+        start = words[index].lstrip('(')
+        closed = lambda word: len(word) > 1 and re.search(r"'[).,;:]*$", word) is not None
+        if start.startswith("'") and not closed(start):
+            end = next((at for at in range(index + 1, min(len(words), index + 12)) if closed(words[at])), None)
+            if end is not None and cell_width(' '.join(words[index:end + 1])) <= width:
+                units.append(' '.join(words[index:end + 1]))
+                index = end + 1
+                continue
+        units.append(words[index])
+        index += 1
+    return units
+
+
 def word_wrap(value, width):
     """Wrap escaped text at spaces where possible; split a token only when it cannot fit.
 
@@ -559,7 +595,7 @@ def word_wrap(value, width):
         return [' ' * indent + line for line in word_wrap(body, width - indent)]
     width = max(1, width)
     lines, line = [], ''
-    for word in body.split(' '):
+    for word in _quote_units(body.split(' '), width):
         candidate = word if not line else line + ' ' + word
         if cell_width(candidate) <= width:
             line = candidate
@@ -876,7 +912,7 @@ def _setting_summary(instance, width):
         children = choice.get('children') or []
         text = '= %s%s' % (_value(choice.get('value')), '  (%s)' % _count(len(children), 'child setting', 'child settings') if children else '')
         return (lines + _labelled('', text, width, 6)
-                + _labelled('', 'No verified meaning is available for this value. Press d to inspect the available setting metadata.', width, 8))
+                + _labelled('', 'No verified meaning is available for this value. Press d to open the setting dictionary and inspect the available setting metadata.', width, 8))
     return lines + _labelled('', '= ' + _setting_value(instance), width, 6)
 
 
@@ -1746,7 +1782,7 @@ def _approval_text(stage, status):
 def _execution_text(stage, status):
     if status == 'not_started':
         return 'not started'
-    parts = ['engine ' + str(stage.get('engine_status'))]
+    parts = ['engine ' + _as_words(stage.get('engine_status'))]
     if stage.get('service_status') is not None:
         parts.append('service ' + str(stage['service_status']))
     elif stage.get('no_change_dispatch'):
@@ -1769,10 +1805,10 @@ def _receipt_text(stage, status):
         return 'not recorded: execution ended before its own independent readback'
     if status == 'required':
         return 'required: the outcome is unknown; reconcile before any retry'
-    parts = [str(stage.get('classification'))]
+    parts = [_as_words(stage.get('classification'))]
     if stage.get('stage') == 'readback':
         count = stage.get('mismatch_count') or 0
-        parts += ['second plan ' + str(stage.get('second_plan')), 'visibility ' + ('pending' if stage.get('visibility_pending') else 'settled'),
+        parts += ['second plan ' + _as_words(stage.get('second_plan')), 'visibility ' + ('pending' if stage.get('visibility_pending') else 'settled'),
                   '%d mismatch%s' % (count, '' if count == 1 else 'es')]
     else:
         parts = ["reconcile's readback: " + _as_words(stage.get('classification')),
@@ -1789,7 +1825,7 @@ def _record_text(stage, status):
         admitted = ('context file changed since; no longer admitted as a baseline' if stage.get('context_changed') else
                     'baseline admissible' if stage.get('baseline_admissible') else 'not a baseline')
         return 'recorded %s | intent %s | %s | %s' % (_when(stage.get('recorded_at')), str(stage.get('intent_id'))[:12],
-                                                      stage.get('evidence_class'), admitted)
+                                                      _as_words(stage.get('evidence_class')), admitted)
     if status == 'available':
         return 'available for intent %s; deployment-record performs the full check' % str(stage.get('intent_id'))[:12]
     if status in ('not_available', 'not_applicable'):
@@ -1894,7 +1930,7 @@ def history_event_lines(history, width):
     return lines
 
 
-def delivery_lines(value, width, rules='ascii'):
+def delivery_lines(value, width, rules='ascii', after_band=False):
     """One operation's delivery stages in order, each with a marker, its state in words and its evidence.
 
     With box-drawing rules the stages hang from one connected spine, first to last; ASCII keeps the plain list.
@@ -1940,10 +1976,11 @@ def delivery_lines(value, width, rules='ascii'):
         lines += word_wrap('(only the first %s imported runs for this policy were read)' % read.get('records_read'), width)
     if read.get('cited_revision') == 'unknown':
         lines += word_wrap('(runs for the cited revision cannot be matched: the context file changed since the proposal)', width)
-    lines += word_wrap('Next: ' + str(value.get('next_action')), width)
+    lines += word_wrap('Next: ' + str(value.get('next_action')) + (' ' + BAND_FIRST if after_band else ''), width)
     lines += word_wrap(MARK_LEGEND, width)
-    lines += word_wrap('Evidence %s | %s | no cloud authority' % (
-        value.get('evidence_class'), 'native-provider qualified' if value.get('native_provider_qualified') else 'not native-provider qualified'), width)
+    # Not "Evidence": that label is the last line's, which names the two layers of evidence (e and r).
+    lines += word_wrap('Evidence class %s | %s | no cloud authority' % (
+        _as_words(value.get('evidence_class')), 'native-provider qualified' if value.get('native_provider_qualified') else 'not native-provider qualified'), width)
     return lines
 
 
@@ -2126,14 +2163,14 @@ REFUSALS = {
         'Run the workbench on a supported Linux host, or Prepare a new proposal there.'),
     'expired_request': (
         'The plan\'s approval window has closed, or the local clock reads outside it.',
-        'Prepare a new proposal; v shows the window of the active operation.'),
+        'Prepare a new proposal; v opens Delivery, which shows the window of the active operation.'),
     'maintenance_approval_required': (
         'The digest supplied does not match the reviewed plan.',
         'Review the plan (5) and approve with its exact review digest.'),
     'maintenance_replay_forbidden': (
         'This operation is no longer awaiting approval: it was already dispatched, or it was rejected. Execution is '
         'never replayed.',
-        'Use reconcile for an uncertain outcome; v shows where the operation stands.'),
+        'Use reconcile for an uncertain outcome; v opens Delivery, which shows where the operation stands.'),
     'maintenance_repository_stale': (
         'The repository changed after this proposal cited its intent, or its component no longer consumes exactly '
         'this policy.',
@@ -2155,6 +2192,9 @@ REFUSALS = {
     'maintenance_plan_stale': (
         'The service changed while the plan was being prepared, or after it was prepared.',
         'Collect, then prepare a new proposal.'),
+    'unreadable_file': (
+        'A file this command needs could not be read; the engine does not name it.',
+        'Check that the files the command names exist and this account can read them, then submit it again.'),
     'workbench_desired_capability': (
         'The desired policy uses a setting definition, value, platform or technology outside the supported capability map.',
         "Change that setting in the repository's stack input to a supported value, then Refresh the repository "
@@ -2162,8 +2202,12 @@ REFUSALS = {
 }
 
 
+# Words that carry no meaning of their own, so that restating a sentence is judged on what it says.
+_PARTICLES = frozenset({'the', 'is', 'one', 'this', 'that', 'of', 'it', 'its', 'to', 'in', 'by', 'as', 'an', 'a', 'or', 's'})
+
+
 def _words(text):
-    return set(''.join(char if char.isalnum() or char == '_' else ' ' for char in text.lower()).split())
+    return set(''.join(char if char.isalnum() or char == '_' else ' ' for char in text.lower()).split()) - _PARTICLES
 
 
 def _restates(message, meaning):
@@ -2308,6 +2352,9 @@ KNOWN_NEXT = {
     'observation_clock_floor_invalid': (
         "Collecting again does not clear this: changes stay held until the workspace's recorded time can be read again "
         '(Diagnostics shows where it is kept).'),
+    # The workspace looked at the files the typed command names and found which one cannot be read.
+    'unreadable_file': 'Check that the file exists and this account can read it, then submit the command again; if it '
+                       'belongs to a proposal, Prepare a proposal again (a: actions).',
     'collection_failed': 'Collect again (a lists it) when the source is reachable, then prepare the proposal again.',
     'collection_not_finished': 'Collect again (a lists it), then prepare the proposal again.'}
 

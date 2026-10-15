@@ -464,10 +464,10 @@ class DeliveryLinesTests(unittest.TestCase):
         expected = ['  [x] 1 Proposal        recorded 2026-10-14 12:24:54 UTC | repository intent bcffdf6f0000 (current)',
                     '  [x] 2 Review          1 field change: description | plan sha256 abababababab',
                     '  [x] 3 Approval        exact review digest d1072f310000 supplied at dispatch | window 2026-10-14 12:24:57 UTC to 2026-10-14 12:29:57 UTC',
-                    '  [x] 4 Execution       engine succeeded_verified | service 200 | recorded 2026-10-14 12:24:58 UTC',
-                    '  [x] 5 Readback        desired_state_observed | second plan no_change | visibility settled | 0 mismatches',
+                    '  [x] 4 Execution       engine succeeded verified | service 200 | recorded 2026-10-14 12:24:58 UTC',
+                    '  [x] 5 Readback        desired state observed | second plan no change | visibility settled | 0 mismatches',
                     '  [-] 6 Reconciliation  not needed',
-                    '  [x] 7 Deployment      recorded 2026-10-14 12:25:00 UTC | intent bcffdf6f0000 | verified_local_modeled_deployment | baseline admissible',
+                    '  [x] 7 Deployment      recorded 2026-10-14 12:25:00 UTC | intent bcffdf6f0000 | verified local modeled deployment | baseline admissible',
                     '  [x] 8 Observed after  matches desired at service revision 2 (1 before the change) | observed 2026-10-14 12:25:00 UTC']
         rows = [line for line in lines if line.startswith('  [')]
         self.assertEqual(rows, expected)

@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 import shlex
 import time
 
-from .workbench_diagnostics import CLOCK_HOLD_WORDS
+from .workbench_diagnostics import CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold
 
 VERSION = 'workbench-delivery/1'
 STAGES = ('proposal', 'review', 'approval', 'execution', 'readback', 'reconciliation', 'deployment_record', 'observed_after')
@@ -287,6 +287,13 @@ def _stale_note(observed):
         return ''
     words = {'stamped_after_now': "stamped after this host's clock", 'older_than_window': 'older than the freshness window',
              'later_collection_not_complete': 'a later collection did not complete', **CLOCK_HOLD_WORDS}
+    held = clock_hold(observed.get('observation_freshness_reasons'))
+    if held:
+        # Unknown stays unknown: the age of this observation is not established, so the note does not say stale.
+        causes = [CLOCK_HOLD_CAUSES[held]] + [words.get(item, str(item)) for item in observed.get('observation_freshness_reasons') or []
+                                               if item not in CLOCK_HOLD_REASONS]
+        return (' But the age of the observation that shows it is not known (%s); judge it again once its age is known.'
+                % '; '.join(causes))
     reasons = '; '.join(words.get(item, str(item)) for item in observed.get('observation_freshness_reasons') or [])
     return (' But the observation that shows it now reads stale (%s); judge it again once a fresh observation exists.'
             % (reasons or 'no reason recorded'))

@@ -35,14 +35,20 @@ TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 
 CANCEL_NOTICE = 'Nothing is running to cancel; Esc discards a typed command (? lists all keys).'
 
 
-def running_notice(command):
-    """The RUNNING line while a command runs: which operation or read, and that its outcome is not yet known."""
+def running_notice(command, operation_id=None, prefixes=None):
+    """The RUNNING line while a command runs: which operation or read, and that its outcome is not yet known.
+
+    The operation is named by the same id prefix the hazard band uses when the workspace has seen its id; an
+    operation it has not seen is named by its directory, never by an invented id."""
     try:
         words = shlex.split(command)
     except ValueError:
         words = command.split()
     verb = words[0] if words else ''
     target = os.path.basename(words[1].rstrip('/')) if len(words) > 1 else ''
+    if target and isinstance(operation_id, str) and operation_id:
+        from .workbench_screens import short_id
+        target = short_id(operation_id, prefixes)
     if verb == 'execute' and target:
         return 'RUNNING: executing operation %s; its outcome is not yet known.' % target
     if verb == 'reconcile' and target:
@@ -357,7 +363,7 @@ def typing_line(width, mode, submit='Enter'):
 def band_keys(rows):
     """The keys a hazard band offers, as the key line names them."""
     text = ' '.join(rows or [])
-    return tuple(name for keys, name in ((('a: ', '(a actions)'), 'a actions'), (('i: ',), 'i details'))
+    return tuple(name for keys, name in ((('a: ', '(a actions)'), 'a actions'), (('i: ',), 'i diagnostics'))
                  if any(key in text for key in keys))
 
 
@@ -765,6 +771,9 @@ class Workspace:
                 self.operation_rows = operation_list(value['operations'])
                 self.operation_highlight = min(self.operation_highlight, max(0, len(self.operation_rows) - 1))
             if isinstance(value.get('operation_root'), str):
+                if isinstance(value.get('operation_id'), str):
+                    seen = dict(getattr(self, 'known_operations', None) or {}, **{value['operation_root']: value['operation_id']})
+                    self.known_operations = dict(list(seen.items())[-50:])
                 if self.active_operation != value['operation_root']: self.execution_result = None
                 self.active_operation = value['operation_root']
                 self.active_service = None; self.active_adoption = None; self.active_adoption_plan = None
@@ -922,12 +931,19 @@ class Workspace:
         if (isinstance(value.get('operation_id'), str) and isinstance(value.get('status'), str)
                 and (value.get('object_id') == self.selected or (value.get('object_id') is None and operation_command))):
             facts['operation'] = value['status']; facts['operation_id'] = value['operation_id']
+            window = value.get('approval_window') if isinstance(value.get('approval_window'), dict) else {}
+            if value['status'] == 'prepared' and window.get('state') in ('closed', 'closed_recorded'):
+                facts['operation'] = 'expired'  # the window closed; the strip does not call it prepared
         elif (isinstance(value.get('operation_id'), str) and isinstance(value.get('journal_status'), str)
                 and value.get('object_id') is None and operation_command):
             # Reconcile states the journal status it left; the result has no status of its own.
             facts['operation'] = value['journal_status']; facts['operation_id'] = value['operation_id']
         if value.get('schema_version') == 'workbench-delivery/1' and value.get('object_id') == self.selected:
             facts['operation'] = str(value.get('journal_status'))
+            approval = next((stage for stage in value.get('stages') or [] if isinstance(stage, dict)
+                             and stage.get('stage') == 'approval'), {})
+            if facts['operation'] == 'prepared' and approval.get('status') == 'expired':
+                facts['operation'] = 'expired'
         self.facts = facts
 
     def _context_strip(self, width):
@@ -954,7 +970,7 @@ class Workspace:
         if value.get('status') == 'error' and isinstance(value.get('error'), dict):
             from .workbench_screens import refusal_lines
             code = (value.get('error') or {}).get('code')
-            rows.extend(refusal_lines(self._with_written_inputs(value), width, known=self._known_cause(code),
+            rows.extend(refusal_lines(value, width, known=self._known_cause(code),
                                       clock_fact=self._known_clock()))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
@@ -1133,21 +1149,28 @@ class Workspace:
             rows.append('[PLAN REVIEW]')
             # The digest execute needs is named for what it is: a review binding, not an approval (Sonnet 22).
             from .workbench_screens import _readable_epoch, evidence_words
+            judged = value.get('approval_window')
+            # A closed window cannot be reopened by the digest, so the review does not offer it as if execute could run.
+            window_closed = (value.get('status') == 'prepared' and isinstance(judged, dict)
+                             and judged.get('state') in ('closed', 'closed_recorded'))
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
                                ('Review digest (execute needs it)', 'approval_digest'), ('Expiry', 'expires_at'),
                                ('Evidence class', 'evidence_class')):
                 item = value.get(key, 'unknown')
+                if key == 'approval_digest' and window_closed:
+                    field('Review digest', 'not offered; the approval window closed, so execute can no longer run this '
+                                           'plan. Prepare a new proposal (a: actions)')
+                    continue
                 field(label, _readable_epoch(item) if key == 'expires_at' else str(item).replace('_', ' ')
                       if key in ('status', 'evidence_class') else item)
-                judged = value.get('approval_window')
                 if key == 'expires_at' and isinstance(judged, dict) and value.get('status') == 'prepared':
                     # As execute judges it (maintenance.approval_window); a view records nothing.
                     from .workbench_screens import WINDOW_WORDS
                     field('Approval window', WINDOW_WORDS.get(judged.get('state'), str(judged.get('state'))))
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
-            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
+            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii'), after_band=self._band_gives_a_step()))
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
             from .workbench_screens import execution_effect_lines
@@ -1171,13 +1194,17 @@ class Workspace:
                 if reconciled:
                     # Reconcile's own run has no error here; the error is the one the operation recorded before it.
                     code = result.get('previous_error_code')
+                    # An unknown outcome with no recorded error is what an interrupted run leaves in its journal.
+                    none_recorded = ('no error recorded; the run was interrupted'
+                                     if result.get('previous_status') == 'outcome_unknown' else 'no error')
                     field('Recorded before reconcile', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code)
-                          if code in EXECUTION_ERROR_WORDS else code or 'no error')
+                          if code in EXECUTION_ERROR_WORDS else code or none_recorded)
                 else:
                     code = result.get('error_code') or error.get('code')
                     field('Error', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code) if code in EXECUTION_ERROR_WORDS
                           else code or 'none recorded')
-                field('Evidence', str(result.get('evidence_class', 'unknown')).replace('_', ' '))
+                # Not "Evidence": the last line of every screen uses that label for the layers e and r.
+                field('Evidence class', str(result.get('evidence_class', 'unknown')).replace('_', ' '))
             # The lifecycle line below gives the next step for this state; v shows every delivery stage.
         elif self.tab == 6 and ('collection_health' in value or isinstance(value.get('stages'), dict)):
             from .workbench_screens import health_lines
@@ -1296,7 +1323,8 @@ class Workspace:
                                  'with its support disposition.', width)))
             if 'modeled_service' in self.value:
                 from .workbench_screens import service_words
-                lines.extend(wrap(service_words(self.value.get('modeled_service')), width))
+                from .workbench_screens import word_wrap
+                lines.extend(word_wrap(service_words(self.value.get('modeled_service')), width))
             if isinstance(self.value.get('filters'), dict):
                 from .workbench_screens import filter_words
                 lines.extend(wrap(filter_words(self.value['filters']), width))
@@ -1338,8 +1366,17 @@ class Workspace:
             if self._on_change_path(self.value):
                 from .workbench_screens import lifecycle_lines
                 lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
-                                                       if self.facts.get('object_id') == self.selected else None)
+                                                       if self.facts.get('object_id') == self.selected else None,
+                                                       after_band=self._band_gives_a_step())
         return lines
+
+    def _band_gives_a_step(self):
+        """Whether the hazard band above this screen gives a step of its own, so the screen says which comes first."""
+        from .workbench_screens import band_gives_a_step
+        facts = getattr(self, 'facts', None) or {}
+        if not self.selected or facts.get('object_id') != self.selected:
+            return False
+        return band_gives_a_step(facts, facts.get('signals') or [])
 
     def _on_change_path(self, value):
         """Whether the result shown is a step of a change: a repository status, a plan review, an execution result."""
@@ -1511,6 +1548,9 @@ class Workspace:
 
     def _known_cause(self, code):
         """The cause the last read of this policy recorded, for a refusal code that covers several; else None."""
+        if code == 'unreadable_file':
+            cause = self._unreadable_cause()
+            return (cause, 'unreadable_file') if cause else None
         facts = getattr(self, 'facts', None) or {}
         if not self.selected or facts.get('object_id') != self.selected:
             return None
@@ -1558,30 +1598,41 @@ class Workspace:
                 return source['freshness_clock']
         return None
 
-    # Refusals made after the observation check, for a command that writes its inputs before making it.
-    OBSERVATION_REFUSALS = ('maintenance_observation_stale', 'maintenance_observation_incomplete',
-                            'maintenance_observation_source_mismatch')
+    # Where each command takes its input files and operation directories (argument positions in the typed command).
+    OPERATION_DIRECTORY_ARGS = {'execute': (1,), 'reconcile': (1,), 'review': (1,), 'delivery': (1,), 'views': (1,),
+                                'deployment-record': (1,), 'restore-propose': (1,)}
+    INPUT_FILE_ARGS = {'propose': (1, 3), 'adopt': (1,)}
+    OPERATION_FILES = ('plan.json', 'journal.json', 'desired.json')
 
-    def _with_written_inputs(self, value):
-        """A refusal's result with the input files a restore proposal left beside the operation it never created.
-
-        restore-propose writes its desired body (and a derived context) before the proposal checks the observation, and
-        the engine's refusal does not list them; they are read from disk, never assumed."""
-        error = value.get('error') if isinstance(value.get('error'), dict) else {}
-        effects = error.get('effects') if isinstance(error.get('effects'), dict) else None
-        if (effects is None or 'files_written' in effects or effects.get('operation_created') is not False
-                or error.get('code') not in self.OBSERVATION_REFUSALS):
-            return value
+    def _unreadable_cause(self):
+        """The files the typed command names (and an operation directory's own plan, journal and desired files) that
+        cannot be read now, found by looking, never guessed; None when none is found. Nothing outside the command's
+        own arguments is named and no file is opened."""
         try:
             parts = shlex.split(self.last_command or '')
         except ValueError:
-            return value
-        if len(parts) != 3 or parts[0] != 'restore-propose':
-            return value
-        output = os.path.abspath(parts[2])
-        left = [path for path in (output + '.restore-desired.json', output + '.restore-context.json')
-                if os.path.isfile(path)]
-        return dict(value, error=dict(error, effects=dict(effects, files_written=left)))
+            return None
+        if not parts:
+            return None
+        def problem(path):
+            if not os.path.lexists(path): return 'it does not exist'
+            if os.path.islink(path) or not os.path.isfile(path): return 'it is not a regular file'
+            return None if os.access(path, os.R_OK) else 'this account cannot read it'
+        named = []
+        for position in self.OPERATION_DIRECTORY_ARGS.get(parts[0], ()):
+            if position >= len(parts) or '\x00' in parts[position]: continue
+            root = os.path.abspath(parts[position])
+            if not os.path.isdir(root):
+                named.append('%s (%s)' % (root, 'it does not exist' if not os.path.lexists(root) else 'it is not a directory'))
+                continue
+            named.extend('%s (%s)' % (os.path.join(root, name), why) for name in self.OPERATION_FILES
+                         for why in [problem(os.path.join(root, name))] if why)
+        for position in self.INPUT_FILE_ARGS.get(parts[0], ()):
+            if position >= len(parts) or '\x00' in parts[position]: continue
+            path = os.path.abspath(parts[position])
+            why = problem(path)
+            if why: named.append('%s (%s)' % (path, why))
+        return 'A file this command needs could not be read: %s.' % '; '.join(named) if named else None
 
     def _states_here(self, value):
         """Whether this surface shows the selected policy's states: the Repository status and the Plan review."""
@@ -1769,9 +1820,25 @@ class Workspace:
         self.buffer = ''
         self.cursor = 0
         self.input_overflow = False
-        self.notice = running_notice(command)
+        self.notice = running_notice(command, self._operation_id_for(command),
+                                     (getattr(self, 'facts', None) or {}).get('identity_prefixes'))
         self.draw()
         return command
+
+    def _operation_id_for(self, command):
+        """The id of the operation directory a command names, when this workspace has seen that operation."""
+        try:
+            parts = shlex.split(command)
+        except ValueError:
+            return None
+        if len(parts) < 2 or parts[0] not in ('execute', 'reconcile'):
+            return None
+        root = os.path.abspath(parts[1])
+        known = (getattr(self, 'known_operations', None) or {}).get(root)
+        if known is None:
+            known = next((row.get('operation_id') for row in getattr(self, 'operation_rows', None) or []
+                          if isinstance(row, dict) and row.get('operation_root') == root), None)
+        return known if isinstance(known, str) else None
 
     def _tab_command(self, tab):
         self.tab = tab

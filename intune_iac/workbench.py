@@ -1003,14 +1003,15 @@ def interrupted_lines(result):
     # Each command stands on its own line, indented by two spaces, so a terminal's soft wrap copies it whole.
     if during and during.get('command') == 'execute':
         operation = during.get('operation_root')
-        return ['Interrupted while executing operation %s.' % operation,
+        # Quoted as the command below it is, so a path with spaces reads as one path in both.
+        return ['Interrupted while executing operation %s.' % shlex.quote(str(operation)),
                 'Its outcome is unknown: the change may or may not have reached the service. Nothing retries it.',
                 'Next: reconcile it before anything else. Reconcile reads the service and never replays the change. '
                 'Run:',
                 '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(operation)),
                 'or reopen the workspace and choose Reconcile with a.', others]
     if during and during.get('command') == 'reconcile':
-        return ['Interrupted while reconciling operation %s.' % during.get('operation_root'),
+        return ['Interrupted while reconciling operation %s.' % shlex.quote(str(during.get('operation_root'))),
                 'Reconcile only reads the service, so running it again is safe. Run:',
                 '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(during.get('operation_root'))),
                 others]

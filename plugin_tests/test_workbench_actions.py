@@ -647,8 +647,10 @@ class ClockHoldPresentationTests(unittest.TestCase):
         unreadable = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['clock_floor_invalid'],
                                     'freshness_clock': {'reads': 1_800_000_000.0, 'recorded': None}})
         self.assertEqual(unreadable.count('cannot be established'), 1, unreadable)
-        self.assertIn("(this host's clock reads 2027-01-15 08:00:00 UTC; the time this workspace recorded cannot be "
-                      'read)', unreadable)
+        # PKG-PRES-RUN4 item 18: one bracket, not two in a row; the times join what it already says in brackets.
+        self.assertEqual(unreadable.count('('), 2, unreadable)  # the cause, and the recovery with its times
+        self.assertIn("(Diagnostics shows where it is kept; this host's clock reads 2027-01-15 08:00:00 UTC; the time this "
+                      'workspace recorded cannot be read)', unreadable)
         for sentence in (moved, unreadable):
             self.assertNotIn('1800000', sentence)  # no raw epoch, no invented time
 

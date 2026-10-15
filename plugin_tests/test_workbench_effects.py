@@ -181,13 +181,55 @@ class ObservationRefusalInputFilesTests(unittest.TestCase):
         output = self.root / 'restore one'
         error = self.refused(lambda: maintenance.propose_restore(operation, output))
         self.assertEqual(error.code, 'maintenance_observation_stale')
-        self.assertEqual(error.effects, {'operation_created': False})  # the engine does not list the files it wrote
         left = [str(output) + '.restore-desired.json', str(output) + '.restore-context.json']
+        # PKG-PRES-RUN4 item 19: the engine's own refusal lists the input files the restore path wrote (it used to
+        # carry only operation_created, and the workspace read the files from disk).
+        self.assertEqual(error.effects, {'files_written': left, 'operation_created': False})
         for path in left:
             self.assertTrue(Path(path).is_file(), path)
         text = self.effect_text('restore-propose %s %s' % (shlex.quote(str(operation)), shlex.quote(str(output))), error)
         self.assertIn('Effect: No proposal was created. These input files were written and remain: %s.' % ', '.join(left), text)
         self.assertNotIn('Effect: No operation directory was created.', text)
+
+    def test_a_restore_without_an_original_intent_lists_only_its_desired_file(self):
+        # PKG-PRES-RUN4 item 19: a restore of an operation that cited no intent writes one input file, not two.
+        from intune_iac import maintenance
+        self.import_intent()
+        desired = self.root / 'desired.json'
+        desired.write_text(json.dumps(dict(self.store.inspect(OBJECT)['body'], description='Plain edit.')))
+        original = self.root / 'plain original'
+        review = maintenance.propose(self.store.root, self.service.root, OBJECT, desired, original)
+        maintenance.execute(original, approve_digest=review['approval_digest'])  # the service moves on
+        output = self.root / 'restore plain'
+        error = self.refused(lambda: maintenance.propose_restore(original, output))
+        self.assertEqual(error.code, 'maintenance_observation_stale')
+        self.assertEqual(error.effects, {'files_written': [str(output) + '.restore-desired.json'], 'operation_created': False})
+
+    def test_a_restore_refused_before_it_writes_anything_says_so(self):
+        # PKG-PRES-RUN4 items 12 and 19: the original context changed, so the refusal comes before any input file is
+        # written; its Effect line says that (it had none), like the refusals that carry facts.
+        import shlex
+        from intune_iac import maintenance
+        operation, _ = self.executed()
+        context = Path(str(operation) + '.intent-context.json')
+        context.write_text(context.read_text() + ' ')
+        output = self.root / 'restore changed'
+        error = self.refused(lambda: maintenance.propose_restore(operation, output))
+        self.assertEqual(error.code, 'maintenance_source_changed')
+        self.assertEqual(error.effects, {'files_written': [], 'operation_created': False})
+        text = self.effect_text('restore-propose %s %s' % (shlex.quote(str(operation)), shlex.quote(str(output))), error)
+        self.assertIn('Effect: No proposal and no input files were created.', text)
+
+    def test_the_workspace_no_longer_reads_input_files_from_disk(self):
+        # PKG-PRES-RUN4 item 19: the display trusts the engine's own list; it does not look for files itself.
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self, None, 'restore-propose /w/op /w/new')
+        self.assertFalse(hasattr(workspace, '_with_written_inputs'))
+        workspace.receive({'status': 'error', 'error': {'code': 'maintenance_observation_stale', 'message': 'Refused.',
+                                                         'effects': {'operation_created': False}}})
+        text = ' '.join(' '.join(workspace._surface_summary(118)).split())
+        self.assertIn('Effect: No operation directory was created.', text)
+        self.assertNotIn('input files', text)
 
     def test_a_refusal_for_a_command_that_wrote_nothing_still_says_no_directory_was_created(self):
         import shlex

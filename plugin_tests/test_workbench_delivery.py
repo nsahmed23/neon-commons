@@ -460,12 +460,13 @@ class ClockHoldNoteTests(unittest.TestCase):
 
     def test_each_clock_hold_reads_as_its_words(self):
         from intune_iac.workbench_delivery import _stale_note
-        words = {'clock_moved_backward': "its age cannot be established: this host's clock reads earlier than a time this "
-                                         'workspace recorded',
-                 'clock_floor_invalid': 'its age cannot be established: the time this workspace recorded cannot be read'}
+        # PKG-PRES-RUN4 item 18: a held age is not known, so the note does not say "stale" (the other reasons still do).
+        words = {'clock_moved_backward': "this host's clock reads earlier than a time this workspace recorded",
+                 'clock_floor_invalid': 'the time this workspace recorded cannot be read'}
         for code, expected in words.items():
             note = _stale_note({'observation_freshness': 'stale', 'observation_freshness_reasons': [code]})
-            self.assertIn('now reads stale (%s)' % expected, note)
+            self.assertIn('the age of the observation that shows it is not known (%s)' % expected, note)
+            self.assertNotIn('stale', note)
             self.assertNotIn(code, note)
 
 

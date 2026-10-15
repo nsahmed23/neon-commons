@@ -280,7 +280,8 @@ class LifecycleTests(unittest.TestCase):
         import time
         text = self.summary(4, {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared',
                                 'expires_at': time.time() + 200})
-        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > v Delivery', text)
+        # PKG-PRES-RUN4 item 17: Delivery has no surface number, so it is named as the key that opens it.
+        self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (key v)', text)
         self.assertIn('Next: execute OPERATION_DIR DIGEST', text)
 
     def test_the_repository_and_execution_surfaces_say_it_too(self):
@@ -600,7 +601,8 @@ class ClockHoldPresentationTests(unittest.TestCase):
             text = self.refusal_text(facts)
             self.assertIn('then restart the workbench and prepare the proposal again (%s).' % self.TIMES, text)
         unreadable = self.stale('clock_floor_invalid', freshness_clock={'reads': 1_800_000_000.0, 'recorded': None})
-        self.assertIn("(this host's clock reads 2027-01-15 08:00:00 UTC; the time this workspace recorded cannot be read)",
+        # PKG-PRES-RUN4 item 18: one bracket, not two in a row; the times join what it already says in brackets.
+        self.assertIn("(Diagnostics shows where it is kept; this host's clock reads 2027-01-15 08:00:00 UTC; the time this workspace recorded cannot be read)",
                       self.refusal_text({'signals': [unreadable]}))
 
     def test_a_refusal_without_the_fact_invents_no_time(self):
