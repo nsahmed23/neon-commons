@@ -146,3 +146,71 @@ class InterruptedOperationTests(unittest.TestCase):
         os.environ.pop(VARIABLE, None)
         self.assertEqual(self.store.collect(self.service)['status'], 'complete')
         self.assertEqual(self.store.inspect(self.ids[0])['last_attempt']['status'], 'complete')
+
+
+class InterruptedSessionWordsTests(unittest.TestCase):
+    """What a person reads after Ctrl-C: what was running, what it left, and the exact next step."""
+    setUp = InterruptedOperationTests.setUp
+    requests = InterruptedOperationTests.requests
+    interrupt_on = InterruptedOperationTests.interrupt_on
+
+    def session(self, commands, method):
+        from intune_iac.workbench import run_terminal
+        pending = iter(commands)
+
+        def read(prompt):
+            return next(pending)
+        with patch.dict(os.environ, {VARIABLE: '5'}), patch.object(modeled_service, 'sleep', self.interrupt_on(method)):
+            return run_terminal(self.root / 'store', service_root=self.root / 'service', input_fn=read,
+                                output_fn=lambda line: None)
+
+    def test_an_interrupted_execution_names_the_operation_to_reconcile(self):
+        from intune_iac.workbench import interrupted_lines
+        desired = copy.deepcopy(self.service.snapshot()['current']['objects'][self.ids[0]])
+        desired['description'] = 'Reviewed synthetic correction'
+        write_json(self.root / 'desired.json', desired)
+        proposal = maintenance.propose(self.root / 'store', self.root / 'service', self.ids[0], self.root / 'desired.json',
+                                       self.root / 'operation')
+        result = self.session(['execute %s %s' % (self.root / 'operation', proposal['approval_digest'])], 'PATCH')
+        self.assertEqual(result['status'], 'interrupted')
+        self.assertEqual(result['interrupted_during'], {'command': 'execute', 'operation_root': str(self.root / 'operation')})
+        text = '\n'.join(interrupted_lines(result))
+        self.assertIn('Interrupted while executing operation %s' % (self.root / 'operation'), text)
+        self.assertIn('outcome is unknown', text)
+        self.assertIn('intune-iac workbench reconcile --operation %s' % (self.root / 'operation'), text)
+        self.assertIn('never replays the change', text)
+        self.assertNotIn('{', text)
+
+    def test_an_interrupted_collection_says_it_has_no_end_and_to_collect_again(self):
+        from intune_iac.workbench import interrupted_lines
+        result = self.session(['collect'], 'GET')
+        self.assertEqual(result['interrupted_during'], {'command': 'collect', 'service_root': str(self.root / 'service')})
+        text = '\n'.join(interrupted_lines(result))
+        self.assertIn('Interrupted during a collection', text)
+        self.assertIn('records no end', text)
+        self.assertIn('intune-iac workbench collect --root %s --service-root %s' % (self.root / 'store', self.root / 'service'), text)
+        self.assertNotIn('reconcile', text)
+
+    def test_an_interrupt_at_the_prompt_says_nothing_was_running(self):
+        from intune_iac.workbench import interrupted_lines, run_terminal
+
+        def read(prompt):
+            raise KeyboardInterrupt
+        result = run_terminal(self.root / 'store', input_fn=read, output_fn=lambda line: None)
+        self.assertIsNone(result['interrupted_during'])
+        self.assertIn('Nothing was running', '\n'.join(interrupted_lines(result)))
+
+    def test_a_terminal_reads_sentences_and_a_pipe_reads_json(self):
+        import io
+        from intune_iac import cli
+        result = {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'interrupted_during': None,
+                  'recovery': 'x', 'store_root': str(self.root / 'store')}
+
+        class Terminal(io.StringIO):
+            def isatty(self):
+                return True
+        for stream, json_expected in ((Terminal(), False), (io.StringIO(), True)):
+            with patch.object(cli, 'execute', return_value=result), patch('sys.stdout', stream):
+                code = cli.main(['workbench', 'workspace', '--root', str(self.root / 'store')])
+            self.assertEqual(code, 2)
+            self.assertEqual(stream.getvalue().startswith('{'), json_expected, stream.getvalue()[:80])

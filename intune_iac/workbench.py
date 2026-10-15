@@ -906,6 +906,47 @@ def _render(value, output_fn):
 
 # What an interrupt means and what to do next. The workspace clears its frame when it restores the terminal, so the
 # returned result carries this too, not only the result drawn before it.
+def _interrupted_during(current):
+    """What was running when the interrupt arrived, from the command the terminal loop recorded; None at the prompt."""
+    name, values = current.get('name'), current.get('values') or []
+    if not name:
+        return None
+    if name in ('execute', 'reconcile') and values:
+        return {'command': name, 'operation_root': str(Path(values[0]).absolute())}
+    if name == 'collect':
+        return {'command': 'collect', 'service_root': current.get('service_root')}
+    return {'command': name}
+
+
+def interrupted_lines(result):
+    """The interrupted session's result as sentences for a person: what was running, what the interrupt left, and the
+    exact next step. Scripts read the same facts as JSON."""
+    during = result.get('interrupted_during') if isinstance(result.get('interrupted_during'), dict) else None
+    store = result.get('store_root') or 'STORE'
+    others = 'Other processes, such as a scheduled collector, were not stopped.'
+    if during and during.get('command') == 'execute':
+        operation = during.get('operation_root')
+        return ['Interrupted while executing operation %s.' % operation,
+                'Its outcome is unknown: the change may or may not have reached the service. Nothing retries it.',
+                'Next: reconcile it before anything else: intune-iac workbench reconcile --operation %s (or reopen the '
+                'workspace and choose Reconcile with a). Reconcile reads the service and never replays the change.' % operation,
+                others]
+    if during and during.get('command') == 'reconcile':
+        return ['Interrupted while reconciling operation %s.' % during.get('operation_root'),
+                'Reconcile only reads; run it again: intune-iac workbench reconcile --operation %s.'
+                % during.get('operation_root'), others]
+    if during and during.get('command') == 'collect':
+        return ['Interrupted during a collection.',
+                'That run records no end; the newest complete observation is kept and is labelled as such.',
+                'Next: collect again: intune-iac workbench collect --root %s --service-root %s (or reopen the workspace '
+                'and choose Collect again with a).' % (store, during.get('service_root') or 'SERVICE'), others]
+    if during:
+        return ['Interrupted while running %s.' % during.get('command'),
+                'Next: intune-iac workbench diagnostics --root %s --object ID names anything it left unfinished.' % store,
+                others]
+    return ['Interrupted while waiting for a command. Nothing was running.', others]
+
+
 INTERRUPTED_RECOVERY = ('Other processes, such as a scheduled collector, were not stopped. diagnostics names anything this '
                         'interrupt left unfinished, such as a collection with no end or an execution whose outcome is '
                         'unknown; reconcile before retrying any uncertain execution.')
@@ -921,6 +962,7 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, resu
     and restored. No signal handler is installed from non-main threads.
     """
     pending = False
+    current = {}  # the command in flight, recorded by the loop; empty at the prompt
     installed = threading.current_thread() is threading.main_thread()
     previous = signal.getsignal(signal.SIGINT) if installed else None
 
@@ -940,14 +982,19 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, resu
         signal.signal(signal.SIGINT, receive_interrupt)
     try:
         return _run_terminal(root, service_root=service_root, input_fn=input_fn,
-                             output_fn=output_fn, result_fn=result_fn, interrupt_check=check_interrupt, _store_capability=_store_capability)
+                             output_fn=output_fn, result_fn=result_fn, interrupt_check=check_interrupt, _store_capability=_store_capability,
+                             _current=current)
     except KeyboardInterrupt:
-        value = {'status': 'interrupted', 'recovery': INTERRUPTED_RECOVERY}
+        during = _interrupted_during(current)
+        result = {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'interrupted_during': during,
+                  'store_root': str(Path(root).absolute())}
+        result['recovery'] = ' '.join(interrupted_lines(result))
+        value = {key: result[key] for key in ('status', 'interrupted_during', 'recovery')}
         if result_fn is None:
             _render(value, print if output_fn is None else output_fn)
         else:
             result_fn(value)
-        return {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'recovery': INTERRUPTED_RECOVERY}
+        return result
     finally:
         if installed:
             signal.signal(signal.SIGINT, previous)
@@ -976,7 +1023,8 @@ def _adopted_service(store):
     return origin
 
 
-def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None, _store_capability=None):
+def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None, _store_capability=None,
+                  _current=None):
     """Accessible line terminal; no shell invocation, animation, or hidden approval.
 
     The store, not the process, owns history. Closing this interface never stops
@@ -1027,8 +1075,10 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
     initial_overview = show_page()
     present({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP})
     present(initial_overview)
+    current = {} if _current is None else _current
     while True:
         try:
+            current.clear()  # back at the prompt: nothing is in flight
             interrupt_check()
             line = input_fn('workbench> ')
             interrupt_check()
@@ -1036,6 +1086,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             parts = shlex.split(line)
             if not parts: continue
             name, values = parts[0].lower(), parts[1:]
+            current.update(name=name, values=values, service_root=None if service_root is None else str(service_root))
             if _store_capability is not None:
                 from .windows_workspace_binding import require_command
                 require_command(name)
@@ -1161,7 +1212,6 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     raise AppError('selection_required', 'Select an exact immutable object ID first.')
                 result = diagnostics(store, selected)
             elif name == 'start' and len(values) <= 1:
-                from pathlib import Path
                 from .entry import survey
                 # What exists beside the store (or in DIRECTORY) and the next step; read-only, offline.
                 result = survey(values[0] if values else Path(store.root).parent)
@@ -1279,8 +1329,13 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         except EOFError:
             return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
         except KeyboardInterrupt:
-            present({'status': 'interrupted', 'recovery': INTERRUPTED_RECOVERY})
-            return {'status': 'interrupted', 'evidence_class': 'local_interface_result', 'recovery': INTERRUPTED_RECOVERY}
+            # The same result as run_terminal's outer handler: what was running, what it left, the next step.
+            during = _interrupted_during(current)
+            result = {'status': 'interrupted', 'evidence_class': 'local_interface_result',
+                      'interrupted_during': during, 'store_root': str(Path(root).absolute())}
+            result['recovery'] = ' '.join(interrupted_lines(result))
+            present({key: result[key] for key in ('status', 'interrupted_during', 'recovery')})
+            return result
         except AppError as error:
             effects = getattr(error, 'effects', None)
             present({'status': 'error', 'error': dict({'code': error.code, 'message': error.message},

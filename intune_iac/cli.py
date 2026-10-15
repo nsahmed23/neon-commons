@@ -308,6 +308,12 @@ def main(argv=None):
             print('\n'.join(start_lines(survey(args.directory),shutil.get_terminal_size((100,40)).columns)))
             return 0
         result=execute(args)
+        if (getattr(args,'workbench_command',None)=='workspace' and isinstance(result,dict)
+                and result.get('status')=='interrupted' and sys.stdout.isatty()):
+            # A person reads this after Ctrl-C: sentences with the exact next step; a pipe keeps the JSON.
+            from .workbench import interrupted_lines
+            print('\n'.join(interrupted_lines(result)));sys.stdout.flush()
+            return exit_code(result)
         try:
             print(json.dumps(result,ensure_ascii=True,sort_keys=True,allow_nan=False));sys.stdout.flush()
         except BrokenPipeError:
