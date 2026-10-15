@@ -620,3 +620,49 @@ class GuardRestartContractTests(unittest.TestCase):
         self.assertEqual(self.judge(), 'clock_moved_backward')
         self.restart()  # a restart supplies no correction or trustworthy new reading
         self.assertEqual(self.judge(), 'clock_moved_backward')
+
+
+class WindowAgreementTests(unittest.TestCase):
+    """The approval-window view (maintenance.approval_window) and execution (protected._window) give the same answer
+    for the same records and readings, over a grid of wall and monotonic readings, a recorded floor and a latch."""
+
+    def case(self, wall, mono, recorded=None, latched=False):
+        import json
+        from types import SimpleNamespace
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        operation = Path(temporary.name)
+        executor = operation / 'executor'
+        executor.mkdir()
+        request = {'operation_id': 'agreement', 'created_at': START, 'expires_at': START + 300}
+        readings = {'wall': START, 'mono': 1000.0}
+        with patch.object(protected, '_now', side_effect=lambda: readings['wall']), \
+                patch.object(clock, 'monotonic', side_effect=lambda: readings['mono']):
+            clock.reset_process_anchor()
+            clock.Floor(executor / 'clock.json').observe(START)  # creation, the floor's first point
+            if recorded is not None:
+                (executor / 'clock.json').write_text(json.dumps({'schema_version': clock.SCHEMA, 'high_water': recorded}))
+            if latched:
+                (executor / 'expired.json').write_text('{}')
+            readings['wall'], readings['mono'] = wall, 1000.0 + mono
+            view = maintenance.approval_window(operation, request)['state']
+            try:
+                protected._window(request, SimpleNamespace(root=executor))
+                executed = 'open'
+            except AppError as error:
+                executed = error.code
+        clock.reset_process_anchor()
+        return view, executed
+
+    def test_the_view_and_execution_agree_on_every_case(self):
+        expected = {'open': 'open', 'closed': 'expired_request', 'closed_recorded': 'expired_request',
+                    'clock_moved_backward': 'clock_moved_backward'}
+        seen = set()
+        for wall in (START - 10, START + 10, START + 150, START + 299, START + 300, START + 400):
+            for mono in (0, 10, 150, 299, 300, 400):
+                for recorded in (None, START + 200, START + 350):
+                    for latched in (False, True):
+                        view, executed = self.case(wall, mono, recorded, latched)
+                        seen.add(view)
+                        self.assertEqual(expected[view], executed, (wall - START, mono, recorded, latched, view, executed))
+        self.assertEqual(seen, set(expected))

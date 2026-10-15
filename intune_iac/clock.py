@@ -52,6 +52,19 @@ def _process_floor(key, wall):
     return carried
 
 
+def window_state(reading, created_at, expires_at):
+    """The approval window's state for one reading (Floor.observe or Floor.peek): the one rule execution and views
+    share. 'closed' when the effective time reached the expiry (it never goes back, so this comes first, even
+    while the wall clock reads earlier); 'clock_moved_backward' when validity cannot be established (a backward
+    step, or a time before creation); otherwise 'open'. Pure: callers commit effects (execution records the
+    expiry and refuses) or render it (views record nothing)."""
+    if reading['effective'] >= expires_at:
+        return 'closed'
+    if reading['backward'] or reading['effective'] < created_at:
+        return 'clock_moved_backward'
+    return 'open'
+
+
 class Floor:
     """The durable high-water mark of wall time for one guarded thing (one file)."""
 

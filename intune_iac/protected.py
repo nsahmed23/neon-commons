@@ -746,14 +746,15 @@ def _window(request, executor):
     with floor.locked():
         if expired.exists():_fail('expired_request')
         reading=floor.observe_locked(_now())
-        # A reached expiry is recorded before anything else is judged: the effective time never goes back, so the
-        # window is closed for good even while the wall clock reads earlier (temporal gate S7).
-        if reading['effective']>=request['expires_at']:
+        # The shared rule (clock.window_state); execution commits its effects: a reached expiry is recorded beside
+        # the approval before refusing, so it stays closed after a rollback or a restart (temporal gate S7).
+        state=clock.window_state(reading,request['created_at'],request['expires_at'])
+        if state=='closed':
             try:_exclusive(expired,canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),
                                              'expires_at':request['expires_at'],'judged_at':reading['effective'],'wall':reading['wall']}))
             except FileExistsError:pass
             _fail('expired_request')
-        if reading['backward'] or reading['effective']<request['created_at']:_fail('clock_moved_backward')
+        if state=='clock_moved_backward':_fail('clock_moved_backward')
     return reading['effective']
 
 

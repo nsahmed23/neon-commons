@@ -380,10 +380,8 @@ def approval_window(root, request):
         reading = clock.Floor(executor / 'clock.json').peek(protected._now())
     except AppError:
         return dict(window, state='unknown')
-    # The same order as protected._window: a reached expiry first, then a backward step.
-    state = ('closed' if reading['effective'] >= request['expires_at']
-             else 'clock_moved_backward' if reading['backward'] or reading['effective'] < request['created_at']
-             else 'open')
+    # The one rule execution uses too (clock.window_state); a view only renders it.
+    state = clock.window_state(reading, request['created_at'], request['expires_at'])
     return dict(window, state=state, judged_at=reading['effective'])
 
 
