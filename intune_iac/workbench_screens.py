@@ -2993,7 +2993,7 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     if recorded and code == 'workbench_deployment_intent_not_cited':
         # The engine's message ends by asking to record with the cited intent; the record exists, so that clause goes.
         message = message.replace('; record the deployment with the intent it cites.', '.')
-        already = '%s already has deployment record %s (v shows it as stage 7); there is nothing to record.' % (
+        already = '%s already has deployment record %s (v opens Delivery, where it is stage 7); there is nothing to record.' % (
             named[:1].upper() + named[1:], str(recorded.get('artifact_id'))[:12])
     if known:
         # The cause the workspace read, and the step for it; the engine's general message is one key away.

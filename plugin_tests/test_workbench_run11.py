@@ -296,3 +296,29 @@ class StagedNoticeTests(MapTruth):
         ws.layer = 'summary'
         ws._stage(ws._actions()[1])
         self.assertIn('STAGED reconcile: never replays the change.', ws.notice)
+
+
+class KeyExplainedTests(unittest.TestCase):
+    """Item 8 (gemini-run11-3, frame 67): a key the body names is explained on that screen."""
+    RECORDED = {'artifact_id': '8f5e4404598b' + '0' * 52}
+    REFUSED = {'status': 'error', 'error': {'code': 'workbench_deployment_intent_not_cited',
+                                            'message': 'This operation cites repository intent ' + 'a' * 64 + ', not the intent given; '
+                                            'record the deployment with the intent it cites.',
+                                            'effects': {'deployment_recorded': False}}}
+
+    def text(self, width=118):
+        from intune_iac.workbench_screens import refusal_lines
+        return ' '.join(' '.join(refusal_lines(self.REFUSED, width, operation='650a1a61', verb='deployment-record',
+                                               recorded=self.RECORDED)).split())
+
+    def test_the_v_in_the_refusal_says_what_it_opens(self):
+        text = self.text()
+        self.assertIn('already has deployment record 8f5e4404598b (v opens Delivery, where it is stage 7); there is nothing '
+                      'to record.', text)
+        self.assertNotIn('v shows it as stage 7', text)
+
+    def test_a_refusal_with_no_key_named_names_none(self):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'workbench_deployment_intent_not_cited', 'message': 'x',
+                                              'effects': {'deployment_recorded': False}}}
+        self.assertNotIn(' v ', ' '.join(refusal_lines(value, 118, operation='650a1a61', verb='deployment-record')))
