@@ -18,6 +18,7 @@ import stat
 from uuid import UUID, uuid4
 
 from . import protected, workbench_semantics
+from .pin_profiles import CURRENT, LEGACY, context_profile, engine_profiles, tools
 from .io import AppError, canonical, digest, file_sha, load_json, read_bytes, parse_json, write_json, sync_directory
 from .modeled_service import BASE, FIELDS, VERSION as SERVICE_VERSION, MAX_VISIBILITY_DELAY_READS, ModeledService, compare_semantics
 
@@ -156,10 +157,30 @@ def _load(operation_root):
     expected['objects'][plan['object_id']] = desired
     if digest(expected) != digest(plan['desired_estate']):
         _fail('maintenance_scope_changed')
+    # A plan records the engine version and profile its modeled executor was made for; an operation stored before the
+    # migration records neither and is read as it was made. A recorded value must be the executor's own.
+    if 'engine_version' in plan or 'pin_profile' in plan:
+        made = load_json(root / 'executor' / 'executor.json').get('engine_version', tools(LEGACY)['engine_version'])
+        if (plan.get('engine_version') != made or plan.get('pin_profile') != engine_profiles().get(made)):
+            _fail('maintenance_engine_changed')
     request = load_json(root / 'executor' / 'preparation.json')
     if digest(request) != plan['engine_request_sha256'] or request['bindings']['desired_value_sha256'] != digest(expected):
         _fail('maintenance_engine_changed')
     return root, plan, journal, desired, request
+
+
+def _engine_profile(context):
+    """The engine version a new operation's modeled executor names, and the profile it belongs to.
+
+    A context whose schema_version is one of the two known versions selects that profile, as generation does. A context
+    that carries no schema_version selects no pins, and so does no context at all: the operation is new and takes the build's
+    current profile. A schema_version that is present but not recognised is refused, never defaulted."""
+    if context is not None and 'schema_version' in context:
+        selected = context_profile(context)
+        if selected is None:
+            _fail('maintenance_context_version')
+        return selected['engine_version'], selected['profile']
+    return tools(CURRENT)['engine_version'], CURRENT
 
 
 def _check_cited_intent(store, object_id, desired, context):
@@ -292,6 +313,7 @@ def _propose(store_root, service_root, object_id, desired_path, output, *, conte
         context = {'path': str(context_path), 'sha256': hashlib.sha256(context_bytes).hexdigest()}
         if context_sha256 is not None and context['sha256'] != context_sha256:
             _fail('maintenance_source_changed')
+    engine_version, pin_profile = _engine_profile(context_value if context_path is not None else None)
     service = ModeledService(service_root)
     with _lock(service_root):
         snapshot = service.snapshot()
@@ -312,7 +334,7 @@ def _propose(store_root, service_root, object_id, desired_path, output, *, conte
         root.mkdir(mode=0o700); progress['created'] = True; sync_directory(root.parent)
         write_json(root / 'desired.json', desired)
         executor = protected.create_synthetic_executor(root / 'executor', initial_value=before, desired_value=expected,
-                                                       engine_version='1.10.0')
+                                                       engine_version=engine_version)
         request = protected.prepare_native_operation(executor)
         plan = {'schema_version': VERSION, 'operation_id': uuid4().hex,
             'operation_root': str(root), 'store_root': str(store_root), 'service_root': str(service_root),
@@ -322,7 +344,8 @@ def _propose(store_root, service_root, object_id, desired_path, output, *, conte
             'desired_source': {'path': str(desired_path), 'sha256': source_sha}, 'context': context,
             'observation_sha256': digest(observation), 'engine_request_sha256': digest(request),
             'expires_at': request['expires_at'], 'evidence_class': EVIDENCE, 'cloud_authority': False,
-            'native_provider_qualified': False, 'changes': compare_semantics(before, expected)}
+            'native_provider_qualified': False, 'changes': compare_semantics(before, expected),
+            'engine_version': engine_version, 'pin_profile': pin_profile}
         write_json(root / 'plan.json', plan)
         journal = {'operation_id': plan['operation_id'], 'plan_sha256': digest(plan), 'status': 'prepared', 'events': []}
         _event(root, journal, 'prepared', approval_digest=digest(plan))

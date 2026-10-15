@@ -734,5 +734,98 @@ class NoSilentLegacyExecutorTests(unittest.TestCase):
         self.assertGreater(calls, 20)  # the walk found the callers; an empty walk proves nothing
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Round 3, item 2: the workbench propose path chooses the engine version by the operation's context, and records it.
+# ---------------------------------------------------------------------------------------------------------------------
+class WorkbenchProposeEngineVersionTests(unittest.TestCase):
+    from plugin_tests import test_maintenance as _maintenance
+    setUp = _maintenance.MaintenanceTests.setUp
+    propose = _maintenance.MaintenanceTests.propose
+    execute = _maintenance.MaintenanceTests.execute
+
+    def context(self, **fields):
+        path = self.root / 'context.json'
+        from intune_iac.io import write_json
+        write_json(path, dict({'tenant_id': self.tenant}, **fields))
+        return path
+
+    def modeled_plan(self):
+        return json.loads((self.operation / 'executor/work/plan.json').read_text())
+
+    def recorded(self):
+        return json.loads((self.operation / 'plan.json').read_text())
+
+    def check(self, profile, version):
+        from intune_iac.execution import review_plan
+        plan = self.recorded()
+        self.assertEqual((plan['pin_profile'], plan['engine_version']), (profile, version))
+        self.assertEqual(self.modeled_plan()['terraform_version'], version)
+        report = review_plan(self.modeled_plan())
+        self.assertEqual(report['pin_profile'], profile)
+        self.assertEqual('pin_notice' in report, profile == LEGACY)
+
+    def test_an_operation_without_a_context_gets_the_current_profile(self):
+        self.propose()
+        self.check(CURRENT, CURRENT_TOFU)
+
+    def test_a_context_without_a_schema_version_selects_no_pins_and_gets_the_current_profile(self):
+        self.propose(context_path=self.context())
+        self.check(CURRENT, CURRENT_TOFU)
+
+    def test_the_schema_version_of_the_context_selects_the_profile_as_generation_does(self):
+        for version, profile, tofu in ((CONTEXT_V2, CURRENT, CURRENT_TOFU), (CONTEXT_V1, LEGACY, LEGACY_TOFU)):
+            with self.subTest(version=version):
+                self.setUp()
+                self.propose(context_path=self.context(schema_version=version))
+                self.check(profile, tofu)
+
+    def test_an_unrecognised_context_version_is_refused_before_anything_is_written(self):
+        from intune_iac.io import AppError
+        for version in ('3.0.0', '', None, 2, ['2.0.0']):
+            with self.subTest(version=version):
+                self.setUp()
+                with self.assertRaises(AppError) as raised:
+                    self.propose(context_path=self.context(schema_version=version))
+                self.assertEqual(raised.exception.code, 'maintenance_context_version')
+                self.assertFalse(self.operation.exists())
+
+    def test_a_new_operation_executes_under_the_current_pins(self):
+        proposal = self.propose()
+        result = self.execute(proposal)
+        self.assertEqual(result['status'], 'succeeded_verified', result)
+
+    def test_an_operation_stored_before_the_change_still_reads_as_recorded(self):
+        from intune_iac import maintenance
+        from intune_iac.io import digest, write_json
+        proposal = self.propose(context_path=self.context(schema_version=CONTEXT_V1))
+        # An earlier operation recorded no profile: remove the two fields and re-seal the plan as the journal recorded it.
+        plan = self.recorded()
+        del plan['pin_profile'], plan['engine_version']
+        write_json(self.operation / 'plan.json', plan)
+        journal = json.loads((self.operation / 'journal.json').read_text())
+        journal['plan_sha256'] = digest(plan)
+        write_json(self.operation / 'journal.json', journal)
+        resealed = maintenance.review(self.operation)  # the plan changed, so its approval digest is the new one
+        self.assertEqual(resealed['operation_id'], plan['operation_id'])
+        self.assertEqual(self.modeled_plan()['terraform_version'], LEGACY_TOFU)
+        done = maintenance.execute(self.operation, approve_digest=resealed['approval_digest'])
+        self.assertEqual(done['status'], 'succeeded_verified')
+
+    def test_a_recorded_engine_version_that_the_executor_does_not_have_is_refused(self):
+        from intune_iac import maintenance
+        from intune_iac.io import AppError, digest, write_json
+        self.propose(context_path=self.context(schema_version=CONTEXT_V2))
+        plan = self.recorded()
+        plan['engine_version'], plan['pin_profile'] = LEGACY_TOFU, LEGACY
+        write_json(self.operation / 'plan.json', plan)
+        journal = json.loads((self.operation / 'journal.json').read_text())
+        journal['plan_sha256'] = digest(plan)
+        write_json(self.operation / 'journal.json', journal)
+        with self.assertRaises(AppError) as raised:
+            maintenance.review(self.operation)
+        self.assertEqual(raised.exception.code, 'maintenance_engine_changed')
+
+
 if __name__ == '__main__':
     unittest.main()
