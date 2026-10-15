@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 from uuid import UUID
@@ -28,6 +28,22 @@ MAX_RETRY_DELAY_SECONDS = 30
 
 def _stamp():
     return datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+
+
+class _CaptureClock:
+    """One capture's times: its start on the wall clock, every later time as that start plus monotonic elapsed time.
+
+    A capture is one process, so its elapsed time is measured monotonically; a host clock that steps back during it
+    cannot make it finish before it started (owner directive inbox/PRODUCT-TASK-12.md, section 3).
+    """
+
+    def __init__(self):
+        # The start comes from _stamp, the one wall-clock seam the capture has always used.
+        self.wall = datetime.fromisoformat(_stamp().replace('Z', '+00:00'))
+        self.mono = time.monotonic()
+
+    def stamp(self):
+        return (self.wall + timedelta(seconds=time.monotonic() - self.mono)).isoformat().replace('+00:00', 'Z')
 
 
 def _identity(value):
@@ -93,8 +109,9 @@ def _retry_delay(headers, attempt):
 
 class _Reads:
     """One capture's bounded GET budget and immutable response/attempt records."""
-    def __init__(self, write_raw, transport, native, max_pages, max_attempts, elapsed, delay, progress):
+    def __init__(self, write_raw, transport, native, max_pages, max_attempts, elapsed, delay, progress, stamp=_stamp):
         self.write_raw, self.transport, self.native = write_raw, transport, native
+        self.stamp = stamp
         self.max_pages, self.max_attempts, self.max_delay = max_pages, max_attempts, delay
         self.deadline = time.monotonic() + elapsed
         self.progress = progress
@@ -139,7 +156,7 @@ class _Reads:
                 event['error'] = 'invalid_transport_response'
             except Exception:
                 event['error'] = 'transport_failed'
-            event['captured_at'] = _stamp()
+            event['captured_at'] = self.stamp()
             if event['error'] is None:
                 available = min(MAX_PAGE_BYTES + 1, MAX_TOTAL_BYTES - self.total_bytes)
                 stored = raw[:available]
@@ -301,9 +318,10 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
     try:
         with output_factory(output_path) as files:
             output=files.output
-            started = _stamp()
+            clock = _CaptureClock()
+            started = clock.stamp()
             reads = _Reads(files.write_raw,transport,native,max_pages,max_attempts_per_page,
-                           max_elapsed_seconds,max_retry_delay_seconds,progress)
+                           max_elapsed_seconds,max_retry_delay_seconds,progress,stamp=clock.stamp)
             collections = []
             for kind, owner, root in [('policies', None, GRAPH_ROOT),
                                       ('settings', policy_id, GRAPH_ROOT+'/'+policy_id+'/settings'),
@@ -394,7 +412,7 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
             files.write('context.json', context_bytes)
             receipt = {'schema_version':'1.1.0','adapter':export['exporter'],
                        'tenant_id':tenant_id,'selected_policy_id':policy_id,'cloud':'public','api_version':'beta',
-                       'tenant_assurance':'caller_asserted','started_at':started,'finished_at':_stamp(),
+                       'tenant_assurance':'caller_asserted','started_at':started,'finished_at':clock.stamp(),
                        'target_assurance':'proposed_reference_labels_only',
                        'source_is_synthetic':source_is_synthetic,
                        'source_provenance_assurance':'caller_declared',

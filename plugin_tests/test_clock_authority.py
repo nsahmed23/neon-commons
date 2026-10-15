@@ -235,3 +235,46 @@ class ObservationOrderTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CaptureClockTests(unittest.TestCase):
+    """Gate group G5 (lanes/review-hazard-actions/GATE-d44c9d0.txt): a backward wall-clock step during a capture made it
+    finish before it started, and the import refused it (workbench_capture_timestamp). A capture's own times now run on
+    its start plus monotonic elapsed time."""
+
+    def test_a_backward_step_during_a_capture_keeps_its_times_in_order(self):
+        import json
+        from datetime import datetime, timezone
+        from intune_iac import capture as capture_module
+        policy, tenant = '22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111'
+        root = 'https://graph.microsoft.com/beta/deviceManagement/configurationPolicies'
+        responses = {root: (200, b'{"value":[{"id":"' + policy.encode() + b'","name":"Pilot"}]}'),
+                     root + '/' + policy + '/settings': (200, b'{"value":[]}'),
+                     root + '/' + policy + '/assignments': (200, b'{"value":[]}')}
+        clocks = Clocks(wall=START)
+
+        class Wall(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return datetime.fromtimestamp(clocks.wall, tz)
+
+        def transport(url):
+            clocks.elapse(1)
+            if url.endswith('/settings'):
+                clocks.step(-266)  # the host clock steps back in the middle of the capture
+            return responses[url]
+
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        output = Path(temp.name) / 'capture'
+        with patch.object(capture_module, 'datetime', Wall), \
+                patch.object(capture_module.time, 'monotonic', side_effect=clocks.monotonic):
+            capture_module.capture(tenant, policy, output, transport=transport)
+        receipt = json.loads((output / 'capture-receipt.json').read_bytes())
+        started = datetime.fromisoformat(receipt['started_at'].replace('Z', '+00:00'))
+        finished = datetime.fromisoformat(receipt['finished_at'].replace('Z', '+00:00'))
+        self.assertGreaterEqual(finished, started)
+        self.assertEqual((finished - started).total_seconds(), 3)
+        # The import accepts the times (a capture that finished before it started is refused with an AppError).
+        store = WorkbenchStore.create(Path(temp.name) / 'store', tenant)
+        self.assertIn('run_id', store.import_capture(output))
