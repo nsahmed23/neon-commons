@@ -1047,8 +1047,11 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
         else:
             blocked = action.get('blocked') or {}
             code = blocked.get('code')
-            # The discriminating message when the engine's code covers several causes; otherwise its meaning.
-            meaning = blocked.get('message') if blocked.get('reason') or code not in REFUSALS else REFUSALS[code][0]
+            # The discriminating message when the engine's code covers several causes or the message names something
+            # particular (a setting, a value); otherwise the code's general meaning.
+            message = str(blocked.get('message') or '')
+            meaning = (message if blocked.get('reason') or code not in REFUSALS or (message and _names_specifics(message))
+                       else REFUSALS[code][0])
             lines += _labelled('', 'blocked  %s: %s' % (code, meaning), width, 5)
         if focused and action.get('effects') and action.get('effects') != action.get('summary'):
             lines += _labelled('', str(action.get('effects')), width, 5)

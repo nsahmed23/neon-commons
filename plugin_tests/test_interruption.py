@@ -238,12 +238,11 @@ class InterruptCommandQuotingTests(unittest.TestCase):
     STORE, SERVICE = '/w/journey 28 run 3/store', '/w/journey 28 run 3/handoff/service'
 
     def command(self, lines, verb):
-        import re
         import shlex
-        text = ' '.join(lines)
-        found = re.search(r'(intune-iac workbench %s .*?) \(or reopen' % verb, text)
-        self.assertIsNotNone(found, text)
-        return shlex.split(found.group(1))
+        # The command stands on its own indented line, so a pasted copy is exactly that line.
+        found = [line for line in lines if line.startswith('  intune-iac workbench %s ' % verb)]
+        self.assertEqual(len(found), 1, lines)
+        return shlex.split(found[0])
 
     def test_the_reconcile_command_keeps_the_operation_path_whole(self):
         from intune_iac.workbench import interrupted_lines
@@ -258,3 +257,60 @@ class InterruptCommandQuotingTests(unittest.TestCase):
                                    'store_root': self.STORE})
         self.assertEqual(self.command(lines, 'collect'),
                          ['intune-iac', 'workbench', 'collect', '--root', self.STORE, '--service-root', self.SERVICE])
+
+
+class InterruptTextOnATerminalTests(unittest.TestCase):
+    """Journey 28 run 3, frames 38 and 46: on a terminal the sentences wrap at spaces and the command stays whole."""
+
+    def test_sentences_wrap_at_spaces_and_the_command_line_stays_whole(self):
+        from intune_iac.workbench import interrupted_text
+        operation = '/w/journey 28 run 3/operation-22222222-b29ebd66ff89'
+        result = {'interrupted_during': {'command': 'execute', 'operation_root': operation}, 'store_root': '/w/store'}
+        lines = interrupted_text(result, 60)
+        commands = [line for line in lines if line.startswith('  intune-iac ')]
+        self.assertEqual(commands, ["  intune-iac workbench reconcile --operation '%s'" % operation])
+        source_words = set(' '.join(lines).split())
+        for line in lines:
+            if line in commands:
+                continue
+            self.assertLessEqual(len(line), 60, line)
+        # No word was cut: every word of the wrapped sentences is a word of the unwrapped ones.
+        from intune_iac.workbench import interrupted_lines
+        self.assertEqual(source_words, set(' '.join(interrupted_lines(result)).split()))
+
+
+class RunningLineTests(unittest.TestCase):
+    """Journey 28 run 3, frame 37: while a call runs, the RUNNING line says what is running."""
+
+    def test_an_execution_names_its_operation(self):
+        from intune_iac.workbench_tui import running_notice
+        notice = running_notice("execute '/w/journey 28/operation-22222222-b29ebd66ff89' " + 'a' * 64)
+        self.assertTrue(notice.startswith('RUNNING: '), notice)
+        self.assertIn('operation-22222222-b29ebd66ff89', notice)
+        self.assertIn('not yet known', notice)
+
+    def test_a_collection_and_anything_else(self):
+        from intune_iac.workbench_tui import running_notice
+        self.assertIn('collecting', running_notice('collect'))
+        self.assertEqual(running_notice('history-recent'), 'RUNNING: waiting for the engine; outcome is not yet known.')
+
+
+class ReconcileKeepsTheRecordedErrorTests(unittest.TestCase):
+    """Journey 28 run 3, frames 59 and 62: reconcile's result keeps the error the operation recorded before it."""
+    setUp = InterruptedOperationTests.setUp
+    requests = InterruptedOperationTests.requests
+
+    def test_the_lost_response_is_named_after_reconcile(self):
+        from plugin_tests.test_workbench_states import StateSurfaceTests
+        desired = copy.deepcopy(self.service.snapshot()['current']['objects'][self.ids[0]])
+        desired['description'] = 'Reviewed synthetic correction'
+        write_json(self.root / 'desired.json', desired)
+        proposal = maintenance.propose(self.root / 'store', self.root / 'service', self.ids[0], self.root / 'desired.json',
+                                       self.root / 'operation')
+        maintenance.execute(self.root / 'operation', approve_digest=proposal['approval_digest'], fault='lost-response')
+        result = maintenance.reconcile(self.root / 'operation')
+        self.assertEqual(result['previous_error_code'], 'model_response_lost')
+        workspace = StateSurfaceTests.workspace(self, 5, dict(result))
+        text = StateSurfaceTests.summary(self, workspace)
+        self.assertIn("the modeled service's response was lost (model_response_lost)", text)
+        self.assertNotIn('Error: none recorded', text)

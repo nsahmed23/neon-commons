@@ -286,3 +286,24 @@ class SayItOnceTests(unittest.TestCase):
         from intune_iac.workbench_screens import refusal_lines
         lines = text(refusal_lines({'error': {'code': 'clock_moved_backward', 'message': 'Refused.'}}, 160))
         self.assertEqual(lines.count('Nothing was dispatched.'), 1, lines)
+
+
+class RunThreeWordsTests(unittest.TestCase):
+    """Journey 28 run 3: the :cancel notice fits a narrow line; a blocked action names what the engine named."""
+
+    def test_the_cancel_notice_fits_eighty_columns(self):
+        from intune_iac.workbench_tui import CANCEL_NOTICE
+        self.assertIn('Nothing is running to cancel', CANCEL_NOTICE)
+        self.assertLessEqual(len(CANCEL_NOTICE), 78)
+
+    def test_a_blocked_action_shows_the_engines_specific_message(self):
+        from intune_iac.workbench_screens import actions_lines
+        message = ('Setting device_vendor_msft_policy_config_x: value device_vendor_msft_policy_config_x_1 is not a '
+                   'supported value for this setting in the offline capability map (supported: '
+                   'device_vendor_msft_policy_config_x_2). The reference component cannot propose it.')
+        value = {'attention': {'status': 'clear', 'signals': [], 'checked': {}},
+                 'actions': [{'kind': 'propose-from-intent', 'label': 'Prepare a proposal from the recorded intent',
+                              'available': False,
+                              'blocked': {'code': 'workbench_desired_capability', 'message': message}}]}
+        lines = text(actions_lines(value['actions'], 0, 200))
+        self.assertIn('device_vendor_msft_policy_config_x_1', lines)

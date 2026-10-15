@@ -31,6 +31,27 @@ READ_VIEWS = {'overview', 'inspect', 'settings', 'relationships', 'lineage',
               'history', 'history-recent', 'evidence-history', 'health', 'operations', 'views', 'help',
               'repository-status', 'dictionary', 'queue', 'start', 'diagnostics', 'families'}
 TABS = ('Estate', 'Inspector', 'Relationships', 'History', 'Plan', 'Execution', 'Coverage', 'Help', 'Repository')
+# Typed `cancel` between commands; short enough for an 80-column notice line (journey 28 run 3, frame 66).
+CANCEL_NOTICE = 'Nothing is running to cancel; Esc discards a typed command (? lists all keys).'
+
+
+def running_notice(command):
+    """The RUNNING line while a command runs: which operation or read, and that its outcome is not yet known."""
+    try:
+        words = shlex.split(command)
+    except ValueError:
+        words = command.split()
+    verb = words[0] if words else ''
+    target = os.path.basename(words[1].rstrip('/')) if len(words) > 1 else ''
+    if verb == 'execute' and target:
+        return 'RUNNING: executing operation %s; its outcome is not yet known.' % target
+    if verb == 'reconcile' and target:
+        return 'RUNNING: reconciling operation %s (a read; it never replays the change).' % target
+    if verb == 'collect':
+        return 'RUNNING: collecting from the service; the new observation is not yet recorded.'
+    return 'RUNNING: waiting for the engine; outcome is not yet known.'
+
+
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
 ANSI_START = '\x1b[?1049h\x1b[?25l\x1b[?2004h'
@@ -1123,9 +1144,15 @@ class Workspace:
                 field("Reconcile's readback" if reconciled else 'Readback',
                       str(result.get('classification') or readback.get('classification') or 'not recorded').replace('_', ' '))
                 from .workbench_screens import EXECUTION_ERROR_WORDS
-                code = result.get('error_code') or error.get('code')
-                field('Error', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code) if code in EXECUTION_ERROR_WORDS
-                      else code or 'none recorded')
+                if reconciled:
+                    # Reconcile's own run has no error here; the error is the one the operation recorded before it.
+                    code = result.get('previous_error_code')
+                    field('Recorded before reconcile', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code)
+                          if code in EXECUTION_ERROR_WORDS else code or 'no error')
+                else:
+                    code = result.get('error_code') or error.get('code')
+                    field('Error', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code) if code in EXECUTION_ERROR_WORDS
+                          else code or 'none recorded')
                 field('Evidence', str(result.get('evidence_class', 'unknown')).replace('_', ' '))
             # The lifecycle line below gives the next step for this state; v shows every delivery stage.
         elif self.tab == 6 and ('collection_health' in value or isinstance(value.get('stages'), dict)):
@@ -1661,7 +1688,7 @@ class Workspace:
         self.buffer = ''
         self.cursor = 0
         self.input_overflow = False
-        self.notice = 'RUNNING: waiting for the engine; outcome is not yet known.'
+        self.notice = running_notice(command)
         self.draw()
         return command
 
@@ -1759,8 +1786,7 @@ class Workspace:
                             sent = self._back()
                             if sent is not None: return sent
                             continue
-                        self.notice = ('Nothing is running to cancel. Esc discards a command being typed; Ctrl-C stops a '
-                                       'running call and ends the session; :clear-selection clears the selected policy.')
+                        self.notice = CANCEL_NOTICE
                         self.draw()
                         continue
                     staged, self.staged = getattr(self, 'staged', None), None

@@ -533,6 +533,9 @@ def reconcile(operation_root):
         previous_status = journal['status']
         result = _readback(root, plan, kind='reconciliation')
         result['previous_status'] = previous_status
+        # The error the operation recorded before this reconcile, so a reader keeps it beside reconcile's readback.
+        uncertain = [event for event in journal['events'] if event.get('kind') == 'uncertain']
+        result['previous_error_code'] = uncertain[-1].get('error_code') if uncertain else None
         # Readback resolves observable state, never proves a lost response was
         # delivered or grants permission to replay the consumed operation.
         if previous_status != 'prepared' and not result['visibility']['pending']:
