@@ -169,5 +169,9 @@ class StartPathTests(unittest.TestCase):
         self.assertIn('repository', paths)
 
 
+def tearDownModule():
+    Fixtures.release()
+
+
 if __name__ == '__main__':
     unittest.main()

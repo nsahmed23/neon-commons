@@ -56,10 +56,17 @@ class Fixtures:
                                 'context': base / 'context', 'full': work})
         return cls.built[1]
 
+    @classmethod
+    def release(cls):
+        """Remove the directories and forget them, so a later module in the same run builds its own instead of being
+        handed paths that no longer exist."""
+        if cls.built is not None:
+            cls.built[0].cleanup()
+            cls.built = None
+
 
 def tearDownModule():
-    if Fixtures.built:
-        Fixtures.built[0].cleanup()
+    Fixtures.release()
 
 
 def run_cli(*argv, width=100):

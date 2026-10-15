@@ -68,5 +68,9 @@ class StartRootTests(unittest.TestCase):
         self.assertIn('Nothing recognized here yet.', text)
 
 
+def tearDownModule():
+    Fixtures.release()
+
+
 if __name__ == '__main__':
     unittest.main()

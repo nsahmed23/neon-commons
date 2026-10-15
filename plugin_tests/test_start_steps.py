@@ -109,5 +109,9 @@ class StartStepsTests(unittest.TestCase):
         self.assertTrue(all('intune-iac ' in action for action in actions))
 
 
+def tearDownModule():
+    Fixtures.release()
+
+
 if __name__ == '__main__':
     unittest.main()
