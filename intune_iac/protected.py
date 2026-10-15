@@ -329,6 +329,11 @@ def _network_filter():
     return child,lambda:lib.seccomp_release(context)
 
 
+def _is_released(record):
+    """A task the kernel is releasing: it can never run again, and its process group can no longer be read."""
+    return record['state'] in ('X', 'x') and record['pgrp'] == -1 and record['session'] == -1
+
+
 def _read_process_stat(path):
     """Read bounded Linux procfs identity; comm may contain ')' or newlines."""
     with Path(path).open('rb') as stream:
@@ -343,7 +348,10 @@ def _read_process_stat(path):
             raise ValueError()
         value = {'pid': int(pid), 'state': fields[0].decode('ascii'),
                  'pgrp': int(fields[2]), 'session': int(fields[3]), 'starttime': int(fields[19])}
-        if value['pid'] <= 0 or min(value['pgrp'], value['session'], value['starttime']) < 0:
+        # A task the kernel is releasing (state X) reads pgrp and session as -1: do_task_stat fills them only while it can
+        # lock the signal state, which __exit_signal has already torn down. That exact pair is the one negative value that
+        # is not malformed; any other negative value, or -1 on a live state, still fails closed.
+        if value['pid'] <= 0 or value['starttime'] < 0 or (not _is_released(value) and min(value['pgrp'], value['session']) < 0):
             raise ValueError()
         return value
     except (ValueError, IndexError, UnicodeError):
@@ -391,6 +399,8 @@ def _process_group_members(pgid, *, deadline):
                             observed = _read_process_stat(Path(thread.path) / 'stat')
                         except (FileNotFoundError, ProcessLookupError):
                             continue
+                        if observed['pid'] == int(thread.name) and _is_released(observed):
+                            continue  # an exited member: it is gone, not a member that left the group
                         if observed['pid'] != int(thread.name) or observed['pgrp'] != pgid or observed['session'] != pgid:
                             _fail('process_cleanup_group_changed')
                         members.append({'pid': leader['pid'], 'tid': observed['pid'],
