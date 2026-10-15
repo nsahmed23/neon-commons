@@ -246,5 +246,81 @@ class LabelTests(Truth):
         self.assertEqual(self.value, before)
 
 
+class FixRoundGraphTests(Truth):
+    """Sol's review of a1bafb6, items 3 and 4."""
+
+    def edges(self):
+        shared = 'aaaaaaaa-0000-4000-8000-0000000000aa'
+        return [{'relation': 'setting', 'target_id': shared, 'details': {}, 'assertion_class': 'observed'},
+                {'relation': 'assignment', 'target_id': shared, 'assertion_class': 'observed',
+                 'details': {'group_id': shared, 'filter_type': 'include', 'filter_id': 'bbbbbbbb-0000-4000-8000-0000000000bb'}},
+                {'relation': 'filter', 'target_id': 'bbbbbbbb-0000-4000-8000-0000000000bb', 'assertion_class': 'observed',
+                 'details': {'assignment_target': shared, 'mode': 'include'}}], shared
+
+    def test_a_filters_assignment_does_not_depend_on_unrelated_input_order(self):
+        import itertools
+        edges, shared = self.edges()
+        graphs = []
+        for order in itertools.permutations(edges):
+            graph = self.project(dict(self.value, relationships=list(order), selected_repository=None))
+            own = next(row for row in graph['edges'] if row['type'] == 'filter')
+            self.assertEqual(own['applies_to'], 'group:' + shared, [e['relation'] for e in order])
+            graphs.append(graph)
+        self.assertTrue(all(graph == graphs[0] for graph in graphs), 'one projection and one revision for every order')
+
+    def test_an_integer_identifier_is_normalised_the_same_way_everywhere(self):
+        edges = [{'relation': 'assignment', 'target_id': 7, 'assertion_class': 'observed', 'details': {'group_id': 7}},
+                 {'relation': 'filter', 'target_id': 'f1', 'assertion_class': 'observed', 'details': {'assignment_target': 7}}]
+        for order in (edges, list(reversed(edges))):
+            graph = self.project(dict(self.value, relationships=order, selected_repository=None))
+            own = next(row for row in graph['edges'] if row['type'] == 'filter')
+            self.assertEqual(own['applies_to'], 'group:7')
+
+    def test_an_assignment_and_an_exclusion_to_one_target_do_not_make_the_projection_order_dependent(self):
+        group = 'cccccccc-0000-4000-8000-0000000000cc'
+        edges = [{'relation': 'assignment', 'target_id': group, 'assertion_class': 'observed', 'details': {'group_id': group}},
+                 {'relation': 'exclusion', 'target_id': group, 'assertion_class': 'observed', 'details': {}},
+                 {'relation': 'filter', 'target_id': 'f1', 'assertion_class': 'observed', 'details': {'assignment_target': group}}]
+        one = self.project(dict(self.value, relationships=edges, selected_repository=None))
+        two = self.project(dict(self.value, relationships=list(reversed(edges)), selected_repository=None))
+        self.assertEqual(one, two)
+
+    def test_two_nodes_with_one_resolved_name_never_print_alike(self):
+        from intune_iac.graph_projection import distinct_labels
+        a, b = LONG + 'privacy_one', LONG + 'privacy_two'
+        value = dict(self.value, relationships=[setting('privacy_one'), setting('privacy_two')], selected_repository=None)
+        graph = self.project(value, names={a: 'Shared', b: 'Shared'})
+        for width in (200, 40, 20, 12):
+            cuts = distinct_labels(graph, width)
+            self.assertEqual(len(set(cuts.values())), len(cuts), (width, cuts))
+            shown = [cuts[node['ref']] for node in graph['nodes'] if node['kind'] == 'setting']
+            self.assertEqual(len(set(shown)), 2, (width, shown))
+        wide = distinct_labels(graph, 200)
+        self.assertEqual(wide['setting:' + a], 'Shared #_one')
+        self.assertEqual(wide['setting:' + b], 'Shared #_two')
+
+    def test_the_disambiguation_is_stable_and_leaves_unique_labels_whole(self):
+        from intune_iac.graph_projection import distinct_labels
+        a, b = LONG + 'privacy_one', LONG + 'privacy_two'
+        value = dict(self.value, relationships=[setting('privacy_one'), setting('privacy_two')], selected_repository=None)
+        graph = self.project(value, names={a: 'Shared', b: 'Shared'})
+        reordered = self.project(dict(value, relationships=list(reversed(value['relationships']))), names={a: 'Shared', b: 'Shared'})
+        self.assertEqual(distinct_labels(graph, 30), distinct_labels(reordered, 30))
+        plain = self.project()
+        whole = distinct_labels(plain, 200)
+        for node in plain['nodes']:
+            self.assertEqual(whole[node['ref']], node['label'])
+
+    def test_the_page_draws_two_same_named_settings_with_different_visible_labels(self):
+        from intune_iac.companion_page import drawing
+        a, b = LONG + 'privacy_one', LONG + 'privacy_two'
+        value = dict(self.value, relationships=[setting('privacy_one'), setting('privacy_two')], selected_repository=None)
+        svg = drawing(self.project(value, names={a: 'Shared', b: 'Shared'}))
+        import re
+        labels = [text for text in re.findall(r'<text class="lb"[^>]*>([^<]*)</text>', svg) if text.startswith('setting')]
+        self.assertEqual(len(labels), 2)
+        self.assertEqual(len(set(labels)), 2, labels)
+
+
 if __name__ == '__main__':
     unittest.main()

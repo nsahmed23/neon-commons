@@ -249,6 +249,17 @@ SCRIPT = """
   var observed = body.getAttribute('data-observed') || 'time unknown';
   var address = body.getAttribute('data-snapshot');
   var every = Number(body.getAttribute('data-poll')) || 3000;
+  var home = location.href;
+  try { history.replaceState(null, '', '/'); } catch (ignored) { home = location.href; }
+
+  function valid(snapshot) {
+    if (snapshot === null || typeof snapshot !== 'object') { return false; }
+    if (snapshot.schema_version === 'workbench-companion-page/1' && snapshot.status === 'ok') {
+      return typeof snapshot.revision === 'string' && typeof snapshot.mode === 'string';
+    }
+    return snapshot.schema_version === 'workbench-companion-page/1' && snapshot.status === 'object_unavailable' && snapshot.revision === null;
+  }
+
   var failures = 0;
   var busy = false;
   var short = function (value) { return String(value).slice(0, 12); };
@@ -270,11 +281,14 @@ SCRIPT = """
         return reply.json();
       })
       .then(function (snapshot) {
+        if (!valid(snapshot)) { throw new Error('invalid'); }
         failures = 0;
         if (snapshot.revision === revision && snapshot.mode === mode) {
           say('current', 'LIVE: this drawing is the current snapshot (revision ' + short(revision) + ', observed ' + observed + ').');
         } else if (snapshot.revision === null) {
           say('stale', 'STALE: the object can no longer be read; it may have been deleted. This drawing still shows revision ' + short(revision) + ', observed ' + observed + ', and was not redrawn.');
+        } else if (snapshot.revision === revision) {
+          say('stale', 'STALE: the evidence mode changed from ' + mode + ' to ' + snapshot.mode + '. This drawing still shows revision ' + short(revision) + ', observed ' + observed + ', and was not redrawn.');
         } else {
           say('stale', 'STALE: a newer snapshot exists (revision ' + short(snapshot.revision) + '). This drawing still shows revision ' + short(revision) + ', observed ' + observed + ', and was not redrawn.');
         }
@@ -291,7 +305,7 @@ SCRIPT = """
       });
   }
 
-  reloadButton.addEventListener('click', function () { location.reload(); });
+  reloadButton.addEventListener('click', function () { location.replace(home); });
   poll();
   setInterval(poll, every);
 })();
@@ -608,7 +622,11 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
     if live:
         status = 'LIVE: checking the local listener for a newer snapshot...'
         note = ('Live mode ends when the command ends, or %d minutes after this page was last loaded; after that this page '
-                'shows DISCONNECTED and keeps the last snapshot.' % max(1, round(live['idle_seconds'] / 60)))
+                'shows DISCONNECTED and keeps the last snapshot. The address of this page is a secret: anyone on the same machine '
+                'who has it can read this page, because users of one machine are not isolated from each other. After it loads, '
+                'this page replaces the address in the address bar with "/", so use the button to load a newer snapshot, not the '
+                'browser\'s reload; the browser may still keep the address in its history.'
+                % max(1, round(live['idle_seconds'] / 60)))
         body_live = (' data-live="1" data-snapshot="%s" data-poll="%d"' % (_t(live['snapshot']), live['poll_seconds'] * 1000))
     else:
         status = ('STATIC FILE: this page does not update itself. It shows revision %s, %s. To see a newer snapshot, '

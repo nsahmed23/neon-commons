@@ -97,13 +97,18 @@ def write_static(read, out):
                       'No browser was opened.' % (shown, graph['revision'][:12])}
 
 
-def start_live(read, *, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS, token=None):
-    """Start the loopback listener for `read` and return it (it has .address, .stop() and .wait()). It binds 127.0.0.1 only."""
+def start_live(read, *, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS):
+    """Start the loopback listener for `read` and return it (it has .address, .notice, .stop() and .wait()).
+
+    It binds 127.0.0.1 only and enforces its own idle limit, so a caller that keeps the object and never calls wait()
+    still gets it. There is no token argument: the path token is made inside, from 24 random bytes."""
     live = LiveCompanion(lambda settings: build_page(read, settings)[0], lambda: snapshot_of(read),
-                         idle_seconds=idle_seconds, poll_seconds=poll_seconds, token=token)
+                         idle_seconds=idle_seconds, poll_seconds=poll_seconds)
     live.start()
-    live.notice = ('Listening on %s (this machine only). Ctrl+C stops it; it also stops after %d minutes without a page '
-                   'request. No browser was opened.' % (live.address, max(1, round(idle_seconds / 60))))
+    live.notice = ('Listening on %s (this machine only). This address is a secret: anyone on the same machine who has it can '
+                   'read the page, because users of one machine are not isolated from each other, and the browser may keep it '
+                   'in its history. Ctrl+C stops it; it also stops after %d minutes without a page request. '
+                   'No browser was opened.' % (live.address, max(1, round(idle_seconds / 60))))
     return live
 
 

@@ -318,6 +318,163 @@ class ListenerTests(Fixture):
         self.assertEqual(seen, [UA, UA])
 
 
+class FixRoundTests(Fixture):
+    """Sol's review of a1bafb6, items 1, 2, 5, 6 and 7."""
+
+    def refused(self, port, seconds=3.0):
+        """Whether connecting to the port is refused within `seconds` (real time; the listener's own clock is injected)."""
+        import time
+        end = time.monotonic() + seconds
+        while time.monotonic() < end:
+            try:
+                socket.create_connection(('127.0.0.1', port), timeout=1).close()
+            except OSError:
+                return True
+            time.sleep(0.02)
+        return False
+
+    def test_the_idle_limit_is_enforced_with_no_lifecycle_call_at_all(self):
+        live = self.start(idle_seconds=1)
+        self.assertEqual(self.request('snapshot')[0], 200)
+        self.clock.now += 2
+        # Nobody calls wait() or wait_step(): a frame that only keeps the returned object is the caller this is for.
+        self.assertTrue(self.refused(live.port), 'the listener must stop by itself')
+        self.assertEqual(live.ended, 'idle')
+        self.assertEqual(live.wait(poll=0.01), 'idle')
+
+    def test_a_request_that_arrives_late_cannot_revive_an_expired_listener(self):
+        from intune_iac import companion_live
+        with mock.patch.object(companion_live, 'WATCH_SECONDS', 3600):
+            live = self.start(idle_seconds=1)
+            self.clock.now += 5
+            try:
+                status, _, body = self.request('')
+            except OSError:
+                status, body = None, b''
+            self.assertNotEqual(status, 200)
+            self.assertNotIn(b'<svg', body)
+            self.assertTrue(self.refused(live.port), 'and it goes away, it does not carry on')
+            self.assertEqual(live.ended, 'idle')
+
+    def test_the_watchdog_is_joined_when_the_listener_stops(self):
+        live = self.start()
+        watchdog = live._watchdog
+        self.assertTrue(watchdog.is_alive())
+        live.stop()
+        self.assertFalse(watchdog.is_alive())
+        self.assertEqual(live.ended, 'stopped')
+
+    def test_there_is_no_public_token_parameter_anywhere(self):
+        import inspect
+        from intune_iac.companion import run_companion, start_live
+        from intune_iac.companion_live import LiveCompanion
+        for function in (start_live, run_companion, LiveCompanion.__init__):
+            self.assertNotIn('token', inspect.signature(function).parameters, function)
+
+    def test_the_default_token_is_24_random_bytes_and_a_test_may_inject_through_the_private_factory_only(self):
+        import base64
+        from intune_iac import companion_live
+        live = self.start()
+        raw = base64.urlsafe_b64decode(live.token + '=' * (-len(live.token) % 4))
+        self.assertEqual(len(raw), companion_live.TOKEN_BYTES)
+        with mock.patch.object(companion_live, '_new_token', lambda: 'F' * 32):
+            fixed = self.start()
+        self.assertEqual(fixed.token, 'F' * 32)
+        self.assertEqual(self.request('snapshot', live=fixed)[0], 200)
+        # A factory that hands back something weak is refused, not served.
+        from intune_iac.companion import start_live
+        from intune_iac.io import AppError
+        for weak in ('x', '', 'a/b' + 'c' * 30, '\u00e9' * 30, None, 7):
+            with mock.patch.object(companion_live, '_new_token', lambda weak=weak: weak):
+                with self.assertRaises(AppError, msg=repr(weak)):
+                    start_live(self.read)
+
+    def test_the_notice_and_the_page_call_the_address_a_secret_and_say_who_is_not_isolated(self):
+        live = self.start()
+        for text in (live.notice, self.page()):
+            lowered = text.lower()
+            self.assertIn('secret', lowered)
+            self.assertIn('not isolated', lowered)
+        self.assertIn('same machine', live.notice.lower())
+
+    def test_every_response_carries_a_restrictive_policy_with_frame_ancestors(self):
+        live = self.start()
+        cases = [self.request(''), self.request('snapshot'), self.request('nothing'), self.request('', method='POST'),
+                 self.request('', headers={'Host': 'evil.example'}), self.raw('/wrong/')]
+        def broken(*args):
+            raise RuntimeError('x')
+        live.snapshot_source = broken
+        cases.append(self.request('snapshot'))
+        self.world['gone'] = True
+        live.page_source = lambda settings: self.read()
+        cases.append(self.request(''))
+        self.assertEqual({status for status, _, _ in cases}, {200, 404, 405, 421, 500, 503})
+        for status, headers, _ in cases:
+            policy = headers.get('content-security-policy', '')
+            self.assertIn("default-src 'none'", policy, status)
+            self.assertIn("frame-ancestors 'none'", policy, status)
+            self.assertIn("base-uri 'none'", policy, status)
+            self.assertIn("form-action 'none'", policy, status)
+            self.assertNotIn('unsafe', policy)
+
+    def test_a_page_without_its_expected_policy_is_never_served(self):
+        live = self.start()
+        for html in ('<html><body>no policy</body></html>',
+                     '<meta http-equiv="Content-Security-Policy" content="default-src *">',
+                     '<meta http-equiv="Content-Security-Policy" content="script-src \'self\'">'):
+            live.page_source = lambda settings, html=html: html
+            status, headers, body = self.request('')
+            self.assertEqual(status, 500, html)
+            self.assertNotIn(b'<html', body)
+            self.assertIn("frame-ancestors 'none'", headers['content-security-policy'])
+
+    def test_concurrent_handlers_are_bounded_and_the_excess_fails_fast(self):
+        from intune_iac import companion_live
+        live = self.start()
+        before = threading.active_count()
+        stuck = []
+        try:
+            for _ in range(companion_live.MAX_HANDLERS * 5):
+                connection = socket.create_connection(('127.0.0.1', live.port), timeout=5)
+                connection.sendall(b'GET /')
+                stuck.append(connection)
+            threading.Event().wait(0.3)
+            self.assertLessEqual(threading.active_count() - before, companion_live.MAX_HANDLERS + 1)
+            # The excess is answered at once with a busy status, not left hanging.
+            replies = 0
+            for connection in stuck[companion_live.MAX_HANDLERS + 2:]:
+                connection.settimeout(1)
+                try:
+                    if connection.recv(64).startswith(b'HTTP/1.0 503'):
+                        replies += 1
+                except OSError:
+                    pass
+            self.assertGreater(replies, 0)
+        finally:
+            for connection in stuck:
+                connection.close()
+        for _ in range(100):
+            try:
+                if self.request('snapshot')[0] == 200:
+                    break
+            except OSError:
+                pass
+            threading.Event().wait(0.05)
+        else:
+            self.fail('the listener serves again once the stuck clients are gone')
+
+    def test_a_few_slow_clients_do_not_stop_a_normal_request(self):
+        live = self.start()
+        stuck = [socket.create_connection(('127.0.0.1', live.port), timeout=5) for _ in range(3)]
+        try:
+            for connection in stuck:
+                connection.sendall(b'GET /')
+            self.assertEqual(self.request('snapshot')[0], 200)
+        finally:
+            for connection in stuck:
+                connection.close()
+
+
 class StaleAndDisconnectedTests(Fixture):
     def test_a_state_change_makes_the_held_page_stale_and_the_page_is_never_changed_under_the_reader(self):
         self.start()

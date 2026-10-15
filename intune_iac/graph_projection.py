@@ -75,6 +75,17 @@ def _edges_of(value):
     return edges, excluded
 
 
+def _identifier(value):
+    """An identifier as text, the same way for every edge: a string or an integer, never a bool; otherwise None."""
+    if isinstance(value, bool) or not isinstance(value, (str, int)) or value == '':
+        return None
+    return str(value)
+
+
+def _canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, default=str)
+
+
 def _recorded_operation(raw):
     """The read model's own word for the policy's newest operation: none recorded when it names none, else exactly that
     word (expired, prepared, dispatched and the rest), and unknown when what it gave cannot be read as a word."""
@@ -114,6 +125,7 @@ def project(value, *, names=None, states=None, freshness=None):
     center = 'policy:' + center_id
     layers = _layers()
     edges, excluded = _edges_of(value)
+    edges.sort(key=_canonical)
     others = tuple(dict.fromkeys(edge['relation'] for edge in edges
                                  if not any(edge['relation'] in members for _, members in layers)))
     if others:
@@ -126,9 +138,12 @@ def project(value, *, names=None, states=None, freshness=None):
                       'state': state_word(states.get(center_id)), 'kind_word': KIND_WORDS['policy'],
                       'label': policy_name or '(no name)', 'resolved': policy_name is not None, 'state_applies': True,
                       'operation': _recorded_operation(states.get(center_id))}}
+    # A filter edge names its assignment by the target identifier. Only an assignment or an exclusion can be that target,
+    # and the edges are in canonical order, so the answer never depends on the order the read model listed them in.
     refs = {}
     for edge in edges:
-        refs.setdefault(edge['target_id'], '%s:%s' % (_kind(edge), edge['target_id']) if edge['relation'] in ('assignment', 'exclusion') else None)
+        if edge['relation'] in ('assignment', 'exclusion'):
+            refs.setdefault(edge['target_id'], '%s:%s' % (_kind(edge), edge['target_id']))
     projected = []
     for edge in edges:
         kind = _kind(edge)
@@ -143,11 +158,11 @@ def project(value, *, names=None, states=None, freshness=None):
         applies = None
         if edge['relation'] == 'filter':
             details = edge.get('details') if isinstance(edge.get('details'), dict) else {}
-            applies = refs.get(details.get('assignment_target')) if isinstance(details.get('assignment_target'), str) else None
+            applies = refs.get(_identifier(details.get('assignment_target')))
         projected.append({'source': center, 'target': ref, 'type': edge['relation'], 'layer': heading_of[edge['relation']],
                           'provenance': str(edge.get('assertion_class', 'unknown')), 'freshness': freshness,
                           'origin': edge['_origin'], 'filter': _filter_of(edge), 'applies_to': applies})
-    projected.sort(key=lambda row: (order[row['layer']], row['target'].split(':', 1)[1], row['type'], row['target']))
+    projected.sort(key=lambda row: (order[row['layer']], row['target'].split(':', 1)[1], row['type'], row['target'], _canonical(row)))
     body = {'schema_version': SCHEMA, 'center': center,
             'nodes': [nodes[center]] + sorted((node for ref, node in nodes.items() if ref != center), key=lambda node: node['ref']),
             'edges': projected,
@@ -183,17 +198,39 @@ def traversal_order(graph, per_layer=None):
     return order
 
 
+def _told_apart(pairs):
+    """Labels with the ones that read alike given an identifier suffix: for each set of nodes whose labels are equal (two
+    settings the read model resolved to one name), the shortest tail of the identifier that tells them apart, at the end,
+    where a cut keeps it. A label no other node shares is left alone."""
+    by_label = {}
+    for ref, (label, _) in pairs.items():
+        by_label.setdefault(label, []).append(ref)
+    texts = {ref: label for ref, (label, _) in pairs.items()}
+    for label, refs in by_label.items():
+        if len(refs) < 2:
+            continue
+        longest = max(len(pairs[ref][1]) for ref in refs)
+        for size in range(4, longest + 1):
+            tails = {ref: pairs[ref][1][-size:] for ref in refs}
+            if len(set(tails.values())) == len(refs):
+                break
+        for ref in refs:
+            texts[ref] = '%s #%s' % (label, tails[ref])
+    return texts
+
+
 def distinct_labels(graph, width, ellipsis='\u2026'):
     """Each node's label cut to `width` characters so that two different nodes never print alike.
 
     A label that fits is whole. A longer one keeps its head and its tail around the ellipsis, because what tells paths
     and Settings Catalog identifiers apart is at the end (the shared folder, the shared device_vendor_msft prefix are
     at the start). The split is chosen once for the whole set, the first (nearest an even split) at which every
-    different label reads differently, so the same set always cuts the same way. If no split can tell two labels apart
+    different label reads differently, so the same set always cuts the same way. Nodes whose labels are equal are first
+    given a stable identifier suffix, so what is compared is every node against every other. If no split can tell two labels apart
     (they differ only in the middle), the labels stay whole rather than be made to look alike; they then exceed the
     width, and the caller shows the full identifier beside them.
     """
-    texts = {node['ref']: node['label'] for node in graph['nodes']}
+    texts = _told_apart({node['ref']: (node['label'], node['id']) for node in graph['nodes']})
     room = width - len(ellipsis)
 
     def cut(text, tail):
@@ -205,7 +242,6 @@ def distinct_labels(graph, width, ellipsis='\u2026'):
         tails = sorted(range(room), key=lambda tail: (abs(tail - room // 2), tail))
         for tail in tails:
             cuts = {ref: cut(text, tail) for ref, text in texts.items()}
-            whole = set(texts.values())
-            if len(set(cuts.values())) == len(whole):
+            if len(set(cuts.values())) == len(cuts):
                 return cuts
     return dict(texts)

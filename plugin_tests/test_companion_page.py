@@ -150,7 +150,8 @@ class StructureTests(Fixture):
                      'import(', 'window.open', 'target='):
             self.assertNotIn(word, parsed.script, word)
         self.assertEqual(parsed.script.count('fetch('), 1)
-        self.assertEqual(parsed.script.count('reload('), 1)
+        self.assertEqual(parsed.script.count('location.replace('), 1)
+        self.assertNotIn('reload(', parsed.script)
 
     def test_every_label_is_escaped(self):
         hostile = '<script>alert(1)</script>"&\'\x1b[31m‮'
@@ -267,7 +268,7 @@ class StructureTests(Fixture):
         self.assertIn('DISCONNECTED', script)
         self.assertIn('was not redrawn', script)
         # The only way to a newer drawing is the reader's own click on the reload button.
-        reload_at = script.index('reload(')
+        reload_at = script.index('location.replace(')
         self.assertIn("addEventListener('click'", script[:reload_at][-200:])
         self.assertNotIn('replaceChildren', script)
         self.assertNotIn('appendChild', script)
@@ -635,6 +636,46 @@ class TruthTests(Fixture):
         details = section(self.page(value), 'details')
         self.assertIn(prefix + 'privacy_letappsaccesscamera_in_the_workplace', details)
         self.assertIn('/home/user/work/a-very-long-folder-name/with/many/parts/and/more/parts/main.tf', details)
+
+
+class FixRoundPageTests(Fixture):
+    """Sol's review of a1bafb6, items 5 and 8 on the page."""
+
+    LIVE = {'snapshot': 'snapshot', 'poll_seconds': 3, 'idle_seconds': 1800}
+
+    def script(self):
+        return Page(self.page(live=self.LIVE)).script
+
+    def test_the_page_scrubs_the_token_from_the_address_and_history_and_reload_still_works(self):
+        script = self.script()
+        self.assertIn('var home = location.href;', script)
+        self.assertIn("history.replaceState(null, '', '/')", script)
+        self.assertLess(script.index('var home = location.href;'), script.index('history.replaceState'))
+        # The button goes back to the address held in memory, replacing the entry rather than adding one.
+        self.assertIn('location.replace(home)', script)
+        text = self.page(live=self.LIVE)
+        note = section(text, 'note')
+        self.assertIn('secret', note.lower())
+        self.assertIn('not isolated', note.lower())
+        self.assertIn('Load the newer snapshot', text)
+        self.assertIn('address bar', note)
+
+    def test_a_snapshot_record_is_validated_before_it_resets_the_failure_count(self):
+        script = self.script()
+        check = script.index("snapshot.schema_version === 'workbench-companion-page/1'")
+        reset = script.index('failures = 0;')
+        self.assertLess(check, reset)
+        for word in ("'object_unavailable'", "typeof snapshot.revision === 'string'", "typeof snapshot.mode === 'string'",
+                     "snapshot.status === 'ok'", 'snapshot === null', "typeof snapshot !== 'object'"):
+            self.assertIn(word, script)
+        self.assertIn("throw new Error('invalid')", script)
+        # An invalid record is handled as a failed poll: the same catch counts it.
+        self.assertLess(script.index("throw new Error('invalid')"), script.index('.catch(function ()'))
+
+    def test_a_change_of_evidence_mode_alone_is_named(self):
+        script = self.script()
+        self.assertIn('the evidence mode changed from', script)
+        self.assertIn('snapshot.revision === revision', script)
 
 
 class ProjectionAdditionTests(Fixture):
