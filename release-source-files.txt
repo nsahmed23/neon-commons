@@ -509,6 +509,7 @@ intune_iac/protected.py
 intune_iac/protected_worker.py
 intune_iac/provider_execution.py
 intune_iac/provider_journey.py
+intune_iac/readiness.py
 intune_iac/reconciliation.py
 intune_iac/repository.py
 intune_iac/repository_entry.py
@@ -876,6 +877,7 @@ plugin_tests/test_provider_journey_v5.py
 plugin_tests/test_provider_schema_json.py
 plugin_tests/test_qualification_tools_r4.py
 plugin_tests/test_queue_reporting_scope_r4.py
+plugin_tests/test_readiness.py
 plugin_tests/test_reconciliation.py
 plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
