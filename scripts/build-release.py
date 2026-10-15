@@ -152,7 +152,9 @@ def runtime_files():
            'README.md','RELEASE-VERIFICATION.md','THIRD-PARTY-NOTICES.md','requirements-runtime.txt',
            'requirements-runtime-linux-x86_64-cp312.lock','dependency-lock.json','scripts/verify-dependencies.py',
            'scripts/intune-iac.py','examples/context.json','examples/supported/input/export.json','examples/clm-config.json',
-           'contracts/journey-actions.json','contracts/journey-semantics.json']
+           'contracts/journey-actions.json','contracts/journey-semantics.json',
+           # The families view reads the table and the integration manifest; without them it reports "not packaged".
+           'contracts/integration-manifest.json','family-coverage.csv']
     for folder,pattern in [('intune_iac','*.py'),('reference','*.py'),('contracts','*.schema.json'),
                            ('corrections/contracts','*.json'),('corrections/models','*.py'),('skills','*')]:
         names.extend(p.relative_to(ROOT).as_posix() for p in (ROOT/folder).rglob(pattern) if allowed(p))

@@ -232,6 +232,30 @@ class InstalledIdentityTests(unittest.TestCase):
         self.assertEqual(cli.doctor()['build']['status'], 'not_a_release_build')
 
 
+class RuntimeContentTests(unittest.TestCase):
+    """The runtime archive holds what the quickstart runs: the families view needs the table and the manifest."""
+
+    def test_the_runtime_list_names_the_integration_manifest_and_the_family_table(self):
+        names = builder.runtime_files()
+        for name in ('contracts/integration-manifest.json', 'family-coverage.csv'):
+            self.assertTrue(name in names, name + ' is not in the runtime archive list')
+            self.assertTrue(builder.allowed(ROOT / name), name)
+
+    def test_a_tree_of_exactly_the_runtime_files_serves_the_families_view(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tree = Path(directory) / 'installed'
+            for name in builder.runtime_files():
+                (tree / name).parent.mkdir(parents=True, exist_ok=True)
+                (tree / name).write_bytes((ROOT / name).read_bytes())
+            code = ('import json, sys; sys.path.insert(0, sys.argv[1]); from intune_iac import families; '
+                    'value = families.families(); print(json.dumps([value["available"], value.get("reason"), len(value["families"])]))')
+            result = subprocess.run([sys.executable, '-B', '-c', code, str(tree)], cwd=directory, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        available, reason, count = json.loads(result.stdout)
+        self.assertEqual((available, reason), (True, None))
+        self.assertGreaterEqual(count, 9)
+
+
 class CheckoutBuildCheckTests(unittest.TestCase):
     # Found 2026-10-15 at base 7f9d86f: `scripts/build-release.py --check-only` refuses the reviewed inventory because
     # it lists the frozen synthetic executor state (a .tfstate file name) added with the pre-pin-migration fixtures.
