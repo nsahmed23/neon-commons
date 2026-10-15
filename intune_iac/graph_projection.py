@@ -26,10 +26,19 @@ STATE_FROM_RECORD = {'outcome_unknown': 'unknown', 'succeeded_verified': 'verifi
 OTHER_LAYER = 'OTHER RELATIONSHIPS'
 # The kind a relation names. An assignment or exclusion names a group only when the read model gives a group id.
 KIND_OF_RELATION = {'filter': 'filter', 'setting': 'setting', 'scope_tag': 'scope_tag', 'repository': 'repository'}
+# Each kind in words, and the only kind an operation state can apply to: a policy has operations, and a group, a filter,
+# a scope tag, a setting or a source has none, so it reads no state at all (never "unknown", which would claim a gap).
+KIND_WORDS = {'policy': 'policy', 'group': 'group', 'filter': 'filter', 'scope_tag': 'scope tag', 'setting': 'setting',
+              'repository': 'repository', 'target': 'assignment target', 'source': 'source', 'other': 'related item'}
+KINDS_WITH_OPERATION = ('policy',)
+NONE_RECORDED = 'none recorded'
+FILTER_TYPES = ('include', 'exclude')
 
 
 def state_word(value):
     """The workbench state word for a read-model state, or unknown: never a guess from similar words."""
+    if not isinstance(value, str):
+        return 'unknown'
     if value in STATES:
         return value
     return STATE_FROM_RECORD.get(value, 'unknown')
@@ -54,7 +63,7 @@ def _edges_of(value):
         if (isinstance(edge, dict) and isinstance(edge.get('relation'), str) and edge['relation']
                 and isinstance(edge.get('target_id'), (str, int)) and not isinstance(edge.get('target_id'), bool)
                 and str(edge['target_id'])):
-            edges.append(dict(edge, target_id=str(edge['target_id'])))
+            edges.append(dict(edge, target_id=str(edge['target_id']), _origin='read_model'))
         else:
             excluded += 1
     repository = value.get('selected_repository')
@@ -62,8 +71,26 @@ def _edges_of(value):
         scope = repository['scope']
         edges.append({'relation': 'repository', 'assertion_class': repository.get('evidence_class', 'unknown'),
                       'target_id': '%s  %s / %s' % (scope.get('repository'), scope.get('stack'), scope.get('component')),
-                      'details': {}})
+                      'details': {}, '_origin': 'selection'})
     return edges, excluded
+
+
+def _recorded_operation(raw):
+    """The read model's own word for the policy's newest operation: none recorded when it names none, else exactly that
+    word (expired, prepared, dispatched and the rest), and unknown when what it gave cannot be read as a word."""
+    if raw is None:
+        return NONE_RECORDED
+    return raw if isinstance(raw, str) and raw else 'unknown'
+
+
+def _filter_of(edge):
+    """The filter an assignment or exclusion applies, with its type, as the read model states it; None when it states none."""
+    details = edge.get('details') if isinstance(edge.get('details'), dict) else {}
+    identifier = details.get('filter_id')
+    if (edge['relation'] in ('assignment', 'exclusion') and details.get('filter_type') in FILTER_TYPES
+            and isinstance(identifier, str) and identifier):
+        return {'ref': 'filter:' + identifier, 'id': identifier, 'type': details['filter_type']}
+    return None
 
 
 def _layers():
@@ -94,26 +121,42 @@ def project(value, *, names=None, states=None, freshness=None):
     heading_of = {relation: heading for heading, members in layers for relation in members}
     order = {heading: index for index, (heading, _) in enumerate(layers)}
 
-    nodes = {center: {'ref': center, 'id': center_id, 'kind': 'policy',
-                      'name': value['name'] if isinstance(value.get('name'), str) and value['name'] else None,
-                      'state': state_word(states.get(center_id))}}
+    policy_name = value['name'] if isinstance(value.get('name'), str) and value['name'] else None
+    nodes = {center: {'ref': center, 'id': center_id, 'kind': 'policy', 'name': policy_name,
+                      'state': state_word(states.get(center_id)), 'kind_word': KIND_WORDS['policy'],
+                      'label': policy_name or '(no name)', 'resolved': policy_name is not None, 'state_applies': True,
+                      'operation': _recorded_operation(states.get(center_id))}}
+    refs = {}
+    for edge in edges:
+        refs.setdefault(edge['target_id'], '%s:%s' % (_kind(edge), edge['target_id']) if edge['relation'] in ('assignment', 'exclusion') else None)
     projected = []
     for edge in edges:
         kind = _kind(edge)
         ref = '%s:%s' % (kind, edge['target_id'])
         if ref not in nodes:
             name = names.get(edge['target_id'])
-            nodes[ref] = {'ref': ref, 'id': edge['target_id'], 'kind': kind,
-                          'name': name if isinstance(name, str) and name else None,
-                          'state': state_word(states.get(edge['target_id']))}
+            name = name if isinstance(name, str) and name else None
+            nodes[ref] = {'ref': ref, 'id': edge['target_id'], 'kind': kind, 'name': name,
+                          'state': state_word(states.get(edge['target_id'])), 'kind_word': KIND_WORDS.get(kind, kind),
+                          'label': name or edge['target_id'], 'resolved': name is not None,
+                          'state_applies': kind in KINDS_WITH_OPERATION, 'operation': None}
+        applies = None
+        if edge['relation'] == 'filter':
+            details = edge.get('details') if isinstance(edge.get('details'), dict) else {}
+            applies = refs.get(details.get('assignment_target')) if isinstance(details.get('assignment_target'), str) else None
         projected.append({'source': center, 'target': ref, 'type': edge['relation'], 'layer': heading_of[edge['relation']],
-                          'provenance': str(edge.get('assertion_class', 'unknown')), 'freshness': freshness})
+                          'provenance': str(edge.get('assertion_class', 'unknown')), 'freshness': freshness,
+                          'origin': edge['_origin'], 'filter': _filter_of(edge), 'applies_to': applies})
     projected.sort(key=lambda row: (order[row['layer']], row['target'].split(':', 1)[1], row['type'], row['target']))
     body = {'schema_version': SCHEMA, 'center': center,
             'nodes': [nodes[center]] + sorted((node for ref, node in nodes.items() if ref != center), key=lambda node: node['ref']),
             'edges': projected,
             'layers': [heading for heading, _ in layers if any(row['layer'] == heading for row in projected)],
-            'excluded': excluded}
+            'excluded': excluded,
+            # What the read model listed (the tree's own count) and what the selection added, apart, so a header cannot
+            # disagree with the tree: the repository the engineer selected is a source, not a listed relationship.
+            'counts': {'relationships': sum(isinstance(edge, dict) for edge in value.get('relationships') or []),
+                       'sources': sum(edge['_origin'] == 'selection' for edge in edges)}}
     revision = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
                                          allow_nan=False).encode('utf-8')).hexdigest()
     return dict(body, revision=revision)
@@ -138,3 +181,31 @@ def traversal_order(graph, per_layer=None):
             if edge['target'] not in order:
                 order.append(edge['target'])
     return order
+
+
+def distinct_labels(graph, width, ellipsis='\u2026'):
+    """Each node's label cut to `width` characters so that two different nodes never print alike.
+
+    A label that fits is whole. A longer one keeps its head and its tail around the ellipsis, because what tells paths
+    and Settings Catalog identifiers apart is at the end (the shared folder, the shared device_vendor_msft prefix are
+    at the start). The split is chosen once for the whole set, the first (nearest an even split) at which every
+    different label reads differently, so the same set always cuts the same way. If no split can tell two labels apart
+    (they differ only in the middle), the labels stay whole rather than be made to look alike; they then exceed the
+    width, and the caller shows the full identifier beside them.
+    """
+    texts = {node['ref']: node['label'] for node in graph['nodes']}
+    room = width - len(ellipsis)
+
+    def cut(text, tail):
+        if len(text) <= width:
+            return text
+        return text[:room - tail] + ellipsis + (text[len(text) - tail:] if tail else '')
+
+    if room >= 1:
+        tails = sorted(range(room), key=lambda tail: (abs(tail - room // 2), tail))
+        for tail in tails:
+            cuts = {ref: cut(text, tail) for ref, text in texts.items()}
+            whole = set(texts.values())
+            if len(set(cuts.values())) == len(whole):
+                return cuts
+    return dict(texts)

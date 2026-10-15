@@ -846,6 +846,7 @@ plugin_tests/test_graph.py
 plugin_tests/test_graph_budget.py
 plugin_tests/test_graph_projection.py
 plugin_tests/test_graph_resolution.py
+plugin_tests/test_graph_truth.py
 plugin_tests/test_host_capabilities_r4.py
 plugin_tests/test_identity_binding_v5.py
 plugin_tests/test_implementation_history.py

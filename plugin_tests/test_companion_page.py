@@ -23,14 +23,14 @@ from plugin_tests.test_graph_projection import synthetic_policy
 
 STATES = ('queued', 'running', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown', 'verified')
 STATE_TEXT = re.compile(r'(<text class="st"[^>]*>)[^<]*(</text>)')
-DATA_STATE = re.compile(r'data-state="[a-z]+"')
+DATA_STATE = re.compile(r'data-(state|operation)="[^"]*"')
 EXTERNAL = re.compile(r'(?i)(https?:|ftp:|wss?:|//[a-z0-9]|url\s*\(|@import|\bsrc\s*=|xlink:href|<link|<img|<iframe|<object|'
                       r'<embed|<base|<form|<video|<audio|<source)')
 
 
 def masked(svg):
     """The drawing with every state mark and word replaced: what a state change is allowed to differ in."""
-    return DATA_STATE.sub('data-state="M"', STATE_TEXT.sub(r'\1M\2', svg))
+    return DATA_STATE.sub(r'data-\1="M"', STATE_TEXT.sub(r'\1M\2', svg))
 
 
 class Page(HTMLParser):
@@ -383,7 +383,7 @@ class KeyboardAndAccessibilityTests(Fixture):
         states = re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg)
         self.assertEqual(len(states), len(nodes))
         for word in states:
-            self.assertRegex(word, r'^\[[x+.:!#?-]\] (%s)$' % '|'.join(STATES))
+            self.assertRegex(word, r'^(\[[x+.:!#?_~o-]\] [a-z_ ]+|\(no state\))$')
         # Every connector carries its relation as a word in its node's label as well as a line pattern.
         labels = re.findall(r'<text class="lb"[^>]*>([^<]*)</text>', svg)
         self.assertEqual(len(labels), len(nodes))
@@ -528,7 +528,113 @@ class ReplayTests(Fixture):
         self.assertLessEqual(alternative.count('\n'), TEXT_LINE_LIMIT + 3)
         self.assertRegex(alternative, r'\d+ more lines not shown')
         # What was cut is said, never silently dropped: the graph's own count of nodes is on the page.
-        self.assertIn('1000 edges', text)
+        self.assertIn('1000 relationships', section(text, 'summary'))
+
+
+class TruthTests(Fixture):
+    """PKG-UXVIS-1b part A on the page: what is known, and no more."""
+
+    def states_of(self, text):
+        svg = svg_of(text)
+        return {attrs['data-kind'] + ':' + attrs['data-id']: attrs for attrs in Page(text).nodes()}, \
+            re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg)
+
+    def test_a_kind_without_an_operation_reads_no_state_and_never_unknown(self):
+        text = self.page()
+        nodes = Page(text).nodes()
+        shown = re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg_of(text))
+        for attrs, word in zip(nodes, shown):
+            if attrs['data-kind'] == 'policy':
+                continue
+            self.assertEqual(word, '(no state)', attrs['data-kind'])
+            self.assertEqual((attrs['data-state'], attrs['data-operation']), ('none', 'none'))
+        self.assertEqual(sum('unknown' in word for word in shown), 0)
+
+    def test_the_policy_shows_the_recorded_operation_word(self):
+        for word, mark in (('expired', '~'), ('prepared', 'o'), ('verified', 'x'), ('blocked', '!'), ('running', '+')):
+            text = self.page(states={self.object_id: word})
+            first = re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg_of(text))[0]
+            self.assertEqual(first, '[%s] %s' % (mark, word))
+            self.assertEqual(Page(text).nodes()[0]['data-operation'], word)
+        none = re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg_of(self.page()))[0]
+        self.assertEqual(none, '[_] none recorded')
+        # A word the page has no mark for keeps the recorded word and a question mark, never a different word.
+        other = re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg_of(self.page(states={self.object_id: 'dispatched'})))[0]
+        self.assertEqual(other, '[?] dispatched')
+        legend = section(self.page(), 'legend')
+        for text in ('[~] expired', '[o] prepared', '[_] none recorded', '(no state)'):
+            self.assertIn(text, legend)
+
+    def test_frame_21_an_expired_operation_and_a_repository(self):
+        text = self.page(states={self.object_id: 'expired'}, freshness='fresh')
+        words = re.findall(r'<text class="st"[^>]*>([^<]*)</text>', svg_of(text))
+        self.assertEqual(words[0], '[~] expired')
+        self.assertEqual(words.count('(no state)'), len(words) - 1)
+        self.assertNotIn('unknown', ''.join(words))
+        repository = [a for a in Page(text).nodes() if a['data-kind'] == 'repository'][0]
+        self.assertEqual(repository['data-state'], 'none')
+        panel = section(text, 'details')
+        self.assertIn('no operation state applies', panel)
+
+    def test_a_state_change_still_moves_nothing_and_a_non_policy_never_changes_the_drawing(self):
+        from intune_iac.companion_page import drawing
+        groups = self.groups()
+        base = drawing(self.graph(freshness='fresh'))
+        for word in ('expired', 'prepared', 'running', 'dispatched'):
+            self.assertEqual(masked(drawing(self.graph(freshness='fresh', states={self.object_id: word}))), masked(base), word)
+        # A state given for a group is not drawn: a group has no operation.
+        self.assertEqual(drawing(self.graph(freshness='fresh', states={groups[0]: 'running'})), base)
+
+    def test_the_filter_sits_on_its_assignment_and_the_assignment_on_its_filter(self):
+        svg = svg_of(self.page())
+        notes = re.findall(r'<text class="fl"[^>]*data-for="([^"]*)"[^>]*>([^<]*)</text>', svg)
+        graph = self.graph()
+        group = next(edge for edge in graph['edges'] if edge['filter'])['target']
+        flt = graph['edges'][[e['type'] for e in graph['edges']].index('filter')]['target']
+        by = dict(notes)
+        self.assertEqual(set(by), {group, flt})
+        self.assertRegex(by[group], r'^\+ filter 5aa36291 include$')
+        self.assertRegex(by[flt], r'^applies to b564fc9a$')
+        details = section(self.page(), 'details')
+        self.assertIn('filter 5aa36291-9c32-5f60-b5ef-a48382c20714, include', details)
+        # No other node claims a filter.
+        self.assertEqual(len(notes), 2)
+
+    def test_the_counts_name_the_relationships_and_the_sources_apart(self):
+        summary = section(self.page(), 'summary')
+        self.assertIn('7 relationships, 1 source', summary)
+        self.assertNotIn('8 edges', summary)
+        tree_header = [line for line in __import__('intune_iac.workbench_screens', fromlist=['x']).relationship_lines(self.value, 100, 'unicode')
+                       if 'edges |' in line][0]
+        self.assertIn('7 edges', tree_header)
+        one = dict(self.value, relationships=self.value['relationships'][:1], selected_repository=None)
+        self.assertIn('1 relationship, 0 sources', section(self.page(one), 'summary'))
+
+    def test_labels_carry_their_kind_word_and_never_print_alike_when_cut(self):
+        prefix = 'device_vendor_msft_policy_config_'
+        value = dict(self.value, selected_repository={
+            'evidence_class': 'recorded_repository_intent',
+            'scope': {'repository': '/home/user/work/a-very-long-folder-name/with/many/parts/and/more/parts/repo-one', 'stack': 'dev', 'component': 'c'}},
+            relationships=[
+                {'relation': 'setting', 'target_id': prefix + 'privacy_letappsaccesslocation_in_the_workplace', 'details': {}, 'assertion_class': 'observed'},
+                {'relation': 'setting', 'target_id': prefix + 'privacy_letappsaccesscamera_in_the_workplace', 'details': {}, 'assertion_class': 'observed'},
+                {'relation': 'generated_from', 'target_id': '/home/user/work/a-very-long-folder-name/with/many/parts/and/more/parts/main.tf',
+                 'details': {}, 'assertion_class': 'historical_local_adoption'}])
+        svg = svg_of(self.page(value))
+        labels = re.findall(r'<text class="lb"[^>]*>([^<]*)</text>', svg)
+        self.assertEqual(len(labels), len(set(labels)), labels)
+        settings = [label for label in labels if label.startswith('setting  ')]
+        self.assertEqual(len(settings), 2)
+        self.assertTrue(any(label.endswith('workplace') for label in settings))
+        self.assertEqual([label for label in labels if label.startswith('generated  source ')].__len__(), 1)
+        self.assertEqual([label for label in labels if label.startswith('repository  ')].__len__(), 1)
+        for label in labels:
+            self.assertLessEqual(len(label), 80)
+        self.assertIn('\u2026', svg)
+        # The detail still names each identifier in full.
+        details = section(self.page(value), 'details')
+        self.assertIn(prefix + 'privacy_letappsaccesscamera_in_the_workplace', details)
+        self.assertIn('/home/user/work/a-very-long-folder-name/with/many/parts/and/more/parts/main.tf', details)
 
 
 class ProjectionAdditionTests(Fixture):

@@ -22,7 +22,7 @@ import hashlib
 import html
 import re
 
-from .graph_projection import STATES, drawn_layers, traversal_order
+from .graph_projection import STATES, distinct_labels, drawn_layers, traversal_order
 from .io import AppError, unique_prefixes
 from .workbench_tui import cell_width, fit, safe_text
 
@@ -39,7 +39,9 @@ LEFT, TOP, GAP = 130, 70, 64
 SPINE_X = LEFT - 70
 MIN_WIDTH = 760
 BLOCK_HALF, BLOCK_DEPTH = 14, 8
-MARKS_DX, SELECT_DX, STATE_DX, LABEL_DX = 22, 36, 54, 154
+MARKS_DX, SELECT_DX, STATE_DX, LABEL_DX = 22, 36, 54, 224
+LABEL_ROOM = 48
+WORD_CELLS = 18
 
 # The typed connectors. Each has its own line pattern, so none depends on colour, and the legend states its meaning.
 EDGE_STYLES = {
@@ -52,8 +54,10 @@ EDGE_STYLES = {
     'repository': {'dash': '12 4 2 4 2 4', 'name': 'repository', 'meaning': 'the repository scope the engineer selected'},
     'other': {'dash': '6 6 1 6', 'name': 'other relation', 'meaning': 'a relation the read model named; the detail states it'},
 }
-KIND_WORDS = {'policy': 'policy', 'group': 'group', 'filter': 'filter', 'scope_tag': 'scope tag', 'setting': 'setting',
-              'repository': 'repository source', 'target': 'assignment target', 'source': 'source', 'other': 'related item'}
+# The kinds whose labels are cut around an ellipsis so that two of them never print alike (paths, long setting ids).
+DISTINCT_KINDS = ('setting', 'repository', 'source', 'other')
+# What the policy's recorded operation word is marked with, where the eight state words have no mark for it.
+OPERATION_MARKS = {'none recorded': '_', 'expired': '~', 'prepared': 'o'}
 NO_INSPECT = ('This %s has no inspect route; only a policy opens in the Inspector (key 2 in the workbench). '
               'This page changes nothing.')
 
@@ -98,6 +102,7 @@ pre { white-space: pre-wrap; overflow-x: auto; border: 1px solid var(--soft); pa
 .spine, .edge, .blk, .arrow { fill: none; stroke: var(--rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .arrow { fill: var(--rule); }
 .spine { stroke: var(--soft); }
+.node .fl { font-size: 10px; }
 .node text { fill: var(--ink); font-size: 12px; paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; }
 .node .blk { fill: var(--bg); }
 .node.focus .blk { stroke-width: 3px; stroke-dasharray: 3 2; }
@@ -329,11 +334,15 @@ def _live(value):
     return value
 
 
-def state_text(state):
-    """A state as the drawing writes it: its mark and its word, so colour never carries a state."""
+def state_text(node):
+    """What a node's state column says: for a policy its mark and the operation word the read model recorded (none
+    recorded, expired, prepared, running...), so colour never carries a state; for a kind that has no operation, that
+    no state applies. Never "unknown" for a word that is known, and never a state for what cannot have one."""
     from .workbench_screens import MAP_STATE_MARKS
-    state = state if state in MAP_STATE_MARKS else 'unknown'
-    return '[%s] %s' % (MAP_STATE_MARKS[state], state)
+    if not node['state_applies']:
+        return '(no state)'
+    word = node['operation']
+    return '[%s] %s' % (OPERATION_MARKS.get(word) or MAP_STATE_MARKS[node['state']], fit(word, WORD_CELLS, '...'))
 
 
 def _plates(graph):
@@ -376,18 +385,45 @@ def _block(x, y):
                x - h, y, x, y + d, x + h, y, x, y + d, x, y + 2 * d))
 
 
+def _shorts(graph):
+    return {kind: unique_prefixes([node['id'] for node in graph['nodes'] if node['kind'] == kind])
+            for kind in ('group', 'filter')}
+
+
+def _short_of(shorts, ref):
+    kind, identifier = ref.split(':', 1)
+    return shorts.get(kind, {}).get(identifier, identifier[:8])
+
+
+def _filter_notes(graph):
+    """A line under a node that a filter bears on: the group an assignment applies a filter to says which filter and its
+    type, and the filter says which assignment it applies to, both as the read model stated them."""
+    shorts, notes = _shorts(graph), {}
+    for edge in graph['edges']:
+        if edge['filter'] and edge['target'] not in notes:
+            notes[edge['target']] = '+ filter %s %s' % (_short_of(shorts, edge['filter']['ref']), edge['filter']['type'])
+        if edge['applies_to'] and edge['target'] not in notes:
+            notes[edge['target']] = 'applies to %s' % _short_of(shorts, edge['applies_to'])
+    return notes
+
+
 def _labels(graph):
-    """Each drawn node's label: the terminal map's own words, with the relation that reaches it in front."""
+    """Each drawn node's label: the terminal map's own words, with the relation that reaches it in front. Paths and long
+    setting identifiers are cut around an ellipsis so that no two print alike, and carry their kind word."""
     from .workbench_screens import RELATION_LABELS, _map_label
-    shorts = {kind: unique_prefixes([node['id'] for node in graph['nodes'] if node['kind'] == kind])
-              for kind in ('group', 'filter')}
+    shorts = _shorts(graph)
+    cuts = distinct_labels(graph, LABEL_ROOM, '\u2026')
     first = {}
     for edge in graph['edges']:
         first.setdefault(edge['target'], edge['type'])
     labels = {}
     for node in graph['nodes']:
         relation = 'policy' if node['ref'] == graph['center'] else RELATION_LABELS.get(first.get(node['ref']), (first.get(node['ref']) or 'related').replace('_', ' '))
-        labels[node['ref']] = (relation, _map_label(node, shorts, None))
+        if node['kind'] in DISTINCT_KINDS:
+            label = ('%s ' % node['kind_word'] if node['kind_word'] != relation else '') + cuts[node['ref']]
+        else:
+            label = _map_label(node, shorts, None)
+        labels[node['ref']] = (relation, label)
     return labels
 
 
@@ -400,7 +436,8 @@ def drawing(graph):
     order = traversal_order(graph, PLATE_LIMIT)
     # The relation that reaches a node leads its label, unless the label already says it (a filter, a scope tag).
     texts = {ref: fit(labels[ref][1] if labels[ref][1].startswith(labels[ref][0] + ' ') else '%s  %s' % labels[ref],
-                      LABEL_CELLS, '...') for ref in order}
+                      LABEL_CELLS, '\u2026') for ref in order}
+    notes = _filter_notes(graph)
     width = max([MIN_WIDTH] + [LEFT + STEP_X * plate['slots'] + 20 for plate in plates]
                 + [int(positions[ref][0] + LABEL_DX + CHAR_WIDTH * cell_width(texts[ref])) + 20 for ref in order])
     out = ['<svg id="drawing" viewBox="0 0 %d %d" role="presentation" focusable="false">' % (width, height)]
@@ -433,21 +470,24 @@ def drawing(graph):
         node = nodes[ref]
         x, y = positions[ref]
         relation, label = labels[ref]
-        kind = KIND_WORDS.get(node['kind'], node['kind'])
+        kind = node['kind_word']
         text = texts[ref]
-        aria = '%s: %s; identifier %s' % (kind, label, node['id'])
-        state = node['state']
+        aria = '%s: %s; identifier %s%s' % (kind, label, node['id'], ('; ' + notes[ref]) if ref in notes else '')
+        applies = node['state_applies']
         first = index == 0
+        note = ('<text class="fl" data-for="%s" x="%d" y="%d">%s</text>' % (_t(ref), x + LABEL_DX, y + 17, _t(notes[ref]))
+                if ref in notes else '')
         out.append(
             '<g id="n%d" class="node kind-%s" role="option" aria-selected="%s" aria-label="%s" aria-describedby="s%d" '
-            'data-node="%d" data-ref="%s" data-id="%s" data-kind="%s" data-state="%s" data-cx="%d" data-cy="%d">'
+            'data-node="%d" data-ref="%s" data-id="%s" data-kind="%s" data-state="%s" data-operation="%s" data-cx="%d" data-cy="%d">'
             '<path class="blk" d="%s"/>'
             '<text class="fm" x="%d" y="%d">%s</text><text class="sm" x="%d" y="%d">%s</text>'
-            '<text class="st" id="s%d" x="%d" y="%d">%s</text><text class="lb" x="%d" y="%d">%s</text></g>'
+            '<text class="st" id="s%d" x="%d" y="%d">%s</text><text class="lb" x="%d" y="%d">%s</text>%s</g>'
             % (index, _t(node['kind']), 'true' if first else 'false', _t(aria), index, index, _t(node['ref']), _t(node['id']),
-               _t(node['kind']), _t(state), x, y, _block(x, y),
+               _t(node['kind']), _t(node['state'] if applies else 'none'), _t(node['operation'] if applies else 'none'),
+               x, y, _block(x, y),
                x + MARKS_DX, y + 4, '&gt;' if first else '', x + SELECT_DX, y + 4, '*' if first else '',
-               index, x + STATE_DX, y + 4, _t(state_text(state)), x + LABEL_DX, y + 4, _t(text)))
+               index, x + STATE_DX, y + 4, _t(state_text(node)), x + LABEL_DX, y + 4, _t(text), note))
     out.append('</svg>')
     return ''.join(out)
 
@@ -475,6 +515,9 @@ def _legend():
         'starts that item\'s label.</p>'
         '<ul class="plain">%s</ul>'
         '<p>State, always a mark and a word: %s</p>'
+        '<p>Only a policy has operations. On a policy the word is the one the read model recorded, so it can be '
+        '<code>[_] none recorded</code>, <code>[~] expired</code>, <code>[o] prepared</code> or another recorded word '
+        'marked <code>[?]</code>; every other item reads <code>(no state)</code>, which is not a state.</p>'
         '<p><code>&gt; focus</code>: where the keyboard is. <code>* selected</code>: the item whose detail is open. '
         'They are different marks; focus also draws a dashed, heavier outline and selection a bold label.</p>'
         '<p>Colour never carries meaning alone. Position only orders items by identifier within a plate: distance, height and '
@@ -483,12 +526,18 @@ def _legend():
         % (''.join(rows), states))
 
 
+def _state_detail(node):
+    if not node['state_applies']:
+        return _t('no operation state applies to a %s' % node['kind_word'])
+    return _t('operation %s (recorded by the read model); workbench state %s' % (node['operation'], node['state']))
+
+
 def _details(graph, labels):
     nodes = {node['ref']: node for node in graph['nodes']}
     items = []
     for index, ref in enumerate(traversal_order(graph, PLATE_LIMIT)):
         node = nodes[ref]
-        kind = KIND_WORDS.get(node['kind'], node['kind'])
+        kind = node['kind_word']
         if node['name']:
             name = _t(node['name'])
         elif node['kind'] == 'group':
@@ -500,14 +549,16 @@ def _details(graph, labels):
                                                               'This page cannot approve, run or change anything.')
         else:
             edges = [edge for edge in graph['edges'] if edge['target'] == ref]
-            connectors = '; '.join('%s, %s, %s' % (_t(edge['type'].replace('_', ' ')), _t(edge['provenance'].replace('_', ' ')),
-                                                   _t(edge['freshness'])) for edge in edges)
+            connectors = '; '.join(
+                '%s, %s, %s' % (_t(edge['type'].replace('_', ' ')), _t(edge['provenance'].replace('_', ' ')), _t(edge['freshness']))
+                + (', filter %s, %s' % (_t(edge['filter']['id']), _t(edge['filter']['type'])) if edge['filter'] else '')
+                + (', applies to %s' % _t(edge['applies_to'].split(':', 1)[1]) if edge['applies_to'] else '') for edge in edges)
             route = _t(NO_INSPECT % kind)
         items.append(
             '<li class="detail" id="d%d" data-for="n%d"><h3>%s: %s</h3><dl>'
             '<dt>Identifier</dt><dd><code>%s</code></dd><dt>Kind</dt><dd>%s</dd><dt>Name</dt><dd>%s</dd>'
             '<dt>State</dt><dd class="dstate">%s</dd><dt>Connectors</dt><dd>%s</dd><dt>Inspect</dt><dd>%s</dd></dl></li>'
-            % (index, index, _t(kind), _t(labels[ref][1]), _t(node['id']), _t(kind), name, _t(node['state']), connectors, route))
+            % (index, index, _t(kind), _t(labels[ref][1]), _t(node['id']), _t(kind), name, _state_detail(node), connectors, route))
     return '<ol id="detail-list">%s</ol>' % ''.join(items)
 
 
@@ -565,8 +616,10 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
         note = 'This file was written once; nothing on it reads the workbench again.'
         body_live = ''
     lines = _bounded(tree_lines if tree_lines is not None else _tree(graph))
-    summary = '%s from the selected policy, %s drawn, %s not drawn' % (
-        _count(len(graph['edges']), 'edge', 'edges'), _count(drawn_edges, 'edge', 'edges'), _count(len(graph['edges']) - drawn_edges, 'edge', 'edges'))
+    counts = graph['counts']
+    summary = '%s, %s from the selected policy; %s drawn, %s not drawn' % (
+        _count(counts['relationships'], 'relationship', 'relationships'), _count(counts['sources'], 'source', 'sources'),
+        _count(drawn_edges, 'item', 'items'), _count(len(graph['edges']) - drawn_edges, 'item', 'items'))
     if graph.get('excluded'):
         summary += '; %s without a target not drawn' % _count(graph['excluded'], 'edge', 'edges')
     svg = drawing(graph)
