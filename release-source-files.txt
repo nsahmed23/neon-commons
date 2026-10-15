@@ -3824,3 +3824,4 @@ docs/continuation-evidence/20261012/checkpoint32/missing-originals.json
 docs/continuation-evidence/20261012/checkpoint32/storage-export-result.json
 plugin_tests/test_workbench_run9.py
 plugin_tests/test_workbench_run10.py
+plugin_tests/test_workbench_run11.py
