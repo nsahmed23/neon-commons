@@ -61,6 +61,13 @@ AUTHZ_R2_WORKER_FILES = dict(AUTHZ_WORKER_FILES, **{
 AUTHZ_R3_LABEL = 'authz-expiry-latch-r3'
 AUTHZ_R3_WORKER_FILES = dict(AUTHZ_R2_WORKER_FILES, **{
     'approval_authority.py': '189da8ac643b188de8e4edc525a14e8bc06dd63a48b3637d70b7cc5d9bb097b0'})
+CLOCK_LABEL = 'clock-bound'
+CLOCK_DIGEST = '34918858c5211a7af70e02ce0bffe6471e693464d81f44e9d32c4216fbdf5dce'
+CLOCK_PROTECTED_FILES = dict(P3B_PROTECTED_FILES, **{
+    'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'})
+CLOCK_ATMOS_FILES = dict(P3B_ATMOS_FILES, **{
+    'journey_native_atmos.py': 'd31602b0aec59169346ea208a1da5069a0a2aaf98ce6c64583fbc731b77b1cdc',
+    'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'})
 ADOPTION_LATCH_R2_LABEL = 'adoption-expiry-latch-r2'
 ADOPTION_LATCH_R2_WORKER_FILES = dict(AUTHZ_R3_WORKER_FILES, **{
     'protected_worker.py': '959564bfe1e8a7724b890c4b932343f2ce9b74e5dde1d817d5121c59af065b21',
@@ -89,12 +96,14 @@ class InventoryPinTests(unittest.TestCase):
         self.assertEqual(
             [dict(entry) for entry in history.PROTECTED_INVENTORY],
             [{'label': LABEL, 'implementation_sha256': FROZEN_DIGEST, 'files': FROZEN_PROTECTED_FILES},
-             {'label': P3B_LABEL, 'implementation_sha256': P3B_DIGEST, 'files': P3B_PROTECTED_FILES}])
+             {'label': P3B_LABEL, 'implementation_sha256': P3B_DIGEST, 'files': P3B_PROTECTED_FILES},
+             {'label': CLOCK_LABEL, 'implementation_sha256': CLOCK_DIGEST, 'files': CLOCK_PROTECTED_FILES}])
 
     def test_native_atmos_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
             [dict(entry) for entry in history.NATIVE_ATMOS_INVENTORY],
-            [{'label': LABEL, 'files': FROZEN_ATMOS_FILES}, {'label': P3B_LABEL, 'files': P3B_ATMOS_FILES}])
+            [{'label': LABEL, 'files': FROZEN_ATMOS_FILES}, {'label': P3B_LABEL, 'files': P3B_ATMOS_FILES},
+             {'label': CLOCK_LABEL, 'files': CLOCK_ATMOS_FILES}])
 
     def test_worker_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
@@ -107,10 +116,15 @@ class InventoryPinTests(unittest.TestCase):
              {'label': ADOPTION_LATCH_R2_LABEL, 'files': ADOPTION_LATCH_R2_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
-        for inventory, components in ((history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS),
-                                      (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS)):
+        # An entry carries the file set of its own release: the earlier set until clock.py was bound, the current set
+        # since. No entry is ever rewritten, so earlier ones keep the earlier set.
+        for inventory, earlier, components in (
+                (history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS_EARLIER, history.PROTECTED_COMPONENTS),
+                (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS_EARLIER, history.NATIVE_ATMOS_COMPONENTS)):
             for entry in inventory:
-                self.assertEqual(set(entry['files']), set(components), entry['label'])
+                self.assertIn(set(entry['files']), (set(earlier), set(components)), entry['label'])
+            self.assertEqual(set(inventory[-1]['files']), set(components))
+            self.assertTrue(all(set(entry['files']) == set(earlier) for entry in inventory[:-1]))
         # A worker entry carries the file set of its own release: the nine files until validity.py and clock.py were
         # bound, the current set since. No entry is ever rewritten, so earlier ones keep the nine.
         sets = (set(history.WORKER_COMPONENTS_EARLIER), set(history.WORKER_COMPONENTS))
@@ -121,13 +135,16 @@ class InventoryPinTests(unittest.TestCase):
                             for entry in history.WORKER_INVENTORY[:-1]))
 
     def test_component_sets_are_the_bound_file_sets(self):
-        self.assertEqual(history.PROTECTED_COMPONENTS, ('protected.py', 'execution.py', 'io.py', 'native_pins.py'))
-        self.assertEqual(history.NATIVE_ATMOS_COMPONENTS, ('journey_native_atmos.py', 'native_atmos.py', 'repository.py',
-                                                          'protected.py', 'io.py', 'native_pins.py'))
+        self.assertEqual(history.PROTECTED_COMPONENTS_EARLIER, ('protected.py', 'execution.py', 'io.py', 'native_pins.py'))
+        self.assertEqual(history.PROTECTED_COMPONENTS, ('protected.py', 'execution.py', 'io.py', 'native_pins.py', 'clock.py'))
+        self.assertEqual(history.NATIVE_ATMOS_COMPONENTS_EARLIER, ('journey_native_atmos.py', 'native_atmos.py', 'repository.py',
+                                                                  'protected.py', 'io.py', 'native_pins.py'))
+        self.assertEqual(history.NATIVE_ATMOS_COMPONENTS, history.NATIVE_ATMOS_COMPONENTS_EARLIER + ('clock.py',))
 
     def test_each_protected_entry_digest_is_the_digest_of_its_listed_files(self):
         for entry in history.PROTECTED_INVENTORY:
-            self.assertEqual(set(entry['files']), set(history.PROTECTED_COMPONENTS), entry['label'])
+            self.assertIn(set(entry['files']), (set(history.PROTECTED_COMPONENTS_EARLIER), set(history.PROTECTED_COMPONENTS)),
+                          entry['label'])
             self.assertEqual(history.protected_digest(entry['files']), entry['implementation_sha256'], entry['label'])
 
     def test_labels_and_digests_are_unique(self):

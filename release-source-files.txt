@@ -822,6 +822,7 @@ plugin_tests/test_authz_expiry_latch.py
 plugin_tests/test_azure_backend_r4.py
 plugin_tests/test_blob_lease_independent_v5.py
 plugin_tests/test_blob_lease_v5.py
+plugin_tests/test_bound_clock.py
 plugin_tests/test_build_evidence_layer_r4.py
 plugin_tests/test_capture.py
 plugin_tests/test_capture_adapter.py

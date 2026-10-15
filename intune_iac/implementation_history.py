@@ -23,11 +23,14 @@ SAME = 'same'
 KNOWN_EARLIER = 'known_earlier'
 UNKNOWN = 'unknown'
 
-# The files protected._bindings digests, in its order.
-PROTECTED_COMPONENTS = ('protected.py', 'execution.py', 'io.py', 'native_pins.py')
-# The files journey_native_atmos._implementation records.
-NATIVE_ATMOS_COMPONENTS = ('journey_native_atmos.py', 'native_atmos.py', 'repository.py',
-                           'protected.py', 'io.py', 'native_pins.py')
+# The files protected._bindings digests, in its order. protected.py relies on the recorded time in clock.py for every
+# approval window, so clock.py is bound too; entries registered before that carry the earlier four and stay readable.
+PROTECTED_COMPONENTS_EARLIER = ('protected.py', 'execution.py', 'io.py', 'native_pins.py')
+PROTECTED_COMPONENTS = PROTECTED_COMPONENTS_EARLIER + ('clock.py',)
+# The files journey_native_atmos._implementation records (it reads this list), likewise with clock.py bound.
+NATIVE_ATMOS_COMPONENTS_EARLIER = ('journey_native_atmos.py', 'native_atmos.py', 'repository.py',
+                                   'protected.py', 'io.py', 'native_pins.py')
+NATIVE_ATMOS_COMPONENTS = NATIVE_ATMOS_COMPONENTS_EARLIER + ('clock.py',)
 
 # Append only. Never edit or remove an entry: a record made under it would stop reading as history.
 PROTECTED_INVENTORY = (
@@ -43,6 +46,13 @@ PROTECTED_INVENTORY = (
                'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
                'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc'}},
+    {'label': 'clock-bound',
+     'implementation_sha256': '34918858c5211a7af70e02ce0bffe6471e693464d81f44e9d32c4216fbdf5dce',
+     'files': {'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636',
+               'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
 )
 
 NATIVE_ATMOS_INVENTORY = (
@@ -60,6 +70,14 @@ NATIVE_ATMOS_INVENTORY = (
                'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636',
                'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc'}},
+    {'label': 'clock-bound',
+     'files': {'journey_native_atmos.py': 'd31602b0aec59169346ea208a1da5069a0a2aaf98ce6c64583fbc731b77b1cdc',
+               'native_atmos.py': '77da0489216ac52e99d0ed2f3a677eec944b4e7c8f7d45a91cae2e282368d62a',
+               'repository.py': '6c444bb93076dac5f31deb249c2b15fe174e5e310d780406ed293d994ba2027a',
+               'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
 )
 
 # The files protected_worker._implementation records in a job manifest, in its order (it reads this list). The first
@@ -152,8 +170,10 @@ RECORD_CLAIM = 'the digest is the record\'s own claim; it was not verified again
 
 
 def protected_digest(files):
-    """The combined value protected._bindings records for a per-file mapping."""
-    return digest([files[name] for name in PROTECTED_COMPONENTS])
+    """The combined value protected._bindings records for a per-file mapping: the digest of the files of the set the
+    mapping carries (an entry made before clock.py was bound carries the earlier four, and keeps its digest)."""
+    names = PROTECTED_COMPONENTS_EARLIER if set(files) == set(PROTECTED_COMPONENTS_EARLIER) else PROTECTED_COMPONENTS
+    return digest([files[name] for name in names])
 
 
 def _result(inventory, components, relation, label, recorded, current):
