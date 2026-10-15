@@ -373,11 +373,11 @@ class EstateScreensTests(unittest.TestCase):
                                'action_state': 'review_required', 'owner_assertion': 'unknown', 'automatic_remediation': False,
                                'review_due': None, 'exception_expiry': None, 'related_proposals': []}],
                  'pagination': {'total_objects': 1}}
-        joined = '\n'.join(queue_lines(value, 100))
+        joined = '\n'.join(queue_lines(value, 120))
         self.assertIn('[MAINTENANCE QUEUE]', joined)
-        self.assertIn('review  reporting_incomplete  ' + POLICY_ID, joined)
+        self.assertIn('review  reporting incomplete (reporting_incomplete)  ' + POLICY_ID, joined)
         self.assertIn('Why: Missing or stale reporting', joined)
-        self.assertIn('State review_required | owner unknown | freshness fresh | automatic remediation no', joined)
+        self.assertIn('State review required (review_required) | owner unknown | freshness fresh | automatic remediation no', joined)
 
     def test_each_finding_names_how_to_review_it(self):
         from intune_iac.workbench_screens import queue_lines
@@ -927,7 +927,7 @@ class EstateScreenEdgeTests(unittest.TestCase):
         joined = '\n'.join(queue_lines(value, 120))
         self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership index missing (ownership_index_missing) | source owner claim none recorded', ' '.join(joined.split()))
         self.assertIn('  Review not recorded | review due none | exception expiry none', joined)
-        self.assertIn('Compatibility synthetic_windows_settings_catalog | native provider not qualified', joined)
+        self.assertIn('Compatibility synthetic windows settings catalog (synthetic_windows_settings_catalog) | native provider not qualified', joined)
         self.assertIn('Related proposals (1)\n    b668ad2fa6c5 succeeded verified (2 journal records; latest T2)', joined)
 
 
@@ -1024,7 +1024,8 @@ class ClockHoldScreensTests(unittest.TestCase):
         from intune_iac.workbench_screens import _attention_lines
         value = {'attention': {'signals': [], 'checked': {}, 'status': 'clear'}, 'actions': [self.blocked_row()]}
         text = ' '.join(' '.join(_attention_lines(value, 120)).split())
-        self.assertIn('(blocked: the observation is not fresh; the repository changed since its intent)', text)
+        # Run 8 item 2: under a clock hold the observation's age is not known, so it is "not known to be fresh".
+        self.assertIn('(blocked: the observation is not known to be fresh; the repository changed since its intent)', text)
 
     def test_the_diagnostics_evidence_names_the_times_not_a_raw_map(self):
         from intune_iac.workbench_screens import diagnostics_lines
@@ -1111,7 +1112,7 @@ class NarrowWindowTests(unittest.TestCase):
         for width in (60, 80):
             rows = hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], width, here=True)
             self.assertIn('never replays', rows[0], (width, rows))
-            self.assertIn('+1 more below', ' '.join(rows), (width, rows))
+            self.assertIn('+1 more in NEEDS ATTENTION', ' '.join(rows), (width, rows))  # run 8 item 13
             for row in rows:
                 self.assertLessEqual(cell_width(row), width, row)
         for row in hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], 40, here=True):
@@ -1242,8 +1243,8 @@ class QueueRun7Tests(unittest.TestCase):
     def test_the_details_of_one_object_are_said_once_and_each_finding_keeps_what_differs(self):
         from intune_iac.workbench_screens import queue_lines
         text = '\n'.join(queue_lines(self.value('reporting_incomplete', 'ownership_unknown'), 160))
-        for once in ('Owner role human review assignee', 'Compatibility synthetic_windows_settings_catalog',
-                     'Related proposals (1)', 'Evidence synthetic | observed', 'State review_required'):
+        for once in ('Owner role human review assignee', 'Compatibility synthetic windows settings catalog',
+                     'Related proposals (1)', 'Evidence synthetic | observed', 'State review required'):
             self.assertEqual(text.count(once), 1, once)
         self.assertEqual(text.count('Why: Why '), 2)
         self.assertEqual(text.count(':queue-review-template '), 2)
@@ -1254,9 +1255,9 @@ class QueueRun7Tests(unittest.TestCase):
         value = self.value('reporting_incomplete', 'ownership_unknown')
         value['findings'][1]['action_state'] = 'in_review'
         text = '\n'.join(queue_lines(value, 160))
-        self.assertEqual(text.count('State review_required'), 1)
-        self.assertEqual(text.count('State in_review'), 1)
-        self.assertEqual(text.count('Compatibility synthetic_windows_settings_catalog'), 1)
+        self.assertEqual(text.count('State review required'), 1)
+        self.assertEqual(text.count('State in review'), 1)
+        self.assertEqual(text.count('Compatibility synthetic windows settings catalog'), 1)
 
     def test_a_blocked_action_leads_with_words_and_keeps_its_code_in_parentheses(self):
         from intune_iac.workbench_screens import actions_lines
@@ -1363,3 +1364,235 @@ class MinorWrapsTests(unittest.TestCase):
             for row in rows:
                 self.assertNotEqual(row.strip().split(' ')[0].rstrip(';)'), 'UTC', (width, rows))
             self.assertEqual(' '.join(' '.join(rows).split()), text)
+
+
+def _flat(lines):
+    return ' '.join(' '.join(lines).split())
+
+
+class RunEightScreensTests(unittest.TestCase):
+    """PKG-PRES-RUN8 (journey 28 run 8, FRAME-REVIEW-run8.md): what a screen says, never what it decides."""
+    OPERATION = '625157a384594734be91cfbdf73929a1'
+    CITED = '42cb3c2420d44ea613e5a897225befc5c93dc10cfb557ce2bbe6bad5a004677c'
+
+    # Item 2 (frames 44, 45): unknown age is not "not fresh".
+    def test_a_blocked_action_for_an_observation_of_unknown_age_says_not_known_to_be_fresh(self):
+        from intune_iac.workbench import _observation_blocker, _reason_words
+        for replaces in ('same_service', 'any_collection', None):
+            problem = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
+                       'freshness_reasons': ['stamped_after_now'], 'next_collection_replaces': replaces}
+            said = _reason_words(problem)
+            self.assertIn('not known to be fresh', said)
+            self.assertNotIn('is not fresh', said)
+            # The stamp reason is given once, not as a bracket and again as a clause.
+            self.assertEqual(said.count("this host's clock"), 1, said)
+        blocker = _observation_blocker({'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
+                                        'freshness_reasons': ['stamped_after_now']})
+        self.assertEqual(blocker['freshness_reasons'], ['stamped_after_now'])
+
+    def test_the_compact_blocked_line_says_not_known_to_be_fresh_only_for_an_unknown_age(self):
+        from intune_iac.workbench_screens import _attention_lines
+
+        def line(reasons):
+            blocked = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh', 'message': 'm',
+                       'freshness_reasons': reasons}
+            action = {'label': 'Prepare a proposal from the recorded intent', 'available': False, 'blocked': blocked}
+            return _flat(_attention_lines({'attention': {'signals': [], 'checked': {}}, 'actions': [action]}, 160))
+        self.assertIn('(blocked: the observation is not known to be fresh)', line(['stamped_after_now']))
+        self.assertIn('(blocked: the observation is not known to be fresh)', line(['clock_moved_backward']))
+        # An observation known to be older than the window is not fresh, and says so.
+        self.assertIn('(blocked: the observation is not fresh)', line(['older_than_window']))
+
+    # Item 4 (frame 67): a refusal names its operation.
+    def test_a_deployment_refusal_names_the_operation_in_cause_and_next(self):
+        from intune_iac.workbench_screens import refusal_lines
+        message = ('This operation cites repository intent %s, not the intent given; record the deployment with the '
+                   'intent it cites.' % self.CITED)
+        value = {'status': 'error', 'error': {'code': 'workbench_deployment_intent_not_cited', 'message': message,
+                                              'effects': {'deployment_recorded': False}}}
+        text = _flat(refusal_lines(value, 118, operation='625157a3'))
+        self.assertIn('Cause: Operation 625157a3 cites repository intent ' + self.CITED, text)
+        self.assertIn('Next: Record operation 625157a3 with the intent it cites', text)
+        self.assertNotIn('This operation cites', text)
+        self.assertNotIn('v Delivery name it', text)
+        # With no operation known the wording stays general.
+        plain = _flat(refusal_lines(value, 118))
+        self.assertIn('Cause: This operation cites repository intent', plain)
+        self.assertIn('Next: Record that operation with the intent it cites', plain)
+
+    # Item 5 (frames 42, 44, 45): strip words that carry the cause, and the legend for the short ones.
+    def test_the_strip_names_the_cause_where_the_width_allows(self):
+        from intune_iac.workbench_screens import context_strip
+        from plugin_tests.test_workbench_hazard import POLICY, TENANT
+        ahead = {'name': 'Windows Privacy Pilot', 'observation': 'age unknown (stamped ahead)', 'repository': 'current',
+                 'operation': 'reconciled'}
+        self.assertIn('OBS age unknown | REPO current', context_strip(TENANT, POLICY, ahead, 120, 'synthetic'))
+        self.assertNotIn('age?', context_strip(TENANT, POLICY, ahead, 120, 'synthetic'))
+        stale = dict(ahead, observation='stale (later collection incomplete)')
+        strips = {width: context_strip(TENANT, POLICY, stale, width, 'synthetic') for width in range(40, 141)}
+        self.assertTrue(any('OBS stale (collection incomplete)' in strip for strip in strips.values()), strips)
+        self.assertTrue(any('OBS stale |' in strip for strip in strips.values()), strips)  # still shortens when it must
+
+    def test_the_context_help_lists_every_short_state_word_the_strip_can_show(self):
+        from intune_iac.workbench_screens import SHORT_STATES, help_lines
+        text = _flat(help_lines(120))
+        for state, short in SHORT_STATES.items():
+            self.assertIn('%s means' % short, text, state)
+        for meaning in ('succeeded verified', 'not checked', 'outcome unknown', 'recorded intent not revalidated',
+                        'desired state observed', 'age unknown'):
+            self.assertIn(meaning, text)
+        self.assertIn('age unknown (stamped ahead)', text)
+        self.assertIn('stale (collection incomplete)', text)
+
+    # Items 6 and 14 (frame 47): the queue's own review route, and codes as words.
+    def test_the_queue_labels_each_findings_own_review_route_and_reads_codes_as_words(self):
+        from intune_iac.workbench_screens import queue_lines
+        text = '\n'.join(queue_lines(QueueRun7Tests().value('reporting_incomplete', 'ownership_unknown'), 160))
+        for finding in ('reporting_incomplete', 'ownership_unknown'):
+            self.assertIn("This finding's review: :queue-review-template %s NEW_JSON" % finding, text)
+            self.assertIn('review  %s (%s)  ' % (finding.replace('_', ' '), finding), text)
+        self.assertNotIn('  Review: :queue-review-template', text)
+        self.assertIn('State review required (review_required)', text)
+        self.assertIn('Compatibility synthetic windows settings catalog (synthetic_windows_settings_catalog)', text)
+        # The same-object line comes before the finding's own route, and the route says it is this finding's.
+        self.assertLess(text.index('Same object details'),
+                        text.index("This finding's review: :queue-review-template ownership_unknown"))
+
+    # Item 7 (frames 65, 70, 72, 73): each fact once.
+    def test_the_approval_close_is_said_once_in_delivery_and_in_the_plan_next(self):
+        from intune_iac.workbench_delivery import _next_action
+        from intune_iac.workbench_screens import lifecycle_next
+        stages = {'approval': {'status': 'expired', 'closes_at': 1791980997, 'recorded': True},
+                  'proposal': {}, 'readback': {'status': 'not_started'}, 'reconciliation': {'status': 'not_needed'},
+                  'deployment_record': {'status': 'not_yet'}, 'observed_after': {'status': 'not_yet'}}
+        said = _next_action(stages, '/w/op', '/w/store')
+        self.assertNotRegex(said, r'\d{4}-\d\d-\d\d')
+        self.assertIn('Prepare a new proposal from the current intent', said)
+        self.assertIn('stage 3 says when its approval window closed', said)
+        closed = lifecycle_next(4, {'status': 'prepared', 'approval_window': {'state': 'closed'}}, 0)
+        self.assertEqual(closed, 'Prepare a proposal again (a: actions); Expiry and Approval window above say why')
+        self.assertNotIn('has closed', closed)
+
+    # Item 8 (frames 08, 11 to 14, 16, 75, 77): the Source path is quoted when it holds a space.
+    def test_the_repository_source_path_is_quoted_and_the_intent_has_one_length(self):
+        status = dict(RepositoryLinesTests.STATUS,
+                      freshness={'status': 'current', 'sources': {}, 'consumer': {'status': 'verified'}})
+        status['scope'] = dict(status['scope'], repository='/home/engineer/journey 28 run 8/repository')
+        text = '\n'.join(repository_lines(status, 120))
+        self.assertIn("Source   '/home/engineer/journey 28 run 8/repository'", text)
+        plain = '\n'.join(repository_lines(dict(RepositoryLinesTests.STATUS, freshness=status['freshness']), 120))
+        self.assertIn('Source   /home/engineer/repo', plain)
+        # Item 15: the intent has the length the state row gives it (eight, or the read model's unique prefix).
+        self.assertIn('Intent   aaaaaaaa\n', text + '\n')
+        longer = '\n'.join(repository_lines(status, 120, prefixes={'a' * 64: 'a' * 10}))
+        self.assertIn('Intent   ' + 'a' * 10, longer)
+
+    # Item 9 (frames 74 to 82): the Operation row says which operation the strip shows.
+    def test_the_operation_row_says_which_operation_the_strip_shows_and_which_is_newest(self):
+        from intune_iac.workbench_screens import state_lines
+        states = {'operation': {'operation_id': 'e112edba' + 'a' * 24, 'status': 'prepared', 'journal_status': 'prepared',
+                                'approval_window': 'closed', 'recorded_at': '2026-10-15T16:17:03Z'}}
+        shown = {'operation_id': '9aac2657' + 'b' * 24, 'state': 'expired'}
+        text = _flat(state_lines(states, 160, strip_operation=shown))
+        self.assertIn('e112edba prepared; approval window closed; last recorded 2026-10-15 16:17:03 UTC. '
+                      'The strip shows operation 9aac2657 (expired), not the newest.', text)
+        self.assertNotIn('The strip shows', _flat(state_lines(states, 160)))
+
+    def test_the_strip_operation_is_named_only_when_it_is_not_the_newest(self):
+        from intune_iac.workbench_screens import strip_operation_shown
+        newest = 'e112edba' + 'a' * 24
+        facts = {'operation': 'expired', 'operation_id': '9aac2657' + 'b' * 24,
+                 'states': {'operation': {'operation_id': newest, 'status': 'prepared'}}}
+        self.assertEqual(strip_operation_shown(facts), {'operation_id': '9aac2657' + 'b' * 24, 'state': 'expired'})
+        self.assertIsNone(strip_operation_shown(dict(facts, operation_id=newest)))
+        self.assertIsNone(strip_operation_shown({'states': facts['states']}))
+
+    # Item 10 (frames 80, 81): a blocked capability value gives its recovery; the header is not restated.
+    def test_a_blocked_capability_value_gives_its_recovery_and_the_refusal_does_not_restate_its_header(self):
+        from intune_iac.workbench_screens import actions_lines, refusal_lines
+        message = ('Setting device_vendor_msft_policy_config_privacy_letappsaccesslocation: value '
+                   'device_vendor_msft_policy_config_privacy_letappsaccesslocation_1 is not a supported value for this '
+                   'setting in the offline capability map. The reference component cannot propose it.')
+        action = {'label': 'Prepare a proposal from the recorded intent', 'available': False, 'summary': 's',
+                  'blocked': {'code': 'workbench_desired_capability', 'message': message}}
+        text = _flat(actions_lines([action], 0, 140))
+        self.assertIn("Change that setting in the repository's stack input to a supported value, then Refresh the "
+                      'repository intent (a: actions)', text)
+        self.assertIn('(workbench_desired_capability)', text)
+        refused = _flat(refusal_lines({'status': 'error', 'error': {'code': 'workbench_desired_capability',
+                                                                    'message': message}}, 140))
+        self.assertNotIn('In general', refused)
+        self.assertNotIn('outside the supported capability map', refused)
+        self.assertIn('Next: Change that setting', refused)
+
+    def test_a_specific_message_keeps_the_general_meaning_when_it_adds_something(self):
+        from intune_iac.workbench_screens import refusal_lines
+        specific = 'The operation /w/op belongs to tenant 3333, not this store.'
+        text = _flat(refusal_lines({'status': 'error', 'error': {'code': 'workbench_deployment_identity',
+                                                                 'message': specific}}, 140))
+        self.assertIn('In general:', text)
+
+    # Item 11 (frame 69): a refused restore says it is a restore.
+    def test_a_refused_restore_of_an_altered_original_has_restore_wording(self):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'Refused.',
+                                              'effects': {'files_written': [], 'operation_created': False}}}
+        text = _flat(refusal_lines(value, 140, operation='4d972e93', verb='restore-propose'))
+        self.assertIn('[REFUSED] A file the original operation bound has changed (maintenance_source_changed)', text)
+        self.assertIn('Cause: A file the original operation 4d972e93 bound changed after it was prepared', text)
+        self.assertIn('a restore cannot be derived from it', text)
+        self.assertNotIn('review no longer describes what would run', text)
+        self.assertIn('Next: Prepare a proposal for the value you want (a: actions); nothing from the original is used.',
+                      text)
+        # The same code for an execute keeps the execute wording.
+        other = _flat(refusal_lines(value, 140, verb='execute'))
+        self.assertIn('review no longer describes what would run', other)
+
+    # Item 12 (frames 38, 57): no deployment record promised to a reconcile.
+    def test_the_next_of_a_reconciled_operation_does_not_promise_a_deployment_record(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        reconciled = {'operation_id': 'a' * 32, 'journal_status': 'reconciled', 'previous_status': 'outcome_unknown'}
+        self.assertEqual(lifecycle_next(5, reconciled, 0), 'v shows every delivery stage')
+        self.assertEqual(lifecycle_next(5, {'result': reconciled}, 0), 'v shows every delivery stage')
+        verified = {'operation_id': 'a' * 32, 'status': 'succeeded_verified'}
+        self.assertEqual(lifecycle_next(5, verified, 0), 'v shows every delivery stage, including the deployment record')
+
+    # Item 13 (frame 35): the count says where the other finding is.
+    def test_the_count_names_the_section_that_lists_the_other_findings(self):
+        from intune_iac.workbench_screens import hazard_rows
+        from plugin_tests.test_workbench_hazard import STALE, UNKNOWN
+        for width in (40, 60, 80, 118, 140):
+            rows = hazard_rows({}, [UNKNOWN, STALE], width, here=True)
+            self.assertIn('+1 more in NEEDS ATTENTION', ' '.join(rows), (width, rows))
+            self.assertNotIn('more below', ' '.join(rows))
+            for row in rows:
+                self.assertLessEqual(cell_width(row), width, row)
+
+    # Item 15: one band form for one fact; a date with its time; the attention item names the operation as the band does.
+    def test_one_fact_has_one_band_form_on_every_surface(self):
+        from intune_iac.workbench_screens import hazard_rows
+        from plugin_tests.test_workbench_hazard import STALE, UNKNOWN
+        for width in (100, 110, 118, 120, 140):
+            inspector = hazard_rows({}, [UNKNOWN, STALE], width, here=True)[0]
+            elsewhere = hazard_rows({}, [UNKNOWN, STALE], width)[0]
+            self.assertEqual(inspector.split('  +')[0], elsewhere.split('  +')[0], width)
+
+    def test_a_date_stays_with_its_time(self):
+        from intune_iac.workbench_screens import word_wrap
+        text = 'last recorded 2026-10-15 16:15:39 UTC and then some more words to push the wrap around the stamp'
+        for width in range(30, 100):
+            rows = word_wrap(text, width)
+            for row in rows:
+                self.assertNotRegex(row.rstrip(), r'\d{4}-\d\d-\d\d$', (width, rows))
+                self.assertNotRegex(row.lstrip(), r'^\d\d:\d\d:\d\d', (width, rows))
+
+    def test_the_attention_item_names_the_operation_by_the_id_the_band_uses(self):
+        from intune_iac.workbench_screens import _attention_lines
+        operation = 'f58aa88318ad4b5fb57fcb9c7b08bbd2'
+        signal = {'area': 'operations', 'code': 'operation_outcome_unknown', 'next_step': 'Reconcile it.',
+                  'observed': 'Operation %s started dispatch, but the result was never registered.' % operation,
+                  'evidence': {'operation_id': operation}}
+        value = {'attention': {'signals': [signal], 'checked': {}}, 'identity_prefixes': {operation: 'f58aa883'}}
+        text = _flat(_attention_lines(value, 160))
+        self.assertIn('Operation f58aa883 started dispatch', text)
+        self.assertNotIn(operation, text)

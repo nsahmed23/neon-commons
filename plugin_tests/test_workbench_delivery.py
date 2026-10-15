@@ -71,10 +71,12 @@ class DeliveryTests(unittest.TestCase):
         value, stages = self.view(now=review['expires_at'])
         self.assertEqual(stages['approval']['status'], 'expired')
         self.assertIn('new proposal', value['next_action'])
-        # The sentence gives the time the way the stage line does, to the second with its zone.
+        # Run 8 item 7: stage 3 says when the window closed, to the second with its zone; the Next line refers to
+        # that stage instead of giving the time a second time.
         closes = datetime.fromtimestamp(review['expires_at'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-        self.assertIn('closed at %s;' % closes, value['next_action'])
-        self.assertNotRegex(value['next_action'], r'\d{4}-\d\d-\d\dT')
+        self.assertIn('stage 3 says when its approval window closed', value['next_action'])
+        self.assertNotIn(closes, value['next_action'])
+        self.assertNotRegex(value['next_action'], r'\d{4}-\d\d-\d\d')
 
     def test_an_executed_change_shows_each_stage_then_its_record_and_observation(self):
         from intune_iac import maintenance

@@ -451,28 +451,32 @@ class RunFourWordsTests(unittest.TestCase):
         self.assertIn(message, lines)
         self.assertNotIn('What it means', lines)
         self.assertIn('Effect: No deployment receipt was recorded.', lines)
-        # A message that names something the meaning cannot, and does not repeat it, keeps the meaning's line.
+        # A message that names something the meaning cannot, and does not repeat it, keeps the meaning's line, unless
+        # that line only restates the refusal's own header (run 8 item 10, frame 81: "In general: The desired policy
+        # uses a setting definition ... outside the supported capability map" under "The desired policy is outside the
+        # capability map"). The general-meaning case is pinned in RunEightScreensTests with another code.
         specific = 'The desired policy uses device_vendor_msft_policy_config_x_1, outside the capability map.'
         lines = text(refusal_lines({'error': {'code': 'workbench_desired_capability', 'message': specific}}, 200))
-        self.assertIn('In general:', lines)
+        self.assertNotIn('In general:', lines)
 
-    def test_the_band_leads_the_next_step_when_the_screen_gives_another(self):
-        # Item 13 (run 4 frames 19 and 20; Gemini N 3): the band says "Collect again", the lifecycle line says "v".
+    def test_a_screen_claims_no_order_the_product_does_not_enforce(self):
+        # Run 8 item 1 (frames 19 to 21): run 4 item 13 had the screen say "The step in the band above comes first",
+        # but nothing orders collecting again before recording a deployment (deployment-record reads the operation, its
+        # readback and the cited intent, never the observation), and the actions list offers the record first. The
+        # claim is gone; the band and the screen each name their own step.
         from plugin_tests.test_workbench_screens import delivery_value
         from plugin_tests.test_workbench_states import RefusalCauseTests
         workspace = RefusalCauseTests.workspace(self, {'eligibility': self.ELIGIBILITY})
         workspace.tab = 5
         workspace.value = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified',
                                       'evidence_class': 'synthetic_local_process_and_modeled_service_only'}}
-        order = 'The step in the band above comes first.'
-        self.assertIn(order, text(workspace._summary_lines(118)))
-        workspace.value = delivery_value()
-        self.assertIn(order, text(workspace._summary_lines(118)))
-        # Nothing in the band, nothing to put in order.
-        workspace.facts = {'object_id': workspace.facts['object_id']}
-        self.assertNotIn(order, text(workspace._summary_lines(118)))
+        for value in (workspace.value, delivery_value()):
+            workspace.value = value
+            shown = text(workspace._summary_lines(118))
+            self.assertNotIn('comes first', shown)
+            self.assertNotIn('step in the band', shown)
         workspace.value = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified'}}
-        self.assertNotIn(order, text(workspace._summary_lines(118)))
+        self.assertNotIn('comes first', text(workspace._summary_lines(118)))
 
     def test_a_key_named_in_the_footer_cannot_be_mistaken_for_another(self):
         # Item 14 (Gemini O 6): both i and e were labelled "details".

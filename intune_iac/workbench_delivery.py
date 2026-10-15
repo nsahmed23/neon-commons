@@ -233,10 +233,12 @@ def _next_action(stages, operation_root, store_root):
         return ('The context file this proposal bound changed after it was prepared, so execute refuses it '
                 '(maintenance_source_changed); prepare a new proposal.')
     if approval['status'] == 'waiting':
-        return ('Review the change (5), then approve it with execute %s EXACT_REVIEW_DIGEST before %s; the digest is the '
-                'one on the review, never filled in for you.' % (operation, _when(approval['closes_at'])))
+        # The command is last, so a pasted command picks up no prose.
+        return ('Review the change (5); the digest is the one on the review, never filled in for you. Approve before %s '
+                'with: execute %s EXACT_REVIEW_DIGEST' % (_when(approval['closes_at']), operation))
     if approval['status'] == 'expired':
-        return 'The approval window closed at %s; prepare a new proposal from the current intent.' % _when(approval['closes_at'])
+        # Stage 3 states when the window closed; this line refers to it.
+        return 'Prepare a new proposal from the current intent; stage 3 says when its approval window closed.'
     if approval['status'] == 'clock_uncertain':
         return ("This host's clock reads earlier than a time this operation recorded, so execute holds it. Correct "
                 'the clock and restart the workbench, or wait until the clock passes the recorded time; or prepare a '
@@ -249,9 +251,10 @@ def _next_action(stages, operation_root, store_root):
     if approval['status'] == 'rejected':
         return 'This operation was rejected; prepare a new proposal.'
     if reconciliation['status'] == 'required':
-        return 'The outcome is unknown. Reconcile with reconcile %s before any retry; execution is never replayed.' % operation
+        return ('The outcome is unknown, and execution is never replayed. Reconcile before any retry with: reconcile %s'
+                % operation)
     if 'pending' in (readback['status'], reconciliation['status']):
-        return 'The service has not yet shown the change; reconcile again later with reconcile %s.' % operation
+        return 'The service has not yet shown the change; reconcile again later with: reconcile %s' % operation
     if record['status'] == 'available':
         return ('Record the deployment: in the workspace, deployment-record %s %s (a lists it); from a shell, '
                 'workbench deployment-record --root %s --operation %s --intent %s'

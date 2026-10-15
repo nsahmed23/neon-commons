@@ -457,6 +457,9 @@ class KeyReader:
     """Bounded byte reader; terminal escape input is data, never output."""
     SEQUENCES = {b'\x1b[A': 'up', b'\x1b[B': 'down', b'\x1b[C': 'right', b'\x1b[D': 'left',
                  b'\x1b[5~': 'pageup', b'\x1b[6~': 'pagedown', b'\x1b[H': 'home', b'\x1b[F': 'end',
+                 # tmux, screen, PuTTY and Linux consoles send Home and End in these other encodings.
+                 b'\x1b[1~': 'home', b'\x1b[7~': 'home', b'\x1bOH': 'home',
+                 b'\x1b[4~': 'end', b'\x1b[8~': 'end', b'\x1bOF': 'end',
                  b'\x1b[3~': 'delete', b'\x1b[200~': 'paste_start', b'\x1b[201~': 'paste_end'}
 
     def __init__(self, stream):
@@ -994,9 +997,14 @@ class Workspace:
         if self._states_here(value):
             # The same three states as the Inspector, from the last read of this policy, before the surface's own detail.
             from .workbench_screens import state_lines
+            from .workbench_screens import strip_operation_shown
+            changed = value.get('freshness') if isinstance(value.get('freshness'), dict) else {}
+            listed = (self.tab == 8 and changed.get('status') == 'stale'
+                      and any((changed.get('sources') or {}).get(kind) for kind in ('changed', 'added', 'removed')))
             rows.extend(state_lines(self.facts['states'], width, 'STATE (from the last read of this policy)',
                                     prefixes=self.facts.get('identity_prefixes'),
-                                    reviewing=value.get('operation_id') if self.tab == 4 else None)[1:])
+                                    reviewing=value.get('operation_id') if self.tab == 4 else None,
+                                    strip_operation=strip_operation_shown(self.facts), sources_below=listed)[1:])
             rows.append('')
         def field(label, item):
             # Absent and yes/no values read as words; the exact record below keeps the literal.
@@ -1009,8 +1017,10 @@ class Workspace:
             from .workbench_screens import short_id
             command = getattr(self, 'last_command', None)
             operation = self._operation_id_for(command) if isinstance(command, str) else None
+            verb = command.split(None, 1)[0] if isinstance(command, str) and command.strip() else None
             rows.extend(refusal_lines(value, width, known=self._known_cause(code), clock_fact=self._known_clock(),
-                                      operation=short_id(operation, (getattr(self, 'facts', None) or {}).get('identity_prefixes')) if operation else None))
+                                      operation=short_id(operation, (getattr(self, 'facts', None) or {}).get('identity_prefixes')) if operation else None,
+                                      verb=verb))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -1075,7 +1085,8 @@ class Workspace:
             rows.extend(dictionary_lines(value, width))
         elif self.tab == 1 and value.get('object_id'):
             from .workbench_screens import inspector_lines
-            rows.extend(inspector_lines(value, width))
+            from .workbench_screens import strip_operation_shown
+            rows.extend(inspector_lines(value, width, strip_operation=strip_operation_shown(self.facts)))
             if isinstance(value.get('raw_capture_observation'), dict):
                 rows.extend(word_wrap('The settings and targeting above are the normalized mapping of this observation.', width))
             capture = value.get('raw_capture_observation')
@@ -1182,10 +1193,13 @@ class Workspace:
                                                     for item in value['changes']) or 'none')
                 repository = value.get('repository')
                 if isinstance(repository, dict) and repository.get('cited'):
-                    field('Cited repository intent', str(repository.get('repository_intent_id'))[:12] + ' (' + str(repository.get('freshness')) + ')')
+                    # The length the state row above gives an intent (eight, or the read model's unique prefix).
+                    from .workbench_screens import short_id
+                    field('Cited repository intent', short_id(str(repository.get('repository_intent_id')),
+                                                              self.facts.get('identity_prefixes')) + ' (' + str(repository.get('freshness')) + ')')
                 elif isinstance(repository, dict) and repository.get('context_changed'):
                     field('Context file', 'changed since this proposal was prepared, so its citation is unknown and '
-                                          'execute refuses it (maintenance_source_changed)')
+                                          'execute refuses it (maintenance_source_changed)')  # the one place that says so
                 rows.append('')
             rows.append('[PLAN REVIEW]')
             # The digest execute needs is named for what it is: a review binding, not an approval (Sonnet 22).
@@ -1207,8 +1221,7 @@ class Workspace:
                     continue
                 if key == 'approval_digest' and context_changed:
                     # Execute checks the context file against the plan's record and refuses a changed one.
-                    field('Review digest', 'not offered; execute refuses this plan because its context file changed '
-                                           'after it was prepared (maintenance_source_changed)')
+                    field('Review digest', 'not offered (the context file changed, above)')
                     continue
                 field(label, _readable_epoch(item) if key == 'expires_at' else str(item).replace('_', ' ')
                       if key in ('status', 'evidence_class') else item)
@@ -1221,7 +1234,7 @@ class Workspace:
                 field('Input files written', ', '.join(shlex.quote(str(path)) for path in value['files_written']) or 'none')
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
-            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii'), after_band=self._band_gives_a_step()))
+            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
             from .workbench_screens import execution_effect_lines
@@ -1307,7 +1320,8 @@ class Workspace:
         elif self.tab == 8 and value.get('schema_version') == 'workbench-repository-status/1':
             from .workbench_screens import repository_lines
             rows.append('[REPOSITORY STATUS]')
-            rows.extend(repository_lines(value, width))
+            # The Lifecycle line below gives the next step from the policy's own state; the status says it only once.
+            rows.extend(repository_lines(value, width, self.facts.get('identity_prefixes'), next_step=False))
         elif self.tab == 8 and value.get('kind') == 'repository_intent' and isinstance(value.get('data'), dict):
             from .workbench_screens import refresh_result_lines
             rows.extend(refresh_result_lines(value, width))
@@ -1417,17 +1431,8 @@ class Workspace:
             if self._on_change_path(self.value):
                 from .workbench_screens import lifecycle_lines
                 lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
-                                                       if self.facts.get('object_id') == self.selected else None,
-                                                       after_band=self._band_gives_a_step())
+                                                       if self.facts.get('object_id') == self.selected else None)
         return lines
-
-    def _band_gives_a_step(self):
-        """Whether the hazard band above this screen gives a step of its own, so the screen says which comes first."""
-        from .workbench_screens import band_gives_a_step
-        facts = getattr(self, 'facts', None) or {}
-        if not self.selected or facts.get('object_id') != self.selected:
-            return False
-        return band_gives_a_step(facts, facts.get('signals') or [])
 
     def _on_change_path(self, value):
         """Whether the result shown is a step of a change: a repository status, a plan review, an execution result."""
@@ -1559,6 +1564,10 @@ class Workspace:
         (a search or a filter of the estate) has the estate's class, learned from its observations (item 26)."""
         value = self.value if isinstance(self.value, dict) else {}
         estate = self.tab == 0 and isinstance(value.get('objects'), list) and getattr(self, 'mode_class', None)
+        if (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
+                and not value.get('pending_observations') and not getattr(self, 'mode_class', None)):
+            # Nothing observed yet: the strip says MODE UNKNOWN, and the footer does not name a class beside it.
+            return 'evidence class not stated'
         return value.get('evidence_class') or facts.get('evidence_class') or estate or 'evidence class not stated'
 
     def _prompt_line(self, width, ellipsis):
@@ -2041,7 +2050,7 @@ class Workspace:
             parts = shlex.split(command)
         except ValueError:
             return None
-        if len(parts) < 2 or parts[0] not in ('execute', 'reconcile'):
+        if len(parts) < 2 or parts[0] not in ('execute', 'reconcile', 'deployment-record', 'restore-propose'):
             return None
         root = os.path.abspath(parts[1])
         known = (getattr(self, 'known_operations', None) or {}).get(root)

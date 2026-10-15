@@ -538,6 +538,9 @@ def _observation_blocker(problem):
     if not problem.get('reason'):
         return {'code': problem['code'], 'message': problem.get('message') or _refusal(problem['code'])['message']}
     blocker = {'code': problem['code'], 'reason': problem['reason'], 'message': _reason_words(problem)}
+    if problem['reason'] == 'not_fresh':
+        # The compact blocked line words an unknown age as unknown, so it needs the recorded reasons.
+        blocker['freshness_reasons'] = list(problem.get('freshness_reasons') or [])
     hold = clock_hold(problem.get('freshness_reasons')) if problem['reason'] == 'not_fresh' else None
     if hold:
         blocker['clock_hold'] = hold  # the workspace words a clock hold by its recovery, not by the engine's code
@@ -605,16 +608,20 @@ def _reason_words(problem):
                     % ('; '.join(CLOCK_HOLD_CAUSES.get(item) or FRESHNESS_REASON_WORDS.get(item, item) for item in recorded),
                        with_clock_times(CLOCK_HOLD_RECOVERY[hold], problem.get('freshness_clock'))))
         reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]
-        if ('stamped_after_now' in (problem.get('freshness_reasons') or [])
-                and problem.get('next_collection_replaces') in ('same_service', 'any_collection')):
-            # The store orders its own collections by run, and a capture stamped ahead of its import gives way.
-            return ('the newest observation is not fresh (%s): it is stamped later than this host\'s clock, and a new '
-                    'collection%s becomes current; collect again' % ('; '.join(reasons), ' from the service it came from'
-                    if problem.get('next_collection_replaces') == 'same_service' else ''))
         if 'stamped_after_now' in (problem.get('freshness_reasons') or []):
+            # A stamp ahead of this host's clock leaves the age unknown: the record establishes only that, so the
+            # sentence says "not known to be fresh", and gives the stamp reason once (as a clause, not also a bracket).
+            others = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem['freshness_reasons']
+                      if item != 'stamped_after_now']
+            head = 'the newest observation is not known to be fresh' + (' (%s)' % '; '.join(others) if others else '')
+            if problem.get('next_collection_replaces') in ('same_service', 'any_collection'):
+                # The store orders its own collections by run, and a capture stamped ahead of its import gives way.
+                return ('%s: it is stamped after this host\'s clock, and a new collection%s becomes current; '
+                        'collect again' % (head, ' from the service it came from'
+                                           if problem.get('next_collection_replaces') == 'same_service' else ''))
             # An imported capture is ordered by its capture time, so a new collection would not replace this one.
-            return ('the newest observation is not fresh (%s): it reads stale until this host\'s clock passes its time, '
-                    'and collecting again now would not replace it' % '; '.join(reasons))
+            return ('%s: it is stamped after this host\'s clock, and collecting again now would not replace it'
+                    % head)
         return 'the newest observation is not fresh (%s); collect again' % ('; '.join(reasons) or 'no reason recorded')
     if reason == 'last_attempt_incomplete':
         return 'the last collection attempt ended %s; collect again' % (problem.get('last_attempt_status') or 'without a status')

@@ -451,7 +451,9 @@ class WindowViewTests(unittest.TestCase):
         self.assertEqual((stage['status'], stage.get('recorded')), ('expired', True))
         self.assertIn('recorded; a clock that reads earlier does not reopen it', _approval_text(stage, stage['status']))
         review = maintenance.review(self.operation)
-        self.assertIn('approval window has closed', lifecycle_next(4, review, self.clocks.now()))
+        # Run 8 item 7: the Approval window row says it closed; the Next line is the step and refers to that row.
+        self.assertIn('Prepare a proposal again (a: actions); Expiry and Approval window above say why',
+                      lifecycle_next(4, review, self.clocks.now()))
 
     def test_a_damaged_clock_record_reads_as_unknown_and_refused(self):
         from intune_iac.workbench_screens import lifecycle_next

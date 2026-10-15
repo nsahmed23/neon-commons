@@ -468,4 +468,33 @@ class VisualPTYTests(unittest.TestCase):
         self.assertEqual(termios.tcgetattr(self.slave), self.before_attrs)
 
 
+class HomeEndSequenceTests(unittest.TestCase):
+    """Item 16 (journey 29 run 1): tmux, screen, PuTTY and Linux consoles send Home and End as ESC[1~ and ESC[4~."""
+
+    @staticmethod
+    def decode(raw, count=1):
+        from intune_iac.workbench_tui import KeyReader
+        read, write = os.pipe()
+        try:
+            os.write(write, raw)
+            with os.fdopen(os.dup(read), 'rb') as stream:
+                keys = KeyReader(stream)
+                return [keys.read() for _ in range(count)]
+        finally:
+            os.close(read); os.close(write)
+
+    def test_every_home_encoding_decodes_as_home(self):
+        for raw in (b'\x1b[H', b'\x1b[1~', b'\x1b[7~', b'\x1bOH'):
+            with self.subTest(raw=raw):
+                self.assertEqual(self.decode(raw), ['home'])
+
+    def test_every_end_encoding_decodes_as_end(self):
+        for raw in (b'\x1b[F', b'\x1b[4~', b'\x1b[8~', b'\x1bOF'):
+            with self.subTest(raw=raw):
+                self.assertEqual(self.decode(raw), ['end'])
+
+    def test_the_tmux_probe_sequence_decodes_in_order(self):
+        self.assertEqual(self.decode(b'\x1b[1~\x1b[4~\x1b[D\x1b[C', 4), ['home', 'end', 'left', 'right'])
+
+
 if __name__ == '__main__': unittest.main()

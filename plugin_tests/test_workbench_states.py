@@ -301,10 +301,12 @@ class LifecycleTests(unittest.TestCase):
         self.assertNotIn('a prepares a proposal from the recorded intent', text)
         prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': time.time() + 200}
         text = self.summary(4, dict(prepared, expires_at=time.time() - 1))
-        self.assertIn("approval window has closed; Prepare a proposal again (a: actions)", text)
+        # Run 8 item 7: the Approval window row and the Context file row state the facts; the Next lines are the steps.
+        self.assertIn('Next: Prepare a proposal again (a: actions); Expiry and Approval window above say why', text)
         self.assertNotIn('execute OPERATION_DIR', text)
         text = self.summary(4, dict(prepared, repository={'cited': None, 'context_changed': True}))
-        self.assertIn('context file changed, so execute refuses it', text)
+        self.assertIn('Next: Prepare a proposal again (a: actions).', text)
+        self.assertNotIn('context file changed, so execute refuses it', text)
         text = self.summary(4, dict(prepared, repository={'cited': True, 'freshness': 'stale'}))
         self.assertIn('repository changed since its intent, so execute refuses it', text)
         text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'outcome_unknown'})
@@ -1027,8 +1029,8 @@ class ChangedContextReviewTests(unittest.TestCase):
         text = self.summary(self.workspace(4, value))
         self.assertNotIn('Review digest (execute needs it)', text)
         self.assertNotIn('d' * 64, text)
-        self.assertIn('Review digest: not offered; execute refuses this plan because its context file changed after it was '
-                      'prepared (maintenance_source_changed)', text)
+        # Run 8 item 7: the Context file row says why; the digest line refers to it.
+        self.assertIn('Review digest: not offered (the context file changed, above)', text)
         from intune_iac.workbench_screens import lifecycle_next
         self.assertIn('Prepare a proposal again (a: actions)', lifecycle_next(4, value, 0))
 
@@ -1147,5 +1149,184 @@ class ExpiredReviewOnceTests(unittest.TestCase):
         text = ' '.join((self.summary(self.workspace(4, self.CLOSED)) + ' ' + ' '.join(lifecycle_lines(4, 160, self.CLOSED, 2e9))).split())
         self.assertIn('Review digest: not offered; execute can no longer run this plan.', text)
         self.assertEqual(text.count('Prepare a'), 1, text)
-        self.assertEqual(text.count('window closed') + text.count('window has closed'), 1, text)
+        # Run 8 item 7: the Approval window row states the fact; the Next line refers to it instead of saying it again.
+        self.assertEqual(text.count('window closed') + text.count('window has closed'), 0, text)
         self.assertIn('Approval window: closed', text)
+
+
+def _said(lines):
+    return ' '.join(' '.join(lines).split())
+
+
+class RunEightWorkspaceTests(unittest.TestCase):
+    """PKG-PRES-RUN8 (FRAME-REVIEW-run8.md): the surfaces of a workspace say each fact once, name their operation, and
+    never claim an order the product does not enforce."""
+    workspace = StateSurfaceTests.workspace
+    summary = StateSurfaceTests.summary
+    REVIEW = RestoreProposalWordsTests.REVIEW
+    CITED = '42cb3c2420d44ea613e5a897225befc5c93dc10cfb557ce2bbe6bad5a004677c'
+    BAND = {'area': 'freshness', 'code': 'observation_service_changed', 'observed': 'Source changed.',
+            'next_step': 'Collect again.', 'evidence': {'observed_revision': 1, 'service_revision': 2}}
+
+    def banded(self, tab, value):
+        workspace = self.workspace(tab, value)
+        workspace.facts = dict(workspace.facts, signals=[self.BAND])
+        return workspace
+
+    # Item 1 (frames 19 to 21): nothing orders collecting again before recording a deployment.
+    def test_no_screen_claims_that_the_band_step_comes_first(self):
+        from plugin_tests.test_workbench_screens import delivery_value
+        delivery = delivery_value(deployment_record={'status': 'available', 'intent_id': self.CITED})
+        delivery['next_action'] = 'Record the deployment: in the workspace, deployment-record /w/op %s (a lists it)' % self.CITED
+        results = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified'}}
+        repository = {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                      'freshness': {'status': 'stale'}}
+        for tab, value in ((5, results), (5, delivery), (8, repository)):
+            text = _said(self.banded(tab, value)._summary_lines(120))
+            self.assertNotIn('comes first', text)
+            self.assertNotIn('band above', text)
+
+    def test_the_screen_names_the_deployment_record_and_claims_no_order(self):
+        # Delivery's Next names the record; the actions list offers it (workbench._actions offers it ahead of a
+        # collect the proposal check adds). Nothing in deployment-record reads the observation, so no order is claimed.
+        from plugin_tests.test_workbench_screens import delivery_value
+        delivery = delivery_value(deployment_record={'status': 'available', 'intent_id': self.CITED})
+        delivery['next_action'] = 'Record the deployment: in the workspace, deployment-record /w/op %s (a lists it)' % self.CITED
+        text = _said(self.banded(5, delivery)._summary_lines(120))
+        self.assertIn('Record the deployment', text)
+        self.assertNotIn('comes first', text)
+
+    # Item 3 (frame 20): a printed command ends its row and ends its sentence.
+    def test_a_printed_command_picks_up_no_following_prose(self):
+        from plugin_tests.test_workbench_screens import delivery_value
+        delivery = delivery_value(deployment_record={'status': 'available', 'intent_id': self.CITED})
+        delivery['next_action'] = ('Record the deployment: in the workspace, deployment-record /w/op %s (a lists it); from a '
+                                   'shell, workbench deployment-record --root /w/store --operation /w/op --intent %s'
+                                   % (self.CITED, self.CITED))
+        rows = self.banded(5, delivery)._summary_lines(118)
+        holding = [row for row in rows if '--intent' in row or row.rstrip().endswith(self.CITED)]
+        self.assertTrue(holding, rows)
+        self.assertTrue(holding[-1].rstrip().endswith(self.CITED), holding[-1])
+
+    def test_a_next_step_that_names_a_command_ends_with_the_command(self):
+        from intune_iac.workbench_delivery import _next_action
+        base = {'proposal': {}, 'readback': {'status': 'done'}, 'reconciliation': {'status': 'not_needed'},
+                'deployment_record': {'status': 'not_yet'}, 'observed_after': {'status': 'not_yet'}}
+        waiting = _next_action(dict(base, approval={'status': 'waiting', 'closes_at': 1791980997}), '/w/op', '/w/store')
+        self.assertTrue(waiting.endswith('execute /w/op EXACT_REVIEW_DIGEST'), waiting)
+        required = _next_action(dict(base, approval={'status': 'done'}, reconciliation={'status': 'required'}),
+                                '/w/op', '/w/store')
+        self.assertTrue(required.endswith('reconcile /w/op'), required)
+        pending = _next_action(dict(base, approval={'status': 'done'}, reconciliation={'status': 'pending'}),
+                               '/w/op', '/w/store')
+        self.assertTrue(pending.endswith('reconcile /w/op'), pending)
+
+    # Item 4 (frame 67): the workspace names the operation a deployment-record command named.
+    def test_the_workspace_names_the_operation_a_deployment_record_command_named(self):
+        value = {'status': 'error', 'error': {
+            'code': 'workbench_deployment_intent_not_cited', 'effects': {'deployment_recorded': False},
+            'message': 'This operation cites repository intent %s, not the intent given; record the deployment with the '
+                       'intent it cites.' % self.CITED}}
+        workspace = self.workspace(5, value)
+        workspace.known_operations = {'/w/journey 28/op': '625157a3' + 'b' * 24}
+        workspace.last_command = "deployment-record '/w/journey 28/op' " + 'a' * 64
+        text = self.summary(workspace)
+        self.assertIn('Cause: Operation 625157a3 cites repository intent', text)
+        self.assertIn('Next: Record operation 625157a3 with the intent it cites', text)
+
+    # Item 7 (frame 65): the changed context file is said once.
+    def test_a_changed_context_file_is_said_once_on_the_plan_screen(self):
+        value = dict(self.REVIEW, field_changes={'status': 'unchanged', 'changes': []},
+                     repository={'cited': None, 'context_changed': True, 'context_path': '/w/context.json'})
+        text = self.summary(self.workspace(4, value))
+        self.assertEqual(text.count('maintenance_source_changed'), 1, text)
+        self.assertEqual(text.count('execute refuses'), 1, text)
+        self.assertIn('Review digest: not offered (the context file changed, above)', text)
+        from intune_iac.workbench_screens import lifecycle_next
+        self.assertEqual(lifecycle_next(4, value, 0), 'Prepare a proposal again (a: actions)')
+
+    # Item 9 (frames 74 to 82): the Operation row on the surfaces says which operation the strip shows.
+    def test_the_operation_row_names_the_strip_operation_on_the_repository_surface(self):
+        newest, shown = 'e112edba' + 'a' * 24, '9aac2657' + 'b' * 24
+        states = dict(StateRenderingTests.STATES, operation={'operation_id': newest, 'status': 'prepared',
+                                                             'journal_status': 'prepared', 'approval_window': 'open'})
+        repository = {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
+                      'freshness': {'status': 'current'}}
+        workspace = self.workspace(8, repository)
+        workspace.facts = dict(workspace.facts, states=states, operation='expired', operation_id=shown)
+        text = self.summary(workspace)
+        self.assertIn('The strip shows operation 9aac2657 (expired), not the newest.', text)
+        workspace.facts = dict(workspace.facts, operation_id=newest, operation='prepared')
+        self.assertNotIn('The strip shows', self.summary(workspace))
+
+    def test_the_inspector_names_the_strip_operation_too(self):
+        from intune_iac.workbench_screens import inspector_lines
+        newest, shown = 'e112edba' + 'a' * 24, '9aac2657' + 'b' * 24
+        states = dict(StateRenderingTests.STATES, operation={'operation_id': newest, 'status': 'prepared',
+                                                             'journal_status': 'prepared'})
+        value = {'object_id': OBJECT, 'name': 'P', 'states': states}
+        text = _said(inspector_lines(value, 140, strip_operation={'operation_id': shown, 'state': 'expired'}))
+        self.assertIn('The strip shows operation 9aac2657 (expired), not the newest.', text)
+
+    # Item 11 (frame 69): the workspace words a refused restore as a restore.
+    def test_a_refused_restore_is_worded_as_a_restore_by_the_workspace(self):
+        value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'Refused.',
+                                              'effects': {'files_written': [], 'operation_created': False}}}
+        workspace = self.workspace(4, value)
+        workspace.last_command = 'restore-propose /w/op /w/restore'
+        text = self.summary(workspace)
+        self.assertIn('a restore cannot be derived from it', text)
+        self.assertNotIn('review no longer describes what would run', text)
+
+    # Item 12 (frames 38, 57): a reconcile result does not promise a deployment record.
+    def test_a_reconcile_result_next_does_not_promise_a_deployment_record(self):
+        text = _said(self.workspace(5, dict(ReconcileReadbackWordsTests.RESULT))._summary_lines(160))
+        self.assertIn('Next: v shows every delivery stage', text)
+        self.assertNotIn('deployment record', text)
+
+    # Item 15 (frames 11 to 16, 75, 77): the changed file once, one Next, one id length.
+    def repository_status(self, state='stale'):
+        return {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT, 'repository_intent_id': 'e' * 64,
+                'scope': {'repository': '/w/journey 28/repository', 'stack': 'orgs/reference/dev',
+                          'component': 'intune-reference'},
+                'effective_pointer': '/vars/policies/p_x', 'source_revision': 'b' * 40,
+                'consumer': {'status': 'verified'}, 'next_action': 'The repository changed. Review it, then refresh.',
+                'freshness': {'status': state, 'sources': {'changed': ['stacks/orgs/reference/dev.yaml'], 'added': [],
+                                                          'removed': []}, 'consumer': {'status': 'verified'}}}
+
+    def test_the_changed_file_is_listed_once_on_the_repository_surface(self):
+        text = self.summary(self.workspace(8, self.repository_status()))
+        self.assertEqual(text.count('stacks/orgs/reference/dev.yaml'), 1, text)
+        self.assertIn('SOURCES changed stacks/orgs/reference/dev.yaml', text)
+        self.assertIn('the repository changed since its recorded intent', text)
+
+    def test_the_repository_surface_gives_one_next_statement(self):
+        # The Lifecycle line's step comes from the policy's own state (it says when a proposal is blocked), so it stays
+        # and the status's own Next (still in the typed details, e) is not stacked beside it.
+        text = _said(self.workspace(8, self.repository_status())._summary_lines(118))
+        self.assertEqual(text.count('Next:'), 1, text)
+        self.assertIn('Lifecycle: 9 Repository (here) > 5 Plan > 6 Execution > Delivery (key v). Next: Refresh the '
+                      'repository intent first (a: actions)', text)
+        self.assertNotIn('The repository changed. Review it, then refresh.', text)
+        current = _said(self.workspace(8, self.repository_status('current'))._summary_lines(118))
+        self.assertEqual(current.count('Next:'), 1, current)
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions)', current)
+
+    def test_the_repository_intent_has_the_length_the_state_row_gives_it(self):
+        text = self.summary(self.workspace(8, self.repository_status()))
+        self.assertIn('Intent e9274102 from', text)
+        self.assertIn('Intent eeeeeeee Consumer', text)
+
+    def test_a_plan_names_the_cited_intent_in_the_length_its_state_row_uses(self):
+        value = dict(self.REVIEW, field_changes={'status': 'unchanged', 'changes': []},
+                     repository={'cited': True, 'repository_intent_id': 'e927410221924400' + '0' * 48, 'freshness': 'current'})
+        text = self.summary(self.workspace(4, value))
+        self.assertIn('Intent e9274102 from', text)
+        self.assertIn('Cited repository intent: e9274102 (current)', text)
+
+    def test_an_empty_estate_does_not_claim_an_evidence_class_in_its_footer(self):
+        workspace = self.workspace(0, {'objects': [], 'evidence_class': 'synthetic', 'status': 'empty'})
+        self.assertEqual(workspace._scope({}), 'evidence class not stated')
+        observed = self.workspace(0, {'objects': [{'object_id': OBJECT}], 'evidence_class': 'synthetic'})
+        observed.mode_class = 'synthetic'
+        self.assertEqual(observed._scope({}), 'synthetic')
