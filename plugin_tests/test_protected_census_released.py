@@ -21,6 +21,11 @@ from intune_iac.io import AppError
 E1_LINE = b'887361 (true) X 0 -1 -1 0 -1 4227084 352 0 0 0 0 0 0 0 20 0 1 0 5364178 0 0 18446744073709551615 0 0\n'
 
 
+# The transitional record the stress captured on the first repair (E1 fixed-seam-100k): state Z sampled before the release,
+# group and session -1 sampled after it.
+TRANSITIONAL_LINE = b'1095422 (true) Z 0 -1 -1 0 -1 4227084 398 0 0 0 0 0 0 0 20 0 0 0 5454519 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 17 15\n'
+
+
 def stat_line(state, pgrp, session, starttime=5364178, pid=887361):
     fields = [state, '1', str(pgrp), str(session), '0', '-1', '4227084', '0', '0', '0', '0', '0', '0', '0', '0',
               '20', '0', '1', '0', str(starttime), '0', '0']
@@ -68,6 +73,24 @@ class ParserTests(unittest.TestCase):
         value = protected._read_process_stat(self.path)
         self.assertEqual((value['state'], value['pgrp'], value['session']), ('S', 73, 73))
 
+    def test_a_transitional_record_is_never_returned_as_a_member(self):
+        # do_task_stat samples the state before the task is released and the group fields after: Z with -1 -1.
+        for data in (TRANSITIONAL_LINE, stat_line('R', -1, -1), stat_line('S', -1, -1)):
+            self.path.write_bytes(data)
+            with self.assertRaises(AppError) as raised:
+                protected._read_process_stat(self.path)
+            self.assertEqual(raised.exception.code, 'process_cleanup_observation_invalid')
+            self.assertIsInstance(raised.exception, protected._TransitionalRecord)
+
+    def test_only_the_exact_pair_with_a_live_or_zombie_state_is_transitional(self):
+        for data in (stat_line('S', -1, 5), stat_line('Z', 5, -1), stat_line('R', -1, 0), stat_line('X', -1, 0),
+                     stat_line('Z', -1, -1, starttime=-1)):
+            self.path.write_bytes(data)
+            with self.assertRaises(AppError) as raised:
+                protected._read_process_stat(self.path)
+            self.assertNotIsInstance(raised.exception, protected._TransitionalRecord)
+            self.assertEqual(raised.exception.code, 'process_cleanup_observation_invalid')
+
 
 class CensusTests(unittest.TestCase):
     """Real /bin/true children, with the stat reader wrapped so that one entry reads as the released line."""
@@ -81,6 +104,32 @@ class CensusTests(unittest.TestCase):
         path = Path(self.directory.name) / ('stat-%d' % pid)
         path.write_bytes(stat_line('X', -1, -1, pid=pid))
         return self.original(path)
+
+    def fabricated(self, pid, state):
+        """What the real parser makes of a state with -1 -1 for pid (raises for a state other than X or x)."""
+        path = Path(self.directory.name) / ('stat-%s-%d' % (state, pid))
+        path.write_bytes(stat_line(state, -1, -1, pid=pid))
+        return self.original(path)
+
+    def scripted(self, matches, *outcomes):
+        """A reader that gives the matching path the given outcomes in order (each a callable of the path), then the
+        real record. The returned counter holds the number of reads the path received."""
+        reads = []
+        def wrapper(path):
+            path = Path(path)
+            if matches(path):
+                reads.append(path)
+                if len(reads) <= len(outcomes): return outcomes[len(reads) - 1](path)
+            return self.original(path)
+        return wrapper, reads
+
+    @staticmethod
+    def gone(path):
+        raise FileNotFoundError(str(path))
+
+    @staticmethod
+    def is_stat_of(path, pid):
+        return len(path.parts) == 4 and path.parts[2] == str(pid) and path.name == 'stat'
 
     def spawn(self):
         process = subprocess.Popen(['/bin/true'], start_new_session=True)
@@ -168,6 +217,87 @@ class CensusTests(unittest.TestCase):
         self.assertEqual(code, 'process_cleanup_unverified')
         self.assertEqual(evidence['observation_error'], 'process_cleanup_anchor_lost')
         self.assertEqual(evidence['status'], 'unverified')
+
+
+    # A transitional record (state sampled before the release, group fields after) is re-read once, never refused at first
+    # sight. Each test counts the reads of the entry, so the re-read is proven.
+
+    def test_a_transitional_foreign_entry_that_then_disappears_is_an_ordinary_exit(self):
+        process = self.spawn(); foreign = os.getpid()
+        wrapper, reads = self.scripted(lambda p: self.is_stat_of(p, foreign),
+                                       lambda p: self.fabricated(foreign, 'Z'), self.gone)
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertGreaterEqual(len(reads), 2)
+        self.assertIsNone(code)
+        self.assertEqual(evidence['status'], 'confirmed')
+
+    def test_a_transitional_foreign_entry_that_then_reads_as_released_is_skipped(self):
+        process = self.spawn(); foreign = os.getpid()
+        wrapper, reads = self.scripted(lambda p: self.is_stat_of(p, foreign),
+                                       lambda p: self.fabricated(foreign, 'Z'), lambda p: self.released(foreign))
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertGreaterEqual(len(reads), 2)
+        self.assertIsNone(code)
+        self.assertEqual(evidence['status'], 'confirmed')
+
+    def test_a_transitional_foreign_entry_that_then_reads_valid_is_judged_as_usual(self):
+        process = self.spawn(); foreign = os.getpid()
+        wrapper, reads = self.scripted(lambda p: self.is_stat_of(p, foreign),
+                                       lambda p: self.fabricated(foreign, 'Z'), self.original)
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertGreaterEqual(len(reads), 2)
+        self.assertIsNone(code)
+        self.assertEqual(evidence['status'], 'confirmed')
+
+    def test_a_transitional_foreign_entry_that_persists_is_refused(self):
+        process = self.spawn(); foreign = os.getpid()
+        wrapper, reads = self.scripted(lambda p: self.is_stat_of(p, foreign),
+                                       lambda p: self.fabricated(foreign, 'Z'), lambda p: self.fabricated(foreign, 'Z'))
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertEqual(len(reads), 2, 'exactly one re-read')
+        self.assertEqual(code, 'process_cleanup_unverified')
+        self.assertEqual(evidence['observation_error'], 'process_cleanup_observation_invalid')
+        self.assertEqual(evidence['status'], 'unverified')
+
+    def test_a_transitional_foreign_entry_that_turns_malformed_is_refused(self):
+        process = self.spawn(); foreign = os.getpid()
+        def malformed(path):
+            file = Path(self.directory.name) / 'bad'; file.write_bytes(stat_line('S', -1, 5, pid=foreign))
+            return self.original(file)
+        wrapper, reads = self.scripted(lambda p: self.is_stat_of(p, foreign),
+                                       lambda p: self.fabricated(foreign, 'Z'), malformed)
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertEqual(len(reads), 2)
+        self.assertEqual(code, 'process_cleanup_unverified')
+        self.assertEqual(evidence['observation_error'], 'process_cleanup_observation_invalid')
+
+    def test_a_transitional_thread_of_our_leader_that_then_disappears_is_an_exited_member(self):
+        process = self.spawn()
+        wrapper, reads = self.scripted(lambda p: self.is_task_of(p, process.pid),
+                                       lambda p: self.fabricated(int(p.parts[4]), 'R'), self.gone)
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertGreaterEqual(len(reads), 2)
+        self.assertIsNone(code)
+        self.assertEqual(evidence['status'], 'confirmed')
+
+    def test_a_transitional_thread_of_our_leader_that_persists_is_refused(self):
+        process = self.spawn()
+        wrapper, reads = self.scripted(lambda p: self.is_task_of(p, process.pid),
+                                       lambda p: self.fabricated(int(p.parts[4]), 'R'),
+                                       lambda p: self.fabricated(int(p.parts[4]), 'R'))
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertEqual(len(reads), 2, 'exactly one re-read')
+        self.assertEqual(code, 'process_cleanup_unverified')
+        self.assertEqual(evidence['observation_error'], 'process_cleanup_observation_invalid')
+
+    def test_a_transitional_anchor_is_refused_as_anchor_lost_without_a_re_read(self):
+        process = self.spawn()
+        wrapper, reads = self.scripted(lambda p: self.is_stat_of(p, process.pid),
+                                       lambda p: self.fabricated(process.pid, 'Z'))
+        code, evidence = self.cleanup(process, wrapper)
+        self.assertEqual(len(reads), 1)
+        self.assertEqual(code, 'process_cleanup_unverified')
+        self.assertEqual(evidence['observation_error'], 'process_cleanup_anchor_lost')
 
 
 if __name__ == '__main__':

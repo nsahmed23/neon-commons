@@ -334,6 +334,23 @@ def _is_released(record):
     return record['state'] in ('X', 'x') and record['pgrp'] == -1 and record['session'] == -1
 
 
+class _TransitionalRecord(AppError):
+    """-1 -1 with a state other than X: do_task_stat sampled the state before the task was released and the group fields
+    after. It is refused like any malformed record (same code); only the census re-reads it, once (_read_census_stat)."""
+
+
+def _read_census_stat(path):
+    """Read one census entry; a transitional record is re-opened and re-read once, and judged on that second read only.
+
+    The second read can be a valid record, an X/x -1 -1 record, an ordinary exit (FileNotFoundError or
+    ProcessLookupError, handled by the caller), or it refuses exactly as a first read does.
+    """
+    try:
+        return _read_process_stat(path)
+    except _TransitionalRecord:
+        return _read_process_stat(path)
+
+
 def _read_process_stat(path):
     """Read bounded Linux procfs identity; comm may contain ')' or newlines."""
     with Path(path).open('rb') as stream:
@@ -351,9 +368,14 @@ def _read_process_stat(path):
         # A task the kernel is releasing (state X) reads pgrp and session as -1: do_task_stat fills them only while it can
         # lock the signal state, which __exit_signal has already torn down. That exact pair is the one negative value that
         # is not malformed; any other negative value, or -1 on a live state, still fails closed.
+        if (value['pid'] > 0 and value['starttime'] >= 0 and value['pgrp'] == -1 and value['session'] == -1
+                and not _is_released(value)):
+            raise _TransitionalRecord('process_cleanup_observation_invalid', 'Protected local operation could not be verified.')
         if value['pid'] <= 0 or value['starttime'] < 0 or (not _is_released(value) and min(value['pgrp'], value['session']) < 0):
             raise ValueError()
         return value
+    except _TransitionalRecord:
+        raise
     except (ValueError, IndexError, UnicodeError):
         _fail('process_cleanup_observation_invalid')
 
@@ -376,7 +398,7 @@ def _process_group_members(pgid, *, deadline):
             if not entry.name.isascii() or not entry.name.isdigit():
                 continue
             try:
-                leader = _read_process_stat(Path(entry.path) / 'stat')
+                leader = _read_census_stat(Path(entry.path) / 'stat')
             except (FileNotFoundError, ProcessLookupError):
                 continue
             if leader['pid'] != int(entry.name):
@@ -396,7 +418,7 @@ def _process_group_members(pgid, *, deadline):
                         if not thread.name.isascii() or not thread.name.isdigit():
                             _fail('process_cleanup_observation_invalid')
                         try:
-                            observed = _read_process_stat(Path(thread.path) / 'stat')
+                            observed = _read_census_stat(Path(thread.path) / 'stat')
                         except (FileNotFoundError, ProcessLookupError):
                             continue
                         if observed['pid'] == int(thread.name) and _is_released(observed):
@@ -456,7 +478,8 @@ def _cleanup_process_group(process, *, evidence):
         # owned group, so an unreadable stat cannot leave a known child live.
         os.killpg(process.pid, signal.SIGKILL)
         group_signalled = True
-        anchor = _read_process_stat(Path('/proc') / str(process.pid) / 'stat')
+        try: anchor = _read_process_stat(Path('/proc') / str(process.pid) / 'stat')
+        except _TransitionalRecord: _fail('process_cleanup_anchor_lost')
         if anchor['pid'] != process.pid or anchor['pgrp'] != process.pid or anchor['session'] != process.pid:
             _fail('process_cleanup_anchor_lost')
         evidence['leader_starttime'] = anchor['starttime']
