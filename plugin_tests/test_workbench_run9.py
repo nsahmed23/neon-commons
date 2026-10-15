@@ -304,8 +304,8 @@ class StampAheadOnceTests(unittest.TestCase):
         self.assertIn('Observation age unknown', text_of(band))
         self.assertIn('is not known to be fresh', text_of(attention))
         self.assertIn('Collect again (:collect) from the modeled service it came from', text_of(attention))
-        self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 17:45:10 UTC, "
-                      'the observation is stamped 2026-10-15 18:00:10 UTC)', text_of(state))
+        self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 17:45:10 UTC)",
+                      text_of(state))
 
 
 class StripNoteTests(unittest.TestCase):

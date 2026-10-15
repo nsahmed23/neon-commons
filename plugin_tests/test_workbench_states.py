@@ -900,8 +900,8 @@ class StampedAheadWordsTests(unittest.TestCase):
                        'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
                        'freshness_checked_at': self.CHECKED, 'eligibility': None}
         text = ' '.join(' '.join(state_lines({'observation': observation}, 200)).split())
-        self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 14:25:23 UTC, "
-                      'the observation is stamped 2026-10-15 14:40:23 UTC)', text)
+        self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 14:25:23 UTC)", text)
+        self.assertIn('2026-10-15 14:40:23 UTC', text)
         self.assertNotIn('stale', text)
 
     def test_the_attention_item_says_not_known_to_be_fresh_and_names_both_times(self):

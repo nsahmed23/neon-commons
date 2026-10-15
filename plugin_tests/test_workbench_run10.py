@@ -609,6 +609,37 @@ class OneEffectTests(companion_tests.Fixture):
             self.assertLessEqual(text.count(claim), 1, claim)
 
 
+class StampTimeOnceTests(unittest.TestCase):
+    """Lower weight (frame 44): the stamp time is printed once on the stamped-ahead Inspector."""
+    CHECKED, STAMP = '2026-10-15T17:45:10Z', '2026-10-15T18:00:10Z'
+
+    def screen(self):
+        from intune_iac.workbench_diagnostics import _freshness
+        from intune_iac.workbench_screens import _attention_lines, state_lines
+        signals, _ = _freshness({'observed_at': self.STAMP, 'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                                 'freshness_checked_at': self.CHECKED, 'snapshot_id': 'b' * 64,
+                                 'next_collection_replaces': 'same_service', 'ordering_service_root': '/w/service'}, False)
+        observation = {'evidence_class': 'synthetic', 'run_id': 5, 'observed_at': self.STAMP, 'coverage': 'complete',
+                       'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                       'freshness_checked_at': self.CHECKED, 'eligibility': None}
+        signal = dict(signals[0], evidence=dict(signals[0]['evidence'], collect_cures=True))
+        state = state_lines({'observation': observation}, 118)
+        attention = _attention_lines({'attention': {'signals': [signal], 'checked': {}}, 'actions': [],
+                                      'states': {'observation': observation}}, 118)
+        return text_of(state), text_of(attention)
+
+    def test_the_stamp_time_is_printed_once(self):
+        state, attention = self.screen()
+        self.assertEqual((state + ' ' + attention).count('18:00:10'), 1, (state, attention))
+        self.assertIn('2026-10-15 18:00:10 UTC', state)
+        self.assertEqual((state + ' ' + attention).count('17:45:10'), 1)
+
+    def test_the_state_row_still_says_the_reason_and_the_clock_reading(self):
+        state, attention = self.screen()
+        self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 17:45:10 UTC)", state)
+        self.assertIn('The newest observation is not known to be fresh.', attention)
+
+
 class StripOperationTests(unittest.TestCase):
     """Item 10: an operation the strip shows and the screen does not discuss is named once in the body."""
     surface = states_tests.RefusalCauseTests.workspace

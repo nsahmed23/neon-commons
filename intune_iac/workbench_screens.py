@@ -535,12 +535,11 @@ def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None, s
     freshness = observation.get('freshness')
     hold = clock_hold(observation.get('freshness_reasons')) if freshness != 'fresh' else None
     # A held age is not known, so the line does not say stale; the cause is the clock's own words, said once.
-    # A stamp ahead of this host's clock leaves the age just as unknown, and the row names both times.
+    # A stamp ahead of this host's clock leaves the age just as unknown. The row's first part already prints the stamp,
+    # so the reason adds only the clock's reading: the stamp time is on screen once.
     ahead = freshness != 'fresh' and not hold and 'stamped_after_now' in (observation.get('freshness_reasons') or [])
-    stamped = readable_time(observation.get('observed_at'))
     read = readable_time(observation.get('freshness_checked_at'))
-    ahead_words = ("stamped after this host's clock: " + ("this host's clock read %s, " % read if read else '')
-                   + 'the observation is stamped %s' % stamped) if stamped else FRESHNESS_REASON_WORDS['stamped_after_now']
+    ahead_words = "stamped after this host's clock" + (": this host's clock read %s" % read if read else '')
     reasons = ([CLOCK_HOLD_CAUSES[hold]] if hold else []) + [
         ahead_words if ahead and reason == 'stamped_after_now' else FRESHNESS_REASON_WORDS.get(reason, reason)
         for reason in observation.get('freshness_reasons') or []
@@ -1242,8 +1241,8 @@ def _attention_lines(value, width):
                 return text.replace(named, short_id(named, value.get('identity_prefixes'))) if isinstance(named, str) and named else text
             observed = short(str(signal.get('observed')))
             if signal.get('code') == 'observation_stale' and _state_says_stamped_ahead(value, evidence):
-                # The State row above says why (the stamp and both clock readings); this item says only what follows.
-                observed = 'The newest observation (%s) is not known to be fresh.' % readable_time(evidence.get('observed_at'))
+                # The State row above says why and prints the stamp and the clock reading; this item says only what follows.
+                observed = 'The newest observation is not known to be fresh.'
             lines += _labelled('  !', observed, width, 4)
             if guided and signal.get('next_step'):
                 # Each condition carries its own response, so issue and action are read together.
