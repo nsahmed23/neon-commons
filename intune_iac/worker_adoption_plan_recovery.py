@@ -29,6 +29,7 @@ from . import worker_adoption_projection as observer_api
 from . import worker_adoption_plan_phase as phase_api
 
 SIGNATURE_DOMAIN=b'intune-workbench:adoption-plan-native-lease-recovery-approval:v1\x00'
+DOMAIN=SIGNATURE_DOMAIN.rstrip(b'\x00').decode()  # the family's authorization domain, part of its expiry key
 _SEAL=object()
 _HASH=re.compile(r'^[0-9a-f]{64}$')
 _GUID=re.compile(r'^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$')
@@ -368,13 +369,13 @@ def execute(manifest,signed,*,context,policy,output):
     bound=_bound(manifest,context)
     try:payload=policy.verify(manifest,signed)
     except AppError:
-        if bound:service._record_recovery_expiry(context.job.policy,policy,manifest,signed,fail=_fail,expired_code='lease_recovery_expired')
+        if bound:service._record_recovery_expiry(context.job.policy,policy,manifest,signed,domain=DOMAIN,fail=_fail,expired_code='lease_recovery_expired')
         raise
     if not bound:_fail('lease_recovery_context_changed')
     # The window is judged where it is recorded, before any observation or request: a reached expiry is latched in the
     # original job's store and refused here, so it stays closed after a backward clock step and a restart.
     deadline=service._deadline(payload)
-    with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,fail=_fail,expired_code='lease_recovery_expired'):pass
+    with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,domain=DOMAIN,fail=_fail,expired_code='lease_recovery_expired'):pass
     context.check()
     if (manifest['profile']!=context.profile or manifest['observation']['original']!=context.original
             or manifest['observation']['adoption_state_proof']['classification'] !='approved_adoption_successor'
@@ -393,7 +394,7 @@ def execute(manifest,signed,*,context,policy,output):
         # even a new recovery policy/root cannot replay the same original lease.
         # The window is judged again in the same section that reserves the dispatch (the observation took time), so nothing
         # can latch the expiry between the judgment and the reservation.
-        with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,fail=_fail,expired_code='lease_recovery_expired') as db:
+        with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,domain=DOMAIN,fail=_fail,expired_code='lease_recovery_expired') as db:
             db.execute('CREATE TABLE IF NOT EXISTS native_lease_recoveries (original_operation TEXT PRIMARY KEY,recovery_operation TEXT UNIQUE,issuer TEXT,nonce TEXT,manifest_sha256 TEXT,status TEXT,response_code INTEGER,observed_sha256 TEXT,UNIQUE(issuer,nonce))')
             if db.execute('SELECT 1 FROM native_lease_recoveries WHERE original_operation=? OR recovery_operation=? OR (issuer=? AND nonce=?)',(context.phase_identifier,manifest['operation_id'],payload['issuer'],payload['nonce'])).fetchone():_fail('lease_recovery_not_replayable')
             row=db.execute('SELECT status,controller_pid,controller_start,outcome FROM jobs WHERE id=?',(context.job.identifier,)).fetchone()
@@ -411,7 +412,7 @@ def execute(manifest,signed,*,context,policy,output):
             context.job.policy.event(db,context.job.identifier,'explicit_native_lease_recovery_dispatch',{'recovery_operation':manifest['operation_id'],'manifest_sha256':digest(manifest),'scope_released':False,'phase_kind':context.phase.kind,'phase_operation_id':context.phase_identifier})
             db.execute('COMMIT');protected._sync(context.job.policy.root);dispatched=True
         policy.check();context.check()
-        service._window_open(context.job.policy,payload,digest(manifest),deadline,fail=_fail,expired_code='lease_recovery_expired')  # the receipt expires no later than the manifest (verify)
+        service._window_open(context.job.policy,payload,digest(manifest),deadline,domain=DOMAIN,fail=_fail,expired_code='lease_recovery_expired')  # the receipt expires no later than the manifest (verify)
         with context.job.policy.connection() as db:context.phase.require_dispatch_quiet(db)
         endpoint=urlsplit(context.target.blob_endpoint);path='/'+context.target.container+'/'+context.target.key+'?comp=lease'
         response=context.upstream.request(endpoint.hostname,'PUT',path,{'authorization':'Bearer '+token._get(),'accept':'application/xml','accept-encoding':'identity',

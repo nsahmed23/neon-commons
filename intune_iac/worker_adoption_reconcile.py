@@ -368,6 +368,11 @@ def make_manifest(*,original,completion,operation_id,expires_at,execution_bindin
         'implementation_files':service.implementation_binding()},original=original)
 
 
+def _domain(manifest):
+    """The recovery plan approval's authorization domain (its signature domain), part of its expiry key."""
+    return _signature_contract(manifest)[1].rstrip(b'\x00').decode()
+
+
 def _signature_contract(manifest):
     if manifest.get('schema_version')==VERSION:return APPROVAL_VERSION,SIGNATURE_DOMAIN
     if manifest.get('schema_version')==PHASE_VERSION:return PHASE_APPROVAL_VERSION,PHASE_SIGNATURE_DOMAIN
@@ -394,7 +399,7 @@ def _verify(policy,manifest,receipt):
         raise
     # Authenticated: the window is judged in the shared critical section, so a reached expiry is recorded and refused and
     # stays closed after a backward clock step and a restart (see worker_adoption._critical).
-    with adoption._critical(policy,payload,digest(manifest),adoption._deadline(payload),fail=_fail,expired_code='adoption_recovery_signature_expired'):pass
+    with adoption._critical(policy,payload,digest(manifest),adoption._deadline(payload),fail=_fail,expired_code='adoption_recovery_signature_expired',domain=_domain(manifest)):pass
     return payload
 
 
@@ -512,7 +517,7 @@ class _Permit:
         if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
         try:self.job._check()
         except AppError as error:
-            if error.code=='adoption_recovery_plan_expired':adoption._record_expiry(self.job.policy,self.payload,self.job.sha256,self.deadline)
+            if error.code=='adoption_recovery_plan_expired':adoption._record_expiry(self.job.policy,self.payload,self.job.sha256,self.deadline,domain=_domain(self.job.manifest))
             raise
         self.runtime.check(self.job.manifest)
     def _stopped_or_changed(self,db,phase):
@@ -528,15 +533,15 @@ class _Permit:
         worker_adoption.AdoptionPermit.poll_active). A closed window is latched through the shared section, then refused."""
         self._before_judging();phase=self._phase()
         with self.job.policy.connection() as db:
-            stopped=self._stopped_or_changed(db,phase);latched=adoption._latched(db,self.payload)
-        adoption._watch(self.job.policy,self.payload,self.job.sha256,self.deadline,latched,fail=_fail,expired_code='adoption_recovery_plan_expired')
+            stopped=self._stopped_or_changed(db,phase);latched=adoption._latched(db,self.payload,self.job.sha256,_domain(self.job.manifest))
+        adoption._watch(self.job.policy,self.payload,self.job.sha256,self.deadline,latched,fail=_fail,expired_code='adoption_recovery_plan_expired',domain=_domain(self.job.manifest))
         if stopped:_fail('adoption_recovery_permit_revoked')
     def check_active(self):
         """The authorization check that gates every backend or service call: it enters the shared critical section, judges
         the window, rereads the state, the revocation and the expiry record inside it and commits the per-request marker
         before it returns (see worker_adoption.AdoptionPermit.check_active)."""
         self._before_judging();phase=self._phase()
-        with adoption._critical(self.job.policy,self.payload,self.job.sha256,self.deadline,fail=_fail,expired_code='adoption_recovery_plan_expired') as db:
+        with adoption._critical(self.job.policy,self.payload,self.job.sha256,self.deadline,fail=_fail,expired_code='adoption_recovery_plan_expired',domain=_domain(self.job.manifest)) as db:
             if self._stopped_or_changed(db,phase):_fail('adoption_recovery_permit_revoked')
             adoption._mark_authorized(db,self.job.identifier,'recovery_plan')
 
@@ -621,7 +626,7 @@ class RecoveryPlanJob:
             if list(_private(directory,directory=True).iterdir()):_fail('adoption_recovery_fresh_host_required')
         phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if _is_phase(self.manifest) else None
         # The window is judged again, and the approval consumed, in one critical section (worker_adoption._critical).
-        with adoption._critical(self.policy,payload,self.sha256,deadline,fail=_fail,expired_code='adoption_recovery_signature_expired') as db:
+        with adoption._critical(self.policy,payload,self.sha256,deadline,fail=_fail,expired_code='adoption_recovery_signature_expired',domain=_domain(self.manifest)) as db:
             row=db.execute('SELECT status,cancelled,dispatches FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
             if row!=('prepared',0,0):_fail('adoption_recovery_plan_not_replayable')
             _original_row(db,self.original,self.manifest['original_facts'])

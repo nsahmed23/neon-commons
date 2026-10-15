@@ -138,6 +138,50 @@ class ToyStoreTests(unittest.TestCase):
         other.mkdir(mode=0o755)
         self.assertEqual(self.refused(lambda: self.enter(store=self.store(root=other))).code, 'toy_not_private')
 
+    def judged_open(self, payload, request, store=None):
+        """Enter the section for an artifact and return whether it was refused as expired."""
+        try:
+            with validity.critical(store or self.store(), payload, request, expired_code='toy_expired') as db:
+                db.execute('COMMIT')
+            return False
+        except AppError as error:
+            self.assertEqual(error.code, 'toy_expired')
+            return True
+
+    def test_an_artifact_that_reuses_another_artifacts_issuer_and_nonce_is_judged_on_its_own(self):
+        later = dict(self.payload, operation_id='operation-2', expires_at=self.start + 10 * LIFETIME)
+        self.clocks.elapse(LIFETIME + 1)
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64))  # the first artifact expires and is latched
+        self.assertFalse(self.judged_open(later, 's' * 64))  # a different operation and request, same issuer and nonce
+        again = dict(self.payload, expires_at=self.start + 10 * LIFETIME)  # same operation, a different request digest
+        self.assertFalse(self.judged_open(again, 't' * 64))
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64))  # and the first one stays latched
+
+    def test_the_family_domain_is_part_of_the_key(self):
+        other = validity.Store(self.root, self.connect, 'latched', fail, domain='other-family')
+        self.clocks.elapse(LIFETIME + 1)
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64))
+        longer = dict(self.payload, expires_at=self.start + 10 * LIFETIME)
+        # same issuer, nonce, operation and request digest, judged for another family
+        self.assertFalse(self.judged_open(longer, 'r' * 64, store=other))
+
+    def test_a_version_1_row_still_latches_its_own_artifact_and_only_that_one(self):
+        with self.connect() as db:  # a row made before the upgrade: no domain, the identity it stores
+            db.execute("INSERT INTO latched VALUES ('issuer-1', ?, 'operation-1', ?, ?, 1, 1)",
+                       ('a' * 32, 'r' * 64, self.start + LIFETIME))
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64))  # the window is open by the clock; the old row refuses it
+        unrelated = dict(self.payload, operation_id='operation-9')
+        self.assertFalse(self.judged_open(unrelated, 'r' * 64))
+        with self.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM latched').fetchone(), (1,))  # kept, not rewritten
+
+    def test_the_cap_counts_the_version_1_rows_and_the_version_2_rows(self):
+        with self.connect() as db:
+            db.execute("INSERT INTO latched VALUES ('issuer-1', 'old-nonce', 'operation-0', ?, ?, 1, 1)", ('q' * 64, self.start))
+        self.clocks.elapse(LIFETIME + 1)
+        capped = self.store(capacity=1)
+        self.assertEqual(self.refused(lambda: self.enter(store=capped, expired_code='toy_expired')).code, 'toy_capacity')
+
     def test_only_a_plain_lowercase_table_name_is_accepted(self):
         for name in ('expired; DROP TABLE consumed', 'Expired', '', 'a b'):
             with self.subTest(name=name), self.assertRaises(ValueError):

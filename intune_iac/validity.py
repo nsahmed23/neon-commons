@@ -31,18 +31,76 @@ from .io import AppError
 from .protected import _path, _sync
 
 MAX_EXPIRED = 100000
-_TABLE = re.compile(r'^[a-z][a-z_]{0,63}$')
+_TABLE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
 
 OPEN, CLOSED, HELD = 'open', 'closed', 'clock_moved_backward'
 
 
 def table_sql(table):
-    """The statement that creates an expiry table. The name is a source literal checked here, never input."""
+    """The statement that creates a (version 1) expiry table. The name is a source literal checked here, never input.
+
+    Version 1 is keyed by (issuer, nonce) alone, so it cannot tell two artifacts apart that reuse the pair. It is kept: its
+    rows are never deleted or rewritten, they are still consulted (matched on the full identity they store) and the
+    section still writes its rows there. The judgment's own key is the version 2 table (table_v2_sql)."""
     if type(table) is not str or not _TABLE.fullmatch(table):
         raise ValueError('An expiry table name is a short lowercase identifier.')
     return ('CREATE TABLE IF NOT EXISTS ' + table + ' (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL, '
             'request_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, judged_at INTEGER NOT NULL, wall INTEGER NOT NULL, '
             'PRIMARY KEY(issuer,nonce))')
+
+
+def v2_table(table):
+    return table + '_v2'
+
+
+def table_v2_sql(table):
+    """The version 2 expiry table: one row per exact authorization artifact. The key is the family's domain, the issuer,
+    the nonce, the operation and the request digest, the same key for insert and lookup, so an artifact that reuses
+    another's (issuer, nonce) in the same store, in another family or for another job, is judged on its own."""
+    table_sql(table)
+    return ('CREATE TABLE IF NOT EXISTS ' + v2_table(table) + ' (domain TEXT NOT NULL, issuer TEXT NOT NULL, nonce TEXT NOT NULL, '
+            'operation_id TEXT NOT NULL, request_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, judged_at INTEGER NOT NULL, '
+            'wall INTEGER NOT NULL, PRIMARY KEY(domain,issuer,nonce,operation_id,request_sha256))')
+
+
+def _has(db, table):
+    return bool(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone())
+
+
+def _legacy(db, table, where='', params=()):
+    """The version 1 rows that have no version 2 twin. A row with a twin was written by this code and is judged by the
+    twin, which names its domain; one without a twin is an old row, and the identity it stores is all there is to match."""
+    if not _has(db, table):
+        return 'SELECT 1 WHERE 0', ()
+    twin = ''
+    if _has(db, v2_table(table)):
+        twin = (' AND NOT EXISTS (SELECT 1 FROM ' + v2_table(table) + ' AS new WHERE new.issuer=old.issuer AND '
+                'new.nonce=old.nonce AND new.operation_id=old.operation_id AND new.request_sha256=old.request_sha256)')
+    return 'FROM ' + table + ' AS old WHERE 1=1' + where + twin, params
+
+
+def latched(db, table, domain, payload, request_sha256):
+    """Whether the exact artifact has an expiry record: plain reads, no write. A version 2 row must carry this domain and
+    the artifact's issuer, nonce, operation and request digest; an old version 1 row counts when the identity it stores
+    (the same four, it stores no domain) is this artifact's."""
+    table_sql(table)
+    # A payload that names no operation matches no record; recording one (in the section) still requires the field.
+    identity = (payload['issuer'], payload['nonce'], payload.get('operation_id', ''), request_sha256)
+    if _has(db, v2_table(table)) and db.execute(
+            'SELECT 1 FROM ' + v2_table(table) + ' WHERE domain=? AND issuer=? AND nonce=? AND operation_id=? AND request_sha256=?',
+            (domain,) + identity).fetchone():
+        return True
+    query, params = _legacy(db, table, ' AND issuer=? AND nonce=? AND operation_id=? AND request_sha256=?', identity)
+    return bool(db.execute('SELECT 1 ' + query if query.startswith('FROM') else query, params).fetchone())
+
+
+def _recorded(db, table):
+    """How many expiry records the store holds: version 2 rows, plus version 1 rows that have no version 2 twin."""
+    count = db.execute('SELECT count(*) FROM ' + v2_table(table)).fetchone()[0]
+    query, params = _legacy(db, table)
+    if query.startswith('FROM'):
+        count += db.execute('SELECT count(*) ' + query, params).fetchone()[0]
+    return count
 
 
 @dataclass(frozen=True)
@@ -54,7 +112,9 @@ class Store:
     table: its expiry table, created by table_sql.
     fail: the store's own refusal function (code -> raises).
     capacity: the most expiry rows it keeps; at the cap the store fails closed with capacity_code.
-    create: create the expiry table inside the section when it is missing, for a store made before the table existed.
+    create: create the expiry tables inside the section when they are missing, for a store made before the tables existed.
+    domain: the authorization family the store judges (for example the signature domain of the approval); it is part of
+    the expiry key. Defaults to the table name. The version 2 table is always created inside the section.
     """
     root: Path
     connect: Callable
@@ -64,9 +124,12 @@ class Store:
     capacity_code: str = 'approval_store_capacity'
     private_code: str = 'approval_store_not_private'
     create: bool = False
+    domain: str = None
 
     def __post_init__(self):
         table_sql(self.table)
+        if self.domain is None:
+            object.__setattr__(self, 'domain', self.table)
 
 
 def judge(reading, expires_at, deadline, latched):
@@ -162,15 +225,19 @@ def _judged(store, floor, payload, request_sha256, deadline):
             db.execute('BEGIN IMMEDIATE')
             if store.create:
                 db.execute(table_sql(store.table))
-            latched = db.execute('SELECT 1 FROM ' + store.table + ' WHERE issuer=? AND nonce=?',
-                                 (payload['issuer'], payload['nonce'])).fetchone()
-            state = judge(reading, payload['expires_at'], deadline, bool(latched))
+            else:
+                db.execute('SELECT 1 FROM ' + store.table + ' LIMIT 0')  # the store made its table; a missing one is an error
+            db.execute(table_v2_sql(store.table))
+            state = judge(reading, payload['expires_at'], deadline,
+                          latched(db, store.table, store.domain, payload, request_sha256))
             if state == CLOSED:
-                if db.execute('SELECT count(*) FROM ' + store.table).fetchone()[0] >= store.capacity:
+                if _recorded(db, store.table) >= store.capacity:
                     store.fail(store.capacity_code)
-                db.execute('INSERT OR IGNORE INTO ' + store.table + ' VALUES (?,?,?,?,?,?,?)',
-                           (payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256,
-                            payload['expires_at'], int(reading['effective']), int(reading['wall'])))
+                row = (payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256,
+                       payload['expires_at'], int(reading['effective']), int(reading['wall']))
+                db.execute('INSERT OR IGNORE INTO ' + v2_table(store.table) + ' VALUES (?,?,?,?,?,?,?,?)', (store.domain,) + row)
+                if _has(db, store.table):  # the version 1 table is kept written for readers that still look there
+                    db.execute('INSERT OR IGNORE INTO ' + store.table + ' VALUES (?,?,?,?,?,?,?)', row)
                 db.execute('COMMIT')
                 _sync(store.root)
                 closed = True

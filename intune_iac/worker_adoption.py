@@ -50,14 +50,17 @@ MAX_EXPIRED = validity.MAX_EXPIRED
 _EXPIRED_TABLE = 'adoption_expired'
 
 
-def _critical(policy, payload, manifest_sha256, deadline=None, *, fail=None, expired_code='adoption_signature_expired'):
+DOMAIN = SIGNATURE_DOMAIN.rstrip(b'\x00').decode()  # the import approval's domain, part of its expiry key
+
+
+def _critical(policy, payload, manifest_sha256, deadline=None, *, fail=None, expired_code='adoption_signature_expired', domain=DOMAIN):
     """The shared validity critical section (intune_iac.validity) on this adoption policy's own store: its authority
     root, its database and its adoption_expired table. The final window judgment, the recorded time, the expiry record
     and the caller's commit are one step. The payload must come from a receipt that authenticated: an expiry row is
     written for it. A reached expiry is refused here with expired_code (the caller's own time refusal); a backward step
     is held. The recovery-plan approvals in worker_adoption_reconcile share this store, table and section."""
     store = validity.Store(policy.root, policy.connection, _EXPIRED_TABLE, fail or _fail, capacity=MAX_EXPIRED,
-        capacity_code='adoption_store_capacity', private_code='adoption_store_not_private', create=True)
+        capacity_code='adoption_store_capacity', private_code='adoption_store_not_private', create=True, domain=domain)
     return validity.critical(store, payload, manifest_sha256, deadline, expired_code)
 
 
@@ -76,15 +79,13 @@ def _mark_authorized(db, operation_id, phase):
     db.execute('COMMIT')
 
 
-def _latched(db, payload):
+def _latched(db, payload, manifest_sha256, domain=DOMAIN):
     """Whether an expiry record exists for the receipt: plain reads, no write. A store made before the table existed
     has no record, and gets the table the first time a section runs."""
-    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (_EXPIRED_TABLE,)).fetchone(): return False
-    return bool(db.execute('SELECT 1 FROM ' + _EXPIRED_TABLE + ' WHERE issuer=? AND nonce=?',
-        (payload['issuer'], payload['nonce'])).fetchone())
+    return validity.latched(db, _EXPIRED_TABLE, domain, payload, manifest_sha256)
 
 
-def _watch(policy, payload, manifest_sha256, deadline, latched, *, fail, expired_code):
+def _watch(policy, payload, manifest_sha256, deadline, latched, *, fail, expired_code, domain=DOMAIN):
     """The window judgment for the periodic permit check (the watchdog runs it every 0.2 s, the broker on every request).
 
     Read-only on the open path: no directory lock, no write transaction, nothing persisted, so a cancel or recover
@@ -93,7 +94,7 @@ def _watch(policy, payload, manifest_sha256, deadline, latched, *, fail, expired
     step is held. Consumption and the dispatch markers keep the full section."""
     state, reading = validity.peek(policy.root, payload['expires_at'], deadline, latched)
     if state == validity.CLOSED:
-        _record_expiry(policy, payload, manifest_sha256, deadline)
+        _record_expiry(policy, payload, manifest_sha256, deadline, domain=domain)
         fail(expired_code)
     if state == validity.HELD: raise validity.hold(reading)
 
@@ -103,14 +104,14 @@ def _deadline(payload):
     return time.monotonic() + max(0, payload['expires_at'] - time.time())
 
 
-def _record_expiry(policy, payload, manifest_sha256, deadline=None):
+def _record_expiry(policy, payload, manifest_sha256, deadline=None, domain=DOMAIN):
     """Record a reached expiry of an authenticated receipt before the caller refuses for the manifest's own window.
 
     The manifest window is judged on the bare clock ahead of everything else, and the receipt expires no later than the
     manifest, so refusing there without recording would let a clock rollback reopen the receipt. Whatever this section
     refuses is the same closed window the caller is about to report in its original error, so it is not reported twice."""
     try:
-        with _critical(policy, payload, manifest_sha256, deadline): pass
+        with _critical(policy, payload, manifest_sha256, deadline, domain=domain): pass
     except (AppError, OSError): pass
 
 
@@ -474,7 +475,7 @@ class AdoptionPermit:
         self._before_judging()
         with self.job.policy.connection() as db:
             stopped = self._stopped_or_changed(db)
-            latched = _latched(db, self.payload)
+            latched = _latched(db, self.payload, self.job.sha256)
         _watch(self.job.policy, self.payload, self.job.sha256, self.deadline, latched,
             fail=_fail, expired_code='adoption_signature_expired')
         if stopped: _fail('adoption_permit_inactive')

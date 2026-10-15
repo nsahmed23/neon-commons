@@ -216,6 +216,21 @@ class ExecuteLatchTests:
         job_b = str(uuid.uuid4())
         return other, self.build_context(policy=other.policy, job_id=job_b, original=dict(self.original, operation_id=job_b))
 
+    def test_an_approval_that_reuses_an_expired_approvals_issuer_and_nonce_is_judged_on_its_own(self):
+        nonce = uuid.uuid4().hex
+        early = self.receipt(nonce=nonce, expires_at=self.start + 30)
+        manifest_a = copy.deepcopy(self.manifest)
+        self.clocks.wall = self.start + 40  # the first approval is over, the manifest and a later approval are not
+        with self.assertRaises(AppError):
+            self.module.execute(manifest_a, early, context=self.context, policy=self.recovery_policy,
+                                output=self.root / 'out' / uuid.uuid4().hex)
+        self.assertEqual(len(self.latched()), 1)
+        self.manifest = dict(self.manifest, operation_id=str(uuid.uuid4()))  # another operation, same issuer and nonce
+        self.write_recovery_policy()
+        result = self.execute(self.receipt(nonce=nonce))
+        self.assertEqual(result['status'], 'lease_release_independently_observed')
+        self.assertEqual(len(self.requests), 1)
+
     def test_an_expired_approval_for_one_job_writes_nothing_into_another_jobs_store(self):
         other, context_b = self.another_job_context()
         signed = self.receipt()

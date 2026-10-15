@@ -190,6 +190,10 @@ TRANSITIONAL_WORKER_FILES = {
     'validity.py': 'd7bafb7503c3ac00d8232ec3308565d26d6eb0470e62e9a4804de54250917f68',
     'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c',
 }
+AUTHZ_C_LABEL = 'authz-c-exact-artifact-key'
+AUTHZ_C_WORKER_FILES = dict(P3D_WORKER_FILES, **{
+    'approval_authority.py': '97d13b0d57b7679b50425c44f2d14562324070f4dff9b2807d591db0ef1a4960',
+    'validity.py': '0e56c680c28414520d5fecf0f0645b5a436f4eb7360e112e24a3b7a4046b68b8'})
 
 
 def frozen_digests():
@@ -237,7 +241,8 @@ class InventoryPinTests(unittest.TestCase):
              {'label': ADOPTION_LATCH_R3_LABEL, 'files': ADOPTION_LATCH_R3_WORKER_FILES},
              {'label': P3D_LABEL, 'files': P3D_WORKER_FILES},
              {'label': CENSUS_LABEL, 'files': CENSUS_WORKER_FILES},
-             {'label': TRANSITIONAL_LABEL, 'files': TRANSITIONAL_WORKER_FILES}])
+             {'label': TRANSITIONAL_LABEL, 'files': TRANSITIONAL_WORKER_FILES},
+             {'label': AUTHZ_C_LABEL, 'files': AUTHZ_C_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         # An entry carries the file set of its own release: the earlier set until clock.py was bound, the current set

@@ -246,6 +246,28 @@ class AdoptionFixture(unittest.TestCase):
 
 
 class DispatchLatchTests(AdoptionFixture):
+    def test_a_receipt_that_reuses_an_expired_receipts_issuer_and_nonce_is_judged_on_its_own(self):
+        nonce = uuid.uuid4().hex
+        early = self.receipt(nonce=nonce, expires_at=self.start + 30)
+        self.clocks.wall = self.start + 40
+        self.assertEqual(self.refused(lambda: self.run_job(early)).code, 'adoption_signature_expired')
+        self.assertEqual(len(self.latched()), 1)
+        # A second job of the same store: another operation and manifest, the same issuer and nonce.
+        self.manifest = dict(self.manifest, operation_id=str(uuid.uuid4()), verification_operation_id=str(uuid.uuid4()))
+        second_root = self.root / 'jobs' / 'adoption-job-2'
+        second_root.mkdir(mode=0o700)
+        self.job = object.__new__(adoption.AdoptionJob)
+        self.job.policy, self.job.root, self.job.manifest = self.policy, second_root, self.manifest
+        self.job.sha256, self.job.identifier, self.job._completion = digest(self.manifest), self.manifest['operation_id'], None
+        with self.policy.connection() as db:
+            db.execute('INSERT INTO jobs(id,root,manifest_sha256,status) VALUES (?,?,?,?)',
+                       (self.job.identifier, str(second_root), self.job.sha256, 'prepared'))
+            db.execute('UPDATE ownership SET job=?', (self.job.identifier,))
+            db.execute('INSERT INTO adoption_operations(operation_id,manifest_sha256,verification_id) VALUES (?,?,?)',
+                       (self.job.identifier, self.job.sha256, self.manifest['verification_operation_id']))
+        self.assertEqual(self.run_job(self.receipt(nonce=nonce))['status'], 'modeled-dispatch')
+        self.assertEqual(self.dispatched, ['import'])
+
     def test_an_expired_receipt_stays_refused_after_a_backward_step_and_a_restart(self):
         signed = self.receipt()
         self.clocks.elapse(LIFETIME + 1)

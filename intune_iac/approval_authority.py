@@ -254,6 +254,7 @@ class ApprovalAuthority:
                 db.execute('CREATE TABLE IF NOT EXISTS consumed (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL UNIQUE, request_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(issuer,nonce))')
                 db.execute('CREATE TABLE IF NOT EXISTS revoked (issuer TEXT NOT NULL, key_id TEXT NOT NULL, PRIMARY KEY(issuer,key_id))')
                 db.execute(validity.table_sql('expired'))
+                db.execute(validity.table_v2_sql('expired'))
                 db.execute('CREATE TABLE IF NOT EXISTS executions (operation_id TEXT PRIMARY KEY, request_sha256 TEXT NOT NULL, dispatched_at INTEGER NOT NULL, outcome_sha256 TEXT)')
                 db.execute('COMMIT')
             _sync(self.root)
@@ -269,7 +270,8 @@ class ApprovalAuthority:
         intune_iac.validity): the judgment, the recorded time, the expiry record and the caller's commit are one step.
         The store is this authority's root directory, its connection and its expired table."""
         store = validity.Store(self.root, lambda: _connection(self), 'expired', _fail, capacity=MAX_EXPIRED,
-                               capacity_code='approval_store_capacity', private_code='approval_store_not_private')
+                               capacity_code='approval_store_capacity', private_code='approval_store_not_private',
+                               domain=SIGNATURE_DOMAIN.rstrip(b'\x00').decode())
         return validity.critical(store, payload, request_sha256, deadline, expired_code)
 
     def revoke_key(self, issuer, key_id):

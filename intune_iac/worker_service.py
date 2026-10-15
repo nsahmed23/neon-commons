@@ -49,14 +49,15 @@ RECOVERY_EXPIRED_TABLE = 'recovery_expired'
 
 
 def _critical(policy, payload, request_sha256, deadline=None, *, table=_EXPIRED_TABLE, fail=None,
-              expired_code='service_signature_expired'):
+              expired_code='service_signature_expired', domain=None):
     """The shared validity critical section (intune_iac.validity) on this service policy's own store: its authority
     root, its database and an expiry table. The final window judgment, the recorded time, the expiry record and the
     caller's commit are one step. The payload must come from a receipt that authenticated: an expiry row is written
     for it. A reached expiry is refused here with expired_code (the caller's own time refusal); a backward step is
     held. Lock order: the store directory, the recorded-time lock, then the SQLite write transaction."""
     store = validity.Store(policy.root, policy.connection, table, fail or _fail, capacity=MAX_EXPIRED,
-        capacity_code='service_store_capacity', private_code='service_store_not_private', create=True)
+        capacity_code='service_store_capacity', private_code='service_store_not_private', create=True,
+        domain=domain or SIGNATURE_DOMAIN.rstrip(b'\x00').decode())
     return validity.critical(store, payload, request_sha256, deadline, expired_code)
 
 
@@ -65,36 +66,33 @@ def _deadline(payload):
     return time.monotonic() + max(0, payload['expires_at'] - time.time())
 
 
-def _latched(db, payload, table=_EXPIRED_TABLE):
+def _latched(db, payload, request_sha256, domain=None, table=_EXPIRED_TABLE):
     """Whether an expiry record exists for the receipt: plain reads, no write. A store made before the table existed
     has no record, and gets the table the first time a section runs."""
-    validity.table_sql(table)  # the name is a source literal; this rejects anything that is not a short identifier
-    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone(): return False
-    return bool(db.execute('SELECT 1 FROM ' + table + ' WHERE issuer=? AND nonce=?',
-        (payload['issuer'], payload['nonce'])).fetchone())
+    return validity.latched(db, table, domain or SIGNATURE_DOMAIN.rstrip(b'\x00').decode(), payload, request_sha256)
 
 
-def _watch(policy, payload, request_sha256, deadline, latched, *, fail, expired_code, table=_EXPIRED_TABLE):
+def _watch(policy, payload, request_sha256, deadline, latched, *, fail, expired_code, table=_EXPIRED_TABLE, domain=None):
     """The window judgment for a periodic check (the watchdog runs it every 0.2 s): read-only on the open path, so a
     cancel or recover from another process is never refused because a permit is polling. A closed window is recorded
     through the shared critical section and refused; if the store is busy it is refused anyway and recorded on a later
     call. A backward step is held. Its result grants no authority: only the critical section does."""
     state, reading = validity.peek(policy.root, payload['expires_at'], deadline, latched)
     if state == validity.CLOSED:
-        _record_expiry(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code)
+        _record_expiry(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code, domain=domain)
         fail(expired_code)
     if state == validity.HELD: raise validity.hold(reading)
 
 
 def _record_expiry(policy, payload, request_sha256, deadline=None, *, table=_EXPIRED_TABLE, fail=None,
-                   expired_code='service_signature_expired'):
+                   expired_code='service_signature_expired', domain=None):
     """Record a reached expiry of an authenticated receipt before the caller refuses for the manifest's own window.
 
     The manifest window is judged on the bare clock ahead of everything else, and the receipt expires no later than the
     manifest, so refusing there without recording would let a clock rollback reopen the receipt. Whatever this section
     refuses is the same closed window the caller is about to report in its original error, so it is not reported twice."""
     try:
-        with _critical(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code): pass
+        with _critical(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code, domain=domain): pass
     except (AppError, OSError): pass
 
 
@@ -105,7 +103,7 @@ def _record_expiry_of(job, receipt):
     except (AppError, OSError): pass
 
 
-def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, expired_code):
+def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, expired_code, domain):
     """Record the reached expiry of a recovery approval whose verification just refused it on the bare clock.
 
     The verification of a recovery approval (lease, committed-state, adoption and adoption-plan lease recovery) judges
@@ -117,17 +115,18 @@ def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, e
     try:
         payload = recovery_policy._verified(manifest, signed, signed['payload']['issued_at'])
     except (AppError, OSError, KeyError, TypeError): return
-    _record_expiry(store, payload, digest(manifest), None, table=RECOVERY_EXPIRED_TABLE, fail=fail, expired_code=expired_code)
+    _record_expiry(store, payload, digest(manifest), None, table=RECOVERY_EXPIRED_TABLE, fail=fail, expired_code=expired_code,
+                   domain=domain)
 
 
-def _window_open(store, payload, manifest_sha256, deadline, *, fail, expired_code):
+def _window_open(store, payload, manifest_sha256, deadline, *, fail, expired_code, domain):
     """The recovery approval's window judged once more, read-only, after its dispatch reservation committed and before
     the lease request is sent: the refusal the bare-clock check used to make there, now on the recorded time and this
     process's monotonic deadline (see _watch). It can only refuse; the reservation section is what authorizes."""
     with store.connection() as db:
-        latched = _latched(db, payload, RECOVERY_EXPIRED_TABLE)
+        latched = _latched(db, payload, manifest_sha256, domain, RECOVERY_EXPIRED_TABLE)
     _watch(store, payload, manifest_sha256, deadline, latched, fail=fail, expired_code=expired_code,
-           table=RECOVERY_EXPIRED_TABLE)
+           table=RECOVERY_EXPIRED_TABLE, domain=domain)
 
 
 _AUTHORIZATIONS = 'service_authorizations'
@@ -699,7 +698,7 @@ class ServicePermit:
         self._before_judging()
         with self.job.policy.connection() as db:
             stopped = self._stopped_or_changed(db)
-            latched = _latched(db, self.payload)
+            latched = _latched(db, self.payload, self.job.sha256)
         _watch(self.job.policy, self.payload, self.job.sha256, self.deadline, latched, fail=_fail,
             expired_code='service_signature_expired')
         if stopped: _fail('service_permit_inactive')

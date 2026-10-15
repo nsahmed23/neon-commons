@@ -75,6 +75,19 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
         self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'approval_receipt_time')
         self.assertEqual(self.consumed(), [])
 
+    def test_a_receipt_that_reuses_an_expired_receipts_issuer_and_nonce_is_judged_on_its_own(self):
+        import uuid
+        nonce = uuid.uuid4().hex
+        early = self.receipt(issued_at=self.start, expires_at=self.start + 30, nonce=nonce)
+        self.clocks.wall = self.start + 40
+        self.assertEqual(self.refused(lambda: self.authorize(early)).code, 'approval_receipt_time')
+        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired')), 1)
+        other = dict(self.request, operation_id=str(uuid.uuid4()))  # another operation, same issuer and nonce
+        later = self.receipt(request=other, issued_at=self.start, expires_at=self.start + LIFETIME, nonce=nonce)
+        with self.authorize(later, request=other, guard=aa.make_laboratory_guard(other, lambda: None)):
+            pass
+        self.assertEqual([row[0] for row in self.consumed()], [other['operation_id']])
+
     def test_the_expiry_is_recorded_in_the_authority_store_and_latches_without_the_clock_record(self):
         self.clocks.elapse(LIFETIME + 1)
         self.refused(lambda: self.authorize(self.signed))
