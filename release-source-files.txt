@@ -509,6 +509,8 @@ intune_iac/native_pins.py
 intune_iac/observation_contract.py
 intune_iac/observation_jobs.py
 intune_iac/observation_reader.py
+intune_iac/orchestration_contract.py
+intune_iac/orchestration_export.py
 intune_iac/output_edit.py
 intune_iac/pin_profiles.py
 intune_iac/production.py
@@ -820,6 +822,7 @@ plugin_tests/fixtures/pre_pin_migration/session/repository/stacks/deploy/dev.yam
 plugin_tests/fixtures/pre_pin_migration/session/session.json
 plugin_tests/fixtures/pre_pin_migration/session/session.json.repository-context.7afc87cf3f7641e8bafde059edb3b335.json
 plugin_tests/fixtures/worker_service_tls_client.c
+plugin_tests/orchestration_fixtures.py
 plugin_tests/signing_fixture.py
 plugin_tests/sim_cases.py
 plugin_tests/sim_support.py
@@ -894,6 +897,7 @@ plugin_tests/test_observation_clock_freshness.py
 plugin_tests/test_observation_jobs_r4.py
 plugin_tests/test_observation_reader_r4.py
 plugin_tests/test_oracle_edge_types.py
+plugin_tests/test_orchestration_export.py
 plugin_tests/test_output_edit.py
 plugin_tests/test_pin_history_p3b.py
 plugin_tests/test_pin_history_p3b_adoption.py
