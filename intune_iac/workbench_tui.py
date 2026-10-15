@@ -320,12 +320,13 @@ MAP_HELP_LINES = ('? help | a actions | : command | Up/Down node | Home edge | L
                   '? help | a actions | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
                   '? help | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
                   '? help | Up/Down node | Left/Right pan | Enter inspect | b back | q exit',
-                  '? help | Up/Down | Left/Right pan | Enter | b back | q exit',
+                  '? help | Up/Down | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | Up/Down | Left/Right | b back | q exit',
                   '? help | Left/Right | b back | q exit',
                   '? help | b back | q exit')
 
 
-def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True):
+def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan=True):
     """The key line for the width; keys the hazard band names (lead) come first in every form, so a key the band
     offers is never missing from the line below. The actions list has its own keys. map_keys: a map is shown, so the
     line names its keys (and only then); inspect: the focused node has an inspect route, so Enter is named (a key
@@ -335,7 +336,9 @@ def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True):
         return next((line for line in lines if cell_width(line) <= width), lines[-1])
     lines = list(MAP_HELP_LINES if map_keys and layer == 'summary' else LAYER_HELP_LINES if layer in LAYER_KEYS else HELP_LINES)
     if map_keys and layer == 'summary' and not inspect:
-        lines = [line.replace(' | Enter inspect', '').replace(' | Enter | ', ' | ') for line in lines]
+        lines = [line.replace(' | Enter inspect', '') for line in lines]
+    if map_keys and layer == 'summary' and not pan:
+        lines = [line.replace(' | Left/Right pan', '').replace(' | Left/Right', '') for line in lines]
     for old, new in LAYER_KEYS.get(layer, ()):
         lines = [line.replace(old, new) for line in lines]
     if lead:
@@ -1499,23 +1502,35 @@ class Workspace:
                                                     word_wrap(line, content) if cell_width(line) > content else [line])]
         widest = max((cell_width(line) for line in data if isinstance(line, MapLine)), default=0)
         self.hscroll = max(0, min(getattr(self, 'hscroll', 0), widest - content))
+        # A map taller than the pane keeps its legend and the focused node's rows in view: they are drawn under the
+        # scrolling part, which gives up the rows they take.
+        from .workbench_screens import MAP_GUTTER, PinnedRow
+        pinned = [line for line in data if isinstance(line, PinnedRow)]
+        if pinned and len(data) > available and len(pinned) < available:
+            data = [line for line in data if not isinstance(line, PinnedRow)]
+        else:
+            pinned = []
+        room = available - len(pinned)
         if getattr(self, 'follow_focus', False):
             # The focus moved: keep the focused node's row inside the pane (scrolling by hand is left alone otherwise).
             self.follow_focus = False
             focused = next((index for index, line in enumerate(data) if isinstance(line, MapLine) and line.focused), None)
-            if focused is not None and available:
-                self.scroll = focused if focused < self.scroll else max(self.scroll, focused - available + 1)
-        self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
-        visible = data[self.scroll:self.scroll + available]
+            if focused is not None and room:
+                self.scroll = focused if focused < self.scroll else max(self.scroll, focused - room + 1)
+        self.scroll = max(0, min(self.scroll, max(0, len(data) - room)))
+        visible = data[self.scroll:self.scroll + room]
         mapped = {index for index, line in enumerate(visible) if isinstance(line, MapLine)}
-        shown = [slice_cells(line, self.hscroll, content) if index in mapped else line for index, line in enumerate(visible)]
+        # The marks of the first MAP_GUTTER cells stay where they are; the rest of a map row pans.
+        shown = [slice_cells(line, 0, MAP_GUTTER) + slice_cells(line, MAP_GUTTER + self.hscroll, content - MAP_GUTTER)
+                 if index in mapped else line
+                 for index, line in enumerate(visible)] + pinned
         status = self._context_strip(width)
         ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
         # A view without its own evidence class shows the selected policy's, never a bare "unknown".
         facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
         scope = self._scope(facts)
         from .workbench_screens import mode_word
-        footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data),
+        footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + room, len(data)), len(data),
                              width, ellipsis, short=mode_word(scope) if scope in MODE_CLASSES else None)
         if staged_rows:
             footer = fit(staged_rows[0], width, ellipsis)
@@ -1530,14 +1545,14 @@ class Workspace:
         band_rows = set(range(3, 3 + len(band)))
         map_rows = {len(frame) + index for index in mapped}
         frame.extend(side + ' ' + pad(line, content) + ' ' + side for line in shown)
-        frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
+        frame.extend(side + ' ' * inner + side for _ in range(available - len(shown)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
-                            ' more below: PgDn ' if self.scroll + available < len(data) else None),
+                            ' more below: PgDn ' if self.scroll + room < len(data) else None),
                       pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
                       pad(prompt, width),
                       pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
                           help_line(width, getattr(self, 'layer', 'summary'), band_keys(band), map_keys=self._map_shown(),
-                                    inspect=self._map_focus_inspectable()), width)])
+                                    inspect=self._map_focus_inspectable(), pan=self._map_pans()), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
@@ -1785,6 +1800,11 @@ class Workspace:
         ref = getattr(self, 'map_focus', None)
         return ref if ref in order else order[0]
 
+    def _map_pans(self):
+        """Whether the map is wider than the pane, so that Left and Right move anything."""
+        from .workbench_screens import MAP_WIDTH
+        return MAP_WIDTH > max(1, self._map_size()[0] - 4)
+
     def _map_focus_inspectable(self):
         """Whether the focused node has an inspect route (today only a policy has one)."""
         from .workbench_screens import map_node
@@ -1831,6 +1851,8 @@ class Workspace:
             target = max(0, min(len(order) - 1, here + (-1 if key == 'up' else 1)))
         self.map_focus = order[target]
         self.follow_focus = True
+        # A move is the reader's own act: a notice an earlier key left (a node with no route, a key that did nothing) goes.
+        self.notice = 'Viewing Relationships.'
 
     def _hmax(self):
         """How far the pane can pan: the widest map row less the pane's width."""

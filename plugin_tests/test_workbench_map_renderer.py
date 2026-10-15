@@ -80,8 +80,9 @@ class HorizontalViewportTests(unittest.TestCase):
         for offset in (0, 7, 20):
             ws = workspace(self.lines(), hscroll=offset)
             rows = rows_of(ws)
-            ruler = next(row for row in rows if row.startswith('│ ' + self.LINE[offset]))
-            self.assertEqual(ruler[2:2 + 76], self.LINE[offset:offset + 76])
+            # The first three cells (the marker gutter) stay; the rest of the row pans from the offset.
+            expected = self.LINE[:3] + self.LINE[3 + offset:3 + offset + 73]
+            self.assertTrue(any(row[2:2 + 76] == expected for row in rows), (offset, expected))
             self.assertTrue(any('ordinary text that must not move' in row for row in rows))
             self.assertTrue(all(cell_width(row) <= 80 for row in rows))
 
@@ -92,11 +93,13 @@ class HorizontalViewportTests(unittest.TestCase):
 
     def test_a_wide_character_cut_by_the_offset_is_not_drawn_half(self):
         from intune_iac.workbench_screens import MapLine
-        ws = workspace([MapLine('漢字' * 20)], hscroll=1)       # each character is two cells wide
+        ws = workspace([MapLine('漢字' * 20)], hscroll=2)       # each character is two cells wide
         rows = rows_of(ws)
         row = next(row for row in rows if '漢' in row or '字' in row)
         self.assertLessEqual(cell_width(row), 80)
-        self.assertTrue(row.startswith('│  '), 'the half-cut character becomes a blank cell, not a stray half')
+        # The gutter is three cells: one character and the blank that stands for half of the next. The cell the offset
+        # cuts through is a blank too, never a stray half.
+        self.assertTrue(row.startswith('│ 漢  字'), row)
 
     def test_left_and_right_pan_a_map_and_stop_at_both_ends(self):
         from intune_iac.workbench_screens import MapLine

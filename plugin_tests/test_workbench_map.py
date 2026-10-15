@@ -21,7 +21,7 @@ ANSI = re.compile(r'\x1b\[[0-9;?]*[A-Za-z]')
 SIZES = ((80, 24), (120, 40), (200, 50))
 STATES = ('queued', 'running', 'blocked', 'unknown', 'verified')
 STATE_WORDS = ('queued', 'running', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown', 'verified')
-MARK = re.compile(r'\[[x+.:!#?-]\]')
+MARK = re.compile(r'\[[x+.:!#?_~o -]\]')
 WORD = re.compile(r'\b(%s)( *)' % '|'.join(STATE_WORDS))
 
 
@@ -29,8 +29,8 @@ def mask(rows):
     """Replace the state mark and the padded state word by a placeholder of the same cells."""
     def word(match):
         spaces = match.group(2)
-        need = max(0, 9 - len(match.group(1)))
-        return 'S' * 9 + spaces[need:] if len(spaces) >= need else 'X' * len(match.group(1)) + spaces
+        need = max(0, 13 - len(match.group(1)))
+        return 'S' * 13 + spaces[need:] if len(spaces) >= need else 'X' * len(match.group(1)) + spaces
     return [WORD.sub(word, MARK.sub('[M]', row)) for row in rows]
 
 
@@ -112,20 +112,19 @@ class MapLinesTests(Fixture):
         self.assertEqual(positions, sorted(positions))
         graph = self.graph()
         groups = sorted(node['id'] for node in graph['nodes'] if node['kind'] == 'group')
-        shown = [text.index(identifier[:8]) for identifier in groups]
+        shown = [text.index('Unresolved group identity ' + identifier[:8]) for identifier in groups]
         self.assertEqual(shown, sorted(shown))
 
     def test_node_cells_have_fixed_width_and_the_state_word_is_padded(self):
         from intune_iac.workbench_screens import MapLine
         rows = [row for row in self.lines() if isinstance(row, MapLine) and MARK.search(row)]
         self.assertEqual(len(rows), 9)                 # the policy and its eight neighbours
-        columns = set()
+        from intune_iac.workbench_screens import MAP_STATE_COLUMN
         for row in rows:
-            match = WORD.search(row)
-            self.assertIsNotNone(match, row)
-            columns.add(match.start())
             self.assertEqual(cell_width(row), cell_width(rows[0]), row)
-        self.assertEqual(len(columns), 1, 'every state word starts in one column')
+        # The policy's recorded word and every other node's dash start in one column.
+        self.assertTrue(all(row[MAP_STATE_COLUMN] != ' ' for row in rows), [row[MAP_STATE_COLUMN:] for row in rows])
+        self.assertTrue(all(row[MAP_STATE_COLUMN - 1] == ' ' for row in rows))
 
     def test_a_cut_layer_says_how_many_nodes_are_not_drawn(self):
         from intune_iac.workbench_screens import MAP_LAYER_LIMIT
@@ -179,7 +178,7 @@ class MapLinesTests(Fixture):
             self.assertLessEqual(cell_width(legends[0][0]), width)
         text = ' '.join(self.lines(116))
         for word in ('verified', 'running', 'queued', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown'):
-            self.assertIn(word, [part for row in self.lines(116) if '> focus' in row for part in row.split()])
+            self.assertIn(word, [part for row in self.lines(200) if '> focus' in row for part in row.split()])
         self.assertIn('* selected', text)
 
     def test_focus_and_selection_are_distinct_marks(self):
@@ -234,7 +233,8 @@ class MapFrameTests(Fixture):
                 for state, rows in frames.items():
                     policy_row = next(row for row in rows if self.object_id[:8] in row and MARK.search(row) and '*' in row[:6])
                     self.assertIn(state, policy_row, (size, state))
-                masked = {state: mask(rows) for state, rows in frames.items()}
+                # The FOCUS row of the policy names its operation word whole; it is a word, so it is masked as one.
+                masked = {state: mask([row for row in rows if 'operation ' not in row]) for state, rows in frames.items()}
                 first = masked['unknown']
                 for state, rows in masked.items():
                     self.assertEqual(rows, first, (size, rules, state))
@@ -294,7 +294,7 @@ class MapFrameTests(Fixture):
         self.assertEqual(len(legend), 1)
         self.assertEqual(len(focus), 1)
         self.assertTrue(header < last_edge < min(legend + focus), (header, last_edge, legend, focus))
-        self.assertTrue(max(legend + focus) < len(rows) - 5)               # inside the pane, above the footer
+        self.assertTrue(max(legend + focus) <= len(rows) - 5)              # inside the pane (kept in view at its foot), above the footer
 
     def test_the_tree_stays_the_canonical_reading_beside_the_map(self):
         ws = self.workspace((120, 60))
@@ -307,7 +307,7 @@ class MapFrameTests(Fixture):
         ws = self.workspace((60, 20))
         text = '\n'.join(self.plain(ws))
         self.assertIn('[MAP]', text)
-        self.assertIn('Left and Right pan', text)
+        self.assertIn('Left/Right pan', text)
         for row in self.plain(ws):
             self.assertLessEqual(cell_width(row), 60, row)
         # At the 40x12 minimum there is no map, and the screen says so.
@@ -330,8 +330,9 @@ class MapFrameTests(Fixture):
             self.assertNotIn('[MAP]', text, tab)
 
     def test_the_footer_and_help_name_the_map_keys_only_with_a_map(self):
-        with_map = self.plain(self.workspace((120, 40)))[-1]
-        self.assertIn('Left/Right', with_map)
+        with_map = self.plain(self.workspace((60, 20)))[-1]
+        self.assertIn('Left/Right', with_map)                                  # at 60x20 the map pans
+        self.assertNotIn('Left/Right', self.plain(self.workspace((120, 40)))[-1])   # at 120x40 nothing does
         self.assertNotIn('Left/Right', self.plain(self.workspace((120, 40), tab=3))[-1])
         self.assertNotIn('Left/Right', self.plain(self.workspace((48, 20)))[-1])
         help_value = {'navigation': [1], 'object_id': None}
@@ -351,7 +352,7 @@ class MapNavigationTests(Fixture):
         self.assertTrue(ws._map_focus().startswith('group:') or ws._map_focus().startswith('filter:'))
         footer = self.plain(ws)[-1]
         self.assertNotIn('Enter', footer)                                    # a key with no route is not drawn
-        self.assertIn('Left/Right', footer)
+        self.assertNotIn('Left/Right', footer)                               # and a pan that moves nothing is not named
         from intune_iac.workbench_tui import help_line
         for width in (120, 80, 60, 40):
             self.assertNotIn('Enter', help_line(width, map_keys=True, inspect=False))
