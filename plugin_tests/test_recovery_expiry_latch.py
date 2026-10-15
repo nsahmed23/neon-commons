@@ -57,6 +57,7 @@ class RecoveryFixture(unittest.TestCase):
     policy_schema = operation_schema = action = approval_schema = ''
     profile = ''
     original_id = None
+    phase_family = False  # the plan family also names the phase operation its context belongs to
 
     def setUp(self):
         self.start = int(time.time())
@@ -73,6 +74,8 @@ class RecoveryFixture(unittest.TestCase):
         self.outcome = {'host': {'cleanup': {'removed': True}}}
         self.original = {'operation_id': self.job_id, 'status': 'outcome_unknown', 'scopes': ['scope'],
                          'outcome_sha256': digest(self.outcome), 'lease_id': 'lease-1'}
+        if self.phase_family:
+            self.original['phase_operation_id'] = self.job_id
         self.state = {'etag': '"one"', 'serial': 1}
         self.manifest = {'schema_version': self.operation_schema, 'operation_id': str(uuid.uuid4()),
                          'prepared_at': self.start, 'expires_at': self.expires, 'profile': self.profile,
@@ -214,7 +217,45 @@ class ExecuteLatchTests:
         old_contracts.RecoveryPlanContracts.setUp(other)
         self.addCleanup(other.doCleanups)
         job_b = str(uuid.uuid4())
-        return other, self.build_context(policy=other.policy, job_id=job_b, original=dict(self.original, operation_id=job_b))
+        named = dict(self.original, operation_id=job_b, **({'phase_operation_id': job_b} if self.phase_family else {}))
+        return other, self.build_context(policy=other.policy, job_id=job_b, original=named)
+
+    def assert_no_store_touched(self, *stores):
+        for store in stores:
+            self.assertFalse((store.root / 'clock.json').exists())
+            connection = sqlite3.connect(store.database)
+            try:
+                tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                for name in ('recovery_expired', 'recovery_expired_v2'):
+                    if name in tables:
+                        self.assertEqual(connection.execute('SELECT count(*) FROM ' + name).fetchone()[0], 0)
+            finally:
+                connection.close()
+
+    def test_a_context_whose_job_is_another_jobs_but_whose_copied_fields_are_this_ones_records_nothing(self):
+        other, _ = self.another_job_context()
+        job_b = str(uuid.uuid4())
+        forged = self.build_context(policy=other.policy, job_id=job_b, original=self.original)  # the job is B's, the fields A's
+        signed = self.receipt()
+        self.clocks.elapse(LIFETIME + 1)
+        with self.assertRaises(AppError):
+            self.module.execute(self.manifest, signed, context=forged, policy=self.recovery_policy,
+                                output=self.root / 'out' / uuid.uuid4().hex)
+        self.assert_no_store_touched(other.policy, self.policy)
+        self.assert_nothing_happened()
+
+    def test_a_context_whose_phase_is_another_phase_but_whose_copied_fields_are_this_ones_records_nothing(self):
+        if not self.phase_family:
+            self.skipTest('only the plan family has a phase')
+        forged = self.build_context(original=self.original)
+        forged.phase_identifier = str(uuid.uuid4())  # the job and the copied fields are A's, the phase is another
+        signed = self.receipt()
+        self.clocks.elapse(LIFETIME + 1)
+        with self.assertRaises(AppError):
+            self.module.execute(self.manifest, signed, context=forged, policy=self.recovery_policy,
+                                output=self.root / 'out' / uuid.uuid4().hex)
+        self.assert_no_store_touched(self.policy)
+        self.assert_nothing_happened()
 
     def test_an_authentic_approval_issued_in_the_future_writes_no_clock_record_and_no_expiry(self):
         signed = self.receipt(issued_at=self.start + 30)  # authentic, but dated ahead of this clock
@@ -432,6 +473,7 @@ class AdoptionPlanRecoveryTests(ExecuteLatchTests, RecoveryFixture):
     approval_schema = 'signed-adoption-plan-native-lease-recovery-approval/1'
     profile = 'laboratory_adoption_plan_native_lease_recovery'
     adoption_proof = 'approved_adoption_successor'
+    phase_family = True
 
 
 if __name__ == '__main__':

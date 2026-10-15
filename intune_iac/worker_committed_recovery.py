@@ -266,9 +266,12 @@ class CommittedRecoveryPolicy:
 def _bound(manifest,context):
     """The pure binding checks: the manifest names this context's profile and original operation (and, for the adoption
     families, the proof classification it was observed under). Nothing may be recorded in the context's store before this
-    holds, or an approval of another job could write into this job's store."""
+    holds, or an approval of another job could write into this job's store. The identifiers are compared with the
+    context's own job (and phase), not only with the fields the context copied."""
     observation=manifest.get('observation') if type(manifest) is dict else None
     if type(observation) is not dict or manifest.get('profile')!=context.profile or observation.get('original')!=context.original:return False
+    original=observation.get('original')
+    if type(original) is not dict or original.get('operation_id')!=context.job.identifier:return False  # the context's own job
     return True
 
 
