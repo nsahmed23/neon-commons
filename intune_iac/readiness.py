@@ -42,9 +42,15 @@ NEEDS = {
                         'secret_input'}),
     'change': frozenset(row for row, _ in ROWS),
 }
-# Host profiles and executables each operation needs; inspect needs neither (Python packages only).
-PROFILES = {'inspect': (), 'discover': ('graph_observer',), 'adopt': ('protected_worker',), 'change': ('protected_worker',)}
+# Host profiles each operation needs. Inspect and discover need none: capture and target collect have no profile gate
+# (only the workbench observer needs graph_observer), so those two need Python packages only.
+PROFILES = {'inspect': (), 'discover': (), 'adopt': ('protected_worker',), 'change': ('protected_worker',)}
+# Executables looked up on the search path. Absence is a fact, never a missing tool: adoption takes its pins from the
+# manifest, so a tool absent from the search path may still be supplied by an explicit pinned path.
 EXECUTABLES = {'inspect': (), 'discover': (), 'adopt': ('atmos', 'tofu'), 'change': ('atmos', 'tofu')}
+PINNED_ROUTE = ('If you rely on a pinned executable, pass it with %s wizard --journey --atmos-executable PATH and '
+                '--tofu-executable PATH, or %s repository native --executable PATH; then run: %s doctor')
+GIT_HOSTING = 'Git hosting and review identity are not checked by the product (it never invokes gh or a remote).'
 KNOWN_EVIDENCE = ('no_live_connection', 'source_asserted_not_authenticated', 'modeled_service_no_authentication')
 IDENTITY_KINDS = ('context', 'export', 'store', 'modeled_service')
 NOT_NEEDED = 'Not needed for this operation.'
@@ -85,11 +91,15 @@ def _list(value):
 
 
 def _row(operation, row_id, label, state, detected, missing, next_action, owner_role):
-    """One row. A state of ready needs supporting facts; a row the operation does not need is not_needed."""
+    """One row. A state of ready needs a displayable supporting fact; a row the operation does not need is not_needed.
+
+    States follow one rule on every row: missing means the inputs establish an absence; unknown means they do not
+    establish the item either way.
+    """
     if row_id not in NEEDS[operation]:
         state, missing, next_action = 'not_needed', [], NOT_NEEDED
-    elif state == 'ready' and not detected:
-        state, missing = 'unknown', list(missing) + ['No supporting facts were provided.']
+    elif state == 'ready' and not any(detected.values()):
+        state, missing = 'unknown', list(missing) + ['No supporting fact could be displayed by this check.']
     return {'id': row_id, 'label': label, 'needed': row_id in NEEDS[operation], 'state': state,
             'detected': detected, 'missing': list(missing), 'next_action': next_action, 'owner_role': owner_role}
 
@@ -110,7 +120,8 @@ def _facts(survey, host, doctor):
             targets.append({'stack': _text(item.get('stack')), 'component': _text(item.get('component'))})
         if kind in IDENTITY_KINDS:
             evidence = states.get('authenticated')
-            identities.append({'kind': kind, 'tenant': _text(item.get('tenant_id'), _GUID),
+            tenant = _text(item.get('tenant_id'), _GUID)
+            identities.append({'kind': kind, 'tenant': tenant, 'named': item.get('tenant_id') not in (None, ''),
                                'evidence': evidence if evidence in KNOWN_EVIDENCE else 'unrecognized'})
     return {'survey': usable, 'host': bool(host), 'doctor': bool(doctor), 'items': items, 'repositories': repositories,
             'targets': targets, 'identities': identities, 'hostreport': host, 'doctorreport': doctor,
@@ -121,13 +132,16 @@ def _facts(survey, host, doctor):
 
 def _repository(item, states):
     revision = item.get('git_revision')
-    components = [{'stack': _text(c.get('stack')), 'component': _text(c.get('component'))}
-                  for c in _list(item.get('components')) if isinstance(c, dict)]
-    components = [c for c in components if c['stack'] and c['component']]
+    raw = [c for c in _list(item.get('components')) if isinstance(c, dict)]
+    shown = [{'stack': _text(c.get('stack')), 'component': _text(c.get('component'))} for c in raw]
+    components = [c for c in shown if c['stack'] and c['component']]
     revision = revision if isinstance(revision, str) and _REVISION.fullmatch(revision) else None
-    reason = _text(states.get('configured_reason'))
-    return {'path': _text(item.get('path'), _PATH), 'components': components, 'revision': revision, 'reason': reason,
-            'ready': states.get('configured') is True and bool(components) and revision is not None}
+    configured = states.get('configured') is True
+    ready = configured and bool(components) and revision is not None
+    return {'path': _text(item.get('path'), _PATH), 'components': components, 'revision': revision,
+            'reason': _text(states.get('configured_reason')), 'hidden': len(raw) - len(components), 'ready': ready,
+            # The product called it configured but this check cannot display what it needs: not the product's reason.
+            'gap': configured and not ready}
 
 
 # Mode and goal ---------------------------------------------------------------------------------------------------
@@ -166,8 +180,7 @@ def _mode_goal(operation, f):
         role = 'organization'
         if capabilities.get('cloud_apply') == 'unavailable':
             state, missing = 'missing', ['The doctor result reports cloud_apply as unavailable.']
-            action = ('The product has no route yet for an approved managed change to the cloud; inspect, discover and adopt '
-                      'preparation remain available.')
+            action = 'The product has no route yet for an approved managed change to the cloud.'
         else:
             state, missing, action = 'unknown', ['The doctor result does not establish a managed change route.'], 'Run: %s doctor' % PROGRAM
     return _row(operation, 'mode_goal', 'Mode and goal', state, detected, missing, action, role)
@@ -211,13 +224,14 @@ def _tools_host(operation, f):
         if found.get(name) is True:
             detected.setdefault('executables_on_search_path', []).append(name)
         elif found.get(name) is False:
-            missing.append('%s was not found on the search path.' % name)
+            detected.setdefault('executables_not_on_search_path', []).append(name)
+            unknown.append('%s was not found on the search path; adoption takes its pinned tools from the manifest, so this does '
+                           'not establish that a tool is missing.' % name)
             absent.append(name)
         else:
             unknown.append('The doctor result does not say whether %s is installed.' % name)
     if absent:
-        actions.append('Install %s, or pass the explicit pinned executable to the command that needs it, then run: %s doctor'
-                       % (' and '.join(absent), PROGRAM))
+        actions.append(PINNED_ROUTE % (PROGRAM, PROGRAM, PROGRAM))
     if missing:
         state = 'missing'
     elif unknown:
@@ -236,25 +250,44 @@ REPOSITORY_ACTION = ('Run %s start REPOSITORY_DIRECTORY from a Git checkout that
                      '--repo REPOSITORY' % (PROGRAM, PROGRAM))
 
 
+def _gap_text(repository):
+    """Why a repository the product called configured cannot be used by this check; never a reason the product did not give."""
+    name = repository['path'] or 'unnamed'
+    if repository['hidden']:
+        return 'Repository %s is configured, but component or stack names are not displayable by this check.' % name
+    return 'Repository %s is configured, but this check cannot display a Git revision or a component for it.' % name
+
+
 def _repository_row(operation, f):
     repositories = f['repositories']
     ready = [r for r in repositories if r['ready']]
-    detected = {}
-    if repositories:
-        detected['repositories'] = [{'path': r['path'], 'git_revision': (r['revision'] or '')[:12] or None,
-                                     'components': r['components']} for r in repositories if r['path']]
+    gaps = [r for r in repositories if r['gap']]
+    shown = [dict({'path': r['path'], 'git_revision': (r['revision'] or '')[:12] or None, 'components': r['components']},
+                  **({'components_not_displayed': r['hidden']} if r['hidden'] else {})) for r in repositories if r['path']]
+    detected = {'repositories': shown} if shown else {}
     if not f['survey']:
         return _row(operation, 'repository', 'Repository', 'unknown', {}, ['No survey was provided.'],
                     'Run: %s start DIRECTORY and pass its result to this check.' % PROGRAM, 'engineer')
+    action, missing = REPOSITORY_ACTION, []
     if ready:
-        return _row(operation, 'repository', 'Repository', 'ready', detected, [], NO_ACTION, 'engineer')
-    if not repositories:
-        missing = ['No Atmos repository (atmos.yaml) was found under the surveyed directory.']
+        state, action = 'ready', NO_ACTION
+    elif gaps:
+        state, missing = 'unknown', [_gap_text(r) for r in gaps]
+        action = 'Run: %s repository inspect --root REPOSITORY to see the stacks and components as the product lists them.' % PROGRAM
+    elif not repositories:
+        state, missing = 'missing', ['No Atmos repository (atmos.yaml) was found under the surveyed directory.']
     else:
-        missing = ['Repository %s is not usable: %s.' % (r['path'] or 'unnamed', (r['reason'] or 'no selectable component').replace('_', ' '))
-                   + (' A Git checkout (a .git directory) is required.' if r['reason'] == 'not_a_git_repository' else '')
-                   for r in repositories]
-    return _row(operation, 'repository', 'Repository', 'missing', detected, missing, REPOSITORY_ACTION, 'engineer')
+        state = 'missing'
+        missing = ['Repository %s is not usable: %s.%s' % (
+            r['path'] or 'unnamed', (r['reason'] or 'the survey gives no displayable reason').replace('_', ' '),
+            ' A Git checkout (a .git directory) is required.' if r['reason'] == 'not_a_git_repository' else '')
+            for r in repositories]
+    if operation == 'change':
+        # The guide puts Git hosting and review identity in this row; the product checks neither.
+        missing.append(GIT_HOSTING)
+        if state == 'ready':
+            state, action = 'unknown', 'The product has no route yet to check Git hosting or review identity.'
+    return _row(operation, 'repository', 'Repository', state, detected, missing, action, 'engineer')
 
 
 def _iac_target_row(operation, f):
@@ -262,6 +295,12 @@ def _iac_target_row(operation, f):
         return _row(operation, 'iac_target', 'IaC target', 'unknown', {}, ['No survey was provided.'],
                     'Run: %s start DIRECTORY and pass its result to this check.' % PROGRAM, 'engineer')
     ready = [r for r in f['repositories'] if r['ready']]
+    gaps = [r for r in f['repositories'] if r['gap']]
+    if not ready and gaps:
+        return _row(operation, 'iac_target', 'IaC target', 'unknown', {},
+                    [_gap_text(r) + ' No target can be matched.' for r in gaps],
+                    'Run: %s repository inspect --root REPOSITORY to see the stacks and components as the product lists them.' % PROGRAM,
+                    'engineer')
     if not ready:
         return _row(operation, 'iac_target', 'IaC target', 'missing', {},
                     ['No repository with a selectable component was found, so no stack or component can be resolved.'],
@@ -285,7 +324,12 @@ def _iac_target_row(operation, f):
                     '%s repository resolve --root REPOSITORY --stack STACK --component %s with the stack as the repository names it'
                     % (PROGRAM, near[0][1]), 'engineer')
     missing = ['The intended stack and component are not named by a context, or the context names none of the selectable ones.']
-    return _row(operation, 'iac_target', 'IaC target', 'missing', detected, missing,
+    state = 'missing'
+    if any(r['hidden'] for r in ready):
+        # Some component names were not displayable, so the context may name one of those.
+        state = 'unknown'
+        missing.append('Some component or stack names are not displayable by this check, so a match cannot be ruled out.')
+    return _row(operation, 'iac_target', 'IaC target', state, detected, missing,
                 'Put one selectable stack and component from "selectable" into the context JSON (examples/context.json shows the '
                 'shape), then run: %s start DIRECTORY' % PROGRAM, 'engineer')
 
@@ -311,9 +355,16 @@ def _service_row(operation, f):
         detected['identity_evidence'] = evidence
     if f['connection']:
         detected['connection'] = f['connection']
+    named_hidden = any(i['named'] and not i['tenant'] for i in identities)
     missing = []
-    if not tenants:
+    if not tenants and not named_hidden:
         missing.append('No tenant or cloud is selected (no context or export names one).')
+    if named_hidden:
+        missing.append('A tenant is named but not in GUID form; this check does not display it.')
+    if len(tenants) == 2:
+        missing.append('Two tenants are named (the context and the export differ); choose one.')
+    elif len(tenants) > 2:
+        missing.append('Several tenants are named; choose one.')
     missing.append('No verified sign-in: the product does not detect an existing sign-in for this selection.')
     if 'source_asserted_not_authenticated' in evidence:
         missing.append('The tenant is asserted by a file; nothing checks it against a sign-in.')
@@ -322,20 +373,28 @@ def _service_row(operation, f):
         missing.append('A working sign-in never implies permission for a change; the product records only observed reads.')
     else:
         missing.append('Read access for this operation is not checked per operation or scope.')
-    # Unrecognized evidence or an unknown connection kind is not the product's own word, so it is not trusted either way.
-    state = 'unknown' if 'unrecognized' in evidence or f['connection_unrecognized'] else 'missing'
-    if not tenants:
-        action = ('Provide a bounded context JSON (tenant, cloud, stack and component; examples/context.json shows the shape), '
-                  'then run: %s start DIRECTORY' % PROGRAM)
-        role = 'engineer'
-    elif operation == 'discover':
-        action = ('%s capture --tenant TENANT_ID --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME (reads the named '
-                  'variable; an explicit read token is the only live route today)' % PROGRAM)
-        role = 'administrator'
+    # Missing only when nothing is selected. A tenant that is selected, named but not shown, or ambiguous is not an
+    # absence, and neither is evidence or a connection kind the product never produces.
+    absent = not tenants and not named_hidden
+    state = 'missing' if absent and 'unrecognized' not in evidence and not f['connection_unrecognized'] else 'unknown'
+    tenant = tenants[0] if len(tenants) == 1 else 'TENANT_ID'
+    if operation == 'discover':
+        action = ('%s capture --tenant %s --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME (reads the named '
+                  'variable; one of the explicit-token routes, target collect is another)' % (PROGRAM, tenant))
     else:
         action = ('%s target authenticate --input TARGET_JSON --provider-secret-fd FD --backend-secret-fd FD (read-only identity '
                   'binding with a client secret, Unix hosts only)' % PROGRAM)
-        role = 'administrator'
+    role = 'administrator'
+    if absent:
+        action = ('Provide a bounded context JSON (tenant, cloud, stack and component; examples/context.json shows the shape), '
+                  'then run: %s start DIRECTORY' % PROGRAM)
+        role = 'engineer'
+    elif named_hidden and not tenants:
+        action = ('Name the tenant as a GUID in the context or export JSON, then run: %s start DIRECTORY' % PROGRAM)
+        role = 'engineer'
+    elif len(tenants) > 1:
+        action = 'Choose one tenant by making the context and the export name the same one. Then: ' + action
+        role = 'engineer'
     return _row(operation, 'integration_service', 'Integration and service', state, detected, missing, action, role)
 
 
@@ -353,14 +412,14 @@ def _execution_row(operation, f):
     cloud_apply = _dict(_dict(f['doctorreport']).get('capabilities')).get('cloud_apply')
     missing = ['No approved repository workflow, environment or execution identity is read by the product.',
                'Local rights are not told apart from a CI identity, and protected approvals are not checked.']
+    action = 'No route yet: the product cannot read a repository workflow or a CI identity'
     if cloud_apply == 'unavailable':
         state = 'missing'
         missing.append('The doctor result reports cloud_apply as unavailable.')
+        action += ', and the doctor result reports cloud_apply as unavailable'
     else:
         state = 'unknown'
-    action = ('No route yet: the product cannot read a repository workflow or a CI identity, and reports cloud_apply as '
-              'unavailable. You can inspect and discover now; a managed change needs an execution route and approvals from your '
-              'organization.')
+    action += '. A managed change needs an execution route and approvals from your organization.'
     return _row(operation, 'execution_route', 'Execution route', state, {}, missing, action, 'organization')
 
 

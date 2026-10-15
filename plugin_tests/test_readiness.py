@@ -156,8 +156,10 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(adopt['iac_target']['state'], 'ready')
         self.assertEqual(adopt['iac_target']['detected']['effective_configuration'], 'not_resolved_by_this_check')
         self.assertIn('intune-iac repository resolve', adopt['iac_target']['next_action'])
-        # Ready repository and target do not make the operation ready: the service and backend are not established.
-        self.assertEqual(value['operations']['adopt']['status'], 'missing')
+        # Ready repository and target do not make the operation ready: the service and backend are not established,
+        # and no row establishes an absence, so the operation is unknown rather than missing.
+        self.assertEqual(value['operations']['adopt']['status'], 'unknown')
+        self.assertEqual(value['operations']['change']['status'], 'missing')
 
     def test_a_repository_that_is_not_a_git_checkout_is_not_ready(self):
         broken = repository_item(revision=None)
@@ -179,13 +181,26 @@ class ReadinessTests(unittest.TestCase):
     def test_a_host_missing_a_required_tool(self):
         value = self.full(repository_item(), context_item(),
                           doctor=doctor_report(executables={'atmos': False, 'tofu': True, 'pwsh': False, 'codex': False, 'claude': False}))
-        adopt = rows_of(value, 'adopt')['tools_host']
-        self.assertEqual(adopt['state'], 'missing')
-        self.assertIn('atmos', ' '.join(adopt['missing']))
-        self.assertNotIn('tofu', ' '.join(adopt['missing']))
-        self.assertIn('intune-iac doctor', adopt['next_action'])
-        # The offline route does not need Atmos.
+        # Adoption takes its pins from the manifest, so absence from the search path is a fact, not a missing tool.
+        for operation in ('adopt', 'change'):
+            row = rows_of(value, operation)['tools_host']
+            self.assertEqual(row['state'], 'unknown', operation)
+            self.assertEqual(row['detected']['executables_not_on_search_path'], ['atmos'])
+            self.assertEqual(row['detected']['executables_on_search_path'], ['tofu'])
+            self.assertIn('atmos', ' '.join(row['missing']))
+            self.assertNotIn('tofu', ' '.join(row['missing']))
+            self.assertIn('intune-iac doctor', row['next_action'])
+            self.assertIn('wizard --journey --atmos-executable', row['next_action'])
+            self.assertIn('--tofu-executable', row['next_action'])
+            self.assertIn('repository native --executable', row['next_action'])
+        # The offline and discovery routes do not need Atmos.
         self.assertEqual(rows_of(value, 'inspect')['tools_host']['state'], 'ready')
+        self.assertEqual(rows_of(value, 'discover')['tools_host']['state'], 'ready')
+
+    def test_a_missing_package_still_outranks_an_unknown_tool(self):
+        value = self.full(doctor=doctor_report(missing_packages=('jsonschema',),
+                                               executables={'atmos': False, 'tofu': False, 'pwsh': False, 'codex': False, 'claude': False}))
+        self.assertEqual(rows_of(value, 'adopt')['tools_host']['state'], 'missing')
 
     def test_missing_python_packages_stop_every_operation(self):
         value = self.full(doctor=doctor_report(missing_packages=('jsonschema',)))
@@ -198,19 +213,27 @@ class ReadinessTests(unittest.TestCase):
 
     def test_an_unsupported_host_profile_names_the_gap_and_has_no_native_route(self):
         value = self.full(host=host_report(unsupported=('protected_worker', 'graph_observer')))
-        for operation in ('discover', 'adopt', 'change'):
+        for operation in ('adopt', 'change'):
             row = rows_of(value, operation)['tools_host']
             self.assertEqual(row['state'], 'missing', operation)
             self.assertIn('linux', ' '.join(row['missing']))
             self.assertIn('no native Windows route', row['next_action'])
         self.assertEqual(rows_of(value, 'inspect')['tools_host']['state'], 'ready')
 
+    def test_discover_needs_no_host_profile(self):
+        # capture and target collect have no profile gate; only the workbench observer needs graph_observer.
+        value = self.full(host=host_report(unsupported=('graph_observer', 'protected_worker', 'workbench_store')))
+        row = rows_of(value, 'discover')['tools_host']
+        self.assertEqual(row['state'], 'ready')
+        self.assertNotIn('profiles', row['detected'])
+
     def test_a_live_looking_context_with_no_authentication(self):
         value = self.full(context_item())
         for operation in ('discover', 'adopt', 'change'):
             row = rows_of(value, operation)['integration_service']
             self.assertTrue(row['needed'])
-            self.assertEqual(row['state'], 'missing', operation)
+            # A tenant is selected and no input shows a sign-in: the inputs do not establish the item, so unknown.
+            self.assertEqual(row['state'], 'unknown', operation)
             self.assertEqual(row['detected']['tenants'], [TENANT])
             self.assertEqual(row['detected']['identity_evidence'], ['no_live_connection'])
             self.assertIn('No verified sign-in', ' '.join(row['missing']))
@@ -224,7 +247,7 @@ class ReadinessTests(unittest.TestCase):
     def test_the_same_with_a_source_asserted_identity(self):
         value = self.full(context_item(), export_item())
         row = rows_of(value, 'discover')['integration_service']
-        self.assertEqual(row['state'], 'missing')
+        self.assertEqual(row['state'], 'unknown')
         self.assertEqual(row['detected']['identity_evidence'], ['no_live_connection', 'source_asserted_not_authenticated'])
         self.assertIn('asserted by a file', ' '.join(row['missing']))
         self.assertNotEqual(value['operations']['discover']['status'], 'ready')
@@ -327,7 +350,136 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(row['state'], 'missing')
         self.assertIn('POSIX', row['next_action'])
 
+    # fix round after review: truth of states and wording
+
+    def test_a_configured_repository_whose_names_cannot_be_shown_is_unknown_with_no_invented_reason(self):
+        for item in (repository_item(component='deviceconfigurationpolicybaseline'),
+                     repository_item(stack='orgs/référence/dev')):
+            value = self.full(item, context_item())
+            row = rows_of(value, 'adopt')['repository']
+            self.assertEqual(row['state'], 'unknown')
+            joined = ' '.join(row['missing'])
+            self.assertIn('component or stack names are not displayable by this check', joined)
+            self.assertNotIn('no selectable component', joined)
+            self.assertNotIn('not usable', joined)
+            target = rows_of(value, 'adopt')['iac_target']
+            self.assertEqual(target['state'], 'unknown')
+            self.assertIn('not displayable', ' '.join(target['missing']))
+            self.assertEqual(value['operations']['adopt']['status'], 'unknown')
+
+    def test_a_product_stated_reason_is_still_shown_as_the_products_word(self):
+        item = repository_item(); item['components'] = []
+        item['states'] = states(configured=False); item['states']['configured_reason'] = 'no_selectable_component'
+        row = rows_of(self.full(item, context_item()), 'adopt')['repository']
+        self.assertEqual(row['state'], 'missing')
+        self.assertIn('no selectable component', ' '.join(row['missing']))
+
+    def test_a_ready_row_with_nothing_to_show_is_downgraded_by_the_guard(self):
+        from intune_iac.readiness import _row
+        for detected in ({}, {'repositories': []}, {'a': [], 'b': {}, 'c': ''}):
+            row = _row('adopt', 'repository', 'Repository', 'ready', detected, [], 'x', 'engineer')
+            self.assertEqual(row['state'], 'unknown', detected)
+            self.assertTrue(row['missing'])
+        kept = _row('adopt', 'repository', 'Repository', 'ready', {'repositories': [{'path': 'r'}]}, [], 'x', 'engineer')
+        self.assertEqual(kept['state'], 'ready')
+
+    def test_a_repository_whose_path_cannot_be_shown_is_not_ready_with_an_empty_list(self):
+        for path in ('tokens-repo', 'x' * 301):
+            value = self.full(repository_item(path=path), context_item())
+            row = rows_of(value, 'adopt')['repository']
+            self.assertNotEqual(row['state'], 'ready', path)
+            self.assertNotIn('repositories', row['detected'])
+
+    def test_no_next_action_claims_other_operations_are_available(self):
+        for doctor in (doctor_report(missing_packages=('jsonschema',)), doctor_report()):
+            text = json.dumps(self.full(repository_item(), context_item(), doctor=doctor))
+            self.assertNotIn('remain available', text)
+            self.assertNotIn('You can inspect', text)
+            self.assertNotIn('can inspect and', text)
+
+    def test_the_cloud_apply_claim_is_made_only_when_the_doctor_says_so(self):
+        value = self.full(doctor=doctor_report(cloud_apply='available'))
+        change = rows_of(value, 'change')
+        for row_id in ('execution_route', 'mode_goal'):
+            self.assertEqual(change[row_id]['state'], 'unknown', row_id)
+            self.assertNotIn('unavailable', change[row_id]['next_action'], row_id)
+        self.assertEqual(rows_of(self.full(), 'change')['execution_route']['state'], 'missing')
+        self.assertIn('cloud_apply as unavailable', rows_of(self.full(), 'change')['execution_route']['next_action'])
+
+    def test_a_tenant_named_but_not_in_guid_form_is_reported_as_named_not_as_absent(self):
+        value = self.full(context_item(tenant='contoso.onmicrosoft.com'))
+        for operation in ('discover', 'adopt', 'change'):
+            row = rows_of(value, operation)['integration_service']
+            self.assertEqual(row['state'], 'unknown', operation)
+            joined = ' '.join(row['missing'])
+            self.assertIn('A tenant is named but not in GUID form; this check does not display it.', joined)
+            self.assertNotIn('No tenant or cloud is selected', joined)
+            self.assertNotIn('tenants', row['detected'])
+        self.assertNotIn('contoso', json.dumps(value))
+
+    def test_two_different_tenants_are_flagged(self):
+        value = self.full(context_item(tenant=TENANT), export_item(tenant=OTHER_TENANT))
+        for operation in ('discover', 'adopt', 'change'):
+            row = rows_of(value, operation)['integration_service']
+            self.assertEqual(row['detected']['tenants'], sorted([TENANT, OTHER_TENANT]))
+            self.assertIn('Two tenants are named (the context and the export differ); choose one', ' '.join(row['missing']))
+            self.assertEqual(row['state'], 'unknown')
+            self.assertIn('--tenant TENANT_ID', rows_of(value, 'discover')['integration_service']['next_action'])
+        same = rows_of(self.full(context_item(), export_item()), 'discover')['integration_service']
+        self.assertNotIn('Two tenants', ' '.join(same['missing']))
+        self.assertIn('--tenant ' + TENANT, same['next_action'])
+
+    def test_the_wording_does_not_overclaim_the_token_routes(self):
+        row = rows_of(self.full(context_item()), 'discover')['integration_service']
+        self.assertIn('one of the explicit-token routes', row['next_action'])
+        self.assertNotIn('only live route', row['next_action'])
+
+    def test_state_words_follow_one_rule_missing_is_an_established_absence(self):
+        # Nothing selected: absence is established.
+        self.assertEqual(rows_of(self.full(), 'discover')['integration_service']['state'], 'missing')
+        # Selected but no sign-in shown by any input: not established either way.
+        self.assertEqual(rows_of(self.full(context_item()), 'discover')['integration_service']['state'], 'unknown')
+        self.assertEqual(rows_of(self.full(context_item()), 'change')['backend']['state'], 'unknown')
+        self.assertEqual(rows_of(self.full(context_item()), 'change')['secret_input']['state'], 'unknown')
+
+    def test_a_change_needs_git_hosting_and_review_identity_the_product_does_not_check(self):
+        line = 'Git hosting and review identity are not checked by the product'
+        change = rows_of(self.full(repository_item(), context_item()), 'change')['repository']
+        self.assertEqual(change['state'], 'unknown')
+        self.assertIn(line, ' '.join(change['missing']))
+        self.assertTrue(change['detected'])
+        adopt = rows_of(self.full(repository_item(), context_item()), 'adopt')['repository']
+        self.assertEqual((adopt['state'], adopt['missing']), ('ready', []))
+        absent = rows_of(self.full(context_item()), 'change')['repository']
+        self.assertEqual(absent['state'], 'missing')
+        self.assertIn(line, ' '.join(absent['missing']))
+
+    def test_not_needed_rows_keep_the_facts_found(self):
+        value = self.full(repository_item(), context_item(), export_item())
+        inspect = rows_of(value, 'inspect')
+        self.assertEqual(inspect['repository']['state'], 'not_needed')
+        self.assertEqual(inspect['repository']['detected']['repositories'][0]['git_revision'], 'a' * 12)
+        self.assertEqual(inspect['integration_service']['state'], 'not_needed')
+        self.assertEqual(inspect['integration_service']['detected']['tenants'], [TENANT])
+        self.assertEqual(rows_of(value, 'discover')['repository']['detected']['repositories'][0]['path'], 'repository')
+
     # secrets, purity
+
+    def test_a_word_free_value_under_an_innocent_key_never_reaches_the_output(self):
+        # No secret word, no long run: only the allow-list (fields the model names) keeps these out.
+        plain = 'q7Rz2pLm'
+        repository = repository_item(); repository['note'] = plain; repository['components'][0]['hint'] = plain
+        repository['states']['label'] = plain
+        context = context_item(); context['comment'] = plain; context['states']['extra'] = plain
+        export = export_item(); export['description'] = plain
+        store = {'kind': 'store', 'path': 'store', 'tenant_id': TENANT, 'objects': 1, 'label': plain,
+                 'states': dict(states(), qualified='synthetic_only', label=plain)}
+        survey = survey_of(repository, context, export, store); survey['note'] = plain; survey['items'].append({'kind': 'other', 'label': plain})
+        host = host_report(); host['host']['label'] = plain; host['profiles']['protected_worker']['label'] = plain
+        doctor = doctor_report(); doctor['capabilities']['label'] = plain; doctor['extra'] = plain
+        doctor['dependencies']['jsonschema']['note'] = plain
+        text = json.dumps(self.model(survey, host, doctor), sort_keys=True)
+        self.assertNotIn(plain, text)
 
     def test_no_secret_looking_value_in_an_input_reaches_the_output(self):
         repository = repository_item(); repository['note'] = FAKE_SECRET; repository['states']['label'] = FAKE_SECRET
@@ -357,7 +509,8 @@ class ReadinessTests(unittest.TestCase):
         token = 'ghp_' + 'a1B2c3D4e5F6g7H8i9J0k1L2m3N4o5P6q7R8'
         value = self.full(repository_item(stack='orgs/' + token, component=token), context_item())
         self.assertNotIn(token, json.dumps(value))
-        self.assertEqual(rows_of(value, 'adopt')['repository']['state'], 'missing')
+        # The product called the repository configured; names this check cannot display make it unknown, not missing.
+        self.assertEqual(rows_of(value, 'adopt')['repository']['state'], 'unknown')
         ready = rows_of(self.full(), 'adopt')['mode_goal']
         self.assertEqual(ready['state'], 'ready')
         self.assertEqual(ready['detected']['route'], 'durable_manifest_preparation_and_review_cli')
@@ -410,7 +563,7 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(adopt['mode_goal']['state'], 'ready')
         # The context says reference-dev; discovery lists orgs/reference/dev: not decidable here.
         self.assertEqual(adopt['iac_target']['state'], 'unknown')
-        self.assertEqual(adopt['integration_service']['state'], 'missing')
+        self.assertEqual(adopt['integration_service']['state'], 'unknown')
         self.assertEqual(adopt['integration_service']['detected']['tenants'], [TENANT])
         self.assertIn('source_asserted_not_authenticated', adopt['integration_service']['detected']['identity_evidence'])
         self.assertIn('modeled_service_no_authentication', adopt['integration_service']['detected']['identity_evidence'])
