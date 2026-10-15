@@ -1396,8 +1396,10 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
         focused = index == focus
         state = 'available' if action.get('available') else 'blocked'
         lines += _labelled('%s %d.' % ('>' if focused else ' ', index + 1), '%s  (%s)' % (action.get('label'), state), width, 5)
-        # One essential effect for every action; the exact command and the full effects for the focused one.
-        lines += _labelled('', str(action.get('summary') or action.get('effects')), width, 5)
+        # One description per entry: the essential effect, or for the focused entry the full text that includes it, so
+        # the effect is stated once (run 11, frames 21, 37, 62, 80); then the exact command or the reason it is blocked.
+        described = (action.get('effects') if focused else None) or action.get('summary') or action.get('effects')
+        lines += _labelled('', str(described), width, 5)
         if action.get('available') and not focused:
             names = ' and '.join(str(need).split(':')[0] for need in action.get('needs') or [])
             if names:
@@ -1418,8 +1420,6 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
             for other in blocked.get('also') or []:
                 if isinstance(other, dict):
                     lines += _labelled('', 'also blocked  ' + _blocked_words(other), width, 5)
-        if focused and action.get('effects') and action.get('effects') != action.get('summary'):
-            lines += _labelled('', str(action.get('effects')), width, 5)
     return lines
 
 

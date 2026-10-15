@@ -564,8 +564,8 @@ class ActionStagingTests(unittest.TestCase):
         self.stage_first(workspace)
         self.assertEqual(workspace.mode, 'command')
         self.assertEqual(workspace.buffer, 'reconcile /work/op')
-        self.assertTrue(workspace.notice.startswith('STAGED reconcile: never replays the change.'), workspace.notice)
-        self.assertIn('Enter submits; Esc cancels.', workspace.notice)
+        # Under the open list the focused entry says what the command does (run 11 item 7); the notice says how to submit.
+        self.assertEqual(workspace.notice, 'Enter submits; Esc cancels.')
 
     def test_a_blocked_action_cannot_be_staged(self):
         workspace = self.workspace()

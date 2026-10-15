@@ -268,7 +268,7 @@ class JourneyTwentyEightWordsTests(unittest.TestCase):
     def test_a_proposal_action_says_nothing_is_approved_or_sent_once(self):
         from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
         for kind in ('propose-from-intent', 'propose'):
-            said = (ACTION_SUMMARY[kind] + ' ' + ACTION_EFFECTS[kind]).lower().count('nothing is approved or sent')
+            said = ACTION_EFFECTS[kind].lower().count('nothing is approved or sent')  # the focused entry prints this text alone
             self.assertEqual(said, 1, kind)
 
 

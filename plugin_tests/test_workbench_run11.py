@@ -7,6 +7,8 @@ import unittest
 
 from plugin_tests import test_workbench_repository as repository_tests
 from plugin_tests import test_workbench_states as states_tests
+from plugin_tests.test_workbench_map_truth import MapTruth
+from plugin_tests.test_workbench_run10 import action
 
 OBJECT, TENANT = repository_tests.OBJECT, repository_tests.TENANT
 
@@ -215,3 +217,82 @@ class OneNextTests(unittest.TestCase):
                     'operation_root': '/w/op'}
         text = self.banded(4, prepared)
         self.assertIn("execute /w/op DIGEST", text)
+
+
+class OneDescriptionTests(unittest.TestCase):
+    """Item 7 (frames 21, 37, 62, 80): a focused entry states its effect once, in one description."""
+    CLAIMS = {'reconcile': ('replaying the change',), 'collect': ('changes no policy',),
+              'repository-refresh': ('no Git commit, approval or apply',), 'propose-from-intent': ('nothing is approved or sent',),
+              'propose': ('nothing is approved or sent',), 'repository-entry': ('writes nothing',),
+              'diagnostics': ('records nothing',), 'deployment-record': ('sends nothing',),
+              'companion': ('records nothing', 'opens no browser')}
+
+    def entry(self, kind, available=True):
+        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        blocked = None if available else {'code': 'maintenance_observation_stale', 'message': 'Collect again.'}
+        return {'kind': kind, 'label': 'Label of ' + kind, 'command': kind + ' x', 'cursor': None, 'needs': [],
+                'summary': ACTION_SUMMARY[kind], 'effects': ACTION_EFFECTS[kind], 'available': available,
+                'blocked': blocked, 'binding': {}}
+
+    def focused(self, kind, available=True, width=118):
+        from intune_iac.workbench_screens import actions_lines
+        return ' '.join(' '.join(line.strip() for line in actions_lines([self.entry(kind, available)], 0, width)).split())
+
+    def test_the_focused_entry_prints_one_description_block(self):
+        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        for kind in ACTION_SUMMARY:
+            for available in (True, False):
+                text = self.focused(kind, available)
+                self.assertIn(' '.join(ACTION_EFFECTS[kind].split()), text, kind)
+                if ACTION_SUMMARY[kind] not in ACTION_EFFECTS[kind]:
+                    self.assertNotIn(' '.join(ACTION_SUMMARY[kind].split()), text, kind)
+
+    def test_the_other_entries_keep_their_one_line_summary(self):
+        from intune_iac.workbench import ACTION_SUMMARY
+        from intune_iac.workbench_screens import actions_lines
+        entries = [self.entry('collect'), self.entry('reconcile')]
+        text = ' '.join(' '.join(line.strip() for line in actions_lines(entries, 0, 118)).split())
+        self.assertIn(' '.join(ACTION_SUMMARY['reconcile'].split()), text)
+
+    def test_the_one_description_keeps_every_claim_the_summary_made(self):
+        from intune_iac.workbench import ACTION_EFFECTS
+        for kind, claims in self.CLAIMS.items():
+            for claim in claims:
+                self.assertIn(claim.lower(), ACTION_EFFECTS[kind].lower(), (kind, claim))
+
+    def test_no_description_says_a_claim_twice(self):
+        import re
+        from intune_iac.workbench import ACTION_EFFECTS
+        for kind, text in ACTION_EFFECTS.items():
+            words = re.findall(r"[a-z']+", text.lower())
+            grams = [' '.join(words[index:index + 4]) for index in range(len(words) - 3)]
+            self.assertEqual(sorted({gram for gram in grams if grams.count(gram) > 1}), [], kind)
+            for claim in self.CLAIMS[kind]:
+                self.assertEqual(text.lower().count(claim.lower()), 1, (kind, claim))
+
+
+class StagedNoticeTests(MapTruth):
+    """Item 7: the staged notice does not say again, under the open actions list, what the focused entry just said."""
+    ENTRIES = (action('collect', 'Collect again', command='collect'),
+               action('reconcile', 'Reconcile operation 64581d41', command='reconcile /w/op'))
+
+    def listed(self, focus=0):
+        ws = self.workspace((120, 40))
+        ws.facts.update(actions=list(self.ENTRIES))
+        ws._open_actions()
+        ws.action_focus = focus
+        return ws
+
+    def test_under_the_open_list_the_notice_says_only_how_to_submit(self):
+        for focus, word in ((0, 'collect'), (1, 'reconcile')):
+            ws = self.listed(focus)
+            ws._stage(ws._actions()[focus])
+            self.assertNotIn('STAGED', ws.notice)
+            self.assertIn('Enter submits', ws.notice)
+            self.assertIn('Esc cancels', ws.notice)
+
+    def test_outside_the_list_the_notice_still_says_what_the_staged_command_does(self):
+        ws = self.listed(1)
+        ws.layer = 'summary'
+        ws._stage(ws._actions()[1])
+        self.assertIn('STAGED reconcile: never replays the change.', ws.notice)

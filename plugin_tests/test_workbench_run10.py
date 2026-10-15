@@ -567,29 +567,25 @@ class KeyNamesTests(unittest.TestCase):
 class OneEffectTests(companion_tests.Fixture):
     """Item 12: a focused entry says its effect once: its long text adds to the summary and does not repeat it."""
 
-    def shingles(self, text):
-        words = re.findall(r"[a-z']+", text.lower())
-        return {' '.join(words[index:index + 3]) for index in range(len(words) - 2)}
-
-    def test_no_long_text_repeats_three_words_of_its_summary(self):
+    # Run 11 item 7 supersedes the run 10 split (a summary plus a long text that added to it): the focused entry
+    # prints its one full description in place of the summary, so it is the long text that holds each claim, once.
+    def test_the_focused_entry_prints_the_long_text_in_place_of_the_summary(self):
         from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
-        checked = 0
-        for kind, summary in ACTION_SUMMARY.items():
-            effects = ACTION_EFFECTS[kind]
-            if effects == summary:
-                continue
-            checked += 1
-            self.assertEqual(sorted(self.shingles(summary) & self.shingles(effects)), [], kind)
-        self.assertGreaterEqual(checked, 6)
+        from intune_iac.workbench_screens import actions_lines
+        entry = {'kind': 'collect', 'label': 'Collect again', 'command': 'collect', 'cursor': None, 'needs': [],
+                 'summary': ACTION_SUMMARY['collect'], 'effects': ACTION_EFFECTS['collect'], 'available': True,
+                 'blocked': None, 'binding': {}}
+        text = ' '.join(' '.join(line.strip() for line in actions_lines([entry], 0, 116)).split())
+        self.assertIn(ACTION_EFFECTS['collect'], text)
+        self.assertNotIn(ACTION_SUMMARY['collect'], text)
 
     def test_the_three_named_actions_keep_what_each_claims_in_one_place(self):
-        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        from intune_iac.workbench import ACTION_EFFECTS
         for kind, claims in (('collect', ('collection run', 'changes no policy')),
                              ('deployment-record', ('records the deployment', 'sends nothing')),
                              ('companion', ('records nothing', 'opens no browser'))):
             for claim in claims:
-                self.assertEqual([name for name, table in (('summary', ACTION_SUMMARY), ('effects', ACTION_EFFECTS))
-                                  if claim in table[kind].lower()], ['summary'], (kind, claim))
+                self.assertEqual(ACTION_EFFECTS[kind].lower().count(claim), 1, (kind, claim))
 
     def test_the_long_text_still_says_what_only_it_says(self):
         from intune_iac.workbench import ACTION_EFFECTS
@@ -667,7 +663,7 @@ class OneNounTests(unittest.TestCase):
                                               'effects': {'deployment_recorded': False}}}
         self.assertIn('Effect: No deployment record was made.', text_of(refusal_lines(value, 118)))
         self.assertIn('Records the deployment in this store', ACTION_SUMMARY['deployment-record'])
-        self.assertIn('The record is a verified local modeled baseline', ACTION_EFFECTS['deployment-record'])
+        self.assertIn('as a verified local modeled baseline', ACTION_EFFECTS['deployment-record'])
         self.assertTrue(all('receipt' not in text for text in STAGED_BOUNDARY['deployment-record']), STAGED_BOUNDARY['deployment-record'])
 
     def test_no_module_says_deployment_receipt(self):

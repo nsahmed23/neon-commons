@@ -2087,7 +2087,12 @@ class Workspace:
     def _staged_notice(self):
         staged = self.staged or {}
         boundary, mechanics = staged.get('boundary') or ('',), staged.get('mechanics') or ('',)
-        return (boundary[min(1, len(boundary) - 1)] + ' ' + mechanics[min(1, len(mechanics) - 1)]).strip()
+        how = mechanics[min(1, len(mechanics) - 1)]
+        if getattr(self, 'layer', 'summary') == 'actions':
+            # The open list shows the focused entry's full description above, which is what this command does; the
+            # notice says only how to submit it, so the effect is stated once (run 11, frames 21 and 37).
+            return how.strip()
+        return (boundary[min(1, len(boundary) - 1)] + ' ' + how).strip()
 
     def _stage_after_difference(self, action, value):
         """Stage a refresh once its difference is on screen, bound to that difference's resolution digest."""

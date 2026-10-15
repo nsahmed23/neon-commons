@@ -382,33 +382,40 @@ def _next_actions(value, attention, service_available):
 
 
 # What each guided action does, said once and shown wherever it is offered. Reading the service still records
-# local evidence, so "reads" never stands for "changes nothing".
+# local evidence, so "reads" never stands for "changes nothing". The focused entry prints this one description in
+# place of its summary (run 11, frames 21, 37, 62, 80), so each text keeps every claim its summary makes, once.
 ACTION_EFFECTS = {
-    'reconcile': 'Reads the modeled service on its own, then records a reconciliation receipt and a journal entry for '
-                 'this operation and updates the operation in this store.',
-    'collect': 'A denied or partial result is recorded as a run too, kept in the store.',
+    'reconcile': "Checks the operation's outcome without replaying the change: reads the modeled service on its own, then "
+                 'records a reconciliation receipt and a journal entry for this operation and updates the operation in '
+                 'this store.',
+    'collect': 'Reads the modeled service and records a collection run, a denied or partial result included, in the '
+               'store; it changes no policy.',
     'repository-refresh': 'Shows the source difference first (Repository surface) and binds the command to it. Then reads '
-                          "the repository's current files and keeps them as the new intent, refusing if they changed since "
-                          'the difference was shown; the earlier intent is kept.',
+                          "the repository's current files and records them as a new intent, refusing if they changed since "
+                          'the difference was shown; the earlier intent is kept. No Git commit, approval or apply happens.',
     'propose-from-intent': 'Checks the recorded intent, then writes two input files beside a new operation directory '
                            'before checking the observation; if that check refuses, the two files stay. Otherwise it '
-                           'writes the directory and records the operation in this store.',
+                           'writes the directory and records the operation in this store: a local proposal for review; '
+                           'nothing is approved or sent.',
     'propose': 'Checks the desired file and the observation, then writes a new operation directory and records the '
-               'operation in this store.',
+               'operation in this store: a local proposal for review; nothing is approved or sent.',
     'repository-entry': 'Reads the repository and lists its policies with the exact command to record each. It writes '
                         'nothing.',
-    'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why.',
+    'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why; it records '
+                   'nothing.',
     'deployment-record': 'Rechecks the operation, its engine receipt, its one verified readback and the context bytes '
-                         'its plan bound against the cited repository intent first. The record is a verified local '
-                         'modeled baseline for that intent, not platform qualified.',
-    'companion': 'The page reads this policy and its relationships, shows one snapshot and does not update itself, and '
+                         'its plan bound against the cited repository intent first. Then records the deployment in this '
+                         'store as a verified local modeled baseline for that intent, not platform qualified; it sends '
+                         'nothing.',
+    'companion': 'Writes one read-only page for this policy to a file you name; it records nothing and opens no browser. '
+                 'The page reads this policy and its relationships, shows one snapshot and does not update itself, and '
                  'can approve or run nothing; the notice names the path. From a shell the same command is ' + COMPANION_WRITE +
                  '; with --serve instead of --out FILE it serves the page on this machine only, and the product prints its '
                  'secret address (anyone on the same machine who has it can read the page).',
 }
 
 
-# One essential effect per action, shown for every action in the list; the full effects above are for the focused one.
+# One essential effect per action, shown for the entries that are not focused; the focused one shows the full text above.
 ACTION_SUMMARY = {
     'reconcile': "Checks the operation's outcome and records the result; it never replays the change.",
     'collect': 'Reads the modeled service and records a collection run; it changes no policy.',
