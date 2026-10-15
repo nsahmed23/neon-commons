@@ -2410,9 +2410,9 @@ def adoption_lines(value, width):
         field('Ownership', str(value.get('ownership')))
         lines += word_wrap('%s; %s.' % ('Original journey kept' if value.get('original_journey_preserved') else
                                          'Original journey not confirmed kept', flags), width)
-        lines += word_wrap("Next: q, then reopen the workspace with --service-root '%s' so collect and proposals use "
-                           "the handoff's model; 1 Estate lists the adopted %s." % (
-                               value.get('service_root'), 'policy' if len(ids) == 1 else 'policies'), width)
+        lines += word_wrap("Next: q, then reopen the workspace: it uses this handoff's modeled service for collect and "
+                           'proposals without --service-root (the Estate names it); 1 Estate lists the adopted %s.'
+                           % ('policy' if len(ids) == 1 else 'policies'), width)
         return lines
     binding = value.get('binding') if isinstance(value.get('binding'), dict) else {}
     ids = [str(item) for item in binding.get('object_ids') or []]

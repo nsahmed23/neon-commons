@@ -843,6 +843,9 @@ class Workspace:
         if isinstance(value.get('evidence_class'), str) and ('snapshot_id' in value or isinstance(value.get('objects'), list)) and not empty:
             # Observations say where the estate's evidence comes from; the strip's first word states it.
             self.mode_class = value['evidence_class']
+        if value.get('status') == 'adopted_local_model' and isinstance(value.get('evidence_class'), str):
+            # The adoption recorded a collection run; its evidence class is the estate's mode from now on.
+            self.mode_class = value['evidence_class']
         if not self.selected or value.get('object_id') not in (None, self.selected):
             return
         facts = self.facts if self.facts.get('object_id') == self.selected else {'object_id': self.selected}

@@ -64,6 +64,7 @@ class WorkbenchAdoptionTests(unittest.TestCase):
         original = original_service.read_bytes()
         result = self.adopt()
         self.assertEqual(result['status'], 'adopted_local_model')
+        self.assertEqual(result['evidence_class'], 'synthetic')  # the collection run's own class
         self.assertEqual(result['object_ids'], sorted(self.ids))
         self.assertEqual(result['service_root'], str(self.handoff / 'service'))
         self.assertEqual(original_service.read_bytes(), original)
@@ -279,7 +280,8 @@ class AdoptionSummaryTests(unittest.TestCase):
         self.assertIn('Modeled service: ' + str(self.handoff / 'service'), text)
         self.assertIn('Collection run %s recorded in this store' % result['collection_run_id'], text)
         self.assertIn('Original journey kept', text)
-        self.assertIn('--service-root', text)
+        # Since a405bf1 a reopened store uses the adopted service; the next step no longer asks for it.
+        self.assertIn('without --service-root', text)
 
     def test_one_adopted_policy_is_named_in_the_singular(self):
         from intune_iac.workbench_screens import adoption_lines

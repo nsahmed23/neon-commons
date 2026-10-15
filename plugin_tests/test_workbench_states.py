@@ -598,3 +598,24 @@ class NewestOperationTests(unittest.TestCase):
         self.assertEqual(newest['operation_id'], 'b' * 32)
         self.assertEqual(newest['status'], 'reconciled')
         self.assertEqual(newest['recorded_at'], 'T4')
+
+
+class AdoptedSummaryTests(unittest.TestCase):
+    """Journey 28 run 3, frames 02 and 03: after adopting, the mode is known and reopening needs no --service-root."""
+    RESULT = {'status': 'adopted_local_model', 'handoff_root': '/w/handoff', 'service_root': '/w/handoff/service',
+              'object_ids': [OBJECT], 'collection_run_id': 1, 'adoptions': [{'artifact_id': 'a' * 64}],
+              'cloud_authority': False, 'execution_authorized': False, 'remote_import_performed': False,
+              'ownership': 'unknown', 'original_journey_preserved': True, 'evidence_class': 'synthetic'}
+
+    def test_the_next_step_does_not_ask_for_the_service_root(self):
+        from intune_iac.workbench_screens import adoption_lines
+        text = ' '.join(' '.join(adoption_lines(dict(self.RESULT), 160)).split())
+        self.assertNotIn('--service-root', text.replace('without --service-root', ''))
+        self.assertIn("reopen the workspace: it uses this handoff's modeled service", text)
+
+    def test_the_strip_states_the_adopted_evidence_mode(self):
+        workspace = StateSurfaceTests.workspace(self, 0, {})
+        workspace.mode_class = None
+        workspace.selected = None
+        workspace._learn(dict(self.RESULT))
+        self.assertEqual(workspace.mode_class, 'synthetic')

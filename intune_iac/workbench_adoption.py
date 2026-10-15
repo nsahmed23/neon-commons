@@ -155,9 +155,14 @@ def _result(store, root, journal, capture, expected):
     if (len(saved) != len(object_ids) or {row['object_id'] for row in saved} != set(object_ids)
             or any(digest(parse_json(row['body_json'])) != digest(expected['objects'][row['object_id']]) for row in saved)):
         _fail('workbench_adoption_observation_changed')
+    # The collection run's own evidence class, so a view can state the evidence mode at once (additive).
+    try:
+        run_evidence = store.collection_detail(journal['collection_run_id']).get('evidence_class')
+    except AppError:
+        run_evidence = None
     return {'status': 'adopted_local_model', 'handoff_root': str(root), 'service_root': str(root / 'service'),
             'object_ids': journal['binding']['object_ids'], 'binding_sha256': journal['binding_sha256'],
-            'collection_run_id': journal['collection_run_id'], 'adoptions': rows,
+            'collection_run_id': journal['collection_run_id'], 'adoptions': rows, 'evidence_class': run_evidence,
             'cloud_authority': False, 'execution_authorized': False, 'remote_import_performed': False,
             'ownership': 'unknown', 'original_journey_preserved': True}
 
