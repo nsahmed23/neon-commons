@@ -586,6 +586,132 @@ class ActionStagingTests(unittest.TestCase):
         self.assertEqual(self.keys(workspace, ['enter']), 'reconcile /work/op')
 
 
+class ClockHoldPresentationTests(unittest.TestCase):
+    """PKG-PRES-HOLD items 1, 3, 4 and 6 in the read model: the hold's times reach every place the display reads the
+    observation's freshness from; the refusal and blocked sentences name them and say the age once; two hazards are
+    both listed, the clock first."""
+    RESOURCE_ADDRESS = ActionReadModelTests.RESOURCE_ADDRESS
+    setUp = ActionReadModelTests.setUp
+    import_intent = ActionReadModelTests.import_intent
+    edit_description = ActionReadModelTests.edit_description
+    inspection = ActionReadModelTests.inspection
+    FACT = {'reads': 1_800_000_000.0, 'recorded': 1_800_000_266.0}
+    TIMES = "this host's clock reads 2027-01-15 08:00:00 UTC; this workspace recorded 2027-01-15 08:04:26 UTC"
+
+    def held_inspection(self, reasons, fact):
+        from unittest import mock
+        real = type(self.store).inspect
+
+        def held(store, object_id, **kwargs):
+            value = dict(real(store, object_id, **kwargs), freshness='stale', freshness_reasons=list(reasons))
+            if fact is not None:
+                value['freshness_clock'] = dict(fact)
+            return value
+        with mock.patch.object(type(self.store), 'inspect', held):
+            return self.inspection()
+
+    def test_the_fact_reaches_the_signal_the_eligibility_and_the_state(self):
+        value = self.held_inspection(['clock_moved_backward'], self.FACT)
+        stale = next(signal for signal in value['attention']['signals'] if signal['code'] == 'observation_stale')
+        self.assertEqual(stale['evidence']['freshness_clock'], self.FACT)
+        self.assertEqual(value['observation_eligibility']['freshness_clock'], self.FACT)
+        self.assertEqual(value['states']['observation']['freshness_clock'], self.FACT)
+
+    def test_without_a_hold_none_of_those_places_carries_the_key(self):
+        value = self.inspection()
+        self.assertNotIn('freshness_clock', value)
+        self.assertFalse(any('freshness_clock' in signal['evidence'] for signal in value['attention']['signals']))
+        self.assertNotIn('freshness_clock', value['states']['observation'])
+
+    def test_the_diagnostics_step_and_the_inspector_next_name_the_times(self):
+        value = self.held_inspection(['clock_moved_backward'], self.FACT)
+        stale = next(signal for signal in value['attention']['signals'] if signal['code'] == 'observation_stale')
+        self.assertIn(self.TIMES, stale['next_step'])
+        self.assertTrue(stale['next_step'].startswith('Correct the host clock'), stale['next_step'])
+
+    def test_the_blocked_row_names_the_times_and_says_the_age_once(self):
+        value = self.held_inspection(['clock_moved_backward'], self.FACT)
+        blocked = next(action for action in value['actions'] if action['kind'] == 'propose')['blocked']
+        self.assertIn(self.TIMES, blocked['message'])
+        self.assertEqual(blocked['message'].count('age cannot be established'), 1, blocked['message'])
+        self.assertNotIn('collect again', blocked['message'].replace('collecting again does not clear this', ''))
+
+    def test_the_refusal_sentence_says_the_age_once_and_names_the_times(self):
+        from intune_iac.workbench import _reason_words
+        moved = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['older_than_window', 'clock_moved_backward'],
+                               'freshness_clock': self.FACT})
+        self.assertEqual(moved, "the newest observation's age cannot be established (this host's clock reads earlier "
+                                'than a time this workspace recorded; older than the freshness window); collecting again '
+                                'does not clear this: correct the host clock, or wait until it reads at or after the time '
+                                'this workspace recorded, then restart the workbench (%s)' % self.TIMES)
+        unreadable = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['clock_floor_invalid'],
+                                    'freshness_clock': {'reads': 1_800_000_000.0, 'recorded': None}})
+        self.assertEqual(unreadable.count('cannot be established'), 1, unreadable)
+        self.assertIn("(this host's clock reads 2027-01-15 08:00:00 UTC; the time this workspace recorded cannot be "
+                      'read)', unreadable)
+        for sentence in (moved, unreadable):
+            self.assertNotIn('1800000', sentence)  # no raw epoch, no invented time
+
+    def test_a_clock_hold_and_a_repository_change_block_the_row_with_both_reasons_clock_first(self):
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        value = self.held_inspection(['clock_moved_backward'], self.FACT)
+        blocked = next(action for action in value['actions'] if action['kind'] == 'propose-from-intent')['blocked']
+        self.assertEqual((blocked['code'], blocked['reason']), ('maintenance_observation_stale', 'not_fresh'))
+        self.assertEqual([(item['code'], item['reason']) for item in blocked['also']],
+                         [('workbench_repository_stale', 'repository_changed')])
+        self.assertIn('changed since its recorded intent', blocked['also'][0]['message'])
+
+    def test_a_repository_change_alone_lists_one_reason(self):
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        blocked = next(action for action in self.inspection()['actions']
+                       if action['kind'] == 'propose-from-intent')['blocked']
+        self.assertEqual(blocked['code'], 'workbench_repository_stale')
+        self.assertNotIn('also', blocked)
+
+
+    def held_queue(self, reasons, fact):
+        from unittest import mock
+        from intune_iac.workbench import _queue
+        self.import_intent()
+        self.store.collect(self.service, fault='deny')  # leaves the observation not fresh in the overview
+        real = type(self.store).inspect
+
+        def held(store, object_id, **kwargs):
+            value = dict(real(store, object_id, **kwargs), freshness='stale', freshness_reasons=list(reasons))
+            if fact is not None:
+                value['freshness_clock'] = dict(fact)
+            return value
+        with mock.patch.object(type(self.store), 'inspect', held):
+            return _queue(self.store)
+
+    def test_the_queue_findings_of_a_held_observation_carry_the_hold_and_the_times(self):
+        findings = self.held_queue(['older_than_window', 'clock_moved_backward'], self.FACT)['findings']
+        stale = [item for item in findings if item['finding'] == 'observation_stale']
+        self.assertEqual(len(stale), 1)
+        for item in findings:
+            if item['object_id'] == OBJECT:
+                self.assertEqual(item['evidence']['freshness_reasons'], ['clock_moved_backward'], item['finding'])
+                self.assertEqual(item['evidence']['freshness_clock'], self.FACT)
+
+    def test_the_queue_findings_without_a_hold_carry_neither_key(self):
+        findings = self.held_queue(['older_than_window'], None)['findings']
+        self.assertTrue(any(item['finding'] == 'observation_stale' for item in findings))
+        for item in findings:
+            self.assertNotIn('freshness_clock', item['evidence'])
+            self.assertNotIn('freshness_reasons', item['evidence'])
+
+
+    def test_the_attention_list_puts_the_clock_hold_before_the_repository_change(self):
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        value = self.held_inspection(['clock_moved_backward'], self.FACT)
+        codes = [signal['code'] for signal in value['attention']['signals']]
+        self.assertEqual([code for code in codes if code in ('observation_stale', 'repository_stale')],
+                         ['observation_stale', 'repository_stale'])
+
+
 if __name__ == '__main__':
     unittest.main()
 
@@ -733,12 +859,12 @@ class ClockHoldTests(unittest.TestCase):
     def test_the_refusal_sentence_names_the_clock_first(self):
         from intune_iac.workbench import _reason_words
         moved = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['older_than_window', 'clock_moved_backward']})
-        self.assertEqual(moved, "the newest observation's age cannot be established (its age cannot be established: this "
-                                "host's clock reads earlier than a time this workspace recorded; older than the freshness "
+        self.assertEqual(moved, "the newest observation's age cannot be established (this host's clock reads earlier "
+                                "than a time this workspace recorded; older than the freshness "
                                 'window); collecting again does not clear this: correct the host clock, or wait until it '
                                 'reads at or after the time this workspace recorded, then restart the workbench')
         unreadable = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['clock_floor_invalid']})
-        self.assertEqual(unreadable, "the newest observation's age cannot be established (its age cannot be established: the "
+        self.assertEqual(unreadable, "the newest observation's age cannot be established (the "
                                      'time this workspace recorded cannot be read); collecting again does not clear this: '
                                      "changes stay held until the workspace's recorded time can be read again "
                                      '(Diagnostics shows where it is kept)')

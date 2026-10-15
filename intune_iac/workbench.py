@@ -16,7 +16,7 @@ import signal
 import threading
 
 from .io import AppError, load_json
-from .workbench_diagnostics import CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold
+from .workbench_diagnostics import CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold, with_clock_times
 
 
 def add_parser(commands):
@@ -176,6 +176,14 @@ def _health(store, object_id=None, *, limit=None, offset=0):
         'qualification': 'Collection aggregates and policy-bound imported device evidence are separate; neither grants rollout approval.'}
 
 
+def _clock_hold_facts(observed):
+    """The clock hold an observation carries, as the queue's evidence says it; {} when it carries none."""
+    reasons = [reason for reason in observed.get('freshness_reasons') or [] if reason in CLOCK_HOLD_REASONS]
+    if not reasons or not isinstance(observed.get('freshness_clock'), dict):
+        return {}
+    return {'freshness_reasons': reasons, 'freshness_clock': dict(observed['freshness_clock'])}
+
+
 def _queue(store, *, limit=None, offset=0):
     """Evidence gaps are review findings, never inferred authorization to fix."""
     from .workbench_health import device_health
@@ -198,10 +206,16 @@ def _queue(store, *, limit=None, offset=0):
                     observed_at=source['observed_at'], coverage=source['coverage']))
     ownership_now = time.time()
     findings = []
+    held = {}  # the clock hold is the store's, not one policy's: it is read once, from the first observation that is not fresh
     for row in overview.get('objects', []) + overview.get('pending_observations', []):
         reasons = []
+        hold = {}
         if row.get('freshness') != 'fresh':
             reasons.append(('observation_stale', 'A current complete observation is required before assessing changes.'))
+            if not row.get('pending_observation'):
+                if 'read' not in held:
+                    held.update(read=True, value=_clock_hold_facts(_read_observation(store, row['object_id'])))
+                hold = held['value']
         attempt = row.get('last_attempt', overview.get('last_attempt'))
         if attempt and attempt.get('status') != 'complete':
             reasons.append(('collection_incomplete', 'Last collection did not complete; preserved values are last-good evidence.'))
@@ -241,7 +255,7 @@ def _queue(store, *, limit=None, offset=0):
                     'last_attempt': attempt, 'evidence_class': row.get('evidence_class', 'unknown'),
                     'policy_reporting': {'artifact_id': health.get('artifact_id'), 'evidence_class': health['evidence_class'],
                         'stage': 'execution', **{key: reporting.get(key) for key in ('targeted', 'reporting', 'unknown')},
-                        'endpoint_effectiveness_established': False}},
+                        'endpoint_effectiveness_established': False}, **hold},
                 'freshness': row.get('freshness'), 'priority': 'review', 'priority_rationale': rationale,
                 'review_due': None, 'related_proposals': related, 'exception_expiry': None,
                 'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
@@ -292,6 +306,8 @@ def _states(observation, intent, attention, eligibility):
     signals = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
     observed = {key: observation.get(key) for key in ('evidence_class', 'run_id', 'observed_at', 'coverage', 'freshness')}
     observed['freshness_reasons'] = list(observation.get('freshness_reasons') or [])
+    if isinstance(observation.get('freshness_clock'), dict):
+        observed['freshness_clock'] = dict(observation['freshness_clock'])
     observed['eligibility'] = eligibility if isinstance(eligibility, dict) and eligibility.get('reason') else None
     if intent is None:
         intended = {'status': 'none'}
@@ -455,15 +471,70 @@ def _eligibility(store, object_id, service_root, observation=None):
     if service_root is None:
         return None
     try:
-        return maintenance.proposal_eligibility(store.root, service_root, object_id, observation=observation)
+        problem = maintenance.proposal_eligibility(store.root, service_root, object_id, observation=observation)
     except AppError as error:
         return {'code': error.code, 'reason': None, 'message': error.message}
+    if problem and problem.get('reason') == 'not_fresh' and clock_hold(problem.get('freshness_reasons')):
+        # The hold's times belong to the observation that was judged; the engine's check does not carry them.
+        shown = observation if isinstance(observation, dict) else _read_observation(store, object_id)
+        if isinstance(shown.get('freshness_clock'), dict):
+            problem = dict(problem, freshness_clock=dict(shown['freshness_clock']))
+    return problem
+
+
+def _read_observation(store, object_id):
+    """The observation as the store reports it now, or {} when it cannot be read."""
+    try:
+        return store.inspect(object_id)
+    except AppError:
+        return {}
+
+
+def _intent_blocker(attention, intent):
+    """The first check on the recorded repository intent that a proposal from it would fail; None when all pass."""
+    import copy
+    from . import maintenance
+    from .workbench_repository import _usable_intent, capability_problems
+    try:
+        _usable_intent(intent, code_prefix='workbench')
+    except AppError as error:
+        # One code covers several causes; diagnostics records which one, with the changed paths.
+        found = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
+        for code, reason in REPOSITORY_REASONS:
+            if found.get(code, {}).get('observed'):
+                return {'code': error.code, 'reason': reason, 'message': str(found[code]['observed']).rstrip('.')}
+        return {'code': error.code, 'message': error.message}
+    # The checks propose_from_intent and propose make on the desired body, in their order.
+    if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
+        from .workbench_repository import capability_explanation
+        return {'code': 'workbench_desired_capability',
+                'message': '%s The reference component cannot propose it.' % capability_explanation(intent['data']['desired'])}
+    try:
+        maintenance._desired(copy.deepcopy(intent['data']['desired']))
+    except AppError as error:
+        return {'code': error.code, 'message': error.message}
+    return None
+
+
+def _observation_blocker(problem):
+    """The proposal's own observation check as a blocker; None when it passes."""
+    if problem is None:
+        return None
+    if not problem.get('reason'):
+        return {'code': problem['code'], 'message': problem.get('message') or _refusal(problem['code'])['message']}
+    blocker = {'code': problem['code'], 'reason': problem['reason'], 'message': _reason_words(problem)}
+    hold = clock_hold(problem.get('freshness_reasons')) if problem['reason'] == 'not_fresh' else None
+    if hold:
+        blocker['clock_hold'] = hold  # the workspace words a clock hold by its recovery, not by the engine's code
+    return blocker
 
 
 def _proposal_blocker(store, object_id, attention, intent, service_root, eligibility=_UNREAD):
-    """Why a proposal cannot be prepared now, from the same checks the proposal makes; None when nothing blocks it."""
-    import copy
-    from . import maintenance
+    """Why a proposal cannot be prepared now, from the same checks the proposal makes; None when nothing blocks it.
+
+    Every reason that blocks it is listed: the first is the blocker, the others follow under "also". A clock hold
+    comes first, because it blocks every proposal and nothing in the workbench clears it.
+    """
     if service_root is None:
         return {'code': 'service_required', 'message': 'needs --service-root (a modeled service) to prepare a proposal'}
     if not _attention_established(attention):
@@ -471,32 +542,14 @@ def _proposal_blocker(store, object_id, attention, intent, service_root, eligibi
         # so no change is offered. The engine would still accept the command typed by hand.
         return {'code': 'workbench_attention_not_established',
                 'message': 'not offered until diagnostics are read: whether anything needs attention is not established'}
-    if intent is not None:
-        from .workbench_repository import _usable_intent, capability_problems
-        try:
-            _usable_intent(intent, code_prefix='workbench')
-        except AppError as error:
-            # One code covers several causes; diagnostics records which one, with the changed paths.
-            found = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
-            for code, reason in REPOSITORY_REASONS:
-                if found.get(code, {}).get('observed'):
-                    return {'code': error.code, 'reason': reason, 'message': str(found[code]['observed']).rstrip('.')}
-            return {'code': error.code, 'message': error.message}
-        # The checks propose_from_intent and propose make on the desired body, in their order.
-        if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
-            from .workbench_repository import capability_explanation
-            return {'code': 'workbench_desired_capability',
-                    'message': '%s The reference component cannot propose it.' % capability_explanation(intent['data']['desired'])}
-        try:
-            maintenance._desired(copy.deepcopy(intent['data']['desired']))
-        except AppError as error:
-            return {'code': error.code, 'message': error.message}
+    repository = _intent_blocker(attention, intent) if intent is not None else None
     problem = _eligibility(store, object_id, service_root) if eligibility is _UNREAD else eligibility
-    if problem is None:
+    observation = _observation_blocker(problem)
+    ordered = [observation, repository] if (observation or {}).get('clock_hold') else [repository, observation]
+    reasons = [item for item in ordered if item]
+    if not reasons:
         return None
-    if not problem.get('reason'):
-        return {'code': problem['code'], 'message': problem.get('message') or _refusal(problem['code'])['message']}
-    return {'code': problem['code'], 'reason': problem['reason'], 'message': _reason_words(problem)}
+    return dict(reasons[0], also=reasons[1:]) if len(reasons) > 1 else reasons[0]
 
 
 # The recorded repository signal that names which cause a repository refusal had.
@@ -529,8 +582,10 @@ def _reason_words(problem):
             # The clock is named first: nothing else clears while it holds, and a new collection is judged against the
             # same recorded time. The recorded reasons follow with the clock's own first.
             recorded = sorted(problem.get('freshness_reasons') or [], key=lambda item: item not in CLOCK_HOLD_REASONS)
+            # The verdict is said once, in front of the causes; the times the clock and the record gave close it.
             return ("the newest observation's age cannot be established (%s); collecting again does not clear this: %s"
-                    % ('; '.join(FRESHNESS_REASON_WORDS.get(item, item) for item in recorded), CLOCK_HOLD_RECOVERY[hold]))
+                    % ('; '.join(CLOCK_HOLD_CAUSES.get(item) or FRESHNESS_REASON_WORDS.get(item, item) for item in recorded),
+                       with_clock_times(CLOCK_HOLD_RECOVERY[hold], problem.get('freshness_clock'))))
         reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]
         if ('stamped_after_now' in (problem.get('freshness_reasons') or [])
                 and problem.get('next_collection_replaces') in ('same_service', 'any_collection')):

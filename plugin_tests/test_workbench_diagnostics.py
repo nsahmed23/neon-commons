@@ -307,5 +307,53 @@ class ClockHoldFreshnessTests(unittest.TestCase):
                          'Collect again (:collect) before preparing or judging a change.')
 
 
+class ClockHoldUnknownAgeTests(unittest.TestCase):
+    """PKG-PRES-HOLD item 2 and 3: under a clock hold the observation is not known to be fresh (its age is unknown, not
+    old), and the step names the times; an observation known to be old keeps the word stale."""
+    BASE = ClockHoldFreshnessTests.BASE
+    FACT = {'reads': 1_800_000_000.0, 'recorded': 1_800_000_266.0}
+    TIMES = "this host's clock reads 2027-01-15 08:00:00 UTC; this workspace recorded 2027-01-15 08:04:26 UTC"
+
+    def signal(self, *reasons, **extra):
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, status = _freshness(dict(self.BASE, freshness_reasons=list(reasons), **extra), False)
+        self.assertEqual(status, 'attention')
+        return signals[0]
+
+    def test_a_hold_is_not_known_to_be_fresh_and_is_never_called_stale(self):
+        moved = self.signal('clock_moved_backward')['observed']
+        self.assertEqual(moved, "The newest observation (2026-10-14 22:40:01 UTC) is not known to be fresh: its age "
+                                "cannot be established: this host's clock reads earlier than a time this workspace recorded.")
+        unreadable = self.signal('clock_floor_invalid')['observed']
+        self.assertEqual(unreadable, 'The newest observation (2026-10-14 22:40:01 UTC) is not known to be fresh: its age '
+                                     'cannot be established: the time this workspace recorded cannot be read.')
+        with_window = self.signal('older_than_window', 'clock_moved_backward', freshness_window_seconds=3600)['observed']
+        self.assertIn('is not known to be fresh', with_window)
+        self.assertNotIn(' stale', with_window)
+
+    def test_an_observation_known_to_be_old_stays_stale(self):
+        sentence = self.signal('older_than_window', freshness_window_seconds=3600)['observed']
+        self.assertEqual(sentence, 'The newest observation (2026-10-14 22:40:01 UTC) is stale: older than the freshness '
+                                   'window of 3600 seconds.')
+
+    def test_the_step_names_the_times_and_the_evidence_carries_them(self):
+        signal = self.signal('clock_moved_backward', freshness_clock=self.FACT)
+        self.assertEqual(signal['next_step'],
+                         'Correct the host clock, or wait until it reads at or after the time this workspace recorded; '
+                         'restart the workbench after correcting the clock. Collecting again does not clear this (%s).'
+                         % self.TIMES)
+        self.assertEqual(signal['evidence']['freshness_clock'], self.FACT)
+        unreadable = self.signal('clock_floor_invalid', freshness_clock={'reads': 1_800_000_000.0, 'recorded': None})
+        self.assertIn("Collecting again does not clear this (this host's clock reads 2027-01-15 08:00:00 UTC; the time "
+                      'this workspace recorded cannot be read).', unreadable['next_step'])
+
+    def test_without_the_fact_no_time_is_named_and_the_evidence_has_no_key(self):
+        signal = self.signal('clock_moved_backward')
+        self.assertEqual(signal['next_step'], ClockHoldFreshnessTests.MOVED)
+        self.assertNotIn('freshness_clock', signal['evidence'])
+        ordinary = self.signal('older_than_window', freshness_window_seconds=3600, freshness_clock=self.FACT)
+        self.assertNotIn('freshness_clock', ordinary['evidence'])
+
+
 if __name__ == '__main__':
     unittest.main()

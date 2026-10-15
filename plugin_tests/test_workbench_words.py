@@ -369,5 +369,7 @@ class ClockHoldWordTests(unittest.TestCase):
         from intune_iac.workbench import _reason_words
         for code, words in self.CODES:
             sentence = _reason_words({'reason': 'not_fresh', 'freshness_reasons': [code]})
-            self.assertIn(words, sentence)
+            # PKG-PRES-HOLD item 4: the verdict is said once, in front of the cause, never twice.
+            self.assertIn(words.split(': ', 1)[1], sentence)
+            self.assertEqual(sentence.count('age cannot be established'), 1, sentence)
             self.assertNotIn(code, sentence)

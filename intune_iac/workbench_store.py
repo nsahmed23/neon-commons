@@ -665,6 +665,12 @@ class WorkbenchStore:
             retained_last_good=last_good,age_seconds=age,
             freshness='stale' if reasons else 'fresh',freshness_reasons=reasons,freshness_window_seconds=max_age_seconds,
             freshness_checked_at=_iso(now),health=health)
+        # A clock hold says what the clock read and the time it was judged against, so a screen can name both; with
+        # no clock reason the key is absent. An unreadable record has no recorded time to name, so it is None.
+        if 'clock_moved_backward' in clock_reasons:
+            obj['freshness_clock'] = {'reads': now, 'recorded': effective}
+        elif 'clock_floor_invalid' in clock_reasons:
+            obj['freshness_clock'] = {'reads': now, 'recorded': None}
         obj['collections'] = obj['last_attempt'].get('collections',[]) if obj['last_attempt'] else []
         return obj
 

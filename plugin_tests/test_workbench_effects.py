@@ -156,6 +156,53 @@ class RefusalEffectTests(unittest.TestCase):
         self.assertEqual(json.loads(process.stderr)['error']['effects'], {'deployment_recorded': False})
 
 
+class ObservationRefusalInputFilesTests(unittest.TestCase):
+    """PKG-PRES-HOLD item 7: a proposal command that writes input files before the observation check leaves them when
+    that check refuses, and the refusal's Effect says so; a command that writes none says it created nothing."""
+    RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = repository_tests.RepositoryOwnedChangeTests.setUp
+    import_intent = repository_tests.RepositoryOwnedChangeTests.import_intent
+    edit_description = repository_tests.RepositoryOwnedChangeTests.edit_description
+    executed = RefusalEffectTests.executed
+    refused = RefusalEffectTests.refused
+
+    def effect_text(self, command, error):
+        import shlex
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self, None, command)
+        workspace.receive({'status': 'error', 'error': {'code': error.code, 'message': error.message,
+                                                         'effects': error.effects}})
+        return ' '.join(' '.join(workspace._surface_summary(118)).split())
+
+    def test_a_refused_restore_proposal_names_the_input_files_it_left(self):
+        import shlex
+        from intune_iac import maintenance
+        operation, _ = self.executed()  # the service moved on, so the observation no longer matches it
+        output = self.root / 'restore one'
+        error = self.refused(lambda: maintenance.propose_restore(operation, output))
+        self.assertEqual(error.code, 'maintenance_observation_stale')
+        self.assertEqual(error.effects, {'operation_created': False})  # the engine does not list the files it wrote
+        left = [str(output) + '.restore-desired.json', str(output) + '.restore-context.json']
+        for path in left:
+            self.assertTrue(Path(path).is_file(), path)
+        text = self.effect_text('restore-propose %s %s' % (shlex.quote(str(operation)), shlex.quote(str(output))), error)
+        self.assertIn('Effect: No proposal was created. These input files were written and remain: %s.' % ', '.join(left), text)
+        self.assertNotIn('Effect: No operation directory was created.', text)
+
+    def test_a_refusal_for_a_command_that_wrote_nothing_still_says_no_directory_was_created(self):
+        import shlex
+        from intune_iac import maintenance
+        operation, _ = self.executed()
+        desired = self.root / 'desired.json'
+        desired.write_text(json.dumps(self.store.inspect(OBJECT)['body']))
+        output = self.root / 'plain proposal'
+        error = self.refused(lambda: maintenance.propose(self.store.root, self.service.root, OBJECT, desired, output))
+        self.assertEqual(error.code, 'maintenance_observation_stale')
+        text = self.effect_text('propose %s %s' % (shlex.quote(str(desired)), shlex.quote(str(output))), error)
+        self.assertIn('Effect: No operation directory was created.', text)
+        self.assertNotIn('remain', text)
+
+
 if __name__ == '__main__':
     unittest.main()
 

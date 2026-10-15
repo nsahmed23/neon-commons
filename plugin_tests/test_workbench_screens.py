@@ -964,6 +964,80 @@ class RepositoryLinesTests(unittest.TestCase):
             self.assertLessEqual(cell_width(line), 100, line)
 
 
+class ClockHoldScreensTests(unittest.TestCase):
+    """PKG-PRES-HOLD items 3, 5 and 6 as the screens word them: the queue finding of a held observation reads age
+    unknown with the recovery; a blocked row lists every reason; the Diagnostics evidence names the times."""
+    TIMES = "this host's clock reads 2027-01-15 08:00:00 UTC; this workspace recorded 2027-01-15 08:04:26 UTC"
+    FACT = {'reads': 1_800_000_000.0, 'recorded': 1_800_000_266.0}
+
+    def finding(self, name='observation_stale', reasons=('clock_moved_backward',), fact=FACT):
+        evidence = {'evidence_class': 'synthetic', 'observed_at': '2027-01-15T07:50:00Z', 'snapshot_id': 'a' * 64}
+        if reasons:
+            evidence['freshness_reasons'] = list(reasons)
+        if fact:
+            evidence['freshness_clock'] = dict(fact)
+        return {'object_id': POLICY_ID, 'finding': name, 'priority': 'review', 'freshness': 'stale',
+                'priority_rationale': 'A current complete observation is required before assessing changes.',
+                'action_state': 'review_required', 'owner_assertion': 'unknown', 'automatic_remediation': False,
+                'evidence': evidence, 'review_due': None, 'exception_expiry': None, 'related_proposals': []}
+
+    def queue_text(self, *findings):
+        from intune_iac.workbench_screens import queue_lines
+        value = {'findings': list(findings), 'pagination': {'total_objects': 1}}
+        return ' '.join(' '.join(queue_lines(value, 120)).split())
+
+    def test_the_queue_finding_of_a_held_observation_reads_age_unknown_with_the_recovery(self):
+        text = self.queue_text(self.finding())
+        self.assertIn('freshness age unknown (host clock behind a recorded time)', text)
+        self.assertNotIn('freshness stale', text)
+        self.assertIn('Next: Correct the host clock, or wait until it reads at or after the time this workspace '
+                      'recorded; restart the workbench after correcting the clock. Collecting again does not clear this '
+                      '(%s).' % self.TIMES, text)
+        unreadable = self.queue_text(self.finding(reasons=('clock_floor_invalid',), fact={'reads': 1_800_000_000.0,
+                                                                                         'recorded': None}))
+        self.assertIn('freshness age unknown (the recorded time cannot be read)', unreadable)
+
+    def test_only_the_stale_finding_carries_the_recovery_and_other_findings_still_read_age_unknown(self):
+        text = self.queue_text(self.finding('reporting_incomplete'))
+        self.assertIn('freshness age unknown (host clock behind a recorded time)', text)
+        self.assertNotIn('Collecting again does not clear this', text)
+
+    def test_a_finding_without_a_hold_keeps_its_words(self):
+        text = self.queue_text(self.finding(reasons=('older_than_window',), fact=None))
+        self.assertIn('freshness stale', text)
+        self.assertNotIn('age unknown', text)
+
+    def blocked_row(self):
+        return {'kind': 'propose-from-intent', 'label': 'Prepare a proposal from the recorded intent', 'available': False,
+                'blocked': {'code': 'maintenance_observation_stale', 'reason': 'not_fresh', 'message': 'the clock holds it',
+                            'clock_hold': 'clock_moved_backward',
+                            'also': [{'code': 'workbench_repository_stale', 'reason': 'repository_changed',
+                                      'message': 'The repository changed since its recorded intent'}]}}
+
+    def test_a_blocked_action_row_lists_every_reason(self):
+        from intune_iac.workbench_screens import actions_lines
+        text = ' '.join(' '.join(actions_lines([self.blocked_row()], 0, 120)).split())
+        self.assertIn('blocked maintenance_observation_stale: the clock holds it', text)
+        self.assertIn('also blocked workbench_repository_stale: The repository changed since its recorded intent', text)
+
+    def test_the_inspector_action_list_names_both_reasons(self):
+        from intune_iac.workbench_screens import _attention_lines
+        value = {'attention': {'signals': [], 'checked': {}, 'status': 'clear'}, 'actions': [self.blocked_row()]}
+        text = ' '.join(' '.join(_attention_lines(value, 120)).split())
+        self.assertIn('(blocked: the observation is not fresh; the repository changed since its intent)', text)
+
+    def test_the_diagnostics_evidence_names_the_times_not_a_raw_map(self):
+        from intune_iac.workbench_screens import diagnostics_lines
+        signal = {'area': 'freshness', 'code': 'observation_stale', 'observed': 'Not known to be fresh.',
+                  'next_step': 'Wait.', 'evidence': {'freshness_reasons': ['clock_moved_backward'],
+                                                     'freshness_clock': self.FACT}}
+        text = ' '.join(' '.join(diagnostics_lines({'name': 'Pilot', 'object_id': POLICY_ID, 'signals': [signal],
+                                                    'checked': {}}, 160)).split())
+        self.assertIn(self.TIMES, text)
+        self.assertNotIn("{'reads'", text)
+        self.assertNotIn('1800000000', text)
+
+
 if __name__ == '__main__':
     unittest.main()
 

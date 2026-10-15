@@ -514,6 +514,130 @@ class TypedDetailTests(unittest.TestCase):
             self.assertLessEqual(cell_width(line), 50, line)
 
 
+class ClockHoldPresentationTests(unittest.TestCase):
+    """PKG-PRES-HOLD items 2 to 6 on the screens: unknown is not stale; the recovery names its times and is not cut;
+    the band names the recovery; a clock hold leads a repository change."""
+    workspace = RefusalCauseTests.workspace
+    FACT = {'reads': 1_800_000_000.0, 'recorded': 1_800_000_266.0}
+    TIMES = "this host's clock reads 2027-01-15 08:00:00 UTC; this workspace recorded 2027-01-15 08:04:26 UTC"
+    REPOSITORY = {'area': 'repository', 'code': 'repository_stale', 'observed': 'The repository changed.',
+                  'next_step': 'Refresh.', 'evidence': {}}
+
+    def stale(self, *reasons, **evidence):
+        return {'area': 'freshness', 'code': 'observation_stale', 'observed': 'The newest observation is not known to '
+                'be fresh.', 'next_step': 'Wait.', 'evidence': dict(evidence, freshness_reasons=list(reasons))}
+
+    # Item 2: the strip.
+    def test_the_strip_reads_age_unknown_and_never_stale_for_a_hold(self):
+        from intune_iac.workbench_screens import context_strip
+        facts = {'name': 'Pilot', 'observation': 'age unknown', 'repository': 'current'}
+        self.assertIn('OBSERVED age unknown', context_strip(TENANT, OBJECT, facts, 120))
+        strips = {width: context_strip(TENANT, OBJECT, facts, width) for width in range(40, 121)}
+        self.assertTrue(any('OBS age?' in strip for strip in strips.values()), strips)
+        for width, strip in strips.items():
+            self.assertNotIn('stale', strip, width)
+
+    def test_the_workspace_reads_a_hold_as_age_unknown_and_an_old_observation_as_stale(self):
+        workspace = self.workspace()
+        for reasons in (['clock_moved_backward'], ['older_than_window', 'clock_floor_invalid']):
+            workspace._learn({'object_id': OBJECT, 'freshness': 'stale', 'freshness_reasons': reasons})
+            self.assertEqual(workspace.facts['observation'], 'age unknown', reasons)
+        workspace._learn({'object_id': OBJECT, 'freshness': 'stale', 'freshness_reasons': ['older_than_window']})
+        self.assertEqual(workspace.facts['observation'], 'stale')
+        workspace._learn({'object_id': OBJECT, 'freshness': 'fresh', 'freshness_reasons': []})
+        self.assertEqual(workspace.facts['observation'], 'fresh')
+
+    def test_age_unknown_is_a_hazard_the_strip_keeps_ahead_of_the_repository(self):
+        from intune_iac.workbench_screens import HAZARD_STATES, _strip_severity
+        self.assertIn('age unknown', HAZARD_STATES['OBSERVED'])
+        self.assertLess(_strip_severity(('OBSERVED', 'OBS', 'age unknown')), _strip_severity(('REPOSITORY', 'REPO', 'stale')))
+        self.assertGreater(_strip_severity(('OBSERVED', 'OBS', 'stale')), _strip_severity(('REPOSITORY', 'REPO', 'stale')))
+
+    # Item 5: the band names the recovery.
+    def test_the_band_names_the_recovery_in_each_form(self):
+        from intune_iac.workbench_screens import _band_forms
+        self.assertEqual(tuple(_band_forms(self.stale('clock_moved_backward'))), (
+            '! Observation age unknown: host clock behind a recorded time. Correct the clock, then restart (i: details)',
+            '! Age unknown: clock behind. Correct it, restart (i)', '! Clock behind. i: details'))
+        self.assertEqual(tuple(_band_forms(self.stale('clock_floor_invalid'))), (
+            '! Observation age unknown: the recorded time cannot be read. Changes stay held until it can (i: details)',
+            '! Age unknown: recorded time unreadable. Held until readable (i)', '! Time record unreadable. i: details'))
+
+    def test_the_recovery_keys_are_dropped_where_no_key_can_be_taken(self):
+        from intune_iac.workbench_screens import hazard_rows
+        for code in ('clock_moved_backward', 'clock_floor_invalid'):
+            rows = hazard_rows({}, [self.stale(code)], 120, routes=False)
+            self.assertTrue(rows[0].startswith('! '), rows)
+            self.assertNotIn('(i', ' '.join(rows))
+            self.assertNotIn('i: details', ' '.join(rows))
+
+    # Item 6: one order for two hazards.
+    def test_a_clock_hold_leads_the_band_and_the_repository_change_is_counted(self):
+        from intune_iac.workbench_screens import hazard_rows
+        for signals in ([self.REPOSITORY, self.stale('clock_moved_backward')],
+                        [self.stale('clock_moved_backward'), self.REPOSITORY]):
+            rows = hazard_rows({}, signals, 160)
+            self.assertTrue(rows[0].startswith('! Observation age unknown'), rows)
+            self.assertIn('+1 more', ' '.join(rows))
+            narrow = hazard_rows({}, signals, 120)
+            self.assertTrue(narrow[0].startswith('! Age unknown') or narrow[0].startswith('! Observation age unknown'), narrow)
+            self.assertIn('+1 more', ' '.join(narrow))
+        rows = hazard_rows({}, [self.stale('older_than_window'), self.REPOSITORY], 120)
+        self.assertTrue(rows[0].startswith('! Repository changed'), rows)  # an ordinary stale observation does not lead
+
+    # Items 3 and 4: the refusal.
+    def refusal_text(self, facts):
+        workspace = self.workspace(facts, 'propose-from-intent /w/op')
+        workspace.receive({'status': 'error', 'error': {'code': 'maintenance_observation_stale', 'message': 'Refused.',
+                                                         'effects': {'files_written': [], 'operation_created': False}}})
+        return ' '.join(' '.join(workspace._surface_summary(118)).split())
+
+    def test_the_refusal_next_names_the_times_from_the_signal_or_the_check(self):
+        signal = self.stale('clock_moved_backward', freshness_clock=self.FACT)
+        check = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
+                 'freshness_reasons': ['clock_moved_backward'], 'freshness_clock': self.FACT}
+        for facts in ({'signals': [signal]}, {'eligibility': check}):
+            text = self.refusal_text(facts)
+            self.assertIn('then restart the workbench and prepare the proposal again (%s).' % self.TIMES, text)
+        unreadable = self.stale('clock_floor_invalid', freshness_clock={'reads': 1_800_000_000.0, 'recorded': None})
+        self.assertIn("(this host's clock reads 2027-01-15 08:00:00 UTC; the time this workspace recorded cannot be read)",
+                      self.refusal_text({'signals': [unreadable]}))
+
+    def test_a_refusal_without_the_fact_invents_no_time(self):
+        text = self.refusal_text({'signals': [self.stale('clock_moved_backward')]})
+        self.assertIn('then restart the workbench and prepare the proposal again.', text)
+        self.assertNotIn("this host's clock reads 2", text)
+
+    # Item 4: the one-line blocked notice.
+    def blocked_notice(self, width, hold, count=None):
+        workspace = self.workspace()
+        workspace.size = (width, 40)
+        blocked = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh', 'clock_hold': hold,
+                   'message': 'the newest observation\'s age cannot be established (a very long engine sentence ' * 3}
+        self.assertIsNone(workspace._stage({'available': False, 'blocked': blocked}))
+        return workspace.notice
+
+    def test_the_blocked_notice_leads_with_the_hold_and_fits_the_pane(self):
+        from intune_iac.workbench_tui import cell_width
+        self.assertEqual(self.blocked_notice(160, 'clock_moved_backward'),
+                         "Blocked: this host's clock reads earlier than a time this workspace recorded; correct the clock "
+                         'or wait, then restart (i: details). Nothing was staged.')
+        for hold in ('clock_moved_backward', 'clock_floor_invalid'):
+            for width in (160, 120, 100, 80, 60, 40):
+                notice = self.blocked_notice(width, hold)
+                self.assertLessEqual(cell_width(notice), width, (hold, width, notice))
+                self.assertTrue(notice.startswith('Blocked'), notice)
+                self.assertNotIn('age cannot be established', notice)
+                self.assertIn('(i', notice)
+        self.assertIn('clock', self.blocked_notice(40, 'clock_moved_backward'))
+        self.assertIn('Nothing was staged.', self.blocked_notice(120, 'clock_moved_backward'))
+
+    def test_a_blocked_action_without_a_hold_keeps_its_notice(self):
+        workspace = self.workspace()
+        workspace._stage({'available': False, 'blocked': {'code': 'service_required', 'message': 'needs a service'}})
+        self.assertEqual(workspace.notice, 'Blocked: needs a service. Nothing was staged.')
+
+
 if __name__ == '__main__':
     unittest.main()
 
@@ -624,10 +748,11 @@ class AdoptedSummaryTests(unittest.TestCase):
 class ClockHoldBandTests(unittest.TestCase):
     """A clock hold on the observation's age: the band says the age is unknown and never names collecting again, which
     does not clear it. It outranks a stamp ahead of the clock and the generic stale line."""
-    FORMS = {'clock_moved_backward': ("! Observation age unknown: this host's clock reads earlier than a recorded time. i: details",
-                                      '! Age unknown: clock behind a recorded time. i: details', '! Clock behind. i: details'),
-             'clock_floor_invalid': ('! Observation age unknown: the recorded time cannot be read. i: details',
-                                     '! Age unknown: recorded time unreadable. i: details', '! Time record unreadable. i: details')}
+    # PKG-PRES-HOLD item 5: the forms name the recovery, not only the cause.
+    FORMS = {'clock_moved_backward': ('! Observation age unknown: host clock behind a recorded time. Correct the clock, then restart (i: details)',
+                                      '! Age unknown: clock behind. Correct it, restart (i)', '! Clock behind. i: details'),
+             'clock_floor_invalid': ('! Observation age unknown: the recorded time cannot be read. Changes stay held until it can (i: details)',
+                                     '! Age unknown: recorded time unreadable. Held until readable (i)', '! Time record unreadable. i: details')}
 
     def signal(self, *reasons, **evidence):
         return {'area': 'freshness', 'code': 'observation_stale', 'observed': 'Stale.', 'next_step': 'Wait.',
@@ -658,7 +783,7 @@ class ClockHoldBandTests(unittest.TestCase):
                 for row in rows:
                     self.assertLessEqual(cell_width(row), width, row)
         self.assertEqual(hazard_rows({}, [self.signal('clock_moved_backward')], 120)[0],
-                         "! Observation age unknown: this host's clock reads earlier than a recorded time. i: details")
+                         '! Observation age unknown: host clock behind a recorded time. Correct the clock, then restart (i: details)')
         self.assertEqual(hazard_rows({}, [self.signal('clock_floor_invalid')], 40), [self.FORMS['clock_floor_invalid'][2]])
 
     def test_without_a_hold_the_stale_lines_are_unchanged(self):

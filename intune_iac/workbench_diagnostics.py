@@ -65,9 +65,10 @@ FRESHNESS_WORDS = {'older_than_window': 'older than the freshness window of %(wi
 # Holds on the age itself, in words (shared by every surface that words a freshness reason). Collecting again does not
 # clear either: a new observation is judged against the same recorded time. When both are recorded the first is the
 # one named.
-CLOCK_HOLD_WORDS = {'clock_moved_backward': "its age cannot be established: this host's clock reads earlier than a time "
-                                            'this workspace recorded',
-                    'clock_floor_invalid': 'its age cannot be established: the time this workspace recorded cannot be read'}
+# What each hold is, without the verdict, so a sentence can say "its age cannot be established" once.
+CLOCK_HOLD_CAUSES = {'clock_moved_backward': "this host's clock reads earlier than a time this workspace recorded",
+                     'clock_floor_invalid': 'the time this workspace recorded cannot be read'}
+CLOCK_HOLD_WORDS = {code: 'its age cannot be established: ' + cause for code, cause in CLOCK_HOLD_CAUSES.items()}
 CLOCK_HOLD_REASONS = tuple(CLOCK_HOLD_WORDS)
 FRESHNESS_WORDS.update(CLOCK_HOLD_WORDS)
 # The step for each hold: the real recovery, which is never collecting again.
@@ -86,6 +87,38 @@ def clock_hold(reasons):
     return next((code for code in CLOCK_HOLD_REASONS if code in reasons), None)
 
 
+def _clock_time(epoch):
+    """An epoch reading as a UTC time to the second, in the style of every other sentence; None if unreadable."""
+    from datetime import datetime, timezone
+    from .io import readable_time
+    if isinstance(epoch, bool) or not isinstance(epoch, (int, float)):
+        return None
+    try:
+        return readable_time(datetime.fromtimestamp(epoch, timezone.utc).isoformat())
+    except (OverflowError, OSError, ValueError):
+        return None
+
+
+def clock_times(fact):
+    """"this host's clock reads T; this workspace recorded T" from a freshness_clock fact, or None when the fact
+    carries no readable reading. An unreadable record has no time of its own to name, and none is invented."""
+    reads = _clock_time(fact.get('reads')) if isinstance(fact, dict) else None
+    if reads is None:
+        return None
+    recorded = _clock_time(fact.get('recorded'))
+    return "this host's clock reads %s; %s" % (reads, 'this workspace recorded ' + recorded if recorded
+                                               else 'the time this workspace recorded cannot be read')
+
+
+def with_clock_times(text, fact):
+    """The text with the hold's times in brackets at its end (before a closing full stop); unchanged without them."""
+    times = clock_times(fact)
+    if times is None:
+        return text
+    stop = '.' if text.endswith('.') else ''
+    return '%s (%s)%s' % (text.rstrip('.'), times, stop)
+
+
 def _freshness(observed, failed):
     if observed.get('freshness') == 'fresh':
         return [], 'clear'
@@ -97,16 +130,18 @@ def _freshness(observed, failed):
     because = '; '.join(FRESHNESS_WORDS[reason] % {'window': observed.get('freshness_window_seconds'),
                                                    'checked': readable_time(observed.get('freshness_checked_at'))}
                         for reason in reasons)
-    sentence = ('The newest observation (%s) is %s%s.' % (readable_time(observed['observed_at']), observed.get('freshness'),
+    hold = clock_hold(reasons)
+    # Unknown stays unknown: under a clock hold the age is not established, so the observation is not called stale.
+    verdict = 'not known to be fresh' if hold else observed.get('freshness')
+    sentence = ('The newest observation (%s) is %s%s.' % (readable_time(observed['observed_at']), verdict,
                                                          ': ' + because if because else '')
                 if observed.get('observed_at') else
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
     step = 'Collect again (:collect) before preparing or judging a change.'
     replaces = observed.get('next_collection_replaces')
-    hold = clock_hold(reasons)
     if hold:
         # A clock hold outranks every other reason: no collection, and no wait on a stamp, clears it.
-        step = CLOCK_HOLD_STEPS[hold]
+        step = with_clock_times(CLOCK_HOLD_STEPS[hold], observed.get('freshness_clock'))
     elif 'stamped_after_now' in reasons and replaces == 'same_service':
         # The store orders its own collections from one service by run, not by stamp (workbench_store).
         step = ('Collect again (:collect) from the modeled service it came from (%s): the store orders its own '
@@ -119,11 +154,12 @@ def _freshness(observed, failed):
         # An imported capture is ordered by its capture time, so a new collection would not replace it.
         step = ("It stays stale until this host's clock passes %s; collecting again now would not replace it as the "
                 'newest. Wait, or correct the host clock.' % readable_time(observed.get('observed_at')))
-    return [_signal('freshness', 'observation_stale', sentence, step,
-                    {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
-                     'freshness_checked_at': observed.get('freshness_checked_at'), 'freshness_reasons': reasons,
-                     'next_collection_replaces': replaces,
-                     'ordering_service_root': observed.get('ordering_service_root')})], 'attention'
+    evidence = {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
+                'freshness_checked_at': observed.get('freshness_checked_at'), 'freshness_reasons': reasons,
+                'next_collection_replaces': replaces, 'ordering_service_root': observed.get('ordering_service_root')}
+    if hold and isinstance(observed.get('freshness_clock'), dict):
+        evidence['freshness_clock'] = dict(observed['freshness_clock'])
+    return [_signal('freshness', 'observation_stale', sentence, step, evidence)], 'attention'
 
 
 def _operation_records(store, object_id):

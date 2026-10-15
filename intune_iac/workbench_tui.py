@@ -174,6 +174,20 @@ WIDE = 150
 # The documented minimum window (columns, rows): the hazard's shortest wording, its response and the whole short
 # identities fit. Below it a constrained state shows the session, the hazard and the prompt, never the body.
 MIN_SIZE = (40, 12)
+# The one-line notice for a blocked proposal under a clock hold, longest form first; the last fits MIN_SIZE.
+CLOCK_BLOCKED_NOTICES = {
+    'clock_moved_backward': (
+        "Blocked: this host's clock reads earlier than a time this workspace recorded; correct the clock or wait, then "
+        'restart (i: details). Nothing was staged.',
+        'Blocked: host clock behind a recorded time; correct it or wait, then restart (i: details). Nothing was staged.',
+        'Blocked: clock behind a recorded time. Correct it, restart (i). Nothing staged.',
+        'Blocked: clock behind. Correct it (i). Nothing staged.', 'Blocked by the clock (i).'),
+    'clock_floor_invalid': (
+        'Blocked: the time this workspace recorded cannot be read; changes stay held until it can (i: details). '
+        'Nothing was staged.',
+        'Blocked: recorded time unreadable; held until it can be read (i: details). Nothing was staged.',
+        'Blocked: recorded time unreadable (i). Nothing staged.', 'Blocked: time record unreadable (i).',
+        'Blocked by the clock (i).')}
 # Evidence classes whose mode word may stand in for them when the footer is narrow.
 MODE_CLASSES = frozenset({'synthetic', 'synthetic_local_process_only', 'synthetic_local_process_and_modeled_service_only',
                           'graph_capture_unverified', 'graph_reader_laboratory', 'graph_reader_attempt',
@@ -854,7 +868,10 @@ class Workspace:
         # Lineage reports its own freshness and keeps the observation's beside it; its own is never the observation's.
         observed = value.get('observation_freshness') if 'provenance_origin' in value else value.get('freshness')
         if value.get('object_id') == self.selected and isinstance(observed, str):
-            facts['observation'] = observed
+            from .workbench_diagnostics import clock_hold
+            # Unknown stays unknown: under a clock hold the age is not established, so the strip does not say stale.
+            held = observed != 'fresh' and 'provenance_origin' not in value and clock_hold(value.get('freshness_reasons'))
+            facts['observation'] = 'age unknown' if held else observed
         attention = value.get('attention') if isinstance(value.get('attention'), dict) else {}
         checked = (attention.get('checked') or {}).get('repository')
         if value.get('object_id') == self.selected and checked in REPOSITORY_FROM_CHECK:
@@ -937,7 +954,8 @@ class Workspace:
         if value.get('status') == 'error' and isinstance(value.get('error'), dict):
             from .workbench_screens import refusal_lines
             code = (value.get('error') or {}).get('code')
-            rows.extend(refusal_lines(value, width, known=self._known_cause(code)))
+            rows.extend(refusal_lines(self._with_written_inputs(value), width, known=self._known_cause(code),
+                                      clock_fact=self._known_clock()))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -1526,6 +1544,45 @@ class Workspace:
             return (str(found[0]['observed']), kinds[found[0]['code']]) if found else None
         return None
 
+    def _known_clock(self):
+        """What the clock read and what was recorded, from the last read of this policy (the stale signal, else the
+        proposal check), for a refusal that is a clock hold; None when the read carried neither."""
+        facts = getattr(self, 'facts', None) or {}
+        if not self.selected or facts.get('object_id') != self.selected:
+            return None
+        stale = next((signal for signal in facts.get('signals') or []
+                      if isinstance(signal, dict) and signal.get('code') == 'observation_stale'), None)
+        eligibility = facts.get('eligibility') if isinstance(facts.get('eligibility'), dict) else {}
+        for source in ((stale or {}).get('evidence'), eligibility):
+            if isinstance(source, dict) and isinstance(source.get('freshness_clock'), dict):
+                return source['freshness_clock']
+        return None
+
+    # Refusals made after the observation check, for a command that writes its inputs before making it.
+    OBSERVATION_REFUSALS = ('maintenance_observation_stale', 'maintenance_observation_incomplete',
+                            'maintenance_observation_source_mismatch')
+
+    def _with_written_inputs(self, value):
+        """A refusal's result with the input files a restore proposal left beside the operation it never created.
+
+        restore-propose writes its desired body (and a derived context) before the proposal checks the observation, and
+        the engine's refusal does not list them; they are read from disk, never assumed."""
+        error = value.get('error') if isinstance(value.get('error'), dict) else {}
+        effects = error.get('effects') if isinstance(error.get('effects'), dict) else None
+        if (effects is None or 'files_written' in effects or effects.get('operation_created') is not False
+                or error.get('code') not in self.OBSERVATION_REFUSALS):
+            return value
+        try:
+            parts = shlex.split(self.last_command or '')
+        except ValueError:
+            return value
+        if len(parts) != 3 or parts[0] != 'restore-propose':
+            return value
+        output = os.path.abspath(parts[2])
+        left = [path for path in (output + '.restore-desired.json', output + '.restore-context.json')
+                if os.path.isfile(path)]
+        return dict(value, error=dict(error, effects=dict(effects, files_written=left)))
+
     def _states_here(self, value):
         """Whether this surface shows the selected policy's states: the Repository status and the Plan review."""
         facts = getattr(self, 'facts', None) or {}
@@ -1603,6 +1660,12 @@ class Workspace:
         """
         if not action.get('available'):
             blocked = action.get('blocked') or {}
+            if blocked.get('clock_hold') in CLOCK_BLOCKED_NOTICES:
+                # The hold and its recovery first, in the longest form the pane holds: a cut notice loses the recovery.
+                forms = CLOCK_BLOCKED_NOTICES[blocked['clock_hold']]
+                width = self.size[0] if getattr(self, 'size', None) else 80
+                self.notice = next((form for form in forms if cell_width(form) <= width), forms[-1])
+                return None
             self.notice = 'Blocked: %s. Nothing was staged.' % (blocked.get('message') or blocked.get('code') or 'not available')
             return None
         if action.get('show_first') == 'repository-status':

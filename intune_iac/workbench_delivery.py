@@ -165,9 +165,11 @@ def _observed_after(store, plan, desired, journal):
     status = {'no_change': 'matches_desired', 'changed': 'differs'}.get(changes.get('status'), 'unknown')
     # Whether the observation that shows it still reads fresh, so a settled verdict is never drawn from a stale one.
     current = store.inspect(plan['object_id'])
+    clock_fact = ({'observation_freshness_clock': dict(current['freshness_clock'])}
+                  if isinstance(current.get('freshness_clock'), dict) else {})
     return {'stage': 'observed_after', 'status': status, 'field_changes': changes, **found,
             'observation_freshness': current.get('freshness'),
-            'observation_freshness_reasons': list(current.get('freshness_reasons') or [])}
+            'observation_freshness_reasons': list(current.get('freshness_reasons') or []), **clock_fact}
 
 
 RUN_PAGE = 200

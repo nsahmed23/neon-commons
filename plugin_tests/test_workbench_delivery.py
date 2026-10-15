@@ -158,6 +158,27 @@ class DeliveryTests(unittest.TestCase):
         self.assertIn('the observation that shows it now reads stale', value['next_action'])
         self.assertIn("stamped after this host's clock", value['next_action'])
 
+    def test_the_observed_after_stage_carries_the_clock_fact_only_under_a_hold(self):
+        # PKG-PRES-HOLD item 1: Delivery reads the observation's freshness too, so it carries the hold's times.
+        from unittest import mock
+        from intune_iac import maintenance
+        from intune_iac.workbench_views import record_local_deployment
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
+        self.store.collect(self.service)
+        real = type(self.store).inspect
+        fact = {'reads': 1_800_000_000.0, 'recorded': 1_800_000_266.0}
+
+        def held(store, object_id):
+            return dict(real(store, object_id), freshness='stale', freshness_reasons=['clock_moved_backward'],
+                        freshness_clock=dict(fact))
+        with mock.patch.object(type(self.store), 'inspect', held):
+            _, stages = self.view()
+        self.assertEqual(stages['observed_after']['observation_freshness_clock'], fact)
+        _, stages = self.view()
+        self.assertNotIn('observation_freshness_clock', stages['observed_after'])
+
     def test_imported_workflow_runs_appear_as_inert_delivery_evidence(self):
         from intune_iac.workbench_health import import_workflow_run
         review = self.prepare()

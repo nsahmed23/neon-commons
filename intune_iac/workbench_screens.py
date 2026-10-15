@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 
-from .workbench_diagnostics import clock_hold, CLOCK_HOLD_WORDS
+from .workbench_diagnostics import CLOCK_HOLD_STEPS, clock_hold, CLOCK_HOLD_WORDS, clock_times, with_clock_times
 from .workbench_tui import cell_width, fit, pad, safe_text
 
 WIDE = 96
@@ -49,7 +49,8 @@ def short_id(value, prefixes=None):
 
 # Shorter words for long states, used only when nothing else lets the strip fit.
 SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'outcome_unknown': 'unknown',
-                'recorded_intent_not_revalidated': 'not revalidated', 'desired_state_observed': 'observed'}
+                'recorded_intent_not_revalidated': 'not revalidated', 'desired_state_observed': 'observed',
+                'age unknown': 'age?'}
 
 
 # States that are a hazard for the selected policy. When the strip is too long, routine states give way first.
@@ -69,10 +70,12 @@ def _strip_severity(state):
     the observation. The strip keeps the most severe longest, so it and the band lead with the same condition."""
     if state[0] == 'OBSERVED' and state[2] == 'other tenant':
         return 0
+    if state[0] == 'OBSERVED' and state[2] == 'age unknown':
+        return 1.5  # a clock hold blocks every proposal, so it outlasts a repository change (as in the band)
     return {'OPERATION': 1, 'REPOSITORY': 2, 'OBSERVED': 3}.get(state[0], 4)
 
 
-HAZARD_STATES = {'OBSERVED': {'stale', 'source changed', 'policy changed', 'other source', 'other tenant'},
+HAZARD_STATES = {'OBSERVED': {'stale', 'age unknown', 'source changed', 'policy changed', 'other source', 'other tenant'},
                  'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
                  'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable', 'held'}}
 
@@ -199,11 +202,11 @@ def _band_forms(primary, prefixes=None):
     if hold == 'clock_moved_backward':
         # The age cannot be established and collecting again does not clear it, so the band names no collection and
         # it outranks a stamp ahead and the generic stale line.
-        return ["! Observation age unknown: this host's clock reads earlier than a recorded time. i: details",
-                '! Age unknown: clock behind a recorded time. i: details', '! Clock behind. i: details']
+        return ['! Observation age unknown: host clock behind a recorded time. Correct the clock, then restart (i: details)',
+                '! Age unknown: clock behind. Correct it, restart (i)', '! Clock behind. i: details']
     if hold == 'clock_floor_invalid':
-        return ['! Observation age unknown: the recorded time cannot be read. i: details',
-                '! Age unknown: recorded time unreadable. i: details', '! Time record unreadable. i: details']
+        return ['! Observation age unknown: the recorded time cannot be read. Changes stay held until it can (i: details)',
+                '! Age unknown: recorded time unreadable. Held until readable (i)', '! Time record unreadable. i: details']
     if 'stamped_after_now' in (evidence.get('freshness_reasons') or []) and evidence.get('collect_cures'):
         # The read model judged that a new collection from this session's service becomes current.
         return ["! Observation stamped after this host's clock. Next: Collect again (a: actions)",
@@ -226,7 +229,8 @@ BAND_ESSENTIAL = {'operation_outcome_unknown': 'never replays'}
 
 
 # Key routes in the band's wording; dropped where no surface or key can take them (below the minimum, while typing).
-BAND_ROUTES = ((' (a: actions)', ''), (' (a actions)', ''), (' 9: difference.', ''), ('; i: details', ''),
+BAND_ROUTES = ((' (a: actions)', ''), (' (a actions)', ''), (' (i: details)', ''), (' (i)', ''),
+               (' 9: difference.', ''), ('; i: details', ''),
                ('. i: details', '.'), (' i: details', ''))
 
 
@@ -323,6 +327,16 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     return lines, band_rows
 
 
+def _band_rank(item):
+    """A finding's place in the band's order. A clock hold on the observation blocks every proposal and nothing in
+    the workbench clears it, so it leads a repository change; the other findings keep BAND_RANK."""
+    code = item['code']
+    evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else {}
+    if code == 'observation_stale' and clock_hold(evidence.get('freshness_reasons')):
+        return BAND_RANK.index('repository_stale') - 0.5
+    return BAND_RANK.index(code)
+
+
 def _band_primary(facts, signals):
     """The primary hazard and the number of other findings, or (None, 0).
 
@@ -352,7 +366,7 @@ def _band_primary(facts, signals):
     for item in live:
         unique.setdefault((item.get('code'), about(item)), item)
     live = list(unique.values())
-    ranked = sorted((item for item in live if item.get('code') in BAND_RANK), key=lambda item: BAND_RANK.index(item['code']))
+    ranked = sorted((item for item in live if item.get('code') in BAND_RANK), key=_band_rank)
     primary = ranked[0] if ranked else None
     if primary is None:
         return None, 0
@@ -974,9 +988,10 @@ def _attention_lines(value, width):
                                'it.', width)
             for number, action in enumerate(offered, 1):
                 blocked = action.get('blocked') or {}
-                state = ' (available)' if action.get('available') else ' (blocked: %s)' % (
-                    BLOCK_WORDS.get(blocked.get('reason')) or BLOCK_WORDS.get(blocked.get('code'))
-                    or str(blocked.get('code') or 'not available'))
+                reasons = [blocked] + [other for other in blocked.get('also') or [] if isinstance(other, dict)]
+                state = ' (available)' if action.get('available') else ' (blocked: %s)' % '; '.join(
+                    BLOCK_WORDS.get(item.get('reason')) or BLOCK_WORDS.get(item.get('code'))
+                    or str(item.get('code') or 'not available') for item in reasons)
                 lines += _labelled('  %d.' % number, str(action.get('label')) + state, width, 6)
         return lines
     actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
@@ -1050,6 +1065,15 @@ def refresh_result_lines(value, width, header=True):
     return lines
 
 
+def _blocked_meaning(blocked):
+    """The discriminating message when the engine's code covers several causes or the message names something
+    particular (a setting, a value); otherwise the code's general meaning."""
+    code = blocked.get('code')
+    message = str(blocked.get('message') or '')
+    return (message if blocked.get('reason') or code not in REFUSALS or (message and _names_specifics(message))
+            else REFUSALS[code][0])
+
+
 def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter', prefixes=None):
     """The guided actions for the selected policy: what each is, whether it is available, its exact command and what
     it does. A blocked action says why, with the engine's own code."""
@@ -1078,13 +1102,11 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
                 lines += _labelled('', 'needs  ' + str(need), width, 5)
         else:
             blocked = action.get('blocked') or {}
-            code = blocked.get('code')
-            # The discriminating message when the engine's code covers several causes or the message names something
-            # particular (a setting, a value); otherwise the code's general meaning.
-            message = str(blocked.get('message') or '')
-            meaning = (message if blocked.get('reason') or code not in REFUSALS or (message and _names_specifics(message))
-                       else REFUSALS[code][0])
-            lines += _labelled('', 'blocked  %s: %s' % (code, meaning), width, 5)
+            lines += _labelled('', 'blocked  %s: %s' % (blocked.get('code'), _blocked_meaning(blocked)), width, 5)
+            # Every other reason that blocks the same action, so a second hazard is not hidden behind the first.
+            for other in blocked.get('also') or []:
+                if isinstance(other, dict):
+                    lines += _labelled('', 'also blocked  %s: %s' % (other.get('code'), _blocked_meaning(other)), width, 5)
         if focused and action.get('effects') and action.get('effects') != action.get('summary'):
             lines += _labelled('', str(action.get('effects')), width, 5)
     return lines
@@ -1626,6 +1648,11 @@ def _plural(count, noun):
     return '%d %s%s' % (count, noun, '' if count == 1 else 's')
 
 
+# A held observation in the maintenance queue's words (the Inspector and the band word the same two holds).
+QUEUE_HOLD_WORDS = {'clock_moved_backward': 'host clock behind a recorded time',
+                    'clock_floor_invalid': 'the recorded time cannot be read'}
+
+
 def queue_lines(value, width):
     """Findings as work: what, why, state, ownership, dates, compatibility, evidence and related proposals."""
     lines = ['[MAINTENANCE QUEUE]']
@@ -1640,9 +1667,15 @@ def queue_lines(value, width):
         lines.append('')
         lines += word_wrap('%s  %s  %s' % (item.get('priority', 'unknown'), item.get('finding', 'unknown'), item.get('object_id', 'unknown')), width)
         lines += word_wrap('  Why: ' + str(item.get('priority_rationale') or 'not recorded'), width)
+        evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else {}
+        hold = clock_hold(evidence.get('freshness_reasons'))
+        # Unknown stays unknown: a clock hold means the age is not established, so the finding does not say stale.
+        freshness = ('age unknown (%s)' % QUEUE_HOLD_WORDS[hold] if hold else item.get('freshness', 'unknown'))
         lines += word_wrap('  State %s | owner %s | freshness %s | automatic remediation %s' % (
-            item.get('action_state', 'unknown'), item.get('owner_assertion', 'unknown'), item.get('freshness', 'unknown'),
+            item.get('action_state', 'unknown'), item.get('owner_assertion', 'unknown'), freshness,
             'yes' if item.get('automatic_remediation') is True else 'no'), width)
+        if hold and item.get('finding') == 'observation_stale':
+            lines += word_wrap('  Next: ' + with_clock_times(CLOCK_HOLD_STEPS[hold], evidence.get('freshness_clock')), width)
         writer = item.get('writer_ownership') if isinstance(item.get('writer_ownership'), dict) else {}
         claim = item.get('source_owner_claim') if isinstance(item.get('source_owner_claim'), dict) else {}
         if writer or 'owner_role' in item:
@@ -2194,7 +2227,7 @@ def execution_effect_lines(result, width):
     return []
 
 
-def refusal_lines(value, width, known=None):
+def refusal_lines(value, width, known=None, clock_fact=None):
     """A refusal: the engine's code and message, then what it means and the next step when the code is known.
 
     The meaning is left out when the engine's own message already says it. When the code covers several causes and
@@ -2210,6 +2243,8 @@ def refusal_lines(value, width, known=None):
         lines += word_wrap('Cause: ' + str(cause), width)
         lines += effect_lines(error.get('effects'), width)
         step = KNOWN_NEXT.get(kind) or (REFUSALS[code][1] if code in REFUSALS else None)
+        if step and kind in ('observation_clock_moved_backward', 'observation_clock_floor_invalid'):
+            step = with_clock_times(step, clock_fact)  # the recovery names the times it is about
         if step:
             lines += word_wrap('Next: ' + step, width)
         if message:
@@ -2299,6 +2334,8 @@ def evidence_detail_words(evidence):
             parts.append('snapshot ' + item[:12])
         elif str(key).endswith('_at') and isinstance(item, str):
             parts.append('%s %s' % (label, _when(item)))
+        elif key == 'freshness_clock' and clock_times(item):
+            parts.append(clock_times(item))
         elif key == 'freshness_reasons' and isinstance(item, list):
             parts.append('%s: %s' % (label, ', '.join(FRESHNESS_REASON_WORDS.get(reason, _as_words(reason)) for reason in item)))
         elif isinstance(item, list):

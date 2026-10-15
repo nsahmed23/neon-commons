@@ -250,5 +250,40 @@ class GuardsThatPassBeforeAndAfterTests(FreshnessClockTestCase):
         self.assertEqual(self.reasons(), ['older_than_window'])
 
 
+class ClockFactTests(FreshnessClockTestCase):
+    """PKG-PRES-HOLD item 1: a clock hold says what the clock read and what was recorded, and nothing else changes."""
+
+    def test_a_backward_hold_carries_the_reading_and_the_recorded_time(self):
+        self.clocks.elapse(30)
+        self.store.collect(self.service)
+        recorded = clock.Floor(self.floor_path).high_water()
+        self.roll_back()
+        observation = self.store.inspect(self.oid)
+        self.assertIn('clock_moved_backward', observation['freshness_reasons'])
+        fact = observation['freshness_clock']
+        self.assertEqual(set(fact), {'reads', 'recorded'})
+        self.assertEqual(fact['reads'], self.clocks.time())
+        self.assertGreaterEqual(fact['recorded'], recorded)
+        self.assertGreater(fact['recorded'], fact['reads'])
+
+    def test_an_unreadable_record_carries_the_reading_and_no_recorded_time(self):
+        self.floor_path.write_bytes(b'{not json')
+        observation = self.store.inspect(self.oid)
+        self.assertIn('clock_floor_invalid', observation['freshness_reasons'])
+        self.assertEqual(observation['freshness_clock'], {'reads': self.clocks.time(), 'recorded': None})
+
+    def test_without_a_clock_reason_the_key_is_absent_and_nothing_else_changes(self):
+        fresh = self.store.inspect(self.oid)
+        self.assertNotIn('freshness_clock', fresh)
+        self.clocks.elapse(WINDOW + 1)
+        aged = self.store.inspect(self.oid)
+        self.assertEqual(aged['freshness_reasons'], ['older_than_window'])
+        self.assertNotIn('freshness_clock', aged)
+        self.roll_back()
+        held = self.store.inspect(self.oid)
+        self.assertIn('freshness_clock', held)
+        self.assertEqual(set(held) - {'freshness_clock'}, set(fresh))
+
+
 if __name__ == '__main__':
     unittest.main()
