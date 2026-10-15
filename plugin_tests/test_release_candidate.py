@@ -375,6 +375,132 @@ class CandidateGuideTests(unittest.TestCase):
         self.assertTrue(re.search(r'--seed 42|seed 42|default seed', text))
 
 
+DEMO = ROOT / 'scripts/demo-clean-install.sh'
+
+
+class CleanInstallScriptTests(unittest.TestCase):
+    """The demonstration script refuses to run where it should not, and its quickstart is the guide's."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.base = Path(temp.name)
+        self.fixture = FixtureBuild(self)
+        self.fixture.build()
+        self.archive = self.fixture.archive('runtime')
+        self.wheels = self.base / 'wheels'
+        self.wheels.mkdir()
+        self.outside = self.base / 'outside'
+        self.outside.mkdir()
+
+    def run_script(self, *args, cwd=None):
+        environment = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8'}
+        return subprocess.run(['bash', str(DEMO), *map(str, args)], cwd=cwd or self.outside, capture_output=True, text=True,
+                              env=environment, timeout=120)
+
+    def rewritten(self, change):
+        """A copy of the runtime archive after `change(members)` edited its {name: bytes} mapping."""
+        with zipfile.ZipFile(self.archive) as source:
+            members = {info.filename: source.read(info) for info in source.infolist()}
+        change(members)
+        path = self.base / 'changed.zip'
+        with zipfile.ZipFile(path, 'w') as out:
+            for name, data in members.items():
+                out.writestr(name, data)
+        return path
+
+    def test_the_script_is_valid_shell_and_has_lf_endings(self):
+        self.assertTrue(DEMO.is_file())
+        self.assertNotIn(b'\r', DEMO.read_bytes())
+        self.assertEqual(subprocess.run(['bash', '-n', str(DEMO)], capture_output=True).returncode, 0)
+
+    def test_wrong_usage_is_refused_with_the_usage_line(self):
+        result = self.run_script()
+        self.assertEqual(result.returncode, 64)
+        self.assertIn('Usage:', result.stderr)
+
+    def test_it_refuses_to_run_from_inside_a_checkout(self):
+        checkout = self.base / 'checkout'
+        (checkout / '.git').mkdir(parents=True)
+        (checkout / 'deeper').mkdir()
+        for cwd in (checkout, checkout / 'deeper'):
+            with self.subTest(cwd=str(cwd.relative_to(self.base))):
+                result = self.run_script(self.archive, self.wheels, self.base / 'work', cwd=cwd)
+                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+                self.assertIn('git checkout', result.stderr)
+                self.assertFalse((self.base / 'work').exists())
+
+    def test_it_refuses_a_work_folder_inside_a_checkout(self):
+        checkout = self.base / 'checkout'
+        (checkout / '.git').mkdir(parents=True)
+        result = self.run_script(self.archive, self.wheels, checkout / 'new' / 'work')
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn('WORK_FOLDER is inside a git checkout', result.stderr)
+        self.assertFalse((checkout / 'new').exists())
+
+    def test_it_refuses_a_work_folder_that_is_not_empty(self):
+        work = self.base / 'work'
+        work.mkdir()
+        (work / 'old.txt').write_text('earlier run')
+        result = self.run_script(self.archive, self.wheels, work)
+        self.assertEqual(result.returncode, 64)
+        self.assertIn('not empty', result.stderr)
+
+    def test_it_refuses_an_archive_whose_digest_is_not_the_expected_one(self):
+        result = self.run_script(self.archive, self.wheels, self.base / 'work', '0' * 64)
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertIn('does not match EXPECTED_ARCHIVE_SHA256', result.stderr)
+        self.assertFalse((self.base / 'work').exists())
+
+    def test_it_accepts_the_matching_expected_digest_and_reads_on(self):
+        digest = sha256(self.archive.read_bytes())
+        result = self.run_script(self.archive, self.wheels, self.base / 'work', digest)
+        self.assertIn('archive sha256: ' + digest, result.stdout)
+        self.assertIn('SHA256SUMS verified', result.stdout)
+
+    def test_it_refuses_an_archive_with_a_member_that_differs_from_sha256sums(self):
+        path = self.rewritten(lambda members: members.update({'intune-iac/README.md': b'edited after the build\n'}))
+        result = self.run_script(path, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertIn('SHA256SUMS', result.stderr)
+        self.assertFalse((self.base / 'work/extract/intune-iac/.venv').exists())
+
+    def test_it_refuses_an_archive_with_a_file_sha256sums_does_not_list(self):
+        path = self.rewritten(lambda members: members.update({'intune-iac/extra.txt': b'not listed\n'}))
+        result = self.run_script(path, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertIn('does not list', result.stderr)
+
+    def test_a_verified_archive_that_is_not_the_runtime_is_refused_before_any_install(self):
+        result = self.run_script(self.archive, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+        self.assertIn('SHA256SUMS verified', result.stdout)
+        self.assertIn('not a runtime archive', result.stderr)
+        self.assertFalse((self.base / 'work/extract/intune-iac/.venv').exists())
+
+    def test_it_installs_only_from_the_wheel_folder_with_every_hash_flag(self):
+        text = DEMO.read_text()
+        for flag in ('--no-index', '--find-links', '--require-hashes', '--only-binary :all:', '--isolated'):
+            self.assertIn(flag, text)
+        for forbidden in ('curl', 'wget', 'git clone', 'pip download', 'sudo'):
+            self.assertNotIn(forbidden, text)
+
+    def test_the_quickstart_steps_are_the_guides_commands_word_for_word(self):
+        import re
+        guide = ' '.join(guide_text().split())
+        steps = re.findall(r'^step (\S+) "(.*)"(?: .*)?$', DEMO.read_text(), re.M)
+        quick = [(name, command) for name, command in steps if 'intune-iac' in command and name != 'build-identity']
+        self.assertGreaterEqual(len(quick), 10)
+        for name, command in quick:
+            normalized = ' '.join(command.replace('\\n', '\\n').split())
+            self.assertIn(normalized, guide, name + ' differs from the guide')
+
+    def test_the_script_is_in_the_runtime_archive_the_source_inventory_and_the_guide(self):
+        self.assertTrue('scripts/demo-clean-install.sh' in builder.runtime_files())
+        self.assertTrue('scripts/demo-clean-install.sh' in (ROOT / 'release-source-files.txt').read_text().splitlines())
+        self.assertIn('scripts/demo-clean-install.sh', guide_text())
+
+
 class CheckoutBuildCheckTests(unittest.TestCase):
     # Found 2026-10-15 at base 7f9d86f: `scripts/build-release.py --check-only` refuses the reviewed inventory because
     # it lists the frozen synthetic executor state (a .tfstate file name) added with the pre-pin-migration fixtures.

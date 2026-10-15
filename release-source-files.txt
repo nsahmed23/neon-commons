@@ -3209,6 +3209,7 @@ reuse-ledger.csv
 scripts/acquire-skill-catalogs.py
 scripts/build-evidence-layer.py
 scripts/build-release.py
+scripts/demo-clean-install.sh
 scripts/download-complete-layers.py
 scripts/finalize-skill-inventory.py
 scripts/intune-iac.py

@@ -187,6 +187,22 @@ mkdir -m 700 demo
    rm -r demo
    ```
 
+## Check a clean install end to end
+
+To see the whole path work on a machine that has never held the product, run the demonstration script. It
+unpacks the archive into a new folder, checks `SHA256SUMS`, makes a fresh virtual environment, installs only from
+the folder of wheels with `--no-index`, runs the quickstart above without a terminal, and prints one line for
+each step. Run it from a folder that is not inside a git checkout, and give it a work folder that does not exist
+yet (a fourth argument, the archive digest from the build receipt, makes it refuse a different archive):
+
+```sh
+bash scripts/demo-clean-install.sh /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder
+```
+
+The script exits 0 when every step passed, 1 when a step failed, 2 when it refused to run in a checkout and 3 when
+the archive failed verification. It uses `python3` unless the `PYTHON` variable names another CPython 3.12 with the
+`venv` module.
+
 ## Support limits
 
 Read these before you rely on any result.
