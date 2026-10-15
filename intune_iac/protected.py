@@ -21,6 +21,7 @@ import threading
 import time
 import uuid
 
+from . import clock
 from .execution import review_plan, review_local_output_plan
 from .io import AppError, canonical, digest, load_json, parse_json, read_bytes
 
@@ -667,6 +668,8 @@ def prepare_native_operation(executor, *, ttl_seconds=300):
     if before!=_state(executor):_fail('stale_state')
     _exclusive(executor.root/'work/plan.json',raw)
     bindings=_bindings(executor);now=_now()
+    # The creation time is the first point on this operation's clock floor (clock.py).
+    clock.Floor(executor.root/'clock.json').observe(now)
     request={'schema_version':VERSION,'mode':executor.mode,'action':'synthetic_saved_plan_apply' if executor.mode=='synthetic_local_process_only' else 'native_local_saved_plan_apply',
              'operation_id':uuid.uuid4().hex,'created_at':now,'expires_at':now+ttl_seconds,'bindings':bindings,'binding_sha256':digest(bindings),
              'review':{'status':review['status'],'plan_json_sha256':review['plan_json_sha256'],'generic_review_status':review.get('generic_review_status',review['status']),'generic_blockers':review['blockers']},'execution_authorized':False}
@@ -702,7 +705,7 @@ def _validate_request(request, executor, *, fresh=True, state=True):
     action='synthetic_saved_plan_apply' if executor.mode=='synthetic_local_process_only' else 'native_local_saved_plan_apply'
     if request['action']!=action or type(request['operation_id'])is not str or not _ID.fullmatch(request['operation_id']):_fail('invalid_request')
     if type(request['created_at'])is not int or type(request['expires_at'])is not int or not 1<=request['expires_at']-request['created_at']<=300:_fail('invalid_expiry')
-    if fresh and not request['created_at']<=_now()<request['expires_at']:_fail('expired_request')
+    if fresh: _window(request,executor)
     if type(request['bindings'])is not dict or set(request['bindings'])!=_BINDING_KEYS or request['binding_sha256']!=digest(request['bindings']):_fail('invalid_binding')
     if request!=load_json(_path(executor.root/'preparation.json')):_fail('request_changed')
     executor._validate();actual=_bindings(executor)
@@ -730,6 +733,24 @@ def _validate_request(request, executor, *, fresh=True, state=True):
              'generic_review_status':reviewed.get('generic_review_status',reviewed['status']),'generic_blockers':reviewed['blockers']}
     if request['review']!=summary:_fail('review_binding_changed')
     return request
+
+
+def _window(request, executor):
+    """Judge the approval window on the effective time (clock.py), never on a bare wall-clock reading.
+
+    A recorded expiry refuses for good; a backward step means validity cannot be established, so the mutation is held;
+    reaching the expiry records it beside the approval before refusing. Returns the effective time.
+    """
+    expired=executor.root/'expired.json'
+    if expired.exists():_fail('expired_request')
+    reading=clock.Floor(executor.root/'clock.json').observe(_now())
+    if reading['backward'] or reading['effective']<request['created_at']:_fail('clock_moved_backward')
+    if reading['effective']>=request['expires_at']:
+        try:_exclusive(expired,canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),
+                                         'expires_at':request['expires_at'],'judged_at':reading['effective'],'wall':reading['wall']}))
+        except FileExistsError:pass
+        _fail('expired_request')
+    return reading['effective']
 
 
 def validate_native_operation(request, *, executor, require_fresh=False, require_state=False):
@@ -776,7 +797,7 @@ def execute_native_operation(request, state_dir, *, executor, approval):
         request=_validate_request(request,executor)
         if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
         result.update(operation_id=request['operation_id'],assurance=executor.mode)
-        if type(approval)is not _LocalGrant or approval.seal is not _SECRET or approval.consumed or approval.request_sha256!=digest(request) or approval.expires_at<=_now():_fail('approval_required')
+        if type(approval)is not _LocalGrant or approval.seal is not _SECRET or approval.consumed or approval.request_sha256!=digest(request) or approval.expires_at<=_window(request,executor):_fail('approval_required')
         directory=_path(state_dir)
         if directory==executor.root or executor.root in directory.parents or directory in executor.root.parents:_fail('overlapping_paths')
         directory.mkdir(mode=0o700,parents=True,exist_ok=True)

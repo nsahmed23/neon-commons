@@ -449,7 +449,14 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
             from .workbench_repository import require_current_intent
             require_current_intent(_store(plan['store_root']), context['repository_intent_id'])
         executor = protected.SyntheticExecutor(root / 'executor')
-        approval = protected.approve_synthetic_operation(request, executor=executor)
+        try:
+            approval = protected.approve_synthetic_operation(request, executor=executor)
+        except AppError as error:
+            if error.code in ('expired_request', 'clock_moved_backward'):
+                # Audit, before anything is sent: the approval was refused for its window; nothing was dispatched.
+                _event(root, journal, 'approval_refused', code=error.code)
+                _register(root, plan, journal)
+            raise
         # Durable uncertainty is committed before either engine or model write.
         journal['status'] = 'outcome_unknown'
         progress['dispatched'] = True

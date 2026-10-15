@@ -1663,7 +1663,7 @@ def _stage_text(stage):
 
 EVENT_LABELS = {'prepared': 'prepared', 'dispatch_started': 'dispatch started', 'engine_result': 'engine result',
                 'service_response': 'service response', 'service_no_change': 'nothing sent', 'verified': 'verified',
-                'uncertain': 'outcome unknown', 'reconciled': 'reconciled'}
+                'uncertain': 'outcome unknown', 'reconciled': 'reconciled', 'approval_refused': 'approval refused'}
 
 
 def _event_text(event):
@@ -1688,6 +1688,8 @@ def _event_text(event):
         return str(fields.get('error_code'))
     if kind == 'reconciled':
         return '%s, after %s' % (fields.get('classification'), fields.get('previous_status'))
+    if kind == 'approval_refused':
+        return '%s; nothing was dispatched' % fields.get('code')
     return 'r shows what it recorded'
 
 
@@ -1922,6 +1924,11 @@ REFUSALS = {
     'selection_required': (
         'This view belongs to one policy, and none is selected.',
         'press 1 for Estate and Enter on a policy, then try again.'),
+    'clock_moved_backward': (
+        "This host's clock reads earlier than a time this operation already recorded, so whether its approval window is "
+        'still open cannot be established. Nothing was dispatched.',
+        'Correct the host clock, or wait until it reads at or after the recorded time, then submit again; a new proposal '
+        'also works.'),
     'expired_request': (
         'The plan\'s approval window has closed, or the local clock reads outside it.',
         'Prepare a new proposal; v shows the window of the active operation.'),

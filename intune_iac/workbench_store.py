@@ -294,15 +294,21 @@ class WorkbenchStore:
             db.execute('INSERT OR IGNORE INTO run_scope_objects VALUES(?,?)',(run_id,oid))
             for relation,target,details in _edges(body):
                 db.execute('INSERT OR IGNORE INTO relationships VALUES(?,?,?,?)',(snapshot_id,relation,target,_json(details)))
+            # Ordering: the store stamped its own collections, so between two of them from the same modeled service
+            # the later run wins (local collection order), even when a clock step stamped the earlier one ahead.
+            # An imported capture carries its source's capture time, which is what orders it against anything else.
             db.execute("""INSERT INTO object_heads VALUES(?,?,?,?,?,?) ON CONFLICT(object_id) DO UPDATE SET
                 run_id=excluded.run_id,observation_id=excluded.observation_id,observed_at=excluded.observed_at,present=excluded.present,domain=excluded.domain
-                WHERE excluded.observed_at>object_heads.observed_at OR (excluded.observed_at=object_heads.observed_at AND excluded.run_id>object_heads.run_id)""",
+                WHERE (excluded.domain=object_heads.domain AND excluded.domain LIKE 'model:%' AND excluded.run_id>object_heads.run_id)
+                   OR (NOT (excluded.domain=object_heads.domain AND excluded.domain LIKE 'model:%')
+                       AND (excluded.observed_at>object_heads.observed_at OR (excluded.observed_at=object_heads.observed_at AND excluded.run_id>object_heads.run_id)))""",
                 (oid,run_id,observation_id,observed_at,1,domain))
         if scope['kind']=='estate':
             # Absence only applies to the same declared modeled estate, never an
             # unrelated policy-scoped capture or a different model root.
             for head in db.execute('SELECT * FROM object_heads WHERE domain=?',(domain,)).fetchall():
-                if head['object_id'] not in objects and (observed_at,run_id) >= (head['observed_at'],head['run_id']):
+                later = run_id > head['run_id'] if domain.startswith('model:') else (observed_at,run_id) >= (head['observed_at'],head['run_id'])
+                if head['object_id'] not in objects and later:
                     db.execute('UPDATE object_heads SET run_id=?,observation_id=NULL,observed_at=?,present=0 WHERE object_id=?',
                         (run_id,observed_at,head['object_id']))
                     db.execute('INSERT OR IGNORE INTO run_scope_objects VALUES(?,?)',(run_id,head['object_id']))
@@ -515,7 +521,17 @@ class WorkbenchStore:
 
     def _latest(self, db):
         attempt = db.execute('SELECT * FROM collection_runs ORDER BY run_id DESC LIMIT 1').fetchone()
-        success = db.execute("SELECT * FROM collection_runs WHERE status='complete' ORDER BY observed_at DESC,run_id DESC LIMIT 1").fetchone()
+        if self.schema_version == 1:
+            success = db.execute("SELECT * FROM collection_runs WHERE status='complete' ORDER BY observed_at DESC,run_id DESC LIMIT 1").fetchone()
+            return attempt, success
+        # The latest of the store's own complete collections by local order, and the latest imported capture by its
+        # capture time; between the two, capture time decides, as for object heads.
+        own = db.execute("""SELECT r.* FROM collection_runs r JOIN run_details d USING(run_id)
+            WHERE r.status='complete' AND d.domain LIKE 'model:%' ORDER BY r.run_id DESC LIMIT 1""").fetchone()
+        captured = db.execute("""SELECT r.* FROM collection_runs r JOIN run_details d USING(run_id)
+            WHERE r.status='complete' AND d.domain NOT LIKE 'model:%' ORDER BY r.observed_at DESC,r.run_id DESC LIMIT 1""").fetchone()
+        found = [row for row in (own, captured) if row is not None]
+        success = max(found, key=lambda row: (row['observed_at'], row['run_id'])) if len(found) == 2 else (found[0] if found else None)
         return attempt, success
 
     def _observation(self, db, row):

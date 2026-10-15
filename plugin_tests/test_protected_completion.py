@@ -63,9 +63,18 @@ class ProtectedCompletionTests(unittest.TestCase):
         request, grant = self.prepared()
         with patch.object(self.api, '_now', return_value=request['expires_at']):
             self.assertEqual(self.api.execute_native_operation(request,self.receipts,executor=self.executor,approval=grant)['status'], 'rejected')
-        result = self.api.execute_native_operation(request,self.receipts,executor=self.executor,approval=grant)
+        # The expiry is recorded beside the approval: a later reading inside the window no longer reopens it (owner
+        # directive inbox/PRODUCT-TASK-12.md, section 3; this test used to expect the window to reopen).
+        with patch.object(self.api, '_run', side_effect=AssertionError('dispatch')):
+            reopened = self.api.execute_native_operation(request,self.receipts,executor=self.executor,approval=grant)
+        self.assertEqual((reopened['status'], reopened['error']['code']), ('rejected', 'expired_request'))
+        # The replay block, on a fresh fixture: one success, then every further attempt is rejected.
+        fresh = self.api.create_synthetic_executor(self.base / 'fixture-two', initial_value={}, desired_value={'policies': {'id': 'hash'}})
+        request = self.api.prepare_native_operation(fresh)
+        grant = self.api.approve_synthetic_operation(request, executor=fresh)
+        result = self.api.execute_native_operation(request,self.base / 'receipts-two',executor=fresh,approval=grant)
         self.assertEqual(result['status'], 'succeeded_verified')
-        self.assertEqual(self.api.execute_native_operation(request,self.receipts,executor=self.executor,approval=grant)['status'], 'rejected')
+        self.assertEqual(self.api.execute_native_operation(request,self.base / 'receipts-two',executor=fresh,approval=grant)['status'], 'rejected')
 
     def test_stale_backend_even_equal_values_blocks(self):
         request, grant = self.prepared()

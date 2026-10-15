@@ -81,13 +81,17 @@ class WorkbenchStoreTests(unittest.TestCase):
             self.assertEqual(db.execute('SELECT count(*) FROM snapshots').fetchone()[0],3)
             self.assertEqual(db.execute('SELECT count(*) FROM observations').fetchone()[0],6)
 
-    def test_out_of_order_collection_does_not_replace_newer_observation(self):
+    def test_a_later_collection_outranks_an_earlier_one_stamped_later(self):
+        # The second collection read the service after the change; only its stamp is earlier (a clock step). The
+        # store's own collections follow local collection order, so the later run's observation is current (owner
+        # directive inbox/PRODUCT-TASK-12.md, section 3; this test used to keep the earlier run's body by wall time).
         self.collect(observed_at=200)
-        self.change(); self.collect(observed_at=100)
+        changed = self.change(); self.collect(observed_at=100)
         overview = self.store.overview(now=220)
         self.assertEqual(overview['last_attempt']['run_id'],2)
-        self.assertEqual(overview['last_success']['run_id'],1)
-        self.assertEqual(self.store.inspect(self.ids[0])['body'],self.expected[self.ids[0]])
+        self.assertEqual(overview['last_success']['run_id'],2)
+        self.assertEqual(self.store.inspect(self.ids[0])['run_id'],2)
+        self.assertEqual(self.store.inspect(self.ids[0])['body'],changed)
         self.assertEqual([row['run_id'] for row in self.store.history(self.ids[0])],[2,1])
 
     def test_history_comparison_and_cross_object_rejection(self):

@@ -147,6 +147,44 @@ Before approval and each native execution-context check, the pinned engine re-de
 qualify any provider plan. See the measured native report and raw plan under
 `research/completion/protected-native-*`.
 
+## Time authority for the approval window
+
+The approval window, `created_at <= t < expires_at`, is judged on an effective
+time that never goes backward, never on a bare wall-clock reading
+(`intune_iac/clock.py`):
+
+- **Time authority.** Wall time is the only persisted, portable timestamp. Beside
+  each prepared request, `clock.json` records the latest wall time any check of
+  that operation saw (its high-water mark; creation is the first point). It only
+  rises. Within one process, monotonic time carries the latest reading for the
+  same operation forward by the elapsed time; it is never persisted or compared
+  across processes. The effective time is the greatest of the wall clock, the
+  high-water mark and that process floor.
+- **Backward steps.** A wall clock reading earlier than the floor by more than
+  two seconds means the true time cannot be established. Approval and every
+  check before dispatch refuse with `clock_moved_backward`, and nothing is
+  dispatched. Recovery: correct the host clock, or wait until it reads at or
+  after the recorded time, then submit again, or prepare a new request.
+- **Expiry is recorded.** When the effective time reaches `expires_at`, an
+  exclusive `expired.json` is written beside the approval before the refusal
+  (`expired_request`). Every later check refuses while it exists, after a clock
+  rollback, a restart or from another process alike. The workbench's operation
+  journal also records `approval_refused` with the code; its status stays
+  `prepared`, since nothing was dispatched.
+- **Restart and suspend.** The high-water mark is durable, so a restart keeps
+  the floor; a resume after suspend reads a later wall time, which only moves the
+  window toward expiry.
+- **Limits.** A backward step is detected only between readings this operation
+  recorded or this process made. Skew between hosts that never shared a recorded
+  time is not detected, and nothing here claims protection against it.
+
+The workbench store orders observations the same way. Between two of the store's
+own collections from the same modeled service, the later run (local collection
+order) is current, even when a clock step stamped the earlier one later. An
+imported capture carries its source's capture time, which orders it against
+anything else. Original timestamps are kept as recorded; age-based freshness,
+a known source change and an incomplete collection stay separate conditions.
+
 ## Durable outcomes and recovery
 
 The exact fsynced, hash-linked event prefix is:
