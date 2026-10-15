@@ -119,6 +119,7 @@ contracts/examples/test-cases.json
 contracts/export-intake.schema.json
 contracts/field-accounting.schema.json
 contracts/generated-files.schema.json
+contracts/integration-manifest.json
 contracts/journey-actions.json
 contracts/journey-receipt.schema.json
 contracts/journey-semantics.json
@@ -489,6 +490,7 @@ intune_iac/graph_validation.py
 intune_iac/host_capabilities.py
 intune_iac/identity_binding.py
 intune_iac/implementation_history.py
+intune_iac/integration_manifest.py
 intune_iac/io.py
 intune_iac/journey.py
 intune_iac/journey_native_atmos.py
@@ -843,6 +845,7 @@ plugin_tests/test_graph_resolution.py
 plugin_tests/test_host_capabilities_r4.py
 plugin_tests/test_identity_binding_v5.py
 plugin_tests/test_implementation_history.py
+plugin_tests/test_integration_manifest.py
 plugin_tests/test_interruption.py
 plugin_tests/test_journey_completion.py
 plugin_tests/test_journey_native_atmos.py

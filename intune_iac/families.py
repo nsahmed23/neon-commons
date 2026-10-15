@@ -3,8 +3,10 @@
 The product's `family-coverage.csv` is read unchanged: route, material, release
 stage, the qualification each family still needs and its live status, plus any
 further columns as they are. The only addition is where each family appears in
-the workbench today, stated from the implementation rather than inferred. A
-runtime without the table, or with a table that cannot be read as written, says
+the workbench today, stated from the implementation rather than inferred; that
+statement is read from the integration manifest (integration_manifest.py), whose
+family entries mirror the table row for row. A runtime without the table, with a
+table that cannot be read as written, or with a manifest the loader refuses, says
 so instead of failing.
 """
 from __future__ import annotations
@@ -14,16 +16,12 @@ import hashlib
 import io
 from pathlib import Path
 
+from . import integration_manifest
+from .io import AppError
+
 VERSION = 'workbench-families/1'
 TABLE = 'family-coverage.csv'
 COLUMNS = ('family', 'candidate', 'material', 'release_stage', 'qualification_needed', 'live')
-# Where each family appears in the workbench today; every other family is not in the estate.
-PRESENCE = {
-    'Windows plain Settings Catalog': 'estate, inspection, dictionary, history, health, adoption and maintenance (synthetic, offline)',
-    'Groups, filters, scope tags': 'shown as referenced targets in the Inspector and Relationships; never managed',
-    'Endpoint diagnostics': 'offline analysis materials only (examples/diagnostics); not in the estate',
-    'Azure support': 'a backend for generated projects; not in the estate',
-}
 
 
 def _rows(data):
@@ -54,8 +52,12 @@ def families(root=None):
     header, rows, problem = _rows(data)
     if problem:
         return dict(base, available=False, reason='family_coverage_malformed', detail=problem, source=source, families=[])
+    try:
+        presence = {entry['family']: entry['workbench_presence'] for entry in integration_manifest.load()['families']}
+    except AppError as error:
+        return dict(base, available=False, reason=error.code, detail=error.message, source=source, families=[])
     return dict(base, available=True, source=source,
                 families=[{'family': row['family'], 'route': row['candidate'], 'material': row['material'],
                            'stage': row['release_stage'], 'qualification_needed': row['qualification_needed'],
-                           'live': row['live'], 'workbench': PRESENCE.get(row['family'], 'not in the estate'),
+                           'live': row['live'], 'workbench': presence.get(row['family'], 'not in the estate'),
                            'other_columns': {name: row[name] for name in header if name not in COLUMNS}} for row in rows])

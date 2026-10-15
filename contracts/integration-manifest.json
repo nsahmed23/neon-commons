@@ -1,0 +1,388 @@
+{
+  "schema_version": "integration-manifest/1",
+  "description": "Capability manifest for the Intune integration, built only from facts this repository already holds. A catalog entry is not lifecycle qualification: listing a family or an object kind here does not make it discover-only, export-only, review-only, adoption-qualified or change-qualified. An object kind carries one of those words only where level_record names the repository record that establishes it; otherwise the level is unknown. Today families.py reads the workbench presence of each family from this file; nothing else reads it.",
+  "integration": {
+    "id": "intune",
+    "label": "Microsoft Intune",
+    "product": "intune-iac",
+    "product_version": "0.9.0"
+  },
+  "input_formats": [
+    {
+      "id": "export-intake",
+      "schema_file": "contracts/export-intake.schema.json",
+      "schema_id": "https://example.invalid/intune-iac/contracts/1.0.0/export-intake.schema.json",
+      "schema_version": "1.0.0",
+      "collection_kinds": [
+        "policies",
+        "settings",
+        "assignments"
+      ]
+    },
+    {
+      "id": "capture",
+      "schema_file": "corrections/contracts/capture.schema.json",
+      "schema_id": "https://example.invalid/intune-iac/corrections/2.0.0/capture.schema.json",
+      "schema_version": null,
+      "collection_kinds": [
+        "policies",
+        "settings",
+        "assignments"
+      ]
+    }
+  ],
+  "object_kinds": [
+    {
+      "id": "settings_catalog_policy",
+      "label": "Windows Settings Catalog policy",
+      "family": "Windows plain Settings Catalog",
+      "input_formats": [
+        "export-intake",
+        "capture"
+      ],
+      "facets": [
+        "policy",
+        "assignments"
+      ],
+      "operations": [
+        {
+          "name": "discovery",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "target",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "inventory",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "selection",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "preservation",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "mapping",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "ownership",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "atmos",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "generation",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "validation",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "adoption",
+          "evidence_class": "local_evidence_only"
+        },
+        {
+          "name": "plan",
+          "evidence_class": "synthetic_local_process_only"
+        },
+        {
+          "name": "approval",
+          "evidence_class": "synthetic_local_process_only"
+        },
+        {
+          "name": "execute",
+          "evidence_class": "synthetic_local_process_only"
+        },
+        {
+          "name": "reconcile",
+          "evidence_class": "synthetic_local_process_only"
+        },
+        {
+          "name": "convergence",
+          "evidence_class": "synthetic_local_process_only"
+        },
+        {
+          "name": "handoff",
+          "evidence_class": "synthetic_local_process_only"
+        }
+      ],
+      "level": "unknown",
+      "level_record": null,
+      "level_note": "No repository record states a level in the guide words for this object kind; family-coverage.csv gives only the release stage and live status shown on its family entry."
+    },
+    {
+      "id": "assignment_target_reference",
+      "label": "Group, filter and scope tag reference",
+      "family": "Groups, filters, scope tags",
+      "input_formats": [
+        "export-intake",
+        "capture"
+      ],
+      "facets": [],
+      "operations": [],
+      "level": "unknown",
+      "level_record": null,
+      "level_note": "No repository record states a level in the guide words for this object kind; family-coverage.csv gives only the release stage and live status shown on its family entry."
+    },
+    {
+      "id": "win32_app",
+      "label": "Win32 app",
+      "family": "Win32 apps",
+      "input_formats": [],
+      "facets": [],
+      "operations": [],
+      "level": "review-only",
+      "level_record": {
+        "path": "family-coverage.csv",
+        "quote": "Win32 apps,Intune app family API,review contract +diagnostic fixture,review only,",
+        "locator": "row Win32 apps, column release_stage reads review only"
+      },
+      "level_note": "The family table names the release stage review only; no operation is implemented for this kind."
+    }
+  ],
+  "setup_context": {
+    "pinned": {
+      "schema_version": "1.0.0",
+      "cloud": "public",
+      "engine": "tofu",
+      "engine_version": "1.10.0",
+      "atmos_version": "1.199.0",
+      "provider_source": "deploymenttheory/microsoft365",
+      "provider_version": "1.0.0",
+      "component": "intune-reference",
+      "stack": "reference-dev",
+      "authorization": "emit_only",
+      "backend_owner": "external",
+      "api_version": "beta",
+      "target_assurance": "proposed_reference_labels_only"
+    },
+    "start_context_keys": [
+      "cloud",
+      "component",
+      "stack",
+      "tenant_id"
+    ]
+  },
+  "host_profiles": {
+    "workbench_store": {
+      "requires": [
+        "posix",
+        "effective_uid",
+        "nofollow_open",
+        "directory_open",
+        "descriptor_relative_open",
+        "fsync",
+        "fcntl_lock"
+      ]
+    },
+    "graph_observer": {
+      "requires": [
+        "posix",
+        "linux",
+        "effective_uid",
+        "nofollow_open",
+        "directory_open",
+        "descriptor_relative_open",
+        "fsync",
+        "fcntl_lock",
+        "procfs",
+        "waitid_wnowait"
+      ]
+    },
+    "protected_worker": {
+      "requires": [
+        "posix",
+        "linux",
+        "x86_64",
+        "effective_uid",
+        "nofollow_open",
+        "directory_open",
+        "descriptor_relative_open",
+        "fsync",
+        "fcntl_lock",
+        "procfs",
+        "waitid_wnowait"
+      ]
+    },
+    "artifact_vault": {
+      "requires": [
+        "posix",
+        "linux",
+        "effective_uid",
+        "nofollow_open",
+        "directory_open",
+        "descriptor_relative_open",
+        "fsync",
+        "fcntl_lock"
+      ]
+    },
+    "visual_workspace": {
+      "requires": [
+        "posix",
+        "effective_uid",
+        "nofollow_open",
+        "directory_open",
+        "descriptor_relative_open",
+        "fsync",
+        "fcntl_lock",
+        "termios"
+      ]
+    }
+  },
+  "evidence_classes": {
+    "local_evidence_only": {
+      "establishes": [
+        "local byte consistency",
+        "source-derived proposal preservation"
+      ],
+      "does_not_establish": [
+        "authenticated tenant",
+        "backend ownership",
+        "native provider behavior"
+      ]
+    },
+    "synthetic_local_process_only": {
+      "establishes": [
+        "bounded child-process execution",
+        "full semantic model comparison",
+        "modeled service readback"
+      ],
+      "does_not_establish": [
+        "Intune import",
+        "Microsoft Graph changes",
+        "native Atmos execution",
+        "provider convergence"
+      ]
+    },
+    "native_local_opentofu_only": {
+      "establishes": [
+        "pinned native output-only saved-plan execution when explicitly selected",
+        "actual no-change second plan"
+      ],
+      "does_not_establish": [
+        "native Intune resource import",
+        "provider qualification",
+        "tenant mutation"
+      ]
+    },
+    "live": {
+      "establishes": [],
+      "does_not_establish": [
+        "available live execution capability"
+      ]
+    }
+  },
+  "live_blockers": [
+    "provider_not_qualified",
+    "authenticated_target_missing",
+    "state_backend_not_observed",
+    "single_writer_not_verified",
+    "protected_cloud_approval_unavailable",
+    "cloud_executor_unavailable"
+  ],
+  "required_scopes": {
+    "graph": "https://graph.microsoft.com/.default",
+    "arm": "https://management.azure.com/.default",
+    "storage": "https://storage.azure.com/.default"
+  },
+  "families": [
+    {
+      "family": "Windows plain Settings Catalog",
+      "candidate": "typed microsoft3651.0.0 beta",
+      "material": "schemas +4 fixtures +generator +independent oracle",
+      "release_stage": "offline reference",
+      "qualification_needed": "assign service semantics/pagination/common serializer/OpenTofu qualification",
+      "live": "not_run",
+      "workbench_presence": "estate, inspection, dictionary, history, health, adoption and maintenance (synthetic, offline)",
+      "object_kind": "settings_catalog_policy"
+    },
+    {
+      "family": "Template configuration /endpoint security",
+      "candidate": "family-specific beta route required",
+      "material": "unsupported detection +field preservation",
+      "release_stage": "staged",
+      "qualification_needed": "template-specific serializers and no-loss tests",
+      "live": "not_run",
+      "workbench_presence": "not in the estate",
+      "object_kind": null
+    },
+    {
+      "family": "Compliance policies",
+      "candidate": "family-specific API required",
+      "material": "workflow boundary and family disposition only",
+      "release_stage": "staged",
+      "qualification_needed": "typed resource/import route and complete fixture",
+      "live": "not_run",
+      "workbench_presence": "not in the estate",
+      "object_kind": null
+    },
+    {
+      "family": "Groups, filters, scope tags",
+      "candidate": "external references",
+      "material": "reference/target preservation tests",
+      "release_stage": "reference-only ownership",
+      "qualification_needed": "positive/negative auth; never silently own membership",
+      "live": "not_run",
+      "workbench_presence": "shown as referenced targets in the Inspector and Relationships; never managed",
+      "object_kind": "assignment_target_reference"
+    },
+    {
+      "family": "Win32 apps",
+      "candidate": "Intune app family API",
+      "material": "review contract +diagnostic fixture",
+      "release_stage": "review only",
+      "qualification_needed": "upload/commit/content delivery and return/detection qualification",
+      "live": "not_run",
+      "workbench_presence": "not in the estate",
+      "object_kind": "win32_app"
+    },
+    {
+      "family": "PowerShell scripts/remediations",
+      "candidate": "workload-specific API/permissions",
+      "material": "review contract and effects boundary",
+      "release_stage": "staged",
+      "qualification_needed": "test detection exit semantics per service; packaging/deploy separate",
+      "live": "not_run",
+      "workbench_presence": "not in the estate",
+      "object_kind": null
+    },
+    {
+      "family": "Autopilot/enrollment",
+      "candidate": "not selected",
+      "material": "explicit exclusion from first slice",
+      "release_stage": "later",
+      "qualification_needed": "family-specific identity and enrollment lab",
+      "live": "not_run",
+      "workbench_presence": "not in the estate",
+      "object_kind": null
+    },
+    {
+      "family": "Azure support",
+      "candidate": "existing azurerm backend/OIDC",
+      "material": "complete synthetic backend+CI handoff project",
+      "release_stage": "reference",
+      "qualification_needed": "live pipeline adapter/backend and principal qualification",
+      "live": "not_run",
+      "workbench_presence": "a backend for generated projects; not in the estate",
+      "object_kind": null
+    },
+    {
+      "family": "Endpoint diagnostics",
+      "candidate": "offline sanitized input",
+      "material": "evidence/timeline/expected analysis/reducer",
+      "release_stage": "offline reference",
+      "qualification_needed": "collector adaptation and observed target evidence",
+      "live": "not_run",
+      "workbench_presence": "offline analysis materials only (examples/diagnostics); not in the estate",
+      "object_kind": null
+    }
+  ]
+}
