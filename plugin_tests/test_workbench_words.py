@@ -154,3 +154,97 @@ class SurveyWordTests(unittest.TestCase):
             store.record_operation('op-1', {'object_id': POLICY, 'status': 'executed'})
             item = _store_item(Path(directory), store.root, 'store')
             self.assertEqual(item['operations'], 1)
+
+
+class ReviewWordTests(unittest.TestCase):
+    """Journey 27 run 2's reviews (logs/journey-27/FRAME-REVIEW-run2.md, Sonnet 2, 3, 4, 5, 6, 8, 12, 13, 22, 27, 29,
+    30; Gemini new problem 3)."""
+
+    def workspace(self, tab, value, **extra):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        workspace.__dict__.update(dict(tab=tab, value=value, selected=POLICY, facts={'object_id': POLICY}, mode_class='synthetic',
+                                       rows=[], operation_rows=[], operation_highlight=0, layer='summary', last_command='review',
+                                       store=type('S', (), {'tenant_id': TENANT})()), **extra)
+        return workspace
+
+    def test_the_plan_review_names_its_values_in_words(self):
+        value = {'operation_id': 'a' * 32, 'status': 'outcome_unknown', 'saved_plan_sha256': 'c' * 64,
+                 'approval_digest': 'b' * 64, 'evidence_class': 'synthetic_local_process_and_modeled_service_only',
+                 'changes': [POLICY + ':description_changed'],
+                 'field_changes': {'status': 'changed', 'complete': True, 'changes': [
+                     {'path': '/description', 'kind': 'replaced', 'before': 'x', 'after': 'y'}]}}
+        lines = text(self.workspace(4, value)._surface_summary(160))
+        self.assertIn('Status: outcome unknown', lines)
+        self.assertIn('Review digest (execute needs it): ' + 'b' * 64, lines)
+        self.assertNotIn('Approval binding', lines)
+        self.assertIn('Evidence class: synthetic local process and modeled service only', lines)
+        self.assertIn('Plan changes: description changed (22222222)', lines)
+
+    def test_an_execution_error_reads_as_words_with_its_code(self):
+        value = {'result': {'operation_id': 'a' * 32, 'status': 'outcome_unknown', 'error': {'code': 'model_response_lost'},
+                            'evidence_class': 'synthetic_local_process_and_modeled_service_only'}}
+        lines = text(self.workspace(5, value)._surface_summary(160))
+        self.assertIn("Error: the modeled service's response was lost (model_response_lost)", lines)
+
+    def test_an_empty_operations_list_says_so(self):
+        workspace = self.workspace(5, {'operations': []})
+        lines = text(workspace._summary_lines(120))
+        self.assertIn('[OPERATIONS] None recorded in this store yet.', lines)
+
+    def test_the_operations_list_reads_as_words(self):
+        workspace = self.workspace(5, {'operations': [{}]}, operation_rows=[
+            {'operation_id': 'a' * 32, 'recorded_at': '2026-10-14T23:58:28Z', 'status': 'succeeded_verified',
+             'operation_root': '/work/op', 'journal_records': 3}])
+        lines = text(workspace._summary_lines(160))
+        self.assertIn('recorded 2026-10-14 23:58:28 UTC | succeeded verified (3 journal records)', lines)
+        self.assertNotIn('status=', lines)
+
+    def test_a_notice_names_the_status_in_words_and_ids_at_one_length(self):
+        workspace = self.workspace(5, {}, last_command='execute /work/op digest')
+        self.assertEqual(workspace._notice_for({'status': 'outcome_unknown'}),
+                         'execute ran; the engine reported status outcome unknown.')
+        workspace.last_command = 'repository-refresh ' + 'c' * 40
+        self.assertEqual(workspace._notice_for({'artifact_id': 'd' * 64, 'kind': 'repository_intent'}),
+                         'repository-refresh recorded repository intent dddddddddddd.')
+
+    def test_a_refusal_says_its_cause_once(self):
+        # Gemini 3: the engine's message, "What it means" and "Next" said the same thing three times.
+        from intune_iac.workbench_screens import refusal_lines
+        message = 'The repository changed again after its difference was shown; review the difference again before recording it.'
+        lines = text(refusal_lines({'error': {'code': 'workbench_difference_changed', 'message': message,
+                                              'effects': {'intent_recorded': False, 'retained_intent': 'a' * 64}}}, 160))
+        self.assertIn('Cause: The repository changed after you reviewed its difference.', lines)
+        self.assertNotIn(message, lines)
+        self.assertIn("The engine's own message is in the typed details (e).", lines)
+        # A message that names something specific (a setting, a path, a value) stays on screen.
+        specific = 'The desired policy uses device_vendor_msft_policy_config_x_1, outside the capability map.'
+        lines = text(refusal_lines({'error': {'code': 'workbench_desired_capability', 'message': specific}}, 160))
+        self.assertIn(specific, lines)
+        # An unknown code shows the engine's message alone.
+        lines = text(refusal_lines({'error': {'code': 'x_unknown', 'message': 'Something failed.'}}, 160))
+        self.assertIn('Something failed.', lines)
+
+    def test_diagnostics_names_the_proposal_s_own_observation_check(self):
+        # Sonnet 3 and 4: "freshness clear" and "1 signal" beside a source that changed since capture.
+        from intune_iac.workbench_screens import diagnostics_lines
+        signal = {'area': 'operations', 'code': 'operation_outcome_unknown', 'observed': 'Outcome unknown.',
+                  'next_step': 'Reconcile.', 'evidence': {'journal_status': 'outcome_unknown',
+                                                          'recorded_at': '2026-10-14T23:58:28.005714Z'}}
+        check = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 2,
+                 'service_revision': 3}
+        lines = text(diagnostics_lines({'name': 'Pilot', 'object_id': POLICY, 'signals': [signal],
+                                        'checked': {'freshness': 'clear'}}, 160, check=check))
+        self.assertIn("1 signal and the proposal's observation check need attention", lines)
+        self.assertIn('The source changed since this observation was captured (revision 2, now 3)', lines)
+        self.assertIn('freshness clear by age', lines)
+        self.assertIn('journal status outcome unknown; recorded at 2026-10-14 23:58:28 UTC', lines)
+
+    def test_the_inspector_says_a_opens_the_actions(self):
+        from intune_iac.workbench_screens import inspector_lines
+        value = {'object_id': POLICY, 'name': 'Pilot', 'body': {}, 'attention': {'status': 'clear', 'signals': [], 'checked': {}},
+                 'actions': [{'kind': 'collect', 'label': 'Collect again', 'available': True, 'command': 'collect',
+                              'summary': 'Reads.', 'effects': 'Reads.'}]}
+        lines = text(inspector_lines(value, 160))
+        self.assertIn('a opens the actions; Enter there stages one for review', lines)
+        self.assertNotIn('a stages one', lines)

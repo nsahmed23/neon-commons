@@ -179,7 +179,7 @@ class RefreshResultTests(unittest.TestCase):
                                              'latest_intent': second['artifact_id']})
         text = ' '.join(' '.join(refresh_result_lines(second, 100)).split())
         self.assertIn('[NEW REPOSITORY INTENT RECORDED]', text)
-        self.assertIn('Previous intent %s is kept as history.' % first['artifact_id'][:16], text)
+        self.assertIn('Previous intent %s is kept as history.' % first['artifact_id'][:12], text)
         self.assertIn('Reviews prepared from it do not cover this intent; they remain inspectable (4 History, 5 Plan).', text)
         self.assertNotIn('not current', text)
 
@@ -202,6 +202,6 @@ class RecordedRefreshTests(unittest.TestCase):
                  'effects': {'intent_recorded': True, 'previous_intent': 'a' * 64, 'latest_intent': 'b' * 64}}
         text = ' '.join(' '.join(recorded_lines(value, 100)).split())
         self.assertIn('[RECORDED] repository intent bbbbbbbbbbbb | new record', text)
-        self.assertIn('Previous intent aaaaaaaaaaaaaaaa is kept as history.', text)
+        self.assertIn('Previous intent aaaaaaaaaaaa is kept as history.', text)
         self.assertIn('Revision: %s (caller asserted, not checked against the files)' % ('c' * 40), text)
         self.assertNotIn('[NEW REPOSITORY INTENT RECORDED]', text)

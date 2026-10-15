@@ -725,8 +725,10 @@ class RefusalLinesTests(unittest.TestCase):
         lines = refusal_lines(value, 100)
         joined = '\n'.join(lines)
         self.assertEqual(lines[0], '[REFUSED] workbench_repository_intent_missing')
-        self.assertIn('Import the repository for this object before using its intent.', joined)
-        self.assertIn('No repository intent was recorded for this policy', joined)
+        # The cause is said once in words; the engine's plain message is one key away (e).
+        self.assertNotIn('Import the repository for this object before using its intent.', joined)
+        self.assertIn('Cause: No repository intent was recorded for this policy', joined)
+        self.assertIn("The engine's own message is in the typed details (e).", joined)
         self.assertIn('repository-import', joined)
         for line in lines:
             self.assertLessEqual(cell_width(line), 100, line)
@@ -769,10 +771,16 @@ class RefusalLinesTests(unittest.TestCase):
         lines = refusal_lines({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': message}}, 100)
         joined = '\n'.join(lines)
         self.assertNotIn('What it means', joined)
+        self.assertEqual(joined.count('The repository changed since'), 1)
         self.assertIn('Next: Press 9 to see which', joined)
-        # A short technical message keeps the plain meaning.
+        # A short technical message gives way to the plain cause.
         terse = refusal_lines({'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'stale'}}, 100)
-        self.assertIn('What it means: The repository changed since its recorded intent', '\n'.join(terse))
+        self.assertIn('Cause: The repository changed since its recorded intent', '\n'.join(terse))
+        # A message naming something particular stays, and the meaning is added where it says more.
+        named = refusal_lines({'status': 'error', 'error': {'code': 'workbench_repository_stale',
+                                                            'message': 'stacks/orgs/dev.yaml changed'}}, 100)
+        self.assertIn('stacks/orgs/dev.yaml changed', '\n'.join(named))
+        self.assertIn('What it means: The repository changed since its recorded intent', '\n'.join(named))
 
 
 class SurfaceRoutingTests(unittest.TestCase):

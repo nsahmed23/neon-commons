@@ -262,7 +262,7 @@ class RefusalCauseTests(unittest.TestCase):
         self.assertEqual(notice, 'reconcile ran; the journal is now reconciled (readback desired state observed).')
         workspace = self.workspace({}, 'repository-refresh ' + 'b' * 40)
         notice = workspace._notice_for({'artifact_id': 'c' * 64, 'kind': 'repository_intent', 'data': {}, 'created': True})
-        self.assertEqual(notice, 'repository-refresh recorded repository intent cccccccc.')
+        self.assertEqual(notice, 'repository-refresh recorded repository intent cccccccccccc.')
         self.assertNotIn('reported no status', workspace._notice_for({'other': 1}))
 
 
@@ -346,7 +346,7 @@ class LifecycleTests(unittest.TestCase):
         workspace.operation_highlight = 0
         workspace.value = {'operations': workspace.operation_rows}
         text = ' '.join(workspace._summary_lines(118))
-        self.assertIn('recorded=2026-10-14 19:57:00 UTC', text)
+        self.assertIn('recorded 2026-10-14 19:57:00 UTC', text)
 
 
 class ChangedContextTests(unittest.TestCase):
@@ -423,7 +423,7 @@ class SurfaceListTests(unittest.TestCase):
         workspace.value = {'operations': records}
         text = ' '.join(workspace._summary_lines(118))
         self.assertEqual(text.count('a' * 32), 1)
-        self.assertIn('status=succeeded_verified (2 journal records)', text)
+        self.assertIn('succeeded verified (2 journal records)', text)
 
 
 class FilterLayerTests(unittest.TestCase):

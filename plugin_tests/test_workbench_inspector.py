@@ -242,7 +242,7 @@ class EvidenceLayerTests(unittest.TestCase):
         self.assertIn('propose ran; the engine reported status prepared', notice)
         self.assertNotIn('nothing was proposed', notice)
         workspace.last_command = 'execute operation digest'
-        self.assertIn('execute ran; the engine reported status outcome_unknown', workspace._notice_for({'status': 'outcome_unknown'}))
+        self.assertIn('execute ran; the engine reported status outcome unknown', workspace._notice_for({'status': 'outcome_unknown'}))
         workspace.last_command = 'health'
         # Navigation acknowledges where the engineer is, never a bare Ready (TASK-11 2.6 item 7).
         self.assertEqual(workspace._notice_for({'stages': []}), 'Viewing Health.')

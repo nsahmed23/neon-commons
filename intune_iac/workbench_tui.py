@@ -798,7 +798,7 @@ class Workspace:
             # Only the views are known to be read-only; any other command may have prepared, recorded or run something.
             status = value.get('status')
             if isinstance(status, str):
-                return '%s ran; the engine reported status %s.' % (name or 'The command', status)
+                return '%s ran; the engine reported status %s.' % (name or 'The command', status.replace('_', ' '))
             # Results without a status still say what they recorded, never only that there was no status.
             if isinstance(value.get('journal_status'), str):
                 readback = value.get('classification')
@@ -807,7 +807,7 @@ class Workspace:
                     ' (readback %s)' % str(readback).replace('_', ' ') if readback else '')
             if isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str):
                 return '%s recorded %s %s%s.' % (
-                    name, value['kind'].replace('_', ' '), value['artifact_id'][:8],
+                    name, value['kind'].replace('_', ' '), value['artifact_id'][:12],
                     '' if value.get('created', True) else ' (already recorded; nothing changed)')
             return '%s ran; its result is above.' % (name or 'The command')
         view = SUBVIEWS.get(name) or TABS[self.tab]
@@ -1072,20 +1072,26 @@ class Workspace:
                 rows.extend(change_lines(value['field_changes'], width, 'BEFORE (observed when prepared)', remainder=(
                     'the complete before and desired bodies are in e typed details and r raw record' if whole else None)))
                 if isinstance(value.get('changes'), list):
-                    field('Plan changes', ', '.join(map(str, value['changes'])) or 'none')
+                    from .workbench_screens import change_words
+                    field('Plan changes', ', '.join(change_words(str(item), self.facts.get('identity_prefixes'))
+                                                    for item in value['changes']) or 'none')
                 repository = value.get('repository')
                 if isinstance(repository, dict) and repository.get('cited'):
-                    field('Cited repository intent', str(repository.get('repository_intent_id'))[:16] + ' (' + str(repository.get('freshness')) + ')')
+                    field('Cited repository intent', str(repository.get('repository_intent_id'))[:12] + ' (' + str(repository.get('freshness')) + ')')
                 elif isinstance(repository, dict) and repository.get('context_changed'):
                     field('Context file', 'changed since this proposal was prepared, so its citation is unknown and '
                                           'execute refuses it (maintenance_source_changed)')
                 rows.append('')
             rows.append('[PLAN REVIEW]')
+            # The digest execute needs is named for what it is: a review binding, not an approval (Sonnet 22).
+            from .workbench_screens import _readable_epoch, evidence_words
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
-                               ('Approval binding', 'approval_digest'), ('Expiry', 'expires_at'), ('Evidence class', 'evidence_class')):
-                from .workbench_screens import _readable_epoch
-                field(label, _readable_epoch(value.get(key, 'unknown')) if key == 'expires_at' else value.get(key, 'unknown'))
+                               ('Review digest (execute needs it)', 'approval_digest'), ('Expiry', 'expires_at'),
+                               ('Evidence class', 'evidence_class')):
+                item = value.get(key, 'unknown')
+                field(label, _readable_epoch(item) if key == 'expires_at' else str(item).replace('_', ' ')
+                      if key in ('status', 'evidence_class') else item)
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
@@ -1106,7 +1112,10 @@ class Workspace:
                 rows.extend(execution_effect_lines(result, width))
                 # Execute nests its independent readback; reconcile returns it at the top level.
                 field('Readback', str(result.get('classification') or readback.get('classification') or 'not recorded').replace('_', ' '))
-                field('Error', result.get('error_code') or error.get('code') or 'none recorded')
+                from .workbench_screens import EXECUTION_ERROR_WORDS
+                code = result.get('error_code') or error.get('code')
+                field('Error', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code) if code in EXECUTION_ERROR_WORDS
+                      else code or 'none recorded')
                 field('Evidence', str(result.get('evidence_class', 'unknown')).replace('_', ' '))
             # The lifecycle line below gives the next step for this state; v shows every delivery stage.
         elif self.tab == 6 and ('collection_health' in value or isinstance(value.get('stages'), dict)):
@@ -1115,7 +1124,8 @@ class Workspace:
             rows.extend(health_lines(value, width, self.facts.get('name') if value.get('object_id') == self.selected else None))
         elif self.tab == 6 and value.get('schema_version') == 'workbench-diagnostics/1':
             from .workbench_screens import diagnostics_lines
-            rows.extend(diagnostics_lines(value, width))
+            facts = self.facts if self.facts.get('object_id') == value.get('object_id') else {}
+            rows.extend(diagnostics_lines(value, width, check=facts.get('eligibility')))
         elif self.tab == 6 and isinstance(value.get('findings'), list):
             from .workbench_screens import queue_lines
             rows.extend(queue_lines(value, width))
@@ -1185,7 +1195,7 @@ class Workspace:
             return filter_lines(filter_choices(), getattr(self, 'filter_focus', 0),
                                 page_filters(getattr(self, 'page_command', ''))[1], width)
         if layer == 'raw':
-            return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines; Esc returns to the summary.'
+            return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines of JSON; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
         return self._summary_lines(width) + [self._evidence_line(width)]
 
@@ -1243,14 +1253,19 @@ class Workspace:
                 if row.get('pending_observation'):
                     lines.extend(wrap('  [PENDING OBSERVATION] ' + str(row.get('last_attempt', {}).get('status', 'unknown')) +
                                       '; select for literal evidence and mapping limitations.', width))
+        elif self.tab in (4, 5) and isinstance(self.value.get('operations'), list) and not self.value['operations']:
+            # An empty list says so, rather than a frame with nothing in it (journey 27 review, Sonnet 8).
+            lines = ['[OPERATIONS] None recorded in this store yet.'] + list(wrap(
+                'Prepare a proposal (a: actions); its operation appears here.', width))
         elif self.tab in (4, 5) and self.operation_rows and isinstance(self.value.get('operations'), list):
             lines = ['[OPERATIONS] Enter reviews exact current plan; no approval or execution.']
             for index, row in enumerate(self.operation_rows):
                 mark = '>' if index == self.operation_highlight else ' '
                 from .workbench_screens import _when
                 count = row.get('journal_records')
-                lines.extend(wrap('%s %s | recorded=%s | status=%s%s' %
-                                  (mark, row.get('operation_id'), _when(row.get('recorded_at'), 'unknown'), row.get('status', 'unknown'),
+                lines.extend(wrap('%s %s | recorded %s | %s%s' %
+                                  (mark, row.get('operation_id'), _when(row.get('recorded_at'), 'unknown'),
+                                   str(row.get('status', 'status unknown')).replace('_', ' '),
                                    ' (%d journal records)' % count if isinstance(count, int) and count > 1 else ''), width))
                 lines.extend(wrap('  ' + row['operation_root'], width))
             lines.append('Enter reviews the highlighted plan as it is now; nothing is approved.')
@@ -1705,7 +1720,7 @@ class Workspace:
             if self.mode:
                 if key == 'escape':
                     self.mode = None; self.buffer = ''; self.cursor = 0; self.input_overflow = False; self.staged = None
-                    self.notice = 'EDIT CANCELLED: no command submitted; active external runs are unchanged.'
+                    self.notice = 'EDIT CANCELLED: nothing was submitted, and nothing already running was stopped.'
                 elif key == 'enter' and self.submission_key != 'enter':
                     self.notice = 'Ctrl+Enter submits this edit; ordinary Enter does not submit pasted input.'
                 elif key == self.submission_key:

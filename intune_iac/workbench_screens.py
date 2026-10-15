@@ -873,7 +873,8 @@ def _attention_lines(value, width):
         offered = [action for action in value['actions'] if isinstance(action, dict)]
         if offered:
             lines += ['', 'ACTIONS']
-            lines += word_wrap('  a stages one for review; nothing runs until you submit it.', width)
+            lines += word_wrap('  a opens the actions; Enter there stages one for review, and nothing runs until you submit '
+                               'it.', width)
             for number, action in enumerate(offered, 1):
                 blocked = action.get('blocked') or {}
                 state = ' (available)' if action.get('available') else ' (blocked: %s)' % (
@@ -930,7 +931,7 @@ def refresh_result_lines(value, width, header=True):
     lines = []
     if header:
         lines = ['[NEW REPOSITORY INTENT RECORDED]' if recorded else '[REPOSITORY INTENT ALREADY RECORDED]']
-        lines += word_wrap('Intent: ' + str(value.get('artifact_id'))[:16], width)
+        lines += word_wrap('Intent: ' + str(value.get('artifact_id'))[:12], width)
     lines += word_wrap('Revision: %s (%s)' % (data.get('source_revision'), 'content verified' if
                        data.get('revision_content_verified') else 'caller asserted, not checked against the files'),
                        width)
@@ -938,7 +939,7 @@ def refresh_result_lines(value, width, header=True):
     previous = effects.get('previous_intent')
     if recorded and isinstance(previous, str) and previous != value.get('artifact_id'):
         lines += word_wrap('Previous intent %s is kept as history. Reviews prepared from it do not cover this intent; '
-                           'they remain inspectable (4 History, 5 Plan).' % previous[:16], width)
+                           'they remain inspectable (4 History, 5 Plan).' % previous[:12], width)
     elif not recorded:
         lines += word_wrap('No new intent was recorded; this is the latest intent already.', width)
     lines += word_wrap('Press 9 to compare it with the repository now.', width)
@@ -1953,7 +1954,7 @@ REFUSALS = {
         'Collect, then prepare a new proposal.'),
     'workbench_desired_capability': (
         'The desired policy uses a setting definition, value, platform or technology outside the supported capability map.',
-        "Change it in the repository's stack input to something the capability map accepts (the engine's message names "
+        "Change it in the repository's stack input to something the capability map accepts (the message above names "
         'it), repository-refresh REVISION, then propose again.'),
 }
 
@@ -1966,6 +1967,11 @@ def _restates(message, meaning):
     """True when the engine's message already says at least four fifths of what the meaning line would."""
     meant = _words(meaning)
     return bool(meant) and len(meant & _words(message)) * 5 >= len(meant) * 4
+
+
+# Execution errors the engine names by code, in words; the code stays beside them.
+EXECUTION_ERROR_WORDS = {'model_response_lost': "the modeled service's response was lost",
+                         'partial_write': 'the modeled service applied part of the change'}
 
 
 def effect_lines(effects, width):
@@ -2039,16 +2045,33 @@ def refusal_lines(value, width, known=None):
         if message:
             lines += word_wrap("The engine's own message is in the typed details (e).", width)
         return lines
-    if message:
-        lines += word_wrap(message, width)
     meaning, step = REFUSALS.get(code, (None, None))
-    if meaning and not _restates(message, meaning):
-        lines += word_wrap('What it means: ' + meaning, width)
+    if meaning is None:
+        # Unknown codes show only the engine's own message; nothing is guessed.
+        lines += word_wrap(message, width) if message else []
+        return lines + effect_lines(error.get('effects'), width)
+    # The cause is said once. The engine's message stays on screen only when it names something the general
+    # meaning cannot (a setting, a path, a value); otherwise it is one key away (Gemini review K, problem 3).
+    specific = bool(message) and _names_specifics(message)
+    if specific:
+        lines += word_wrap(message, width)
+        if not _restates(message, meaning):
+            lines += word_wrap('What it means: ' + meaning, width)
+    else:
+        lines += word_wrap('Cause: ' + meaning, width)
     # What the refusal established about what changed, from the engine's own facts, before the next step.
     lines += effect_lines(error.get('effects'), width)
     if step:
         lines += word_wrap('Next: ' + step, width)
+    if message and not specific:
+        lines += word_wrap("The engine's own message is in the typed details (e).", width)
     return lines
+
+
+def _names_specifics(message):
+    """Whether an engine message names something particular: an identifier, a path, a quoted or numbered value."""
+    import re
+    return bool(re.search(r'[0-9_/\\"]|\w\.\w', message))
 
 
 # The next step for a known cause, where the engine's code covers several.
@@ -2066,7 +2089,8 @@ KNOWN_NEXT = {
 
 
 # Where 'clear' could be read as more than the check establishes, the area says what was checked.
-AREA_CLEAR = {'device_evidence': 'capture complete and cohort consistent; whether devices reported is not judged here '
+AREA_CLEAR = {'freshness': 'clear by age; whether the source changed since capture is the proposal\'s own check',
+              'device_evidence': 'capture complete and cohort consistent; whether devices reported is not judged here '
                                  '(h shows the counts)'}
 CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',
                'not_imported': 'no device evidence imported',
@@ -2092,17 +2116,26 @@ def evidence_detail_words(evidence):
             parts.append('%s: %s' % (label, ', '.join(_as_words(entry) if isinstance(entry, str) else _value(entry) for entry in item)))
         elif isinstance(item, bool):
             parts.append('%s %s' % (label, 'yes' if item else 'no'))
+        elif str(key).endswith('status') and isinstance(item, str):
+            parts.append('%s %s' % (label, _as_words(item)))
         else:
             parts.append('%s %s' % (label, item if isinstance(item, str) else _value(item)))
     return '; '.join(parts)
 
 
-def diagnostics_lines(value, width):
-    """What needs attention for one policy: each observed fact, its evidence and the next step; then what is clear."""
+def diagnostics_lines(value, width, check=None):
+    """What needs attention for one policy: each observed fact, its evidence and the next step; then what is clear.
+
+    check: the proposal's own observation check from the Inspector's last read of this policy, shown with the
+    signals because diagnostics does not record it (journey 27 review, Sonnet 3 and 4)."""
     signals = [signal for signal in value.get('signals') or [] if isinstance(signal, dict)]
+    check = check if isinstance(check, dict) and check.get('reason') in ELIGIBILITY_FINDINGS else None
     partial = any(state in ('partly_checked', 'unavailable') for state in (value.get('checked') or {}).values())
-    summary = (_plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention')
-               + '; reporting completeness and ownership are reviewed in the maintenance queue (m)' if signals
+    queue = '; reporting completeness and ownership are reviewed in the maintenance queue (m)'
+    summary = ((_plural(len(signals), 'signal') + " and the proposal's observation check need attention" + queue)
+               if signals and check else "the proposal's observation check needs attention" + queue if check
+               else _plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention')
+               + queue if signals
                else 'no signal, but some areas were not fully read' if partial
                else 'no signal in the areas checked below; reporting completeness and ownership are reviewed in the '
                     'maintenance queue (m)')
@@ -2117,6 +2150,12 @@ def diagnostics_lines(value, width):
         if shown:
             lines += _labelled('  Evidence', shown, width, 12)
         lines += _labelled('  Next', str(signal.get('next_step')), width, 12)
+    if check:
+        observed, step = ELIGIBILITY_FINDINGS[check['reason']]
+        lines.append('')
+        lines += word_wrap('[!] observation  %s (the check a proposal makes, read now)' % check.get('code'), width)
+        lines += _labelled('  Observed', observed % check, width, 12)
+        lines += _labelled('  Next', step, width, 12)
     lines.append('')
     lines.append('CHECKED')
     for area, state in (value.get('checked') or {}).items():
@@ -2276,3 +2315,9 @@ def repository_lines(status, width):
     if status.get('next_action'):
         lines += word_wrap('Next: ' + str(status['next_action']), width)
     return lines
+
+
+def change_words(change, prefixes=None):
+    """A plan change ("<object id>:description_changed") in words, its identity shortened: "description changed (22222222)"."""
+    identity, _, kind = change.rpartition(':')
+    return '%s (%s)' % (_as_words(kind), short_id(identity, prefixes)) if identity else _as_words(change)
