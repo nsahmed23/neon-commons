@@ -144,6 +144,34 @@ class VerifyLatchTests(RecoveryFixture):
         self.assertIn(RECOVERY_WORDS, error.message)
         self.assertEqual(self.latched(), [])
 
+    def test_a_receipt_issued_ahead_of_a_stepped_back_clock_names_the_hold_and_how_to_recover(self):
+        signed = self.receipt(issued_at=self.start + 30)
+        self.clocks.wall = self.start + 30
+        self.assertEqual(self.verify(signed), signed['payload'])  # records T+30
+        self.clocks.step(-30)
+        for attempt in range(2):
+            error = self.refused(lambda: self.verify(signed))
+            self.assertEqual(error.code, 'clock_moved_backward')
+            self.assertIn('reads %d' % self.start, error.message)
+            self.assertIn('time %d' % (self.start + 30), error.message)
+            self.assertIn(RECOVERY_WORDS, error.message)
+            self.restart()
+        self.assertEqual(self.latched(), [])
+
+    def test_the_hold_precedence_is_read_only_and_applies_to_input_that_does_not_authenticate(self):
+        signed = self.receipt(issued_at=self.start + 30)
+        self.clocks.wall = self.start + 30
+        self.verify(signed)
+        self.clocks.step(-30)
+        forged = dict(signed, signature=signed['signature'][:-4] + 'AAAA')
+        floor = self.policy.root / 'clock.json'
+        before, anchors = floor.read_bytes(), dict(clock._ANCHORS)
+        self.assertEqual(self.refused(lambda: self.verify(forged)).code, 'clock_moved_backward')
+        self.assertEqual(floor.read_bytes(), before)
+        self.assertEqual(dict(clock._ANCHORS), anchors)
+        floor.write_bytes(b'not json')  # a damaged record falls through to the original refusal
+        self.assertEqual(self.refused(lambda: self.verify(forged)).code, EXPIRED)
+
     def test_an_open_window_returns_the_payload_and_records_no_expiry(self):
         signed = self.receipt()
         self.assertEqual(self.verify(signed), signed['payload'])

@@ -15,7 +15,7 @@ import tempfile
 import threading
 import time
 import uuid
-from intune_iac import approval_authority as aa, identity_binding as ib, protected
+from intune_iac import approval_authority as aa, identity_binding as ib, protected, validity
 from intune_iac import worker_service as service, worker_adoption as adoption
 from intune_iac import worker_broker as broker, worker_host as host
 from intune_iac.io import AppError, canonical, digest, parse_json
@@ -383,6 +383,8 @@ def _verify(policy,manifest,receipt):
             or payload['schema_version']!=approval_version or payload['operation_id']!=manifest['operation_id'] or payload['manifest_sha256']!=digest(manifest)
             or type(payload['nonce']) is not str or not re.fullmatch('[0-9a-f]{32}',payload['nonce'])):_fail('adoption_recovery_signature_binding')
     now=int(time.time())
+    # Dated ahead of this clock: refused either way, but a recorded backward step is named (read-only, pre-authentication).
+    if type(payload['issued_at']) is int and payload['issued_at']>now+5:validity.hold_if_clock_behind(policy.root)
     if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int or
             not manifest['prepared_at']<=payload['issued_at']<=now+5 or not payload['expires_at']<=manifest['expires_at']):_fail('adoption_recovery_signature_expired')
     try:_authenticate(policy,manifest,payload,receipt,signature_domain)

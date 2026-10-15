@@ -278,6 +278,10 @@ def _verify(policy, manifest, receipt):
             or payload['manifest_sha256'] != digest(manifest) or type(payload['nonce']) is not str
             or not re.fullmatch('[0-9a-f]{32}', payload['nonce'])): _fail('adoption_signature_binding')
     now = int(time.time())
+    # A receipt dated ahead of this clock is refused either way; when the recorded time shows a backward step the refusal
+    # names the hold and the recovery. Read-only and before authentication: nothing is recorded, a damaged record falls
+    # through to the original refusal below.
+    if type(payload['issued_at']) is int and payload['issued_at'] > now + 5: validity.hold_if_clock_behind(policy.root)
     if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int
             or not manifest['prepared_at'] <= payload['issued_at'] <= now + 5
             or not payload['expires_at'] <= manifest['expires_at']): _fail('adoption_signature_expired')

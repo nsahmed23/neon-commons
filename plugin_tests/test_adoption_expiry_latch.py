@@ -249,6 +249,48 @@ class DispatchLatchTests(AdoptionFixture):
         self.assertEqual(self.run_job(signed)['status'], 'modeled-dispatch')
         self.assertEqual(self.job_row(), ('running', 0, 1))
 
+    def stepped_back_after_the_receipt_was_issued(self):
+        """A receipt issued at T+30, a store that recorded T+30, then a clock that reads T: the receipt is dated ahead."""
+        signed = self.receipt(issued_at=self.start + 30)
+        self.clocks.wall = self.start + 30
+        self.on_observe = lambda: (_ for _ in ()).throw(AppError('adoption_backend_unavailable_locked_or_metadata', 'x'))
+        self.refused(lambda: self.run_job(signed))  # the first judgment recorded T+30 before the observation failed
+        self.on_observe = lambda: None
+        self.clocks.step(-30)
+        return signed
+
+    def test_a_receipt_issued_ahead_of_a_stepped_back_clock_names_the_hold_and_how_to_recover(self):
+        signed = self.stepped_back_after_the_receipt_was_issued()
+        for attempt in range(2):
+            error = self.refused(lambda: self.run_job(signed))
+            self.assertEqual(error.code, 'clock_moved_backward')
+            self.assertIn('reads %d' % self.start, error.message)
+            self.assertIn('time %d' % (self.start + 30), error.message)
+            self.assertIn(RECOVERY_WORDS, error.message)
+            self.assertIn('restart', error.message)
+            self.restart()  # the hold comes from the recorded time, so it survives a restart
+        self.assert_nothing_happened()
+        self.assertEqual(self.latched(), [])
+
+    def test_the_hold_precedence_is_read_only_and_applies_to_input_that_does_not_authenticate(self):
+        forged = self.stepped_back_after_the_receipt_was_issued()
+        forged = dict(forged, signature=forged['signature'][:-4] + 'AAAA')
+        floor = self.policy.root / 'clock.json'
+        before, anchors = floor.read_bytes(), dict(clock._ANCHORS)
+        self.assertEqual(self.refused(lambda: self.run_job(forged)).code, 'clock_moved_backward')
+        self.assertEqual(floor.read_bytes(), before)
+        self.assertEqual(dict(clock._ANCHORS), anchors)
+
+    def test_a_damaged_recorded_time_falls_through_to_the_original_refusal(self):
+        signed = self.stepped_back_after_the_receipt_was_issued()
+        (self.policy.root / 'clock.json').write_bytes(b'not json')
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, 'adoption_signature_expired')
+
+    def test_a_receipt_issued_ahead_with_no_backward_step_keeps_its_original_refusal(self):
+        self.clocks.wall = self.start + 30
+        self.assertEqual(self.refused(lambda: self.run_job(self.receipt(issued_at=self.start + 60))).code,
+                         'adoption_signature_expired')
+
     def test_the_manifest_expiry_refusal_still_records_the_receipts_expiry(self):
         # validate_manifest (AdoptionJob._check) refuses on the bare wall clock before anything else; the receipt's
         # expiry must be recorded there too, or a rollback after that first refusal reopens the receipt.
