@@ -48,8 +48,9 @@ PROFILES = {'inspect': (), 'discover': (), 'adopt': ('protected_worker',), 'chan
 # Executables looked up on the search path. Absence is a fact, never a missing tool: adoption takes its pins from the
 # manifest, so a tool absent from the search path may still be supplied by an explicit pinned path.
 EXECUTABLES = {'inspect': (), 'discover': (), 'adopt': ('atmos', 'tofu'), 'change': ('atmos', 'tofu')}
-PINNED_ROUTE = ('If you rely on a pinned executable, pass it with %s wizard --journey --atmos-executable PATH and '
-                '--tofu-executable PATH, or %s repository native --executable PATH; then run: %s doctor')
+PINNED_ROUTE = ('If you rely on a pinned executable, pass it with %s wizard --session SESSION --journey --repo REPOSITORY '
+                '--atmos-executable PATH --tofu-executable PATH, or %s repository native --root REPOSITORY --stack STACK '
+                '--component COMPONENT --executable PATH; then run: %s doctor')
 GIT_HOSTING = 'Git hosting and review identity are not checked by the product (it never invokes gh or a remote).'
 KNOWN_EVIDENCE = ('no_live_connection', 'source_asserted_not_authenticated', 'modeled_service_no_authentication')
 IDENTITY_KINDS = ('context', 'export', 'store', 'modeled_service')
@@ -246,8 +247,8 @@ def _tools_host(operation, f):
 # Repository and IaC target ---------------------------------------------------------------------------------------
 
 REPOSITORY_ACTION = ('Run %s start REPOSITORY_DIRECTORY from a Git checkout that holds atmos.yaml with at least one selectable '
-                     'stack and component; to enter a repository you maintain, run: %s workbench repository-entry --root STORE '
-                     '--repo REPOSITORY' % (PROGRAM, PROGRAM))
+                     'stack and component; to enter a repository you maintain, run: %s workbench terminal --root STORE and enter '
+                     'repository-entry REPOSITORY' % (PROGRAM, PROGRAM))
 
 
 def _gap_text(repository):
@@ -361,10 +362,13 @@ def _service_row(operation, f):
         missing.append('No tenant or cloud is selected (no context or export names one).')
     if named_hidden:
         missing.append('A tenant is named but not in GUID form; this check does not display it.')
-    if len(tenants) == 2:
-        missing.append('Two tenants are named (the context and the export differ); choose one.')
-    elif len(tenants) > 2:
-        missing.append('Several tenants are named; choose one.')
+    # A tenant that is named but not displayable still counts as a tenant: it may differ from the one shown.
+    named = len(tenants) + (1 if named_hidden else 0)
+    ambiguous = named >= 2
+    if named == 2:
+        missing.append('Two tenants are named by the surveyed inputs; choose one.')
+    elif named > 2:
+        missing.append('Several tenants are named by the surveyed inputs; choose one.')
     missing.append('No verified sign-in: the product does not detect an existing sign-in for this selection.')
     if 'source_asserted_not_authenticated' in evidence:
         missing.append('The tenant is asserted by a file; nothing checks it against a sign-in.')
@@ -377,7 +381,8 @@ def _service_row(operation, f):
     # absence, and neither is evidence or a connection kind the product never produces.
     absent = not tenants and not named_hidden
     state = 'missing' if absent and 'unrecognized' not in evidence and not f['connection_unrecognized'] else 'unknown'
-    tenant = tenants[0] if len(tenants) == 1 else 'TENANT_ID'
+    # Only a single, displayed tenant is filled into a command; any ambiguity keeps the placeholder (no silent pick).
+    tenant = tenants[0] if len(tenants) == 1 and not named_hidden else 'TENANT_ID'
     if operation == 'discover':
         action = ('%s capture --tenant %s --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME (reads the named '
                   'variable; one of the explicit-token routes, target collect is another)' % (PROGRAM, tenant))
@@ -389,11 +394,12 @@ def _service_row(operation, f):
         action = ('Provide a bounded context JSON (tenant, cloud, stack and component; examples/context.json shows the shape), '
                   'then run: %s start DIRECTORY' % PROGRAM)
         role = 'engineer'
-    elif named_hidden and not tenants:
-        action = ('Name the tenant as a GUID in the context or export JSON, then run: %s start DIRECTORY' % PROGRAM)
+    elif ambiguous:
+        action = ('Choose one tenant by making the surveyed inputs name the same one, as a GUID, then run: %s start DIRECTORY. '
+                  'Then: ' % PROGRAM) + action
         role = 'engineer'
-    elif len(tenants) > 1:
-        action = 'Choose one tenant by making the context and the export name the same one. Then: ' + action
+    elif named_hidden:
+        action = ('Name the tenant as a GUID in the context or export JSON, then run: %s start DIRECTORY' % PROGRAM)
         role = 'engineer'
     return _row(operation, 'integration_service', 'Integration and service', state, detected, missing, action, role)
 

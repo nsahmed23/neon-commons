@@ -142,7 +142,11 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(adopt['repository']['state'], 'missing')
         self.assertIn('atmos.yaml', ' '.join(adopt['repository']['missing']))
         self.assertIn('intune-iac start', adopt['repository']['next_action'])
-        self.assertIn('repository-entry', adopt['repository']['next_action'])
+        self.assertIn('intune-iac workbench terminal --root STORE', adopt['repository']['next_action'])
+        self.assertIn('repository-entry REPOSITORY', adopt['repository']['next_action'])
+        # There is no workbench repository-entry subcommand and no --repo flag on it.
+        self.assertNotIn('workbench repository-entry', adopt['repository']['next_action'])
+        self.assertNotIn('--repo ', adopt['repository']['next_action'])
         self.assertEqual(adopt['iac_target']['state'], 'missing')
         self.assertEqual(value['operations']['adopt']['status'], 'missing')
 
@@ -190,9 +194,10 @@ class ReadinessTests(unittest.TestCase):
             self.assertIn('atmos', ' '.join(row['missing']))
             self.assertNotIn('tofu', ' '.join(row['missing']))
             self.assertIn('intune-iac doctor', row['next_action'])
-            self.assertIn('wizard --journey --atmos-executable', row['next_action'])
-            self.assertIn('--tofu-executable', row['next_action'])
-            self.assertIn('repository native --executable', row['next_action'])
+            self.assertIn('intune-iac wizard --session SESSION --journey --repo REPOSITORY --atmos-executable PATH '
+                          '--tofu-executable PATH', row['next_action'])
+            self.assertIn('repository native --root REPOSITORY --stack STACK --component COMPONENT --executable PATH',
+                          row['next_action'])
         # The offline and discovery routes do not need Atmos.
         self.assertEqual(rows_of(value, 'inspect')['tools_host']['state'], 'ready')
         self.assertEqual(rows_of(value, 'discover')['tools_host']['state'], 'ready')
@@ -422,12 +427,37 @@ class ReadinessTests(unittest.TestCase):
         for operation in ('discover', 'adopt', 'change'):
             row = rows_of(value, operation)['integration_service']
             self.assertEqual(row['detected']['tenants'], sorted([TENANT, OTHER_TENANT]))
-            self.assertIn('Two tenants are named (the context and the export differ); choose one', ' '.join(row['missing']))
+            self.assertIn('Two tenants are named by the surveyed inputs; choose one.', ' '.join(row['missing']))
             self.assertEqual(row['state'], 'unknown')
             self.assertIn('--tenant TENANT_ID', rows_of(value, 'discover')['integration_service']['next_action'])
         same = rows_of(self.full(context_item(), export_item()), 'discover')['integration_service']
         self.assertNotIn('Two tenants', ' '.join(same['missing']))
         self.assertIn('--tenant ' + TENANT, same['next_action'])
+
+    def test_a_guid_tenant_beside_a_tenant_that_is_not_a_guid_is_ambiguous_not_a_silent_pick(self):
+        value = self.full(context_item(tenant=TENANT), export_item(tenant='contoso.onmicrosoft.com'))
+        for operation in ('discover', 'adopt', 'change'):
+            row = rows_of(value, operation)['integration_service']
+            joined = ' '.join(row['missing'])
+            self.assertIn('Two tenants are named by the surveyed inputs; choose one.', joined, operation)
+            self.assertIn('not in GUID form', joined)
+            self.assertEqual(row['state'], 'unknown')
+            self.assertEqual(row['owner_role'], 'engineer')
+            self.assertNotIn(TENANT, row['next_action'], operation)
+        self.assertIn('--tenant TENANT_ID', rows_of(value, 'discover')['integration_service']['next_action'])
+        self.assertNotIn('contoso', json.dumps(value))
+
+    def test_two_tenants_are_not_attributed_to_a_source_the_inputs_may_lack(self):
+        store = {'kind': 'store', 'path': 'store', 'tenant_id': OTHER_TENANT, 'objects': 1, 'states': states()}
+        for items in ((context_item(tenant=TENANT), context_item(tenant=OTHER_TENANT)), (context_item(tenant=TENANT), store)):
+            row = rows_of(self.full(*items), 'discover')['integration_service']
+            joined = ' '.join(row['missing'])
+            self.assertIn('Two tenants are named by the surveyed inputs; choose one.', joined)
+            self.assertNotIn('export', joined)
+            self.assertNotIn('differ', joined)
+        three = rows_of(self.full(context_item(), export_item(tenant=OTHER_TENANT),
+                                  context_item(tenant='55555555-5555-4555-8555-555555555555')), 'discover')['integration_service']
+        self.assertIn('Several tenants are named by the surveyed inputs; choose one.', ' '.join(three['missing']))
 
     def test_the_wording_does_not_overclaim_the_token_routes(self):
         row = rows_of(self.full(context_item()), 'discover')['integration_service']
