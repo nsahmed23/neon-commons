@@ -28,10 +28,13 @@ START = 1_800_000_000
 
 
 class Clocks:
-    """An injected wall clock and monotonic clock. Real time moves both; a clock step moves only the wall."""
+    """An injected wall clock, monotonic clock and boot session. Real time moves all of them; a clock step moves only the
+    wall. The boot session is the kernel's boot identity, its clock domain (the time-namespace offset line) and
+    CLOCK_BOOTTIME: a restart of a process keeps it, a reboot of the host changes the identity and restarts the boot time."""
 
     def __init__(self, wall=START):
         self.wall, self.mono = wall, 5_000.0
+        self.boot, self.boot_id, self.domain = 10_000.0, 'b3c4755e-26bd-4959-a437-47737e4dd6fb', 'boottime 0 0'
 
     def now(self):
         return int(self.wall)
@@ -42,12 +45,34 @@ class Clocks:
     def monotonic(self):
         return self.mono
 
+    def boottime(self):
+        return self.boot
+
+    def read_boot_id(self):
+        return self.boot_id
+
+    def read_domain(self):
+        return self.domain
+
     def elapse(self, seconds):
         self.wall += seconds
         self.mono += seconds
+        self.boot += seconds
 
     def step(self, seconds):
         self.wall += seconds
+
+    def reboot(self, boot_id='0f5a6c1e-8d2b-4c47-9a3e-5b1d7e9c2a64'):
+        """A new boot of the host: a new identity and a boot time that starts again. The wall clock is not touched."""
+        self.boot_id, self.boot, self.mono = boot_id, 3.0, 3.0
+
+    def install_session(self, test):
+        """Inject the boot session the way monotonic is injected. create=True so the same tests run against code that
+        does not read a boot session at all."""
+        for name, function in (('boot_id', self.read_boot_id), ('boottime', self.boottime), ('clock_domain', self.read_domain)):
+            patcher = patch.object(clock, name, side_effect=function, create=True)
+            patcher.start()
+            test.addCleanup(patcher.stop)
 
 
 def inject(test, clocks):
@@ -55,6 +80,7 @@ def inject(test, clocks):
         patcher = patch.object(target, name, side_effect=function)
         patcher.start()
         test.addCleanup(patcher.stop)
+    clocks.install_session(test)
     clock.reset_process_anchor()
     test.addCleanup(clock.reset_process_anchor)
 
@@ -311,8 +337,11 @@ class ReviewFindingTests(unittest.TestCase):
                 a_written.wait(5)
                 real_write(target, value)
 
+        # The boot clock stands still (the race is over the wall readings; real boot time between the two writes would be
+        # carried, correctly, and is not what this test is about).
         with patch.object(clock, 'write_json', side_effect=ordered_write), \
-                patch.object(clock, '_process_floor', side_effect=lambda key, wall: wall):
+                patch.object(clock, '_process_floor', side_effect=lambda key, wall: wall), \
+                patch.object(clock, 'boottime', return_value=100.0, create=True):
             high = threading.Thread(target=clock.Floor(path).observe, args=(START + 290,))
             high.start()
             self.assertTrue(a_at_write.wait(5))

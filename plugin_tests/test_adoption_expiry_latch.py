@@ -39,6 +39,7 @@ def inject(test, clocks):
         patcher = patch.object(target, name, side_effect=function)
         patcher.start()
         test.addCleanup(patcher.stop)
+    clocks.install_session(test)
     clock.reset_process_anchor()
     test.addCleanup(clock.reset_process_anchor)
 

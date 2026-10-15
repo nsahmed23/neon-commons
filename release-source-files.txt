@@ -923,6 +923,7 @@ plugin_tests/test_release_transfer_r4.py
 plugin_tests/test_repository.py
 plugin_tests/test_repository_entry.py
 plugin_tests/test_repository_interfaces.py
+plugin_tests/test_restart_clock.py
 plugin_tests/test_restore_complete_layers_r4.py
 plugin_tests/test_restore_evidence_layer_r4.py
 plugin_tests/test_restricted_hashes.py

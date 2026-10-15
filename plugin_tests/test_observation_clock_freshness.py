@@ -23,32 +23,11 @@ from intune_iac.modeled_service import ModeledService
 from intune_iac.synthetic import generate_estate
 from intune_iac.workbench_store import WorkbenchStore
 
+from plugin_tests.test_clock_authority import Clocks  # wall, monotonic and boot session
+
 START = 1_800_000_000
 WINDOW = 3600
 BACKWARD_STEP = 266
-
-
-class Clocks:
-    """An injected wall clock and monotonic clock. Real time moves both; a clock step moves only the wall."""
-
-    def __init__(self, wall=START):
-        self.wall, self.mono = wall, 5_000.0
-
-    def now(self):
-        return int(self.wall)
-
-    def time(self):
-        return float(self.wall)
-
-    def monotonic(self):
-        return self.mono
-
-    def elapse(self, seconds):
-        self.wall += seconds
-        self.mono += seconds
-
-    def step(self, seconds):
-        self.wall += seconds
 
 
 class FreshnessClockTestCase(unittest.TestCase):
@@ -63,6 +42,7 @@ class FreshnessClockTestCase(unittest.TestCase):
             patcher = patch.object(target, name, **({'new': replacement} if name == 'time' else {'side_effect': replacement}))
             patcher.start()
             self.addCleanup(patcher.stop)
+        self.clocks.install_session(self)  # the boot session is injected beside the wall and monotonic clocks
         clock.reset_process_anchor()
         self.addCleanup(clock.reset_process_anchor)
         self.fixture = generate_estate(seed=514, policy_count=3)
