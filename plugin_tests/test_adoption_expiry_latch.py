@@ -12,13 +12,14 @@ A refusal must leave the right records: nothing consumed, no dispatch, and the e
 """
 import multiprocessing
 import sqlite3
+import threading
 import time
 import types
 import unittest
 import uuid
 from unittest.mock import patch
 
-from intune_iac import clock
+from intune_iac import clock, validity
 from intune_iac import worker_adoption as adoption
 from intune_iac import worker_service as service
 from intune_iac.io import AppError, canonical, digest
@@ -38,6 +39,50 @@ def inject(test, clocks):
         test.addCleanup(patcher.stop)
     clock.reset_process_anchor()
     test.addCleanup(clock.reset_process_anchor)
+
+
+def watchdog_refusals(test, database, check, *, attempts=300, tick=lambda: None):
+    """Run check() in a tight loop in this process, as the watchdog does, while a forked process asks for the write
+    reservation (BEGIN IMMEDIATE, then ROLLBACK: the first step of cancel and recover) over and over. Returns the
+    refusals the other process saw and the errors the loop saw. The child is forked before the loop thread starts."""
+    go, queue, errors, stop = FORK.Event(), FORK.Queue(), [], threading.Event()
+
+    def other_process():
+        refused = []
+        go.wait(BOUND)
+        for _ in range(attempts):
+            connection = sqlite3.connect(database, timeout=0, isolation_level=None)
+            try:
+                connection.execute('BEGIN IMMEDIATE')
+                connection.execute('ROLLBACK')
+            except sqlite3.OperationalError as error:
+                refused.append(str(error))
+            finally:
+                connection.close()
+            time.sleep(0.001)
+        queue.put(refused)
+
+    def loop():
+        while not stop.is_set():
+            try:
+                tick()
+                check()
+            except BaseException as error:
+                errors.append(getattr(error, 'code', repr(error)))
+                return
+    process = FORK.Process(target=other_process, daemon=True)
+    process.start()
+    test.addCleanup(lambda: process.is_alive() and process.terminate())
+    thread = threading.Thread(target=loop, daemon=True)
+    thread.start()
+    go.set()
+    try:
+        refused = queue.get(timeout=BOUND * 2)
+    finally:
+        stop.set()
+        thread.join(BOUND)
+    process.join(BOUND)
+    return refused, errors
 
 
 class AdoptionFixture(unittest.TestCase):
@@ -252,6 +297,77 @@ class PermitLatchTests(AdoptionFixture):
         self.clocks.wall = self.expires - 10
         (self.policy.root / 'clock.json').unlink()
         clock.reset_process_anchor()
+        self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
+        self.assertEqual(len(self.latched()), 1)
+
+    def test_the_open_path_of_check_active_takes_no_lock_and_persists_nothing(self):
+        permit = self.dispatch_running(self.start + 10)
+        floor, database = self.policy.root / 'clock.json', self.policy.database
+        before = (floor.read_bytes(), floor.stat().st_mtime_ns, database.read_bytes(), database.stat().st_mtime_ns)
+        with patch.object(validity.fcntl, 'flock', side_effect=AssertionError('a lock was taken')), \
+                patch.object(validity, 'critical', side_effect=AssertionError('the section was entered')):
+            for _ in range(100):
+                self.clocks.elapse(0.2)  # the effective time rises on every call; none of it is persisted
+                permit.check_active()
+        self.assertEqual((floor.read_bytes(), floor.stat().st_mtime_ns, database.read_bytes(), database.stat().st_mtime_ns), before)
+        self.assertEqual(sorted(path.name for path in self.policy.root.iterdir() if 'journal' in path.name), [])
+
+    def test_a_write_reservation_from_another_process_is_never_refused_during_a_watchdog_loop(self):
+        permit = self.dispatch_running(self.start + 10)
+        refused, errors = watchdog_refusals(self, self.policy.database, permit.check_active,
+                                            tick=lambda: self.clocks.elapse(0.01))
+        self.assertEqual(errors, [])
+        self.assertEqual(refused, [])
+
+    def test_a_cancel_from_another_process_during_a_watchdog_loop_is_not_refused(self):
+        permit = self.dispatch_running(self.start + 10)
+        other = object.__new__(adoption.AdoptionJob)
+        other.policy, other.root, other.manifest, other.identifier = self.policy, self.job_root, self.manifest, 'second-job'
+        other.sha256, other._completion = 'b' * 64, None
+        with self.policy.connection() as db:
+            db.execute('INSERT INTO jobs(id,root,manifest_sha256,status) VALUES (?,?,?,?)',
+                       ('second-job', str(self.root / 'second'), 'b' * 64, 'prepared'))
+        idle, resume, stop, queue, errors = FORK.Event(), threading.Event(), threading.Event(), FORK.Queue(), []
+
+        def cancel_once():
+            idle.wait(BOUND)
+            try:
+                with patch.object(adoption.AdoptionJob, 'status', return_value={}):
+                    other.cancel()
+                queue.put('cancelled')
+            except AppError as error:
+                queue.put(error.code)
+        process = FORK.Process(target=cancel_once, daemon=True)
+        process.start()
+        self.addCleanup(lambda: process.is_alive() and process.terminate())
+
+        def loop():  # the watchdog: a check, then a pause, until the other process is done
+            try:
+                while not stop.is_set():
+                    permit.check_active()
+                    idle.set()
+                    stop.wait(0.3)
+            except BaseException as error:
+                errors.append(getattr(error, 'code', repr(error)))
+        thread = threading.Thread(target=loop, daemon=True)
+        thread.start()
+        try:
+            self.assertEqual(queue.get(timeout=BOUND), 'cancelled')
+        finally:
+            stop.set()
+            thread.join(BOUND)
+        process.join(BOUND)
+        self.assertEqual(errors, [])
+
+    def test_a_closed_window_refuses_even_when_the_store_is_busy_and_latches_on_a_later_call(self):
+        permit = self.dispatch_running(self.start + 10)
+        self.clocks.elapse(LIFETIME)
+        holder = sqlite3.connect(self.policy.database, timeout=0, isolation_level=None)
+        self.addCleanup(holder.close)
+        holder.execute('BEGIN IMMEDIATE')  # another writer holds the reservation: the latch cannot be written now
+        self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
+        holder.execute('ROLLBACK')
+        self.assertEqual(self.latched(), [])
         self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
         self.assertEqual(len(self.latched()), 1)
 

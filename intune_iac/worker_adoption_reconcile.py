@@ -514,13 +514,15 @@ class _Permit:
             raise
         self.runtime.check(self.job.manifest)
         phase=_phase_from_binding(self.job.original,self.job.manifest['recovery_binding']) if _is_phase(self.job.manifest) else None
-        # The final window judgment (the effective time, this permit's monotonic deadline, an earlier expiry record) and the
-        # job's state are read in one critical section; nothing is inserted, so a permit that is still valid changes no record.
-        with adoption._critical(self.job.policy,self.payload,self.job.sha256,self.deadline,fail=_fail,expired_code='adoption_recovery_plan_expired') as db:
+        # Periodic and read-only (see worker_adoption._watch): judged from the recorded time, this permit's deadline and a plain
+        # read of the expiry record; a closed window is latched through the shared section before it is refused.
+        with self.job.policy.connection() as db:
             if phase is not None:_phase_transaction(db,self.job.original,self.job.manifest,phase=phase,current_id=self.job.identifier)
             row=db.execute('SELECT status,cancelled,dispatches,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.job.identifier,)).fetchone()
             used=db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?',(self.job.identifier,)).fetchone()
             revoked=db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(self.payload['issuer'],self.payload['key_id'])).fetchone()
+            latched=adoption._latched(db,self.payload)
+        adoption._watch(self.job.policy,self.payload,self.job.sha256,self.deadline,latched,fail=_fail,expired_code='adoption_recovery_plan_expired')
         if row!=('running',0,1,os.getpid(),service._controller_identity(os.getpid())) or used!=(self.job.sha256,) or revoked:_fail('adoption_recovery_permit_revoked')
 
 

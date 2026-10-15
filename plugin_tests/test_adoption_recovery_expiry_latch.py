@@ -17,13 +17,13 @@ import unittest
 import uuid
 from unittest.mock import patch
 
-from intune_iac import clock
+from intune_iac import clock, validity
 from intune_iac import worker_adoption as adoption
 from intune_iac import worker_adoption_reconcile as bridge
 from intune_iac import worker_service as service
 from intune_iac.io import AppError, digest
 from plugin_tests import test_worker_adoption_reconcile_r4 as old_contracts
-from plugin_tests.test_adoption_expiry_latch import BOUND, FORK, LIFETIME, RECOVERY_WORDS, inject
+from plugin_tests.test_adoption_expiry_latch import BOUND, FORK, LIFETIME, RECOVERY_WORDS, inject, watchdog_refusals
 from plugin_tests.test_clock_authority import Clocks
 
 EXPIRED = 'adoption_recovery_signature_expired'
@@ -233,6 +233,36 @@ class PermitLatchTests(RecoveryFixture):
         self.clocks.wall = self.expires - 10
         (self.policy.root / 'clock.json').unlink()
         clock.reset_process_anchor()
+        self.assertEqual(self.refused(permit.check_active).code, 'adoption_recovery_plan_expired')
+        self.assertEqual(len(self.latched()), 1)
+
+    def test_the_open_path_of_check_active_takes_no_lock_and_persists_nothing(self):
+        permit = self.running(self.start + 10)
+        floor, database = self.policy.root / 'clock.json', self.policy.database
+        before = (floor.read_bytes(), floor.stat().st_mtime_ns, database.read_bytes(), database.stat().st_mtime_ns)
+        with patch.object(validity.fcntl, 'flock', side_effect=AssertionError('a lock was taken')), \
+                patch.object(validity, 'critical', side_effect=AssertionError('the section was entered')):
+            for _ in range(100):
+                self.clocks.elapse(0.2)
+                permit.check_active()
+        self.assertEqual((floor.read_bytes(), floor.stat().st_mtime_ns, database.read_bytes(), database.stat().st_mtime_ns), before)
+
+    def test_a_write_reservation_from_another_process_is_never_refused_during_a_watchdog_loop(self):
+        permit = self.running(self.start + 10)
+        refused, errors = watchdog_refusals(self, self.policy.database, permit.check_active,
+                                            tick=lambda: self.clocks.elapse(0.01))
+        self.assertEqual(errors, [])
+        self.assertEqual(refused, [])
+
+    def test_a_closed_window_refuses_even_when_the_store_is_busy_and_latches_on_a_later_call(self):
+        permit = self.running(self.start + 10)
+        self.clocks.elapse(LIFETIME)
+        holder = sqlite3.connect(self.policy.database, timeout=0, isolation_level=None)
+        self.addCleanup(holder.close)
+        holder.execute('BEGIN IMMEDIATE')  # another writer holds the reservation: the latch cannot be written now
+        self.assertEqual(self.refused(permit.check_active).code, 'adoption_recovery_plan_expired')
+        holder.execute('ROLLBACK')
+        self.assertEqual(self.latched(), [])
         self.assertEqual(self.refused(permit.check_active).code, 'adoption_recovery_plan_expired')
         self.assertEqual(len(self.latched()), 1)
 

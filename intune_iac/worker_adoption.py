@@ -61,6 +61,28 @@ def _critical(policy, payload, manifest_sha256, deadline=None, *, fail=None, exp
     return validity.critical(store, payload, manifest_sha256, deadline, expired_code)
 
 
+def _latched(db, payload):
+    """Whether an expiry record exists for the receipt: plain reads, no write. A store made before the table existed
+    has no record, and gets the table the first time a section runs."""
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (_EXPIRED_TABLE,)).fetchone(): return False
+    return bool(db.execute('SELECT 1 FROM ' + _EXPIRED_TABLE + ' WHERE issuer=? AND nonce=?',
+        (payload['issuer'], payload['nonce'])).fetchone())
+
+
+def _watch(policy, payload, manifest_sha256, deadline, latched, *, fail, expired_code):
+    """The window judgment for the periodic permit check (the watchdog runs it every 0.2 s, the broker on every request).
+
+    Read-only on the open path: no directory lock, no write transaction, nothing persisted, so a cancel or recover
+    from another process is never refused because a permit is polling. A closed window is recorded through the shared
+    critical section and refused; if the store is busy it is refused anyway and recorded on a later call. A backward
+    step is held. Consumption and the dispatch markers keep the full section."""
+    state, reading = validity.peek(policy.root, payload['expires_at'], deadline, latched)
+    if state == validity.CLOSED:
+        _record_expiry(policy, payload, manifest_sha256, deadline)
+        fail(expired_code)
+    if state == validity.HELD: raise validity.hold(reading)
+
+
 def _deadline(payload):
     """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it."""
     return time.monotonic() + max(0, payload['expires_at'] - time.time())
@@ -412,15 +434,17 @@ class AdoptionPermit:
         except AppError as error:
             if error.code == 'adoption_expired': _record_expiry(self.job.policy, self.payload, self.job.sha256, self.deadline)
             raise
-        # The final window judgment (the effective time, this permit's monotonic deadline, an earlier expiry record) and
-        # the job's state are read in one critical section, so a latch from another process cannot slip between them.
-        # Nothing is inserted: a permit that is still valid changes no record.
-        with _critical(self.job.policy, self.payload, self.job.sha256, self.deadline) as db:
+        # Periodic and read-only (see _watch): the window is judged from the recorded time, this permit's deadline and a
+        # plain read of the expiry record; a closed window is latched through the shared section before it is refused.
+        with self.job.policy.connection() as db:
             row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.job.identifier,)).fetchone()
             consumed = db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?', (self.job.identifier,)).fetchone()
             owners = sorted(item[0] for item in db.execute('SELECT scope FROM ownership WHERE job=?', (self.job.identifier,)))
             revoked = db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (self.payload['issuer'], self.payload['key_id'])).fetchone()
             phase = db.execute('SELECT verification_dispatches,verification_status FROM adoption_operations WHERE operation_id=?', (self.job.identifier,)).fetchone()
+            latched = _latched(db, self.payload)
+        _watch(self.job.policy, self.payload, self.job.sha256, self.deadline, latched,
+            fail=_fail, expired_code='adoption_signature_expired')
         expected = 'verification_running' if self.verification else 'running'
         if (row != (expected, 0, 1) or consumed != (self.job.sha256,) or owners != service._scopes(self.job.manifest)
                 or revoked or self.verification and phase != (1, 'running')): _fail('adoption_permit_inactive')
