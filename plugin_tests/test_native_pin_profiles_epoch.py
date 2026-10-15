@@ -1,4 +1,4 @@
-"""The current tool profile cannot widen general plan or file admission."""
+"""The tool profiles admit exactly their own versions to plan review; the current one does not widen file admission."""
 from pathlib import Path
 import copy
 import tempfile
@@ -8,10 +8,18 @@ from intune_iac.io import AppError
 from intune_iac.native_pins import OPENTOFU_PINS, OPENTOFU_CURRENT_SHA256
 
 class NativePinProfilesEpochTests(unittest.TestCase):
-    def test_general_parser_still_rejects_current_resource_version(self):
-        result = execution.review_plan({'format_version':'1.2', 'terraform_version':'1.13.1',
-            'planned_values':{'root_module':{}}, 'resource_changes':[], 'configuration':{'root_module':{}}})
-        self.assertIn('unqualified_engine_version', [x['code'] for x in result['blockers']])
+    def test_general_parser_admits_exactly_the_versions_of_the_two_profiles(self):
+        # Round 2 of the pin migration: the general parser reviews a plan that names the current engine version (and the
+        # legacy one, labelled, for reproduction). Any other version is still refused.
+        def review(version):
+            return execution.review_plan({'format_version':'1.2', 'terraform_version':version,
+                'planned_values':{'root_module':{}}, 'resource_changes':[], 'configuration':{'root_module':{}}})
+        for version, profile in (('1.13.1','current_local_qualification'), ('1.10.0','legacy_reproduction_only')):
+            result = review(version)
+            self.assertNotIn('unqualified_engine_version', [x['code'] for x in result['blockers']])
+            self.assertEqual(result['pin_profile'], profile)
+        for version in ('1.13.2', '1.12.0', '1.14.0'):
+            self.assertIn('unqualified_engine_version', [x['code'] for x in review(version)['blockers']])
 
     def test_current_output_parser_rejects_resources_and_malformed_shapes(self):
         base = {'format_version':'1.2', 'terraform_version':'1.13.1',

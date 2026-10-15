@@ -39,6 +39,11 @@ def tools(profile):
             'atmos_version': atmos_version, 'atmos_sha256': atmos_sha}
 
 
+def engine_profiles():
+    """OpenTofu engine version to profile, for both pairs: the versions a plan may name (current, and legacy reproduction)."""
+    return {tools(profile)['engine_version']: profile for profile in (LEGACY, CURRENT)}
+
+
 def context_profile(context):
     """The profile a context selects by schema_version, with its tool pins, or None for an unknown version."""
     version = context.get('schema_version') if isinstance(context, dict) else None

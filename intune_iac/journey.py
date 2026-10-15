@@ -17,6 +17,7 @@ import tempfile
 from uuid import uuid4
 
 from . import engine, runner, workflow
+from .pin_profiles import CURRENT as _PIN_CURRENT, LEGACY as _PIN_LEGACY, context_pin_report, context_profile
 from .io import AppError, canonical, digest, file_sha, load_json, write_json, sync_directory, mkdir_durable
 
 VERSION = 'journey/1.0'
@@ -419,7 +420,10 @@ def _derive_payload(stage, session, state, observed, cache, implementation='curr
                 'native_atmos_executed': False, 'assurance': 'literal_source_or_context_intent'}
     if stage in ('generation', 'validation'):
         generated = _generation_evidence(state, observed)
-        return dict(generated, independent_preservation_verified=True, native_provider_validated=False)
+        payload = dict(generated, independent_preservation_verified=True, native_provider_validated=False)
+        if stage == 'generation':
+            payload.update(_current_pin_fields(context))
+        return payload
     if stage == 'adoption':
         return {'kind': 'simulation_import_preview', 'objects': [{'policy_id': key, 'normalized_sha256': digest(value['normalized'])}
                 for key, value in observed['inspections'].items()], 'live_import_allowed': False}
@@ -459,6 +463,25 @@ def _derive_payload(stage, session, state, observed, cache, implementation='curr
             'native_atmos_configuration_only': state.get('atmos_executable') is not None,
             'native_opentofu_output_only': state.get('tofu_executable') is not None,
             'native_provider_execution': False, 'cloud_execution': False}
+
+
+def _current_pin_fields(context):
+    """The pins a generation under this context named, for the generation receipt: only for the current profile.
+
+    A journey made under the legacy pins (a 1.0.0 context) keeps the receipt shape it always had, because a receipt is
+    compared with what the evidence derives and the frozen journeys must still reconstruct; the legacy label is shown
+    in the progress and the messages instead (pin_report), derived from the same context, never written into a record."""
+    report = context_pin_report(context)
+    return {'pin_profile': report['pin_profile'], 'pins': report['pins']} if report['pin_profile'] == _PIN_CURRENT else {}
+
+
+def pin_line(report):
+    """One plain line about the pins a context selects, for the journey output."""
+    if report['pin_profile'] == _PIN_LEGACY:
+        return 'Legacy pins: ' + report['pin_notice']
+    if report['pin_profile'] == _PIN_CURRENT:
+        return ('Pins: OpenTofu ' + report['pins']['opentofu'] + ', Atmos ' + report['pins']['atmos'] + ' (' + _PIN_CURRENT + ').')
+    return 'Pins: the context does not select a recognised pin profile.'
 
 
 def _receipt(stage, session, state, observed, dependencies, cache=None, implementation='current'):
@@ -509,6 +532,7 @@ def _progress(session, state, observed, implementation='current'):
               'external_verified_completed': [], 'receipt_dependencies': dependencies,
               'invalid_at': invalid, 'mode': state['mode'], 'execution_authorized': False,
               'live_ready': False, 'live_blockers': list(LIVE_BLOCKERS)}
+    result.update(context_pin_report(observed['context']))
     if implementation == 'recorded': result['implementation'] = _implementation_finding(cache.get('_implementation'))
     return result
 
@@ -594,7 +618,10 @@ def _prepare_plan(session, state, observed):
         executor = create_native_local_executor(location, executable=state['tofu_executable'],
                                                initial_value={}, desired_value=_desired(state, observed))
     else:
-        executor = create_synthetic_executor(location, initial_value={}, desired_value=_desired(state, observed))
+        profile = context_profile(observed['context'])
+        if profile is None: raise AppError('journey_context_version', 'The target context does not select a recognised pin profile.')
+        executor = create_synthetic_executor(location, initial_value={}, desired_value=_desired(state, observed),
+                                             engine_version=profile['engine_version'])
     if observed['raw_capture'].get('synthetic') is True:
         from .modeled_service import ModeledService
         service_path = _safe(_root(session) / 'modeled-service')
@@ -689,6 +716,7 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
             progress = _progress(session, state, observed)
             step = progress['next_state']
             output_fn('Journey ' + step + ' | local ' + str(len(progress['verified_completed'])) + '/' + str(len(STAGES)) + '; live gates remain blocked.')
+            if step == 'generation' or progress['pin_profile'] != _PIN_CURRENT: output_fn(pin_line(progress))
             if step == 'selection': output_fn('Observed policy UUIDs: ' + ', '.join(observed['observed_ids']))
             if step == 'mapping': output_fn('Mapping review: ' + str(_payload('mapping', session, state, observed)))
             edits = _output_edits(state, observed, progress) if step == 'generation' and state['in_flight'] is None else None
@@ -748,7 +776,9 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                     observed = fresh_observed
                     if state['mode'] == 'live' and STAGES.index(step) >= STAGES.index('plan'):
                         output_fn('Live blocked: ' + ', '.join(LIVE_BLOCKERS)); continue
-                    if step == 'generation': _generate(session, state, observed, guard)
+                    if step == 'generation':
+                        _generate(session, state, observed, guard)
+                        output_fn('Generated. ' + pin_line(context_pin_report(observed['context'])))
                     else:
                         if step == 'atmos' and state.get('atmos_executable') is not None:
                             from .journey_native_atmos import execute

@@ -12,9 +12,24 @@ import uuid
 from pathlib import Path
 
 from .io import AppError, canonical, digest, file_sha, load_json, parse_json, write_json
+from .native_pins import OPENTOFU_PINS
 
 FORMAT_VERSIONS = frozenset({'1.0', '1.1', '1.2'})
-ENGINE_VERSIONS = frozenset({'1.10.0'})
+# The engine versions a plan may name: the current local qualification, and the legacy one for reproduction only. The pair
+# is read from native_pins.py (bound with this file by the implementation digest); any other version is refused, and a review
+# says which profile it saw.
+ENGINE_PROFILES = {entry['version']: entry['profile'] for entry in OPENTOFU_PINS.values()}
+ENGINE_VERSIONS = frozenset(ENGINE_PROFILES)
+LEGACY_PLAN_NOTICE = ('This plan names the legacy OpenTofu version, which the protected worker does not admit. It is '
+                      'reviewed to reproduce earlier output only.')
+
+
+def _plan_pin_report(version, allowed):
+    profile = ENGINE_PROFILES.get(version) if type(version) is str and version in allowed else None
+    report = {'pin_profile': profile}
+    if profile == 'legacy_reproduction_only':
+        report['pin_notice'] = LEGACY_PLAN_NOTICE
+    return report
 TOP_KEYS = frozenset({'format_version', 'terraform_version', 'planned_values', 'resource_changes',
     'resource_drift', 'output_changes', 'prior_state', 'configuration', 'variables',
     'relevant_attributes', 'checks', 'timestamp', 'errored', 'applyable', 'complete', 'deferred_changes'})
@@ -64,7 +79,7 @@ def _text(value):
 
 
 def review_plan(document: dict) -> dict:
-    """Review the historical general plan profile; versions are not widened."""
+    """Review a plan against the general profile. The engine version is one of the two profiles' versions (see ENGINE_VERSIONS)."""
     return _review_plan(document, ENGINE_VERSIONS)
 
 
@@ -74,7 +89,7 @@ def review_local_output_plan(document: dict, *, engine_version: str) -> dict:
     This changes parser version admission only. The protected executor separately
     verifies the binary pin, exact configuration, output semantics and authority.
     """
-    if type(engine_version) is not str or engine_version not in {'1.10.0', '1.13.1'}:
+    if type(engine_version) is not str or engine_version not in ENGINE_VERSIONS:
         raise AppError('unqualified_engine_version', 'Unsupported local output engine.')
     value = _bounded(document, 16 * MAX_LOCAL_BYTES)
     try:
@@ -94,7 +109,7 @@ def review_local_output_plan(document: dict, *, engine_version: str) -> dict:
 def _review_plan(document: dict, engine_versions) -> dict:
     """Inspect pinned show-JSON semantics; never authorize or echo input values."""
     report = {'version': '1.0.0', 'status': 'blocked', 'execution_authorized': False,
-              'assurance': 'offline_plan_review_only', 'blockers': [], 'changes': [],
+              'assurance': 'offline_plan_review_only', 'pin_profile': None, 'blockers': [], 'changes': [],
               'counts': {k: 0 for k in ('no-op', 'create', 'read', 'update', 'delete',
                                       'replacement', 'forget', 'import', 'drift', 'output_changes')}}
     def block(code, location='plan'):
@@ -105,6 +120,7 @@ def _review_plan(document: dict, engine_versions) -> dict:
         if not isinstance(document, dict): raise ValueError()
         report['plan_json_sha256'] = digest(document)
         _review_header(document, block, engine_versions)
+        report.update(_plan_pin_report(document.get('terraform_version'), engine_versions))
         _review_configuration(document.get('configuration'), block)
         _review_checks(document.get('checks', []), block)
         _review_resource_changes(document, report, block)
@@ -312,7 +328,9 @@ def _review_prior_state(document, block, engine_versions=ENGINE_VERSIONS):
         _review_absent_prior(changes, outputs, block); return
     if not isinstance(prior, dict) or set(prior) != {'format_version', 'terraform_version', 'values'}:
         block('invalid_prior_state'); return
-    if prior['format_version'] not in FORMAT_VERSIONS or prior['terraform_version'] not in engine_versions:
+    # The prior state was written by the engine that made the plan: the two versions agree, whichever profile that is.
+    if (prior['format_version'] not in FORMAT_VERSIONS or prior['terraform_version'] not in engine_versions
+            or prior['terraform_version'] != document.get('terraform_version')):
         block('unqualified_prior_state_version')
     values = prior['values']
     if not isinstance(values, dict): block('invalid_prior_values'); return

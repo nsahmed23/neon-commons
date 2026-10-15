@@ -15,6 +15,7 @@ import stat
 from uuid import UUID
 from .io import AppError, canonical, digest, parse_json
 from . import production
+from .pin_profiles import context_pin_report
 
 MAX_BYTES=16*1024*1024
 KINDS=('policies','settings','assignments')
@@ -165,7 +166,7 @@ def _load_capture(path,tenant_id,directory):
             oid=_uuid(receipt.get('selected_policy_id'))
             if any(_uuid(v.get('tenant_id'))!=tenant_id for v in (source,context,receipt)) or _uuid(context.get('selected_policy_id'))!=oid:_fail('workbench_capture_identity')
             if any(v.get('cloud')!='public' for v in (source,context,receipt)):_fail('workbench_capture_identity')
-            if (source.get('schema_version')!='1.0.0' or context.get('schema_version')!='1.0.0' or receipt.get('schema_version') not in ('1.0.0','1.1.0')
+            if (source.get('schema_version')!='1.0.0' or context.get('schema_version') not in ('1.0.0','2.0.0') or receipt.get('schema_version') not in ('1.0.0','1.1.0')
                 or source.get('exporter')!=production.EXPORTER or receipt.get('adapter')!=production.EXPORTER
                 or type(source.get('synthetic')) is not bool or context.get('source_is_synthetic') is not source['synthetic']
                 or context.get('authorization')!='emit_only' or receipt.get('api_version')!='beta'
@@ -263,12 +264,15 @@ def _load_capture(path,tenant_id,directory):
             elif any(c['coverage']!='complete' for c in coverage):status='partial'
             elif configuration is None:status='unsupported'
             if status!='complete':configuration=None
+            # A 1.0.0 context is read for reproduction and labelled so; a 2.0.0 one names the current pins. Never rewritten.
+            pin_report=context_pin_report(context)
             capture_sha=digest({'documents':{k:v['sha256'] for k,v in artifacts.items() if k!='raw_pages'},'raw_pages':[r['sha256'] for r in artifacts['raw_pages']]})
             return {'tenant_id':tenant_id,'object_id':oid,'observed_at':observed_at,'status':status,
                     'collections':coverage,'body':configuration,'scope':{'kind':'policy','object_ids':[oid]},
                     'capture_sha256':capture_sha,'source':{'evidence_class':'graph_capture_unverified',
                     'tenant_assurance':'caller_asserted','source_authenticity_verified':False,'provider_qualified':False,
                     'source_is_synthetic':source['synthetic'],
+                    'pin_profile':pin_report['pin_profile'],**({'pin_notice':pin_report['pin_notice']} if 'pin_notice' in pin_report else {}),
                     'execution_authorized':False,'adapter':production.EXPORTER,'artifacts':artifacts,
                     'capture_sha256':capture_sha,'capture_attempts':capture_attempts,
                     'mapping_blockers':blockers,'raw_observed':raw_observed}}

@@ -12,6 +12,10 @@ from corrections.models.contract_model import resume_decision, capture_errors
 R=Path(__file__).resolve().parents[1]
 MAP=json.loads((R/'corrections/contracts/resume-stage-map.json').read_text())
 STAGES=MAP['stages'];FP=MAP['invalidation_frontier']
+# The (OpenTofu, Atmos) pairs provider evidence may name: the legacy pair, accepted to reproduce earlier evidence only, and
+# the current local qualification. A mixed pair is refused. Spelled here independently of the producer; a test compares
+# these literals with native_pins.py.
+TOOL_PAIRS=(("1.10.0","1.199.0"),("1.13.1","1.230.1"))
 class StoreError(ValueError):pass
 
 def sha(data):return hashlib.sha256(data).hexdigest()
@@ -189,7 +193,7 @@ def inspect(root,index_path='receipt-index.json'):
     current['ownership_digest']=sha(canonical(sorted(records,key=lambda r:r['object_id'])))
    elif milestone=='mapping':
     p=values['provider_evidence'];_oracle(data['source'],values['normalized'],values['decisions'])
-    if (p['provider_source'],p['provider_version'],p['api_version'],p['engine_version'],p['atmos_version'])!=('deploymenttheory/microsoft365','1.0.0','beta','1.10.0','1.199.0'):raise StoreError('unqualified_provider_tool_contract')
+    if (p['provider_source'],p['provider_version'],p['api_version'])!=('deploymenttheory/microsoft365','1.0.0','beta') or (p['engine_version'],p['atmos_version']) not in TOOL_PAIRS:raise StoreError('unqualified_provider_tool_contract')
     import hcl2
     from lark.exceptions import LarkError
     try:lock=hcl2.loads(read_bytes(root,p['lock_path']).decode())

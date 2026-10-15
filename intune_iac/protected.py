@@ -22,11 +22,16 @@ import time
 import uuid
 
 from . import clock, implementation_history as history
-from .execution import review_plan, review_local_output_plan
+from .execution import ENGINE_VERSIONS, review_plan, review_local_output_plan
 from .io import AppError, canonical, digest, load_json, parse_json, read_bytes
 
 VERSION = 'protected-local/1.0'
 from .native_pins import OPENTOFU_CURRENT_SHA256, OPENTOFU_PINS
+# The engine version a modeled (synthetic) executor names, read from native_pins.py (bound with this file). An executor
+# with no recorded version is the legacy one: every executor made before the migration, and the frozen journeys, are of that
+# kind and stay byte for byte as they were.
+_LEGACY_ENGINE = next(entry['version'] for entry in OPENTOFU_PINS.values() if entry['profile'] == 'legacy_reproduction_only')
+_CURRENT_ENGINE = next(entry['version'] for entry in OPENTOFU_PINS.values() if entry['profile'] == 'current_local_qualification')
 NATIVE_SHA256 = OPENTOFU_CURRENT_SHA256
 MAX_OUTPUT = 2 * 1024 * 1024
 PROCESS_TIMEOUT = 30
@@ -130,6 +135,15 @@ def _sha(path, *, max_bytes=256*1024*1024):
     return h.hexdigest()
 
 
+def _worker_bytes(version):
+    """The modeled worker script for one engine version. The legacy script is the frozen bytes; the current one differs
+    only in the terraform_version its show output names."""
+    if version == _LEGACY_ENGINE: return _WORKER
+    if version != _CURRENT_ENGINE: _fail('unqualified_engine_version')
+    old = ("'terraform_version':'" + _LEGACY_ENGINE + "'").encode()
+    return _WORKER.replace(old, ("'terraform_version':'" + version + "'").encode())
+
+
 def _native_profile(executable, executable_sha):
     profile = OPENTOFU_PINS.get(executable_sha)
     if profile is None or Path(executable).stat().st_size != profile['bytes']:
@@ -138,11 +152,12 @@ def _native_profile(executable, executable_sha):
 
 
 def _engine_version(executor):
-    return (_native_profile(executor.executable, executor.manifest['executable_sha256'])['version']
-            if executor.mode == 'native_local_opentofu_only' else '1.10.0')
+    if executor.mode == 'native_local_opentofu_only':
+        return _native_profile(executor.executable, executor.manifest['executable_sha256'])['version']
+    return executor.manifest.get('engine_version', _LEGACY_ENGINE)
 
 
-def _configuration(value, version='1.10.0'):
+def _configuration(value, version=_LEGACY_ENGINE):
     return {'terraform':{'required_version':'= ' + version,'backend':{'local':{'path':'state/terraform.tfstate'}}},'output':{'fixture':{'value':value}}}
 
 
@@ -153,7 +168,10 @@ class SyntheticExecutor:
         self.root=_path(root)
         self.manifest=load_json(self.root/'executor.json')
         if self.manifest.get('mode')!=self.mode: _fail('wrong_executor_mode')
-        if set(self.manifest)!={'schema_version','mode','executable','executable_sha256','desired_value_sha256'} or self.manifest['schema_version']!=VERSION: _fail('invalid_executor')
+        keys={'schema_version','mode','executable','executable_sha256','desired_value_sha256'}
+        # A modeled executor of the current profile records its engine version; a legacy one records none (as before).
+        if set(self.manifest) not in (keys,keys|{'engine_version'}) or self.manifest['schema_version']!=VERSION: _fail('invalid_executor')
+        if 'engine_version' in self.manifest and (self.mode!='synthetic_local_process_only' or self.manifest['engine_version']!=_CURRENT_ENGINE): _fail('invalid_executor')
         self.executable=_path(self.manifest['executable'])
         self._validate()
 
@@ -163,7 +181,7 @@ class SyntheticExecutor:
         if self.mode=='native_local_opentofu_only': _native_profile(self.executable,self.manifest['executable_sha256'])
         if self.mode=='synthetic_local_process_only' and self.manifest['executable_sha256']!=_sha(Path(sys.executable).resolve()): _fail('unqualified_executable')
         if self.mode=='synthetic_local_process_only' and read_bytes(self.root/'pyvenv.cfg')!=('home = '+str(Path(sys.executable).resolve().parent)+'\ninclude-system-site-packages = false\n').encode(): _fail('runtime_changed')
-        if self.mode=='synthetic_local_process_only' and _sha(self.root/'worker.py')!=hashlib.sha256(_WORKER).hexdigest(): _fail('worker_changed')
+        if self.mode=='synthetic_local_process_only' and _sha(self.root/'worker.py')!=hashlib.sha256(_worker_bytes(_engine_version(self))).hexdigest(): _fail('worker_changed')
         config=_json_snapshot(load_json(self.root/'work/main.tf.json'))
         if set(config)!={'terraform','output'} or set(config.get('output',{}))!={'fixture'} or set(config['output']['fixture'])!={'value'}: _fail('unsupported_configuration')
         if config!=_configuration(config['output']['fixture']['value'], _engine_version(self)): _fail('unsupported_configuration')
@@ -189,11 +207,13 @@ class NativeLocalExecutor(SyntheticExecutor):
     mode='native_local_opentofu_only'
 
 
-def _create(root, initial_value, desired_value, executable, mode):
+def _create(root, initial_value, desired_value, executable, mode, engine_version=None):
     if sys.platform!='linux': _fail('unsupported_platform')
+    if engine_version is not None and mode!='synthetic_local_process_only': _fail('unqualified_engine_version')
+    if engine_version is not None and (type(engine_version) is not str or engine_version not in ENGINE_VERSIONS): _fail('unqualified_engine_version')
     initial_value,desired_value=_json_snapshot(initial_value),_json_snapshot(desired_value)
     executable=_path(executable); executable_sha=_sha(executable)
-    version = _native_profile(executable,executable_sha)['version'] if mode=='native_local_opentofu_only' else '1.10.0'
+    version = _native_profile(executable,executable_sha)['version'] if mode=='native_local_opentofu_only' else (engine_version or _LEGACY_ENGINE)
     root=_path(root); root.mkdir(mode=0o700)
     (root/'work').mkdir(mode=0o700); (root/'work/state').mkdir(mode=0o700); (root/'home').mkdir(mode=0o700)
     # Copy the qualified executable into the private target to pin subsequent opens.
@@ -207,10 +227,11 @@ def _create(root, initial_value, desired_value, executable, mode):
             out.flush();os.fsync(out.fileno())
     if _sha(root/'tool')!=executable_sha: _fail('executable_changed')
     _exclusive(root/'tofu.rc',b'disable_checkpoint = true\n')
-    _exclusive(root/'worker.py',_WORKER,0o400)
+    _exclusive(root/'worker.py',_worker_bytes(version) if mode=='synthetic_local_process_only' else _WORKER,0o400)
     if mode=='synthetic_local_process_only':
         _exclusive(root/'pyvenv.cfg',('home = '+str(Path(sys.executable).resolve().parent)+'\ninclude-system-site-packages = false\n').encode(),0o400)
     manifest={'schema_version':VERSION,'mode':mode,'executable':str(root/'tool'),'executable_sha256':executable_sha,'desired_value_sha256':digest(desired_value)}
+    if mode=='synthetic_local_process_only' and version!=_LEGACY_ENGINE: manifest['engine_version']=version
     if mode=='synthetic_local_process_only':
         _exclusive(root/'work/state/terraform.tfstate',canonical({'version':4,'lineage':str(uuid.uuid4()),'serial':0,'outputs':{'fixture':{'value':initial_value}}}))
     else:
@@ -229,8 +250,10 @@ def _create(root, initial_value, desired_value, executable, mode):
     return SyntheticExecutor(root) if mode=='synthetic_local_process_only' else NativeLocalExecutor(root)
 
 
-def create_synthetic_executor(root, *, initial_value, desired_value):
-    return _create(root,initial_value,desired_value,Path(sys.executable).resolve(),'synthetic_local_process_only')
+def create_synthetic_executor(root, *, initial_value, desired_value, engine_version=None):
+    """A modeled executor. engine_version names the profile of the project it executes (see pin_profiles.py); omitted it is
+    the legacy version, as every executor made before the migration."""
+    return _create(root,initial_value,desired_value,Path(sys.executable).resolve(),'synthetic_local_process_only',engine_version)
 
 
 def create_native_local_executor(root, *, executable, initial_value, desired_value):
@@ -570,7 +593,7 @@ def _run(executor, command):
     if command=='second_plan' and (executor.root/'work/second.tfplan').exists():_fail('second_plan_exists')
     try:
         pinned=[(executor.executable,executor.manifest['executable_sha256'])]
-        if executor.mode=='synthetic_local_process_only':pinned.append((executor.root/'worker.py',hashlib.sha256(_WORKER).hexdigest()))
+        if executor.mode=='synthetic_local_process_only':pinned.append((executor.root/'worker.py',hashlib.sha256(_worker_bytes(_engine_version(executor))).hexdigest()))
         if command in ('show','apply','second_show'):
             plan_path=executor.root/'work'/('second.tfplan' if command=='second_show' else 'saved.tfplan')
             expected=_sha(plan_path)

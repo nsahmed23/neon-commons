@@ -403,7 +403,9 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
                       'cloud':'public','captured_at':started,
                       'exporter':{'id':'intune-iac-settings-catalog-graph','version':'1.0.0'},
                       'collections':collections,'references':[],'ownership':[]}
-            context = {'schema_version':'1.0.0','tenant_id':tenant_id,'selected_policy_id':policy_id,
+            # Version 2.0.0 selects the current local qualification pins (pin_profiles.py); the pin fields stay out because
+            # the toolchain is not observed here (context_assurance below says so).
+            context = {'schema_version':'2.0.0','tenant_id':tenant_id,'selected_policy_id':policy_id,
                        'cloud':'public','provider_source':'deploymenttheory/microsoft365',
                        'engine':'tofu','component':'intune-reference','stack':'reference-dev',
                        'authorization':'emit_only','source_is_synthetic':source_is_synthetic}
