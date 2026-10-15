@@ -525,5 +525,118 @@ class ExactPinOnTheSyntheticPathTests(unittest.TestCase):
         self.assertIn('required_version = ">= %s, < %s"' % (LEGACY_TOFU, p3c.minor_ceiling(LEGACY_TOFU)), frozen)
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Item 4: no silent defaults, and a backend observation of a version 1 descriptor is labelled.
+# ---------------------------------------------------------------------------------------------------------------------
+class NoSilentDefaultTests(unittest.TestCase):
+    def test_the_workflow_store_gives_the_oracle_the_context_version_its_provider_evidence_pair_selects(self):
+        from intune_iac import engine
+        from reference import workflow
+        from reference.core import normalize
+        source = json.loads((ROOT / 'examples/supported/input/export.json').read_text())
+        base = example_context()
+        raw = json.dumps(source).encode()
+        normalized = normalize(source, base['selected_policy_id'], base['tenant_id'])
+        decision = {'tenant_id': base['tenant_id'], 'selected_policy_id': base['selected_policy_id']}
+
+        def extra(pair, **keywords):
+            return dict({'engine_version': pair[0], 'atmos_version': pair[1], 'provider_source': 'deploymenttheory/microsoft365',
+                         'provider_version': '1.0.0', 'component': 'intune-reference', 'stack': 'reference-dev',
+                         'cloud': 'public', 'engine': 'tofu'}, **keywords)
+        pairs = {CURRENT: (CURRENT_TOFU, CURRENT_ATMOS), LEGACY: (LEGACY_TOFU, LEGACY_ATMOS)}
+        for profile, other in ((CURRENT, LEGACY), (LEGACY, CURRENT)):
+            with self.subTest(profile=profile):
+                files = engine._expected_files(raw, source, with_pins(base, profile), normalized)
+                workflow._oracle(raw, normalized, decision, files, extra(pairs[profile]))
+                with self.assertRaises(workflow.StoreError):
+                    workflow._oracle(raw, normalized, decision, files, extra(pairs[other]))
+                no_pair = extra(pairs[profile])
+                del no_pair['atmos_version']
+                with self.assertRaises(workflow.StoreError):
+                    workflow._oracle(raw, normalized, decision, files, no_pair)
+
+    def test_the_oracle_refuses_a_missing_or_unknown_context_version(self):
+        from intune_iac import engine
+        from reference.core import normalize
+        from reference.invariants import compare
+        source = json.loads((ROOT / 'examples/supported/input/export.json').read_text())
+        base = example_context()
+        raw = json.dumps(source).encode()
+        normalized = normalize(source, base['selected_policy_id'], base['tenant_id'])
+        files = engine._expected_files(raw, source, with_pins(base, CURRENT), normalized)
+        self.assertEqual(compare(raw, normalized, files=files, context=with_pins(base, CURRENT)), [])
+        for context in (dict(selected_policy_id=base['selected_policy_id'], tenant_id=base['tenant_id']),
+                        dict(with_pins(base, CURRENT), schema_version='3.0.0')):
+            with self.subTest(context=context.get('schema_version')):
+                self.assertIn('generated_pin_profile_unknown', compare(raw, normalized, files=files, context=context))
+
+    def test_the_wizard_selection_check_refuses_a_context_without_a_version(self):
+        from intune_iac.io import AppError
+        from intune_iac.wizard import _validate_selection_context
+        for profile in (CURRENT, LEGACY):
+            _validate_selection_context(with_pins(example_context(), profile))
+        context = with_pins(example_context(), CURRENT)
+        del context['schema_version']
+        with self.assertRaises(AppError) as raised:
+            _validate_selection_context(context)
+        self.assertEqual(raised.exception.code, 'unsupported_selection_context')
+
+    def session_with_context(self, version):
+        """A repository session whose saved context file has the given version (the wizard fixture of round 1)."""
+        from plugin_tests.test_wizard_repository import RepositoryWizardTests, POLICY
+        case = RepositoryWizardTests('test_repository_target_creates_owned_context_without_context_prompt')
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        case.run_script(['deploy/dev', 'policy', POLICY, 'review'])
+        path = Path(case.saved()['paths']['context'])
+        context = json.loads(path.read_text())
+        if version != context['schema_version']:
+            path.write_text(json.dumps(dict(context, schema_version=version), indent=2) + '\n')
+        return case, path, POLICY
+
+    def test_a_version_1_session_whose_context_cannot_be_read_is_refused_not_rebuilt_as_version_2(self):
+        case, path, policy = self.session_with_context(CONTEXT_V1)
+        saved = case.saved()
+        before_files = sorted(p.name for p in path.parent.iterdir())
+        path.write_text('{"truncated": ')
+        case.messages.clear()
+        result = case.run_script(['save'], supplied=False)
+        text = ' '.join(case.messages) + ' ' + json.dumps(result)
+        self.assertNotIn('rebuilt', text)
+        self.assertEqual(path.read_text(), '{"truncated": ')                      # nothing was rewritten
+        self.assertEqual(sorted(p.name for p in path.parent.iterdir()), before_files)  # and no second context was made
+        self.assertEqual(case.saved()['paths']['context'], saved['paths']['context'])
+        self.assertIn('repository_context_unreadable', text)
+
+    def test_a_session_that_has_no_context_yet_still_gets_a_new_version_2_one(self):
+        from plugin_tests.test_wizard_repository import RepositoryWizardTests, POLICY
+        case = RepositoryWizardTests('test_repository_target_creates_owned_context_without_context_prompt')
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+        case.run_script(['deploy/dev', 'policy', POLICY, 'review'])
+        self.assertEqual(case.context()['schema_version'], CONTEXT_V2)
+
+    def test_a_backend_observation_of_a_descriptor_carries_its_pin_profile(self):
+        import hashlib
+        from unittest.mock import patch
+        from plugin_tests.test_protected_completion import NativeContextCompletionTests as Base
+        case = Base('test_head_get_if_match_head_exact_state_and_no_identity_overclaim')
+        case.setUp()
+        self.addCleanup(case.doCleanups)
+
+        def response(host, path, token, method, timeout, etag=None):
+            return (dict(case.headers), case.body if method == 'GET' else b'')
+        document = p3c.v2_descriptor()
+        document['binding']['backend'] = copy.deepcopy(case.document['binding']['backend'])
+        for label, descriptor, profile in (('v1', case.document, LEGACY), ('v2', document, CURRENT)):
+            with self.subTest(version=label), patch.object(case.api, '_blob_read', side_effect=response):
+                result = case.api.collect_backend_observation(descriptor, storage_token='opaque-token')
+            self.assertEqual(result['status'], 'observed', result)
+            self.assertEqual(result['pin_profile'], profile)
+        invalid = case.api.collect_backend_observation({'schema_version': 'target-evidence/9.9'}, storage_token='opaque-token')
+        self.assertEqual((invalid['status'], invalid['pin_profile']), ('invalid', None))
+
+
 if __name__ == '__main__':
     unittest.main()

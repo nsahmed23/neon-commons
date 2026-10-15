@@ -224,7 +224,7 @@ def _validate_selection_context(context):
         "backend_owner": "external", "api_version": "beta",
         "target_assurance": "proposed_reference_labels_only",
     }
-    version = context.get("schema_version", pinned["schema_version"])
+    version = context.get("schema_version")  # a context without a version selects no pins: refused, not defaulted
     profiles = {pinned["schema_version"]: pinned, legacy["schema_version"]: legacy}
     selected = profiles.get(version) if type(version) is str else None
     valid = selected is not None and all(context[k] == expected for k, expected in selected.items() if k in context)
@@ -462,10 +462,16 @@ class _WizardSession:
     def refresh_repository(self):
         if 'repository' not in self.state:
             return True
-        try:
-            current = load_json(self.state['paths']['context'])
-        except (KeyError, AppError, OSError, ValueError):
-            current = None
+        current = None
+        if 'context' in self.state['paths']:
+            # A saved context decides which pins the session reproduces. If it cannot be read, or names no recognised
+            # version, the session is refused: rebuilding it would choose a version for a session that may be legacy.
+            try:
+                current = load_json(self.state['paths']['context'])
+            except (AppError, OSError, ValueError):
+                raise AppError('repository_context_unreadable', 'The saved target context cannot be read, so the pins of this session are unknown. It is not rebuilt; restore the context file or start a new session.') from None
+            if not isinstance(current, dict) or current.get('schema_version') not in ('1.0.0', '2.0.0'):
+                raise AppError('repository_context_version', 'The saved target context names no recognised version, so the pins of this session are unknown. It is not rebuilt; restore the context file or start a new session.')
         legacy = isinstance(current, dict) and current.get('schema_version') == '1.0.0'
         try:
             expected = _repository_context(self.state['repository'], self.state['paths']['input'],

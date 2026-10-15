@@ -124,6 +124,11 @@ def _inventory(source,decision):
 def _oracle(source,normalized,decision,files=None,extra=None):
  from reference.invariants import compare
  ctx={'tenant_id':decision['tenant_id'],'selected_policy_id':decision['selected_policy_id'],**(extra or {})}
+ # The store has no context file: the pins its provider evidence names tell the oracle which profile the generated files
+ # were made under (the legacy pair is context version 1.0.0, the current pair 2.0.0). Without a recognised pair the oracle
+ # is given no version and refuses generated files; nothing is defaulted.
+ pair=(ctx.get('engine_version'),ctx.get('atmos_version'))
+ if pair in TOOL_PAIRS:ctx['schema_version']=('1.0.0','2.0.0')[TOOL_PAIRS.index(pair)]
  if compare(source,normalized,files=files,context=ctx):raise StoreError('independent_oracle_rejected')
 
 def inspect(root,index_path='receipt-index.json'):

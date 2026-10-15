@@ -114,10 +114,13 @@ def collect_backend_observation(document, *, storage_token, timeout=10):
     read-only collector externally if a total wall-clock deadline is required.
     """
     result={'schema_version':'azure-backend-observation/1.0','status':'invalid','execution_authorized':False,
-            'assurance':'service_accepted_opaque_storage_credential_only','observations':[],'blockers':list(BLOCKERS)}
+            'assurance':'service_accepted_opaque_storage_credential_only','observations':[],'blockers':list(BLOCKERS),
+            'pin_profile':None}
     snapshot=_snapshot(document)
     if compare_targets(snapshot,snapshot)['status']!='match' or not _token(storage_token) or type(timeout)is not int or not 1<=timeout<=30:
         result['issues']=['invalid_collection_request'];return result
+    # The descriptor version the observation was collected for: a 1.0 descriptor is reproduction only and is labelled so.
+    result['pin_profile']=inspect_target(snapshot)['pin_profile']
     backend=snapshot['binding']['backend'];host=urlsplit(backend['blob_endpoint']).hostname
     path='/'+quote(backend['container'],safe='')+'/'+quote(backend['resolved_blob_name'],safe='/')
     try:

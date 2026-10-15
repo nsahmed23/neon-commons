@@ -838,7 +838,7 @@ def _compare(source, normalized, files, context, raw_digest):
         ff = _files(files)
         expected = {'key': key, 'pid': pid, 'tenant': tenant, 'digest': digest,
                     'desired': expected_desired, 'coverage': coverage}
-        errors += _artifacts(ff, expected, normalized, partial, raw_digest, TOOL_PROFILES.get(context.get('schema_version', '1.0.0')))
+        errors += _artifacts(ff, expected, normalized, partial, raw_digest, TOOL_PROFILES.get(context.get('schema_version')))
         # Controlled canaries are supported explicitly; unsafe roots are also
         # checked for exact string values/unknown key names >= 12 characters.
         markers = set(context.get('forbidden_canaries', []))
