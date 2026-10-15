@@ -36,6 +36,15 @@ def add_parser(commands):
     workspace.add_argument('--no-color', action='store_true')
     workspace.add_argument('--reduced-motion', action='store_true', default=True,
                            help='Keep all information without animation; also the default')
+    companion = sub.add_parser('companion', help='The read-only isometric companion page for one policy: write it to a file or serve it on this '
+                                                 'machine only; never launches a browser')
+    companion.add_argument('--root', required=True)
+    companion.add_argument('--object', required=True, help='Exact immutable object ID, never a display name')
+    way = companion.add_mutually_exclusive_group(required=True)
+    way.add_argument('--out', help='File to write; it shows one snapshot and does not update itself')
+    way.add_argument('--serve', action='store_true',
+                     help='Serve the page and its current snapshot on 127.0.0.1 only, under a secret path; stops on Ctrl+C or when idle')
+    companion.add_argument('--idle-seconds', type=int, default=1800, help='With --serve: stop after this long without a page request')
     overview = sub.add_parser('estate-overview', help='Groups, filters, scope tags and settings the observed policies share, and what was not established (read-only)')
     overview.add_argument('--root', required=True); overview.add_argument('--limit', type=int, default=200)
     sub.add_parser('families', help='Every policy, application and script family with its support disposition (read-only)')
@@ -394,6 +403,10 @@ ACTION_EFFECTS = {
                          'its plan bound against the cited repository intent, then records a deployment receipt in '
                          "this store: a verified local modeled baseline for that intent, not platform qualified. It "
                          'sends nothing to the service.',
+    'companion': 'Reads this policy and its relationships and writes only the file you name: an isometric page that shows '
+                 'one snapshot and does not update itself. It records nothing in the store, can approve or run nothing and '
+                 'never opens a browser; the notice names the path. "companion serve" instead serves the page on this '
+                 'machine only, under a secret address (anyone on the same machine who has it can read the page).',
 }
 
 
@@ -407,6 +420,7 @@ ACTION_SUMMARY = {
     'repository-entry': 'Reads the repository and lists its policies; it records nothing.',
     'diagnostics': 'Shows what diagnostics recorded, including what it could not read; it records nothing.',
     'deployment-record': 'Records a deployment receipt in this store; it sends nothing.',
+    'companion': 'Writes one read-only page for this policy to a file you name; it records nothing and opens no browser.',
 }
 
 
@@ -746,6 +760,9 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               needs=['REPOSITORY: the repository directory to survey'])
         offer('propose', 'Prepare a local proposal from a desired file', 'propose  ' + shlex.quote(target or ''),
               cursor=len('propose '), needs=['DESIRED_JSON: a file holding the desired policy body'], blocked=blocked)
+    # Last, so every other action keeps its place: a view of this policy, not a step of the work.
+    offer('companion', 'Write the read-only isometric page for this policy', 'companion ', cursor=len('companion '),
+          needs=['FILE: where to write the page (or serve: a loopback address that is a secret)'])
     return actions
 
 
@@ -823,6 +840,21 @@ def _facet(store, object_id, facet):
             'selected_repository': value['selected_repository']}
 
 
+def _companion_read(store, object_id):
+    """The one read the companion page makes, afresh each time: the engine's own relationships result for the object
+    (with the selected repository), the policy's recorded operation word and the observation's freshness as the
+    terminal's strip reads them, the evidence class and the tenant. Raises AppError for an object it cannot read."""
+    def read():
+        from .workbench_screens import _operation_from_states, observation_word
+        found = _inspection(store, object_id, attention=True)
+        operation = _operation_from_states(found)
+        freshness = found.get('freshness')
+        return {'value': _facet(store, object_id, 'relationships'), 'mode_class': found.get('evidence_class'),
+                'tenant': store.tenant_id, 'states': {object_id: operation} if operation else {},
+                'freshness': observation_word(freshness, found.get('freshness_reasons')) if isinstance(freshness, str) else None}
+    return read
+
+
 def command(args):
     name = args.workbench_command
     from .host_capabilities import require_profile
@@ -888,6 +920,13 @@ def command(args):
     if name == 'estate-overview':
         from .workbench_overview import estate_overview
         return estate_overview(_store(args.root), limit=args.limit)
+    if name == 'companion':
+        from .companion import run_companion
+        read = _companion_read(_store(args.root), args.object)
+        read()  # an object that cannot be read is an error now, before a file is written or a port is bound
+        # The address goes out before the command blocks; the result (how it ended) follows as the one JSON document.
+        return run_companion(read, out=args.out, serve=args.serve, announce=lambda text: print(text, flush=True),
+                             idle_seconds=args.idle_seconds)
     if name == 'families':
         from .families import families
         return families()
@@ -948,6 +987,8 @@ HELP = {
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
                    'estate-overview (groups, filters, scope tags and settings the observed policies share)',
+                   'companion FILE | serve | stop (selected policy: write the read-only isometric page to FILE, or serve it on '
+                   'this machine only under a secret address; never opens a browser; use ./serve for a file of that name)',
                    'repository-entry REPOSITORY (the policies a repository holds and the exact command to record each)',
                    'repository-import REPO STACK COMPONENT OBJECT POINTER REVISION BACKEND RESOURCE_ADDRESS',
                    'repository-status (selected object: is its latest repository intent still current?)',
@@ -1188,6 +1229,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         if service_origin is not None and not service_origin.get('problem'):
             service_root = service_origin['root']
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
+    held = []  # the loopback listeners this session started; the session ends them, and each ends itself when idle
+    def stop_companions():
+        for listener in held:
+            listener.stop()
+        held.clear()
     def show_page(specification=None):
         target = page if specification is None else specification
         if target['kind'] == 'history-recent':
@@ -1226,6 +1272,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 from .windows_workspace_binding import require_command
                 require_command(name)
             if name in ('quit', 'exit') and not values:
+                stop_companions()
                 return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
             if name == 'help' and not values: result = HELP
             elif name == 'views' and len(values) <= 1:
@@ -1236,6 +1283,21 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             elif name == 'estate-overview' and not values:
                 from .workbench_overview import estate_overview
                 result = estate_overview(store)
+            elif name == 'companion' and len(values) == 1:
+                if selected is None:
+                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                from .companion import start_live, write_static
+                read = _companion_read(store, selected)
+                if values[0] == 'serve':
+                    if held: raise AppError('companion_running', 'A companion listener is already running; "companion stop" ends it.')
+                    read()
+                    listener = start_live(read)
+                    held.append(listener)
+                    result = {'mode': 'live', 'address': listener.address, 'notice': listener.notice}
+                elif values[0] == 'stop':
+                    stop_companions()
+                    result = {'mode': 'live', 'stopped': 'stopped'}
+                else: result = write_static(read, values[0])
             elif name == 'repository-entry' and len(values) == 1:
                 from .repository_entry import entry
                 result = entry(store, values[0])
@@ -1462,8 +1524,10 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             else: raise ValueError('unknown command')
             present(result)
         except EOFError:
+            stop_companions()
             return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
         except KeyboardInterrupt:
+            stop_companions()
             # The same result as run_terminal's outer handler: what was running, what it left, the next step.
             during = _interrupted_during(current)
             result = {'status': 'interrupted', 'evidence_class': 'local_interface_result',

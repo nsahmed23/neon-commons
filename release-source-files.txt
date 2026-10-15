@@ -941,6 +941,7 @@ plugin_tests/test_workbench_adoption_tui_r4.py
 plugin_tests/test_workbench_capacity.py
 plugin_tests/test_workbench_capture_store.py
 plugin_tests/test_workbench_cli.py
+plugin_tests/test_workbench_companion.py
 plugin_tests/test_workbench_dictionary_capacity.py
 plugin_tests/test_workbench_dictionary_taxonomy_r4.py
 plugin_tests/test_workbench_delivery.py
