@@ -264,9 +264,9 @@ def _next_action(stages, operation_root, store_root):
         return ('The context file this operation bound changed after it was prepared, so it cannot become a deployment '
                 'record; collect to observe the policy.')
     if record['status'] == 'not_available':
-        return ("Reconcile's readback: %s. This operation cannot become a deployment record because its own readback "
-                'was never verified; collect to observe the policy.'
-                % str(reconciliation.get('classification')).replace('_', ' '))
+        # Reconcile's readback is said once, in its own stage above; this step names what follows from it.
+        return ('This operation cannot become a deployment record because its own readback was never verified; '
+                'collect to observe the policy.')
     if observed['status'] == 'not_yet':
         return 'Collect to observe the policy after the change.'
     if observed['status'] == 'differs':

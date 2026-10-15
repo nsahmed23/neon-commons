@@ -61,7 +61,7 @@ class ScreenWordTests(unittest.TestCase):
         lines = text(diagnostics_lines({'name': 'Pilot', 'object_id': POLICY, 'signals': [signal],
                                         'checked': {'device_evidence': 'clear'}}, 140))
         self.assertIn('1 signal needs attention; reporting completeness and ownership are reviewed in the maintenance '
-                      'queue (m)', lines)
+                      'queue (m opens it)', lines)
         self.assertIn('device evidence capture complete and cohort consistent; whether devices reported is not judged '
                       'here (h shows the counts)', lines)
         self.assertNotIn('clear: the capture', lines)
@@ -398,8 +398,7 @@ class RunFourWordsTests(unittest.TestCase):
             lines = text(self.workspace(4, self.closed(state))._surface_summary(160))
             self.assertNotIn('execute needs it', lines, state)
             self.assertNotIn('b' * 64, lines)
-            self.assertIn('Review digest: not offered; the approval window closed, so execute can no longer run this '
-                          'plan. Prepare a new proposal (a: actions)', lines)
+            self.assertIn('Review digest: not offered; execute can no longer run this plan.', lines)
         still_open = text(self.workspace(4, self.closed('open'))._surface_summary(160))
         self.assertIn('Review digest (execute needs it): ' + 'b' * 64, still_open)
 
@@ -455,7 +454,7 @@ class RunFourWordsTests(unittest.TestCase):
         # A message that names something the meaning cannot, and does not repeat it, keeps the meaning's line.
         specific = 'The desired policy uses device_vendor_msft_policy_config_x_1, outside the capability map.'
         lines = text(refusal_lines({'error': {'code': 'workbench_desired_capability', 'message': specific}}, 200))
-        self.assertIn('What it means', lines)
+        self.assertIn('In general:', lines)
 
     def test_the_band_leads_the_next_step_when_the_screen_gives_another(self):
         # Item 13 (run 4 frames 19 and 20; Gemini N 3): the band says "Collect again", the lifecycle line says "v".
@@ -535,7 +534,7 @@ class RunFourWordsTests(unittest.TestCase):
             workspace = RefusalCauseTests.workspace(self, None, "execute '%s' %s" % (operation, 'd' * 64))
             workspace.receive(dict(refused))
             lines = text(workspace._surface_summary(300))
-            self.assertIn('[REFUSED] unreadable_file', lines)
+            self.assertIn('[REFUSED] A file could not be read (unreadable_file)', lines)
             self.assertIn('could not be read: %s (it does not exist)' % (operation / 'plan.json'), lines)
             self.assertNotIn(str(operation / 'journal.json'), lines)
             self.assertIn("Next: Check that the file exists and this account can read it", lines)

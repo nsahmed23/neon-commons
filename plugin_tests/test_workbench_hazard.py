@@ -57,12 +57,12 @@ class StripTests(unittest.TestCase):
         self.assertIn('OP unknown', self.strip(facts, 80))
 
     def test_state_words_read_as_words(self):
-        self.assertIn('OPERATION outcome unknown', self.strip({'operation': 'outcome_unknown'}, 200))
+        self.assertIn('OP outcome unknown', self.strip({'operation': 'outcome_unknown'}, 200))
 
     def test_without_a_hazard_the_order_is_unchanged(self):
         facts = {'observation': 'fresh', 'repository': 'current', 'operation': 'succeeded_verified'}
         self.assertEqual(self.strip(facts, 200), 'SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | '
-                                                  'OBSERVED fresh | REPOSITORY current | OPERATION succeeded verified')
+                                                  'OBS fresh | REPO current | OP succeeded verified')
 
 
 class TabLineTests(unittest.TestCase):
@@ -212,7 +212,7 @@ class VisionReviewTests(unittest.TestCase):
         from intune_iac.workbench_screens import context_strip
         line = context_strip(TENANT, POLICY, {'name': 'Pilot', 'observation': 'fresh', 'eligibility': self.ELIGIBILITY},
                              200, 'synthetic')
-        self.assertIn('OBSERVED source changed', line)
+        self.assertIn('OBS source changed', line)
         self.assertNotIn('fresh', line)
 
     def test_available_actions_say_so_in_the_inspector(self):

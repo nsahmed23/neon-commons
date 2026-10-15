@@ -258,6 +258,16 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual(self.service.snapshot()['current'], self.before)
         self.assertEqual((self.operation / 'plan.json').read_bytes(), original_plan)
 
+    def test_a_successful_restore_proposal_lists_the_input_files_it_wrote(self):
+        # PKG-PRES-RUN7 item 2 (run 7 frame 68): the refused restore named its files; the successful one said nothing.
+        proposal = self.propose(); self.execute(proposal)
+        self.store.collect(self.service)
+        restore = maintenance.propose_restore(self.operation, self.root / 'restore')
+        written = self.root / 'restore.restore-desired.json'
+        self.assertEqual(restore['files_written'], [str(written)])
+        self.assertTrue(written.exists())
+        self.assertEqual(restore['status'], 'prepared')  # the result is otherwise the review, unchanged
+
     def test_restore_refuses_an_original_context_changed_since_its_plan(self):
         # The restore reads the original context only as the bytes the original plan bound.
         context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})

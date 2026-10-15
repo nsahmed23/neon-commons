@@ -6,6 +6,7 @@ against the service; the intent's own revision and whether the repository still 
 status and readback. The summary states times to the second with their zone; the exact values stay in the typed
 details and the raw record. The real store, modeled service and maintenance engine produce each state.
 """
+import re
 import unittest
 
 from plugin_tests import test_workbench_repository as repository_tests
@@ -230,7 +231,7 @@ class RefusalCauseTests(unittest.TestCase):
         text = ' '.join(' '.join(refusal_lines(value, 120, known=(self.CHANGED['observed'], 'repository_changed'))).split())
         self.assertIn('Cause: The repository changed since its recorded intent: changed stacks/orgs/reference/dev.yaml.', text)
         self.assertNotIn('or its component no longer consumes', text)
-        self.assertIn('[REFUSED] workbench_repository_stale', text)  # the exact code stays
+        self.assertIn('[REFUSED] The recorded intent no longer matches the repository (workbench_repository_stale)', text)  # the exact code stays
         # The step for this cause, not for every cause the code covers; the engine's general message is one key away.
         self.assertIn('Next: Press 9 to review the difference', text)
         self.assertNotIn('Refused.', text)
@@ -532,7 +533,7 @@ class ClockHoldPresentationTests(unittest.TestCase):
     def test_the_strip_reads_age_unknown_and_never_stale_for_a_hold(self):
         from intune_iac.workbench_screens import context_strip
         facts = {'name': 'Pilot', 'observation': 'age unknown', 'repository': 'current'}
-        self.assertIn('OBSERVED age unknown', context_strip(TENANT, OBJECT, facts, 120))
+        self.assertIn('OBS age unknown', context_strip(TENANT, OBJECT, facts, 120))
         strips = {width: context_strip(TENANT, OBJECT, facts, width) for width in range(40, 121)}
         self.assertTrue(any('OBS age?' in strip for strip in strips.values()), strips)
         for width, strip in strips.items():
@@ -707,7 +708,7 @@ class ApprovalWindowStateTests(unittest.TestCase):
                 self.assertLessEqual(cell_width(row), width, row)
         self.assertEqual(OPERATION_FROM_SIGNAL['operation_approval_held'], 'held')
         strip = context_strip(TENANT, OBJECT, {'name': 'P', 'operation': 'held'}, 200, 'synthetic')
-        self.assertIn('OPERATION held', strip)
+        self.assertIn('OP held', strip)
 
 
 class NewestOperationTests(unittest.TestCase):
@@ -833,7 +834,7 @@ class ClockHeldRefusalTests(unittest.TestCase):
                           {'eligibility': {'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
                                            'freshness_reasons': [code]}}):
                 text = self.refused(facts)
-                self.assertIn('[REFUSED] maintenance_observation_stale', text)
+                self.assertIn('[REFUSED] The observation is not fresh (maintenance_observation_stale)', text)
                 self.assertIn('Next: ' + step, text)
                 self.assertNotIn('Next: Collect again', text)
                 self.assertNotIn('Collect again', text)
@@ -854,3 +855,297 @@ class ClockHeldRefusalTests(unittest.TestCase):
                                'not clear it: correct the host clock and restart the workbench.')
         text = ' '.join(' '.join(refusal_lines(self.REFUSED, 160)).split())
         self.assertIn('Next: ' + step, text)
+
+
+class StampedAheadWordsTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 1 (journey 28 run 7, frames 40 to 45): an observation stamped after this host's clock has an
+    age that is not known, so no surface calls it stale; a stale word names the cause the record gives."""
+    workspace = RefusalCauseTests.workspace
+    CHECKED, STAMP = '2026-10-15T14:25:23Z', '2026-10-15T14:40:23Z'
+
+    def test_the_strip_says_age_unknown_for_a_stamp_ahead_and_names_the_cause(self):
+        workspace = self.workspace()
+        workspace._learn({'object_id': OBJECT, 'freshness': 'stale', 'freshness_reasons': ['stamped_after_now']})
+        self.assertEqual(workspace.facts['observation'], 'age unknown (stamped ahead)')
+        from intune_iac.workbench_screens import context_strip
+        facts = {'name': 'Pilot', 'observation': 'age unknown (stamped ahead)', 'repository': 'current'}
+        self.assertIn('OBS age unknown (stamped ahead)', context_strip(TENANT, OBJECT, facts, 140))
+        for width in range(40, 141):
+            self.assertNotIn('stale', context_strip(TENANT, OBJECT, facts, width))
+
+    def test_the_strip_names_a_later_collection_that_did_not_complete(self):
+        workspace = self.workspace()
+        workspace._learn({'object_id': OBJECT, 'freshness': 'stale', 'freshness_reasons': ['later_collection_not_complete']})
+        self.assertEqual(workspace.facts['observation'], 'stale (later collection incomplete)')
+        workspace._learn({'object_id': OBJECT, 'freshness': 'stale', 'freshness_reasons': ['older_than_window']})
+        self.assertEqual(workspace.facts['observation'], 'stale')
+
+    def test_a_cause_named_state_is_a_hazard_that_shortens_at_narrow_widths(self):
+        from intune_iac.workbench_screens import context_strip
+        for state in ('age unknown (stamped ahead)', 'stale (later collection incomplete)'):
+            facts = {'name': 'Pilot', 'observation': state, 'repository': 'current'}
+            strips = {width: context_strip(TENANT, OBJECT, facts, width) for width in range(40, 141)}
+            self.assertIn('OBS ' + state, strips[140])
+            short = 'OBS age?' if state.startswith('age') else 'OBS stale'
+            self.assertTrue(any(short in strip for strip in strips.values()), strips)
+
+    def test_the_inspector_row_says_the_age_is_not_known_and_names_both_times(self):
+        from intune_iac.workbench_screens import state_lines
+        observation = {'evidence_class': 'synthetic', 'run_id': 5, 'observed_at': self.STAMP, 'coverage': 'complete',
+                       'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                       'freshness_checked_at': self.CHECKED, 'eligibility': None}
+        text = ' '.join(' '.join(state_lines({'observation': observation}, 200)).split())
+        self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 14:25:23 UTC, "
+                      'the observation is stamped 2026-10-15 14:40:23 UTC)', text)
+        self.assertNotIn('stale', text)
+
+    def test_the_attention_item_says_not_known_to_be_fresh_and_names_both_times(self):
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, _ = _freshness({'observed_at': self.STAMP, 'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                                 'freshness_checked_at': self.CHECKED, 'snapshot_id': 'b' * 64,
+                                 'next_collection_replaces': 'same_service', 'ordering_service_root': '/w/a b'}, False)
+        sentence = signals[0]['observed']
+        self.assertEqual(sentence, 'The newest observation (2026-10-15 14:40:23 UTC) is not known to be fresh: its age is '
+                         "not known, because it is stamped later than this host's clock read when it was checked "
+                         '(2026-10-15 14:25:23 UTC).')
+        self.assertNotIn('stale', sentence)
+
+    def test_the_read_model_carries_the_clock_reading_to_the_states(self):
+        from intune_iac.workbench import _states
+        observed = _states({'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                            'freshness_checked_at': self.CHECKED, 'observed_at': self.STAMP}, None,
+                           {'checked': {}, 'signals': []}, None)['observation']
+        self.assertEqual(observed['freshness_checked_at'], self.CHECKED)
+
+
+class RestoreProposalWordsTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 2 (run 7 frame 68): a successful restore proposal says which files it wrote."""
+    workspace = StateSurfaceTests.workspace
+    summary = StateSurfaceTests.summary
+    REVIEW = {'operation_id': '4d972e93' + 'a' * 24, 'object_id': OBJECT, 'status': 'prepared', 'tenant_id': TENANT,
+              'approval_digest': 'd' * 64, 'expires_at': 1792005916}
+
+    def test_the_plan_review_lists_the_written_files_quoted(self):
+        value = dict(self.REVIEW, files_written=['/w/journey 28/restore.restore-desired.json'])
+        text = self.summary(self.workspace(4, value))
+        self.assertIn("Input files written: '/w/journey 28/restore.restore-desired.json'", text)
+
+    def test_the_plan_review_says_when_it_wrote_none_and_a_plain_review_says_nothing(self):
+        self.assertIn('Input files written: none', self.summary(self.workspace(4, dict(self.REVIEW, files_written=[]))))
+        self.assertNotIn('Input files written', self.summary(self.workspace(4, dict(self.REVIEW))))
+
+
+class StripOperationNamingTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 3 (run 7 frame 70): the strip names the operation it reports when that is not the newest one
+    for the policy, so it and the Operation row never describe two operations under one word."""
+    NEWEST, SHOWN = 'a59ec849' + 'a' * 24, '90ef8bc2' + 'b' * 24
+
+    def facts(self, shown, newest, state='expired'):
+        facts = {'name': 'Pilot', 'observation': 'fresh', 'repository': 'current', 'operation': state}
+        if shown:
+            facts['operation_id'] = shown
+        if newest:
+            facts['states'] = {'operation': {'operation_id': newest}}
+        return facts
+
+    def test_an_operation_that_is_not_the_newest_is_named(self):
+        from intune_iac.workbench_screens import context_strip
+        for width in (110, 130):
+            strip = context_strip(TENANT, OBJECT, self.facts(self.SHOWN, self.NEWEST), width)
+            self.assertRegex(strip, r'OP(ERATION)? 90ef8bc2 expired')
+            self.assertNotIn('a59ec849', strip)
+
+    def test_the_newest_operation_and_an_unknown_one_are_not_named(self):
+        from intune_iac.workbench_screens import context_strip
+        for facts in (self.facts(self.NEWEST, self.NEWEST), self.facts(None, self.NEWEST), self.facts(self.SHOWN, None)):
+            strip = context_strip(TENANT, OBJECT, facts, 130)
+            self.assertRegex(strip, r'OP(ERATION)? expired')
+            self.assertNotIn('90ef8bc2', strip)
+
+    def test_the_narrow_forms_keep_the_name_beside_the_hazard(self):
+        from intune_iac.workbench_screens import context_strip
+        facts = self.facts(self.SHOWN, self.NEWEST, 'outcome_unknown')
+        strips = [context_strip(TENANT, OBJECT, facts, width) for width in range(60, 131)]
+        self.assertTrue(any(re.search(r'OP(ERATION)? 90ef8bc2 (outcome )?unknown', strip) for strip in strips), strips[:3])
+
+
+class StripFormatTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 7 (run 7 frames 38, 39, 57; 42 to 46; 58 to 61; 26 and 27): one strip format. The policy name
+    stays whenever it fits, the OP segment shows whenever an operation exists, and each segment has one spelling."""
+    NAME = 'Windows Privacy Pilot'
+
+    def facts(self, **extra):
+        return dict({'name': self.NAME, 'observation': 'fresh', 'repository': 'current',
+                     'eligibility': {'reason': 'service_changed'}}, **extra)
+
+    def test_each_segment_has_one_spelling_at_every_width(self):
+        from intune_iac.workbench_screens import context_strip
+        for facts in (self.facts(operation='reconciled'), self.facts(), self.facts(operation='outcome_unknown')):
+            for width in range(40, 201):
+                strip = context_strip(TENANT, OBJECT, facts, width, 'synthetic')
+                for long in ('OBSERVED', 'REPOSITORY', 'OPERATION'):
+                    self.assertNotIn(long, strip, (width, strip))
+
+    def test_the_policy_name_stays_whenever_it_fits(self):
+        from intune_iac.workbench_screens import context_strip
+        facts = self.facts(operation='reconciled')
+        strip = context_strip(TENANT, OBJECT, facts, 120, 'synthetic')
+        self.assertEqual(strip, 'SYNTHETIC | T 11111111 | POLICY Windows Privacy Pilot (22222222) | OBS source changed | '
+                                'REPO current | OP reconciled')
+        wide = context_strip(TENANT, OBJECT, facts, 140, 'synthetic')
+        self.assertEqual(wide, 'SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBS source changed | '
+                               'REPO current | OP reconciled')
+        # The name gives way only when even the shortest form that holds it does not fit.
+        for width in range(40, 141):
+            strip = context_strip(TENANT, OBJECT, facts, width, 'synthetic')
+            if width >= 116:
+                self.assertIn('POLICY ' + self.NAME, strip, width)
+
+    def test_the_op_segment_shows_whenever_the_read_of_the_policy_has_an_operation(self):
+        from intune_iac.workbench_screens import context_strip
+        states = {'operation': {'operation_id': 'a59ec849' + 'a' * 24, 'status': 'prepared', 'journal_status': 'prepared'}}
+        strip = context_strip(TENANT, OBJECT, self.facts(states=states), 140, 'synthetic')
+        self.assertIn('OP prepared', strip)
+        closed = {'operation': dict(states['operation'], approval_window='closed')}
+        self.assertIn('OP expired', context_strip(TENANT, OBJECT, self.facts(states=closed), 140, 'synthetic'))
+        # An operation the workspace was told about by a result wins over the read of the policy.
+        self.assertIn('OP reconciled', context_strip(TENANT, OBJECT, self.facts(states=states, operation='reconciled'),
+                                                     140, 'synthetic'))
+        # No operation recorded: no segment.
+        self.assertNotIn(' OP ', context_strip(TENANT, OBJECT, self.facts(states={'operation': None}), 140, 'synthetic'))
+
+
+class ChangedContextReviewTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 5 (run 7 frame 65): a review whose context file changed offers no digest, as an expired
+    plan's review does; it says why execute refuses and what to do."""
+    workspace = StateSurfaceTests.workspace
+    summary = StateSurfaceTests.summary
+    REVIEW = RestoreProposalWordsTests.REVIEW
+
+    def test_no_digest_is_offered_and_the_refusal_is_explained(self):
+        value = dict(self.REVIEW, repository={'cited': None, 'context_changed': True, 'context_path': '/w/context.json'})
+        text = self.summary(self.workspace(4, value))
+        self.assertNotIn('Review digest (execute needs it)', text)
+        self.assertNotIn('d' * 64, text)
+        self.assertIn('Review digest: not offered; execute refuses this plan because its context file changed after it was '
+                      'prepared (maintenance_source_changed)', text)
+        from intune_iac.workbench_screens import lifecycle_next
+        self.assertIn('Prepare a proposal again (a: actions)', lifecycle_next(4, value, 0))
+
+    def test_an_unchanged_context_still_offers_the_digest(self):
+        for repository in ({'cited': True, 'repository_intent_id': 'e' * 64, 'freshness': 'current'}, {'cited': False}):
+            text = self.summary(self.workspace(4, dict(self.REVIEW, repository=repository)))
+            self.assertIn('Review digest (execute needs it): ' + 'd' * 64, text)
+
+
+class RefusalShapeTests(unittest.TestCase):
+    """PKG-PRES-RUN7 items 8 and 10 (run 7 frames 56, 67, 71, 73, 81): every refusal has one shape, a header in words
+    with the code in parentheses, then Cause, Effect and Next; a Next line names the operation it is about."""
+    workspace = StateSurfaceTests.workspace
+    summary = StateSurfaceTests.summary
+
+    def refusal(self, code, message='Engine words.', effects=None, **kwargs):
+        from intune_iac.workbench_screens import refusal_lines
+        error = {'code': code, 'message': message}
+        if effects is not None:
+            error['effects'] = effects
+        return refusal_lines({'status': 'error', 'error': error}, 200, **kwargs)
+
+    def test_the_header_is_words_with_the_code_in_parentheses_then_cause_effect_next(self):
+        lines = self.refusal('maintenance_replay_forbidden', effects={'dispatched': False})
+        self.assertEqual(lines[0], '[REFUSED] This operation cannot be executed again (maintenance_replay_forbidden)')
+        self.assertEqual([line.split(':')[0] for line in lines[1:4]], ['Cause', 'Effect', 'Next'])
+
+    def test_a_message_that_names_something_particular_is_the_cause(self):
+        lines = self.refusal('workbench_deployment_intent_not_cited', effects={'deployment_recorded': False},
+                             message='This operation cites repository intent b879046017, not the intent given.')
+        self.assertEqual(lines[0], '[REFUSED] The intent given is not the one the plan cites '
+                                   '(workbench_deployment_intent_not_cited)')
+        self.assertTrue(lines[1].startswith('Cause: This operation cites repository intent b879046017'), lines)
+        self.assertEqual([line.split(':')[0] for line in lines[1:]][-2:], ['Effect', 'Next'])
+        capability = self.refusal('workbench_desired_capability', message='Setting a_b: value a_b_1 is not supported.',
+                                  effects={'files_written': [], 'operation_created': False})
+        self.assertTrue(capability[1].startswith('Cause: Setting a_b: value a_b_1 is not supported.'), capability)
+        self.assertNotIn('What it means', '\n'.join(capability))
+
+    def test_an_unknown_code_shows_the_engines_words_as_the_cause(self):
+        self.assertEqual(self.refusal('something_new'), ['[REFUSED] Something new (something_new)', 'Cause: Engine words.'])
+
+    def test_every_explained_refusal_has_a_title(self):
+        from intune_iac.workbench_screens import REFUSAL_TITLES, REFUSALS
+        self.assertEqual(set(REFUSAL_TITLES), set(REFUSALS))
+        for code, title in REFUSAL_TITLES.items():
+            self.assertNotIn('_', title, code)
+
+    def test_a_next_line_names_the_operation_not_the_active_one(self):
+        for code in ('expired_request', 'maintenance_replay_forbidden'):
+            named = '\n'.join(self.refusal(code, operation='90ef8bc2'))
+            self.assertIn('operation 90ef8bc2', named, code)
+            unnamed = '\n'.join(self.refusal(code))
+            self.assertIn('that operation', unnamed, code)
+            for text in (named, unnamed):
+                self.assertNotIn('active operation', text)
+
+    def test_the_workspace_names_the_operation_the_command_named(self):
+        value = {'status': 'error', 'error': {'code': 'expired_request', 'message': 'Refused.',
+                                              'effects': {'dispatched': False}}}
+        workspace = self.workspace(5, value)
+        workspace.known_operations = {'/w/journey 28/op': '90ef8bc2' + 'b' * 24}
+        workspace.last_command = "execute '/w/journey 28/op' " + 'a' * 64
+        text = self.summary(workspace)
+        self.assertIn('which shows the window of operation 90ef8bc2.', text)
+
+
+class KeyMExplainedTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 11 (run 7 frames 09 and 29): where a screen names the key m, it says what m opens."""
+
+    def test_the_inspector_and_diagnostics_say_what_m_opens(self):
+        from intune_iac.workbench_screens import _attention_lines, diagnostics_lines
+        value = {'attention': {'signals': [], 'checked': {'collection': 'clear'}, 'status': 'clear'}}
+        text = ' '.join(' '.join(_attention_lines(value, 160)).split())
+        self.assertIn('reviewed in the maintenance queue (m opens it)', text)
+        for signals in ([], [{'area': 'freshness', 'code': 'observation_stale', 'observed': 'x', 'next_step': 'y', 'evidence': {}}]):
+            lines = diagnostics_lines({'object_id': OBJECT, 'name': 'P', 'signals': signals, 'checked': {}}, 200)
+            joined = ' '.join(' '.join(lines).split())
+            self.assertIn('maintenance queue (m opens it)', joined)
+            self.assertNotIn('queue (m)', joined)
+
+
+class PlainRecoveryWordsTests(unittest.TestCase):
+    """PKG-PRES-RUN7 items 12 and 14 (run 7 frame 44): the recovery for a stamp ahead says plainly what collecting does,
+    and a path with spaces is quoted so it copies whole."""
+    OBSERVED = {'observed_at': '2026-10-15T14:40:23Z', 'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                'freshness_checked_at': '2026-10-15T14:25:23Z', 'snapshot_id': 'b' * 64,
+                'next_collection_replaces': 'same_service'}
+
+    def step(self, **observed):
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, _ = _freshness(dict(self.OBSERVED, **observed), False)
+        return signals[0]['next_step']
+
+    def test_the_step_says_a_new_collection_becomes_the_current_observation(self):
+        step = self.step(ordering_service_root='/home/nsahm/work/journey 28 run 7/handoff/service')
+        self.assertEqual(step, "Collect again (:collect) from the modeled service it came from "
+                               "('/home/nsahm/work/journey 28 run 7/handoff/service'): a new collection becomes the "
+                               'current observation. Or correct the host clock.')
+        self.assertNotIn('orders its own collections', step)
+
+    def test_a_path_without_spaces_needs_no_quotes(self):
+        self.assertIn('came from (/w/service):', self.step(ordering_service_root='/w/service'))
+
+
+class ExpiredReviewOnceTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 13 (run 7 frame 70): an expired review says its window and its next step once, not in the
+    digest line and again in the Next line."""
+    workspace = StateSurfaceTests.workspace
+    summary = StateSurfaceTests.summary
+    CLOSED = dict(RestoreProposalWordsTests.REVIEW, approval_window={'opens_at': 1791980697, 'closes_at': 1791980997,
+                                                                       'state': 'closed'})
+
+    def test_the_digest_line_does_not_repeat_the_window_or_the_next_step(self):
+        from intune_iac.workbench_screens import lifecycle_lines
+        text = ' '.join((self.summary(self.workspace(4, self.CLOSED)) + ' ' + ' '.join(lifecycle_lines(4, 160, self.CLOSED, 2e9))).split())
+        self.assertIn('Review digest: not offered; execute can no longer run this plan.', text)
+        self.assertEqual(text.count('Prepare a'), 1, text)
+        self.assertEqual(text.count('window closed') + text.count('window has closed'), 1, text)
+        self.assertIn('Approval window: closed', text)

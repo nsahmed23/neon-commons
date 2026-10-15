@@ -556,12 +556,14 @@ def propose_restore(operation_root, output):
     call wrote beside the operation it never created, and whether an operation directory now exists."""
     written = []
     try:
-        return _propose_restore(operation_root, output, written)
+        result = _propose_restore(operation_root, output, written)
     except AppError as error:
         # Read, not assumed: only files this call wrote, and only those still on disk. Additive; no decision changes.
         error.effects = dict(error.effects or {}, files_written=[str(path) for path in written if path.exists()],
                              operation_created=bool((error.effects or {}).get('operation_created')))
         raise
+    # Additive: a proposal says which input files it wrote, as a refusal does, so a reader need not look for them.
+    return dict(result, files_written=[str(path) for path in written if path.exists()])
 
 
 def _propose_restore(operation_root, output, written):

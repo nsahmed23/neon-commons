@@ -281,9 +281,12 @@ class InterruptTextOnATerminalTests(unittest.TestCase):
         operation = '/w/journey 28 run 3/operation-22222222-b29ebd66ff89'
         result = {'interrupted_during': {'command': 'execute', 'operation_root': operation}, 'store_root': '/w/store'}
         lines = interrupted_text(result, 60)
-        commands = [line for line in lines if line.startswith('  intune-iac ')]
-        self.assertEqual(commands, ["  intune-iac workbench reconcile --operation '%s'" % operation])
-        source_words = set(' '.join(lines).split())
+        # Run 7 item 14: a command wider than the terminal wraps between its arguments, the quoted path whole, each row
+        # but the last ending with a backslash (it was left to wrap anywhere, even inside the quoted path).
+        commands = ["  intune-iac workbench reconcile --operation \\", "    '%s'" % operation]
+        self.assertEqual([line for line in lines if line in commands], commands)
+        self.assertEqual(lines[lines.index(commands[0]) + 1], commands[1])
+        source_words = set(' '.join(lines).replace(' \\', '').split())
         for line in lines:
             if line in commands:
                 continue
@@ -381,3 +384,70 @@ class HeldApprovalAttentionTests(unittest.TestCase):
         value = diagnostics(self.store, self.ids[0])
         self.assertNotIn('operation_approval_held', [signal['code'] for signal in value['signals']])
         self.assertEqual(value['newest_operation']['approval_window'], 'open')
+
+
+class RunningLineUnseenOperationTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 4 (run 7 frames 32 and 34): a workspace restarted after the proposal never saw the operation,
+    yet the RUNNING line names it by the id prefix the band uses, read from the store that registered it."""
+    ROOT = '/w/journey 28 run 7/operation-22222222-effded76a88d'
+    OPERATION_ID = 'ebefa7cb6c0a4bdbb834b38532d8a5ef'
+
+    def workspace(self, rows):
+        from plugin_tests.test_workbench_states import RefusalCauseTests
+        workspace = RefusalCauseTests.workspace(self)
+        calls = []
+
+        def operations(store, object_id=None, *, limit=None, offset=0):
+            calls.append((object_id, limit))
+            return rows
+        workspace.store = type('S', (), {'tenant_id': workspace.store.tenant_id, 'operations': operations})()
+        workspace.calls = calls
+        return workspace
+
+    def test_an_unseen_operation_is_named_by_the_id_the_store_registered(self):
+        workspace = self.workspace([{'operation_root': '/w/other', 'operation_id': 'f' * 32},
+                                    {'operation_root': self.ROOT, 'operation_id': self.OPERATION_ID}])
+        workspace._send("execute '%s' %s" % (self.ROOT, 'a' * 64))
+        self.assertEqual(workspace.notice, 'RUNNING: executing operation ebefa7cb; its outcome is not yet known.')
+        workspace._send("reconcile '%s'" % self.ROOT)
+        self.assertIn('reconciling operation ebefa7cb ', workspace.notice)
+        self.assertTrue(workspace.calls and workspace.calls[0][1], workspace.calls)  # bounded read
+
+    def test_an_operation_the_store_does_not_know_keeps_its_directory_name(self):
+        workspace = self.workspace([])
+        workspace._send("execute '%s' %s" % (self.ROOT, 'a' * 64))
+        self.assertIn('executing operation operation-22222222-effded76a88d;', workspace.notice)
+
+
+class InterruptCommandWrapTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 14 (run 7 frame 41): a command wider than the terminal wraps between its arguments, never
+    inside a quoted path, and the wrapped command still pastes as the one command (a backslash ends each row)."""
+    SERVICE = '/home/nsahm/work/journey 28 run 7/handoff/service'
+    STORE = '/home/nsahm/work/journey 28 run 7/store'
+
+    def lines(self, width):
+        from intune_iac.workbench import interrupted_text
+        result = {'interrupted_during': {'command': 'collect', 'service_root': self.SERVICE}, 'store_root': self.STORE}
+        return interrupted_text(result, width)
+
+    def test_a_long_command_wraps_between_arguments_and_keeps_each_quoted_path_whole(self):
+        for width in (100, 120):
+            lines = self.lines(width)
+            start = next(index for index, line in enumerate(lines) if line.startswith('  intune-iac workbench collect'))
+            rows = []
+            for line in lines[start:]:
+                rows.append(line)
+                if not line.endswith(' \\'):
+                    break
+            self.assertGreater(len(rows), 1, rows)
+            for row in rows:
+                self.assertLessEqual(len(row), width, row)
+            self.assertIn("'%s'" % self.SERVICE, ' '.join(row.strip() for row in rows).replace(' \\ ', ' '))
+            self.assertTrue(any("'%s'" % self.SERVICE in row for row in rows), rows)
+            self.assertTrue(any("'%s'" % self.STORE in row for row in rows), rows)
+            joined = ' '.join(row.strip().removesuffix(' \\').removesuffix('\\') for row in rows)
+            self.assertEqual(joined, "intune-iac workbench collect --root '%s' --service-root '%s'" % (self.STORE, self.SERVICE))
+
+    def test_a_command_that_fits_stays_on_one_row(self):
+        lines = self.lines(200)
+        self.assertIn("  intune-iac workbench collect --root '%s' --service-root '%s'" % (self.STORE, self.SERVICE), lines)

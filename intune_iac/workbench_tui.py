@@ -877,10 +877,11 @@ class Workspace:
         # Lineage reports its own freshness and keeps the observation's beside it; its own is never the observation's.
         observed = value.get('observation_freshness') if 'provenance_origin' in value else value.get('freshness')
         if value.get('object_id') == self.selected and isinstance(observed, str):
-            from .workbench_diagnostics import clock_hold
-            # Unknown stays unknown: under a clock hold the age is not established, so the strip does not say stale.
-            held = observed != 'fresh' and 'provenance_origin' not in value and clock_hold(value.get('freshness_reasons'))
-            facts['observation'] = 'age unknown' if held else observed
+            from .workbench_screens import observation_word
+            # Unknown stays unknown: under a clock hold or a stamp ahead of this host's clock the age is not
+            # established, so the strip does not say stale; a stale word names its cause where the record gives one.
+            facts['observation'] = (observed if 'provenance_origin' in value
+                                    else observation_word(observed, value.get('freshness_reasons')))
         attention = value.get('attention') if isinstance(value.get('attention'), dict) else {}
         checked = (attention.get('checked') or {}).get('repository')
         if value.get('object_id') == self.selected and checked in REPOSITORY_FROM_CHECK:
@@ -970,8 +971,11 @@ class Workspace:
         if value.get('status') == 'error' and isinstance(value.get('error'), dict):
             from .workbench_screens import refusal_lines
             code = (value.get('error') or {}).get('code')
-            rows.extend(refusal_lines(value, width, known=self._known_cause(code),
-                                      clock_fact=self._known_clock()))
+            from .workbench_screens import short_id
+            command = getattr(self, 'last_command', None)
+            operation = self._operation_id_for(command) if isinstance(command, str) else None
+            rows.extend(refusal_lines(value, width, known=self._known_cause(code), clock_fact=self._known_clock(),
+                                      operation=short_id(operation, (getattr(self, 'facts', None) or {}).get('identity_prefixes')) if operation else None))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -1153,14 +1157,21 @@ class Workspace:
             # A closed window cannot be reopened by the digest, so the review does not offer it as if execute could run.
             window_closed = (value.get('status') == 'prepared' and isinstance(judged, dict)
                              and judged.get('state') in ('closed', 'closed_recorded'))
+            bound = value.get('repository')
+            context_changed = isinstance(bound, dict) and bool(bound.get('context_changed'))
             for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
                                ('Review digest (execute needs it)', 'approval_digest'), ('Expiry', 'expires_at'),
                                ('Evidence class', 'evidence_class')):
                 item = value.get(key, 'unknown')
                 if key == 'approval_digest' and window_closed:
-                    field('Review digest', 'not offered; the approval window closed, so execute can no longer run this '
-                                           'plan. Prepare a new proposal (a: actions)')
+                    # The window is the row below and the next step is the lifecycle line's, so neither is said here.
+                    field('Review digest', 'not offered; execute can no longer run this plan.')
+                    continue
+                if key == 'approval_digest' and context_changed:
+                    # Execute checks the context file against the plan's record and refuses a changed one.
+                    field('Review digest', 'not offered; execute refuses this plan because its context file changed '
+                                           'after it was prepared (maintenance_source_changed)')
                     continue
                 field(label, _readable_epoch(item) if key == 'expires_at' else str(item).replace('_', ' ')
                       if key in ('status', 'evidence_class') else item)
@@ -1168,6 +1179,9 @@ class Workspace:
                     # As execute judges it (maintenance.approval_window); a view records nothing.
                     from .workbench_screens import WINDOW_WORDS
                     field('Approval window', WINDOW_WORDS.get(judged.get('state'), str(judged.get('state'))))
+            if isinstance(value.get('files_written'), list):
+                # A proposal that wrote input files says which, quoted so a path with spaces copies whole.
+                field('Input files written', ', '.join(shlex.quote(str(path)) for path in value['files_written']) or 'none')
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii'), after_band=self._band_gives_a_step()))
@@ -1838,6 +1852,19 @@ class Workspace:
         if known is None:
             known = next((row.get('operation_id') for row in getattr(self, 'operation_rows', None) or []
                           if isinstance(row, dict) and row.get('operation_root') == root), None)
+        if known is None:
+            # A workspace restarted after the proposal never saw this operation; the store that registered it knows its
+            # id, so the line names it as the band does. A read that fails leaves the directory name, never a guess.
+            # Registrations are listed oldest first, so the pages are read to the end, to a bound of 2000 rows.
+            try:
+                for offset in range(0, 2000, 200):
+                    page = self.store.operations(limit=200, offset=offset)
+                    known = next((row.get('operation_id') for row in page
+                                  if isinstance(row, dict) and row.get('operation_root') == root), known)
+                    if len(page) < 200:
+                        break
+            except Exception:
+                known = None
         return known if isinstance(known, str) else None
 
     def _tab_command(self, tab):

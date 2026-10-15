@@ -149,7 +149,7 @@ class InspectorSummaryTests(unittest.TestCase):
         joined = '\n'.join(self.lines(value, 200))
         # Scoped: reporting completeness and ownership are queue findings, not checked here (journey 26 frame review).
         self.assertIn('No signal in the areas checked (collection, freshness, operations); reporting completeness and '
-                      'ownership are reviewed in the maintenance queue (m).', ' '.join(joined.split()))
+                      'ownership are reviewed in the maintenance queue (m opens it).', ' '.join(joined.split()))
         self.assertIn('Not fully checked: repository (no intent recorded); device evidence (not imported).', joined)
 
     def test_an_unreadable_attention_is_not_shown_as_clear(self):

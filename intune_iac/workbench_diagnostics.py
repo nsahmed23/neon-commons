@@ -61,7 +61,8 @@ def _collection(observed):
 # The store's own reasons for a stale observation, in words. A later incomplete collection is explained by the
 # collection signal itself, so it never reaches the freshness sentence.
 FRESHNESS_WORDS = {'older_than_window': 'older than the freshness window of %(window)s seconds',
-                   'stamped_after_now': "stamped later than this host's clock read when it was checked (%(checked)s)"}
+                   'stamped_after_now': "its age is not known, because it is stamped later than this host's clock read "
+                                        'when it was checked (%(checked)s)'}
 # Holds on the age itself, in words (shared by every surface that words a freshness reason). Collecting again does not
 # clear either: a new observation is judged against the same recorded time. When both are recorded the first is the
 # one named.
@@ -136,7 +137,8 @@ def _freshness(observed, failed):
                         for reason in reasons)
     hold = clock_hold(reasons)
     # Unknown stays unknown: under a clock hold the age is not established, so the observation is not called stale.
-    verdict = 'not known to be fresh' if hold else observed.get('freshness')
+    # The same holds for a stamp ahead of this host's clock: the age cannot be read from a stamp in the future.
+    verdict = 'not known to be fresh' if hold or 'stamped_after_now' in reasons else observed.get('freshness')
     sentence = ('The newest observation (%s) is %s%s.' % (readable_time(observed['observed_at']), verdict,
                                                          ': ' + because if because else '')
                 if observed.get('observed_at') else
@@ -148,9 +150,10 @@ def _freshness(observed, failed):
         step = with_clock_times(CLOCK_HOLD_STEPS[hold], observed.get('freshness_clock'))
     elif 'stamped_after_now' in reasons and replaces == 'same_service':
         # The store orders its own collections from one service by run, not by stamp (workbench_store).
-        step = ('Collect again (:collect) from the modeled service it came from (%s): the store orders its own '
-                'collections by run, so the new one becomes current. Or correct the host clock.'
-                % observed.get('ordering_service_root'))
+        import shlex
+        # A path with spaces is quoted so it copies whole.
+        step = ('Collect again (:collect) from the modeled service it came from (%s): a new collection becomes the '
+                'current observation. Or correct the host clock.' % shlex.quote(str(observed.get('ordering_service_root'))))
     elif 'stamped_after_now' in reasons and replaces == 'any_collection':
         step = ('Collect again (:collect): this capture was stamped later than the store\'s clock when it was '
                 'imported, so the next collection becomes current. Or correct the host clock.')

@@ -319,6 +319,8 @@ def _states(observation, intent, attention, eligibility):
     signals = {signal.get('code'): signal for signal in attention.get('signals') or [] if isinstance(signal, dict)}
     observed = {key: observation.get(key) for key in ('evidence_class', 'run_id', 'observed_at', 'coverage', 'freshness')}
     observed['freshness_reasons'] = list(observation.get('freshness_reasons') or [])
+    # The reading of this host's clock when the age was judged, so a row can name it beside the stamp.
+    observed['freshness_checked_at'] = observation.get('freshness_checked_at')
     if isinstance(observation.get('freshness_clock'), dict):
         observed['freshness_clock'] = dict(observation['freshness_clock'])
     observed['eligibility'] = eligibility if isinstance(eligibility, dict) and eligibility.get('reason') else None
@@ -1050,9 +1052,27 @@ def interrupted_text(result, width):
     import textwrap
     lines = []
     for line in interrupted_lines(result):
-        lines += [line] if line.startswith('  ') else textwrap.wrap(
+        lines += _wrap_command(line, width) if line.startswith('  ') else textwrap.wrap(
             line, max(20, width), break_long_words=False, break_on_hyphens=False) or ['']
     return lines
+
+
+def _wrap_command(line, width):
+    """A command line that fits stays whole. A wider one breaks between its arguments, never inside a quoted path, and
+    each row but the last ends with a backslash, so pasting the rows runs the one command."""
+    import re
+    if len(line) <= width:
+        return [line]
+    # Arguments, a single-quoted one (a path with spaces) kept as one piece.
+    pieces = re.findall(r"(?:'[^']*'|[^\s'])+", line)
+    rows, row = [], '  ' + pieces[0]
+    for piece in pieces[1:]:
+        if len(row) + 1 + len(piece) + 2 <= width:
+            row += ' ' + piece
+        else:
+            rows.append(row + ' \\')
+            row = '    ' + piece
+    return rows + [row]
 
 
 INTERRUPTED_RECOVERY = ('Other processes, such as a scheduled collector, were not stopped. diagnostics names anything this '

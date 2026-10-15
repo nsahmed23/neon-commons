@@ -135,8 +135,8 @@ class FrameTextTests(unittest.TestCase):
         tenant, policy = '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'
         facts = {'name': 'Windows Privacy Pilot', 'observation': 'fresh', 'repository': 'stale', 'operation': 'prepared'}
         wide = context_strip(tenant, policy, facts, 160, 'synthetic')
-        self.assertEqual(wide, 'SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBSERVED fresh | '
-                               'REPOSITORY stale | OPERATION prepared')
+        self.assertEqual(wide, 'SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBS fresh | '
+                               'REPO stale | OP prepared')
         # The mode and the tenant lead every width; the states give way first.
         for width in (100, 80, 60):
             narrow = context_strip(tenant, policy, facts, width, 'synthetic')
@@ -460,7 +460,7 @@ class DeliveryLinesTests(unittest.TestCase):
         lines = delivery_lines(delivery_value(), 140)
         joined = '\n'.join(lines)
         self.assertEqual(lines[0], '[DELIVERY]')
-        self.assertIn('Operation b6b3679d5d95457ea8645919a1059863 | policy ' + POLICY_ID + ' | journal succeeded_verified', joined)
+        self.assertIn('Operation b6b3679d5d95457ea8645919a1059863 | policy ' + POLICY_ID + ' | journal succeeded verified', joined)
         expected = ['  [x] 1 Proposal        recorded 2026-10-14 12:24:54 UTC | repository intent bcffdf6f0000 (current)',
                     '  [x] 2 Review          1 field change: description | plan sha256 abababababab',
                     '  [x] 3 Approval        exact review digest d1072f310000 supplied at dispatch | window 2026-10-14 12:24:57 UTC to 2026-10-14 12:29:57 UTC',
@@ -472,7 +472,7 @@ class DeliveryLinesTests(unittest.TestCase):
         rows = [line for line in lines if line.startswith('  [')]
         self.assertEqual(rows, expected)
         self.assertIn('Next: Nothing pending: the change is recorded and observed as desired.', joined)
-        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: failure, expiry or refusal', joined)
+        self.assertIn('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [~] not available yet  [!] stopped: failure, expiry or refusal', joined)
 
     def test_waiting_required_and_refused_stages_are_marked_in_words(self):
         from intune_iac.workbench_screens import delivery_lines
@@ -487,9 +487,9 @@ class DeliveryLinesTests(unittest.TestCase):
                                reconciliation={'status': 'required'},
                                deployment_record={'status': 'not_available', 'reason': 'no_verified_readback'})
         joined = '\n'.join(delivery_lines(value, 120))
-        self.assertIn('  [?] 4 Execution       outcome unknown: model_response_lost', joined)
+        self.assertIn("  [?] 4 Execution       outcome unknown: the modeled service's response was lost (model_response_lost)", joined)
         self.assertIn('  [?] 6 Reconciliation  required: the outcome is unknown', joined)
-        self.assertIn('  [!] 7 Deployment      not available: no verified readback', joined)
+        self.assertIn('  [~] 7 Deployment      not available: no verified readback', joined)
 
     def test_an_observation_that_differs_shows_the_exact_difference(self):
         from intune_iac.workbench_screens import delivery_lines
@@ -609,7 +609,7 @@ class DiagnosticsLinesTests(unittest.TestCase):
         text = ' '.join(' '.join(diagnostics_lines(value, 120)).split())
         # Scoped to what diagnostics reads: reporting completeness and ownership are queue findings (journey 26).
         self.assertIn('no signal in the areas checked below', text)
-        self.assertIn('the maintenance queue (m)', text)
+        self.assertIn('the maintenance queue (m opens it)', text)
         self.assertNotIn('nothing needs attention', text)
         self.assertIn('device evidence capture complete and cohort consistent; whether devices reported is not judged here (h shows the counts)', text)
 
@@ -695,8 +695,8 @@ class HistoryLinesTests(unittest.TestCase):
         self.assertIn('0   prepared          2026-10-14 16:35:31 UTC  approval will need digest aaaaaaaaaaaa', joined)
         self.assertIn('approved with digest aaaaaaaaaaaa', joined)
         self.assertIn('1   dispatch started  time not recorded', joined)
-        self.assertIn('engine reported succeeded_verified (synthetic_local_process_only)', joined)
-        self.assertIn('3   outcome unknown   2026-10-14 16:35:32 UTC  model_response_lost', joined)
+        self.assertIn('engine reported succeeded verified (synthetic local process only)', joined)
+        self.assertIn("3   outcome unknown   2026-10-14 16:35:32 UTC  the modeled service's response was lost (model_response_lost)", joined)
         self.assertNotIn('could not be paired', joined)
         for width in (120, 60):
             for line in history_event_lines(self.HISTORY, width):
@@ -724,7 +724,7 @@ class RefusalLinesTests(unittest.TestCase):
                                               'message': 'Import the repository for this object before using its intent.'}}
         lines = refusal_lines(value, 100)
         joined = '\n'.join(lines)
-        self.assertEqual(lines[0], '[REFUSED] workbench_repository_intent_missing')
+        self.assertEqual(lines[0], '[REFUSED] No repository intent is recorded for this policy (workbench_repository_intent_missing)')
         # The cause is said once in words; the engine's plain message is one key away (e).
         self.assertNotIn('Import the repository for this object before using its intent.', joined)
         self.assertIn('Cause: No repository intent was recorded for this policy', joined)
@@ -753,7 +753,7 @@ class RefusalLinesTests(unittest.TestCase):
     def test_an_unknown_refusal_shows_only_what_the_engine_said(self):
         from intune_iac.workbench_screens import refusal_lines
         lines = refusal_lines({'status': 'error', 'error': {'code': 'something_new', 'message': 'Engine words.'}}, 80)
-        self.assertEqual(lines, ['[REFUSED] something_new', 'Engine words.'])
+        self.assertEqual(lines, ['[REFUSED] Something new (something_new)', 'Cause: Engine words.'])
 
     def test_a_stale_or_incomplete_observation_refusal_says_which_and_what_to_do(self):
         from intune_iac.workbench_screens import refusal_lines
@@ -780,7 +780,7 @@ class RefusalLinesTests(unittest.TestCase):
         named = refusal_lines({'status': 'error', 'error': {'code': 'workbench_repository_stale',
                                                             'message': 'stacks/orgs/dev.yaml changed'}}, 100)
         self.assertIn('stacks/orgs/dev.yaml changed', '\n'.join(named))
-        self.assertIn('What it means: The repository changed since its recorded intent', '\n'.join(named))
+        self.assertIn('In general: The repository changed since its recorded intent', '\n'.join(named))
 
 
 class SurfaceRoutingTests(unittest.TestCase):
@@ -819,7 +819,7 @@ class SurfaceRoutingTests(unittest.TestCase):
         value = {'status': 'error', 'error': {'code': 'selection_required', 'message': 'Select an exact immutable object ID first.'}}
         for tab in (0, 4, 8):
             text = self.summary(tab, value)
-            self.assertIn('[REFUSED] selection_required', text)
+            self.assertIn('[REFUSED] No policy is selected (selection_required)', text)
             self.assertIn('press 1 for Estate', text)
 
     def test_diagnostics_render_on_the_coverage_surface(self):
@@ -925,10 +925,10 @@ class EstateScreenEdgeTests(unittest.TestCase):
                                'evidence': {'evidence_class': 'synthetic', 'observed_at': 'T0', 'snapshot_id': 'a' * 64},
                                'related_proposals': records}]}
         joined = '\n'.join(queue_lines(value, 120))
-        self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership_index_missing | source owner claim none recorded', ' '.join(joined.split()))
+        self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership index missing (ownership_index_missing) | source owner claim none recorded', ' '.join(joined.split()))
         self.assertIn('  Review not recorded | review due none | exception expiry none', joined)
         self.assertIn('Compatibility synthetic_windows_settings_catalog | native provider not qualified', joined)
-        self.assertIn('Related proposals (1)\n    b668ad2fa6c5 succeeded_verified (2 journal records; latest T2)', joined)
+        self.assertIn('Related proposals (1)\n    b668ad2fa6c5 succeeded verified (2 journal records; latest T2)', joined)
 
 
 class RepositoryLinesTests(unittest.TestCase):
@@ -1017,8 +1017,8 @@ class ClockHoldScreensTests(unittest.TestCase):
     def test_a_blocked_action_row_lists_every_reason(self):
         from intune_iac.workbench_screens import actions_lines
         text = ' '.join(' '.join(actions_lines([self.blocked_row()], 0, 120)).split())
-        self.assertIn('blocked maintenance_observation_stale: the clock holds it', text)
-        self.assertIn('also blocked workbench_repository_stale: The repository changed since its recorded intent', text)
+        self.assertIn('blocked the clock holds it (maintenance_observation_stale)', text)
+        self.assertIn('also blocked The repository changed since its recorded intent (workbench_repository_stale)', text)
 
     def test_the_inspector_action_list_names_both_reasons(self):
         from intune_iac.workbench_screens import _attention_lines
@@ -1056,7 +1056,7 @@ class WhoClaimsWhatTests(unittest.TestCase):
         value = delivery_value(execution={'status': 'unknown', 'engine_status': None, 'error_code': 'model_response_lost',
                                           'service_status': None})
         joined = '\n'.join(delivery_lines(value, 160))
-        self.assertIn('outcome unknown: model_response_lost | no engine result recorded', joined)
+        self.assertIn("outcome unknown: the modeled service's response was lost (model_response_lost) | no engine result recorded", joined)
         self.assertNotIn('engine None', joined)
 
     def test_reconciles_readback_is_labelled_as_its_own(self):
@@ -1076,7 +1076,8 @@ class WhoClaimsWhatTests(unittest.TestCase):
             reconciliation={'status': 'done', 'classification': 'desired_state_observed', 'previous_status': 'outcome_unknown'},
             deployment_record={'status': 'not_available', 'reason': 'no_verified_readback'})['stages']}
         text = _next_action(stages, '/w/op', '/w/store')
-        self.assertIn("Reconcile's readback: desired state observed.", text)
+        self.assertNotIn("readback: desired state observed", text)  # said once, in the reconciliation stage (run 7 item 13)
+        self.assertIn('This operation cannot become a deployment record because its own readback was never verified', text)
         self.assertNotIn('desired_state_observed', text)
 
 
@@ -1147,3 +1148,218 @@ class HistoryCurrentTests(unittest.TestCase):
         from intune_iac.workbench_screens import history_lines
         joined = '\n'.join(history_lines(self.VALUE, 160))
         self.assertNotIn('not current', joined)
+
+
+class DeliveryRun7Tests(unittest.TestCase):
+    """PKG-PRES-RUN7 items 6, 9 and 13 on the Delivery view (run 7 frames 20, 25, 28, 39): codes read as words, a stage
+    that is only not available yet has its own marker, and the reconcile readback is said once."""
+
+    def reconciled_value(self):
+        from intune_iac.workbench_delivery import _next_action
+        value = delivery_value(
+            approval={'status': 'done'}, execution={'status': 'unknown', 'error_code': None, 'service_status': None},
+            readback={'status': 'not_recorded'},
+            reconciliation={'status': 'done', 'classification': 'desired_state_observed',
+                            'previous_status': 'outcome_unknown', 'count': 1, 'recorded_at': '2026-10-14T12:25:03Z'},
+            deployment_record={'status': 'not_available', 'reason': 'no_verified_readback'},
+            observed_after={'status': 'not_yet'})
+        value['journal_status'] = 'reconciled'
+        stages = {stage['stage']: stage for stage in value['stages']}
+        value['next_action'] = _next_action(stages, '/w/op', '/w/store')
+        value['history'] = {'events': [
+            {'sequence': 2, 'kind': 'engine_result', 'store_recorded_at': None,
+             'fields': {'result': {'status': 'succeeded_verified', 'assurance': 'synthetic_local_process_only'}}},
+            {'sequence': 3, 'kind': 'reconciled', 'store_recorded_at': '2026-10-14T12:25:03Z',
+             'fields': {'classification': 'desired_state_observed', 'previous_status': 'outcome_unknown'}}]}
+        return value
+
+    def test_the_header_and_the_history_read_as_words(self):
+        from intune_iac.workbench_screens import delivery_lines
+        joined = '\n'.join(delivery_lines(delivery_value(), 160))
+        self.assertIn('| journal succeeded verified', joined)
+        self.assertNotIn('succeeded_verified', joined)
+        text = '\n'.join(delivery_lines(self.reconciled_value(), 160))
+        self.assertIn('engine reported succeeded verified (synthetic local process only)', text)
+        for code in ('succeeded_verified', 'synthetic_local_process_only', 'desired_state_observed', 'outcome_unknown'):
+            self.assertNotIn(code, text)
+
+    def test_a_recorded_error_reads_as_words_with_its_code_in_parentheses(self):
+        from intune_iac.workbench_screens import delivery_lines
+        value = delivery_value(execution={'status': 'unknown', 'engine_status': None, 'error_code': 'model_response_lost',
+                                          'service_status': None})
+        joined = '\n'.join(delivery_lines(value, 200))
+        self.assertIn("outcome unknown: the modeled service's response was lost (model_response_lost) | no engine "
+                      'result recorded', joined)
+        value = delivery_value(execution={'status': 'unknown', 'engine_status': None, 'error_code': 'maintenance_engine_incomplete',
+                                          'service_status': None})
+        self.assertIn('outcome unknown: maintenance engine incomplete (maintenance_engine_incomplete)',
+                      '\n'.join(delivery_lines(value, 200)))
+
+    def test_only_a_stopped_stage_is_marked_with_an_exclamation_mark(self):
+        from intune_iac.workbench_screens import MARK_LEGEND, delivery_lines
+        joined = '\n'.join(delivery_lines(self.reconciled_value(), 160))
+        self.assertIn('[~] 7 Deployment      not available: no verified readback', joined)
+        self.assertNotIn('[!] 7 Deployment', joined)
+        self.assertIn('[~] not available yet', MARK_LEGEND)
+        self.assertIn('[!] stopped: failure, expiry or refusal', MARK_LEGEND)
+        # A refusal that will not change is stopped, not merely unavailable.
+        value = delivery_value(deployment_record={'status': 'not_available', 'reason': 'context_changed'})
+        self.assertIn('[!] 7 Deployment', '\n'.join(delivery_lines(value, 160)))
+
+    def test_the_reconcile_readback_is_said_once(self):
+        from intune_iac.workbench_screens import delivery_lines
+        joined = ' '.join('\n'.join(delivery_lines(self.reconciled_value(), 160)).split())
+        self.assertEqual(joined.count('desired state observed'), 1, joined)
+        self.assertIn("6 Reconciliation reconcile's readback: desired state observed | after outcome unknown", joined)
+        self.assertIn('This operation cannot become a deployment record because its own readback was never verified; '
+                      'collect to observe the policy.', joined)
+
+
+class QueueRun7Tests(unittest.TestCase):
+    """PKG-PRES-RUN7 items 6 and 13 on the maintenance queue and the actions layer (run 7 frames 45 and 47): codes read as
+    words with the lookup key in parentheses, and the object's details are said once, not under every finding."""
+    OBJECT_DETAILS = {'owner_role': 'human_review_assignee', 'owner': None, 'owner_assertion': 'unknown',
+                      'writer_ownership': {'status': 'unknown', 'reason': 'ownership_index_missing'},
+                      'source_owner_claim': {'value': None}, 'action_state': 'review_required', 'freshness': 'fresh',
+                      'automatic_remediation': False, 'review_record': {'status': 'not_recorded'},
+                      'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
+                      'evidence': {'evidence_class': 'synthetic', 'observed_at': '2026-10-15T14:25:25Z', 'snapshot_id': 'ab' * 32},
+                      'related_proposals': [{'operation_id': 'a' * 32, 'sequence': 1, 'status': 'succeeded_verified',
+                                             'recorded_at': '2026-10-15T14:24:16Z'}]}
+
+    def value(self, *findings):
+        return {'findings': [dict(self.OBJECT_DETAILS, object_id=POLICY_ID, finding=name, priority='review',
+                                  priority_rationale='Why ' + name) for name in findings],
+                'pagination': {'total_objects': 1}}
+
+    def test_related_proposals_and_the_writer_reason_read_as_words(self):
+        from intune_iac.workbench_screens import queue_lines
+        text = '\n'.join(queue_lines(self.value('reporting_incomplete'), 160))
+        self.assertIn('succeeded verified (1 journal record; latest 2026-10-15 14:24:16 UTC)', text)
+        self.assertNotIn('succeeded_verified', text)
+        self.assertIn('writer unknown: ownership index missing (ownership_index_missing)', text)
+
+    def test_the_details_of_one_object_are_said_once_and_each_finding_keeps_what_differs(self):
+        from intune_iac.workbench_screens import queue_lines
+        text = '\n'.join(queue_lines(self.value('reporting_incomplete', 'ownership_unknown'), 160))
+        for once in ('Owner role human review assignee', 'Compatibility synthetic_windows_settings_catalog',
+                     'Related proposals (1)', 'Evidence synthetic | observed', 'State review_required'):
+            self.assertEqual(text.count(once), 1, once)
+        self.assertEqual(text.count('Why: Why '), 2)
+        self.assertEqual(text.count(':queue-review-template '), 2)
+        self.assertIn('Same object details as the finding above', text)
+
+    def test_a_detail_that_differs_between_findings_is_still_shown(self):
+        from intune_iac.workbench_screens import queue_lines
+        value = self.value('reporting_incomplete', 'ownership_unknown')
+        value['findings'][1]['action_state'] = 'in_review'
+        text = '\n'.join(queue_lines(value, 160))
+        self.assertEqual(text.count('State review_required'), 1)
+        self.assertEqual(text.count('State in_review'), 1)
+        self.assertEqual(text.count('Compatibility synthetic_windows_settings_catalog'), 1)
+
+    def test_a_blocked_action_leads_with_words_and_keeps_its_code_in_parentheses(self):
+        from intune_iac.workbench_screens import actions_lines
+        action = {'label': 'Prepare a proposal', 'available': False, 'summary': 'Creates a local proposal.',
+                  'blocked': {'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
+                              'message': 'the newest observation is not fresh (older than the freshness window); collect again',
+                              'also': [{'code': 'some_other_block', 'message': 'the repository changed'}]}}
+        text = ' '.join(' '.join(actions_lines([action], 0, 160)).split())
+        self.assertIn('blocked the newest observation is not fresh (older than the freshness window); collect again '
+                      '(maintenance_observation_stale)', text)
+        self.assertIn('also blocked the repository changed (some_other_block)', text)
+        self.assertNotIn('blocked  maintenance_observation_stale:', text)
+
+
+class QuotedPathsTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 14 (run 7 frames 02, 03, 04, 44, 48): a path with spaces is quoted wherever a screen shows it,
+    so it reads and copies as one path, and a quoted path is not broken at a space when the line wraps."""
+    SPACED = '/home/nsahm/work/journey 28 run 7'
+
+    def test_the_adoption_preview_and_result_quote_their_paths(self):
+        from intune_iac.workbench_screens import adoption_lines
+        preview = {'binding': {'object_ids': ['22222222-2222-4222-8222-222222222222'], 'session': self.SPACED + '/session.json',
+                               'generated': {'22222222-2222-4222-8222-222222222222': {'path': self.SPACED + '/generated/x'}},
+                               'source': {'path': self.SPACED + '/export.json'}, 'context': {'path': '/w/context.json'},
+                               'repository': {'root': self.SPACED + '/repo'}}}
+        text = ' '.join(' '.join(adoption_lines(preview, 400)).split())
+        for path in ('/generated/x', '/session.json', '/export.json', '/repo'):
+            self.assertIn("'" + self.SPACED + path + "'", text, path)
+        self.assertIn('| context /w/context.json', text)  # no spaces, no quotes
+        adopted = {'status': 'adopted_local_model', 'object_ids': ['22222222-2222-4222-8222-222222222222'],
+                   'handoff_root': self.SPACED + '/handoff', 'service_root': self.SPACED + '/handoff/service',
+                   'adoptions': [], 'cloud_authority': False, 'execution_authorized': False, 'remote_import_performed': False}
+        text = ' '.join(' '.join(adoption_lines(adopted, 400)).split())
+        self.assertIn("Handoff: '%s/handoff'" % self.SPACED, text)
+        self.assertIn("Modeled service: '%s/handoff/service'" % self.SPACED, text)
+
+    def test_the_estate_and_the_review_form_quote_their_paths(self):
+        from intune_iac.workbench_screens import review_lines, service_words
+        self.assertIn("Modeled service: '%s/handoff/service' (from the latest" % self.SPACED,
+                      service_words({'source': 'adoption', 'root': self.SPACED + '/handoff/service', 'artifact_id': 'a' * 64}))
+        self.assertEqual(service_words({'source': 'flag', 'root': '/w/service'}), 'Modeled service: /w/service (--service-root)')
+        lines = review_lines({'status': 'review_form_written', 'path': self.SPACED + '/queue review.json',
+                              'finding': 'reporting_incomplete', 'object_id': 'o'}, 200)
+        self.assertEqual(lines[0], "[REVIEW FORM WRITTEN] '%s/queue review.json'" % self.SPACED)
+
+    def test_a_quoted_path_is_not_broken_at_a_space_when_the_line_wraps(self):
+        from intune_iac.workbench_screens import word_wrap
+        quoted = "'%s/generated/22222222-2222-4222-8222-222222222222'" % self.SPACED
+        for width in (90, 100, 120):
+            rows = word_wrap('  22222222-2222-4222-8222-222222222222  generated at %s' % quoted, width)
+            self.assertTrue(any(quoted in row for row in rows), (width, rows))
+        # Wider than the line: it is cut after a "/", so no row ends or starts on one of its spaces.
+        for width in (40, 60, 80):
+            rows = word_wrap('  22222222-2222-4222-8222-222222222222  generated at %s' % quoted, width)
+            self.assertTrue(''.join(row.strip() for row in rows).endswith(quoted), (width, rows))
+            for row in rows:
+                self.assertLessEqual(len(row), width, row)
+
+
+class MinorWrapsTests(unittest.TestCase):
+    """PKG-PRES-RUN7 item 15 (run 7 frames 05, 06, 25, 28): an address breaks at a delimiter, not inside its identifier; a
+    command breaks outside a word; a time and its zone are never parted."""
+    IDENTIFIER = 'p_11111111111141118111111111111111_22222222222242228222222222222222'
+    ADDRESS = ('microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.policy["%s"]'
+               % IDENTIFIER)
+
+    def test_an_address_breaks_after_its_opening_bracket_and_quote_not_inside_the_identifier(self):
+        from intune_iac.workbench_screens import repository_entry_lines
+        value = {'repository': '/w/repo', 'revision': 'd' * 40, 'tenant_id': 't' * 36, 'status': 'discovered',
+                 'components': [], 'candidates': [{'number': 1, 'object_id': '2' * 8 + '-2222-4222-8222-' + '2' * 12,
+                                                   'stack': 'orgs/reference/dev', 'component': 'intune-reference',
+                                                   'state': 'ready', 'policy_key': self.IDENTIFIER, 'backend': 'local',
+                                                   'backend_source': 'none_declared', 'resource_address': self.ADDRESS}]}
+        for width in (100, 116, 120, 140):
+            lines = repository_entry_lines(value, width)
+            start = next(index for index, line in enumerate(lines) if line.startswith('     Address'))
+            rows = [line[15:] for line in lines[start:start + 3] if line.startswith(' ' * 15) or line.startswith('     Address')]
+            rows[0] = lines[start][15:]
+            joined = ''.join(row.rstrip() for row in rows)
+            self.assertIn(self.ADDRESS, joined, width)
+            # The identifier is never cut: every row that holds a piece of it holds all of it.
+            holding = [row for row in rows if 'p_1111' in row]
+            self.assertTrue(all(self.IDENTIFIER in row for row in holding), (width, rows))
+
+    def test_a_command_is_not_broken_inside_a_word(self):
+        from intune_iac.workbench_screens import word_wrap
+        command = ("repository-import '/home/nsahm/work/journey 28 run 7/repository' orgs/reference/dev intune-reference "
+                   "22222222-2222-4222-8222-222222222222 /vars/policies/%s d42d6e875bfaf4df0b1e1c3e935743c4c2ead325 local '%s'"
+                   % (self.IDENTIFIER, self.ADDRESS))
+        for width in (100, 116, 120):
+            rows = word_wrap(command, width)
+            for before, after in zip(rows, rows[1:]):
+                joined = before.split(' ')[-1] + after.split(' ')[0]
+                if joined in command:  # one word cut in two: it must be cut at a delimiter
+                    self.assertIn(before[-1:], './["', (width, before, after))
+            self.assertTrue(all(len(row) <= width for row in rows))
+
+    def test_a_time_and_its_zone_are_never_parted(self):
+        from intune_iac.workbench_screens import word_wrap
+        text = ('matches desired at service revision 2 (1 before the change) | observed 2026-10-15 14:24:23 UTC; '
+                'recorded 2026-10-15 14:24:19 UTC | window 2026-10-15 14:24:07 UTC to 2026-10-15 14:29:07 UTC')
+        for width in range(30, 120):
+            rows = word_wrap(text, width)
+            for row in rows:
+                self.assertNotEqual(row.strip().split(' ')[0].rstrip(';)'), 'UTC', (width, rows))
+            self.assertEqual(' '.join(' '.join(rows).split()), text)

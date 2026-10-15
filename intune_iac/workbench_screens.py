@@ -51,13 +51,30 @@ def short_id(value, prefixes=None):
 # Shorter words for long states, used only when nothing else lets the strip fit.
 SHORT_STATES = {'succeeded_verified': 'verified', 'not checked': 'unchecked', 'outcome_unknown': 'unknown',
                 'recorded_intent_not_revalidated': 'not revalidated', 'desired_state_observed': 'observed',
-                'age unknown': 'age?'}
+                'age unknown': 'age?', 'age unknown (stamped ahead)': 'age?', 'stale (later collection incomplete)': 'stale'}
 
 
 # States that are a hazard for the selected policy. When the strip is too long, routine states give way first.
 # The proposal's own observation checks, in the strip's words: fresh by age does not apply once the service moved on.
 OBSERVED_FROM_ELIGIBILITY = {'service_changed': 'source changed', 'policy_changed': 'policy changed',
                              'source_mismatch': 'other source', 'tenant_mismatch': 'other tenant'}
+
+
+def observation_word(freshness, reasons):
+    """The strip's word for an observation's freshness, naming the cause the record gives where one word would stand
+    for several: a clock hold or a stamp ahead of this host's clock means the age is not known (never stale), and a
+    stale observation whose only cause is a later collection that did not complete says so."""
+    from .workbench_diagnostics import clock_hold
+    reasons = reasons if isinstance(reasons, list) else []
+    if freshness == 'fresh':
+        return 'fresh'
+    if clock_hold(reasons):
+        return 'age unknown'
+    if freshness == 'stale' and 'stamped_after_now' in reasons:
+        return 'age unknown (stamped ahead)'
+    if freshness == 'stale' and reasons == ['later_collection_not_complete']:
+        return 'stale (later collection incomplete)'
+    return freshness
 
 
 def observed_state(facts, default='unknown'):
@@ -76,9 +93,27 @@ def _strip_severity(state):
     return {'OPERATION': 1, 'REPOSITORY': 2, 'OBSERVED': 3}.get(state[0], 4)
 
 
-HAZARD_STATES = {'OBSERVED': {'stale', 'age unknown', 'source changed', 'policy changed', 'other source', 'other tenant'},
+HAZARD_STATES = {'OBSERVED': {'stale', 'age unknown', 'age unknown (stamped ahead)', 'stale (later collection incomplete)',
+                              'source changed', 'policy changed', 'other source', 'other tenant'},
                  'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
                  'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable', 'held'}}
+
+
+def _newest_operation_id(facts):
+    states = facts.get('states') if isinstance(facts.get('states'), dict) else {}
+    newest = states.get('operation') if isinstance(states.get('operation'), dict) else {}
+    return newest.get('operation_id') if isinstance(newest.get('operation_id'), str) else None
+
+
+def _operation_from_states(facts):
+    """The newest operation's state from the last read of the policy, in the strip's words; None when none is recorded.
+    A prepared operation whose approval window closed reads expired, as everywhere else."""
+    states = facts.get('states') if isinstance(facts.get('states'), dict) else {}
+    operation = states.get('operation') if isinstance(states.get('operation'), dict) else None
+    state = (operation.get('journal_status') or operation.get('status')) if operation else None
+    if not isinstance(state, str):
+        return None
+    return 'expired' if state == 'prepared' and operation.get('approval_window') in ('closed', 'closed_recorded') else state
 
 
 def context_strip(tenant, selected, facts, width, mode_class=None):
@@ -96,8 +131,13 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     own = short_id(selected, facts.get('identity_prefixes'))
     policy = 'POLICY ' + str(facts.get('name', '(name not yet read)')) + ' (' + own + ')'
     states = [('OBSERVED', 'OBS', observed_state(facts)), ('REPOSITORY', 'REPO', facts.get('repository', 'not checked'))]
-    if facts.get('operation'):
-        states.append(('OPERATION', 'OP', facts['operation']))
+    operation = facts.get('operation') or _operation_from_states(facts)
+    if operation:
+        states.append(('OPERATION', 'OP', operation))
+    # An operation that is not the newest for the policy is named, so the strip and the Operation row agree.
+    shown = facts.get('operation_id') if facts.get('operation') else None
+    newest = _newest_operation_id(facts)
+    named = short_id(shown, facts.get('identity_prefixes')) if shown and newest and shown != newest else ''
     bare = 'POLICY ' + own
     routine = [state for state in states if str(state[2]) not in HAZARD_STATES[state[0]]]
     # Hazards give way least severe first, so the one the band leads with is the last to go.
@@ -106,23 +146,27 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
     for state in list(reversed(routine)) + list(reversed(hazards)):
         kept = [item for item in kept if item is not state]
         shrinking.append(list(kept))
-    # The shortest state words keep the policy's name before the name gives way to its bare identity.
-    tiers = [(policy, False, False, states), (policy, True, False, states), (policy, True, True, states),
-             (bare, True, False, states), (bare, True, True, states)] + [(bare, True, True, remaining) for remaining in shrinking]
+    # One spelling of each segment (OBS, REPO, OP) at every width. The policy's name outlasts the shortest state words
+    # and the tenant's label before it gives way to the bare identity, so the name shows whenever any form holds it.
+    tiers = [(policy, False, lead, states), (policy, True, lead, states), (policy, True, tight, states),
+             (bare, False, lead, states), (bare, True, lead, states)] + [(bare, True, lead, remaining) for remaining in shrinking]
 
-    def labelled(name, compact, brief, remaining):
-        return ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), _as_words(value)) if brief else _as_words(value))
-                                           for long, short, value in remaining])
+    def segment(short, value, brief):
+        word = SHORT_STATES.get(str(value), _as_words(value)) if brief else _as_words(value)
+        return short + (' ' + named if short == 'OP' and named else '') + ' ' + word
+
+    def labelled(name, brief, head, remaining):
+        return ' | '.join(head + [name] + [segment(short, value, brief) for long, short, value in remaining])
 
     def narrow(remaining):
         # Short labels and the whole short policy id.
-        return ' | '.join(tight + ['P ' + own] + [short + ' ' + SHORT_STATES.get(str(value), str(value))
+        return ' | '.join(tight + ['P ' + own] + [segment(short, SHORT_STATES.get(str(value), str(value)), False)
                                                  for long, short, value in remaining])
 
     def keeps_hazard(remaining):
         return not hazards or any(state in remaining for state in hazards)
 
-    # Labels shorten before the last hazard gives way; without a hazard the order is unchanged.
+    # Words shorten before the last hazard gives way; without a hazard the order is unchanged.
     forms = ([labelled(*tier) for tier in tiers if keeps_hazard(tier[3])]
              + [narrow([state for state in states if state in hazards[:count]]) for count in range(len(hazards), 0, -1)]
              + [labelled(*tier) for tier in tiers if not keeps_hazard(tier[3])] + [narrow([])])
@@ -417,14 +461,21 @@ def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None):
     freshness = observation.get('freshness')
     hold = clock_hold(observation.get('freshness_reasons')) if freshness != 'fresh' else None
     # A held age is not known, so the line does not say stale; the cause is the clock's own words, said once.
+    # A stamp ahead of this host's clock leaves the age just as unknown, and the row names both times.
+    ahead = freshness != 'fresh' and not hold and 'stamped_after_now' in (observation.get('freshness_reasons') or [])
+    stamped = readable_time(observation.get('observed_at'))
+    read = readable_time(observation.get('freshness_checked_at'))
+    ahead_words = ("stamped after this host's clock: " + ("this host's clock read %s, " % read if read else '')
+                   + 'the observation is stamped %s' % stamped) if stamped else FRESHNESS_REASON_WORDS['stamped_after_now']
     reasons = ([CLOCK_HOLD_CAUSES[hold]] if hold else []) + [
-        FRESHNESS_REASON_WORDS.get(reason, reason) for reason in observation.get('freshness_reasons') or []
+        ahead_words if ahead and reason == 'stamped_after_now' else FRESHNESS_REASON_WORDS.get(reason, reason)
+        for reason in observation.get('freshness_reasons') or []
         if reason not in (CLOCK_HOLD_REASONS if hold else ())]
     eligibility = observation.get('eligibility') if isinstance(observation.get('eligibility'), dict) else {}
     # Recency is not currentness: an observation captured recently is out of date once the source moved on.
     moved = eligibility.get('reason') in ('service_changed', 'policy_changed')
     parts.append(('captured recently (fresh by age)' if freshness == 'fresh' and moved else 'fresh by age'
-                  if freshness == 'fresh' else 'age not known' if hold else str(freshness or 'freshness not recorded'))
+                  if freshness == 'fresh' else 'age not known' if hold or ahead else str(freshness or 'freshness not recorded'))
                  + (' (%s)' % '; '.join(reasons) if reasons and freshness != 'fresh' else ''))
     if eligibility.get('reason') in ELIGIBILITY_STATE_WORDS:
         parts.append(ELIGIBILITY_STATE_WORDS[eligibility['reason']] % eligibility)
@@ -475,6 +526,13 @@ WINDOW_STATE_WORDS = {'open': 'approval window open', 'closed': 'approval window
 
 def _as_words(value):
     return str(value).replace('_', ' ')
+
+
+def _path_words(value):
+    """A path as a screen shows it: shell-quoted when it holds a space or another character a shell would split on,
+    so it reads and copies as one path; a plain path is shown as it is."""
+    import shlex
+    return shlex.quote(safe_text(str(value)))
 
 
 def _clause(text):
@@ -574,7 +632,9 @@ def _quote_units(words, width):
         closed = lambda word: len(word) > 1 and re.search(r"'[).,;:]*$", word) is not None
         if start.startswith("'") and not closed(start):
             end = next((at for at in range(index + 1, min(len(words), index + 12)) if closed(words[at])), None)
-            if end is not None and cell_width(' '.join(words[index:end + 1])) <= width:
+            # A quoted path with spaces stays one unit even where it cannot fit: it is then split at a "/", never at
+            # one of its spaces (word_wrap), so no row ends or starts inside the path on a space.
+            if end is not None and (cell_width(' '.join(words[index:end + 1])) <= width or start.startswith("'/")):
                 units.append(' '.join(words[index:end + 1]))
                 index = end + 1
                 continue
@@ -595,13 +655,23 @@ def word_wrap(value, width):
         return [' ' * indent + line for line in word_wrap(body, width - indent)]
     width = max(1, width)
     lines, line = [], ''
-    for word in _quote_units(body.split(' '), width):
+    import re
+    words = []
+    for token in body.split(' '):
+        # A time and its zone stay together: a row never begins with a lone "UTC".
+        if words and re.fullmatch(r'UTC[).,;:]*', token) and re.search(r'\d\d:\d\d:\d\d$', words[-1]):
+            words[-1] += ' ' + token
+        else:
+            words.append(token)
+    for word in _quote_units(words, width):
         candidate = word if not line else line + ' ' + word
         if cell_width(candidate) <= width:
             line = candidate
             continue
-        if line and cell_width(word) > width and width - cell_width(line) - 1 >= 4:
-            # The word must be split anyway: start it after the current text rather than leave that text alone.
+        if (line and cell_width(word) > width and width - cell_width(line) - 1 >= 4
+                and not any(mark in word for mark in ('/', '.', '["'))):
+            # The word must be split anyway: start it after the current text rather than leave that text alone. A word
+            # with delimiters starts its own row instead, so it can break at one of them (below).
             word, line = line + ' ' + word, ''
         if line:
             lines.append(line)
@@ -613,6 +683,11 @@ def word_wrap(value, width):
                 if used + size > width:
                     break
                 cut += char; used += size
+            keep = max(cut.rfind('/') + 1, cut.rfind('.') + 1, cut.rfind('["') + 2 if '["' in cut else 0)
+            if len(cut) < len(word) and keep * 2 >= len(cut) > 0:
+                # Cut after a delimiter (a path's "/", an address's `.` or `["`) rather than inside an identifier or a
+                # word, when that leaves at least half a row; a quoted path breaks here, never at a space inside it.
+                cut = cut[:keep]
             lines.append(cut or word[:1]); word = word[len(cut or word[:1]):]
         line = word
     lines.append(line)
@@ -677,7 +752,7 @@ def review_lines(value, width):
     """A maintenance review: the form written, the current annotation, none recorded, or its history."""
     finding = _as_words(value.get('finding', 'finding'))
     if value.get('status') == 'review_form_written':
-        lines = word_wrap('[REVIEW FORM WRITTEN] %s' % value.get('path'), width)
+        lines = word_wrap('[REVIEW FORM WRITTEN] %s' % _path_words(value.get('path')), width)
         lines += word_wrap('For %s of policy %s. Fill in the rationale (required), the owner, the review due and '
                            'exception expiry times (with their zone, or null; the expiry not before the review date) and '
                            'any linked operation IDs.' % (finding, value.get('object_id')), width)
@@ -1000,7 +1075,7 @@ def _attention_lines(value, width):
             clear = ', '.join(area.replace('_', ' ') for area, state in areas.items() if state == 'clear')
             # Scoped to what diagnostics reads; the maintenance queue holds reporting completeness and ownership.
             lines += word_wrap('  No signal in the areas checked%s; reporting completeness and ownership are reviewed in the '
-                               'maintenance queue (m).' % (' (%s)' % clear if clear else ''), width)
+                               'maintenance queue (m opens it).' % (' (%s)' % clear if clear else ''), width)
         guided = isinstance(value.get('actions'), list)
         for signal in signals:
             lines += _labelled('  !', str(signal.get('observed')), width, 4)
@@ -1027,7 +1102,7 @@ def _attention_lines(value, width):
                 reasons = [blocked] + [other for other in blocked.get('also') or [] if isinstance(other, dict)]
                 state = ' (available)' if action.get('available') else ' (blocked: %s)' % '; '.join(
                     BLOCK_WORDS.get(item.get('reason')) or BLOCK_WORDS.get(item.get('code'))
-                    or str(item.get('code') or 'not available') for item in reasons)
+                    or (_code_words(item['code']) if item.get('code') else 'not available') for item in reasons)
                 lines += _labelled('  %d.' % number, str(action.get('label')) + state, width, 6)
         return lines
     actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
@@ -1110,6 +1185,12 @@ def _blocked_meaning(blocked):
             else REFUSALS[code][0])
 
 
+def _blocked_words(blocked):
+    """Why an action is blocked: the meaning in words first, the engine's code kept after it in parentheses."""
+    meaning, code = _blocked_meaning(blocked), blocked.get('code')
+    return '%s (%s)' % (meaning.rstrip(), code) if code else meaning
+
+
 def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter', prefixes=None):
     """The guided actions for the selected policy: what each is, whether it is available, its exact command and what
     it does. A blocked action says why, with the engine's own code."""
@@ -1138,11 +1219,11 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
                 lines += _labelled('', 'needs  ' + str(need), width, 5)
         else:
             blocked = action.get('blocked') or {}
-            lines += _labelled('', 'blocked  %s: %s' % (blocked.get('code'), _blocked_meaning(blocked)), width, 5)
+            lines += _labelled('', 'blocked  ' + _blocked_words(blocked), width, 5)
             # Every other reason that blocks the same action, so a second hazard is not hidden behind the first.
             for other in blocked.get('also') or []:
                 if isinstance(other, dict):
-                    lines += _labelled('', 'also blocked  %s: %s' % (other.get('code'), _blocked_meaning(other)), width, 5)
+                    lines += _labelled('', 'also blocked  ' + _blocked_words(other), width, 5)
         if focused and action.get('effects') and action.get('effects') != action.get('summary'):
             lines += _labelled('', str(action.get('effects')), width, 5)
     return lines
@@ -1228,12 +1309,13 @@ HELP_WORDS = (
              'service), CAPTURE (an unverified export), LABORATORY (recorded responses; the source is not '
              'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '
              '(a read returned no policy) or MODE UNKNOWN (nothing observed yet, or a kind this version does not name).'),
-    ('Context', 'Then the tenant and the selected policy. OBSERVED fresh means the newest complete observation is '
+    ('Context', 'Then the tenant and the selected policy. OBS (observed) fresh means the newest complete observation is '
                 'inside the freshness window and no later collection of it failed or is pending; source changed '
                 'means the source has a newer revision than the one captured, so a proposal needs a new '
                 'collection; the observation itself stays as captured. '
-                'REPOSITORY current means the recorded repository intent still matches the repository files and '
-                'effective configuration. OPERATION is the newest operation\'s recorded status.'),
+                'REPO (repository) current means the recorded repository intent still matches the repository files and '
+                'effective configuration. OP is the newest operation\'s recorded status; when it reports another '
+                'operation (the plan under review), OP names that operation\'s id.'),
     ('! line', 'The bold line under it names the most important recorded condition and the key for its response; '
                '+N more: 2 counts the others, which the Inspector lists.'),
     ('STATE', 'The Inspector, the Repository status and the Plan review show the observation, the repository intent '
@@ -1677,7 +1759,7 @@ def _proposals(related):
     lines = []
     for operation, records in by_operation.items():
         latest = max(records, key=lambda record: record['sequence'] if type(record.get('sequence')) is int else -1)
-        lines.append('%s %s (%s; latest %s)' % (operation[:12], latest.get('status'), _plural(len(records), 'journal record'), _when(latest.get('recorded_at'))))
+        lines.append('%s %s (%s; latest %s)' % (operation[:12], _as_words(latest.get('status')), _plural(len(records), 'journal record'), _when(latest.get('recorded_at'))))
     return lines
 
 
@@ -1700,6 +1782,8 @@ def queue_lines(value, width):
         _plural(len(findings), 'finding'), _plural(total, 'object') if type(total) is int else 'unknown objects'), width)
     if not findings:
         lines.append('No findings for the observations in scope.')
+    # What each object's findings already said, so the details of one object are not repeated under every finding.
+    said = {}
     for item in findings:
         lines.append('')
         lines += word_wrap('%s  %s  %s' % (item.get('priority', 'unknown'), item.get('finding', 'unknown'), item.get('object_id', 'unknown')), width)
@@ -1708,38 +1792,49 @@ def queue_lines(value, width):
         hold = clock_hold(evidence.get('freshness_reasons'))
         # Unknown stays unknown: a clock hold means the age is not established, so the finding does not say stale.
         freshness = ('age unknown (%s)' % QUEUE_HOLD_WORDS[hold] if hold else item.get('freshness', 'unknown'))
-        lines += word_wrap('  State %s | owner %s | freshness %s | automatic remediation %s' % (
+        # (name, lines, whether it belongs to the object, not to this finding)
+        blocks = [('state', word_wrap('  State %s | owner %s | freshness %s | automatic remediation %s' % (
             item.get('action_state', 'unknown'), item.get('owner_assertion', 'unknown'), freshness,
-            'yes' if item.get('automatic_remediation') is True else 'no'), width)
+            'yes' if item.get('automatic_remediation') is True else 'no'), width), True)]
         if hold and item.get('finding') == 'observation_stale':
-            lines += word_wrap('  Next: ' + with_clock_times(CLOCK_HOLD_STEPS[hold], evidence.get('freshness_clock')), width)
+            blocks.append(('hold', word_wrap('  Next: ' + with_clock_times(CLOCK_HOLD_STEPS[hold], evidence.get('freshness_clock')), width), False))
         writer = item.get('writer_ownership') if isinstance(item.get('writer_ownership'), dict) else {}
         claim = item.get('source_owner_claim') if isinstance(item.get('source_owner_claim'), dict) else {}
         if writer or 'owner_role' in item:
-            lines += word_wrap('  Owner role %s: %s | writer %s%s | source owner claim %s' % (
+            blocks.append(('owner', word_wrap('  Owner role %s: %s | writer %s%s | source owner claim %s' % (
                 str(item.get('owner_role', 'unknown')).replace('_', ' '), item.get('owner') or 'none recorded',
-                writer.get('status', 'unknown'), ': ' + str(writer['reason']) if writer.get('reason') else '',
-                _value(claim['value']) if claim.get('value') is not None else 'none recorded'), width)
+                writer.get('status', 'unknown'), ': ' + _code_words(writer['reason']) if writer.get('reason') else '',
+                _value(claim['value']) if claim.get('value') is not None else 'none recorded'), width), True))
         review = item.get('review_record') if isinstance(item.get('review_record'), dict) else {}
         state = str(review['reason']).replace('_', ' ') if review.get('reason') else 'review ' + str(review.get('status', 'not recorded'))
-        lines += word_wrap('  %s | review due %s | exception expiry %s' % (
-            state[:1].upper() + state[1:], item.get('review_due') or 'none', item.get('exception_expiry') or 'none'), width)
-        # The route to record or amend a review, with the exact prior it must name.
+        blocks.append(('review', word_wrap('  %s | review due %s | exception expiry %s' % (
+            state[:1].upper() + state[1:], item.get('review_due') or 'none', item.get('exception_expiry') or 'none'), width), True))
+        # The route to record or amend a review, with the exact prior it must name; it names this finding.
         prior = review.get('artifact_id') if review.get('status') == 'recorded' and review.get('artifact_id') else 'none'
-        lines += word_wrap('  Review: :queue-review-template %s NEW_JSON writes the form to fill; then :queue-amend FILE %s '
-                           'records it (an annotation, never approval)' % (item.get('finding'), prior), width)
+        blocks.append(('route', word_wrap('  Review: :queue-review-template %s NEW_JSON writes the form to fill; then :queue-amend FILE %s '
+                                          'records it (an annotation, never approval)' % (item.get('finding'), prior), width), False))
         compatibility = item.get('compatibility') if isinstance(item.get('compatibility'), dict) else None
         if compatibility:
-            lines += word_wrap('  Compatibility %s | native provider %squalified' % (
-                compatibility.get('profile', 'unknown'), '' if compatibility.get('native_provider_qualified') is True else 'not '), width)
+            blocks.append(('compatibility', word_wrap('  Compatibility %s | native provider %squalified' % (
+                compatibility.get('profile', 'unknown'), '' if compatibility.get('native_provider_qualified') is True else 'not '), width), True))
         evidence = item.get('evidence') if isinstance(item.get('evidence'), dict) else None
         if evidence:
-            lines += word_wrap('  Evidence %s | observed %s | snapshot %s' % (
-                evidence.get('evidence_class', 'unknown'), _when(evidence.get('observed_at'), 'unknown'), str(evidence.get('snapshot_id', 'unknown'))[:12]), width)
+            blocks.append(('evidence', word_wrap('  Evidence %s | observed %s | snapshot %s' % (
+                evidence.get('evidence_class', 'unknown'), _when(evidence.get('observed_at'), 'unknown'), str(evidence.get('snapshot_id', 'unknown'))[:12]), width), True))
         proposals = _proposals(item.get('related_proposals'))
-        lines += word_wrap('  Related proposals ' + ('(%d)' % len(proposals) if proposals else 'none'), width)
+        related = word_wrap('  Related proposals ' + ('(%d)' % len(proposals) if proposals else 'none'), width)
         for text in proposals:
-            lines += word_wrap('    ' + text, width)
+            related += word_wrap('    ' + text, width)
+        blocks.append(('related', related, True))
+        before = said.setdefault(item.get('object_id'), {})
+        repeated = [name for name, text, owned in blocks if owned and before.get(name) == text]
+        if repeated:
+            lines += word_wrap('  Same object details as the finding above (%s).' % ', '.join(repeated), width)
+        for name, text, owned in blocks:
+            if owned:
+                before[name] = text
+            if name not in repeated:
+                lines += text
     return lines
 
 
@@ -1749,7 +1844,7 @@ STAGE_LABELS = {'proposal': 'Proposal', 'review': 'Review', 'approval': 'Approva
 # The marker repeats the stage's state; the words after it always say it too.
 MARKS = {'done': 'x', 'matches_desired': 'x', 'waiting': ' ', 'not_yet': ' ', 'not_started': ' ', 'available': ' ',
          'not_needed': '-', 'not_applicable': '-', 'unknown': '?', 'required': '?', 'pending': '?', 'not_open': '?',
-         'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '!', 'differs': '!',
+         'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '~', 'differs': '!',
          'clock_uncertain': '?', 'clock_unreadable': '!'}
 # The approval window as execute judges it (maintenance.approval_window); the Plan review shows these words.
 WINDOW_WORDS = {'open': 'open', 'closed': 'closed',
@@ -1757,7 +1852,15 @@ WINDOW_WORDS = {'open': 'open', 'closed': 'closed',
                 'clock_moved_backward': "held: this host's clock reads earlier than a time this operation recorded",
                 'unknown': "unknown: this operation's recorded time cannot be read"}
 # The legend names states without the alert phrases, so only its markers are tinted, never its words.
-MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: failure, expiry or refusal'
+MARK_LEGEND = ('[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [~] not available yet  '
+               '[!] stopped: failure, expiry or refusal')
+
+
+def _code_words(code):
+    """A recorded code inside a sentence: its words, the code kept in parentheses as the lookup key."""
+    if code in EXECUTION_ERROR_WORDS:
+        return '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code)
+    return '%s (%s)' % (_as_words(code), code)
 
 
 def _approval_text(stage, status):
@@ -1794,7 +1897,7 @@ def _execution_text(stage, status):
         # Who claims what: the engine's own report is in the journal; the store never registered a verified result.
         claim = ('the engine reported %s, never registered by the store' % _as_words(stage['engine_status'])
                  if stage.get('engine_status') else 'no engine result recorded')
-        said = ([str(stage['error_code'])] if stage.get('error_code') else []) + [claim] + parts[1:]
+        said = ([_code_words(stage['error_code'])] if stage.get('error_code') else []) + [claim] + parts[1:]
         return 'outcome unknown: ' + ' | '.join(said)
     return ' | '.join(parts)
 
@@ -1879,8 +1982,9 @@ APPROVAL_REFUSED_WORDS = {'expired_request': 'the approval window had closed',
                           'approval_digest_mismatch': 'the digest did not match the review'}
 
 
-def _event_text(event):
-    """What one journal event recorded, from its own fields."""
+def _event_text(event, readback_above=False):
+    """What one journal event recorded, from its own fields. readback_above: the reconcile stage shown above already
+    says this reconciliation's readback, so the history row does not say it again."""
     fields = event.get('fields') if isinstance(event.get('fields'), dict) else {}
     kind = event.get('kind')
     if kind == 'prepared':
@@ -1889,7 +1993,7 @@ def _event_text(event):
         return 'approved with digest ' + str(fields.get('approval_digest'))[:12]
     if kind == 'engine_result':
         result = fields.get('result') if isinstance(fields.get('result'), dict) else {}
-        return 'engine reported %s (%s)' % (result.get('status'), result.get('assurance'))
+        return 'engine reported %s (%s)' % (_as_words(result.get('status')), _as_words(result.get('assurance')))
     if kind == 'service_response':
         response = fields.get('response') if isinstance(fields.get('response'), dict) else {}
         return 'service answered status %s' % response.get('status')
@@ -1898,8 +2002,11 @@ def _event_text(event):
     if kind == 'verified':
         return 'readback observed the desired state | readback sha256 ' + str(fields.get('readback_sha256'))[:12]
     if kind == 'uncertain':
-        return str(fields.get('error_code'))
+        return _code_words(fields['error_code']) if fields.get('error_code') else 'no error recorded'
     if kind == 'reconciled':
+        if readback_above:
+            return 'read the service again, after %s (its readback is in the reconciliation stage above)' % _as_words(
+                fields.get('previous_status'))
         return "reconcile's readback: %s, after %s" % (_as_words(fields.get('classification')),
                                                       _as_words(fields.get('previous_status')))
     if kind == 'approval_refused':
@@ -1909,21 +2016,26 @@ def _event_text(event):
     return 'r shows what it recorded'
 
 
-def history_event_lines(history, width):
-    """The operation's journal events in order; a time only where the store's registration pairs with an event."""
+def history_event_lines(history, width, readback_above=False):
+    """The operation's journal events in order; a time only where the store's registration pairs with an event.
+
+    readback_above: the reconciliation stage is shown above, so the latest reconciliation's row points to it instead of
+    saying its readback a second time."""
     events = [event for event in (history or {}).get('events') or [] if isinstance(event, dict)]
     if not events:
         return []
+    last = max((event.get('sequence') for event in events if event.get('kind') == 'reconciled'), default=None)
     lines = word_wrap('HISTORY  journal events in order (chain verified); a time is when the store registered the '
                       'journal after that event', width)
     for event in events:
         label = EVENT_LABELS.get(event.get('kind'), str(event.get('kind')).replace('_', ' '))
         at = _when(event.get('store_recorded_at'))  # to the second with its zone; the raw record keeps the fraction
         head = '  %-3s %-17s %-24s ' % (event.get('sequence'), label, at)
+        text = _event_text(event, readback_above and event.get('sequence') == last)
         if width >= 90:
-            lines += _labelled(head, _event_text(event), width, len(head))
+            lines += _labelled(head, text, width, len(head))
         else:
-            lines += word_wrap(head.rstrip(), width) + word_wrap('      ' + _event_text(event), width)
+            lines += word_wrap(head.rstrip(), width) + word_wrap('      ' + text, width)
     unpaired = (history.get('registrations') or 0) - (history.get('paired') or 0)
     if unpaired > 0:
         lines += word_wrap('  %s could not be paired with an event; r shows %s.' % (
@@ -1937,7 +2049,8 @@ def delivery_lines(value, width, rules='ascii', after_band=False):
     With box-drawing rules the stages hang from one connected spine, first to last; ASCII keeps the plain list.
     """
     lines = ['[DELIVERY]']
-    lines += word_wrap('Operation %s | policy %s | journal %s' % (value.get('operation_id'), value.get('object_id'), value.get('journal_status')), width)
+    lines += word_wrap('Operation %s | policy %s | journal %s' % (value.get('operation_id'), value.get('object_id'),
+                                                                   _as_words(value.get('journal_status'))), width)
     stages = [stage for stage in value.get('stages') or [] if isinstance(stage, dict)]
     for number, stage in enumerate(stages, 1):
         last = number == len(stages)
@@ -1947,7 +2060,10 @@ def delivery_lines(value, width, rules='ascii', after_band=False):
         else:
             head = cont = '  '
         # A recorded deployment whose bound context changed is no longer admitted, so it is not marked done.
-        mark = head + '[%s] ' % ('!' if stage.get('context_changed') else MARKS.get(stage.get('status'), '?'))
+        # A deployment that can never be recorded (its bound context changed) is stopped; one that is only not
+        # available yet has its own marker.
+        stopped = stage.get('context_changed') or (stage.get('status') == 'not_available' and stage.get('reason') == 'context_changed')
+        mark = head + '[%s] ' % ('!' if stopped else MARKS.get(stage.get('status'), '?'))
         label = '%d %s' % (number, STAGE_LABELS.get(stage.get('stage'), str(stage.get('stage'))))
         text = _stage_text(stage)
         if width >= 60:
@@ -1958,7 +2074,9 @@ def delivery_lines(value, width, rules='ascii', after_band=False):
             lines += [cont + '    ' + part for part in word_wrap(text, width - 6)]
         if stage.get('stage') == 'observed_after' and stage.get('status') == 'differs' and isinstance(stage.get('field_changes'), dict):
             lines += [cont + '    ' + line for line in change_lines(stage['field_changes'], width - 6, 'BEFORE (desired)', 'AFTER (observed)')]
-    lines += history_event_lines(value.get('history') if isinstance(value.get('history'), dict) else {}, width)
+    shown = {stage.get('stage'): stage for stage in stages}
+    lines += history_event_lines(value.get('history') if isinstance(value.get('history'), dict) else {}, width,
+                                 readback_above=shown.get('reconciliation', {}).get('status') == 'done')
     runs = [run for run in value.get('workflow_runs') or [] if isinstance(run, dict)]
     read = value.get('workflow_runs_read') if isinstance(value.get('workflow_runs_read'), dict) else {}
     if read.get('status') == 'unavailable':
@@ -2002,7 +2120,7 @@ def _entry_state(candidate):
 
 def repository_entry_lines(value, width, focus=0):
     """The policies a repository holds, each with its state in this store; the focused one is marked."""
-    lines = word_wrap('[REPOSITORY ENTRY] %s' % value.get('repository'), width)
+    lines = word_wrap('[REPOSITORY ENTRY] %s' % _path_words(value.get('repository')), width)
     revision = value.get('revision')
     lines += word_wrap(('Commit %s (read from .git)' % str(revision)[:12] if revision else 'No commit could be read from .git')
                        + ' | store tenant %s' % str(value.get('tenant_id'))[:8], width)
@@ -2164,14 +2282,14 @@ REFUSALS = {
         'Run the workbench on a supported Linux host, or Prepare a new proposal there.'),
     'expired_request': (
         'The plan\'s approval window has closed, or the local clock reads outside it.',
-        'Prepare a new proposal; v opens Delivery, which shows the window of the active operation.'),
+        'Prepare a new proposal; v opens Delivery, which shows the window of {operation}.'),
     'maintenance_approval_required': (
         'The digest supplied does not match the reviewed plan.',
         'Review the plan (5) and approve with its exact review digest.'),
     'maintenance_replay_forbidden': (
         'This operation is no longer awaiting approval: it was already dispatched, or it was rejected. Execution is '
         'never replayed.',
-        'Use reconcile for an uncertain outcome; v opens Delivery, which shows where the operation stands.'),
+        'Use reconcile for an uncertain outcome; v opens Delivery, which shows where {operation} stands.'),
     'maintenance_repository_stale': (
         'The repository changed after this proposal cited its intent, or its component no longer consumes exactly '
         'this policy.',
@@ -2201,6 +2319,44 @@ REFUSALS = {
         "Change that setting in the repository's stack input to a supported value, then Refresh the repository "
         'intent (a: actions) and prepare the proposal again.'),
 }
+
+
+# A refusal's header in words; the code follows in parentheses as the lookup key. A code with no entry here (one the
+# engine raises that this screen does not explain) reads as its own words.
+REFUSAL_TITLES = {
+    'workbench_difference_changed': 'The repository changed after its difference was reviewed',
+    'maintenance_source_changed': 'A file the proposal bound has changed',
+    'workbench_deployment_intent': 'The intent given is not recorded in this store',
+    'workbench_deployment_identity': 'The operation and the intent do not belong together',
+    'workbench_deployment_intent_not_cited': 'The intent given is not the one the plan cites',
+    'workbench_deployment_unverified': 'The operation was not verified by a readback of its own',
+    'workbench_deployment_context_missing': 'The plan cites no repository intent',
+    'workbench_deployment_context_mismatch': 'The plan context file changed or does not match',
+    'workbench_deployment_engine_receipt': 'The engine receipt is missing or not verified',
+    'workbench_deployment_readback': 'No single readback matches the operation',
+    'workbench_deployment_limit': 'The operation holds too many readbacks to read',
+    'workbench_repository_intent_missing': 'No repository intent is recorded for this policy',
+    'selection_required': 'No policy is selected',
+    'clock_moved_backward': "This host's clock reads earlier than a recorded time",
+    'clock_floor_invalid': 'The recorded time cannot be read',
+    'clock_reading_invalid': "This host's clock returned an unusable time",
+    'clock_lock_unavailable': 'The recorded time cannot be locked',
+    'expired_request': 'The approval window has closed',
+    'maintenance_approval_required': 'The review digest does not match',
+    'maintenance_replay_forbidden': 'This operation cannot be executed again',
+    'maintenance_repository_stale': 'The intent this proposal cited no longer matches the repository',
+    'workbench_repository_stale': 'The recorded intent no longer matches the repository',
+    'maintenance_observation_stale': 'The observation is not fresh',
+    'maintenance_observation_incomplete': 'The observation is incomplete',
+    'maintenance_plan_stale': 'The service changed around the plan',
+    'unreadable_file': 'A file could not be read',
+    'workbench_desired_capability': 'The desired policy is outside the capability map'}
+
+
+def refusal_header(code):
+    """[REFUSED], the refusal in words, and its code in parentheses."""
+    words = REFUSAL_TITLES.get(code) or _as_words(code)[:1].upper() + _as_words(code)[1:]
+    return '[REFUSED] %s (%s)' % (words, code)
 
 
 # Words that carry no meaning of their own, so that restating a sentence is judged on what it says.
@@ -2272,16 +2428,19 @@ def execution_effect_lines(result, width):
     return []
 
 
-def refusal_lines(value, width, known=None, clock_fact=None):
-    """A refusal: the engine's code and message, then what it means and the next step when the code is known.
+def refusal_lines(value, width, known=None, clock_fact=None, operation=None):
+    """A refusal in one shape: the refusal in words with its code in parentheses, then Cause, Effect (when the engine
+    established what changed) and Next (when the code is known).
 
-    The meaning is left out when the engine's own message already says it. When the code covers several causes and
-    the workspace's last read recorded which one applied (known), that cause replaces the general meaning.
+    The general meaning is left out when the engine's own message already says it. When the code covers several causes
+    and the workspace's last read recorded which one applied (known), that cause replaces the general meaning.
+    operation: the short id of the operation the command named, so a Next line names it.
     """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
     code = str(error.get('code', 'unknown'))
     message = str(error.get('message') or '')
-    lines = word_wrap('[REFUSED] ' + code, width)
+    lines = word_wrap(refusal_header(code), width)
+    named = 'operation %s' % operation if operation else 'that operation'
     if known:
         # The cause the workspace read, and the step for it; the engine's general message is one key away.
         cause, kind = known if isinstance(known, tuple) else (known, None)
@@ -2291,14 +2450,14 @@ def refusal_lines(value, width, known=None, clock_fact=None):
         if step and kind in ('observation_clock_moved_backward', 'observation_clock_floor_invalid'):
             step = with_clock_times(step, clock_fact)  # the recovery names the times it is about
         if step:
-            lines += word_wrap('Next: ' + step, width)
+            lines += word_wrap('Next: ' + step.replace('{operation}', named), width)
         if message:
             lines += word_wrap("The engine's own message is in the typed details (e).", width)
         return lines
     meaning, step = REFUSALS.get(code, (None, None))
     if meaning is None:
-        # Unknown codes show only the engine's own message; nothing is guessed.
-        lines += word_wrap(message, width) if message else []
+        # Unknown codes show only the engine's own message as the cause; nothing is guessed.
+        lines += word_wrap('Cause: ' + message, width) if message else []
         return lines + effect_lines(error.get('effects'), width)
     # The cause is said once. The engine's message stays on screen only when it names something the general
     # meaning cannot (a setting, a path, a value); otherwise it is one key away (Gemini review K, problem 3).
@@ -2306,15 +2465,15 @@ def refusal_lines(value, width, known=None, clock_fact=None):
     meaning = _without_said(meaning, effects)
     specific = bool(message) and _names_specifics(message)
     if specific:
-        lines += word_wrap(message, width)
-        if not _restates(message, meaning):
-            lines += word_wrap('What it means: ' + meaning, width)
+        # The message names what the general meaning cannot, so it is the cause; the meaning follows in the same
+        # paragraph where it says more.
+        lines += word_wrap('Cause: ' + message + ('' if _restates(message, meaning) else ' In general: ' + meaning), width)
     else:
         lines += word_wrap('Cause: ' + meaning, width)
     # What the refusal established about what changed, from the engine's own facts, before the next step.
     lines += effects
     if step:
-        lines += word_wrap('Next: ' + step, width)
+        lines += word_wrap('Next: ' + step.replace('{operation}', named), width)
     if message and not specific:
         lines += word_wrap("The engine's own message is in the typed details (e).", width)
     return lines
@@ -2405,14 +2564,14 @@ def diagnostics_lines(value, width, check=None):
     signals = [signal for signal in value.get('signals') or [] if isinstance(signal, dict)]
     check = check if isinstance(check, dict) and check.get('reason') in ELIGIBILITY_FINDINGS else None
     partial = any(state in ('partly_checked', 'unavailable') for state in (value.get('checked') or {}).values())
-    queue = '; reporting completeness and ownership are reviewed in the maintenance queue (m)'
+    queue = '; reporting completeness and ownership are reviewed in the maintenance queue (m opens it)'
     summary = ((_plural(len(signals), 'signal') + " and the proposal's observation check need attention" + queue)
                if signals and check else "the proposal's observation check needs attention" + queue if check
                else _plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention')
                + queue if signals
                else 'no signal, but some areas were not fully read' if partial
                else 'no signal in the areas checked below; reporting completeness and ownership are reviewed in the '
-                    'maintenance queue (m)')
+                    'maintenance queue (m opens it)')
     lines = ['[DIAGNOSTICS]']
     lines += word_wrap('%s (%s) | %s' % (value.get('name') or '(no name)', value.get('object_id'), summary), width)
     for signal in signals:
@@ -2503,8 +2662,8 @@ def adoption_lines(value, width):
         lines += word_wrap('[ADOPTED] %s handed off to a local maintenance model' % policies(len(ids)), width)
         for object_id in ids:
             lines += word_wrap('  ' + object_id, width)
-        field('Handoff', value.get('handoff_root'))
-        field('Modeled service', value.get('service_root'))
+        field('Handoff', _path_words(value.get('handoff_root')))
+        field('Modeled service', _path_words(value.get('service_root')))
         from .io import unique_prefixes
         listed = [str(row.get('artifact_id')) for row in value.get('adoptions') or [] if isinstance(row, dict)]
         adoptions = [short_id(item, unique_prefixes(listed)) for item in listed]
@@ -2524,17 +2683,17 @@ def adoption_lines(value, width):
                        % policies(len(ids)), width)
     for object_id in ids:
         place = generated.get(object_id) if isinstance(generated.get(object_id), dict) else {}
-        lines += word_wrap('  %s  generated at %s' % (object_id, place.get('path', 'an unrecorded path')), width)
-    field('Journey', '%s (a completed wizard journey; kept unchanged)' % binding.get('session'))
+        lines += word_wrap('  %s  generated at %s' % (object_id, _path_words(place.get('path', 'an unrecorded path'))), width)
+    field('Journey', '%s (a completed wizard journey; kept unchanged)' % _path_words(binding.get('session')))
     source = binding.get('source') if isinstance(binding.get('source'), dict) else {}
     context = binding.get('context') if isinstance(binding.get('context'), dict) else {}
-    field('Source', '%s | context %s' % (source.get('path'), context.get('path')))
+    field('Source', '%s | context %s' % (_path_words(source.get('path')), _path_words(context.get('path'))))
     atmos = binding.get('atmos') if isinstance(binding.get('atmos'), dict) else {}
     field('Stack', '%s / %s (%s; Atmos %s)' % (atmos.get('stack'), atmos.get('component'),
           str(atmos.get('assurance')).replace('_', ' '), 'was run' if atmos.get('native_atmos_executed') else 'was not run'))
     repository = binding.get('repository')
     field('Repository', 'none supplied (local context only)' if repository is None else str(
-        repository.get('root') if isinstance(repository, dict) else repository))
+        _path_words(repository.get('root') if isinstance(repository, dict) else repository)))
     service = binding.get('original_service') if isinstance(binding.get('original_service'), dict) else {}
     field('Journey model', 'revision %s after %s' % (service.get('revision'), _plural(service.get('request_count') or 0, 'request')))
     field('Ownership', str(binding.get('ownership')))
@@ -2603,8 +2762,8 @@ def service_words(origin):
         return 'Modeled service: none yet. Adopt a completed journey (:adopt), or start with --service-root.'
     if origin.get('problem'):
         return ('Modeled service: unavailable. The latest adoption record %s names %s, which cannot be opened for this '
-                'tenant; start with --service-root.' % (str(origin.get('artifact_id'))[:12], safe_text(str(origin.get('root')))))
+                'tenant; start with --service-root.' % (str(origin.get('artifact_id'))[:12], _path_words(origin.get('root'))))
     if origin.get('source') == 'adoption':
         return 'Modeled service: %s (from the latest adoption record %s; --service-root chooses another)' % (
-            safe_text(str(origin['root'])), str(origin.get('artifact_id'))[:12])
-    return 'Modeled service: %s (--service-root)' % safe_text(str(origin.get('root')))
+            _path_words(origin['root']), str(origin.get('artifact_id'))[:12])
+    return 'Modeled service: %s (--service-root)' % _path_words(origin.get('root'))

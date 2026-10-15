@@ -392,7 +392,7 @@ class ActionStagingTests(unittest.TestCase):
                               'message': 'the modeled service changed after this observation was collected (revision 1, now 2)'},
                   'binding': {}}
         joined = '\n'.join(actions_lines([action], 0, 120))
-        self.assertIn('maintenance_observation_stale: the modeled service changed after this observation was collected', joined)
+        self.assertIn('the modeled service changed after this observation was collected (revision 1, now 2) (maintenance_observation_stale)', ' '.join(joined.split()))
 
     def test_a_missing_input_is_shown_where_it_goes(self):
         from intune_iac.workbench_screens import actions_lines

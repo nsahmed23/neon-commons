@@ -276,8 +276,9 @@ class AdoptionSummaryTests(unittest.TestCase):
         result = adopt(self.store, self.session, self.handoff)
         text = self.summary(result)
         self.assertIn('[ADOPTED] 2 policies handed off to a local maintenance model', text)
-        self.assertIn('Handoff: ' + str(self.handoff), text)
-        self.assertIn('Modeled service: ' + str(self.handoff / 'service'), text)
+        import shlex  # run 7 item 14: a path with a space is shown quoted
+        self.assertIn('Handoff: ' + shlex.quote(str(self.handoff)), text)
+        self.assertIn('Modeled service: ' + shlex.quote(str(self.handoff / 'service')), text)
         self.assertIn('Collection run %s recorded in this store' % result['collection_run_id'], text)
         self.assertIn('Original journey kept', text)
         # Since a405bf1 a reopened store uses the adopted service; the next step no longer asks for it.
