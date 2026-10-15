@@ -314,3 +314,34 @@ class ReconcileKeepsTheRecordedErrorTests(unittest.TestCase):
         text = StateSurfaceTests.summary(self, workspace)
         self.assertIn("the modeled service's response was lost (model_response_lost)", text)
         self.assertNotIn('Error: none recorded', text)
+
+
+class HeldApprovalAttentionTests(unittest.TestCase):
+    """Journey 28 run 3, frames 25 to 34: a prepared operation held by the clock is an attention item, not a clear area."""
+    setUp = InterruptedOperationTests.setUp
+
+    def prepared(self):
+        desired = copy.deepcopy(self.service.snapshot()['current']['objects'][self.ids[0]])
+        desired['description'] = 'Reviewed synthetic correction'
+        write_json(self.root / 'desired.json', desired)
+        return maintenance.propose(self.root / 'store', self.root / 'service', self.ids[0], self.root / 'desired.json',
+                                   self.root / 'operation')
+
+    def test_a_hold_is_a_signal_with_its_recovery(self):
+        from intune_iac.workbench_diagnostics import diagnostics
+        self.prepared()
+        # The clock now reads earlier than the plan's creation: execute would hold it.
+        with patch.object(protected, '_now', return_value=protected._now() - 100):
+            value = diagnostics(self.store, self.ids[0])
+        held = [signal for signal in value['signals'] if signal['code'] == 'operation_approval_held']
+        self.assertEqual(len(held), 1, value['signals'])
+        self.assertIn('wait until it reads at or after the recorded time', held[0]['next_step'])
+        self.assertEqual(value['newest_operation']['approval_window'], 'clock_moved_backward')
+        self.assertEqual(value['checked']['operations'], 'attention')
+
+    def test_an_open_window_is_no_signal_and_is_stated(self):
+        from intune_iac.workbench_diagnostics import diagnostics
+        self.prepared()
+        value = diagnostics(self.store, self.ids[0])
+        self.assertNotIn('operation_approval_held', [signal['code'] for signal in value['signals']])
+        self.assertEqual(value['newest_operation']['approval_window'], 'open')

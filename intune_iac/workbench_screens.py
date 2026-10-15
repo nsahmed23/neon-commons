@@ -73,7 +73,7 @@ def _strip_severity(state):
 
 HAZARD_STATES = {'OBSERVED': {'stale', 'source changed', 'policy changed', 'other source', 'other tenant'},
                  'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
-                 'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable'}}
+                 'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable', 'held'}}
 
 
 def context_strip(tenant, selected, facts, width, mode_class=None):
@@ -125,13 +125,14 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
 
 # The primary hazard's ranking, its words and the key that offers its response (a: the action list).
 BAND_RANK = ('observation_tenant_mismatch', 'operation_outcome_unknown', 'operation_diverged', 'operation_record_disagrees',
-             'operation_unreadable', 'collection_failed', 'collection_not_finished', 'repository_stale',
+             'operation_unreadable', 'operation_approval_held', 'collection_failed', 'collection_not_finished', 'repository_stale',
              'repository_consumer_mismatch', 'repository_unavailable', 'observation_stale', 'observation_service_changed',
              'observation_policy_changed', 'observation_source_mismatch', 'conditions_not_reread')
 # The proposal's own observation checks that diagnostics does not record, shown in the band when they fail.
 BAND_ELIGIBILITY = ('tenant_mismatch', 'service_changed', 'policy_changed', 'source_mismatch')
 OPERATION_SIGNAL = {'outcome_unknown': 'operation_outcome_unknown', 'diverged': 'operation_diverged',
-                    'records disagree': 'operation_record_disagrees', 'unreadable': 'operation_unreadable'}
+                    'records disagree': 'operation_record_disagrees', 'unreadable': 'operation_unreadable',
+                    'held': 'operation_approval_held'}
 
 
 def _band_forms(primary, prefixes=None):
@@ -166,6 +167,11 @@ def _band_forms(primary, prefixes=None):
         command = evidence.get('command') or 'the last command'
         return ['! Conditions not re-read after %s. 2: re-read' % command, '! Not re-read after %s. 2: re-read' % command,
                 '! Not re-read. 2: re-read']
+    if code == 'operation_approval_held':
+        # The clock holds the change; waiting or a new proposal are the responses, and a lists the proposal.
+        return ['! Operation %s approval held: the host clock reads earlier than it recorded. Wait, or prepare again '
+                '(a: actions)' % operation, '! Approval held by the clock. Wait, or prepare again (a: actions)',
+                '! Held: clock behind. Wait (a actions)']
     if code == 'operation_unreadable':
         # No reconcile is offered for records that cannot be read; diagnostics say which and why.
         return ['! Operation %s records unreadable. i: details' % operation, '! Op records unreadable. i: details']
@@ -412,13 +418,22 @@ def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None):
         if operation.get('classification'):
             text += '; %s %s' % ("reconcile's readback:" if journal == 'reconciled' else 'readback',
                                  _as_words(operation['classification']))
+        if operation.get('approval_window') in WINDOW_STATE_WORDS:
+            text += '; ' + WINDOW_STATE_WORDS[operation['approval_window']]
         if operation.get('recorded_at'):
-            text += '; recorded %s' % readable_time(operation['recorded_at'])
+            text += '; last recorded %s' % readable_time(operation['recorded_at'])
         if reviewing and operation.get('operation_id') != reviewing:
             text = 'newest for this policy: %s. The plan below is a different operation, %s.' % (
                 text, short_id(reviewing, prefixes))
     lines += _labelled('  Operation', text, width, 15)
     return lines
+
+
+# A prepared operation's approval window, as the state line says it (the states of maintenance.approval_window).
+WINDOW_STATE_WORDS = {'open': 'approval window open', 'closed': 'approval window closed',
+                      'closed_recorded': 'approval window closed (recorded)',
+                      'clock_moved_backward': "approval held: this host's clock reads earlier than a time it recorded",
+                      'unknown': 'approval window cannot be judged'}
 
 
 def _as_words(value):

@@ -551,3 +551,34 @@ class ReconcileReadbackWordsTests(unittest.TestCase):
         workspace = StateSurfaceTests.workspace(self, 5, dict(self.RESULT))
         text = StateSurfaceTests.summary(self, workspace)
         self.assertIn("Reconcile's readback: desired state observed", text)
+
+
+class ApprovalWindowStateTests(unittest.TestCase):
+    """Journey 28 run 3, frames 75 to 80: a prepared operation's state line says its approval window's state."""
+
+    def line(self, window):
+        from intune_iac.workbench_screens import state_lines
+        states = {'operation': {'operation_id': '62cd1dcf' + 'a' * 24, 'status': 'prepared', 'journal_status': 'prepared',
+                                'approval_window': window, 'recorded_at': '2026-10-15T05:18:29Z'}}
+        return ' '.join(' '.join(state_lines(states, 160)).split())
+
+    def test_each_window_state_is_said(self):
+        self.assertIn('approval window closed (recorded)', self.line('closed_recorded'))
+        self.assertIn("approval held: this host's clock reads earlier than a time it recorded", self.line('clock_moved_backward'))
+        self.assertIn('approval window open', self.line('open'))
+        self.assertIn('last recorded 2026-10-15 05:18:29 UTC', self.line('open'))
+
+    def test_the_band_and_strip_name_a_hold(self):
+        from intune_iac.workbench_screens import context_strip, hazard_rows
+        from intune_iac.workbench_tui import OPERATION_FROM_SIGNAL, cell_width
+        signal = {'area': 'operations', 'code': 'operation_approval_held', 'observed': 'Held.', 'next_step': 'Wait.',
+                  'evidence': {'operation_id': '62cd1dcf' + 'a' * 24}}
+        for width in (120, 80, 60, 40):
+            rows = hazard_rows({}, [signal], width)
+            self.assertTrue(rows and rows[0].startswith('! '), rows)
+            self.assertIn('eld', rows[0])
+            for row in rows:
+                self.assertLessEqual(cell_width(row), width, row)
+        self.assertEqual(OPERATION_FROM_SIGNAL['operation_approval_held'], 'held')
+        strip = context_strip(TENANT, OBJECT, {'name': 'P', 'operation': 'held'}, 200, 'synthetic')
+        self.assertIn('OPERATION held', strip)

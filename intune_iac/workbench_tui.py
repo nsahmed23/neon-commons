@@ -239,7 +239,8 @@ REPOSITORY_FROM_SIGNAL = {'repository_stale': 'stale', 'repository_unavailable':
                           'repository_consumer_mismatch': 'consumer mismatch'}
 # Recorded operation conditions, in the strip's words.
 OPERATION_FROM_SIGNAL = {'operation_outcome_unknown': 'outcome_unknown', 'operation_diverged': 'diverged',
-                         'operation_record_disagrees': 'records disagree', 'operation_unreadable': 'unreadable'}
+                         'operation_record_disagrees': 'records disagree', 'operation_unreadable': 'unreadable',
+                         'operation_approval_held': 'held'}
 
 
 def title_line(tab, last_command, value, layer='summary'):

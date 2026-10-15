@@ -126,15 +126,23 @@ def _newest_operation(records):
     reconciled = [event for event in journal['events'] if event['kind'] == 'reconciled']
     state.update(journal_status=journal['status'],
                  classification=reconciled[-1].get('classification') if reconciled else None)
+    if journal['status'] == 'prepared':
+        # The approval window as execute would judge it now (the one rule, read-only; nothing is recorded).
+        try:
+            root, _, _, _, request = maintenance._load(record.get('operation_root'))
+            state['approval_window'] = maintenance.approval_window(root, request)['state']
+        except Exception:
+            state['approval_window'] = 'unknown'
     return state
 
 
 def _operations(store, object_id, newest=None):
     from . import maintenance
     records, complete = _operation_records(store, object_id)
+    newest_state = _newest_operation(records)
     if newest is not None:
         # The newest record, read in the same pass, for the Inspector's operation state.
-        newest['operation'] = _newest_operation(records)
+        newest['operation'] = newest_state
     latest = {}
     for position, record in enumerate(records):
         latest[record['operation_id']] = (position, record)
@@ -183,6 +191,20 @@ def _operations(store, object_id, newest=None):
                                        'Operation %s was reconciled and the service matches neither the plan nor its starting point.' % record['operation_id'],
                                        'Review the latest observation against the desired body before any new change.',
                                        dict(evidence, classification=classification)))
+    # A prepared proposal whose approval execute would hold now: the engineer meets the hold only on submitting,
+    # unless it is said here (journey 28 run 3: Delivery said held while this area read clear).
+    window = (newest_state or {}).get('approval_window')
+    if window in ('clock_moved_backward', 'unknown'):
+        why = ("this host's clock reads earlier than a time the operation recorded, so whether its approval window "
+               'is still open cannot be established' if window == 'clock_moved_backward' else
+               "the operation's recorded time cannot be read, so its approval window cannot be judged")
+        signals.append(_signal('operations', 'operation_approval_held',
+                               'Operation %s is prepared, but execute would hold it now: %s.' % (
+                                   newest_state['operation_id'], why),
+                               'Correct the host clock, or wait until it reads at or after the recorded time, then '
+                               'execute again; a new proposal also works (a lists it).',
+                               {'operation_id': newest_state['operation_id'],
+                                'operation_root': newest_state.get('operation_root'), 'approval_window': window}))
     return signals, complete
 
 
