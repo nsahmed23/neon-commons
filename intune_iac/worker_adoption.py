@@ -481,6 +481,15 @@ class AdoptionPermit:
             fail=_fail, expired_code='adoption_signature_expired')
         if stopped: _fail('adoption_permit_inactive')
         self.runtime.check(self.job.manifest, verification=self.verification)
+    def inflight_active(self):
+        """The in-flight check the broker makes once the upstream has answered: the job must still be running,
+        uncancelled, owned, and the signer unrevoked. It never judges the window: the window bounds when a dispatch
+        may start."""
+        if not self.active or self.pid != os.getpid(): _fail('adoption_permit_inactive')
+        self.job._check(expiry=False)
+        with self.job.policy.connection() as db:
+            if self._stopped_or_changed(db): _fail('adoption_permit_inactive')
+        self.runtime.check(self.job.manifest, verification=self.verification)
     def check_active(self):
         """The authorization check that gates every backend or service call (the broker guard and the dispatch
         boundaries). It enters the shared critical section, judges the window, rereads the job state, the signer
@@ -644,9 +653,10 @@ class AdoptionJob:
             except BaseException as error: failed(error, phase, shutdown_failures)
         try:
             permit.check_active()
-            guard = (broker.live_guard(self.manifest['execution_binding_sha256'], binding=runtime.binding, recheck=permit.check_active)
+            guard = (broker.live_guard(self.manifest['execution_binding_sha256'], binding=runtime.binding, recheck=permit.check_active,
+                    inflight=permit.inflight_active)
                 if self.manifest['profile'] == 'azure_public_pilot' else
-                broker.laboratory_guard(self.manifest['execution_binding_sha256'], permit.check_active))
+                broker.laboratory_guard(self.manifest['execution_binding_sha256'], permit.check_active, permit.inflight_active))
             transport = broker.EgressBroker(policy, journal=self.root / (prefix + 'broker.sqlite3'), guard=guard,
                 upstream=runtime.upstream, credentials=runtime.credentials,
                 **({} if verification else {'adoption_contract': runtime.state_contract,

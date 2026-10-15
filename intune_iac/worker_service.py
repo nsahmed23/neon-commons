@@ -724,6 +724,14 @@ class ServicePermit:
             expired_code='service_signature_expired')
         if stopped: _fail('service_permit_inactive')
         self.runtime.check(self.job.manifest)
+    def inflight_active(self):
+        """The in-flight check the broker makes once the upstream has answered: the job must still be running, uncancelled,
+        owned, and the signer unrevoked. It never judges the window: the window bounds when a dispatch may start."""
+        if not self.active or self.pid != os.getpid(): _fail('service_permit_inactive')
+        self.job._check(expiry=False)
+        with self.job.policy.connection() as db:
+            if self._stopped_or_changed(db): _fail('service_permit_inactive')
+        self.runtime.check(self.job.manifest)
     def check_active(self):
         """The authorization check that gates every broker request. It enters the shared critical section, judges the
         window, rereads the job state, the signer revocation and the expiry record inside it, and commits the
@@ -854,9 +862,10 @@ class ServiceJob:
                 failed(error, phase, shutdown_failures)
         try:
             permit.check_active()
-            guard = (broker.live_guard(self.manifest['execution_binding_sha256'], binding=runtime.binding, recheck=permit.check_active)
+            guard = (broker.live_guard(self.manifest['execution_binding_sha256'], binding=runtime.binding, recheck=permit.check_active,
+                                       inflight=permit.inflight_active)
                      if self.manifest['profile'] == 'azure_public_pilot' else
-                     broker.laboratory_guard(self.manifest['execution_binding_sha256'], permit.check_active))
+                     broker.laboratory_guard(self.manifest['execution_binding_sha256'], permit.check_active, permit.inflight_active))
             transport = broker.EgressBroker(self.manifest['broker_policy'], journal=self.root / 'broker.sqlite3',
                 guard=guard, upstream=runtime.upstream, state_contracts=runtime.state_contracts, credentials=runtime.credentials,
                 **({'precondition': runtime.precondition} if runtime.precondition is not None else {}))

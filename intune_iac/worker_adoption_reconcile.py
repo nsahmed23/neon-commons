@@ -536,6 +536,13 @@ class _Permit:
             stopped=self._stopped_or_changed(db,phase);latched=adoption._latched(db,self.payload,self.job.sha256,_domain(self.job.manifest))
         adoption._watch(self.job.policy,self.payload,self.job.sha256,self.deadline,latched,fail=_fail,expired_code='adoption_recovery_plan_expired',domain=_domain(self.job.manifest))
         if stopped:_fail('adoption_recovery_permit_revoked')
+    def inflight_active(self):
+        """The in-flight check the broker makes once the upstream has answered: cancellation and revocation only, never
+        the window (it bounds when a dispatch may start)."""
+        if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
+        self.job._check(expiry=False);self.runtime.check(self.job.manifest);phase=self._phase()
+        with self.job.policy.connection() as db:
+            if self._stopped_or_changed(db,phase):_fail('adoption_recovery_permit_revoked')
     def check_active(self):
         """The authorization check that gates every backend or service call: it enters the shared critical section, judges
         the window, rereads the state, the revocation and the expiry record inside it and commits the per-request marker
@@ -662,8 +669,8 @@ class RecoveryPlanJob:
             except BaseException as error:secondary(error,phase,shutdown)
         try:
             protected._exclusive(self.root/'approval.json',receipt_raw);permit.check_active()
-            guard=(broker.live_guard(self.manifest['execution_binding_sha256'],binding=runtime.binding,recheck=permit.check_active)
-                if runtime.profile=='azure_public_pilot' else broker.laboratory_guard(self.manifest['execution_binding_sha256'],permit.check_active))
+            guard=(broker.live_guard(self.manifest['execution_binding_sha256'],binding=runtime.binding,recheck=permit.check_active,inflight=permit.inflight_active)
+                if runtime.profile=='azure_public_pilot' else broker.laboratory_guard(self.manifest['execution_binding_sha256'],permit.check_active,permit.inflight_active))
             transport=broker.EgressBroker(self.manifest['broker_policy'],journal=self.root/'broker.sqlite3',guard=guard,upstream=runtime.upstream,credentials=runtime.credentials)
             server=broker.UnixBrokerServer(Path(spec.broker_root)/'egress.sock',transport,certificate=runtime.certificate,private_key=runtime.private_key)
             thread=threading.Thread(target=server.serve,daemon=True,name='adoption-recovery-plan-broker');thread.start()

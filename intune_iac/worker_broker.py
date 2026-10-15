@@ -56,9 +56,13 @@ def _fail(code):
 
 
 class BrokerGuard:
-    def __init__(self, seal, execution_binding_sha256, recheck, binding=None):
-        if seal is not _SEAL or not callable(recheck): _fail('broker_host_guard_required')
+    def __init__(self, seal, execution_binding_sha256, recheck, binding=None, inflight=None):
+        if seal is not _SEAL or not callable(recheck) or not (inflight is None or callable(inflight)):
+            _fail('broker_host_guard_required')
         self.execution_binding_sha256, self.recheck, self.binding = execution_binding_sha256, recheck, binding
+        # The in-flight check: cancellation and revocation only, never the approval's window. A guard that names none
+        # uses its recheck for both.
+        self.inflight = inflight or recheck
         self.pid = os.getpid()
         self._deadlines = {}
 
@@ -89,19 +93,32 @@ class BrokerGuard:
             _fail('broker_profile_mismatch')
         if self.recheck() is not None: _fail('broker_guard_contract')
 
+    def check_after_dispatch(self, policy):
+        """The check made once the upstream has answered: the guard's binding and freshness, and the explicit in-flight
+        cancellation and revocation check. It never refuses because the window closed after the dispatch started: the
+        window bounds when a dispatch may start, and the request has already gone out."""
+        if self.pid != os.getpid() or self.execution_binding_sha256 != policy['execution_binding_sha256']:
+            _fail('broker_guard_binding')
+        if policy['profile'] == 'azure_public_pilot':
+            ib.require_live_binding(self.binding)
+            self.binding.assert_fresh()
+        elif self.binding is not None:
+            _fail('broker_profile_mismatch')
+        if self.inflight() is not None: _fail('broker_guard_contract')
 
-def laboratory_guard(execution_binding_sha256, recheck):
-    return BrokerGuard(_SEAL, execution_binding_sha256, recheck)
+
+def laboratory_guard(execution_binding_sha256, recheck, inflight=None):
+    return BrokerGuard(_SEAL, execution_binding_sha256, recheck, inflight=inflight)
 
 
-def live_guard(execution_binding_sha256, *, binding, recheck):
+def live_guard(execution_binding_sha256, *, binding, recheck, inflight=None):
     """Trusted service API only. Recheck must enforce actual signed job authority.
 
     Identity authentication alone grants no mutation permission. This factory is
     never exposed as a terminal/model command or reconstructed from JSON.
     """
     ib.require_live_binding(binding)
-    return BrokerGuard(_SEAL, execution_binding_sha256, recheck, binding)
+    return BrokerGuard(_SEAL, execution_binding_sha256, recheck, binding, inflight)
 
 
 def validate_backend_targets(policy, backend, *, adoption_contract=None):
@@ -442,6 +459,12 @@ class EgressBroker:
         self.guard.check(self.policy)
         if self.credentials is not None: self.credentials.check(self.policy, adoption_contract=self.adoption_contract)
 
+    def check_response(self):
+        """Integrity and in-flight cancellation or revocation after the upstream answered; never the approval's window."""
+        if self.closed or digest(self.policy) != self.policy_sha256: _fail('broker_policy_changed_or_closed')
+        self.guard.check_after_dispatch(self.policy)
+        if self.credentials is not None: self.credentials.check(self.policy, adoption_contract=self.adoption_contract)
+
     @contextmanager
     def _database(self):
         _private(self.journal)
@@ -603,7 +626,7 @@ class EgressBroker:
             if timeout <= 0: _fail('broker_expired')
             forwarded_body = self.credentials.replace(self.policy, route, body, adoption_contract=self.adoption_contract) if route['effect'] == 'oauth' and self.credentials is not None else body
             response = self.upstream.request(host, method, target, {**headers, 'accept-encoding': 'identity'}, forwarded_body, timeout=timeout)
-            self.check()
+            self.check_response()
             if (type(response) is not ib.ServiceResponse or type(response.status) is not int or
                     not 200 <= response.status <= 599 or 300 <= response.status <= 399 or
                     type(response.body) is not bytes or len(response.body) > MAX_RESPONSE or

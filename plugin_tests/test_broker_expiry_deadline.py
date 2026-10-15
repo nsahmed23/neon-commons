@@ -95,6 +95,46 @@ class BrokerWindowTests(unittest.TestCase):
             call()
         return raised.exception
 
+    def attempts(self):
+        import sqlite3
+        connection = sqlite3.connect(self.root / 'journal.sqlite3')
+        try:
+            return connection.execute('SELECT route, status FROM attempts').fetchall()
+        finally:
+            connection.close()
+
+    def test_an_expiry_reached_while_the_request_is_in_flight_does_not_turn_its_response_into_an_unknown_outcome(self):
+        # The window bounds when a dispatch may start. Once the request went out, a response that arrives after the
+        # expiry is the response: the effect happened, and refusing it would record a fiction.
+        crossing = self.upstream_request
+
+        def upstream_crossing_the_expiry(host, method, target, headers, body, *, timeout):
+            result = crossing(host, method, target, headers, body, timeout=timeout)
+            self.clocks.elapse(LIFETIME + 1)
+            return result
+        with patch.object(wb.LaboratoryUpstream, 'request', side_effect=upstream_crossing_the_expiry):
+            response = self.token_request()
+        self.assertEqual(response.status, 200)
+        self.assertEqual(self.attempts(), [('token', 'response_received')])
+        self.assertEqual(self.refused(self.token_request).code, 'broker_expired')  # the next dispatch is judged and refused
+
+    def test_a_cancellation_while_the_request_is_in_flight_is_still_an_unknown_outcome(self):
+        state = {'cancelled': False}
+
+        def recheck():
+            if state['cancelled']:
+                raise AppError('fixture_cancelled', 'Synthetic cancellation.')
+        guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], recheck)
+        broker = wb.EgressBroker(self.policy, journal=self.root / 'other.sqlite3', guard=guard, upstream=object.__new__(wb.LaboratoryUpstream))
+
+        def upstream_then_cancel(host, method, target, headers, body, *, timeout):
+            state['cancelled'] = True
+            return self.upstream_request(host, method, target, headers, body, timeout=timeout)
+        with patch.object(wb.LaboratoryUpstream, 'request', side_effect=upstream_then_cancel):
+            error = self.refused(lambda: broker.handle('login.fixture.invalid', 'POST', '/' + TENANT + '/oauth2/v2.0/token',
+                                                       {'content-type': 'application/x-www-form-urlencoded'}, self.form))
+        self.assertEqual(error.code, 'broker_upstream_outcome_unknown')
+
     def test_an_open_window_admits_the_request(self):
         self.clocks.elapse(10)
         self.token_request()

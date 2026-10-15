@@ -69,7 +69,7 @@ class ServiceFixture(unittest.TestCase):
                         patch.object(service.host, 'directory_binding',
                                      side_effect=lambda root: {'sha256': 's' * 64 if root == self.spec.source_root else 'c' * 64}),
                         patch.object(service.ServiceJob, 'status', return_value={'status': 'modeled-dispatch'}),
-                        patch.object(service.broker, 'laboratory_guard', side_effect=lambda binding, recheck: object()),
+                        patch.object(service.broker, "laboratory_guard", side_effect=lambda binding, recheck, inflight=None: object()),
                         patch.object(service.broker, 'EgressBroker',
                                      side_effect=lambda *args, **kwargs: types.SimpleNamespace(native_recovery_record=dict)),
                         patch.object(service.broker, 'UnixBrokerServer',
@@ -322,6 +322,16 @@ class PermitLatchTests(ServiceFixture):
             for _ in range(5):
                 permit.poll_active()
         self.assertEqual(self.authorizations(), [])
+
+    def test_the_inflight_check_never_judges_the_window_but_still_sees_a_revocation(self):
+        permit = self.dispatch_running(self.start + 10)
+        self.clocks.elapse(LIFETIME + 1)
+        permit.inflight_active()  # the window is over, and the request that is in flight is not refused for it
+        self.assertEqual(self.refused(permit.check_active).code, EXPIRED)  # the next dispatch is
+        self.assertEqual(self.authorizations(), [])
+        with self.policy.connection() as db:
+            db.execute('INSERT INTO revoked VALUES (?,?)', ('fixture', 'key'))
+        self.assertEqual(self.refused(permit.inflight_active).code, 'service_permit_inactive')
 
     def test_a_refused_authorization_commits_no_marker(self):
         permit = self.dispatch_running(self.start + 10)

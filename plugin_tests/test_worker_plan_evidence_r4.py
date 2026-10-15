@@ -246,7 +246,7 @@ class PlanOutputRecordingTests(PlanEvidenceFixture):
         subject.status=status
         runtime=types.SimpleNamespace(profile='native_docker_laboratory_protocol',upstream=None,credentials=None,certificate=self.root/'cert',private_key=self.root/'key')
         spec=types.SimpleNamespace(job_root=self.job,broker_root=self.root)
-        permit=types.SimpleNamespace(active=True,check_active=lambda:None)
+        permit=types.SimpleNamespace(active=True,check_active=lambda:None,inflight_active=lambda:None)
         server=types.SimpleNamespace(serve=lambda:None,close=lambda:None)
         transport=types.SimpleNamespace(native_recovery_record=lambda:{'fixture':'no actual network'})
         result={'status':'complete','cleanup':{'removed':True,'stopped_state':{'Running':False}}}
