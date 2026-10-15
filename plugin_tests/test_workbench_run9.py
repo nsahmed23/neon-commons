@@ -234,19 +234,20 @@ class RecordedRefusalTests(unittest.TestCase):
         self.assertIn('Cause: Operation %s cites repository intent %s' % (short, self.intent['artifact_id']), text)
         self.assertIn('Effect: No deployment receipt was recorded.', text)
 
-    def test_recording_again_with_the_cited_intent_is_not_refused_it_adds_a_second_record(self):
-        # What the engine does today (workbench_views._record_local_deployment, workbench_store.record_artifact): no
-        # check for an existing record, and the record carries recorded_at, so its identity differs each time. The
-        # refusal therefore tells the engineer there is nothing to record, since a second record would add nothing.
+    def test_recording_again_with_the_cited_intent_is_not_refused_it_returns_the_first_record(self):
+        # This documented a defect (DEF-DEPLOY-DUP): the record carried recorded_at, so its identity differed on every
+        # call and a second recording added a second receipt. The engine now returns the record it holds, which makes
+        # the refusal's "there is nothing to record" true: recording again adds nothing.
         from intune_iac import maintenance
         from intune_iac.workbench_views import record_local_deployment
         review = self.prepare()
         maintenance.execute(self.operation, approve_digest=review['approval_digest'])
         first = record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
         second = record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
-        self.assertTrue(first['created'] and second['created'])
-        self.assertNotEqual(first['artifact_id'], second['artifact_id'])
-        self.assertEqual(len(self.store.artifacts(kind='deployment_receipt')), 2)
+        self.assertTrue(first['created'])
+        self.assertFalse(second['created'])
+        self.assertEqual(second['artifact_id'], first['artifact_id'])
+        self.assertEqual(len(self.store.artifacts(kind='deployment_receipt')), 1)
 
     def test_a_refusal_for_an_operation_with_no_record_still_asks_for_it(self):
         _, text, short = self.refused(record_first=False)
