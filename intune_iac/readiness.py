@@ -239,7 +239,10 @@ def _tools_host(operation, f):
         state = 'unknown'
     else:
         state = 'ready'
+    # With a doctor result in hand, the gap is a fact it did not report (for example the tool lookup, which a caller may
+    # leave out because it reads the search path): the engineer's step is to run doctor, not to pass a result anywhere.
     action = ' '.join(dict.fromkeys(actions)) or (NO_ACTION if state == 'ready' else
+        'Run: %s doctor to see the host profiles and which tools are on the search path.' % PROGRAM if doctor else
         'Run %s doctor and pass its result, with the host report, to this check.' % PROGRAM)
     return _row(operation, 'tools_host', 'Tools and host', state, detected, missing + unknown, action, 'engineer')
 

@@ -14,7 +14,8 @@ from . import __version__
 from .io import AppError, load_json
 
 
-def doctor():
+def doctor(executables=True):
+    # executables=False leaves out the one fact that reads an environment value (the search path); start --goal uses it.
     from .host_capabilities import report as host_report
     host = host_report()
     dependencies = {}
@@ -44,7 +45,7 @@ def doctor():
                 'provider_journey':'operator_admitted_executor_signed_receipt_network_denied' if provider_platform else 'unsupported_platform',
                 'signed_approval':'requires_operator_pinned_linux_x86_64_runtime' if provider_platform else 'unsupported_platform',
                 'explicit_identity':'read_only_host_config_and_separate_inherited_credential_fds' if os.name=='posix' else 'unsupported_platform'},
-            'executables':{name:bool(shutil.which(name)) for name in ['atmos','tofu','pwsh','codex','claude']},
+            **({'executables':{name:bool(shutil.which(name)) for name in ['atmos','tofu','pwsh','codex','claude']}} if executables else {}),
             'route_scope': {
                 'protected_service': {'implementation': 'common_exact_plan_worker_contract',
                     'available_on_host': provider_platform, 'normal_apply': 'separately_approved_protected_controller',
@@ -92,6 +93,8 @@ def parser():
     start=commands.add_parser('start',help='Survey a working directory: what already exists, its states and the next step (read-only, offline)')
     start.add_argument('directory',nargs='?',default='.')
     start.add_argument('--json',action='store_true',help='Print the survey as JSON instead of the readable screen')
+    from .readiness import OPERATIONS as goals
+    start.add_argument('--goal',choices=goals,help='Also show what one goal needs and what is missing, from facts start can gather offline')
     _paths(commands.add_parser('inspect',help='Inspect one policy without writing output'))
     _paths(commands.add_parser('verify',help='Recheck an existing project against source-derived expectations'),True)
     gen=commands.add_parser('generate',help='Generate an owned local project and execution receipts')
@@ -156,8 +159,10 @@ def parser():
 
 def execute(args):
     if args.command=='start':
-        from .entry import survey
-        return survey(args.directory)
+        from .entry import goal_readiness, survey
+        value=survey(args.directory)
+        if args.goal:value['readiness']=goal_readiness(value,args.goal)
+        return value
     if args.command=='workbench':
         from .workbench import command
         return command(args)
@@ -304,8 +309,10 @@ def main(argv=None):
             return serve(authority=FilesystemAuthority(args.read_root,args.write_root) if args.read_root or args.write_root else None)
         if args.command=='start' and not args.json:
             # The guided entry is read by a person first; --json keeps the machine form.
-            from .entry import start_lines, survey
-            print('\n'.join(start_lines(survey(args.directory),shutil.get_terminal_size((100,40)).columns)))
+            from .entry import goal_readiness, start_lines, survey
+            value=survey(args.directory)
+            goal=goal_readiness(value,args.goal) if args.goal else None
+            print('\n'.join(start_lines(value,shutil.get_terminal_size((100,40)).columns,goal,goal_hint=goal is None)))
             return 0
         result=execute(args)
         if (getattr(args,'workbench_command',None)=='workspace' and isinstance(result,dict)

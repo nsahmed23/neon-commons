@@ -428,8 +428,147 @@ def _summary(item):
     return ''
 
 
-def start_lines(value, width):
-    """The survey as a readable screen: what was found, each item's states, the next steps and what is missing."""
+GOAL_HINT = 'Add --goal inspect, discover, adopt or change to see what that goal needs.'
+# Facts the readiness model could use but start does not gather, with the reason; shown on the screen and in the JSON.
+OMITTED_FACTS = ('Executables on the search path (atmos, tofu, pwsh, codex, claude) are not looked up here, because a lookup '
+                 'reads an environment value (the search path); the doctor command lists them.',)
+_COMMAND_STOP = frozenset({'and', 'then', 'or', 'from', 'to', 'with', 'for', 'as', 'that', 'is', 'the', 'in', 'on', 'by'})
+
+
+def goal_readiness(value, goal):
+    """The readiness of one goal on the survey plus the host and doctor facts that need no process and no environment value.
+
+    Left out of the doctor facts: the executables lookup (it reads the search path). Everything else it reports is read from
+    package metadata, import specs and the platform, none of which starts a process.
+    """
+    from . import cli, readiness
+    doctor = cli.doctor(executables=False)
+    host = doctor['host_capabilities']
+    model = readiness.readiness(value, host, doctor)
+    operation = model['operations'][goal]
+    profiles = host.get('profiles', {})
+    facts = host.get('host', {})
+    service = next((row for row in operation['rows'] if row['id'] == 'integration_service'), {})
+    return {'schema_version': model['schema_version'], 'goal': goal, 'status': operation['status'], 'directory': value['directory'],
+            'host': {'os_name': facts.get('os_name'), 'sys_platform': facts.get('sys_platform'), 'machine': facts.get('machine'),
+                     'python_version': facts.get('python_version'),
+                     'supported_profiles': [name for name, entry in profiles.items() if entry.get('status') == 'IMPLEMENTED'],
+                     'unsupported_profiles': [name for name, entry in profiles.items() if entry.get('status') != 'IMPLEMENTED']},
+            'tenants': list(service.get('detected', {}).get('tenants', [])), 'rows': operation['rows'],
+            'blocking': operation['blocking'], 'blockers': operation['blockers'], 'inputs': model['inputs'],
+            'not_established': model['not_established'], 'omitted_facts': list(OMITTED_FACTS),
+            'execution_authorized': False, 'cloud_authority': False}
+
+
+def _segments(text):
+    """Text and commands of one sentence: ('text', str) or ('command', [arguments]). A command ends at a stop word, an opening
+    parenthesis or a token that ends in sentence punctuation, which stays in the text after it."""
+    pieces = text.split('intune-iac ')
+    segments = [('text', pieces[0])] if pieces[0].strip() else []
+    for chunk in pieces[1:]:
+        words, tokens, used, tail = chunk.split(' '), [], 0, ''
+        for word in words:
+            if word.lower() in _COMMAND_STOP or word.startswith('('):
+                break
+            used += 1
+            tokens.append(word.rstrip('.,;:'))
+            if word[-1:] in '.,;:)':
+                tail = word[len(tokens[-1]):]
+                break
+        segments.append(('command', tokens))
+        rest = ' '.join(words[used:])
+        if tail in (';', '.') and rest:
+            # The sentence the command ended starts a new one.
+            rest = rest[:1].upper() + rest[1:]
+        if rest.strip():
+            segments.append(('text', rest))
+    return segments
+
+
+def _command_rows(tokens, width, indent):
+    """A command that fits stays whole; a wider one breaks between its arguments, every row but the last ending with a
+    backslash, so copying the rows runs the one command."""
+    head = ' ' * indent
+    rows, row = [], head + 'intune-iac ' + tokens[0] if tokens else head + 'intune-iac'
+    for token in tokens[1:]:
+        if len(row) + 1 + len(token) + 2 <= width:
+            row += ' ' + token
+        else:
+            rows.append(row + ' \\')
+            row = head + '    ' + token
+    return rows + [row]
+
+
+def _flow(text, width, first, rest, commands=False):
+    """Wrap text at spaces to the width; with commands, each command in it goes on its own rows (see _command_rows)."""
+    from .workbench_screens import word_wrap
+    lines, lead = [], first
+    for kind, body in (_segments(text) if commands else [('text', text)]):
+        if kind == 'command':
+            lines += _command_rows(body, width, len(rest) + 2)
+            lead = rest
+            continue
+        for part in word_wrap(body.strip(), max(10, width - len(rest))):
+            lines.append(lead + part)
+            lead = rest
+    return lines or [first.rstrip()]
+
+
+def _plain(value):
+    """A detected fact as words: no brackets, no booleans as True or False."""
+    if isinstance(value, bool):
+        return 'yes' if value else 'no'
+    if value is None or value == '':
+        return 'none'
+    if isinstance(value, dict):
+        return ', '.join('%s %s' % (str(key).replace('_', ' '), _plain(item)) for key, item in value.items())
+    if isinstance(value, (list, tuple)):
+        return '; '.join(_plain(item) for item in value) or 'none'
+    return STATE_WORDS.get(value, str(value)) if isinstance(value, str) else str(value)
+
+
+def _goal_lines(view, width):
+    """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked."""
+    from .workbench_screens import word_wrap
+    host = view['host']
+    lines = ['GOAL READINESS: %s (status: %s)' % (view['goal'], view['status'])]
+    lines += _flow('Directory: %s' % view['directory'], width, '', '    ')
+    lines += _flow('Host: os %s, platform %s, machine %s, Python %s' % (host['os_name'], host['sys_platform'], host['machine'],
+                                                                       host['python_version']), width, '', '    ')
+    lines += _flow('Supported profiles: %s' % (', '.join(host['supported_profiles']) or 'none'), width, '', '    ')
+    lines += _flow('Unsupported profiles: %s' % (', '.join(host['unsupported_profiles']) or 'none'), width, '', '    ')
+    lines += _flow('Tenant named by the surveyed inputs: %s' % (', '.join(view['tenants']) or 'none named in GUID form'),
+                   width, '', '    ')
+    lines.append('NEEDED FOR THIS GOAL')
+    for row in (row for row in view['rows'] if row['needed']):
+        lines.append('  %s: %s' % (row['label'], row['state']))
+        found = '; '.join('%s: %s' % (str(key).replace('_', ' '), _plain(item)) for key, item in row['detected'].items())
+        lines += _flow('Found: %s' % (found or 'nothing'), width, '    ', '      ')
+        if row['state'] == 'ready' and not row['missing']:
+            lines.append('    Missing: nothing')
+        else:
+            lines.append('    %s:' % ('Could not check' if row['state'] == 'unknown' else 'Missing'))
+            for note in row['missing']:
+                lines += _flow(note, width, '      - ', '        ', commands=True)
+        lines.append('    Next action (%s):' % row['owner_role'])
+        lines += _flow(row['next_action'], width, '      ', '      ', commands=True)
+    others = [row['label'] for row in view['rows'] if not row['needed']]
+    if others:
+        lines += _flow('Not needed for this goal: %s.' % ', '.join(others), width, '', '    ')
+    if view['goal'] != 'inspect':
+        lines.append('NOT CHECKED HERE')
+        for note in list(view['not_established']) + list(view['omitted_facts']):
+            for index, part in enumerate(word_wrap(note, width - 4)):
+                lines.append(('  - ' if index == 0 else '    ') + part)
+    return lines
+
+
+def start_lines(value, width, goal=None, goal_hint=False):
+    """The survey as a readable screen: what was found, each item's states, the next steps and what is missing.
+
+    goal is the result of goal_readiness and adds that goal's readiness after the survey; goal_hint adds the one closing line
+    that names the goals and the flag. The workspace screen passes neither.
+    """
     from .workbench_screens import word_wrap
     lines = ['INTUNE WORKBENCH: START']
     lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % value['directory'], width)
@@ -462,4 +601,8 @@ def start_lines(value, width):
         lines += word_wrap('Symbolic links not followed: ' + ', '.join(value['skipped_links']), width)
     if value.get('truncated'):
         lines += word_wrap('The walk stopped at %d entries; narrow the directory to see everything.' % MAX_ENTRIES, width)
+    if goal:
+        lines += _goal_lines(goal, width)
+    elif goal_hint:
+        lines += word_wrap(GOAL_HINT, width)
     return lines
