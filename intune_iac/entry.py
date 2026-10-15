@@ -425,38 +425,47 @@ def _count(number, noun, plural=None):
     return '%d %s' % (number, noun if number == 1 else plural or noun + 's')
 
 
+def _v(value):
+    """A value for a summary; a value the survey did not get is said in words, never printed as Python's None."""
+    return 'not known' if value is None or value == '' else value
+
+
 def _summary(item):
     kind = item['kind']
     if not item['states'].get('configured') and item['states'].get('configured_reason') in ('session_invalid', 'service_unreadable', 'repository_unreadable'):
         return 'unreadable: ' + item['states']['configured_reason'].replace('_', ' ')
     if kind == 'wizard_session':
-        return 'step %s%s | output %s' % (item.get('step'), ' (' + item['conflict_reason'] + ')' if item.get('conflict_reason') else '', item.get('output'))
+        return 'step %s%s | output %s' % (_v(item.get('step')), ' (' + item['conflict_reason'] + ')' if item.get('conflict_reason') else '', _v(item.get('output')))
     if kind == 'journey_session':
-        words = lambda value: str(value).replace('_', ' ')
+        words = lambda value: str(_v(value)).replace('_', ' ')
         state = words(item.get('lifecycle')) + ('' if item.get('next_state') in (None, item.get('lifecycle'))
                                               else ' | next ' + words(item.get('next_state')))
-        return '%s | %s of 17 stages verified as completed' % (state, item.get('verified'))
+        return '%s | %s of 17 stages verified as completed' % (state, _v(item.get('verified')))
     if kind == 'guided_session':
-        return '%s | %s' % (item.get('lifecycle'), item.get('saved_state'))
+        return '%s | %s' % (_v(item.get('lifecycle')), _v(item.get('saved_state')))
     if kind == 'export':
-        return '%s | tenant %s | %s' % ('synthetic' if item.get('synthetic') else 'not synthetic', item.get('tenant_id'), _count(len(item.get('policies', [])), 'policy', 'policies'))
+        return '%s | tenant %s | %s' % ('synthetic' if item.get('synthetic') else 'not synthetic', _v(item.get('tenant_id')), _count(len(item.get('policies', [])), 'policy', 'policies'))
     if kind == 'context':
-        return 'tenant %s | %s / %s' % (item.get('tenant_id'), item.get('stack'), item.get('component'))
+        return 'tenant %s | %s / %s' % (_v(item.get('tenant_id')), _v(item.get('stack')), _v(item.get('component')))
     if kind == 'generated_project':
         text = item.get('classification', 'unknown').replace('_', ' ')
         return text + (' at ' + item['pointer'] if item.get('pointer') else '') + (' | session ' + item['session'] if item.get('session') else '')
     if kind == 'store':
         return 'tenant %s | %s | %s | %s | %s' % (
-            item.get('tenant_id'), _count(item.get('objects') or 0, 'object'), item.get('freshness'),
+            _v(item.get('tenant_id')), _count(item.get('objects') or 0, 'object'), _v(item.get('freshness')),
             _count(len(item.get('intents', [])), 'repository intent'), _count(item.get('operations', 0), 'operation'))
     if kind == 'repository':
         return 'Git %s | %s' % ((item.get('git_revision') or 'none')[:12], ', '.join('%s / %s' % (c['stack'], c['component']) for c in item.get('components', [])) or 'no selectable component')
     if kind == 'modeled_service':
-        return 'tenant %s | %s | revision %s' % (item.get('tenant_id'), _count(len(item.get('objects', [])), 'object'), item.get('revision'))
+        return 'tenant %s | %s | revision %s' % (_v(item.get('tenant_id')), _count(len(item.get('objects', [])), 'object'), _v(item.get('revision')))
     if kind == 'session_backup':
-        return 'kept by restart %d of %s | step %s' % (item.get('number'), item.get('session'), item.get('step'))
+        return 'kept by restart %d of %s | step %s' % (item.get('number'), _v(item.get('session')), _v(item.get('step')))
     if kind == 'operation':
-        return '%s | %s' % (item.get('status'), ', '.join(item.get('changes', [])) or 'no configuration change')
+        changes = item.get('changes')
+        if item.get('status') is None:
+            # The operation record could not be read, so neither its status nor its changes are known.
+            return 'status not known | changes not known'
+        return '%s | %s' % (item['status'], ', '.join(changes or []) or ('changes not known' if changes is None else 'no configuration change'))
     return ''
 
 
