@@ -21,7 +21,7 @@ import time
 import uuid
 
 from . import approval_authority as aa, blob_lease, identity_binding as ib
-from . import protected, worker_broker as broker, worker_host as host
+from . import protected, validity, worker_broker as broker, worker_host as host
 from .io import AppError, canonical, digest, load_json, parse_json
 from .provider_journey import _outside_repository, _private, _absolute
 
@@ -39,6 +39,85 @@ _IMPLEMENTATION = ('worker_service.py', 'worker_host.py', 'worker_broker.py', 'w
 
 def _fail(code):
     raise AppError(code, 'The signed service operation, host protection or recovery contract was not established.')
+
+
+MAX_EXPIRED = validity.MAX_EXPIRED
+_EXPIRED_TABLE = 'service_expired'
+# The recovery approvals of the original job (lease, committed-state, adoption and adoption-plan lease recovery) are
+# judged on this store too; their expiry records live in their own table so a family can never latch another.
+RECOVERY_EXPIRED_TABLE = 'recovery_expired'
+
+
+def _critical(policy, payload, request_sha256, deadline=None, *, table=_EXPIRED_TABLE, fail=None,
+              expired_code='service_signature_expired'):
+    """The shared validity critical section (intune_iac.validity) on this service policy's own store: its authority
+    root, its database and an expiry table. The final window judgment, the recorded time, the expiry record and the
+    caller's commit are one step. The payload must come from a receipt that authenticated: an expiry row is written
+    for it. A reached expiry is refused here with expired_code (the caller's own time refusal); a backward step is
+    held. Lock order: the store directory, the recorded-time lock, then the SQLite write transaction."""
+    store = validity.Store(policy.root, policy.connection, table, fail or _fail, capacity=MAX_EXPIRED,
+        capacity_code='service_store_capacity', private_code='service_store_not_private', create=True)
+    return validity.critical(store, payload, request_sha256, deadline, expired_code)
+
+
+def _deadline(payload):
+    """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it."""
+    return time.monotonic() + max(0, payload['expires_at'] - time.time())
+
+
+def _latched(db, payload, table=_EXPIRED_TABLE):
+    """Whether an expiry record exists for the receipt: plain reads, no write. A store made before the table existed
+    has no record, and gets the table the first time a section runs."""
+    validity.table_sql(table)  # the name is a source literal; this rejects anything that is not a short identifier
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone(): return False
+    return bool(db.execute('SELECT 1 FROM ' + table + ' WHERE issuer=? AND nonce=?',
+        (payload['issuer'], payload['nonce'])).fetchone())
+
+
+def _watch(policy, payload, request_sha256, deadline, latched, *, fail, expired_code, table=_EXPIRED_TABLE):
+    """The window judgment for a periodic check (the watchdog runs it every 0.2 s): read-only on the open path, so a
+    cancel or recover from another process is never refused because a permit is polling. A closed window is recorded
+    through the shared critical section and refused; if the store is busy it is refused anyway and recorded on a later
+    call. A backward step is held. Its result grants no authority: only the critical section does."""
+    state, reading = validity.peek(policy.root, payload['expires_at'], deadline, latched)
+    if state == validity.CLOSED:
+        _record_expiry(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code)
+        fail(expired_code)
+    if state == validity.HELD: raise validity.hold(reading)
+
+
+def _record_expiry(policy, payload, request_sha256, deadline=None, *, table=_EXPIRED_TABLE, fail=None,
+                   expired_code='service_signature_expired'):
+    """Record a reached expiry of an authenticated receipt before the caller refuses for the manifest's own window.
+
+    The manifest window is judged on the bare clock ahead of everything else, and the receipt expires no later than the
+    manifest, so refusing there without recording would let a clock rollback reopen the receipt. Whatever this section
+    refuses is the same closed window the caller is about to report in its original error, so it is not reported twice."""
+    try:
+        with _critical(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code): pass
+    except (AppError, OSError): pass
+
+
+def _record_expiry_of(job, receipt):
+    """_record_expiry for a receipt this process has not authenticated yet: verify authenticates it, then judges and
+    records the window. A receipt that does not authenticate records nothing."""
+    try: job.policy.verify(job.manifest, receipt)
+    except (AppError, OSError): pass
+
+
+_AUTHORIZATIONS = 'service_authorizations'
+_AUTHORIZATIONS_SQL = ('CREATE TABLE IF NOT EXISTS ' + _AUTHORIZATIONS + ' (operation_id TEXT NOT NULL, phase TEXT NOT NULL, '
+    'authorizations INTEGER NOT NULL, last_authorized_at INTEGER NOT NULL, PRIMARY KEY(operation_id, phase))')
+
+
+def _mark_authorized(db, operation_id, phase):
+    """The per-request dispatch marker of the authorization check, committed inside the critical section before the
+    check returns, so a broker request is never released without a durable record that it was authorized."""
+    db.execute(_AUTHORIZATIONS_SQL)
+    db.execute('INSERT INTO ' + _AUTHORIZATIONS + ' VALUES (?,?,1,?) ON CONFLICT(operation_id, phase) DO UPDATE SET '
+        'authorizations = authorizations + 1, last_authorized_at = excluded.last_authorized_at',
+        (operation_id, phase, int(time.time())))
+    db.execute('COMMIT')
 
 
 def implementation_binding():
@@ -493,9 +572,22 @@ class ServicePolicy:
                 or type(payload['nonce']) is not str or not re.fullmatch(r'[0-9a-f]{32}', payload['nonce'])):
             _fail('service_signature_binding')
         now = int(time.time())
+        # A receipt dated ahead of this clock is refused either way; when the recorded time shows a backward step the
+        # refusal names the hold and the recovery. Read-only and before authentication: nothing is recorded, a damaged
+        # record falls through to the original refusal below.
+        if type(payload['issued_at']) is int and payload['issued_at'] > now + 5: validity.hold_if_clock_behind(self.root)
         if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int
                 or not manifest['prepared_at'] <= payload['issued_at'] <= now + 5
-                or not now < payload['expires_at'] <= manifest['expires_at']): _fail('service_signature_expired')
+                or not payload['expires_at'] <= manifest['expires_at']): _fail('service_signature_expired')
+        try: self._authenticate(manifest, payload, receipt)
+        except AppError:
+            if now >= payload['expires_at']: _fail('service_signature_expired')
+            raise
+        # The window is judged where it is recorded: a reached expiry is latched in the store and refused here, so it
+        # stays closed after a backward clock step and a restart. An unauthenticated receipt never gets this far.
+        with _critical(self, payload, digest(manifest), _deadline(payload)): pass
+        return payload
+    def _authenticate(self, manifest, payload, receipt):
         if any(type(payload[key]) is not str for key in ('issuer', 'key_id', 'approver_id')): _fail('service_signer_invalid')
         signer = self.approvers.get((payload['issuer'], payload['key_id']))
         if not signer or signer['approver_id'] != payload['approver_id'] or manifest['profile'] not in signer['profiles']:
@@ -518,7 +610,6 @@ class ServicePolicy:
                     pass_fds=(fd,), executable='/proc/self/fd/' + str(fd), timeout=5, output_limit=4096)
         except AppError: _fail('service_signature_invalid')
         finally: os.close(fd)
-        return payload
 
 
 def _scopes(manifest):
@@ -558,19 +649,46 @@ class ServicePermit:
     def __init__(self, seal, job, payload, runtime):
         if seal is not _SEAL or type(runtime) is not ServiceRuntime: _fail('service_permit_required')
         self.job, self.payload, self.runtime, self.active, self.pid = job, payload, runtime, True, os.getpid()
+        self.deadline = _deadline(payload)
     def __reduce_ex__(self, protocol): raise TypeError('Service permits cannot be serialized.')
-    def check_active(self):
+    def _stopped_or_changed(self, db):
+        """Whether the job state no longer supports a running dispatch: status, cancellation, consumption, ownership and
+        signer revocation, read from the connection it is given."""
+        row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.job.identifier,)).fetchone()
+        consumed = db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?', (self.job.identifier,)).fetchone()
+        owners = sorted(item[0] for item in db.execute('SELECT scope FROM ownership WHERE job=?', (self.job.identifier,)))
+        revoked = db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (self.payload['issuer'], self.payload['key_id'])).fetchone()
+        return row != ('running', 0, 1) or consumed != (self.job.sha256,) or owners != _scopes(self.job.manifest) or bool(revoked)
+    def _before_judging(self):
         if not self.active or self.pid != os.getpid(): _fail('service_permit_inactive')
-        self.job._check()
-        if int(time.time()) >= self.payload['expires_at']: _fail('service_signature_expired')
+        try: self.job._check()
+        except AppError as error:
+            if error.code == 'service_manifest_expired': _record_expiry(self.job.policy, self.payload, self.job.sha256, self.deadline)
+            raise
+    def poll_active(self):
+        """The watchdog's periodic check (every 0.2 s): read-only, so it never blocks a cancel or recover from another
+        process. Its result grants no authority and must never gate a broker request: it reads the expiry record and the
+        recorded time at different moments, so a latch committed in between can pass it once. The watchdog stops the job
+        when it refuses (closed window, held clock, changed state); a closed window is latched through the shared
+        section first (see _watch)."""
+        self._before_judging()
         with self.job.policy.connection() as db:
-            row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.job.identifier,)).fetchone()
-            consumed = db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?', (self.job.identifier,)).fetchone()
-            owners = sorted(row[0] for row in db.execute('SELECT scope FROM ownership WHERE job=?', (self.job.identifier,)))
-            revoked = db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (self.payload['issuer'], self.payload['key_id'])).fetchone()
-        if row != ('running', 0, 1) or consumed != (self.job.sha256,) or owners != _scopes(self.job.manifest) or revoked:
-            _fail('service_permit_inactive')
+            stopped = self._stopped_or_changed(db)
+            latched = _latched(db, self.payload)
+        _watch(self.job.policy, self.payload, self.job.sha256, self.deadline, latched, fail=_fail,
+            expired_code='service_signature_expired')
+        if stopped: _fail('service_permit_inactive')
         self.runtime.check(self.job.manifest)
+    def check_active(self):
+        """The authorization check that gates every broker request. It enters the shared critical section, judges the
+        window, rereads the job state, the signer revocation and the expiry record inside it, and commits the
+        per-request marker before it returns: nothing can latch the expiry between the decision and its record, and a
+        stale read cannot authorize."""
+        self._before_judging()
+        self.runtime.check(self.job.manifest)
+        with _critical(self.job.policy, self.payload, self.job.sha256, self.deadline) as db:
+            if self._stopped_or_changed(db): _fail('service_permit_inactive')
+            _mark_authorized(db, self.job.identifier, 'apply')
 
 
 class ServiceJob:
@@ -626,7 +744,12 @@ class ServiceJob:
             self.policy.event(db, self.identifier, 'cancel_requested', {'dispatch_replayed': False}); db.execute('COMMIT')
         return self.status()
     def run(self, signed_receipt, *, runtime):
-        self._check()
+        try: self._check()
+        except AppError as error:
+            # The manifest window is judged on the bare clock ahead of everything else. A receipt that authenticates has
+            # its expiry recorded here too, or a rollback after this first refusal would reopen it.
+            if error.code == 'service_manifest_expired': _record_expiry_of(self, signed_receipt)
+            raise
         if threading.current_thread() is not threading.main_thread(): _fail('service_main_thread_required')
         if type(runtime) is not ServiceRuntime: _fail('service_runtime_capability_required')
         runtime.check(self.manifest)
@@ -641,8 +764,9 @@ class ServiceJob:
         # Freeze once before verification; persist only these exact checked bytes.
         signed_snapshot = _snapshot(signed_receipt)
         payload = self.policy.verify(self.manifest, signed_snapshot)
-        with self.policy.connection() as db:
-            db.execute('BEGIN IMMEDIATE')
+        # The window is judged again, and the approval consumed, in one critical section: nothing can latch the expiry
+        # between the judgment and the consumption, and an expiry reached since the verification is refused here.
+        with _critical(self.policy, payload, self.sha256, _deadline(payload)) as db:
             if db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone() != ('prepared', 0, 0):
                 _fail('service_operation_not_replayable')
             if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (payload['issuer'], payload['key_id'])).fetchone(): _fail('service_key_revoked')
@@ -687,7 +811,7 @@ class ServiceJob:
             permit.check_active()
             def monitor():
                 while not stopped.wait(0.2):
-                    try: permit.check_active()
+                    try: permit.poll_active()
                     except BaseException as error:
                         watchdog_fault.append(getattr(error, 'code', type(error).__name__))
                         if not stopped.is_set(): os.kill(os.getpid(), signal.SIGINT)
