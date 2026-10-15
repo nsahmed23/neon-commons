@@ -398,5 +398,48 @@ class ExternalManagementAndCoverage(unittest.TestCase):
         self.assertTrue(any(r.startswith('filter_unsupported:' + s.uid('filter/rx')) for r in out['coverage']['unresolved_reasons']))
 
 
+class IncompleteUserSide(unittest.TestCase):
+    """Fable finding 1: a missing context or user collection must not narrow the observed-universe upper bound."""
+
+    def test_an_incomplete_contexts_collection_keeps_every_device_possible_for_a_user_inclusion(self):
+        doc = s.snapshot_doc(
+            devices=[s.device('a'), s.device('b')], users=[s.user('u1')], contexts=[s.context('u1', 'a')],
+            groups=[s.group('gU', 'user')], memberships=[s.member('gU', 'u1', 'user')],
+            collections={'user_device_contexts': {'complete': False, 'reason': 'query_ceiling'}})
+        result, out = simulate(doc, add(s.policy('p', [s.include('gU')], settings=[])))
+        self.assertEqual(after_sets(result, 'p'), (devs('a'), devs('a', 'b')))
+        self.assertEqual(bounds(out, 'p', 'after'), (1, 2))
+        self.assertEqual(bounds(out, 'p', 'after', 'user_device_contexts'), (1, None))
+        self.assertEqual(bounds(out, 'p', 'added', 'user_device_contexts'), (1, None))
+        self.assertIn('collection_incomplete:user_device_contexts:query_ceiling', out['coverage']['unresolved_reasons'])
+
+    def test_an_incomplete_users_collection_widens_an_all_users_inclusion(self):
+        doc = s.snapshot_doc(devices=[s.device('a'), s.device('b')], users=[s.user('u1')],
+                             contexts=[s.context('u1', 'a')],
+                             collections={'users': {'complete': False, 'reason': 'query_ceiling'}})
+        result, out = simulate(doc, add(s.policy('p', [s.all_users()], settings=[])))
+        self.assertEqual(after_sets(result, 'p'), (devs('a'), devs('a', 'b')))
+        self.assertEqual(bounds(out, 'p', 'after', 'user_device_contexts'), (1, None))
+
+    def test_a_device_only_policy_is_not_widened_by_missing_user_data(self):
+        doc = s.snapshot_doc(
+            devices=[s.device('a'), s.device('b')], groups=[s.group('gD')], memberships=[s.member('gD', 'a')],
+            collections={'user_device_contexts': {'complete': False, 'reason': 'query_ceiling'}})
+        result, out = simulate(doc, add(s.policy('p', [s.include('gD')], settings=[])))
+        self.assertEqual(after_sets(result, 'p'), (devs('a'), devs('a')))
+        self.assertEqual(bounds(out, 'p', 'after', 'user_device_contexts'), (0, 0))
+
+    def test_removal_and_retained_stay_sound_when_one_side_is_unbounded(self):
+        before = s.policy('p', [s.include('gU')], settings=[])
+        doc = s.snapshot_doc(
+            devices=[s.device('a'), s.device('b')], users=[s.user('u1')], contexts=[s.context('u1', 'a')],
+            groups=[s.group('gU', 'user')], memberships=[s.member('gU', 'u1', 'user')], policies=[before],
+            collections={'user_device_contexts': {'complete': False, 'reason': 'query_ceiling'}})
+        result, out = simulate(doc, s.revision_doc(removed=['p']))
+        self.assertEqual(bounds(out, 'p', 'removed', 'user_device_contexts'), (1, None))
+        self.assertEqual(bounds(out, 'p', 'removed'), (1, 2))
+        self.assertEqual(bounds(out, 'p', 'retained', 'user_device_contexts'), (0, 0))
+
+
 if __name__ == '__main__':
     unittest.main()

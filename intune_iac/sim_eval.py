@@ -42,6 +42,7 @@ class Targeting:
     lower: frozenset
     upper: frozenset
     reasons: frozenset
+    contexts_unbounded: bool = False   # user-side data was not fully collected: the context upper bound is open
 
 
 EMPTY = Targeting(frozenset(), frozenset(), frozenset())
@@ -166,7 +167,7 @@ class _Index:
         exclusions = [a['group_id'] for a in assignments if a['type'] == EXCLUSION]
         includes = [(a['type'], a.get('group_id'), a['filter_type'], a.get('filter_id'))
                     for a in assignments if a['type'] != EXCLUSION]
-        loc, lower, upper = set(), set(), set()
+        loc, lower, upper, open_contexts = set(), set(), set(), False
         for kind in ('device', 'user'):
             inc = [a for a in includes if self.applicable(a[0], a[1], kind)]
             if not inc:
@@ -188,8 +189,15 @@ class _Index:
                         upper.add(self.n + j)
                     elif value == U:
                         upper.add(self.n + j)
+                # A context or user the capture missed could reach any device, so no device is ruled out and the
+                # context bound is open; the lower set is untouched.
+                collections = self.snapshot.collections
+                if (not collections['user_device_contexts'].complete
+                        or (any(a[0] == ALL_USERS for a in inc) and not collections['users'].complete)):
+                    upper.update(range(self.n))
+                    open_contexts = True
         self.reasons.update(r for r in loc if r.startswith(_COVERAGE_PREFIXES))
-        return Targeting(frozenset(lower), frozenset(upper), frozenset(loc))
+        return Targeting(frozenset(lower), frozenset(upper), frozenset(loc), open_contexts)
 
     def _decide(self, kind, principal, pos, exclusions, includes, loc):
         excluded = F
@@ -319,15 +327,17 @@ def simulate(snapshot, revision, profile):
         world['before'][pid], world['after'][pid] = tb, ta
 
     # -- per-policy cohorts ----------------------------------------------------------------------------------
-    agg = {w: {'lower': set(), 'upper': set()} for w in ('before', 'after')}
+    agg = {w: {'lower': set(), 'upper': set(), 'unbounded': False} for w in ('before', 'after')}
     for pid in supported:
         sets = {}
         for w in ('before', 'after'):
             t = world[w][pid]
             sets[w] = {'dl': idx.devices(t.lower), 'du': idx.devices(t.upper),
-                       'cl': idx.user_contexts(t.lower), 'cu': idx.user_contexts(t.upper)}
+                       'cl': idx.user_contexts(t.lower), 'cu': idx.user_contexts(t.upper),
+                       'cb': None if t.contexts_unbounded else idx.user_contexts(t.upper)}
             agg[w]['lower'] |= t.lower
             agg[w]['upper'] |= t.upper
+            agg[w]['unbounded'] = agg[w]['unbounded'] or t.contexts_unbounded
         detail[pid] = {w: {'lower_devices': idx.device_ids(sets[w]['dl']), 'upper_devices': idx.device_ids(sets[w]['du']),
                            'lower_contexts': idx.pair_ids(sets[w]['cl']), 'upper_contexts': idx.pair_ids(sets[w]['cu'])}
                        for w in ('before', 'after')}
@@ -347,7 +357,7 @@ def simulate(snapshot, revision, profile):
                 f'no longer targeted {_range(*removed)}; retained {_range(*retained)}. Counts are inside the captured universe'
                 + (f'; source {source}' if source else '') + (f'; reasons: {", ".join(reason_codes[:8])}' if reason_codes else '') + '.',
                 refs)
-        for unit, lk, uk in (('unique_devices', 'dl', 'du'), ('user_device_contexts', 'cl', 'cu')):
+        for unit, lk, uk in (('unique_devices', 'dl', 'du'), ('user_device_contexts', 'cl', 'cb')):
             values = _delta(sets['before'][lk], sets['before'][uk], sets['after'][lk], sets['after'][uk])
             for kind, (lo, hi) in values.items():
                 cohort(f'policy:{pid}:{kind}:{unit}', kind, unit, lo, hi, [fid])
@@ -361,7 +371,11 @@ def simulate(snapshot, revision, profile):
         a0l, a0u = frozenset(agg['before']['lower']), frozenset(agg['before']['upper'])
         a1l, a1u = frozenset(agg['after']['lower']), frozenset(agg['after']['upper'])
         for unit, project in (('unique_devices', idx.devices), ('user_device_contexts', idx.user_contexts)):
-            values = _delta(project(a0l), project(a0u), project(a1l), project(a1u))
+            u0, u1 = project(a0u), project(a1u)
+            if unit == 'user_device_contexts':
+                u0 = None if agg['before']['unbounded'] else u0
+                u1 = None if agg['after']['unbounded'] else u1
+            values = _delta(project(a0l), u0, project(a1l), u1)
             for kind, (lo, hi) in values.items():
                 cohort(f'changed:{kind}:{unit}', kind, unit, lo, hi)
                 if unit == 'unique_devices' and not complete:
@@ -394,10 +408,24 @@ def simulate(snapshot, revision, profile):
 
 
 def _delta(l0, u0, l1, u1):
-    """Added, removed and retained bounds from before (L0, U0) and after (L1, U1), as in the model's table."""
-    return {'before': (len(l0), len(u0)), 'after': (len(l1), len(u1)),
-            'added': (len(l1 - u0), len(u1 - l0)), 'removed': (len(l0 - u1), len(u0 - l1)),
-            'retained': (len(l0 & l1), len(u0 & u1))}
+    """Added, removed and retained bounds from before (L0, U0) and after (L1, U1), as in the model's table.
+
+    An upper set of None is open (the data that would bound it was not collected): its count is None, a definite
+    count that would need that set drops to 0, and nothing is narrowed."""
+    def size(items):
+        return None if items is None else len(items)
+    if u0 is None and u1 is None:
+        retained_upper = None
+    elif u0 is None:
+        retained_upper = len(u1)
+    elif u1 is None:
+        retained_upper = len(u0)
+    else:
+        retained_upper = len(u0 & u1)
+    return {'before': (len(l0), size(u0)), 'after': (len(l1), size(u1)),
+            'added': (0 if u0 is None else len(l1 - u0), None if u1 is None else len(u1 - l0)),
+            'removed': (0 if u1 is None else len(l0 - u1), None if u0 is None else len(u0 - l1)),
+            'retained': (len(l0 & l1), retained_upper)}
 
 
 def _assignment_findings(idx, finding, pid, rec_b, rec_a):
