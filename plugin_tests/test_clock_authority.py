@@ -497,3 +497,126 @@ class OrderingFactTests(unittest.TestCase):
         other = self.ids[1]
         self.import_batch(self.batch(oid=other, observed_at=now - 7200))
         self.assertEqual(self.store.inspect(other)['next_collection_replaces'], 'none')
+
+
+class CarriedExpiryTests(unittest.TestCase):
+    """Astra's falsifier: true time passes the expiry while the wall clock reads earlier (temporal gate S7)."""
+    setUp = MaintenanceDispatchTests.setUp
+    patches = MaintenanceDispatchTests.patches
+    execute = MaintenanceDispatchTests.execute
+
+    def test_an_expiry_reached_in_carried_time_is_latched_before_a_backward_refusal(self):
+        self.clocks.mono += 400  # true time passed the expiry
+        self.clocks.wall += 100  # while the wall clock reads earlier than that
+        self.assertEqual(self.execute().code, 'expired_request')
+        self.assertTrue((self.operation / 'executor' / 'expired.json').exists())
+        clock.reset_process_anchor()  # a restart
+        self.clocks.wall += 1
+        self.assertEqual(self.execute().code, 'expired_request')
+        self.assertEqual(self.patches(), [])
+
+    def test_the_recorded_floor_is_the_effective_time(self):
+        created = self.proposal['expires_at'] - 300
+        self.clocks.mono += 250  # true time is inside the window
+        self.clocks.wall += 100  # the wall clock reads 150 s earlier: held
+        self.assertEqual(self.execute().code, 'clock_moved_backward')
+        self.assertGreaterEqual(clock.Floor(self.operation / 'executor' / 'clock.json').high_water(), created + 250)
+        clock.reset_process_anchor()  # another process, whose wall clock still reads earlier than that
+        self.clocks.wall += 50
+        self.assertEqual(self.execute().code, 'clock_moved_backward')
+        self.assertEqual(self.patches(), [])
+
+    def test_the_review_says_closed_once_carried_time_passes_the_expiry(self):
+        self.clocks.mono += 400
+        self.clocks.wall += 100
+        self.assertEqual(maintenance.review(self.operation)['approval_window']['state'], 'closed')
+
+
+class WorkerExpiryLatchTests(unittest.TestCase):
+    """Astra's finding 2: the protected worker's own expiry check must record the expiry, so a rollback and a restart
+    cannot reopen the job."""
+    from plugin_tests import test_protected_worker_r4 as _worker_tests
+    setUp = _worker_tests.ProtectedWorkerTests.setUp
+    prepare = _worker_tests.ProtectedWorkerTests.prepare
+    job = _worker_tests.ProtectedWorkerTests.job
+
+    def test_a_worker_expiry_is_recorded_and_survives_a_rollback_and_a_restart(self):
+        import time
+        from intune_iac import protected_worker
+        self.prepare()
+        expires = self.job().manifest['native_request']['expires_at']
+        with patch.object(protected, '_now', return_value=expires + 10), \
+                patch.object(protected_worker.time, 'time', return_value=expires + 10):
+            with self.assertRaises(AppError) as raised:
+                self.job().check(active=True)
+        self.assertEqual(raised.exception.code, 'worker_request_expired')
+        self.assertTrue((self.executor.root / 'expired.json').exists())
+        clock.reset_process_anchor()  # a restart, with the clock rolled back inside the window
+        with patch.object(protected, '_now', return_value=expires - 100), \
+                patch.object(protected_worker.time, 'time', return_value=expires - 100):
+            with self.assertRaises(AppError) as raised:
+                self.job().check(active=True)
+        self.assertEqual(raised.exception.code, 'worker_request_expired')
+
+
+class GuardRestartContractTests(unittest.TestCase):
+    """The owner's four guard-level probes (inbox/PRODUCT-TASK-14.md; probe_clock_restart.py in its evidence package):
+    once the guard's effective time passes expiry, or once it holds for conflicting time, a restart must not make the
+    same request usable again. Two controls and two counterexamples; both counterexamples failed on aec8bd6."""
+
+    def setUp(self):
+        from types import SimpleNamespace
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.executor = SimpleNamespace(root=self.root)
+        self.request = {'operation_id': 'independent-clock-probe', 'created_at': START, 'expires_at': START + 300}
+        self.wall, self.mono = START, 5000.0
+        for target, name, read in [(protected, '_now', lambda: self.wall), (clock, 'monotonic', lambda: self.mono)]:
+            patcher = patch.object(target, name, side_effect=read)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        clock.reset_process_anchor()
+        self.addCleanup(clock.reset_process_anchor)
+        clock.Floor(self.root / 'clock.json').observe(self.wall)
+
+    def judge(self):
+        try:
+            protected._window(self.request, self.executor)
+            return 'open'
+        except AppError as error:
+            return error.code
+
+    def restart(self):
+        clock.reset_process_anchor()
+        self.mono = 0.0
+
+    def test_wall_expiry_survives_restart_control(self):
+        self.wall += 400
+        self.mono += 400
+        self.assertEqual(self.judge(), 'expired_request')
+        self.wall = START + 10
+        self.restart()
+        self.assertEqual(self.judge(), 'expired_request')
+
+    def test_recorded_wall_rollback_survives_restart_control(self):
+        self.wall += 100
+        self.mono += 100
+        self.assertEqual(self.judge(), 'open')
+        self.wall = START + 10
+        self.restart()
+        self.assertEqual(self.judge(), 'clock_moved_backward')
+
+    def test_elapsed_expiry_and_rollback_cannot_reopen_after_restart(self):
+        self.mono += 400  # four hundred real elapsed seconds; the wall advanced only ten
+        self.wall += 10
+        self.assertEqual(self.judge(), 'expired_request')
+        self.restart()
+        self.assertEqual(self.judge(), 'expired_request')
+
+    def test_unresolved_clock_hold_survives_restart_without_new_time_evidence(self):
+        self.mono += 100  # before expiry, but the readings conflict
+        self.wall += 10
+        self.assertEqual(self.judge(), 'clock_moved_backward')
+        self.restart()  # a restart supplies no correction or trustworthy new reading
+        self.assertEqual(self.judge(), 'clock_moved_backward')

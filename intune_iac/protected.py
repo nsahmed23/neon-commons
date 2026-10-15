@@ -746,13 +746,23 @@ def _window(request, executor):
     with floor.locked():
         if expired.exists():_fail('expired_request')
         reading=floor.observe_locked(_now())
-        if reading['backward'] or reading['effective']<request['created_at']:_fail('clock_moved_backward')
+        # A reached expiry is recorded before anything else is judged: the effective time never goes back, so the
+        # window is closed for good even while the wall clock reads earlier (temporal gate S7).
         if reading['effective']>=request['expires_at']:
             try:_exclusive(expired,canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),
                                              'expires_at':request['expires_at'],'judged_at':reading['effective'],'wall':reading['wall']}))
             except FileExistsError:pass
             _fail('expired_request')
+        if reading['backward'] or reading['effective']<request['created_at']:_fail('clock_moved_backward')
     return reading['effective']
+
+
+def check_approval_window(request, *, executor):
+    """The approval window alone, judged as every dispatch check judges it (_window), recording a reached expiry
+    before refusing. For a guard that runs during an apply: it touches only the window's records beside the
+    executor (clock.json, clock.lock, expired.json), never the runtime files an apply is writing."""
+    _require_executor(executor)
+    return _window(_json_snapshot(request), executor)
 
 
 def validate_native_operation(request, *, executor, require_fresh=False, require_state=False):

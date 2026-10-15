@@ -155,7 +155,9 @@ time that never goes backward, never on a bare wall-clock reading
 
 - **Time authority.** Wall time is the only persisted, portable timestamp. Beside
   each prepared request, `clock.json` records the latest wall time any check of
-  that operation saw (its high-water mark; creation is the first point). It only
+  that operation saw, as its effective time: the wall clock or the checking
+  process's carried reading, whichever was later (its high-water mark; creation
+  is the first point). It only
   rises: its read, comparison and write, and the expiry record below, happen
   under one lock (`clock.lock` beside it). Within one process, monotonic time
   carries the latest reading for the
@@ -170,7 +172,7 @@ time that never goes backward, never on a bare wall-clock reading
   the high reading forward, so restart it after correcting the clock), or
   prepare a new request. A damaged time record refuses for good
   (`clock_floor_invalid`, audited like the others): prepare a new request.
-- **Expiry is recorded.** When the effective time reaches `expires_at`, an
+- **Expiry is recorded first.** When the effective time reaches `expires_at`, an
   exclusive `expired.json` is written beside the approval before the refusal
   (`expired_request`). Every later check refuses while it exists, after a clock
   rollback, a restart or from another process alike. The workbench's operation

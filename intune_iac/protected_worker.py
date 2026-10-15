@@ -261,7 +261,15 @@ class WorkerJob:
             _fail('worker_executor_changed')
         row = self._row()
         if active and row[3]: _fail('worker_cancellation_requested')
-        if active and int(time.time()) >= self.manifest['native_request']['expires_at']: _fail('worker_request_expired')
+        if active:
+            # The shared window judges expiry on the effective time and records a reached expiry before refusing,
+            # so a rollback and a restart cannot reopen this job (Astra, lanes/advisor-time-consumers). The window
+            # alone: this check also guards a running apply, whose runtime files must not be inspected here.
+            try:
+                protected.check_approval_window(self.manifest['native_request'], executor=self.executor)
+            except AppError as error:
+                if error.code == 'expired_request': _fail('worker_request_expired')
+                raise
 
     def status(self):
         self._attestation(); row = self._row()

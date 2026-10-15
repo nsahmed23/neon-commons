@@ -4,8 +4,8 @@ Wall time (seconds since the epoch) is the only portable timestamp: it is what g
 processes. A wall clock can step backward (this project's host steps by 266 seconds every few seconds), so a validity
 window judged on the bare wall clock could reopen after it closed. Three rules prevent that:
 
-1. A durable high-water mark, kept in a small JSON file beside what it guards, records the latest wall time any check
-   saw. It only rises.
+1. A durable high-water mark, kept in a small JSON file beside what it guards, records the latest effective time any
+   check saw (the wall clock or this process's carried reading, whichever was later). It only rises.
 2. Within one process, monotonic time carries the latest wall time this process saw for the same guarded thing forward
    by the elapsed time. It is never persisted and never compared across processes or guarded things.
 3. The effective time is the greatest of the wall clock, the high-water mark and the process floor, so it never goes
@@ -106,9 +106,11 @@ class Floor:
         process = _process_floor(str(self.path), wall)
         floor = max(value for value in (recorded, process) if value is not None)
         backward = wall < floor - TOLERANCE_SECONDS
-        if persist and (recorded is None or wall > recorded):
-            write_json(self.path, {'schema_version': SCHEMA, 'high_water': wall})
-        return {'wall': wall, 'floor': floor, 'effective': max(wall, floor), 'backward': backward}
+        effective = max(wall, floor)
+        # The effective time, not the bare reading: a restart must keep what this process knew (temporal gate S7).
+        if persist and (recorded is None or effective > recorded):
+            write_json(self.path, {'schema_version': SCHEMA, 'high_water': effective})
+        return {'wall': wall, 'floor': floor, 'effective': effective, 'backward': backward}
 
     def peek(self, wall):
         """observe without recording anything: for read-only views."""
