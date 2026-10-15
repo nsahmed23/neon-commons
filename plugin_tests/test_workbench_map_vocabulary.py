@@ -22,6 +22,14 @@ GENERATED = {'relation': 'generated_from', 'target_id': '/home/nsahm/work/journe
              'details': {}, 'assertion_class': 'historical_local_adoption'}
 
 
+class MapCase(MapTruth):
+    def legend_rows(self, width, rules='unicode', **kw):
+        """The legend's rows: the pinned rows above the FOCUS rows."""
+        from intune_iac.workbench_screens import PinnedRow
+        lines, _ = self.rows(width=width, rules=rules, **kw)
+        return [str(line) for line in lines if isinstance(line, PinnedRow) and not line.startswith('FOCUS')]
+
+
 class OneWordOneMeaningTests(MapTruth):
     def with_generated(self):
         return dict(self.value, relationships=self.value['relationships'] + [GENERATED])
@@ -184,7 +192,7 @@ class ViewportCutTests(MapTruth):
             body = self.body_rows(self.workspace((120, 40), rules=rules))
             mapped = [row for row in body if MARK.search(row) and ('→' in row or '->' in row)]
             self.assertTrue(mapped)
-            self.assertTrue(all(row.endswith(('—', '--', 'none recorded')) for row in mapped), mapped)
+            self.assertTrue(all(row.endswith(('—', 'n/a', 'none recorded')) for row in mapped), mapped)
 
     def test_the_pan_statement_stays(self):
         text = ' '.join(' '.join(row.strip('│ ') for row in self.plain(self.workspace((60, 20)))).split())
@@ -339,16 +347,11 @@ class PageTruthTests(MapTruth):
             self.assertRegex(script, r'panKey\.hidden = level === 0')
 
 
-class LegendTests(MapTruth):
+class LegendTests(MapCase):
     """Item 5: where the legend has room it names every mark it shows and what the no-state word means; narrower forms
     say where the rest are listed, and the help lists them. The text depends on the width (and the rules), never a state."""
     MARKS = ('verified', 'running', 'queued', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown', 'expired', 'prepared',
              'none recorded')
-
-    def legend_rows(self, width, rules='unicode', **kw):
-        from intune_iac.workbench_screens import PinnedRow
-        lines, _ = self.rows(width=width, rules=rules, **kw)
-        return [str(line) for line in lines if isinstance(line, PinnedRow) and not line.startswith('FOCUS')]
 
     def test_where_it_fits_the_legend_names_each_mark_and_says_what_the_dash_means(self):
         for width in (116, 160, 196):
@@ -403,6 +406,61 @@ class LegendTests(MapTruth):
         for word in self.MARKS:
             self.assertIn(word, text)
         self.assertRegex(text, r'\[ \] with — \((--|n/a)[^)]*\) means the kind has no operation state')
+
+
+class AsciiTests(MapCase):
+    """Item 6: ASCII keeps every open rail on a typed-tree continuation line, and its no-state word is not a drawing
+    character."""
+    TO_ASCII = (('├── ', '|-- '), ('└── ', '`-- '), ('│   ', '|   '))
+
+    def ascii_of(self, line):
+        for old, new in self.TO_ASCII:
+            line = line.replace(old, new)
+        return line
+
+    def test_the_typed_tree_in_ascii_is_the_unicode_tree_with_ascii_rails(self):
+        from intune_iac.workbench_screens import relationship_lines
+        for width in (60, 100, 116):
+            unicode_rows = relationship_lines(self.value, width, 'unicode')
+            ascii_rows = relationship_lines(self.value, width, 'ascii')
+            self.assertEqual([self.ascii_of(row) for row in unicode_rows], ascii_rows, width)
+        # Frame 18 line 27: the filter identifier wraps under its assignment, and the rail of the open branch carries on.
+        rows = relationship_lines(self.value, 100, 'ascii')
+        index = next(i for i, row in enumerate(rows) if row.startswith('  |-- assignment') and 'filter include' in row)
+        self.assertRegex(rows[index + 1], r'^  \|   +5aa36291-9c32-5f60-b5ef-a48382c20714$')
+        self.assertTrue(all(ord(char) < 0x80 for row in rows for char in row))
+
+    def test_the_last_branch_of_a_group_leaves_no_rail_behind_it(self):
+        from intune_iac.workbench_screens import relationship_lines
+        value = dict(self.value, relationships=[
+            {'relation': 'setting', 'target_id': 'device_vendor_msft_policy_config_' + 'x' * 120, 'details': {}, 'assertion_class': 'observed'}],
+            selected_repository=None)
+        rows = relationship_lines(value, 60, 'ascii')
+        index = next(i for i, row in enumerate(rows) if row.startswith('  `-- setting'))
+        self.assertTrue(rows[index + 1].startswith('      '), rows[index:index + 3])
+        self.assertEqual([self.ascii_of(row) for row in relationship_lines(value, 60, 'unicode')], rows)
+
+    def test_the_no_state_word_is_not_a_drawing_character_in_ascii(self):
+        from intune_iac.workbench_screens import MAP_NO_STATE
+        self.assertEqual(MAP_NO_STATE['unicode'], '—')
+        self.assertEqual(MAP_NO_STATE['ascii'], 'n/a')
+        _, rows = self.rows(rules='ascii')
+        nodes = [row for row in rows if MARK.search(row)]
+        self.assertEqual(len(nodes), 9)
+        for row in nodes[1:]:
+            self.assertTrue(row.rstrip().endswith(' n/a'), row)
+        for row in rows:
+            self.assertNotIn('--', row, 'no map row has a double dash: it was both a branch and the no-state word')
+        self.assertTrue(all(ord(char) < 0x80 for row in rows for char in row))
+
+    def test_the_ascii_legend_and_help_define_the_word_the_rows_show(self):
+        from intune_iac.workbench_screens import help_lines
+        for width in (76, 116, 196):
+            legend = ' '.join(self.legend_rows(width, 'ascii'))
+            self.assertIn('n/a means', legend)
+            self.assertNotIn('--', legend)
+        help_text = ' '.join(' '.join(help_lines(100, map_keys=True)).split())
+        self.assertIn('(n/a in ASCII)', help_text)
 
 
 if __name__ == '__main__':

@@ -35,7 +35,7 @@ class MapTruth(Fixture):
 
 class StateColumnTests(MapTruth):
     def test_a_kind_without_an_operation_shows_a_dash_and_no_state_word(self):
-        for rules, dash in (('unicode', '—'), ('ascii', '--')):
+        for rules, dash in (('unicode', '—'), ('ascii', 'n/a')):
             _, rows = self.rows(rules=rules)
             nodes = [row for row in rows if MARK.search(row)]
             self.assertEqual(len(nodes), 9)

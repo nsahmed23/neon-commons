@@ -1461,7 +1461,9 @@ HELP_WORDS = (
 
 
 # What a node row of a kind that has no operation shows in the state column, by the rules in use: never a state word.
-MAP_NO_STATE = {'ascii': '--', 'unicode': '—'}
+# In ASCII it is the word n/a, not a drawing character: -- is also a tree branch (|--), and a dash that means two things
+# on one screen is read as either. The legend and the help define it.
+MAP_NO_STATE = {'ascii': 'n/a', 'unicode': '—'}
 
 # Named only where a relationship map can be shown (a selected policy and a window with room for it).
 HELP_MAP_KEYS = (
@@ -1568,7 +1570,8 @@ def _edge_target(edge):
     return text
 
 
-TREES = {'ascii': ('|-- ', '`-- ', '    '), 'unicode': ('├── ', '└── ', '│   ')}
+# The typed tree: a branch, the last branch and the rail a continuation line keeps while its branch is open, in each rules.
+TREES = {'ascii': ('|-- ', '`-- ', '|   '), 'unicode': ('├── ', '└── ', '│   ')}
 
 
 def _count(number, singular, plural):
