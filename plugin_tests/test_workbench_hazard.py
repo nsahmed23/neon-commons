@@ -535,3 +535,30 @@ class ReviewFixTests(unittest.TestCase):
         workspace.draw()
         rows = out.getvalue().replace('\x1b[H', '').replace('\x1b[J', '').split('\r\n')
         self.assertEqual(sum(row.count('alpha') for row in rows), 30)
+
+
+class PaddingTests(unittest.TestCase):
+    """Text inside the frame keeps one column of space from each border, at every size (journey 27 review, Sonnet 23)."""
+
+    def frame(self, size):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        out = io.StringIO()
+        workspace.__dict__.update(
+            stdout=out, tab=1, value={'object_id': POLICY, 'evidence_class': 'synthetic'}, scroll=0, mode=None, notice='',
+            rules='unicode', color=False, theme='dark', selected=POLICY, layer='summary', submission_key='enter',
+            facts={'object_id': POLICY, 'signals': []}, staged=None, store=type('S', (), {'tenant_id': TENANT})(),
+            mode_class='synthetic', last_command='inspect')
+        workspace._terminal_size = lambda: size
+        workspace._data_lines = lambda width: [('word ' * 60).strip(), 'x' * width]
+        workspace.draw()
+        return [row for row in out.getvalue().replace('\x1b[H', '').replace('\x1b[J', '').split('\r\n')]
+
+    def test_text_keeps_a_column_from_each_border(self):
+        for size in ((120, 40), (80, 24), (40, 12)):
+            inside = [row.replace('\x1b[1m', '').replace('\x1b[22m', '') for row in self.frame(size) if row.startswith('│')]
+            self.assertTrue(inside, size)
+            for row in inside:
+                self.assertEqual(cell_width(row), size[0], (size, row))
+                self.assertEqual(row[1], ' ', (size, row))
+                self.assertEqual(row[-2], ' ', (size, row))

@@ -35,7 +35,8 @@ class RulesTests(unittest.TestCase):
         text = self.frame('unicode')
         self.assertIn('┌' + '─' * 38 + '┐', text)
         # Without colour a heading is still bold; the words and the rule are unchanged.
-        self.assertIn('│\x1b[1m[CHANGE REVIEW]\x1b[22m', text)
+        # One column of padding inside the border (journey 27 review, Sonnet 23).
+        self.assertIn('│ \x1b[1m[CHANGE REVIEW]\x1b[22m', text)
         self.assertNotIn('\x1b[38;', text)
         self.assertIn('└' + '─' * 38 + '┘', text)
         ascii_text = self.frame('ascii')

@@ -1332,10 +1332,12 @@ class Workspace:
             pick = lambda forms: next((form for form in forms if cell_width(form) <= width), forms[-1])
             staged_rows = [pick(staged['boundary']), pick(staged.get('mechanics') or ('',))]
         available = max(0, height - 8 - len(band) - (1 if staged_rows else 0))
-        data = self._body_lines(inner, RULES[getattr(self, 'rules', 'ascii')][1])
+        # One column of space inside each border: text never touches the frame (journey 27 review, Sonnet 23).
+        content = inner - 2
+        data = self._body_lines(content, RULES[getattr(self, 'rules', 'ascii')][1])
         # A row wider than the frame is wrapped at a space, never clipped mid-word (journey 27 frame 11).
         from .workbench_screens import word_wrap
-        data = [part for line in data for part in (word_wrap(line, inner) if cell_width(line) > inner else [line])]
+        data = [part for line in data for part in (word_wrap(line, content) if cell_width(line) > content else [line])]
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
         status = self._context_strip(width)
@@ -1357,7 +1359,7 @@ class Workspace:
         frame = [pad(header, width), pad(labels, width), pad(status, width)] + [pad(row, width) for row in band] + [
                  ruled(top[0], top[1], top[2], inner, ' more above: PgUp ' if self.scroll > 0 else None)]
         band_rows = set(range(3, 3 + len(band)))
-        frame.extend(side + pad(line, inner) + side for line in visible)
+        frame.extend(side + ' ' + pad(line, content) + ' ' + side for line in visible)
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
                             ' more below: PgDn ' if self.scroll + available < len(data) else None),
