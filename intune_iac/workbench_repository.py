@@ -62,6 +62,7 @@ def consumer_contract(report, pointer, tenant_id, object_id):
         return result
     key = match.group(1)
     reasons = []
+    matched = {}  # the pin profile whose required version the component names, when it is accepted
     if key != stable_key(tenant_id, object_id):
         reasons.append('policy_key_identity')
     effective = report.get('effective')
@@ -81,9 +82,10 @@ def consumer_contract(report, pointer, tenant_id, object_id):
         if sources is None:
             reasons.append('component_files_unreadable_or_unbounded')
         else:
-            reasons.extend(component_errors(sources, key, object_id, allow_backend=True))
+            reasons.extend(component_errors(sources, key, object_id, allow_backend=True, matched=matched))
+    # A component made under the legacy pins is still a verified consumer (its status is unchanged); the profile says so.
     result.update(status='mismatch' if reasons else 'verified', reasons=sorted(set(reasons)), policy_key=key,
-                  logical_stack=_logical_stack(report.get('root', ''), variables))
+                  logical_stack=_logical_stack(report.get('root', ''), variables), pin_profile=matched.get('pin_profile'))
     return result
 
 

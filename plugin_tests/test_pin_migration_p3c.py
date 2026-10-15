@@ -500,7 +500,8 @@ class IndependentOracleLiteralTests(unittest.TestCase):
                 range_text = '>= %s, < %s' % (tofu, minor_ceiling(tofu))
                 self.assertEqual(core.TOOL_PINS[version]['required_version'], range_text)
                 self.assertEqual(invariants.TOOL_PROFILES[version],
-                                 {'tool_versions': 'opentofu %s\natmos %s\n' % (tofu, atmos), 'required_version': range_text})
+                                 {'profile': LEGACY if version == CONTEXT_V1 else CURRENT,
+                                  'tool_versions': 'opentofu %s\natmos %s\n' % (tofu, atmos), 'required_version': range_text})
 
     def test_the_producer_profiles_come_from_native_pins(self):
         from intune_iac import pin_profiles

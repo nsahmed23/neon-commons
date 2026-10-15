@@ -21,8 +21,10 @@ PROVIDER = 'deploymenttheory/microsoft365'
 # 1.0.0 is the legacy pair (reproduction only), 2.0.0 the current local qualification; a test compares these literals
 # with native_pins.py.
 TOOL_PROFILES = {
-    '1.0.0': {'tool_versions': 'opentofu 1.10.0\natmos 1.199.0\n', 'required_version': '>= 1.10.0, < 1.11.0'},
-    '2.0.0': {'tool_versions': 'opentofu 1.13.1\natmos 1.230.1\n', 'required_version': '>= 1.13.1, < 1.14.0'},
+    '1.0.0': {'profile': 'legacy_reproduction_only', 'tool_versions': 'opentofu 1.10.0\natmos 1.199.0\n',
+              'required_version': '>= 1.10.0, < 1.11.0'},
+    '2.0.0': {'profile': 'current_local_qualification', 'tool_versions': 'opentofu 1.13.1\natmos 1.230.1\n',
+              'required_version': '>= 1.13.1, < 1.14.0'},
 }
 SECRET_KEYS = {'clientsecret', 'accesstoken', 'refreshtoken', 'password', 'privatekey',
                'authorization', 'recoverykey', 'secret'}
@@ -586,7 +588,7 @@ def _artifacts(files, expected, normalized, partial, raw_digest, pins):
                                      any_known_profile=False)
 
 
-def component_errors(sources, key, pid, *, allow_backend=False, required_version=None, any_known_profile=True):
+def component_errors(sources, key, pid, *, allow_backend=False, required_version=None, any_known_profile=True, matched=None):
     """Structural contract of the reference component, as safe error codes.
 
     One resource keyed by ``var.policies``, the import of exactly this object,
@@ -597,7 +599,8 @@ def component_errors(sources, key, pid, *, allow_backend=False, required_version
     The terraform block must name one required version. ``required_version`` names the exact string a generated
     project holds under its context profile. Without it, a maintained repository may hold the string of either
     known profile (``any_known_profile``), because a repository made under the legacy pins stays readable; any other
-    string is refused, and with neither argument nothing is accepted.
+    string is refused, and with neither argument nothing is accepted. A caller that passes a dict as ``matched`` gets
+    ``pin_profile`` in it when the terraform block was accepted: the profile whose required version it names.
     """
     errors = []
     address = RESOURCE + '.policy["' + key + '"]'
@@ -645,6 +648,9 @@ def component_errors(sources, key, pid, *, allow_backend=False, required_version
                     sorted(profile['required_version'] for profile in TOOL_PROFILES.values()) if any_known_profile else [])
         if len(terraform) != 1 or terraform[0] != {'required_version': terraform[0].get('required_version'), 'required_providers': [{'microsoft365': {'source': PROVIDER, 'version': '1.0.0'}}]} or terraform[0].get('required_version') not in accepted:
             errors.append('generated_provider_changed')
+        elif matched is not None:
+            matched['pin_profile'] = next((p['profile'] for p in TOOL_PROFILES.values()
+                                           if p['required_version'] == terraform[0]['required_version']), None)
         variables = [v for p in parsed for v in p.get('variable', [])]
         declared = {name: body for v in variables for name, body in v.items()}
         if (len(variables) != 2 or set(declared) != {'live_qualification_ack', 'policies'}

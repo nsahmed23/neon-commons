@@ -413,5 +413,74 @@ class WorkflowProviderEvidenceTests(unittest.TestCase):
                 self.assertNotEqual(session['completed'], workflow.STAGES[:6])
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Item 2: a repository component accepted under the legacy range is labelled.
+# ---------------------------------------------------------------------------------------------------------------------
+class RepositoryComponentLabelTests(unittest.TestCase):
+    """The consumer contract of a maintained repository: status unchanged, the pin profile it matched reported."""
+    NORMALIZED = json.loads((ROOT / 'examples/supported/expected/normalized.json').read_text())
+    MAIN = 'components/terraform/intune-reference/main.tf'
+
+    def repository(self, profile):
+        import shutil
+        from intune_iac.engine import generate
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        (folder / 'context.json').write_text(json.dumps(with_pins(example_context(), profile)))
+        generate(ROOT / 'examples/supported/input/export.json', folder / 'context.json', folder / 'generated')
+        shutil.copytree(folder / 'generated', folder / 'repository')
+        return folder / 'repository'
+
+    def contract(self, repository, component='intune-reference'):
+        from intune_iac.repository import resolve_component
+        from intune_iac.workbench_repository import consumer_contract
+        report = resolve_component(repository, 'orgs/reference/dev', component)
+        n = self.NORMALIZED
+        return consumer_contract(report, '/vars/policies/' + n['key'], n['tenant_id'], n['object_id'])
+
+    def test_a_current_component_is_verified_and_labelled_current(self):
+        result = self.contract(self.repository(CURRENT))
+        self.assertEqual((result['status'], result['reasons']), ('verified', []))
+        self.assertEqual(result['pin_profile'], CURRENT)
+
+    def test_a_legacy_component_stays_verified_and_says_it_is_legacy(self):
+        result = self.contract(self.repository(LEGACY))
+        self.assertEqual((result['status'], result['reasons']), ('verified', []))
+        self.assertEqual(result['pin_profile'], LEGACY)
+
+    def test_a_component_with_any_other_required_version_is_a_mismatch_with_no_profile(self):
+        repository = self.repository(CURRENT)
+        main = repository / self.MAIN
+        text = main.read_text()
+        wanted = [line for line in text.split('\n') if 'required_version' in line][0]
+        main.write_text(text.replace(wanted, '  required_version = ">= 1.12.0, < 1.13.0"'))
+        result = self.contract(repository)
+        self.assertEqual(result['status'], 'mismatch')
+        self.assertIn('generated_provider_changed', result['reasons'])
+        self.assertIsNone(result['pin_profile'])
+
+    def test_a_component_that_is_not_the_reference_one_has_no_profile_field_to_read(self):
+        result = self.contract(self.repository(CURRENT), component='other')
+        self.assertEqual(result['status'], 'not_applicable')
+        self.assertNotIn('pin_profile', result)
+
+    def test_component_errors_reports_the_matched_profile_to_a_caller_that_asks(self):
+        from reference.invariants import TOOL_PROFILES, component_errors
+        repository = self.repository(LEGACY)
+        sources = {path.name: path.read_text() for path in (repository / 'components/terraform/intune-reference').iterdir()}
+        n = self.NORMALIZED
+        matched = {}
+        self.assertEqual(component_errors(sources, n['key'], n['object_id'], matched=matched), [])
+        self.assertEqual(matched, {'pin_profile': LEGACY})
+        self.assertEqual({v['profile'] for v in TOOL_PROFILES.values()}, {CURRENT, LEGACY})
+        matched = {}
+        errors = component_errors(sources, n['key'], n['object_id'], required_version=TOOL_PROFILES[CONTEXT_V2]['required_version'],
+                                  any_known_profile=False, matched=matched)
+        self.assertIn('generated_provider_changed', errors)
+        self.assertEqual(matched, {})
+
+
 if __name__ == '__main__':
     unittest.main()
