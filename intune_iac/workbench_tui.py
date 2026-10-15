@@ -1511,6 +1511,18 @@ class Workspace:
                 return ELIGIBILITY_FINDINGS[eligibility['reason']][0] % eligibility, eligibility['reason']
             found = [signal for signal in signals
                      if signal.get('code') in ('observation_stale', 'collection_failed', 'collection_not_finished')]
+            if code == 'maintenance_observation_stale':
+                # A clock hold on the age is a different cause with a different way out: collecting again does not
+                # clear it. It shows in the observation signal's reasons or in the proposal check's own reasons.
+                from .workbench_diagnostics import CLOCK_HOLD_WORDS, clock_hold
+                stale = next((signal for signal in found if signal.get('code') == 'observation_stale'), None)
+                hold = clock_hold(((stale or {}).get('evidence') or {}).get('freshness_reasons'))
+                if hold is None and eligibility.get('code') == code and eligibility.get('reason') == 'not_fresh':
+                    hold = clock_hold(eligibility.get('freshness_reasons'))
+                if hold:
+                    cause = (str(stale['observed']) if stale else
+                             "The newest observation's age cannot be established: %s." % CLOCK_HOLD_WORDS[hold])
+                    return cause, 'observation_' + hold
             return (str(found[0]['observed']), kinds[found[0]['code']]) if found else None
         return None
 

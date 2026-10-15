@@ -2113,8 +2113,9 @@ REFUSALS = {
     'maintenance_observation_stale': (
         'The newest observation of this policy is not fresh, or the service changed after it was collected; a change '
         'is never prepared against it.',
-        'Collect again (:collect), then prepare the proposal again; i shows the observation\'s freshness. An observation '
-        'stamped later than this machine\'s clock is not fresh either.'),
+        'Collect again (:collect), then prepare the proposal again; i shows the observation\'s freshness. If i says its '
+        'age cannot be established (a clock hold), collecting again does not clear it: correct the host clock and '
+        'restart the workbench.'),
     'maintenance_observation_incomplete': (
         'The newest observation of this policy is incomplete, or the last collection did not finish.',
         'Collect again (:collect); i shows what was not read.'),
@@ -2265,6 +2266,13 @@ KNOWN_NEXT = {
     'source_mismatch': 'Collect again from the configured service (a lists it), then prepare the proposal again.',
     'tenant_mismatch': "Restart with the --service-root for this store's tenant.",
     'observation_stale': 'Collect again (a lists it), then prepare the proposal again.',
+    # A clock hold on the age: a new observation is judged against the same recorded time, so collecting is not the step.
+    'observation_clock_moved_backward': (
+        'Collecting again does not clear this: correct the host clock, or wait until it reads at or after the time this '
+        'workspace recorded, then restart the workbench and prepare the proposal again.'),
+    'observation_clock_floor_invalid': (
+        "Collecting again does not clear this: changes stay held until the workspace's recorded time can be read again "
+        '(Diagnostics shows where it is kept).'),
     'collection_failed': 'Collect again (a lists it) when the source is reachable, then prepare the proposal again.',
     'collection_not_finished': 'Collect again (a lists it), then prepare the proposal again.'}
 

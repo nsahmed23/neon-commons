@@ -664,3 +664,66 @@ class ClockHoldBandTests(unittest.TestCase):
     def test_without_a_hold_the_stale_lines_are_unchanged(self):
         from intune_iac.workbench_screens import _band_forms
         self.assertEqual(_band_forms(self.signal('older_than_window'))[0], '! Observation stale. Next: Collect again (a: actions)')
+
+
+class ClockHeldRefusalTests(unittest.TestCase):
+    """A refusal on an observation whose age cannot be established (a clock hold): the screen never names collecting
+    again as the next step, because collecting again does not clear it. Every other refusal keeps its step."""
+    workspace = RefusalCauseTests.workspace
+    REFUSED = {'status': 'error', 'error': {'code': 'maintenance_observation_stale', 'message': 'Refused.'}}
+    MOVED = ('Collecting again does not clear this: correct the host clock, or wait until it reads at or after the time '
+             'this workspace recorded, then restart the workbench and prepare the proposal again.')
+    UNREADABLE = ("Collecting again does not clear this: changes stay held until the workspace's recorded time can be "
+                  'read again (Diagnostics shows where it is kept).')
+    HOLDS = (('clock_moved_backward', MOVED), ('clock_floor_invalid', UNREADABLE))
+
+    def stale(self, *reasons):
+        return {'area': 'freshness', 'code': 'observation_stale', 'evidence': {'freshness_reasons': list(reasons)},
+                'observed': 'The newest observation (2026-10-14 22:40:01 UTC) is stale.'}
+
+    def refused(self, facts):
+        workspace = self.workspace(facts, 'propose-from-intent /w/op')
+        workspace.receive(dict(self.REFUSED))
+        return ' '.join(' '.join(workspace._surface_summary(118)).split())
+
+    def test_the_cause_kind_follows_the_hold_in_the_observation_signal(self):
+        for code, step in self.HOLDS:
+            workspace = self.workspace({'signals': [self.stale('older_than_window', code)]})
+            cause, kind = workspace._known_cause('maintenance_observation_stale')
+            self.assertEqual(kind, 'observation_' + code)
+            self.assertIn('The newest observation', cause)
+
+    def test_the_cause_kind_follows_the_hold_in_the_proposal_check(self):
+        for code, step in self.HOLDS:
+            eligibility = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh', 'freshness_reasons': [code]}
+            cause, kind = self.workspace({'eligibility': eligibility})._known_cause('maintenance_observation_stale')
+            self.assertEqual(kind, 'observation_' + code)
+            self.assertIn('age cannot be established', cause)
+
+    def test_a_held_refusal_names_the_recovery_not_collecting(self):
+        for code, step in self.HOLDS:
+            for facts in ({'signals': [self.stale(code)]},
+                          {'eligibility': {'code': 'maintenance_observation_stale', 'reason': 'not_fresh',
+                                           'freshness_reasons': [code]}}):
+                text = self.refused(facts)
+                self.assertIn('[REFUSED] maintenance_observation_stale', text)
+                self.assertIn('Next: ' + step, text)
+                self.assertNotIn('Next: Collect again', text)
+                self.assertNotIn('Collect again', text)
+
+    def test_the_refusal_without_a_hold_keeps_its_step(self):
+        workspace = self.workspace({'signals': [self.stale('older_than_window')]})
+        self.assertEqual(workspace._known_cause('maintenance_observation_stale')[1], 'observation_stale')
+        self.assertIn('Next: Collect again (a lists it), then prepare the proposal again.',
+                      self.refused({'signals': [self.stale('older_than_window')]}))
+
+    def test_the_general_text_stays_true_when_no_cause_is_known(self):
+        from intune_iac.workbench_screens import REFUSALS, refusal_lines
+        meaning, step = REFUSALS['maintenance_observation_stale']
+        self.assertEqual(meaning, 'The newest observation of this policy is not fresh, or the service changed after it was '
+                                  'collected; a change is never prepared against it.')
+        self.assertEqual(step, "Collect again (:collect), then prepare the proposal again; i shows the observation's "
+                               'freshness. If i says its age cannot be established (a clock hold), collecting again does '
+                               'not clear it: correct the host clock and restart the workbench.')
+        text = ' '.join(' '.join(refusal_lines(self.REFUSED, 160)).split())
+        self.assertIn('Next: ' + step, text)
