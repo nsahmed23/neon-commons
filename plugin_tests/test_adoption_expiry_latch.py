@@ -247,6 +247,15 @@ class AdoptionFixture(unittest.TestCase):
 
 
 class DispatchLatchTests(AdoptionFixture):
+    def test_a_restart_with_the_wall_set_back_above_the_mark_cannot_reopen_a_receipt_that_has_expired(self):
+        signed = self.receipt()
+        self.clocks.wall = self.start + 30
+        adoption._verify(self.policy, self.manifest, signed)  # judged open at T30: the mark and an open row
+        self.restart()
+        self.clocks.elapse(40)  # true time T70, past the receipt's expiry at T60
+        self.clocks.step(-30)  # the wall is set to T40: above the mark, inside the window
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, 'adoption_signature_expired')
+        self.assert_nothing_happened()
     def test_a_receipt_that_reuses_an_expired_receipts_issuer_and_nonce_is_judged_on_its_own(self):
         nonce = uuid.uuid4().hex
         early = self.receipt(nonce=nonce, expires_at=self.start + 30)

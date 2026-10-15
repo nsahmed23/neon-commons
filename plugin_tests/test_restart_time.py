@@ -94,6 +94,18 @@ class StoreTests(Session):
         with self.connect() as db:
             return db.execute(sql).fetchall()
 
+    def test_a_deadline_is_armed_from_the_effective_time_not_the_bare_wall_clock(self):
+        self.clocks.wall = START + 50
+        self.enter()
+        self.restart()
+        self.clocks.elapse(70)  # true time T120
+        self.clocks.step(-60)  # the wall reads T60
+        self.assertLessEqual(validity.deadline(self.base, START + LIFETIME), time.monotonic())  # nothing is left
+        self.assertAlmostEqual(validity.deadline(self.base, START + 200) - time.monotonic(), 80, delta=0.01)
+        elsewhere = self.base.parent / 'elsewhere'  # a store with no recorded time falls back to the wall clock
+        elsewhere.mkdir(mode=0o700)
+        self.assertAlmostEqual(validity.deadline(elsewhere, START + LIFETIME) - time.monotonic(), 40, delta=0.01)
+
     def test_a_same_boot_restart_keeps_an_open_window_open(self):
         self.clocks.wall = START + 50
         self.enter()

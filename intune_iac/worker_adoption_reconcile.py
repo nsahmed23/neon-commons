@@ -399,7 +399,7 @@ def _verify(policy,manifest,receipt):
         raise
     # Authenticated: the window is judged in the shared critical section, so a reached expiry is recorded and refused and
     # stays closed after a backward clock step and a restart (see worker_adoption._critical).
-    with adoption._critical(policy,payload,digest(manifest),adoption._deadline(payload),fail=_fail,expired_code='adoption_recovery_signature_expired',domain=_domain(manifest)):pass
+    with adoption._critical(policy,payload,digest(manifest),adoption._deadline(payload,policy),fail=_fail,expired_code='adoption_recovery_signature_expired',domain=_domain(manifest)):pass
     return payload
 
 
@@ -512,7 +512,7 @@ def prepare_job(root,*,original,manifest,policy_path):
 
 
 class _Permit:
-    def __init__(self,job,payload,runtime):self.job,self.payload,self.runtime=job,payload,runtime;self.pid=os.getpid();self.active=True;self.deadline=adoption._deadline(payload)
+    def __init__(self,job,payload,runtime):self.job,self.payload,self.runtime=job,payload,runtime;self.pid=os.getpid();self.active=True;self.deadline=adoption._deadline(payload,job.policy)
     def _before_judging(self):
         if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
         try:self.job._check()
@@ -628,7 +628,7 @@ class RecoveryPlanJob:
         if threading.current_thread() is not threading.main_thread() or type(runtime) is not RecoveryPlanRuntime:_fail('adoption_recovery_runtime_required')
         runtime.check(self.manifest);facts=_completion(self.original,completion)
         if _binding(facts,original=self.original)!=self.manifest['recovery_binding'] or facts['fresh_observation']['identity_binding_sha256']!=self.manifest['identity_binding_sha256']:_fail('adoption_recovery_precondition_changed')
-        payload=_verify(self.policy,self.manifest,receipt);deadline=adoption._deadline(payload);raw=canonical(receipt);spec=service._host_spec(self.manifest['host_spec'])
+        payload=_verify(self.policy,self.manifest,receipt);deadline=adoption._deadline(payload,self.policy);raw=canonical(receipt);spec=service._host_spec(self.manifest['host_spec'])
         for directory in (spec.job_root,spec.broker_root):
             if list(_private(directory,directory=True).iterdir()):_fail('adoption_recovery_fresh_host_required')
         phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if _is_phase(self.manifest) else None

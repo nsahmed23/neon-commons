@@ -232,6 +232,19 @@ class ExecuteLatchTests:
             finally:
                 connection.close()
 
+    def test_a_restart_with_the_wall_set_back_above_the_mark_cannot_reopen_an_approval_that_has_expired(self):
+        signed = self.receipt()
+        self.clocks.wall = self.start + 30
+        self.on_observe = lambda: (_ for _ in ()).throw(AppError('modeled_backend_unavailable', 'x'))
+        self.refused(lambda: self.execute(signed))  # judged open at T30 (the open row), then the observation fails
+        self.on_observe = lambda: None
+        self.observations.clear()
+        self.restart()
+        self.clocks.elapse(40)  # true time T70, past the approval's expiry at T60
+        self.clocks.step(-30)  # the wall is set to T40: above the mark, inside the window
+        self.assertEqual(self.refused(lambda: self.execute(signed)).code, EXPIRED)
+        self.assertEqual((self.reservations(), self.requests, self.observations), ([], [], []))
+
     def test_a_context_whose_job_is_another_jobs_but_whose_copied_fields_are_this_ones_records_nothing(self):
         other, _ = self.another_job_context()
         job_b = str(uuid.uuid4())

@@ -99,9 +99,11 @@ def _watch(policy, payload, manifest_sha256, deadline, latched, *, fail, expired
     if state == validity.HELD: raise validity.hold(reading)
 
 
-def _deadline(payload):
-    """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it."""
-    return time.monotonic() + max(0, payload['expires_at'] - time.time())
+def _deadline(payload, policy):
+    """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it. It is
+    armed from the store's effective time (the recorded floor carried by the boot time elapsed), not the bare wall clock: a
+    wall clock set back, in this process or before it started, cannot give the receipt more time than the floor says is left."""
+    return validity.deadline(policy.root, payload['expires_at'])
 
 
 def _record_expiry(policy, payload, manifest_sha256, deadline=None, domain=DOMAIN):
@@ -305,7 +307,7 @@ def _verify(policy, manifest, receipt):
     except AppError:
         if now >= payload['expires_at']: _fail('adoption_signature_expired')
         raise
-    with _critical(policy, payload, digest(manifest), _deadline(payload)): pass
+    with _critical(policy, payload, digest(manifest), _deadline(payload, policy)): pass
     return payload
 
 
@@ -448,7 +450,7 @@ class AdoptionPermit:
         if seal is not _SEAL or type(runtime) is not AdoptionRuntime: _fail('adoption_permit_required')
         self.job, self.payload, self.runtime, self.verification = job, payload, runtime, verification
         self.active, self.pid = True, os.getpid()
-        self.deadline = _deadline(payload)
+        self.deadline = _deadline(payload, job.policy)
     def __reduce_ex__(self, protocol): raise TypeError('Adoption permits cannot be serialized.')
     def _stopped_or_changed(self, db):
         """Whether the job state no longer supports a running dispatch: status, cancellation, consumption, ownership,
@@ -600,7 +602,7 @@ class AdoptionJob:
         if type(runtime) is not AdoptionRuntime: _fail('adoption_runtime_capability_required')
         runtime.check(self.manifest); spec = _inputs(self.manifest, runtime)
         payload = _verify(self.policy, self.manifest, receipt)
-        deadline = _deadline(payload)
+        deadline = _deadline(payload, self.policy)
         receipt_raw = canonical(receipt); receipt_sha256 = hashlib.sha256(receipt_raw).hexdigest()
         # Real backend GET + identity re-observation, before consuming authority.
         # The content-only state contract and local ownership scan cannot replace it.
@@ -762,7 +764,7 @@ class AdoptionJob:
         if canonical(receipt).decode() != transcript[0] or service._bounded_private_json(self.root / 'approval.json') != receipt:
             _fail('adoption_approval_transcript_missing_or_changed')
         payload = _verify(self.policy, self.manifest, receipt)
-        deadline = _deadline(payload)
+        deadline = _deadline(payload, self.policy)
         state = _backend_observation(self, runtime, self.root / ('before-first-plan-' + uuid.uuid4().hex), baseline=False)
         with _critical(self.policy, payload, self.sha256, deadline) as db:
             row = db.execute('SELECT status,cancelled,dispatches,outcome,controller_pid FROM jobs WHERE id=?', (self.identifier,)).fetchone()

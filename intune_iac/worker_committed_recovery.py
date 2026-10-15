@@ -286,7 +286,7 @@ def execute(manifest,signed,*,context,policy,output):
     if not bound:_fail('lease_recovery_context_changed')
     # The window is judged where it is recorded, before any observation or request: a reached expiry is latched in the
     # original job's store and refused here, so it stays closed after a backward clock step and a restart.
-    deadline=service._deadline(payload)
+    deadline=service._deadline(payload,context.job.policy)
     with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,domain=DOMAIN,fail=_fail,expired_code='lease_recovery_expired'):pass
     context.check()
     if manifest['profile']!=context.profile or manifest['observation']['original']!=context.original:_fail('lease_recovery_context_changed')

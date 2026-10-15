@@ -89,6 +89,15 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
             pass
         self.assertEqual([row[0] for row in self.consumed()], [other['operation_id']])
 
+    def test_a_restart_with_the_wall_set_back_above_the_mark_cannot_reopen_a_receipt_that_has_expired(self):
+        self.clocks.wall = self.start + 30
+        self.authorize(self.signed)  # judged open at T30: the mark and an open row
+        self.restart()
+        self.clocks.elapse(40)  # true time T70, past the expiry at T60
+        self.clocks.step(-30)  # the wall is set to T40: above the mark
+        self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'approval_receipt_time')
+        self.assertEqual(self.consumed(), [])
+
     def test_the_expiry_is_recorded_in_the_authority_store_and_latches_without_the_clock_record(self):
         self.clocks.elapse(LIFETIME + 1)
         self.refused(lambda: self.authorize(self.signed))

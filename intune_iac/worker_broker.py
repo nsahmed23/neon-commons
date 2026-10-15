@@ -26,7 +26,7 @@ import threading
 import time
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
-from . import identity_binding as ib
+from . import identity_binding as ib, validity
 from .azure_backend import NativeStateWriteContract
 from .worker_state import ComputedNativeStateWriteContract
 from .worker_state_recovery import DescriptionRecoveryStateWriteContract
@@ -65,6 +65,7 @@ class BrokerGuard:
         self.inflight = inflight
         self.pid = os.getpid()
         self._deadlines = {}
+        self.root = None  # the broker's journal directory, whose recorded time arms the deadline (set by the broker)
 
     def _deadline(self, policy):
         """This process's monotonic deadline for the policy, armed when the guard first judges it and never moved: a wall
@@ -72,7 +73,10 @@ class BrokerGuard:
         of its own to latch an expiry in; the durable judgment is the one recheck makes on every request."""
         expires = policy['expires_at']
         if expires not in self._deadlines:
-            self._deadlines[expires] = time.monotonic() + max(0, expires - time.time())
+            # Armed from the effective time of the journal directory's recorded floor (the mark carried by the boot time
+            # elapsed since it was recorded), not the bare wall clock, so a restart with the wall set back re-arms nothing.
+            self._deadlines[expires] = (validity.deadline(self.root, expires) if self.root is not None
+                                        else time.monotonic() + max(0, expires - time.time()))
         return self._deadlines[expires]
 
     def remaining(self, policy):
@@ -437,8 +441,9 @@ class EgressBroker:
                 if precondition is None or contract.binding()['precondition_binding_sha256'] != digest(precondition.binding()):
                     _fail('broker_state_contract_invalid')
         self.guard, self.upstream = guard, upstream
-        guard.check(self.policy)
         self.journal = Path(journal).absolute(); _private(self.journal.parent, directory=True)
+        guard.root = self.journal.parent
+        guard.check(self.policy)
         try:
             descriptor = os.open(self.journal, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
             os.fsync(descriptor); os.close(descriptor)
@@ -453,6 +458,29 @@ class EgressBroker:
             db.execute('CREATE TABLE IF NOT EXISTS attempts (sequence INTEGER PRIMARY KEY, route TEXT NOT NULL, request_sha256 TEXT NOT NULL, status TEXT NOT NULL, response_code INTEGER, response_sha256 TEXT)')
             db.execute('CREATE TABLE IF NOT EXISTS native_lease_requests (sequence INTEGER PRIMARY KEY, host TEXT NOT NULL, path TEXT NOT NULL, action TEXT NOT NULL, lease_id TEXT NOT NULL, lock_metadata TEXT)')
             db.commit()
+        self._judge_policy_window()
+
+    def _judge_policy_window(self):
+        """Judge the policy's window in the shared critical section on the journal's own directory and database, so that a
+        broker rebuilt after a restart cannot re-arm an elapsed policy from the wall clock: the directory keeps its own
+        recorded time, and the policy digest is a durable open judgment. Another boot or clock domain holds the policy until
+        its expiry; the same session carries the elapsed boot time."""
+        store = validity.Store(self.journal.parent, self._window_connection, 'broker_window', _fail,
+            capacity_code='broker_store_capacity', private_code='broker_store_not_private', create=True,
+            domain='intune-iac:broker-egress-policy')
+        payload = {'issuer': 'broker', 'nonce': self.policy_sha256[:32], 'operation_id': self.policy['operation_id'],
+                   'expires_at': self.policy['expires_at']}
+        with validity.critical(store, payload, self.policy_sha256, expired_code='broker_expired'): pass
+
+    @contextmanager
+    def _window_connection(self):
+        _private(self.journal)
+        db = sqlite3.connect(self.journal, timeout=0, isolation_level=None)
+        try:
+            db.execute('PRAGMA synchronous=FULL'); db.execute('PRAGMA journal_mode=DELETE'); db.execute('PRAGMA trusted_schema=OFF')
+            yield db
+        finally:
+            db.close()
 
     def check(self):
         if self.closed or digest(self.policy) != self.policy_sha256: _fail('broker_policy_changed_or_closed')

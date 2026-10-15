@@ -271,7 +271,7 @@ def _verify(transfer, signed, policy, manifest):
         expires = signed.get('payload', {}).get('expires_at') if type(signed) is dict and type(signed.get('payload')) is dict else None
         if type(expires) is int and now >= expires: _fail('successor_signature_expired')
         raise
-    with _critical(policy, payload, transfer, service._deadline(payload)): pass
+    with _critical(policy, payload, transfer, service._deadline(payload, policy)): pass
     return payload
 
 
@@ -326,7 +326,7 @@ def _execute_transfer(transfer, signed, original_job, successor_manifest, recove
         _fail('successor_transfer_changed')
     policy = original_job.policy
     payload = _verify(transfer, signed, policy, manifest)
-    deadline = service._deadline(payload)
+    deadline = service._deadline(payload, policy)
     root = Path(transfer['successor']['job_root'])
     spec = service._host_spec(manifest['host_spec'])
     if any(policy.root == Path(path) or policy.root in Path(path).parents or Path(path) in policy.root.parents

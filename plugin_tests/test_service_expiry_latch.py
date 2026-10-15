@@ -154,6 +154,26 @@ class ServiceFixture(unittest.TestCase):
 
 
 class DispatchLatchTests(ServiceFixture):
+    def test_a_restart_with_the_wall_set_back_above_the_mark_cannot_reopen_a_receipt_that_has_expired(self):
+        signed = self.receipt()
+        self.clocks.wall = self.start + 30
+        self.policy.verify(self.manifest, signed)  # judged open at T30: the mark and an open row
+        self.restart()
+        self.clocks.elapse(40)  # true time T70, past the receipt's expiry at T60
+        self.clocks.step(-30)  # the wall is set to T40: above the mark, inside the window
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, EXPIRED)
+        self.assert_nothing_happened()
+
+    def test_a_reboot_with_the_wall_set_back_holds_a_receipt_judged_open_before_it(self):
+        signed = self.receipt()
+        self.clocks.wall = self.start + 30
+        self.policy.verify(self.manifest, signed)
+        self.restart()
+        self.clocks.reboot()
+        self.clocks.elapse(40)
+        self.clocks.step(-30)
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, 'clock_moved_backward')
+        self.assert_nothing_happened()
     def test_a_backward_step_to_before_the_issue_time_still_reports_the_hold_and_how_to_recover(self):
         self.manifest_time_rule = True  # the manifest's own bare-clock rule refuses first, as it does at that time
         signed = self.receipt()
@@ -322,6 +342,16 @@ class PermitLatchTests(ServiceFixture):
             for _ in range(5):
                 permit.poll_active()
         self.assertEqual(self.authorizations(), [])
+
+    def test_a_permit_built_after_a_restart_with_the_wall_set_back_is_refused_when_the_window_has_elapsed(self):
+        permit = self.dispatch_running(self.start + 10)
+        permit.check_active()
+        self.restart()
+        self.clocks.elapse(55)  # true time T65, past the expiry at T60
+        self.clocks.step(-50)  # the wall reads T15
+        fresh = service.ServicePermit(service._SEAL, self.job, permit.payload, self.runtime)
+        self.assertEqual(self.refused(fresh.poll_active).code, EXPIRED)
+        self.assertEqual(self.refused(fresh.check_active).code, EXPIRED)
 
     def test_the_inflight_check_never_judges_the_window_but_still_sees_a_revocation(self):
         permit = self.dispatch_running(self.start + 10)

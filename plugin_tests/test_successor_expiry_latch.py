@@ -141,6 +141,17 @@ class ApprovalLatchTests(SuccessorFixture):
         self.assert_nothing_happened()
         self.assertEqual(len(self.latched()), 1)
 
+    def test_an_approval_judged_open_and_then_refused_for_another_reason_is_not_reopened_by_a_restart(self):
+        signed = self.approval()
+        self.clocks.wall = self.start + 30
+        with patch.object(successor, '_completion', side_effect=AppError('modeled_completion_unavailable', 'x')):
+            self.refused(lambda: self.execute(signed))  # _verify judged it open at T30, then a later check failed
+        self.restart()
+        self.clocks.elapse(40)  # true time T70, past the approval's expiry at T60
+        self.clocks.step(-30)  # the wall is set to T40: above the mark, inside the window
+        self.assertEqual(self.refused(lambda: self.execute(signed)).code, EXPIRED)
+        self.assertEqual(self.rows('SELECT job FROM ownership'), [(self.original_id,)])
+
     def test_the_latch_alone_refuses_when_the_recorded_time_is_gone(self):
         signed = self.approval()
         self.clocks.elapse(LIFETIME + 1)

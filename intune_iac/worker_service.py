@@ -61,9 +61,11 @@ def _critical(policy, payload, request_sha256, deadline=None, *, table=_EXPIRED_
     return validity.critical(store, payload, request_sha256, deadline, expired_code)
 
 
-def _deadline(payload):
-    """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it."""
-    return time.monotonic() + max(0, payload['expires_at'] - time.time())
+def _deadline(payload, policy):
+    """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it. It is
+    armed from the store's effective time (the recorded floor carried by the boot time elapsed), not the bare wall clock: a
+    wall clock set back, in this process or before it started, cannot give the receipt more time than the floor says is left."""
+    return validity.deadline(policy.root, payload['expires_at'])
 
 
 def _latched(db, payload, request_sha256, domain=None, table=_EXPIRED_TABLE):
@@ -111,10 +113,7 @@ def _record_expiry_of(job, receipt):
 def _expiry_may_be_reached(root, payload):
     """Read-only: whether the wall clock or the recorded time is at or past the receipt's expiry. It takes no lock, writes
     nothing and leaves this process's anchor alone, so it can be asked of a receipt that is not valid yet."""
-    wall = time.time()
-    try: recorded = clock.Floor(Path(root) / 'clock.json').high_water()
-    except AppError: recorded = None
-    return max(wall, wall if recorded is None else recorded) >= payload['expires_at']
+    return validity.effective_now(root) >= payload['expires_at']
 
 
 def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, expired_code, domain):
@@ -630,7 +629,7 @@ class ServicePolicy:
             raise
         # The window is judged where it is recorded: a reached expiry is latched in the store and refused here, so it
         # stays closed after a backward clock step and a restart. An unauthenticated receipt never gets this far.
-        with _critical(self, payload, digest(manifest), _deadline(payload)): pass
+        with _critical(self, payload, digest(manifest), _deadline(payload, self)): pass
         return payload
     def _authenticate(self, manifest, payload, receipt):
         if any(type(payload[key]) is not str for key in ('issuer', 'key_id', 'approver_id')): _fail('service_signer_invalid')
@@ -694,7 +693,7 @@ class ServicePermit:
     def __init__(self, seal, job, payload, runtime):
         if seal is not _SEAL or type(runtime) is not ServiceRuntime: _fail('service_permit_required')
         self.job, self.payload, self.runtime, self.active, self.pid = job, payload, runtime, True, os.getpid()
-        self.deadline = _deadline(payload)
+        self.deadline = _deadline(payload, job.policy)
     def __reduce_ex__(self, protocol): raise TypeError('Service permits cannot be serialized.')
     def _stopped_or_changed(self, db):
         """Whether the job state no longer supports a running dispatch: status, cancellation, consumption, ownership and
@@ -829,7 +828,7 @@ class ServiceJob:
         payload = self.policy.verify(self.manifest, signed_snapshot)
         # The window is judged again, and the approval consumed, in one critical section: nothing can latch the expiry
         # between the judgment and the consumption, and an expiry reached since the verification is refused here.
-        with _critical(self.policy, payload, self.sha256, _deadline(payload)) as db:
+        with _critical(self.policy, payload, self.sha256, _deadline(payload, self.policy)) as db:
             if db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone() != ('prepared', 0, 0):
                 _fail('service_operation_not_replayable')
             if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (payload['issuer'], payload['key_id'])).fetchone(): _fail('service_key_revoked')

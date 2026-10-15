@@ -26,6 +26,7 @@ from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import urlencode
 
+from intune_iac import clock
 from intune_iac import identity_binding as ib
 from intune_iac import worker_broker as wb
 from intune_iac.io import AppError
@@ -59,6 +60,7 @@ class BrokerWindowTests(unittest.TestCase):
             patcher = patch.object(time, name, side_effect=function)
             patcher.start()
             self.addCleanup(patcher.stop)
+        self.clocks.install_session(self)
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
@@ -134,6 +136,43 @@ class BrokerWindowTests(unittest.TestCase):
             error = self.refused(lambda: broker.handle('login.fixture.invalid', 'POST', '/' + TENANT + '/oauth2/v2.0/token',
                                                        {'content-type': 'application/x-www-form-urlencoded'}, self.form))
         self.assertEqual(error.code, 'broker_upstream_outcome_unknown')
+
+    def rebuilt(self):
+        """A restarted controller: nothing in memory survives, and the same policy is admitted against the same journal."""
+        clock.reset_process_anchor()
+        guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], lambda: None, lambda: None)
+        return wb.EgressBroker(self.policy, journal=self.root / 'journal.sqlite3', guard=guard,
+                               upstream=object.__new__(wb.LaboratoryUpstream))
+
+    def test_a_restart_with_the_wall_set_back_above_the_mark_cannot_rearm_an_elapsed_policy(self):
+        self.clocks.elapse(10)
+        self.token_request()  # the first controller judged the policy open at T10
+        self.calls.clear()
+        self.clocks.elapse(LIFETIME)  # true time passes the policy's expiry
+        self.clocks.step(-LIFETIME + 20)  # and the wall is set to a time above the mark, inside the window
+        self.assertLess(time.time(), self.policy['expires_at'])
+        self.assertGreater(time.time(), self.start + 10)
+        error = self.refused(self.rebuilt)
+        self.assertIn(error.code, ('broker_expired', 'clock_moved_backward'))
+        self.assertEqual(self.calls, [])
+
+    def test_a_restart_in_the_same_boot_without_a_clock_change_keeps_the_policy_open(self):
+        self.clocks.elapse(10)
+        self.token_request()
+        self.clocks.elapse(12)
+        broker = self.rebuilt()
+        broker.handle('login.fixture.invalid', 'POST', '/' + TENANT + '/oauth2/v2.0/token',
+                      {'content-type': 'application/x-www-form-urlencoded'}, self.form)
+
+    def test_a_reboot_with_the_wall_set_back_holds_a_policy_judged_open_before_it(self):
+        self.clocks.elapse(10)
+        self.token_request()
+        self.clocks.reboot()
+        self.clocks.elapse(LIFETIME)
+        self.clocks.step(-LIFETIME + 20)
+        error = self.refused(self.rebuilt)
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertIn('cannot be established', error.message)
 
     def test_an_open_window_admits_the_request(self):
         self.clocks.elapse(10)
