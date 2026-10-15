@@ -314,13 +314,28 @@ def page_filters(page_command):
     return limit, {key: value for key, value in zip(keys, parts[3:]) if value != '-'}
 
 
-def help_line(width, layer='summary', lead=()):
+# The key line while a relationship map is shown: the map's own keys, by the width that holds them. Every form but the
+# last names Left/Right, the keys of the pane's horizontal viewport.
+MAP_HELP_LINES = ('? help | a actions | : command | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | a actions | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | Up/Down node | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | Up/Down | Left/Right pan | Enter | b back | q exit',
+                  '? help | Left/Right | b back | q exit',
+                  '? help | b back | q exit')
+
+
+def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True):
     """The key line for the width; keys the hazard band names (lead) come first in every form, so a key the band
-    offers is never missing from the line below. The actions list has its own keys."""
+    offers is never missing from the line below. The actions list has its own keys. map_keys: a map is shown, so the
+    line names its keys (and only then); inspect: the focused node has an inspect route, so Enter is named (a key
+    with no route behind it is not drawn)."""
     if layer in ('actions', 'filters'):
         lines = ACTION_KEY_LINES if layer == 'actions' else FILTER_KEY_LINES
         return next((line for line in lines if cell_width(line) <= width), lines[-1])
-    lines = list(LAYER_HELP_LINES if layer in LAYER_KEYS else HELP_LINES)
+    lines = list(MAP_HELP_LINES if map_keys and layer == 'summary' else LAYER_HELP_LINES if layer in LAYER_KEYS else HELP_LINES)
+    if map_keys and layer == 'summary' and not inspect:
+        lines = [line.replace(' | Enter inspect', '').replace(' | Enter | ', ' | ') for line in lines]
     for old, new in LAYER_KEYS.get(layer, ()):
         lines = [line.replace(old, new) for line in lines]
     if lead:
@@ -542,6 +557,17 @@ def paint(line, palette, base=None):
     return head + _TONES.sub(lambda m: '\x1b[38;5;%sm%s\x1b[38;5;%sm' % (palette[m.lastgroup], m.group(0), base), rest)
 
 
+# The tint of each state mark on a map row. Colour only reinforces: the mark and the state word beside it say it first.
+MAP_MARK_TONES = {'x': 'ok', '!': 'bad', '#': 'bad', '?': 'warn', '-': 'warn', '+': 'accent', '.': 'accent', ':': 'accent'}
+_MAP_MARK = re.compile(r'\[([x+.:!#?-])\] ')
+
+
+def paint_marks(line, palette, base=None):
+    """Tint the state marks of a map row; the text is unchanged and the background is kept."""
+    base = base or palette['fg']
+    return _MAP_MARK.sub(lambda m: '[\x1b[38;5;%sm%s\x1b[38;5;%sm] ' % (palette[MAP_MARK_TONES[m.group(1)]], m.group(1), base), line)
+
+
 def emphasize(line):
     """Bold a heading and a signal line without colour, so --no-color and NO_COLOR keep the same structure."""
     mark = _MARK.match(line)
@@ -619,6 +645,12 @@ class Workspace:
         self.size = self._terminal_size()
         self.key_reader = None
         self._detail_cache = None
+        # The relationship map: the focused node, the pane's horizontal offset, whether the next draw keeps the focused
+        # row in view, and the viewport to restore when the map returns after a visit to another view.
+        self.map_focus = None
+        self.hscroll = 0
+        self.follow_focus = False
+        self._map_return = None
         self.context_valid = False
         value = None
         if self.native_binding is not None:
@@ -721,6 +753,7 @@ class Workspace:
         # Initial help should not displace restored selection/navigation.
         self.value = value
         self.scroll = 0
+        self._restore_map_view(value)
         if value.get('schema_version') == 'workbench-repository-entry/1':
             self.entry_focus = 0
         if value.get('status') == 'error':
@@ -823,6 +856,8 @@ class Workspace:
             # saves read-only paths, never approvals, captures or credentials.
             self.save_context()
             self.notice = self._notice_for(value)
+            if self.tab == 2 and isinstance(value.get('relationships'), list) and isinstance(value.get('object_id'), str):
+                self.notice += self._note_topology(value)
         pending, self.pending_stage = getattr(self, 'pending_stage', None), None
         if pending is not None and self.last_command == 'repository-status':
             self._stage_after_difference(pending, value)
@@ -1057,6 +1092,8 @@ class Workspace:
                 rows.extend(word_wrap('Literal collected values are separate from normalized mapping; incomplete collection does not establish empty intent.', width))
         elif self.tab == 2 and isinstance(value.get('relationships'), list):
             from .workbench_screens import relationship_lines
+            # The map is drawn beside the typed tree, above it; the tree stays the canonical text reading.
+            rows.extend(self._map_block(width))
             rows.extend(relationship_lines(value, width, getattr(self, 'rules', 'ascii')))
             # Shown whenever a capture exists, above all when its retained bytes no longer verify.
             if isinstance(value.get('raw_capture_observation'), dict):
@@ -1276,7 +1313,7 @@ class Workspace:
             rows.extend(refresh_result_lines(value, width))
         elif self.tab == 7 and isinstance(value.get('navigation'), list):
             from .workbench_screens import help_lines
-            rows.extend(help_lines(width))
+            rows.extend(help_lines(width, map_keys=self._map_available()))
         if rows: rows.append('')
         return rows
 
@@ -1450,11 +1487,23 @@ class Workspace:
         # One column of space inside each border: text never touches the frame (journey 27 review, Sonnet 23).
         content = inner - 2
         data = self._body_lines(content, RULES[getattr(self, 'rules', 'ascii')][1])
-        # A row wider than the frame is wrapped at a space, never clipped mid-word (journey 27 frame 11).
-        from .workbench_screens import word_wrap
-        data = [part for line in data for part in (word_wrap(line, content) if cell_width(line) > content else [line])]
+        # A row wider than the frame is wrapped at a space, never clipped mid-word (journey 27 frame 11). A map row is
+        # geometry: it is never wrapped, and the pane's horizontal viewport shows the part of it the window holds.
+        from .workbench_screens import MapLine, slice_cells, word_wrap
+        data = [part for line in data for part in ([line] if isinstance(line, MapLine) else
+                                                    word_wrap(line, content) if cell_width(line) > content else [line])]
+        widest = max((cell_width(line) for line in data if isinstance(line, MapLine)), default=0)
+        self.hscroll = max(0, min(getattr(self, 'hscroll', 0), widest - content))
+        if getattr(self, 'follow_focus', False):
+            # The focus moved: keep the focused node's row inside the pane (scrolling by hand is left alone otherwise).
+            self.follow_focus = False
+            focused = next((index for index, line in enumerate(data) if isinstance(line, MapLine) and line.focused), None)
+            if focused is not None and available:
+                self.scroll = focused if focused < self.scroll else max(self.scroll, focused - available + 1)
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
+        mapped = {index for index, line in enumerate(visible) if isinstance(line, MapLine)}
+        shown = [slice_cells(line, self.hscroll, content) if index in mapped else line for index, line in enumerate(visible)]
         status = self._context_strip(width)
         ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
         # A view without its own evidence class shows the selected policy's, never a bare "unknown".
@@ -1474,14 +1523,16 @@ class Workspace:
         frame = [pad(header, width), pad(labels, width), pad(status, width)] + [pad(row, width) for row in band] + [
                  ruled(top[0], top[1], top[2], inner, ' more above: PgUp ' if self.scroll > 0 else None)]
         band_rows = set(range(3, 3 + len(band)))
-        frame.extend(side + ' ' + pad(line, content) + ' ' + side for line in visible)
+        map_rows = {len(frame) + index for index in mapped}
+        frame.extend(side + ' ' + pad(line, content) + ' ' + side for line in shown)
         frame.extend(side + ' ' * inner + side for _ in range(available - len(visible)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
                             ' more below: PgDn ' if self.scroll + available < len(data) else None),
                       pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
                       pad(prompt, width),
                       pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
-                          help_line(width, getattr(self, 'layer', 'summary'), band_keys(band)), width)])
+                          help_line(width, getattr(self, 'layer', 'summary'), band_keys(band), map_keys=self._map_shown(),
+                                    inspect=self._map_focus_inspectable()), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
@@ -1492,7 +1543,10 @@ class Workspace:
                     continue
                 base = palette['accent'] if i in (0, 1, len(frame) - 2) else palette['fg']
                 # Body lines, the context strip and the notice get word-level reinforcement; words never change.
-                if line.startswith(side) or i in (2, len(frame) - 2):
+                # A map row's marks are tinted; each mark is also written as its state word beside it.
+                if i in map_rows:
+                    line = paint_marks(line, palette, base)
+                elif line.startswith(side) or i in (2, len(frame) - 2):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
         else: painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else emphasize(line) if line.startswith(side) else line
@@ -1672,6 +1726,142 @@ class Workspace:
             return []
         return [item for item in value.get('candidates') or [] if isinstance(item, dict)]
 
+    # The relationship map (requirement 17, first slice). It is drawn from the typed graph projection of the result the
+    # Relationships surface shows; the keyboard visits its nodes in the order the map lists them, never by position.
+    def _map_size(self):
+        return getattr(self, 'size', None) or (80, 24)
+
+    def _map_available(self):
+        """Whether a relationship map can be shown: a policy is selected and the window has room for it."""
+        from .workbench_screens import map_fits
+        return bool(getattr(self, 'selected', None)) and map_fits(self._map_size())
+
+    def _graph(self):
+        """The graph of the relationships result on screen, with the selected policy's state and the observation's
+        freshness as the last read of it reported them; None when the result names no object."""
+        value = getattr(self, 'value', None)
+        if not isinstance(value, dict) or not isinstance(value.get('relationships'), list):
+            return None
+        facts = getattr(self, 'facts', None) or {}
+        facts = facts if facts.get('object_id') == value.get('object_id') else {}
+        from .workbench_screens import _operation_from_states
+        word = facts.get('operation') or _operation_from_states(facts)
+        key = (word, facts.get('observation'))
+        cached = getattr(self, '_graph_cache', None)
+        if cached is not None and cached[0] is value and cached[1] == key:
+            return cached[2]
+        from .graph_projection import project
+        try:
+            graph = project(value, states={value.get('object_id'): word} if word else {}, freshness=facts.get('observation'))
+        except AppError:
+            graph = None
+        self._graph_cache = (value, key, graph)
+        return graph
+
+    def _map_shown(self):
+        """Whether a map is on screen now: the Relationships summary, in a window with room for it."""
+        from .workbench_screens import map_fits
+        value = getattr(self, 'value', None)
+        return (self.tab == 2 and getattr(self, 'layer', 'summary') == 'summary' and isinstance(value, dict)
+                and value.get('status') != 'error' and map_fits(self._map_size()) and self._graph() is not None)
+
+    def _map_nodes(self):
+        from .workbench_screens import map_order
+        return map_order(self._graph()) if self._map_shown() else []
+
+    def _map_focus(self):
+        order = self._map_nodes()
+        if not order:
+            return None
+        ref = getattr(self, 'map_focus', None)
+        return ref if ref in order else order[0]
+
+    def _map_focus_inspectable(self):
+        """Whether the focused node has an inspect route (today only a policy has one)."""
+        from .workbench_screens import map_node
+        graph = self._graph() if self._map_shown() else None
+        node = map_node(graph, self._map_focus()) if graph is not None else None
+        return node is None or node['kind'] == 'policy'
+
+    def _note_topology(self, value):
+        """Words for a change of the map's node set since the map of this object was last shown, else an empty string.
+        Geometry follows topology alone, so a changed node set is said, and that the selection was kept."""
+        from .graph_projection import project
+        try:
+            refs = frozenset(node['ref'] for node in project(value)['nodes'])
+        except AppError:
+            return ''
+        seen = dict(getattr(self, '_topology', None) or {})
+        before = seen.get(value['object_id'])
+        seen[value['object_id']] = refs
+        self._topology = seen
+        if before is None or before == refs:
+            return ''
+        return ' Topology changed: +%d, -%d nodes; selection kept.' % (len(refs - before), len(before - refs))
+
+    def _map_block(self, width):
+        """The map's rows for the Relationships surface, or the statement that there is none and why."""
+        from .workbench_screens import map_fits, map_lines, map_unavailable_lines
+        graph = self._graph()
+        if graph is None:
+            return map_unavailable_lines(width, graph=False)
+        if not map_fits(self._map_size()):
+            return map_unavailable_lines(width)
+        facts = getattr(self, 'facts', None) or {}
+        prefixes = facts.get('identity_prefixes') if facts.get('object_id') == self.value.get('object_id') else None
+        return map_lines(graph, width, getattr(self, 'rules', 'ascii'), focus=self._map_focus(),
+                         selected=getattr(self, 'selected', None), prefixes=prefixes, hscroll=getattr(self, 'hscroll', 0)) + ['']
+
+    def _map_move(self, key):
+        """Up and Down: the previous and next node of the map; Home: along the focused node's edge to its other end."""
+        order = self._map_nodes()
+        here = order.index(self._map_focus())
+        if key == 'home':
+            target = 0 if here else min(1, len(order) - 1)
+        else:
+            target = max(0, min(len(order) - 1, here + (-1 if key == 'up' else 1)))
+        self.map_focus = order[target]
+        self.follow_focus = True
+
+    def _hmax(self):
+        """How far the pane can pan: the widest map row less the pane's width."""
+        from .workbench_screens import MapLine
+        content = max(1, self._map_size()[0] - 4)
+        rows = self._body_lines(content, RULES[getattr(self, 'rules', 'ascii')][1])
+        return max(0, max((cell_width(row) for row in rows if isinstance(row, MapLine)), default=0) - content)
+
+    def _map_pan(self, key):
+        limit = self._hmax()
+        if not limit:
+            self.notice = 'The whole map fits this window; there is nothing to pan.'
+            return
+        step = 8 if key == 'right' else -8
+        self.hscroll = max(0, min(limit, getattr(self, 'hscroll', 0) + step))
+
+    def _map_enter(self):
+        """Enter on the focused node: the Inspector for the policy; for any other node, the statement that it has no
+        inspect route (today only a policy has one), never a key that looks as if it worked."""
+        from .workbench_screens import MAP_KIND_WORDS, map_node
+        node = map_node(self._graph(), self._map_focus())
+        if node['kind'] == 'policy':
+            if not self.selected:
+                self.notice = 'Select an exact identity from Estate first.'
+                return None
+            return self._send('inspect')
+        self.notice = ('This %s has no inspect route; only a policy opens in the Inspector (2). Nothing was selected or '
+                       'changed.' % MAP_KIND_WORDS.get(node['kind'], node['kind']))
+        return None
+
+    def _restore_map_view(self, value):
+        """The map came back after a visit elsewhere: its focus and viewport return, once, for the same object."""
+        saved = getattr(self, '_map_return', None)
+        # The Inspector result carries a relationships list too: only a result shown on the Relationships surface is the map.
+        if (not saved or self.tab != 2 or not isinstance(value, dict) or value.get('object_id') != saved['object_id']
+                or not isinstance(value.get('relationships'), list)):
+            return
+        self._map_return = None
+        self.map_focus, self.hscroll, self.scroll = saved['focus'], saved['hscroll'], saved['scroll']
+
     def _actions(self):
         """The guided actions the read model offered for the selected policy, as last reported."""
         facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
@@ -1814,6 +2004,12 @@ class Workspace:
         # is never re-sent. returning marks b itself, which must not push the view it leaves.
         if current is not None and not returning and current[1] != command:
             self.trail = (getattr(self, 'trail', []) + [current])[-50:]
+        value = getattr(self, 'value', None)
+        if (current is not None and not returning and current[0] == 2 and name != 'relationships' and isinstance(value, dict)
+                and isinstance(value.get('relationships'), list)):
+            # Leaving the relationship map keeps its focus and viewport; the return restores them.
+            self._map_return = {'object_id': value.get('object_id'), 'focus': getattr(self, 'map_focus', None),
+                                'hscroll': getattr(self, 'hscroll', 0), 'scroll': self.scroll}
         self.current_view = None
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
@@ -2022,6 +2218,13 @@ class Workspace:
             elif key == 'tab':
                 command = self._tab_command((self.tab + 1) % len(TABS))
                 if command: return command
+            elif key in ('up', 'down', 'home') and self._map_nodes():
+                self._map_move(key)
+            elif key in ('left', 'right') and self._map_shown():
+                self._map_pan(key)
+            elif key == 'enter' and self._map_nodes():
+                sent = self._map_enter()
+                if sent: return sent
             elif key in ('up', 'down') and self._overview_policies():
                 self.overview_focus = max(0, min(len(self._overview_policies()) - 1, self.overview_focus + (-1 if key == 'up' else 1)))
             elif key == 'enter' and self._overview_policies():

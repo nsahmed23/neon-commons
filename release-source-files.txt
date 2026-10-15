@@ -486,6 +486,7 @@ intune_iac/execution.py
 intune_iac/families.py
 intune_iac/graph.py
 intune_iac/graph_contract.py
+intune_iac/graph_projection.py
 intune_iac/graph_validation.py
 intune_iac/host_capabilities.py
 intune_iac/identity_binding.py
@@ -841,6 +842,7 @@ plugin_tests/test_execution.py
 plugin_tests/test_generated_permissions.py
 plugin_tests/test_graph.py
 plugin_tests/test_graph_budget.py
+plugin_tests/test_graph_projection.py
 plugin_tests/test_graph_resolution.py
 plugin_tests/test_host_capabilities_r4.py
 plugin_tests/test_identity_binding_v5.py
@@ -948,6 +950,8 @@ plugin_tests/test_workbench_health.py
 plugin_tests/test_workbench_identities.py
 plugin_tests/test_workbench_independent.py
 plugin_tests/test_workbench_inspector.py
+plugin_tests/test_workbench_map.py
+plugin_tests/test_workbench_map_renderer.py
 plugin_tests/test_workbench_overview.py
 plugin_tests/test_workbench_paging.py
 plugin_tests/test_workbench_provenance.py

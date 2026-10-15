@@ -1331,11 +1331,25 @@ HELP_WORDS = (
 )
 
 
-def help_lines(width):
-    """The one reference: keys first, one per row, then the words the screens use."""
+# Named only where a relationship map can be shown (a selected policy and a window with room for it).
+HELP_MAP_KEYS = (
+    ('Map', 'on Relationships (3) Up, Down move to the next or previous node; Enter opens the Inspector on the policy, '
+            'and says so when a node has no inspect route (only a policy has one)'),
+    ('Left, Right', 'pan the map when it is wider than the window'),
+    ('Home', "follow the focused node's edge to its other end; from the policy, to its first neighbour"),
+)
+
+
+def help_lines(width, map_keys=False):
+    """The one reference: keys first, one per row, then the words the screens use.
+
+    map_keys: add the keys of the relationship map, after Up, Down."""
     lines = ['HELP', 'KEYS']
     for key, text in HELP_KEYS:
         lines += _labelled('  ' + key, text, width, 14)
+        if map_keys and key == 'Up, Down':
+            for map_key, map_text in HELP_MAP_KEYS:
+                lines += _labelled('  ' + map_key, map_text, width, 14)
     lines += ['', 'WORDS AND RULES']
     for name, text in HELP_WORDS:
         lines += _labelled('  ' + name, text, width, 14)
@@ -1543,6 +1557,192 @@ def relationship_lines(value, width, rules='ascii'):
     reason = ownership.get('reason')
     lines += word_wrap('  ' + tree[1] + pad('writer', 13) + _as_words(value.get('ownership', 'unknown'))
                        + (' (%s)' % _as_words(reason) if reason else ''), width)
+    return lines
+
+
+class MapLine(str):
+    """A row of a map surface: geometry, not prose.
+
+    draw() neither wraps it (a wrap at a space would split a connector row and break the spine) nor lets the pane's
+    row scrolling alone reach it: the pane's horizontal viewport applies to map rows only. `focused` marks the row
+    of the focused node, so the pane can keep it in view."""
+    focused = False
+
+
+def _map_row(text, focused=False):
+    row = MapLine(text)
+    row.focused = focused
+    return row
+
+
+def slice_cells(text, start, cells):
+    """The `cells` cells of `text` from cell `start`; a wide character cut by either edge becomes a blank."""
+    result, position, end = [], 0, start + cells
+    for char in text:
+        size = cell_width(char)
+        if position >= start and position + size <= end:
+            result.append(char)
+        elif position + size > start and position < end:
+            result.append(' ' * (min(position + size, end) - max(position, start)))
+        position += size
+        if position >= end:
+            break
+    return ''.join(result)
+
+
+# The relationship map: fixed geometry from topology and stable identity only. Every node cell is a mark, a label and
+# the state word padded to the longest word, in the same columns on every row and at every window size, so a state
+# change changes the mark and the word, never a coordinate. A window narrower than the map pans it (Left, Right).
+MAP_MIN_SIZE = (60, 20)
+MAP_LAYER_LIMIT = 6
+MAP_STATE_MARKS = {'queued': '.', 'running': '+', 'waiting': ':', 'blocked': '!', 'failed': '#', 'cancelled': '-',
+                   'unknown': '?', 'verified': 'x'}
+MAP_STATE_WIDTH = 9
+MAP_STATE_COLUMN = 64
+MAP_WIDTH = MAP_STATE_COLUMN + MAP_STATE_WIDTH
+MAP_RELATION_WIDTH = 12
+MAP_GLYPHS = {'ascii': {'branch': '+- ', 'last': '`- ', 'guide': '|  ', 'arrow': ' -> '},
+              'unicode': {'branch': '├─ ', 'last': '└─ ', 'guide': '│  ', 'arrow': ' ─→ '}}
+MAP_KIND_WORDS = {'policy': 'policy', 'group': 'group', 'filter': 'filter', 'scope_tag': 'scope tag', 'setting': 'setting',
+                  'repository': 'repository source', 'target': 'assignment target', 'source': 'source', 'other': 'related item'}
+# Legends by the width they fit, longest first. Fixed text: it depends on the width alone, never on a state.
+MAP_LEGENDS = ((101, 'x verified + running . queued : waiting ! blocked # failed - cancelled ? unknown | > focus * selected'),
+               (70, 'x verified + running . queued ! blocked ? unknown | > focus * selected'),
+               (49, 'x verified + running . queued ! blocked ? unknown'),
+               (18, '> focus * selected'))
+
+
+def map_fits(size):
+    """Whether a window of `size` (columns, rows) has room for the map; below it the view says there is none."""
+    return size[0] >= MAP_MIN_SIZE[0] and size[1] >= MAP_MIN_SIZE[1]
+
+
+def map_unavailable_lines(width, graph=True):
+    """What the Relationships view says where there is no map: that it is not drawn, and where the relationships are."""
+    first = 'MAP NOT DRAWN (needs %dx%d)' % MAP_MIN_SIZE if graph else 'MAP NOT DRAWN (this result names no object)'
+    return [first] + word_wrap('The tree below lists every relationship.', width) + ['']
+
+
+def _drawn_layers(graph):
+    """Each layer of the graph with the edges drawn (the first MAP_LAYER_LIMIT, in order) and how many are not."""
+    layers = []
+    for heading in graph['layers']:
+        edges = [edge for edge in graph['edges'] if edge['layer'] == heading]
+        layers.append((heading, edges[:MAP_LAYER_LIMIT], max(0, len(edges) - MAP_LAYER_LIMIT)))
+    return layers
+
+
+def map_order(graph):
+    """The node references the map draws, in the order the keyboard visits them: the policy, then layer by layer."""
+    order = [graph['center']]
+    for _, edges, _ in _drawn_layers(graph):
+        for edge in edges:
+            if edge['target'] not in order:
+                order.append(edge['target'])
+    return order
+
+
+def map_node(graph, ref):
+    return next((node for node in graph['nodes'] if node['ref'] == ref), None)
+
+
+def _map_label(node, shorts, prefixes):
+    kind, identifier, name = node['kind'], node['id'], node['name']
+    short = shorts.get(kind, {}).get(identifier, identifier[:8])
+    if kind == 'policy':
+        return '%s (%s)' % (name or '(no name)', short_id(identifier, prefixes))
+    if kind == 'group':
+        return '%s (%s)' % (name, short) if name else '%s %s' % (UNRESOLVED_GROUP, short)
+    if kind == 'filter':
+        return 'filter ' + short
+    if kind == 'scope_tag':
+        return 'scope tag "%s"' % identifier
+    if kind == 'target':
+        return TARGET_WORDS.get(identifier, identifier)
+    return identifier
+
+
+def _map_legend(width):
+    return next((text for need, text in MAP_LEGENDS if width >= need), MAP_LEGENDS[-1][1])
+
+
+def _map_cell(prefix, node, label, label_width, ellipsis):
+    """One node cell on a row: mark, label and the padded state word, ending in the state column."""
+    state = node['state'] if node['state'] in MAP_STATE_MARKS else 'unknown'
+    return '%s[%s] %s %s' % (prefix, MAP_STATE_MARKS[state], pad(fit(label, label_width, ellipsis), label_width),
+                             pad(state, MAP_STATE_WIDTH))
+
+
+def _layer_evidence(edges):
+    classes = {edge['provenance'] for edge in edges}
+    fresh = {edge['freshness'] for edge in edges}
+    if len(classes) == 1 and len(fresh) == 1:
+        return '[%s, %s]' % (safe_text(classes.pop().replace('_', ' ')), safe_text(fresh.pop()))
+    return '[mixed evidence: the tree below names each]'
+
+
+def _focus_lines(graph, node, width):
+    """The map's inspector rows: the focused node exactly, the edges that reach it and whether it can be inspected."""
+    first = 'FOCUS %s  %s' % (MAP_KIND_WORDS.get(node['kind'], node['kind']), node['id'])
+    if node['name']:
+        first += '  ' + node['name']
+    elif node['kind'] == 'group':
+        first += '  (unresolved identity)'
+    if node['ref'] == graph['center']:
+        second = 'selected policy | Enter opens the Inspector (2)'
+    else:
+        edges = [edge for edge in graph['edges'] if edge['target'] == node['ref']]
+        second = '%s edge | %s | %s | no inspect route' % (
+            ', '.join(sorted({edge['type'].replace('_', ' ') for edge in edges})),
+            ', '.join(sorted({edge['provenance'].replace('_', ' ') for edge in edges})),
+            ', '.join(sorted({edge['freshness'] for edge in edges})))
+    return word_wrap(first, width) + word_wrap(second, width)
+
+
+def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=None, hscroll=0):
+    """The one-hop relationship map, then its legend and the focused node's rows, for a pane `width` cells wide.
+
+    Layered by relation group in the order of RELATION_GROUPS, each layer sorted by identifier, one hop only: a layer
+    longer than MAP_LAYER_LIMIT says how many are not drawn (the typed tree below lists them all). The rows are
+    MapLines; the header, legend and inspector rows are ordinary text."""
+    from .io import unique_prefixes
+    glyph = MAP_GLYPHS.get(rules, MAP_GLYPHS['ascii'])
+    ellipsis = '…' if rules == 'unicode' else '...'
+    focus = focus if map_node(graph, focus) is not None else graph['center']
+    shorts = {kind: unique_prefixes([node['id'] for node in graph['nodes'] if node['kind'] == kind])
+              for kind in ('group', 'filter')}
+    nodes = {node['ref']: node for node in graph['nodes']}
+    count = len(graph['edges'])
+    # The revision is not drawn: it changes with every state, and a state change must change the mark and the word only.
+    header = '[MAP] one hop from the selected policy | %s' % _count(count, 'edge', 'edges')
+    if graph.get('excluded'):
+        header += ' | %s without a target not drawn' % _count(graph['excluded'], 'edge', 'edges')
+    lines = word_wrap(header, width)
+    if MAP_WIDTH > width:
+        start = max(0, min(hscroll, MAP_WIDTH - width))
+        lines.append('Left and Right pan; showing columns %d-%d of %d.' % (start + 1, start + width, MAP_WIDTH))
+    center = nodes[graph['center']]
+    marks = lambda ref: ('>' if ref == focus else ' ') + ('*' if ref == graph['center'] and selected == center['id'] else ' ') + ' '
+    lines.append(_map_row(_map_cell(marks(center['ref']), center, _map_label(center, shorts, prefixes),
+                                    MAP_STATE_COLUMN - 3 - 5, ellipsis), focus == center['ref']))
+    layers = _drawn_layers(graph)
+    for layer_number, (heading, edges, cut) in enumerate(layers):
+        final_layer = layer_number == len(layers) - 1
+        every = [edge for edge in graph['edges'] if edge['layer'] == heading]
+        lines.append(_map_row('   ' + glyph['last' if final_layer else 'branch'] + heading + '  ' + _layer_evidence(every)))
+        guide = '   ' if final_layer else glyph['guide']
+        for index, edge in enumerate(edges):
+            node = nodes[edge['target']]
+            last = index == len(edges) - 1 and not cut
+            label = RELATION_LABELS.get(edge['type'], edge['type'].replace('_', ' '))
+            prefix = (marks(edge['target']) + guide + glyph['last' if last else 'branch']
+                      + pad(fit(label, MAP_RELATION_WIDTH, ellipsis), MAP_RELATION_WIDTH) + glyph['arrow'])
+            lines.append(_map_row(_map_cell(prefix, node, _map_label(node, shorts, prefixes),
+                                            MAP_STATE_COLUMN - cell_width(prefix) - 5, ellipsis), focus == edge['target']))
+        if cut:
+            lines.append(_map_row('   ' + guide + glyph['last'] + '%d more not drawn; the tree below lists them' % cut))
+    lines.append(_map_legend(width))
+    lines.extend(_focus_lines(graph, nodes[focus], width))
     return lines
 
 
