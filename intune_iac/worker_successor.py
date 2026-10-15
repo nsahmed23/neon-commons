@@ -13,12 +13,16 @@ import re
 import tempfile
 import time
 
-from . import approval_authority as aa, observation_reader as reader_api, protected
+from . import approval_authority as aa, observation_reader as reader_api, protected, validity
 from . import worker_service as service
 from .io import AppError, canonical, digest, parse_json
 
 VERSION = 'worker-service-successor-transfer/2'
 SIGNATURE_DOMAIN = b'intune-workbench:worker-service-successor-transfer:v2\x00'
+DOMAIN = SIGNATURE_DOMAIN.rstrip(b'\x00').decode()  # the transfer approval's domain, part of its expiry key
+EXPIRED_TABLE = 'successor_expired'  # in the original job's store, beside successor_transfers
+PREIMAGE_FRESH_SECONDS = 30
+_PREIMAGE_SEEN = {}  # capture digest -> (monotonic time, age in seconds) at this process's first sight of it
 
 
 def _fail(code):
@@ -51,6 +55,17 @@ def _original(job, db):
             'cancelled': bool(row[1]), 'outcome_sha256': digest(outcome), 'scopes': owners}
 
 
+def _preimage_age(batch):
+    """The age of a process-held capture: the wall age, or the age at this process's first sight of it plus the monotonic
+    time since, whichever is older. A wall clock that steps back after the window has elapsed cannot make it fresh again.
+    A capture dated ahead of the wall clock has a negative wall age and is refused by the caller."""
+    wall_age, now = time.time() - batch['observed_at'], time.monotonic()
+    for key in [key for key, (seen, age) in _PREIMAGE_SEEN.items() if age + now - seen > 10 * PREIMAGE_FRESH_SECONDS]:
+        del _PREIMAGE_SEEN[key]  # long stale: it can never be fresh again, and the map stays small
+    seen, first_age = _PREIMAGE_SEEN.setdefault(batch['capture_sha256'], (now, wall_age))
+    return wall_age if wall_age < 0 else max(wall_age, first_age + now - seen)
+
+
 def _service_preimage(captured, manifest):
     if type(captured) is not reader_api.CapturedObservation:
         _fail('successor_service_preimage_required')
@@ -59,7 +74,7 @@ def _service_preimage(captured, manifest):
     live = manifest['profile'] == 'azure_public_pilot'
     expected_class = 'graph_authenticated_observation' if live else 'graph_reader_laboratory'
     if (captured.cancelled or type(batch.get('observed_at')) not in (int, float)
-            or not 0 <= time.time() - batch['observed_at'] <= 30
+            or not 0 <= _preimage_age(batch) <= PREIMAGE_FRESH_SECONDS
             or batch.get('tenant_id') != manifest['tenant_id'] or [batch.get('object_id')] != manifest['object_ids']
             or batch.get('capture_sha256') != expected.get('preimage_capture_sha256')
             or source.get('evidence_class') != expected_class or source.get('source_authenticity_verified') is not live
@@ -192,7 +207,10 @@ def prepare_transfer(*, original_job, successor_manifest, successor_job_root, re
             'implementation_sha256': protected._sha(Path(__file__)), 'operation_dispatch_authorized': False}
 
 
-def _verify(transfer, signed, policy, manifest):
+def _authenticated(transfer, signed, policy, manifest, now):
+    """Every check of the signed transfer approval except the one that its window is still open at the clock's time:
+    now is the time the shape checks are made at (the real time, or the approval's own issue time when an expiry is
+    being recorded after a refusal)."""
     policy.check()
     if type(signed) is not dict or set(signed) != {'payload', 'signature'}:
         _fail('successor_signature_shape')
@@ -203,10 +221,9 @@ def _verify(transfer, signed, policy, manifest):
             or payload['transfer_id'] != transfer['transfer_id'] or payload['transfer_manifest_sha256'] != digest(transfer)
             or type(payload['nonce']) is not str or not re.fullmatch(r'[0-9a-f]{32}', payload['nonce'])):
         _fail('successor_signature_binding')
-    now = int(time.time())
     if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int
             or not transfer['prepared_at'] <= payload['issued_at'] <= now + 5
-            or not now < payload['expires_at'] <= transfer['expires_at']):
+            or not payload['expires_at'] <= transfer['expires_at']):
         _fail('successor_signature_expired')
     if any(type(payload[key]) is not str for key in ('issuer', 'key_id', 'approver_id')):
         _fail('successor_signer_invalid')
@@ -244,7 +261,62 @@ def _verify(transfer, signed, policy, manifest):
     return payload
 
 
+def _verify(transfer, signed, policy, manifest):
+    """Authenticate the approval, then judge its window in the shared critical section on the original job's store: a
+    reached expiry is recorded there and refused, so it stays closed after a backward clock step and a restart. An
+    approval that does not authenticate records nothing."""
+    now = int(time.time())
+    issued = signed.get('payload', {}).get('issued_at') if type(signed) is dict and type(signed.get('payload')) is dict else None
+    if type(issued) is int and issued > now + 5: validity.hold_if_clock_behind(policy.root)
+    try:
+        payload = _authenticated(transfer, signed, policy, manifest, now)
+    except AppError:
+        expires = signed.get('payload', {}).get('expires_at') if type(signed) is dict and type(signed.get('payload')) is dict else None
+        if type(expires) is int and now >= expires: _fail('successor_signature_expired')
+        raise
+    with _critical(policy, payload, transfer, service._deadline(payload)): pass
+    return payload
+
+
+def _artifact(payload, transfer):
+    """The payload as the shared section keys it: a transfer approval names its transfer, which is its operation."""
+    return dict(payload, operation_id=transfer['transfer_id'])
+
+
+def _critical(policy, payload, transfer, deadline):
+    return service._critical(policy, _artifact(payload, transfer), digest(transfer), deadline, table=EXPIRED_TABLE, fail=_fail,
+                             expired_code='successor_signature_expired', domain=DOMAIN)
+
+
+def _record_expiry_of(policy, transfer, signed, successor_manifest):
+    """Record the reached expiry of a transfer approval whose execution was refused before the approval was judged (the
+    manifest window, the transfer's own window and its age are checked on the bare clock first). The approval is
+    authenticated with the clock pinned to its issue time; the writing section is entered only when its expiry may have
+    been reached, and a backward step is reported as the hold it is. One that does not authenticate records nothing."""
+    try:
+        transfer, manifest = _copy(transfer), _copy(successor_manifest)
+        payload = _authenticated(transfer, signed, policy, manifest, signed['payload']['issued_at'])
+    except (AppError, OSError, KeyError, TypeError, AttributeError): return
+    if service._expiry_may_be_reached(policy.root, payload):
+        service._record_expiry(policy, _artifact(payload, transfer), digest(transfer), None, table=EXPIRED_TABLE, fail=_fail,
+                               expired_code='successor_signature_expired', domain=DOMAIN)
+    else:
+        validity.hold_if_clock_behind(policy.root)
+
+
 def execute_transfer(transfer, signed, *, original_job, successor_manifest, recovery_completion, service_preimage):
+    try:
+        return _execute_transfer(transfer, signed, original_job, successor_manifest, recovery_completion, service_preimage)
+    except AppError as error:
+        # The early refusals judge the manifest, the transfer's window and its age on the bare clock. Record the reached
+        # expiry of an approval that authenticates, or a rollback after the refusal would reopen it.
+        policy = getattr(original_job, 'policy', None)
+        if policy is not None and error.code not in ('successor_signature_expired', validity.HELD):
+            _record_expiry_of(policy, transfer, signed, successor_manifest)
+        raise
+
+
+def _execute_transfer(transfer, signed, original_job, successor_manifest, recovery_completion, service_preimage):
     transfer, manifest = _copy(transfer), service.validate_manifest(successor_manifest)
     if type(transfer) is not dict or type(transfer.get('successor')) is not dict:
         _fail('successor_transfer_invalid')
@@ -257,6 +329,7 @@ def execute_transfer(transfer, signed, *, original_job, successor_manifest, reco
         _fail('successor_transfer_changed')
     policy = original_job.policy
     payload = _verify(transfer, signed, policy, manifest)
+    deadline = service._deadline(payload)
     root = Path(transfer['successor']['job_root'])
     spec = service._host_spec(manifest['host_spec'])
     if any(policy.root == Path(path) or policy.root in Path(path).parents or Path(path) in policy.root.parents
@@ -271,16 +344,15 @@ def execute_transfer(transfer, signed, *, original_job, successor_manifest, reco
             or _service_preimage(service_preimage, manifest) != transfer['service_preimage']):
         _fail('successor_preimage_changed')
     policy.check()
-    with policy.connection() as db:
-        db.execute('BEGIN IMMEDIATE')
+    # The window is judged again, and ownership transferred, in one critical section: nothing can latch the expiry
+    # between the judgment and the transfer, and an expiry reached since the verification is refused here.
+    with _critical(policy, payload, transfer, deadline) as db:
         if _original(original_job, db) != transfer['original']:
             _fail('successor_original_changed')
         if not _recovery_record_matches(db, original_job, transfer):
             _fail('successor_recovery_record_changed')
         if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (payload['issuer'], payload['key_id'])).fetchone():
             _fail('successor_signer_revoked')
-        if time.time() >= min(payload['expires_at'], transfer['expires_at']):
-            _fail('successor_signature_expired')
         if db.execute('SELECT COUNT(*) FROM jobs').fetchone()[0] >= 10000:
             _fail('successor_store_capacity')
         db.execute('CREATE TABLE IF NOT EXISTS successor_transfers (original_operation TEXT NOT NULL, '

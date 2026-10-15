@@ -944,6 +944,7 @@ plugin_tests/test_start_root.py
 plugin_tests/test_start_steps.py
 plugin_tests/test_start_unknown.py
 plugin_tests/test_stateful_service_epoch.py
+plugin_tests/test_successor_expiry_latch.py
 plugin_tests/test_synthetic_completion.py
 plugin_tests/test_target.py
 plugin_tests/test_terminal_interrupt_r4.py
