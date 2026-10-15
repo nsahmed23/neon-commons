@@ -13,8 +13,16 @@ decides, and every authorization store consumes it rather than copying it:
    handed to the caller, who commits its consumption or dispatch insert inside it, so no other process can latch the
    expiry between the judgment and the effect.
 
+4. An open judgment is a durable row too (the open table, keyed like the version 2 expiry table, with the expiry, the
+   boot session and the effective time at the judgment). It is committed in its own transaction while the locks are held and
+   before the caller is handed its transaction, so a later failure, rollback or process death cannot erase it. A process
+   that finds one from a session it cannot verify (another boot or clock domain, a boot time that went back, no readable
+   boot source, a different process on a host that has none) holds that artifact until the wall clock passes its expiry,
+   when it is closed and latched, or until it is prepared anew. Within the same verified session the row carries elapsed
+   boot time, so it is a floor of its own even when the recorded time is gone.
+
 The store is a parameter (Store: root directory, connection factory, expiry table, refusal function and codes).
-clock.py owns the window rule and the recorded time; this module only composes them.
+clock.py owns the window rule, the recorded time and the boot session; this module only composes them.
 """
 import fcntl
 import os
@@ -34,6 +42,7 @@ MAX_EXPIRED = 100000
 _TABLE = re.compile(r'^[a-z][a-z0-9_]{0,63}$')
 
 OPEN, CLOSED, HELD = 'open', 'closed', 'clock_moved_backward'
+LOST = 'continuity_lost'
 
 
 def table_sql(table):
@@ -63,6 +72,20 @@ def table_v2_sql(table):
             'wall INTEGER NOT NULL, PRIMARY KEY(domain,issuer,nonce,operation_id,request_sha256))')
 
 
+def open_table(table):
+    return table + '_open'
+
+
+def table_open_sql(table):
+    """The open-judgment table: one row per artifact judged open, keyed like the version 2 expiry table. It is never
+    deleted from; a later open judgment in the same session replaces the row, and one from a lost session never does."""
+    table_sql(table)
+    return ('CREATE TABLE IF NOT EXISTS ' + open_table(table) + ' (domain TEXT NOT NULL, issuer TEXT NOT NULL, nonce TEXT NOT NULL, '
+            'operation_id TEXT NOT NULL, request_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, boot_id TEXT, '
+            'session_domain TEXT, boottime REAL, effective REAL NOT NULL, wall REAL NOT NULL, judged_at INTEGER NOT NULL, '
+            'process TEXT NOT NULL, PRIMARY KEY(domain,issuer,nonce,operation_id,request_sha256))')
+
+
 def _has(db, table):
     return bool(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone())
 
@@ -84,8 +107,10 @@ def latched(db, table, domain, payload, request_sha256):
 
 
 def _recorded(db, table):
-    """How many expiry records the store holds: the version 2 rows and the pre-upgrade version 1 rows."""
+    """How many records the store holds: the version 2 expiry rows, the open-judgment rows and the pre-upgrade version 1 rows
+    (an artifact that was judged open and later closed counts in both: conservative, never a way round the cap)."""
     count = db.execute('SELECT count(*) FROM ' + v2_table(table)).fetchone()[0]
+    count += db.execute('SELECT count(*) FROM ' + open_table(table)).fetchone()[0]
     if _has(db, table):
         count += db.execute('SELECT count(*) FROM ' + table).fetchone()[0]
     return count
@@ -124,7 +149,8 @@ def judge(reading, expires_at, deadline, latched):
     """The pure judgment: CLOSED, HELD (validity cannot be established) or OPEN.
 
     A reached expiry outranks a hold: the effective time never goes back, so a window that closed stays closed while
-    the wall clock reads earlier. The window rule itself is clock.window_state."""
+    the wall clock reads earlier. The window rule itself is clock.window_state. Expiry compares against the effective
+    time with no added tolerance; the tolerance only classifies backward steps."""
     state = clock.window_state(reading, 0, expires_at)
     if (latched or state == 'closed' or reading['wall'] >= expires_at
             or (deadline is not None and time.monotonic() >= deadline)):
@@ -135,38 +161,82 @@ def judge(reading, expires_at, deadline, latched):
 def peek(root, expires_at, deadline, latched):
     """The judgment for a periodic check, without the critical section: it takes no lock, begins no transaction and
     persists nothing. Returns (state, reading). The reading is clock.Floor.peek: the effective time from the recorded
-    high-water mark and this process's carried time (this process's anchor is updated, which is fine for a permit
-    that belongs to the running process). The caller reads whether an expiry record exists with a plain SELECT and
-    passes it as latched. A CLOSED state is then recorded through critical, and a HELD state is refused, by the caller."""
+    high-water mark, the boot time carried since it was recorded and this process's carried time (this process's anchor is
+    updated, which is fine for a permit that belongs to the running process). The caller reads whether an expiry record
+    exists with a plain SELECT and passes it as latched. A CLOSED state is then recorded through critical, and a HELD state
+    is refused, by the caller."""
     reading = clock.Floor(Path(root) / 'clock.json').peek(time.time())
     return judge(reading, expires_at, deadline, latched), reading
 
 
+def effective_now(root):
+    """The effective time now from the store's recorded floor: the wall clock, the mark, and the mark carried by the boot
+    time elapsed since it was recorded. Reads only; a damaged or unreadable record falls back to the wall clock, because the
+    section that judges will refuse it."""
+    wall = time.time()
+    try:
+        floor = clock.Floor(Path(root) / 'clock.json')
+        recorded = floor.record()
+    except AppError:
+        return wall
+    carried = floor.carried(recorded)
+    return max(value for value in (wall, None if recorded is None else recorded['high_water'], carried) if value is not None)
+
+
+def deadline(root, expires_at):
+    """This process's monotonic deadline for an expiry, armed from the effective time, not the bare wall clock: a wall clock
+    set back, in this process or before it started, cannot give the artifact more time than the floor says is left."""
+    return time.monotonic() + max(0, expires_at - effective_now(root))
+
+
+_CARRIED_WORDS = (' The recorded time includes the time this host has run since it was recorded, so restarting does not clear '
+                  'this: correct the host clock, prepare the approval anew, or start a new boot of this host (for example '
+                  'wsl --shutdown).')
+
+
 def hold(reading):
-    """The refusal for a backward step: the approval is held, not judged, and it says how to recover."""
+    """The refusal for a backward step: the approval is held, not judged, and it says how to recover. When the floor the
+    clock reads behind includes boot time carried since it was recorded, it also says that a restart does not clear it."""
+    message = ("Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, "
+               'so whether the approval is still valid cannot be established. Correct the host clock, or wait until '
+               'it reads at or after the recorded time, then restart; verifying again does not clear this.'
+               % (reading['wall'], reading['floor']))
+    carried = reading.get('carried')
+    if carried is not None and carried > (reading.get('mark') or 0):
+        message += _CARRIED_WORDS
+    return AppError('clock_moved_backward', message)
+
+
+def hold_lost(expires_at):
+    """The refusal for lost continuity: the artifact was judged open in a session that cannot be verified now, so how much
+    of its time has passed since cannot be established. Distinct from the backward-clock message; it names both exits."""
     return AppError('clock_moved_backward',
-                    "Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, "
-                    'so whether the approval is still valid cannot be established. Correct the host clock, or wait until '
-                    'it reads at or after the recorded time, then restart; verifying again does not clear this.'
-                    % (reading['wall'], reading['floor']))
+                    'Approval held: it was judged open in an earlier session of this host (another boot or clock domain, or one '
+                    'that cannot be verified now), so how much of its time has passed since cannot be established. It stays '
+                    'held until the host clock reads at or after its expiry at %d, when it is closed, or until it is prepared '
+                    'anew; verifying again does not clear this.' % expires_at)
 
 
 def hold_if_clock_behind(root):
     """Explain a backward step before an unauthenticated input is refused for its wall-relative time.
 
-    This runs before authentication, so it only reads the persisted high-water mark (a rename replaces the file, so a
-    lockless read is whole) and records nothing: not the file, not this process's anchor. A damaged or unreadable
-    record falls through to the caller's original refusal, never to acceptance. The recorded time is written only
+    This runs before authentication, so it only reads the persisted record (a rename replaces the file, so a lockless read
+    is whole), applies the boot floor from it, and records nothing: not the file, not this process's anchor. A damaged or
+    unreadable record falls through to the caller's original refusal, never to acceptance. The recorded time is written only
     inside critical, after authentication."""
     try:
-        recorded = clock.Floor(Path(root) / 'clock.json').high_water()
+        floor = clock.Floor(Path(root) / 'clock.json')
+        recorded = floor.record()
+        carried = floor.carried(recorded)
     except AppError:
         return
     wall = time.time()
     if recorded is None or type(wall) not in (int, float):
         return
-    reading = {'wall': wall, 'floor': recorded, 'effective': max(wall, recorded),
-               'backward': wall < recorded - clock.TOLERANCE_SECONDS}
+    mark = recorded['high_water']
+    top = max(mark, mark if carried is None else carried)
+    reading = {'wall': wall, 'floor': top, 'effective': max(wall, top), 'backward': wall < top - clock.TOLERANCE_SECONDS,
+               'mark': mark, 'carried': carried}
     if reading['backward']:
         raise hold(reading)
 
@@ -205,6 +275,36 @@ def critical(store, payload, request_sha256, deadline=None, expired_code='approv
         store.fail(expired_code)
 
 
+def _open_row(db, store, payload, request_sha256):
+    row = db.execute('SELECT boot_id, session_domain, boottime, effective, process FROM ' + open_table(store.table) +
+                     ' WHERE domain=? AND issuer=? AND nonce=? AND operation_id=? AND request_sha256=?',
+                     (store.domain, payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256)).fetchone()
+    if row is None:
+        return None
+    session = None if row[0] is None else {'boot_id': row[0], 'domain': row[1], 'boottime': row[2]}
+    return {'session': session, 'effective': row[3], 'process': row[4]}
+
+
+def _view(reading, row):
+    """The reading as an earlier open judgment of the same artifact sees it: (view, lost). In the same verified session the
+    row carries its effective time forward by the boot time elapsed since, a floor of its own. In any other session it
+    cannot be carried and the artifact is lost to this process; on a host with no boot source only the process that
+    wrote the row is still its session."""
+    if row is None:
+        return reading, False
+    now = reading['session']
+    if row['session'] is None:
+        return reading, not (now is None and row['process'] == clock.process_token())
+    if not clock.same_session(row['session'], now):
+        return reading, True
+    carried = row['effective'] + (now['boottime'] - row['session']['boottime'])
+    if carried <= reading['floor']:
+        return reading, False
+    view = dict(reading, floor=carried, effective=max(reading['effective'], carried), carried=carried)
+    view['backward'] = view['wall'] < carried - clock.TOLERANCE_SECONDS
+    return view, False
+
+
 def _judged(store, floor, payload, request_sha256, deadline):
     closed = False
     with floor.locked():
@@ -216,19 +316,39 @@ def _judged(store, floor, payload, request_sha256, deadline):
             else:
                 db.execute('SELECT 1 FROM ' + store.table + ' LIMIT 0')  # the store made its table; a missing one is an error
             db.execute(table_v2_sql(store.table))
-            state = judge(reading, payload['expires_at'], deadline,
+            db.execute(table_open_sql(store.table))
+            row = _open_row(db, store, payload, request_sha256)
+            view, lost = _view(reading, row)
+            state = judge(view, payload['expires_at'], deadline,
                           latched(db, store.table, store.domain, payload, request_sha256))
+            if state == OPEN and lost:
+                state = LOST
             if state == CLOSED:
                 if _recorded(db, store.table) >= store.capacity:
                     store.fail(store.capacity_code)
-                row = (payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256,
-                       payload['expires_at'], int(reading['effective']), int(reading['wall']))
-                db.execute('INSERT OR IGNORE INTO ' + v2_table(store.table) + ' VALUES (?,?,?,?,?,?,?,?)', (store.domain,) + row)
+                values = (payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256,
+                          payload['expires_at'], int(reading['effective']), int(reading['wall']))
+                db.execute('INSERT OR IGNORE INTO ' + v2_table(store.table) + ' VALUES (?,?,?,?,?,?,?,?)', (store.domain,) + values)
                 db.execute('COMMIT')
                 _sync(store.root)
                 closed = True
             elif state == HELD:
-                raise hold(reading)
+                raise hold(view)
+            elif state == LOST:
+                raise hold_lost(payload['expires_at'])
             else:
+                # The open judgment is durable before the caller is handed its transaction: committed on its own, under the
+                # locks, so the caller's later failure or rollback, or the process dying, cannot erase it.
+                if row is None and _recorded(db, store.table) >= store.capacity:
+                    store.fail(store.capacity_code)
+                session = reading['session']
+                db.execute('INSERT OR REPLACE INTO ' + open_table(store.table) + ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                           (store.domain, payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256,
+                            payload['expires_at'], None if session is None else session['boot_id'],
+                            None if session is None else session['domain'], None if session is None else session['boottime'],
+                            reading['effective'], reading['wall'], int(reading['wall']), clock.process_token()))
+                db.execute('COMMIT')
+                _sync(store.root)
+                db.execute('BEGIN IMMEDIATE')
                 yield db
     return closed

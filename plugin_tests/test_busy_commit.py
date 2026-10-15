@@ -91,7 +91,9 @@ class ApprovalAuthorityBusyTests(BusyAssertions, unittest.TestCase):
             with self.assertRaises(AppError) as raised:
                 with authorization:
                     self.fail('the approval was consumed although the commit failed')
-        self.assertEqual(raised.exception.code, 'approval_consumption_not_durable')
+        # The open judgment is committed on its own before the caller's transaction is handed over, so a store that cannot
+        # commit refuses at that first commit, earlier than the consumption's own.
+        self.assertEqual(raised.exception.code, 'approval_store_unavailable')
         self.assertEqual(self.consumed(), [])
         self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
         self.assert_rolled_back(self.authority.root)
@@ -108,7 +110,7 @@ class ApprovalAuthorityBusyTests(BusyAssertions, unittest.TestCase):
                 with reading(self.database()):
                     with self.assertRaises(AppError) as raised:
                         permit.mark_dispatch()
-                self.assertEqual(raised.exception.code, 'approval_dispatch_not_durable')
+                self.assertEqual(raised.exception.code, 'approval_store_unavailable')  # at the open judgment's own commit
                 self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
                 self.assert_rolled_back(self.authority.root)
                 with self.entered_sections() as section:
@@ -144,7 +146,7 @@ class AdoptionBusyTests(BusyAssertions, adoption_tests.AdoptionFixture):
             error = self.refused(lambda: self.run_job(signed))
         self.assertEqual(error.code, 'service_store_unavailable')
         self.assert_nothing_happened()  # no consumed row, no transcript, still prepared, no dispatch, no approval file
-        self.assertEqual(self.observations, ['baseline'])  # only the read-only observation that precedes the commit
+        self.assertEqual(self.observations, [])  # the verification's open judgment cannot commit, so nothing is observed
         self.assert_rolled_back(self.policy.root)
         self.assert_anchors_are_this_readings()
         with self.entered_sections() as section:

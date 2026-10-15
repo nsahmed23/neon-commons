@@ -33,6 +33,7 @@ import json
 import math
 import os
 import time
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -107,9 +108,19 @@ def same_session(recorded, now):
 _ANCHORS = {}
 
 
+# A random token for this process, for rows written on a host that has no boot source: such a row can only be told to belong
+# to a still-running process, never to a session.
+_PROCESS = [uuid.uuid4().hex]
+
+
+def process_token():
+    return _PROCESS[0]
+
+
 def reset_process_anchor():
     """Forget this process's floors (tests use it to stand for a new process)."""
     _ANCHORS.clear()
+    _PROCESS[0] = uuid.uuid4().hex
 
 
 def _process_floor(key, wall):
