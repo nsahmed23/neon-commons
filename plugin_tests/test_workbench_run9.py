@@ -232,7 +232,7 @@ class RecordedRefusalTests(unittest.TestCase):
         self.assertNotIn('record the deployment with the intent it cites', text)
         # The cause still names the intent the plan cites, and the effect says nothing was recorded by this command.
         self.assertIn('Cause: Operation %s cites repository intent %s' % (short, self.intent['artifact_id']), text)
-        self.assertIn('Effect: No deployment receipt was recorded.', text)
+        self.assertIn('Effect: No deployment record was made.', text)
 
     def test_recording_again_with_the_cited_intent_is_not_refused_it_returns_the_first_record(self):
         # This documented a defect (DEF-DEPLOY-DUP): the record carried recorded_at, so its identity differed on every

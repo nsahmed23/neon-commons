@@ -75,7 +75,7 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertEqual((action['binding']['operation_id'], action['binding']['intent_id']),
                          (review['operation_id'], intent['artifact_id']))
         self.assertIn('sends nothing', action['summary'])
-        self.assertIn('Records a deployment receipt', action['summary'])
+        self.assertIn('Records the deployment', action['summary'])
         self.assertIn('verified local modeled baseline', action['effects'])
         record_local_deployment(self.store, operation, intent['artifact_id'])
         self.assertNotIn('deployment-record', self.actions())

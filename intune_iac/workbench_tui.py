@@ -226,8 +226,8 @@ STAGED_BOUNDARY = {
                             'STAGED proposal: nothing approved or sent.', 'Local proposal; nothing approved or sent'),
     'propose': ('STAGED proposal: a local proposal for review; nothing is approved or sent.',
                 'STAGED proposal: nothing approved or sent.', 'Local proposal; nothing approved or sent'),
-    'deployment-record': ('STAGED deployment record: a receipt in this store; nothing is sent.',
-                          'STAGED record: a local receipt; nothing sent.', 'Record: local receipt; nothing sent.'),
+    'deployment-record': ('STAGED deployment record: a record in this store; nothing is sent.',
+                          'STAGED record: stored locally; nothing sent.', 'Record: stored locally; nothing sent.'),
     'repository-entry': ('STAGED repository survey: reads the repository; it records nothing.',
                          'STAGED survey: reads only.', 'Survey: reads only.'),
     'diagnostics': ('STAGED diagnostics: shows what diagnostics recorded; it records nothing.',
@@ -901,8 +901,9 @@ class Workspace:
                     name, str(value['journal_status']).replace('_', ' '),
                     " (reconcile's readback: %s)" % str(readback).replace('_', ' ') if readback else '')
             if isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str):
+                from .workbench_screens import RECORD_WORDS
                 return '%s recorded %s %s%s.' % (
-                    name, value['kind'].replace('_', ' '), value['artifact_id'][:12],
+                    name, RECORD_WORDS.get(value['kind'], value['kind'].replace('_', ' ')), value['artifact_id'][:12],
                     '' if value.get('created', True) else ' (already recorded; nothing changed)')
             return '%s ran; its result is above.' % (name or 'The command')
         view = SUBVIEWS.get(name) or TABS[self.tab]

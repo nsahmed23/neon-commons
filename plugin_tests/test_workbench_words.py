@@ -450,7 +450,7 @@ class RunFourWordsTests(unittest.TestCase):
                                               'effects': {'deployment_recorded': False}}}, 200))
         self.assertIn(message, lines)
         self.assertNotIn('What it means', lines)
-        self.assertIn('Effect: No deployment receipt was recorded.', lines)
+        self.assertIn('Effect: No deployment record was made.', lines)
         # A message that names something the meaning cannot, and does not repeat it, keeps the meaning's line, unless
         # that line only restates the refusal's own header (run 8 item 10, frame 81: "In general: The desired policy
         # uses a setting definition ... outside the supported capability map" under "The desired policy is outside the

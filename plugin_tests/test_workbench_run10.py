@@ -585,7 +585,7 @@ class OneEffectTests(companion_tests.Fixture):
     def test_the_three_named_actions_keep_what_each_claims_in_one_place(self):
         from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
         for kind, claims in (('collect', ('collection run', 'changes no policy')),
-                             ('deployment-record', ('records a deployment receipt', 'sends nothing')),
+                             ('deployment-record', ('records the deployment', 'sends nothing')),
                              ('companion', ('records nothing', 'opens no browser'))):
             for claim in claims:
                 self.assertEqual([name for name, table in (('summary', ACTION_SUMMARY), ('effects', ACTION_EFFECTS))
@@ -638,6 +638,44 @@ class StampTimeOnceTests(unittest.TestCase):
         state, attention = self.screen()
         self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 17:45:10 UTC)", state)
         self.assertIn('The newest observation is not known to be fresh.', attention)
+
+
+class OneNounTests(unittest.TestCase):
+    """Lower weight (frame 67): stage 7 shows the record id and the screen says record, not receipt, for the deployment."""
+    NOUNS = (r'(?i)deployment receipt', r'(?i)\blocal receipt', r'(?i)a receipt in this store', r'The receipt is a verified')
+
+    def test_stage_7_shows_the_record_id_the_notice_and_the_panel_print(self):
+        from intune_iac.workbench_screens import delivery_lines
+        from plugin_tests.test_workbench_screens import delivery_value
+        text = text_of(delivery_lines(delivery_value(deployment_record={'artifact_id': '4679402135fd' + '0' * 52}), 140))
+        self.assertIn('7 Deployment recorded 2026-10-14 12:25:00 UTC | record 4679402135fd | intent', text)
+
+    def test_stage_7_without_an_id_is_unchanged(self):
+        from intune_iac.workbench_screens import delivery_lines
+        from plugin_tests.test_workbench_screens import delivery_value
+        text = text_of(delivery_lines(delivery_value(), 140))
+        self.assertNotIn('| record ', text)
+
+    def test_the_notice_the_refusal_effect_and_the_action_say_record(self):
+        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        from intune_iac.workbench_screens import refusal_lines
+        from intune_iac.workbench_tui import STAGED_BOUNDARY
+        workspace = states_tests.RefusalCauseTests.workspace(states_tests.RefusalCauseTests(), {}, 'deployment-record /w/op ' + 'a' * 64)
+        notice = workspace._notice_for({'artifact_id': '4679402135fd' + '0' * 52, 'kind': 'deployment_receipt', 'created': True})
+        self.assertEqual(notice, 'deployment-record recorded deployment record 4679402135fd.')
+        value = {'status': 'error', 'error': {'code': 'workbench_deployment_intent_not_cited', 'message': 'x',
+                                              'effects': {'deployment_recorded': False}}}
+        self.assertIn('Effect: No deployment record was made.', text_of(refusal_lines(value, 118)))
+        self.assertIn('Records the deployment in this store', ACTION_SUMMARY['deployment-record'])
+        self.assertIn('The record is a verified local modeled baseline', ACTION_EFFECTS['deployment-record'])
+        self.assertTrue(all('receipt' not in text for text in STAGED_BOUNDARY['deployment-record']), STAGED_BOUNDARY['deployment-record'])
+
+    def test_no_module_says_deployment_receipt(self):
+        from pathlib import Path
+        for module in ('workbench_screens', 'workbench_tui', 'workbench', 'workbench_delivery'):
+            source = (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
+            for noun in self.NOUNS:
+                self.assertEqual([found.group(0) for found in re.finditer(noun, source)], [], (module, noun))
 
 
 class StripOperationTests(unittest.TestCase):

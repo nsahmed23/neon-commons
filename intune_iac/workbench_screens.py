@@ -2439,8 +2439,10 @@ def _record_text(stage, status):
     if status == 'done':
         admitted = ('context file changed since; no longer admitted as a baseline' if stage.get('context_changed') else
                     'baseline admissible' if stage.get('baseline_admissible') else 'not a baseline')
-        return 'recorded %s | intent %s | %s | %s' % (_when(stage.get('recorded_at')), short_id(stage.get('intent_id')),
-                                                      _as_words(stage.get('evidence_class')), admitted)
+        # The record's own id, as the notice and the panel print it, so the stage and the notice can be matched.
+        named = ' | record %s' % str(stage['artifact_id'])[:12] if stage.get('artifact_id') else ''
+        return 'recorded %s%s | intent %s | %s | %s' % (_when(stage.get('recorded_at')), named, short_id(stage.get('intent_id')),
+                                                        _as_words(stage.get('evidence_class')), admitted)
     if status == 'available':
         return 'available for intent %s; deployment-record performs the full check' % short_id(stage.get('intent_id'))
     if status in ('not_available', 'not_applicable'):
@@ -2932,7 +2934,7 @@ def effect_lines(effects, width):
     elif effects.get('dispatched') is True:
         said.append('Dispatch had started, so the outcome is unknown; reconcile it (it never replays the change).')
     if effects.get('deployment_recorded') is False:
-        said.append('No deployment receipt was recorded.')
+        said.append('No deployment record was made.')
     return word_wrap('Effect: ' + ' '.join(said), width) if said else []
 
 

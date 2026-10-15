@@ -399,7 +399,7 @@ ACTION_EFFECTS = {
                         'nothing.',
     'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why.',
     'deployment-record': 'Rechecks the operation, its engine receipt, its one verified readback and the context bytes '
-                         'its plan bound against the cited repository intent first. The receipt is a verified local '
+                         'its plan bound against the cited repository intent first. The record is a verified local '
                          'modeled baseline for that intent, not platform qualified.',
     'companion': 'The page reads this policy and its relationships, shows one snapshot and does not update itself, and '
                  'can approve or run nothing; the notice names the path. From a shell the same command is ' + COMPANION_WRITE +
@@ -419,7 +419,7 @@ ACTION_SUMMARY = {
     # (the survey reads the repository and the store and writes neither), and it covers "records nothing".
     'repository-entry': ACTION_EFFECTS['repository-entry'],
     'diagnostics': 'Shows what diagnostics recorded, including what it could not read; it records nothing.',
-    'deployment-record': 'Records a deployment receipt in this store; it sends nothing.',
+    'deployment-record': 'Records the deployment in this store; it sends nothing.',
     'companion': 'Writes one read-only page for this policy to a file you name; it records nothing and opens no browser.',
 }
 
