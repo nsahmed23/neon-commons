@@ -778,15 +778,25 @@ class ServiceJob:
     def attach(self):
         """Read-only durable view; reopening does not recreate a permit or retry."""
         return self.status()
-    def cancel(self):
+    def _implementation_current(self):
+        """Whether the controller now is the one this job was prepared under; None when the inventory cannot be read."""
+        try: return self.manifest.get('implementation_files') == implementation_binding()
+        except AppError: return None
+    def cancel(self, *, administrative=False):
+        """A job prepared under an earlier controller is refused here; an explicit administrative cancel stays available,
+        only restricts, makes no host call and records in its event that it was administrative and whether the controller
+        is current."""
         self._check(expiry=False)
+        current = self._implementation_current()
+        if not current and not administrative: _fail('service_implementation_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE id=?", (self.identifier,))
             from .worker_successor import restore_undispatched_owner
             if not restore_undispatched_owner(self, db):
                 db.execute('DELETE FROM ownership WHERE job=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND dispatches=0)', (self.identifier, self.identifier))
-            self.policy.event(db, self.identifier, 'cancel_requested', {'dispatch_replayed': False}); db.execute('COMMIT')
+            self.policy.event(db, self.identifier, 'cancel_requested', {'dispatch_replayed': False,
+                **({'administrative': True, 'implementation_current': current} if administrative else {})}); db.execute('COMMIT')
         return self.status()
     def run(self, signed_receipt, *, runtime):
         try: self._check()
@@ -991,7 +1001,9 @@ class ServiceJob:
         return self.status()
 
     def recover(self):
+        """Recovery calls the host and writes state, so the current-implementation gate runs before any transaction."""
         self._check(expiry=False)
+        if not self._implementation_current(): _fail('service_implementation_changed')
         # Commit cancellation before considering cleanup, so no new broker
         # request remains authorized while a second process observes recovery.
         with self.policy.connection() as db:

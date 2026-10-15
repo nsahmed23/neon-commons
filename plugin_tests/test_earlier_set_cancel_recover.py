@@ -17,6 +17,8 @@ from intune_iac import worker_adoption_reconcile as bridge
 from intune_iac.io import AppError, load_json
 from plugin_tests import test_adoption_expiry_latch as adoption_tests
 from plugin_tests import test_adoption_recovery_expiry_latch as recovery_tests
+from plugin_tests import test_service_expiry_latch as service_tests
+from intune_iac import worker_service as service
 from plugin_tests import test_protected_worker_r4 as worker_base
 from intune_iac import implementation_history as history
 
@@ -167,6 +169,56 @@ class RecoveryPlanJobTests(recovery_tests.RecoveryFixture):
         events = self.rows("SELECT payload FROM events WHERE kind='adoption_recovery_plan_cancel_requested'")
         self.assertEqual([load_json_text(p) for (p,) in events],
                          [{'operation_id': self.job.identifier, 'ownership_released': False}] * 2)
+
+
+class ServiceJobTests(service_tests.ServiceFixture):
+    """The service job (PKG-TIME-AUTHZ-C fix round): the same gate, the same administrative path."""
+    def setUp(self):
+        super().setUp()
+        self.controller_files = {'fixture/controller.py': 'a' * 64}
+        self.job.manifest['implementation_files'] = dict(self.controller_files)
+        patcher = patch.object(service, 'implementation_binding', side_effect=lambda: dict(self.controller_files))
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def upgrade(self):
+        self.controller_files = {'fixture/controller.py': 'b' * 64}  # the controller changed after the job was prepared
+
+    def state(self):
+        return (self.rows('SELECT status, cancelled, dispatches, controller_pid FROM jobs'), self.rows('SELECT kind FROM events'),
+                self.rows('SELECT scope, job FROM ownership'))
+
+    def test_recover_runs_the_gate_before_any_transaction_or_host_call(self):
+        self.upgrade()
+        before = self.state()
+        with patch.object(service.host, 'recover', side_effect=AssertionError('the host was touched')) as host:
+            with self.assertRaises(AppError) as raised:
+                self.job.recover()
+        self.assertEqual(raised.exception.code, 'service_implementation_changed')
+        host.assert_not_called()
+        self.assertEqual(self.state(), before)
+
+    def test_a_normal_cancel_is_refused_and_an_administrative_cancel_records_why(self):
+        self.upgrade()
+        before = self.state()
+        with patch.object(service.host, 'recover', side_effect=AssertionError('the host was touched')):
+            with self.assertRaises(AppError) as raised:
+                self.job.cancel()
+            self.assertEqual(raised.exception.code, 'service_implementation_changed')
+            self.assertEqual(self.state(), before)
+            self.job.cancel(administrative=True)
+        self.assertEqual(self.rows('SELECT cancelled FROM jobs'), [(1,)])
+        event = self.rows("SELECT payload FROM events WHERE kind='cancel_requested'")
+        self.assertEqual([load_json_text(p) for (p,) in event],
+                         [{'dispatch_replayed': False, 'administrative': True, 'implementation_current': False}])
+
+    def test_cancel_and_recover_of_a_current_job_are_unchanged(self):
+        with patch.object(service.host, 'recover', return_value={}):
+            self.job.cancel()
+            self.job.recover()
+        events = self.rows("SELECT payload FROM events WHERE kind='cancel_requested'")
+        self.assertEqual([load_json_text(p) for (p,) in events], [{'dispatch_replayed': False}])
+        self.assertEqual(self.rows("SELECT kind FROM events WHERE kind='recovery_no_replay'"), [('recovery_no_replay',)])
 
 
 if __name__ == '__main__':
