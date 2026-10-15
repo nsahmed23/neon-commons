@@ -110,7 +110,8 @@ def parser():
     repo=commands.add_parser('repository',help='Discover stacks and resolve supported literal Atmos configuration').add_subparsers(dest='repository_command',required=True)
     repo_inspect=repo.add_parser('inspect');repo_inspect.add_argument('--root',required=True)
     repo_resolve=repo.add_parser('resolve');repo_resolve.add_argument('--root',required=True);repo_resolve.add_argument('--stack',required=True);repo_resolve.add_argument('--component',required=True)
-    native=repo.add_parser('native',help='Compare admitted literal configuration with pinned Atmos 1.199.0')
+    from .pin_profiles import CURRENT, LEGACY, tools
+    native=repo.add_parser('native',help='Compare admitted literal configuration with pinned Atmos %s (Atmos %s only for legacy reproduction)'%(tools(CURRENT)['atmos_version'],tools(LEGACY)['atmos_version']))
     for name in ('root','stack','component','executable'):native.add_argument('--'+name,required=True)
     synthetic=commands.add_parser('synthetic',help='Generate and inspect reproducible synthetic estates').add_subparsers(dest='synthetic_command',required=True)
     sg=synthetic.add_parser('generate');sg.add_argument('--output',required=True);sg.add_argument('--seed',type=int,default=42);sg.add_argument('--policies',type=int,default=3);sg.add_argument('--case',default='baseline')

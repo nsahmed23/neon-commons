@@ -14,9 +14,14 @@ collect_azure_observations(document: dict, *, graph_token: str,
                            management_token: str, timeout: int = 10) -> dict
 ```
 
-`inspect_target` accepts `schema_version: target-evidence/1.0`, `observed_at`,
+`inspect_target` accepts `schema_version: target-evidence/2.0` (the current pins), or
+`target-evidence/1.0` (the legacy pins, readable for reproduction only), `observed_at`,
 and a complete `binding`. It returns `valid`, `status`, `assurance`, fixed
-`issues` and `blockers`, and, when valid, `binding_sha256`. Inspection and
+`issues` and `blockers`, and, when valid, `binding_sha256`. Every report carries its document's own
+`schema_version` and a `pin_profile`: `current_local_qualification` for 2.0, `legacy_reproduction_only` for
+1.0, and none for a document that is unreadable or of an unrecognised version. A 1.0 document is never
+upgraded or rewritten as 2.0 by reading it, and a 1.0 document never matches a 2.0 document in a comparison
+(`/schema_version` is reported as changed). Inspection and
 comparison perform no network or process calls. `execution_authorized` is always
 false; a supplied `assurance`, unknown field, null required value, unsupported
 cloud, or unrecognized version is invalid. Returned errors contain known field
@@ -43,7 +48,7 @@ intentionally narrower than Azure's general naming and authentication support.
 | Repository | Physical manifest selector **and** logical Atmos stack, component/implementation path, Git revision, dirty-file/source/effective-configuration digests, and runtime layer digest. Declaring these does not evaluate Atmos or environment overrides. |
 | Backend | Separate backend tenant/subscription/principal/client/federation; Azure storage resource ID, matching account blob endpoint, container, key, workspace, resolved blob, state lineage/serial/full-state digest. |
 | Ownership | Single-writer declaration, writer ID, scope digest, lease ID and future expiration. This is a claim; the module does not acquire or verify a real lock/lease. |
-| Toolchain | Explicit Atmos 1.199.0, OpenTofu 1.10.0, microsoft365 1.0.0 and binary/provider-lock digests. Tool hashes are bound, not established from actual executable bytes here. |
+| Toolchain | Version 2.0: Atmos 1.230.1 (SHA-256 `f3b5b42e897a2778678cc1231e7a4e2476773bc61ea2af225586dc4e96408802`), OpenTofu 1.13.1 (SHA-256 `a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a`), microsoft365 1.0.0 and the provider-lock digest; the pair and both digests are the current local qualification in `intune_iac/native_pins.py` and any other value is invalid. Version 1.0 keeps the legacy pair (Atmos 1.199.0, OpenTofu 1.10.0) with free digests. Tool hashes are bound, not established from actual executable bytes here. |
 
 For the pinned OpenTofu Azure backend, the default workspace uses `key`.
 A named workspace uses `key + "env:" + workspace`; it is **not** a generic

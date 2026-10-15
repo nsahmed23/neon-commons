@@ -643,5 +643,48 @@ class GoldenProjectTests(EngineCase):
             self.assertEqual(manifest[name], hashlib.sha256(azure[name].encode()).hexdigest(), name)
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Step 4: command help, documents and the integration manifest follow the pins.
+# ---------------------------------------------------------------------------------------------------------------------
+class HelpDocsAndManifestTests(unittest.TestCase):
+    def read(self, name):
+        return (ROOT / name).read_text(encoding='utf-8')
+
+    def help_text(self, *argv):
+        import contextlib
+        import io
+        from intune_iac import cli
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer), self.assertRaises(SystemExit):
+            cli.parser().parse_args(list(argv) + ['--help'])
+        return ' '.join(buffer.getvalue().split())
+
+    def test_the_repository_native_help_names_the_current_atmos_pin(self):
+        text = self.help_text('repository')
+        self.assertIn('pinned Atmos %s' % CURRENT_ATMOS, text)
+        self.assertNotIn('pinned Atmos %s' % LEGACY_ATMOS, text)
+        self.assertIn('Atmos %s only for legacy reproduction' % LEGACY_ATMOS, text)
+
+    def test_the_target_document_describes_both_schema_versions_and_the_current_toolchain(self):
+        text = ' '.join(self.read('docs/TARGET.md').split())
+        for needed in ('target-evidence/2.0', 'target-evidence/1.0', LEGACY, 'Atmos %s' % CURRENT_ATMOS,
+                       'OpenTofu %s' % CURRENT_TOFU, CURRENT_ATMOS_SHA, CURRENT_TOFU_SHA):
+            self.assertIn(needed, text)
+        self.assertNotIn('Explicit Atmos %s, OpenTofu %s' % (LEGACY_ATMOS, LEGACY_TOFU), text)
+
+    def test_the_production_mapping_document_says_which_context_version_names_which_pins(self):
+        text = ' '.join(self.read('docs/PRODUCTION-MAPPING.md').split()).replace('`', '')
+        for needed in ('schema_version 2.0.0', 'OpenTofu %s' % CURRENT_TOFU, 'schema_version 1.0.0', LEGACY,
+                       'OpenTofu %s' % LEGACY_TOFU):
+            self.assertIn(needed, text)
+        self.assertNotIn('the candidate itself explicitly proposes OpenTofu %s' % LEGACY_TOFU, text)
+
+    def test_the_manifest_pins_are_the_current_pins_of_native_pins(self):
+        pinned = json.loads(self.read('contracts/integration-manifest.json'))['setup_context']['pinned']
+        self.assertEqual((pinned['schema_version'], pinned['engine'], pinned['engine_version'], pinned['atmos_version']),
+                         (CONTEXT_V2, 'tofu', CURRENT_TOFU, CURRENT_ATMOS))
+
+
 if __name__ == '__main__':
     unittest.main()
