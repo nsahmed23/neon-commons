@@ -21,7 +21,7 @@ import threading
 import time
 import uuid
 
-from . import clock
+from . import clock, implementation_history as history
 from .execution import review_plan, review_local_output_plan
 from .io import AppError, canonical, digest, load_json, parse_json, read_bytes
 
@@ -607,10 +607,19 @@ def inspect_executor(executor):
     return dict(state,mode=executor.mode,desired_value_sha256=executor.manifest['desired_value_sha256'],execution_authorized=False)
 
 
+def _implementation_files():
+    """Per-file sha256 of the files the implementation digest binds (history.PROTECTED_COMPONENTS)."""
+    return {name:_sha(Path(__file__).with_name(name)) for name in history.PROTECTED_COMPONENTS}
+
+
+def _implementation_sha256():
+    return history.protected_digest(_implementation_files())
+
+
 def _bindings(executor):
     state=_state(executor)
     return {'root_sha256':digest(str(executor.root)),'executable_sha256':_sha(executor.executable),
-            'worker_sha256':_sha(executor.root/'worker.py'),'implementation_sha256':digest([_sha(__file__),_sha(Path(__file__).with_name('execution.py')),_sha(Path(__file__).with_name('io.py')),_sha(Path(__file__).with_name('native_pins.py'))]),
+            'worker_sha256':_sha(executor.root/'worker.py'),'implementation_sha256':_implementation_sha256(),
             'configuration_sha256':_sha(executor.root/'work/main.tf.json'),'saved_plan_sha256':_sha(executor.root/'work/saved.tfplan'),
             'plan_json_sha256':_sha(executor.root/'work/plan.json'),'before_state_sha256':state['state_sha256'],
             'before_value_sha256':state['value_sha256'],'before_lineage_sha256':state['lineage_sha256'],'before_serial':state['serial'],'desired_value_sha256':executor.manifest['desired_value_sha256']}
@@ -699,17 +708,59 @@ def _request_shape(request):
     elif request['mode']!='native_local_opentofu_only' or review['generic_review_status']!='blocked' or review['generic_blockers']!=[{'code':'prior_output_value_mismatch','location':'plan'}]:_fail('invalid_review')
 
 
-def _validate_request(request, executor, *, fresh=True, state=True):
+class ImplementationChanged(AppError):
+    """A request prepared under another implementation than the current one (an upgrade).
+
+    Execution refuses it by name. It is raised before anything is read from or written to the executor, so a refusal
+    changes no state and dispatches nothing."""
+    def __init__(self, recorded, current):
+        super().__init__('evidence_changed',
+                         'This request was prepared under implementation %s, which is not the current implementation %s: a bound '
+                         'file changed after it was prepared (an upgrade). It can no longer be approved or executed, and nothing '
+                         'was dispatched. Prepare the operation again under the current implementation; the earlier record stays '
+                         'readable as history.' % (recorded[:12], current[:12]))
+
+
+_PURPOSES=('current','recorded')
+
+
+def _purpose(implementation, fresh=False):
+    """Every shared validation says what it is for. 'current' (the default) is execution eligibility; 'recorded' reads a
+    record as history and relaxes only the implementation comparison, against the inventory of released digests."""
+    if type(implementation)is not str or implementation not in _PURPOSES:raise ValueError('implementation must be current or recorded')
+    if implementation=='recorded' and fresh:raise ValueError('history never judges the approval window')
+
+
+def implementation_relation(request):
+    """How a request's recorded implementation relates to the current one: same, known_earlier or unknown.
+
+    The digest is the record's own claim; the result says so. Reading it authorizes nothing."""
+    bindings=request.get('bindings') if type(request)is dict else None
+    recorded=bindings.get('implementation_sha256') if type(bindings)is dict else None
+    return history.protected_relation(recorded,_implementation_sha256())
+
+
+def _validate_request(request, executor, *, fresh=True, state=True, implementation='current'):
+    _purpose(implementation,fresh)
     _require_executor(executor); request=_json_snapshot(request);_request_shape(request)
     if type(request)is not dict or set(request)!=_REQUEST_KEYS or request['schema_version']!=VERSION or request['mode']!=executor.mode or request['execution_authorized'] is not False:_fail('invalid_request')
     action='synthetic_saved_plan_apply' if executor.mode=='synthetic_local_process_only' else 'native_local_saved_plan_apply'
     if request['action']!=action or type(request['operation_id'])is not str or not _ID.fullmatch(request['operation_id']):_fail('invalid_request')
     if type(request['created_at'])is not int or type(request['expires_at'])is not int or not 1<=request['expires_at']-request['created_at']<=300:_fail('invalid_expiry')
+    # The implementation comes before the window and every read of the executor: a request from before an upgrade is
+    # refused by name without touching a clock file or any other state.
+    claimed=request['bindings']['implementation_sha256'];current=_implementation_sha256()
+    if implementation=='current':
+        if claimed!=current:raise ImplementationChanged(claimed,current)
+    elif history.protected_relation(claimed,current)['relation']==history.UNKNOWN:
+        raise AppError('implementation_unknown','The implementation this record names is neither the current one nor in the inventory of released implementations, so it cannot be read as history.')
     if fresh: _window(request,executor)
     if type(request['bindings'])is not dict or set(request['bindings'])!=_BINDING_KEYS or request['binding_sha256']!=digest(request['bindings']):_fail('invalid_binding')
     if request!=load_json(_path(executor.root/'preparation.json')):_fail('request_changed')
     executor._validate();actual=_bindings(executor)
     ignored=set() if state else {'before_state_sha256','before_value_sha256','before_lineage_sha256','before_serial'}
+    # History relaxes only this comparison; the inventory above has already judged the recorded implementation.
+    if implementation=='recorded':ignored=ignored|{'implementation_sha256'}
     if any(actual[k]!=request['bindings'][k] for k in _BINDING_KEYS-ignored):_fail('evidence_changed')
     if executor.mode=='native_local_opentofu_only':
         # Re-derive from the exact native binary, not a mutable JSON sidecar.
@@ -766,22 +817,25 @@ def check_approval_window(request, *, executor):
     return _window(_json_snapshot(request), executor)
 
 
-def validate_native_operation(request, *, executor, require_fresh=False, require_state=False):
-    checked=_validate_request(request,executor,fresh=require_fresh,state=require_state)
-    return {'status':'valid','binding_sha256':checked['binding_sha256'],'execution_authorized':False}
+def validate_native_operation(request, *, executor, require_fresh=False, require_state=False, implementation='current'):
+    checked=_validate_request(request,executor,fresh=require_fresh,state=require_state,implementation=implementation)
+    result={'status':'valid','binding_sha256':checked['binding_sha256'],'execution_authorized':False}
+    # History states the relation in its result (never inside the request, a receipt or a binding).
+    if implementation=='recorded':result['implementation']=implementation_relation(checked)
+    return result
 
 
 def approve_synthetic_operation(request, *, executor):
     if type(executor)is not SyntheticExecutor:_fail('wrong_approval_mode')
     if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
-    return _LocalGrant(_validate_request(request,executor),_SECRET)
+    return _LocalGrant(_validate_request(request,executor,implementation='current'),_SECRET)
 
 
 def approve_native_local_operation(request, *, executor):
     """Explicit local-test approval only; there is no cloud approval constructor."""
     if type(executor)is not NativeLocalExecutor:_fail('wrong_approval_mode')
     if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
-    return _LocalGrant(_validate_request(request,executor),_SECRET)
+    return _LocalGrant(_validate_request(request,executor,implementation='current'),_SECRET)
 
 
 def _event(root, kind, payload):
@@ -807,7 +861,7 @@ def execute_native_operation(request, state_dir, *, executor, approval):
     result={'status':'rejected','execution_authorized':False,'assurance':'local_execution_only'}
     lock=None; dispatched=False
     try:
-        request=_validate_request(request,executor)
+        request=_validate_request(request,executor,implementation='current')
         if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
         result.update(operation_id=request['operation_id'],assurance=executor.mode)
         if type(approval)is not _LocalGrant or approval.seal is not _SECRET or approval.consumed or approval.request_sha256!=digest(request) or approval.expires_at<=_window(request,executor):_fail('approval_required')
@@ -822,13 +876,13 @@ def execute_native_operation(request, state_dir, *, executor, approval):
         approval.consumed=True
         _exclusive(executor.root/'consumed.json',canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),'action':request['action']}))
         _event(journal,'authorized',{'request_sha256':digest(request),'scope':'local_fixture_only'})
-        _validate_request(request,executor);_owner(lock,owner)
+        _validate_request(request,executor,implementation='current');_owner(lock,owner)
         _event(journal,'dispatch_started',{'binding_sha256':request['binding_sha256']})
         # A persisted started event is an uncertainty boundary even if dispatch fails.
         dispatched=True
-        _validate_request(request,executor);_owner(lock,owner)
+        _validate_request(request,executor,implementation='current');_owner(lock,owner)
         _run(executor,'apply')
-        _owner(lock,owner);_validate_request(request,executor,fresh=False,state=False)
+        _owner(lock,owner);_validate_request(request,executor,fresh=False,state=False,implementation='current')
         observed=_state(executor)
         if not _desired_readback(request,observed):_fail('readback_mismatch')
         _event(journal,'readback_verified',observed)
@@ -839,6 +893,7 @@ def execute_native_operation(request, state_dir, *, executor, approval):
         result.update(status='succeeded_verified',receipt_sha256=receipt_sha)
     except Exception as exc:
         result.update(status='outcome_unknown' if dispatched else 'rejected',error={'code':getattr(exc,'code','protected_operation_failed')})
+        if isinstance(exc,ImplementationChanged):result['error']['reason']=exc.message
     return result
 
 
@@ -874,27 +929,37 @@ def read_native_operation(operation_id, state_dir):
     except Exception:return unknown
 
 
-def reconcile_native_operation(operation_id, state_dir, *, executor):
+def reconcile_native_operation(operation_id, state_dir, *, executor, implementation='current'):
+    """Observe the target against a recorded operation; never replays and never authorizes.
+
+    The relation of the record's implementation to the current one is reported whenever a request was read, and a
+    refusal says its code, so a record from before an upgrade is not collapsed into a bare unknown."""
+    _purpose(implementation)
     result={'classification':'unknown','replay_authorized':False,'execution_authorized':False}
     try:
-        history=read_native_operation(operation_id,state_dir)
-        if 'request' not in history:return result
-        request=_validate_request(history['request'],executor,fresh=False,state=False)
+        journal=read_native_operation(operation_id,state_dir)
+        if 'request' not in journal:return result
+        result['implementation']=implementation_relation(journal['request'])
+        request=_validate_request(journal['request'],executor,fresh=False,state=False,implementation=implementation)
         state=_state(executor)
         classification='desired_state_observed' if _desired_readback(request,state) else 'matches_precondition' if state['state_sha256']==request['bindings']['before_state_sha256'] else 'diverged'
         result.update(classification=classification,state_sha256=state['state_sha256'],value_sha256=state['value_sha256'])
+    except AppError as error:
+        result['failure_code']=error.code
+        if error.code in ('evidence_changed','implementation_unknown'):result['reason']=error.message
     except Exception:pass
     return result
 
 
-def _convergence_report(executor, request):
+def _convergence_report(executor, request, implementation='current'):
     """Re-derive a local no-change assertion from native plan bytes and state.
 
     This proves output-only convergence, never that an approved apply occurred.
     Callers must separately reconstruct the operation's execution journal.
     """
+    _purpose(implementation)
     if type(executor)is not NativeLocalExecutor:_fail('wrong_executor_mode')
-    request=_validate_request(request,executor,fresh=False,state=False)
+    request=_validate_request(request,executor,fresh=False,state=False,implementation=implementation)
     before=_state(executor)
     if not _desired_readback(request,before):_fail('readback_mismatch')
     plan_path=executor.root/'work/second.tfplan'
@@ -904,7 +969,7 @@ def _convergence_report(executor, request):
     document=parse_json(raw);normalized=dict(document);normalized.setdefault('resource_changes',[])
     review=_review_native_output_plan(document,executor,_generic_review(normalized,executor))
     if review['status']!='no_change':_fail('second_plan_has_changes')
-    _validate_request(request,executor,fresh=False,state=False)
+    _validate_request(request,executor,fresh=False,state=False,implementation=implementation)
     after=_state(executor)
     if before!=after or _sha(plan_path)!=plan_sha:_fail('convergence_evidence_changed')
     return {'schema_version':'native-local-convergence/1','status':'verified','changes':[],
@@ -916,9 +981,9 @@ def _convergence_report(executor, request):
             'second_plan_sha256':plan_sha,'second_plan_json_sha256':hashlib.sha256(raw).hexdigest()}
 
 
-def reconstruct_native_convergence(executor, request, report):
-    """Validate persisted evidence with native show; never run plan or apply."""
-    reconstructed=_convergence_report(executor,request)
+def reconstruct_native_convergence(executor, request, report, *, implementation='current'):
+    """Validate persisted evidence with native show; never run plan or apply. 'recorded' reads it as history."""
+    reconstructed=_convergence_report(executor,request,implementation)
     # Python mapping equality equates False with 0 and integers with floats.
     # Durable typed evidence must match JSON semantics, not those coercions.
     if type(report)is not dict or canonical(_json_snapshot(report))!=canonical(reconstructed):_fail('convergence_report_changed')
@@ -933,7 +998,8 @@ def verify_native_convergence(executor, request):
     JSON; an incomplete or divergent artifact remains visible and fails closed.
     """
     if type(executor)is not NativeLocalExecutor:_fail('wrong_executor_mode')
-    request=_validate_request(request,executor,fresh=False,state=False)
+    # A new second plan is new evidence: current implementation only.
+    request=_validate_request(request,executor,fresh=False,state=False,implementation='current')
     before=_state(executor)
     if not _desired_readback(request,before):_fail('readback_mismatch')
     lock=executor.root/'.convergence-lock';owner=canonical({'request_sha256':digest(request),'token':uuid.uuid4().hex})

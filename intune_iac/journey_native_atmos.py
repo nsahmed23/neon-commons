@@ -11,6 +11,7 @@ import os
 import re
 import stat
 
+from .implementation_history import UNKNOWN, native_atmos_relation
 from .io import AppError, digest, load_json, parse_json, read_bytes, write_json
 from .native_atmos import ATMOS_SHA256, ATMOS_VERSION, expected_logical_stack, resolve_native_atmos
 from .repository import resolve_component
@@ -61,7 +62,15 @@ def execute(root, stack, component, executable, receipt_path):
     write_json(receipt_path, evidence)
     return reconstruct(root, stack, component, executable, receipt_path)
 
-def reconstruct(root, stack, component, executable, receipt_path):
+def reconstruct(root, stack, component, executable, receipt_path, *, implementation='current', report=None):
+    """Rebuild the verified result from the saved receipt and the raw output.
+
+    implementation='current' (the default, and what execute uses) requires the receipt's file inventory to equal the
+    current one. 'recorded' reads the receipt as history: only that comparison is replaced, by the inventory of released
+    implementations (implementation_history). A dict passed as report receives the relation under 'native_atmos'; it is
+    never added to the returned result or to the receipt."""
+    if type(implementation) is not str or implementation not in ('current', 'recorded'):
+        raise ValueError('implementation must be current or recorded')
     tool = _tool(executable)
     try:
         evidence = load_json(receipt_path)
@@ -77,9 +86,18 @@ def reconstruct(root, stack, component, executable, receipt_path):
         if (evidence['schema'] != 'journey-native-atmos/1' or evidence['status'] != 'verified'
             or evidence['repository'] != str(Path(root).absolute()) or evidence['stack'] != stack
             or evidence['executable_path'] != str(Path(executable).absolute())
-            or evidence['component'] != component or evidence['implementation'] != _implementation()
+            or evidence['component'] != component
             or evidence['assurance'] != 'cooperative_local_configuration_evidence_only'):
             _fail()
+        current = _implementation()
+        found = native_atmos_relation(evidence['implementation'], current)
+        if report is not None:
+            report['native_atmos'] = found
+        if implementation == 'current':
+            if evidence['implementation'] != current:
+                _fail()
+        elif found['relation'] == UNKNOWN:
+            _fail('implementation_unknown')
         report = evidence['report']
         if type(report) is not dict:
             _fail()

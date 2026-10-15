@@ -310,13 +310,32 @@ def _native(session):
     return executor
 
 
-def _request(session, state, observed):
-    from .protected import inspect_executor, validate_native_operation
+_RELATION_RANK = {'same': 0, 'known_earlier': 1, 'unknown': 2}
+
+
+def _note(report, name, found):
+    """Keep the worst relation found for one inventory; a finding is a result, never part of a record."""
+    if name not in report or _RELATION_RANK[found['relation']] > _RELATION_RANK[report[name]['relation']]:
+        report[name] = found
+
+
+def _request(session, state, observed, implementation='current', report=None):
+    """The saved request, validated for the stated purpose. 'recorded' reads it as history (see protected.py) and, when a
+    report dict is given, notes the relation of its implementation there."""
+    from .protected import inspect_executor, validate_native_operation, implementation_relation
     path = _safe(_root(session) / 'native-request.json')
     request = load_json(path)
     expected = digest(_desired(state, observed))
     executor = _native(session)
-    validate_native_operation(request, executor=executor, require_fresh=False, require_state=False)
+    try:
+        checked = validate_native_operation(request, executor=executor, require_fresh=False, require_state=False,
+                                            implementation=implementation)
+    except AppError as error:
+        if report is not None and implementation == 'recorded' and error.code == 'implementation_unknown':
+            _note(report, 'protected_operation', implementation_relation(request))
+        raise
+    if report is not None and implementation == 'recorded':
+        _note(report, 'protected_operation', checked['implementation'])
     snapshot = inspect_executor(executor)
     if request.get('bindings', {}).get('desired_value_sha256') != expected or snapshot.get('desired_value_sha256') != expected:
         raise AppError('journey_plan_changed', 'Saved simulation plan no longer matches the current source and target.')
@@ -331,12 +350,13 @@ def _request(session, state, observed):
     return request
 
 
-def _simulation_outcome(session, state, observed):
+def _simulation_outcome(session, state, observed, implementation='current', report=None):
     from .protected import read_native_operation, reconcile_native_operation, inspect_executor
-    request = _request(session, state, observed)
+    request = _request(session, state, observed, implementation, report)
     saved = load_json(_safe(_root(session) / 'native-result.json'))
     operation = read_native_operation(request['operation_id'], _root(session) / 'operations')
-    observation = reconcile_native_operation(request['operation_id'], _root(session) / 'operations', executor=_native(session))
+    observation = reconcile_native_operation(request['operation_id'], _root(session) / 'operations', executor=_native(session),
+                                             implementation=implementation)
     snapshot = inspect_executor(_native(session))
     if (saved.get('status') != 'succeeded_verified' or operation.get('status') != 'succeeded_verified'
             or operation.get('request') != request or saved.get('operation_id') != request['operation_id']
@@ -350,17 +370,20 @@ def _simulation_outcome(session, state, observed):
             'service_readback': _service_outcome(session, state, observed)}
 
 
-def _payload(stage, session, state, observed, cache=None):
+def _payload(stage, session, state, observed, cache=None, implementation='current'):
     # One read-only reconstruction may share identical derivations. The cache is
     # never retained across prompts, dispatch, edits, or reconstruction calls.
+    # implementation='recorded' reads implementation-bound evidence as history; the cache then also carries the
+    # relation findings under '_implementation' (a result of the reconstruction, never part of a payload).
     cache = {} if cache is None else cache
     key = {'validation': 'generation', 'reconcile': 'execute'}.get(stage, stage)
     if key not in cache:
-        cache[key] = _derive_payload(key, session, state, observed, cache)
+        cache[key] = _derive_payload(key, session, state, observed, cache, implementation)
     return cache[key]
 
 
-def _derive_payload(stage, session, state, observed, cache):
+def _derive_payload(stage, session, state, observed, cache, implementation='current'):
+    findings = cache.setdefault('_implementation', {}) if implementation == 'recorded' else None
     context = observed['context']; inputs = observed['fingerprints']
     if stage == 'discovery': return observed['discovery']
     if stage == 'target':
@@ -385,7 +408,8 @@ def _derive_payload(stage, session, state, observed, cache):
         if state.get('atmos_executable') is not None:
             from .journey_native_atmos import reconstruct
             native = reconstruct(state['repository'], context['stack'], context['component'],
-                                 state['atmos_executable'], _root(session) / 'native-atmos.json')
+                                 state['atmos_executable'], _root(session) / 'native-atmos.json',
+                                 implementation=implementation, report=findings)
             return {'stack': context.get('stack'), 'component': context.get('component'),
                     'repository': observed['discovery'], 'target_intent_sha256': inputs['target'],
                     'native_atmos_executed': True, 'assurance': 'native_configuration_only',
@@ -400,7 +424,7 @@ def _derive_payload(stage, session, state, observed, cache):
         return {'kind': 'simulation_import_preview', 'objects': [{'policy_id': key, 'normalized_sha256': digest(value['normalized'])}
                 for key, value in observed['inspections'].items()], 'live_import_allowed': False}
     if stage == 'plan':
-        request = _request(session, state, observed)
+        request = _request(session, state, observed, implementation, findings)
         return {'kind': 'native_local_output_only_saved_plan' if state.get('tofu_executable') else 'bounded_synthetic_saved_plan', 'desired_value_sha256': digest(_desired(state, observed)),
                 'request_sha256': file_sha(_safe(_root(session) / 'native-request.json')),
                 'operation_id': request['operation_id'], 'policy_ids': state['selected_ids'],
@@ -411,24 +435,25 @@ def _derive_payload(stage, session, state, observed, cache):
                                     'role_scope_tag_ids', 'settings', 'assignments'],
                 'stateful_service_model': observed['raw_capture'].get('synthetic') is True}
     if stage == 'approval':
-        return {'review_sha256': digest(_payload('plan', session, state, observed, cache)),
+        return {'review_sha256': digest(_payload('plan', session, state, observed, cache, implementation)),
                 'grant_persisted': False, 'scope': 'simulation_only', 'cloud_authority': False}
     if stage in ('execute', 'reconcile'):
-        return _simulation_outcome(session, state, observed)
+        return _simulation_outcome(session, state, observed, implementation, findings)
     if stage == 'convergence':
-        outcome = _payload('execute', session, state, observed, cache)
+        outcome = _payload('execute', session, state, observed, cache, implementation)
         result = {'state_sha256': outcome['state_sha256'], 'desired_value_sha256': digest(_desired(state, observed)),
                   'changes': [], 'converged': True, 'scope': 'synthetic_full_semantic_state_only',
                   'service_readback': outcome['service_readback']}
         if state.get('tofu_executable') is not None:
             from .protected import reconstruct_native_convergence
-            result['native_second_plan'] = reconstruct_native_convergence(_native(session), _request(session, state, observed),
-                                            load_json(_safe(_root(session) / 'native-convergence.json')))
+            result['native_second_plan'] = reconstruct_native_convergence(
+                _native(session), _request(session, state, observed, implementation, findings),
+                load_json(_safe(_root(session) / 'native-convergence.json')), implementation=implementation)
             result['scope'] = 'native_local_output_only_and_synthetic_service'
         return result
     return {'scope': 'local_simulation_completed', 'selected_ids': state['selected_ids'],
-            'generation_sha256': digest(_payload('generation', session, state, observed, cache)),
-            'convergence_sha256': digest(_payload('convergence', session, state, observed, cache)),
+            'generation_sha256': digest(_payload('generation', session, state, observed, cache, implementation)),
+            'convergence_sha256': digest(_payload('convergence', session, state, observed, cache, implementation)),
             'live_ready': False, 'live_blockers': list(LIVE_BLOCKERS),
             'provider_or_atmos_native_execution': state.get('atmos_executable') is not None,
             'native_atmos_configuration_only': state.get('atmos_executable') is not None,
@@ -436,14 +461,36 @@ def _derive_payload(stage, session, state, observed, cache):
             'native_provider_execution': False, 'cloud_execution': False}
 
 
-def _receipt(stage, session, state, observed, dependencies, cache=None):
+def _receipt(stage, session, state, observed, dependencies, cache=None, implementation='current'):
     return {'schema_version': VERSION, 'stage': stage, 'mode': state['mode'],
             'assurance': ('native_local_opentofu_only' if state.get('tofu_executable') else 'synthetic_local_process_only') if STAGES.index(stage) >= STAGES.index('plan') else 'local_evidence_only',
-            'dependencies': dependencies.copy(), 'payload': _payload(stage, session, state, observed, cache),
+            'dependencies': dependencies.copy(), 'payload': _payload(stage, session, state, observed, cache, implementation),
             'cloud_authority': False}
 
 
-def _progress(session, state, observed):
+def _implementation_finding(findings):
+    """History's finding for a journey, from what the reconstruction actually validated (a result, never a record).
+
+    The relation is the worst across the protected operation and, when the journey used one, the native Atmos receipt.
+    Every digest in it is the record's own claim; recognition by the inventory is not authentication."""
+    if not findings:
+        return {'purpose': 'recorded', 'relation': 'not_established', 'current_implementation_eligible': False,
+                'reason': 'no implementation-bound stage was reached'}
+    finding = dict(findings.get('protected_operation') or next(iter(findings.values())))
+    finding['relation'] = max((found['relation'] for found in findings.values()), key=_RELATION_RANK.__getitem__)
+    if 'native_atmos' in findings and findings['native_atmos'] is not finding:
+        finding['native_atmos'] = findings['native_atmos']
+    finding.update(purpose='recorded', current_implementation_eligible=finding['relation'] == 'same')
+    return finding
+
+
+def _progress(session, state, observed, implementation='current'):
+    """Which stages' saved receipts still equal what the current evidence derives.
+
+    implementation='current' (the default) also requires every implementation-bound stage to match the implementation now.
+    'recorded' reads the receipts as history: the implementation comparison is made against the inventory of released
+    implementations and the result gains an 'implementation' finding. It stays a reading: nothing is authorized by it."""
+    if implementation not in ('current', 'recorded'): raise ValueError('implementation must be current or recorded')
     verified = []; dependencies = {}; invalid = None; cache = {}
     for stage in STAGES:
         try:
@@ -451,28 +498,33 @@ def _progress(session, state, observed):
                 break
             path = _receipt_path(session, stage)
             if not path.exists(): break
-            if load_json(path) != _receipt(stage, session, state, observed, dependencies, cache):
+            if load_json(path) != _receipt(stage, session, state, observed, dependencies, cache, implementation):
                 invalid = stage; break
             dependencies[stage] = file_sha(path); verified.append(stage)
         except (AppError, OSError, ValueError, KeyError, TypeError, ImportError):
             invalid = stage; break
     next_state = STAGES[len(verified)] if len(verified) < len(STAGES) else 'complete_simulation'
     if state['in_flight'] is not None: next_state = 'recovery_required'
-    return {'schema_version': VERSION, 'next_state': next_state, 'verified_completed': verified,
-            'external_verified_completed': [], 'receipt_dependencies': dependencies,
-            'invalid_at': invalid, 'mode': state['mode'], 'execution_authorized': False,
-            'live_ready': False, 'live_blockers': list(LIVE_BLOCKERS)}
+    result = {'schema_version': VERSION, 'next_state': next_state, 'verified_completed': verified,
+              'external_verified_completed': [], 'receipt_dependencies': dependencies,
+              'invalid_at': invalid, 'mode': state['mode'], 'execution_authorized': False,
+              'live_ready': False, 'live_blockers': list(LIVE_BLOCKERS)}
+    if implementation == 'recorded': result['implementation'] = _implementation_finding(cache.get('_implementation'))
+    return result
 
 
-def reconstruct_progress(session_path):
+def reconstruct_progress(session_path, *, implementation='recorded'):
+    """Display reconstruction: history by default, with the relation in the result. Pass implementation='current' for
+    the strict reading that action checks use."""
     session = _safe(session_path); state = _load(session)
-    return _progress(session, state, _observe(session, state))
+    return _progress(session, state, _observe(session, state), implementation)
 
 
 def check_action(session_path, action):
     if action not in STAGES:
         return {'allowed': False, 'reason': 'unknown_action', 'cloud_authority': False}
-    progress = reconstruct_progress(session_path)
+    # An action is execution eligibility: the current implementation, never history.
+    progress = reconstruct_progress(session_path, implementation='current')
     contract = action_contract()['actions'][STAGES.index(action)]
     allowed = progress['next_state'] == action
     if progress['mode'] == 'live' and STAGES.index(action) >= STAGES.index('plan'): allowed = False

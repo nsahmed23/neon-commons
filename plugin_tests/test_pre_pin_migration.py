@@ -250,7 +250,10 @@ class JourneyAdoptionTests(FrozenRootCase):
         state = journey._load(session)
         self.assertEqual((state['mode'], state['lifecycle'], state['in_flight']), ('simulation', 'complete_simulation', None))
         observed = journey._observe(session, state)
-        progress = journey._progress(session, state, observed)
+        # P3b: the freeze commit's implementation digest is no longer the current one once a bound file has changed, so
+        # the journey is read as history (implementation='recorded'); execution paths keep the strict default.
+        progress = journey._progress(session, state, observed, implementation='recorded')
+        self.assertIn(progress['implementation']['relation'], ('same', 'known_earlier'))
         self.assertEqual(progress['verified_completed'], list(journey.STAGES))
         self.assertEqual(progress['next_state'], 'complete_simulation')
         self.assertFalse(progress['execution_authorized'])

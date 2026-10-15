@@ -488,6 +488,7 @@ intune_iac/graph_contract.py
 intune_iac/graph_validation.py
 intune_iac/host_capabilities.py
 intune_iac/identity_binding.py
+intune_iac/implementation_history.py
 intune_iac/io.py
 intune_iac/journey.py
 intune_iac/journey_native_atmos.py
@@ -839,6 +840,7 @@ plugin_tests/test_graph_budget.py
 plugin_tests/test_graph_resolution.py
 plugin_tests/test_host_capabilities_r4.py
 plugin_tests/test_identity_binding_v5.py
+plugin_tests/test_implementation_history.py
 plugin_tests/test_interruption.py
 plugin_tests/test_journey_completion.py
 plugin_tests/test_journey_native_atmos.py
@@ -857,6 +859,7 @@ plugin_tests/test_observation_jobs_r4.py
 plugin_tests/test_observation_reader_r4.py
 plugin_tests/test_oracle_edge_types.py
 plugin_tests/test_output_edit.py
+plugin_tests/test_pin_history_p3b.py
 plugin_tests/test_powershell_preview.py
 plugin_tests/test_pre_pin_migration.py
 plugin_tests/test_preservation_audit.py

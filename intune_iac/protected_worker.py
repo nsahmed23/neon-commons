@@ -251,9 +251,28 @@ class WorkerJob:
         if canonical(_bounded_private_json(self.root / 'approval-request.json')) != canonical(self.request): _fail('worker_request_changed')
         self._row()
 
-    def check(self, *, active=False):
+    def _implementation_finding(self):
+        """The relation of the request's recorded implementation to the current one, and which of the worker's own
+        bound files differ from the job's record. A result of reading; it authorizes nothing."""
+        try:
+            found = dict(protected.implementation_relation(self.manifest['native_request']))
+            recorded, current = self.manifest['implementation_files'], _implementation()
+        except (AppError, OSError) as error:
+            return {'relation': 'not_established', 'failure_code': getattr(error, 'code', type(error).__name__)}
+        found['worker_files_changed'] = sorted(name for name in set(recorded) | set(current) if recorded.get(name) != current.get(name))
+        return found
+
+    def check(self, *, active=False, implementation='current'):
+        """The job's attestation and, unless implementation='recorded', the current-implementation comparison.
+
+        'recorded' is for observation only (reconcile): an implementation the inventory does not recognise is refused,
+        and the worker's own file comparison is relaxed only for a request recorded under a recognised earlier
+        implementation. Dispatch never passes it."""
+        if implementation not in ('current', 'recorded'): raise ValueError('implementation must be current or recorded')
         self._attestation()
-        if self.manifest['implementation_files'] != _implementation(): _fail('worker_implementation_changed')
+        relation = protected.implementation_relation(self.manifest['native_request'])['relation'] if implementation == 'recorded' else 'same'
+        if relation == 'unknown': _fail('implementation_unknown')
+        if relation != 'known_earlier' and self.manifest['implementation_files'] != _implementation(): _fail('worker_implementation_changed')
         admission = self.policy.executors.get(self.executor.root)
         if (not admission or admission['manifest_sha256'] != self.manifest['executor_manifest_sha256'] or
                 admission['context_sha256'] != digest(_context(self.manifest['context'])) or
@@ -291,6 +310,7 @@ class WorkerJob:
         return {'schema_version': 'protected-worker-status/1.0', 'operation_id': self.identifier,
                 'status': status, 'durable_worker_state': row[2], 'approval_consumed': consumed, 'execution_validation': validation, 'cancellation_requested': bool(row[3]), 'mutation_attempts': row[4],
                 'outcome': parse_json(row[5]) if row[5] else None, 'events': events,
+                'implementation': self._implementation_finding(),
                 'profile': self.manifest['profile'], 'reopening_dispatches': False,
                 'retry_authorized': False, 'production_authorized': False}
 
@@ -390,13 +410,17 @@ class WorkerJob:
             return self.status()
 
     def reconcile(self):
-        """Observe existing bytes only: no plan, import, apply, unlock or retry."""
-        self.check()
+        """Observe existing bytes only: no plan, import, apply, unlock or retry.
+
+        The job may predate an upgrade: its record is read as history and the relation is reported, but nothing is
+        confirmed, authorized or released because history passed."""
+        self.check(implementation='recorded')
         if self._row()[4] != 1: _fail('worker_reconciliation_not_required')
         observed = protected.inspect_executor(self.executor)
         result = {'operation_id': self.request['operation_id'], 'status': 'observed_only',
                   'desired_state_observed': protected._desired_readback(self.manifest['native_request'], observed),
-                  'readback': observed, 'execution_confirmed': False, 'retry_authorized': False}
+                  'readback': observed, 'execution_confirmed': False, 'retry_authorized': False,
+                  'implementation': self._implementation_finding()}
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE'); self.policy.event(db, self.identifier, 'reconciliation_observed', result); db.execute('COMMIT')
         protected._sync(self.policy.authority_root)

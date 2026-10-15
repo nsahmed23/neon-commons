@@ -30,6 +30,10 @@ def _safe(value):
 
 
 def _inspect(store, session_path):
+    """Reconstruct the journey as history and rebuild its binding.
+
+    The reconstruction is a reading (implementation='recorded'), so an existing complete handoff keeps verifying after
+    a bound file changes. The relation is returned beside the binding, never inside it."""
     from . import journey
     session = _safe(session_path)
     before = file_sha(session)
@@ -37,7 +41,8 @@ def _inspect(store, session_path):
     if state['mode'] != 'simulation' or state['lifecycle'] != 'complete_simulation' or state['in_flight'] is not None:
         _fail('workbench_adoption_incomplete')
     observed = journey._observe(session, state)
-    progress = journey._progress(session, state, observed)
+    progress = journey._progress(session, state, observed, 'recorded')
+    finding = progress['implementation']
     if progress['next_state'] != 'complete_simulation' or progress['verified_completed'] != list(journey.STAGES):
         _fail('workbench_adoption_evidence_invalid')
     if observed['raw_capture'].get('synthetic') is not True:
@@ -67,7 +72,7 @@ def _inspect(store, session_path):
         'context': {'path': state['paths']['context'], 'sha256': file_sha(_safe(state['paths']['context']))},
         'generated': generated, 'receipt_sha256': progress['receipt_dependencies'],
         'repository': repository, 'discovery': observed['discovery'],
-        'atmos': journey._payload('atmos', session, state, observed),
+        'atmos': journey._payload('atmos', session, state, observed, None, 'recorded'),
         'original_service': {'path': str(original_service.root), 'sha256': file_sha(original_service.path),
                              'revision': snapshot['revision'], 'request_count': len(snapshot['requests']),
                              'estate_sha256': digest(snapshot['current'])},
@@ -82,14 +87,14 @@ def _inspect(store, session_path):
         _fail('workbench_adoption_binding_limit')
     if before != file_sha(session):
         _fail('workbench_adoption_source_changed')
-    return binding, observed['raw_capture'], expected
+    return binding, observed['raw_capture'], expected, finding
 
 
 def preview(store, session_path):
     """Reconstruct every stage; no model, collection, or artifact is created."""
-    binding, _, _ = _inspect(store, session_path)
+    binding, _, _, finding = _inspect(store, session_path)
     return {'status': 'ready_local_model_handoff', 'binding': binding,
-            'binding_sha256': digest(binding), 'cloud_authority': False,
+            'binding_sha256': digest(binding), 'implementation': finding, 'cloud_authority': False,
             'execution_authorized': False, 'remote_import_performed': False}
 
 
@@ -175,7 +180,7 @@ def adopt(store, session_path, output):
     """
     from . import journey
     store._require_v2()
-    binding, capture, expected = _inspect(store, session_path)
+    binding, capture, expected, finding = _inspect(store, session_path)
     root = _safe(output)
     protected = [_safe(store.root), _safe(session_path), journey._root(_safe(session_path)),
                  _safe(binding['source']['path']), _safe(binding['context']['path'])]
@@ -204,7 +209,7 @@ def adopt(store, session_path, output):
                 or journal['status'] not in ('preparing','model_created','collection_incomplete','collected','complete')
                 or type(journal['artifact_ids']) is not dict):
             _fail('workbench_adoption_checkpoint_changed')
-        if journal['status'] == 'complete': return _result(store, root, journal, capture, expected)
+        if journal['status'] == 'complete': return dict(_result(store, root, journal, capture, expected), implementation=finding)
         if {p.name for p in root.iterdir()} - {'adoption.json','adoption.lock','service'}:
             _fail('workbench_adoption_unexpected_file')
         service_root = root / 'service'
@@ -231,7 +236,7 @@ def adopt(store, session_path, output):
             receipt = store.record_artifact('adoption', oid, data)
             journal['artifact_ids'][oid] = receipt['artifact_id']; write_json(checkpoint, journal)
         journal['status'] = 'complete'; write_json(checkpoint, journal)
-        return _result(store, root, journal, capture, expected)
+        return dict(_result(store, root, journal, capture, expected), implementation=finding)
 
 
 def lineage(store, object_id):
