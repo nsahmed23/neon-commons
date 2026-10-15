@@ -1376,15 +1376,25 @@ class Workspace:
     def _strip_note(self, width):
         """Where no Operation row is shown, one line saying which operation the strip reports when it is not the newest
         for the policy (run 9, frames 76 and 78 to 82); nothing where a row says it or the strip shows the newest."""
-        from .workbench_screens import _newest_operation_id, short_id, strip_operation_shown, word_wrap
+        from .workbench_screens import (_newest_operation_id, _operation_from_states, short_id, strip_operation_shown,
+                                        word_wrap)
         facts = getattr(self, 'facts', None) or {}
         if not self.selected or facts.get('object_id') != self.selected:
             return []
         shown, value = strip_operation_shown(facts), self.value if isinstance(self.value, dict) else {}
         inspector = self.tab == 1 and isinstance(value.get('states'), dict)
+        prefixes = facts.get('identity_prefixes')
+        if shown is None and not inspector:
+            # A refusal about one operation while the strip reports another: the strip operation is named once, here,
+            # where the screen is about the other (a strip that names none reads as the one the screen discusses).
+            about = self._operation_id_for(self.last_command) if value.get('status') == 'error' else None
+            strip = facts.get('operation_id') or _newest_operation_id(facts)
+            word = facts.get('operation') or _operation_from_states(facts)
+            if about and strip and word and about != strip:
+                return [''] + word_wrap('The strip shows operation %s (%s), not operation %s, the one this screen is about.' % (
+                    short_id(strip, prefixes), word, short_id(about, prefixes)), width)
         if shown is None or inspector or self._states_here(value):
             return []
-        prefixes = facts.get('identity_prefixes')
         return [''] + word_wrap('The strip shows operation %s (%s), not the newest for this policy, %s.' % (
             short_id(shown['operation_id'], prefixes), shown['state'], short_id(_newest_operation_id(facts), prefixes)), width)
 

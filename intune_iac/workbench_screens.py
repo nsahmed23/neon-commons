@@ -343,11 +343,13 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False)
               if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
     # here: the Inspector lists the others under NEEDS ATTENTION, so the count names that section (not "below", which a
     # reader takes for the scrolled part of the screen).
-    # One fact reads in one form at every width (run 9, frames 54 and 56): "+N more: 2" names the surface by its number,
-    # the one the tab line above shows and Help explains. Where the Inspector itself lists them it says where, and while
-    # a command is typed no key can be taken, so the count names no surface.
-    counts = ([['+%d more' % others]] if not routes else [['+%d more in NEEDS ATTENTION' % others]] if here else
-              [['+%d more: 2' % others]]) if others else [[]]
+    # One fact reads in one form at every width (run 9, frames 54 and 56): "+N more findings (2 Inspector)" names the
+    # surface by its number, the one the tab line above shows and Help explains. Where the Inspector itself lists them it
+    # says where, and while a command is typed no key can be taken, so the count names no surface.
+    # The count names what it counts (findings) and, where a key can be taken, where they are listed.
+    more = '+%d more %s' % (others, 'finding' if others == 1 else 'findings')
+    counts = ([[more]] if not routes else [[more + ' in NEEDS ATTENTION']] if here else
+              [[more + ' (2 Inspector)']]) if others else [[]]
     forms = _band_forms(primary, facts.get('identity_prefixes'))
     named = None
     if any(isinstance(action, dict) and action.get('kind') == 'deployment-record' and action.get('available')

@@ -485,3 +485,62 @@ class ActionsOverlayTests(MapTruth):
         text = text_of(actions_lines([entry], 0, 120))
         self.assertIn('Refresh the repository intent', text)
         self.assertNotIn('(a: actions)', text)
+
+
+class MoreFindingsTests(unittest.TestCase):
+    """Item 10: "+N more" names what it counts and where."""
+
+    def band(self, others, width=140, **kw):
+        from intune_iac.workbench_screens import hazard_rows
+        codes = ('repository_stale', 'repository_consumer_mismatch', 'collection_failed')[:others]
+        signals = [{'area': 'freshness', 'code': 'observation_stale', 'evidence': {'freshness_reasons': ['older_than_window']}}] + [
+            {'area': 'x', 'code': code, 'evidence': {'status': 'failed'}} for code in codes]
+        return ' '.join(' '.join(hazard_rows({'object_id': 'o'}, signals, width, **kw)).split())
+
+    def test_the_count_names_the_findings_and_the_surface_that_lists_them(self):
+        self.assertIn('+1 more finding (2 Inspector)', self.band(1))
+        self.assertIn('+2 more findings (2 Inspector)', self.band(2))
+
+    def test_in_the_inspector_it_names_the_section_and_while_typing_no_surface(self):
+        self.assertIn('+1 more finding in NEEDS ATTENTION', self.band(1, here=True))
+        typing = self.band(1, routes=False)
+        self.assertIn('+1 more finding', typing)
+        self.assertNotIn('Inspector', typing)
+        self.assertNotIn(': 2', typing)
+
+    def test_the_noun_survives_every_width(self):
+        for width in (140, 120, 100, 80, 60, 40):
+            for others in (1, 2):
+                text = self.band(others, width)
+                self.assertRegex(text, r'\+%d more findings? \(2 Inspector\)' % others, (width, text))
+
+
+class StripOperationTests(unittest.TestCase):
+    """Item 10: an operation the strip shows and the screen does not discuss is named once in the body."""
+    surface = states_tests.RefusalCauseTests.workspace
+    STRIP = 'a23983bd3a224bd1b08d8156a67fa773'
+    ABOUT = 'f728f2751b5c4009bd8b28a5af2f5fc6'
+
+    def refusal(self, command='deployment-record /w/op %s' % ('a' * 64), about=None, status='error'):
+        facts = {'states': {'operation': {'operation_id': self.STRIP, 'journal_status': 'prepared'}}}
+        workspace = self.surface(facts, command)
+        workspace.value = {'status': status, 'error': {'code': 'workbench_deployment_intent_not_cited', 'message': 'Refused.'}}
+        workspace.known_operations = {'/w/op': about or self.ABOUT}
+        return workspace
+
+    def test_the_note_names_the_strip_operation_and_the_one_the_screen_is_about(self):
+        text = ' '.join(' '.join(self.refusal()._strip_note(118)).split())
+        self.assertEqual(text, 'The strip shows operation a23983bd (prepared), not operation f728f275, the one this screen is about.')
+
+    def test_no_note_where_the_screen_is_about_the_strip_operation(self):
+        self.assertEqual(self.refusal(about=self.STRIP)._strip_note(118), [])
+
+    def test_no_note_where_the_command_names_no_operation_or_the_result_is_not_a_refusal(self):
+        self.assertEqual(self.refusal(command='collect')._strip_note(118), [])
+        self.assertEqual(self.refusal(status='ok')._strip_note(118), [])
+
+    def test_the_whole_screen_names_it_once(self):
+        workspace = self.refusal()
+        workspace.tab = 5
+        body = ' '.join(' '.join(workspace._body_lines(118, 'unicode')).split())
+        self.assertEqual(body.count('The strip shows operation'), 1, body)

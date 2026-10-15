@@ -1114,7 +1114,7 @@ class NarrowWindowTests(unittest.TestCase):
         for width in (60, 80):
             rows = hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], width, here=True)
             self.assertIn('never replays', rows[0], (width, rows))
-            self.assertIn('+1 more in NEEDS ATTENTION', ' '.join(rows), (width, rows))  # run 8 item 13
+            self.assertIn('+1 more finding in NEEDS ATTENTION', ' '.join(rows), (width, rows))  # run 8 item 13
             for row in rows:
                 self.assertLessEqual(cell_width(row), width, row)
         for row in hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], 40, here=True):
@@ -1565,7 +1565,7 @@ class RunEightScreensTests(unittest.TestCase):
         from plugin_tests.test_workbench_hazard import STALE, UNKNOWN
         for width in (40, 60, 80, 118, 140):
             rows = hazard_rows({}, [UNKNOWN, STALE], width, here=True)
-            self.assertIn('+1 more in NEEDS ATTENTION', ' '.join(rows), (width, rows))
+            self.assertIn('+1 more finding in NEEDS ATTENTION', ' '.join(rows), (width, rows))
             self.assertNotIn('more below', ' '.join(rows))
             for row in rows:
                 self.assertLessEqual(cell_width(row), width, row)

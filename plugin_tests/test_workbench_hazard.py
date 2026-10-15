@@ -84,6 +84,11 @@ class BandTests(unittest.TestCase):
         from intune_iac.workbench_screens import hazard_band
         return hazard_band(facts, signals, width)
 
+    def band_text(self, facts, signals, width):
+        """Every row of the band: the count of other findings may take a row of its own."""
+        from intune_iac.workbench_screens import hazard_rows
+        return ' '.join(hazard_rows(facts, signals, width))
+
     def test_an_unknown_outcome_leads_with_its_response(self):
         for width in (120, 80, 60, 48):
             line = self.band({'operation': 'outcome_unknown'}, [UNKNOWN], width)
@@ -94,10 +99,10 @@ class BandTests(unittest.TestCase):
         self.assertIn(OPERATION[:8], self.band({'operation': 'outcome_unknown'}, [UNKNOWN], 120))
 
     def test_the_operation_outranks_other_conditions_and_the_rest_are_counted(self):
-        line = self.band({'operation': 'outcome_unknown', 'observation': 'stale', 'repository': 'stale'},
-                         [STALE, CHANGED, DENIED, UNKNOWN], 120)
+        line = self.band_text({'operation': 'outcome_unknown', 'observation': 'stale', 'repository': 'stale'},
+                              [STALE, CHANGED, DENIED, UNKNOWN], 120)
         self.assertIn('Reconcile', line)
-        self.assertIn('+3 more: 2', line)
+        self.assertIn('+3 more findings (2 Inspector)', line)
 
     def test_each_condition_names_its_own_response(self):
         cases = ((DENIED, {'observation': 'stale'}, 'Collect'), (CHANGED, {'repository': 'stale'}, 'Refresh'),
@@ -115,7 +120,7 @@ class BandTests(unittest.TestCase):
         from intune_iac.workbench_screens import hazard_rows
         rows = hazard_rows({}, [ALL[6], DENIED], MINIMUM[0])
         self.assertTrue(all(cell_width(row) <= MINIMUM[0] for row in rows), rows)
-        self.assertIn('+1 more: 2', ' '.join(rows))
+        self.assertIn('+1 more finding (2 Inspector)', ' '.join(rows))
 
     def test_a_service_changed_since_the_observation_shows_when_nothing_outranks_it(self):
         eligibility = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 1,
@@ -123,9 +128,9 @@ class BandTests(unittest.TestCase):
         line = self.band({'eligibility': eligibility}, [], 80)
         self.assertIn('Collect', line)
         self.assertIn('changed', line.lower())
-        line = self.band({'eligibility': eligibility, 'operation': 'outcome_unknown'}, [UNKNOWN], 120)
+        line = self.band_text({'eligibility': eligibility, 'operation': 'outcome_unknown'}, [UNKNOWN], 120)
         self.assertIn('Reconcile', line)
-        self.assertIn('+1 more: 2', line)
+        self.assertIn('+1 more finding (2 Inspector)', line)
 
     def test_another_tenant_leads_the_band(self):
         eligibility = {'code': 'maintenance_observation_incomplete', 'reason': 'tenant_mismatch'}
@@ -139,7 +144,7 @@ class BandTests(unittest.TestCase):
     def test_two_unknown_outcomes_are_both_counted(self):
         second = signal('operations', 'operation_outcome_unknown', 'Another operation is unknown.', 'Reconcile it.',
                         operation_id='e' * 32, operation_root='/work/other')
-        self.assertIn('+1 more: 2', self.band({}, [UNKNOWN, second], 120))
+        self.assertIn('+1 more finding (2 Inspector)', self.band_text({}, [UNKNOWN, second], 120))
 
     def test_an_operation_known_only_from_this_session_still_shows(self):
         line = self.band({'operation': 'outcome_unknown'}, [], 80)
@@ -193,9 +198,9 @@ class VisionReviewTests(unittest.TestCase):
                    'service_revision': 2}
 
     def test_the_count_points_where_every_finding_is_listed(self):
-        from intune_iac.workbench_screens import hazard_band
-        line = hazard_band({'eligibility': self.ELIGIBILITY}, [UNKNOWN], 120)
-        self.assertIn('+1 more: 2', line)
+        from intune_iac.workbench_screens import hazard_rows
+        line = ' '.join(hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], 120))
+        self.assertIn('+1 more finding (2 Inspector)', line)
 
     def test_the_inspector_lists_the_proposal_check_with_the_findings(self):
         from intune_iac.workbench_screens import _attention_lines
@@ -235,7 +240,7 @@ class VisionReviewTests(unittest.TestCase):
         lines, _ = constrained_rows(TENANT, POLICY, facts, 'synthetic', 36, 10, '40x12', 'Ready.')
         text = '\n'.join(lines)
         self.assertIn('+1 more', text)
-        self.assertNotIn('more: 2', text)  # no surface can be shown here
+        self.assertNotIn('(2 Inspector)', text)  # no surface can be shown here
         self.assertNotIn('Esc', text)  # nothing is being typed
         self.assertIn('q exits', text)
         lines, _ = constrained_rows(TENANT, POLICY, facts, 'synthetic', 36, 10, '40x12', ':collect|', typing=True)
@@ -504,12 +509,11 @@ class ReviewFixTests(unittest.TestCase):
 
     def test_the_count_says_where_the_other_findings_are(self):
         from intune_iac.workbench_screens import hazard_rows
-        self.assertIn('+1 more in NEEDS ATTENTION', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120, here=True)))  # run 8 item 13: where, not "below"
+        self.assertIn('+1 more finding in NEEDS ATTENTION', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120, here=True)))  # run 8 item 13: where, not "below"
         # Run 8 item 15 kept the longest form of the hazard, so the count changed its wording with the width ("+1 more: 2"
         # at 120, "+1 more: 2 Inspector" at 140). Run 9 (frames 54 and 56): one form per fact, at every width.
-        self.assertIn('+1 more: 2', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120)))
-        self.assertIn('+1 more: 2', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 140)))
-        self.assertNotIn('Inspector', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 140)))
+        self.assertIn('+1 more finding (2 Inspector)', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120)))
+        self.assertIn('+1 more finding (2 Inspector)', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 140)))
         narrow = hazard_rows({}, [UNKNOWN, STALE], 48)
         self.assertTrue(any('+1 more' in row for row in narrow), narrow)
         self.assertTrue(all(cell_width(row) <= 48 for row in narrow), narrow)
