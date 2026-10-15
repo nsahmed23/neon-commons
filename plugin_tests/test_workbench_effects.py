@@ -113,8 +113,11 @@ class RefusalEffectTests(unittest.TestCase):
         text = ' '.join(' '.join(workspace._summary_lines(118)).split())
         self.assertIn('[EXECUTION RESULT]', text)
         self.assertIn('Status: outcome unknown', text)
-        self.assertIn('Effect: Dispatch started; whether the service applied the change is unknown '
-                      '(model_response_lost). Reconcile checks it without repeating the change.', text)
+        # Run 9 (frame 54): the lost response is the Error row's to say, in words with its code; the effect does not
+        # repeat the code.
+        self.assertIn('Effect: Dispatch started; whether the service applied the change is unknown. Reconcile checks it '
+                      'without repeating the change.', text)
+        self.assertEqual(text.count('model_response_lost'), 1, text)
         self.assertNotIn('[CHECKS / JOURNAL / RESULT]', text)
         self.assertEqual(text.count('Next:'), 1)  # the lifecycle line's next step, not a second generic one
 

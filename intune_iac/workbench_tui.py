@@ -1023,7 +1023,9 @@ class Workspace:
             verb = command.split(None, 1)[0] if isinstance(command, str) and command.strip() else None
             rows.extend(refusal_lines(value, width, known=self._known_cause(code), clock_fact=self._known_clock(),
                                       operation=short_id(operation, (getattr(self, 'facts', None) or {}).get('identity_prefixes')) if operation else None,
-                                      verb=verb))
+                                      verb=verb,
+                                      recorded=self._recorded_deployment(command)
+                                      if code == 'workbench_deployment_intent_not_cited' else None))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -1345,7 +1347,7 @@ class Workspace:
             from .workbench_screens import actions_lines
             facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
             return actions_lines(self._actions(), getattr(self, 'action_focus', 0), width, facts.get('name'), self.selected,
-                                 submit=self._submit_word(), prefixes=facts.get('identity_prefixes'))
+                                 submit=self._submit_word(), prefixes=facts.get('identity_prefixes')) + self._strip_note(width)
         if layer == 'filters':
             from .workbench_screens import filter_lines
             return filter_lines(filter_choices(), getattr(self, 'filter_focus', 0),
@@ -1353,7 +1355,22 @@ class Workspace:
         if layer == 'raw':
             return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines of JSON; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
-        return self._summary_lines(width) + [self._evidence_line(width)]
+        return self._summary_lines(width) + self._strip_note(width) + [self._evidence_line(width)]
+
+    def _strip_note(self, width):
+        """Where no Operation row is shown, one line saying which operation the strip reports when it is not the newest
+        for the policy (run 9, frames 76 and 78 to 82); nothing where a row says it or the strip shows the newest."""
+        from .workbench_screens import _newest_operation_id, short_id, strip_operation_shown, word_wrap
+        facts = getattr(self, 'facts', None) or {}
+        if not self.selected or facts.get('object_id') != self.selected:
+            return []
+        shown, value = strip_operation_shown(facts), self.value if isinstance(self.value, dict) else {}
+        inspector = self.tab == 1 and isinstance(value.get('states'), dict)
+        if shown is None or inspector or self._states_here(value):
+            return []
+        prefixes = facts.get('identity_prefixes')
+        return [''] + word_wrap('The strip shows operation %s (%s), not the newest for this policy, %s.' % (
+            short_id(shown['operation_id'], prefixes), shown['state'], short_id(_newest_operation_id(facts), prefixes)), width)
 
     def _evidence_line(self, width):
         """One line naming the two evidence layers; for a plan, also what they hold beyond the summary."""
@@ -1432,9 +1449,14 @@ class Workspace:
         else:
             lines = self._surface_summary(width)
             if self._on_change_path(self.value):
-                from .workbench_screens import lifecycle_lines
+                from .workbench_screens import _band_primary, lifecycle_lines
+                known = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
+                primary, _ = _band_primary(known, known.get('signals') or [])
+                # The band above names the refresh for a changed repository; the line does not name it again.
+                refresh = bool(primary) and primary.get('code') in ('repository_stale', 'repository_consumer_mismatch')
                 lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
-                                                       if self.facts.get('object_id') == self.selected else None)
+                                                       if self.facts.get('object_id') == self.selected else None,
+                                                       band_names_refresh=refresh)
         return lines
 
     def _on_change_path(self, value):
@@ -1578,6 +1600,9 @@ class Workspace:
         """The evidence class for the status row: the result's own, else the selected policy's; an estate page
         (a search or a filter of the estate) has the estate's class, learned from its observations (item 26)."""
         value = self.value if isinstance(self.value, dict) else {}
+        if getattr(self, 'layer', 'summary') == 'actions':
+            # The action list is not the previous result: its label is the policy's, else the estate's mode.
+            return facts.get('evidence_class') or getattr(self, 'mode_class', None) or 'evidence class not stated'
         estate = self.tab == 0 and isinstance(value.get('objects'), list) and getattr(self, 'mode_class', None)
         if (self.tab == 0 and isinstance(value.get('objects'), list) and not value['objects']
                 and not value.get('pending_observations') and not getattr(self, 'mode_class', None)):
@@ -1675,6 +1700,23 @@ class Workspace:
                     return cause, 'observation_' + hold
             return (str(found[0]['observed']), kinds[found[0]['code']]) if found else None
         return None
+
+    def _recorded_deployment(self, command):
+        """The deployment record the operation a refused deployment-record command named already has, else None. A
+        refusal never asks for a step that is already done, so it reads the record where Delivery reads it. A read that
+        fails leaves the refusal as the engine worded it."""
+        try:
+            parts = shlex.split(command) if isinstance(command, str) else []
+        except ValueError:
+            return None
+        if len(parts) < 2 or parts[0] != 'deployment-record':
+            return None
+        try:
+            from .workbench_delivery import deployment_stage
+            stage = deployment_stage(os.path.abspath(parts[1]))
+        except (AppError, OSError, KeyError, TypeError, ValueError):
+            return None
+        return stage if stage.get('status') == 'done' and stage.get('artifact_id') else None
 
     def _known_clock(self):
         """What the clock read and what was recorded, from the last read of this policy (the stale signal, else the

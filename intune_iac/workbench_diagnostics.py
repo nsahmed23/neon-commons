@@ -81,6 +81,12 @@ CLOCK_HOLD_STEPS = {
                             'changes stay held until it can. Collecting again does not clear this.')}
 
 
+def command_arg(value):
+    """A path as a command's argument, for a step that prints the command on its own rows: shell-quoted, with a line
+    break inside it written out, so the path (which is data) can never start a row of its own."""
+    return shlex.quote(str(value)).replace('\r', '\\r').replace('\n', '\\n')
+
+
 def clock_hold(reasons):
     """The clock hold among a freshness's recorded reasons, or None; the clock is named first because nothing else
     clears while it holds."""
@@ -257,11 +263,11 @@ def _operations(store, object_id, newest=None):
             observed = ('Operation %s was dispatched and its outcome is unknown: %s.' % (record['operation_id'],
                                                                                       unknown_outcome_words(code))
                         if status != 'prepared' else
-                        'Operation %s started dispatch (its journal records that dispatch started), but the result was never '
-                        'registered: the store still says prepared.' % record['operation_id'])
+                        'Operation %s started dispatch, but the result was never registered: the store still says prepared.'
+                        % record['operation_id'])
             signals.append(_signal('operations', 'operation_outcome_unknown', observed,
-                                   'reconcile %s reads the service independently; execution is never replayed.'
-                                   % shlex.quote(str(root)), dict(evidence, error_code=code)))
+                                   'Reconcile reads the service independently, and execution is never replayed. '
+                                   'Command:\n  reconcile %s' % command_arg(root), dict(evidence, error_code=code)))
         elif journal_status != status:
             signals.append(_signal('operations', 'operation_record_disagrees',
                                    'Operation %s: its journal says %s, but the store record says %s.' % (
@@ -306,7 +312,7 @@ def _repository(store, object_id):
                             'Intents for this policy come from more than one repository scope. Status, refresh and proposals '
                             'refuse it, and a further import does not resolve this in this store.',
                             'Keep one repository as the source of this policy; choosing between recorded scopes is not '
-                            'supported yet. :repository-entry REPOSITORY shows where a policy is already recorded.')], 'attention'
+                            'supported yet. To see where a policy is already recorded:\n  :repository-entry REPOSITORY')], 'attention'
         raise
     freshness = intent_freshness(intent['data'])
     evidence = {'repository_intent_id': intent['artifact_id'], 'scope': intent['data'].get('scope')}
@@ -316,7 +322,8 @@ def _repository(store, object_id):
         signals.append(_signal('repository', 'repository_stale',
                                'The repository changed since its recorded intent: %s.' % ', '.join(
                                    '%s %s' % (kind, ', '.join(sources.get(kind) or [])) for kind in ('changed', 'added', 'removed') if sources.get(kind)),
-                               'Review the difference on the Repository surface, then repository-refresh REVISION records the current source.',
+                               'Review the difference on the Repository surface, then record the current source '
+                               'with:\n  repository-refresh REVISION',
                                dict(evidence, **{kind: sources.get(kind) or [] for kind in ('changed', 'added', 'removed')})))
     elif freshness['status'] == 'unavailable':
         return [_signal('repository', 'repository_unavailable',
@@ -330,7 +337,8 @@ def _repository(store, object_id):
         signals.append(_signal('repository', 'repository_consumer_mismatch',
                                'The component does not consume exactly this policy: %s.' % ', '.join(reasons or ['reason not recorded']),
                                'Proposals and execution refuse this intent until the component consumes exactly this policy; '
-                               'fix the component, then repository-refresh REVISION.', dict(evidence, reasons=reasons)))
+                               'fix the component, then record the current source with:\n  repository-refresh REVISION',
+                               dict(evidence, reasons=reasons)))
     return signals, 'attention' if signals else 'clear'
 
 

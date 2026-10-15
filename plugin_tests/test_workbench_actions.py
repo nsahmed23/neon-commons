@@ -795,7 +795,8 @@ class StampedAheadTests(unittest.TestCase):
         from intune_iac.workbench_screens import _band_forms
         cured = _band_forms({'code': 'observation_stale', 'evidence': {'freshness_reasons': ['stamped_after_now'],
                                                                        'collect_cures': True}})
-        self.assertEqual(cured[0], "! Observation stamped after this host's clock. Next: Collect again (a: actions)")
+        # Run 9 (frame 44): the State row says why the age is unknown; the band says that it is, and the response.
+        self.assertEqual(cured[0], '! Observation age unknown. Next: Collect again (a: actions)')
         self.assertTrue(all(len(form) <= 40 for form in cured[-1:]))
         stuck = _band_forms({'code': 'observation_stale', 'evidence': {'freshness_reasons': ['stamped_after_now'],
                                                                        'collect_cures': False}})

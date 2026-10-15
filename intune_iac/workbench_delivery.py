@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 import shlex
 import time
 
-from .workbench_diagnostics import CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold
+from .workbench_diagnostics import CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold, command_arg
 
 VERSION = 'workbench-delivery/1'
 STAGES = ('proposal', 'review', 'approval', 'execution', 'readback', 'reconciliation', 'deployment_record', 'observed_after')
@@ -228,14 +228,14 @@ def _next_action(stages, operation_root, store_root):
     engineer copies it from the review they approve."""
     approval, readback, reconciliation = stages['approval'], stages['readback'], stages['reconciliation']
     record, observed = stages['deployment_record'], stages['observed_after']
-    operation, store = shlex.quote(str(operation_root)), shlex.quote(str(store_root))
+    operation, store = command_arg(operation_root), command_arg(store_root)
     if approval['status'] == 'waiting' and stages['proposal'].get('context_changed'):
         return ('The context file this proposal bound changed after it was prepared, so execute refuses it '
                 '(maintenance_source_changed); prepare a new proposal.')
     if approval['status'] == 'waiting':
-        # The command is last, so a pasted command picks up no prose.
+        # Each command stands on its own row after its sentence, so a copied row carries no words (run 9, frame 20).
         return ('Review the change (5); the digest is the one on the review, never filled in for you. Approve before %s '
-                'with: execute %s EXACT_REVIEW_DIGEST' % (_when(approval['closes_at']), operation))
+                'with:\n  execute %s EXACT_REVIEW_DIGEST' % (_when(approval['closes_at']), operation))
     if approval['status'] == 'expired':
         # Stage 3 states when the window closed; this line refers to it.
         return 'Prepare a new proposal from the current intent; stage 3 says when its approval window closed.'
@@ -251,13 +251,13 @@ def _next_action(stages, operation_root, store_root):
     if approval['status'] == 'rejected':
         return 'This operation was rejected; prepare a new proposal.'
     if reconciliation['status'] == 'required':
-        return ('The outcome is unknown, and execution is never replayed. Reconcile before any retry with: reconcile %s'
+        return ('The outcome is unknown, and execution is never replayed. Reconcile before any retry with:\n  reconcile %s'
                 % operation)
     if 'pending' in (readback['status'], reconciliation['status']):
-        return 'The service has not yet shown the change; reconcile again later with: reconcile %s' % operation
+        return 'The service has not yet shown the change; reconcile again later with:\n  reconcile %s' % operation
     if record['status'] == 'available':
-        return ('Record the deployment: in the workspace, deployment-record %s %s (a lists it); from a shell, '
-                'workbench deployment-record --root %s --operation %s --intent %s'
+        return ('Record the deployment (a lists it). In the workspace:\n  deployment-record %s %s\nFrom a shell:\n'
+                '  workbench deployment-record --root %s --operation %s --intent %s'
                 % (operation, record['intent_id'], store, operation, record['intent_id']))
     if record['status'] == 'done' and record.get('context_changed'):
         return ('The deployment was recorded, but the context file this operation bound has changed since, so the '

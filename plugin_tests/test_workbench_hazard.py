@@ -505,10 +505,11 @@ class ReviewFixTests(unittest.TestCase):
     def test_the_count_says_where_the_other_findings_are(self):
         from intune_iac.workbench_screens import hazard_rows
         self.assertIn('+1 more in NEEDS ATTENTION', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120, here=True)))  # run 8 item 13: where, not "below"
-        # Run 8 item 15: the longest form of the hazard stays, so at 120 the count is in its short wording on that row;
-        # where the long form and the count both fit a row (140), the count names the Inspector in full.
+        # Run 8 item 15 kept the longest form of the hazard, so the count changed its wording with the width ("+1 more: 2"
+        # at 120, "+1 more: 2 Inspector" at 140). Run 9 (frames 54 and 56): one form per fact, at every width.
         self.assertIn('+1 more: 2', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120)))
-        self.assertIn('+1 more: 2 Inspector', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 140)))
+        self.assertIn('+1 more: 2', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 140)))
+        self.assertNotIn('Inspector', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 140)))
         narrow = hazard_rows({}, [UNKNOWN, STALE], 48)
         self.assertTrue(any('+1 more' in row for row in narrow), narrow)
         self.assertTrue(all(cell_width(row) <= 48 for row in narrow), narrow)

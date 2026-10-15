@@ -123,8 +123,10 @@ class DiagnosticsEdgeTests(unittest.TestCase):
         signal = signals['operation_outcome_unknown']
         self.assertEqual((signal['evidence']['status'], signal['evidence']['journal_status']), ('prepared', 'outcome_unknown'))
         self.assertIn('never registered', signal['observed'])
-        # PKG-PRES-RUN4 item 8: the journal event reads as words inside the sentence; the code stays in the journal.
-        self.assertIn('(its journal records that dispatch started)', signal['observed'])
+        # PKG-PRES-RUN4 item 8: the journal event reads as words, never as its code. Run 9 (frames 34, 36): the words
+        # say it once; the parenthetical that restated the clause is gone.
+        self.assertIn('started dispatch, but the result was never registered', signal['observed'])
+        self.assertNotIn('its journal records', signal['observed'])
         self.assertNotIn('dispatch_started', signal['observed'])
         self.assertIn("reconcile '%s'" % (self.root / 'change one'), signal['next_step'])
         self.assertEqual(value['checked']['operations'], 'attention')

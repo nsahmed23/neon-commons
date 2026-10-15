@@ -28,7 +28,10 @@ class InspectorReadModelTests(unittest.TestCase):
         self.assertEqual(value['attention']['status'], 'clear')
         self.assertEqual(value['attention']['signals'], [])
         self.assertEqual([step['source'] for step in value['next_actions']], ['repository_intent'])
-        self.assertTrue(value['next_actions'][0]['step'].startswith('propose-from-intent NEW_OPERATION_DIR'))
+        # Run 9: the command stands on its own row after the sentence that says what it prepares.
+        step = value['next_actions'][0]['step']
+        self.assertTrue(step.startswith('Prepare a proposal from the recorded repository intent'), step)
+        self.assertTrue(step.endswith('\n  propose-from-intent NEW_OPERATION_DIR'), step)
 
     def test_without_a_repository_intent_the_next_step_says_how_to_record_one(self):
         value = self.inspection(service_available=False)

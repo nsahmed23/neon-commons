@@ -367,11 +367,12 @@ def _next_actions(value, attention, service_available):
         needs = '' if service_available else ' (needs --service-root: a modeled service)'
         prepared = ', with the digest that review shows and execute requires%s.' % needs
         if value.get('selected_repository'):
-            steps.append({'source': 'repository_intent', 'step': 'propose-from-intent NEW_OPERATION_DIR prepares a '
-                          'proposal from the recorded repository intent' + prepared})
+            steps.append({'source': 'repository_intent', 'step': 'Prepare a proposal from the recorded repository intent' + prepared
+                          + ' Command:\n  propose-from-intent NEW_OPERATION_DIR'})
         else:
-            steps.append({'source': 'no_repository_intent', 'step': 'repository-entry REPOSITORY shows how to record where this '
-                          'policy is maintained. propose DESIRED_JSON NEW_OPERATION_DIR prepares a local proposal' + prepared})
+            steps.append({'source': 'no_repository_intent', 'step': 'To see how to record where this policy is maintained, run:\n'
+                          '  repository-entry REPOSITORY\nTo prepare a local proposal' + prepared + ' Command:\n'
+                          '  propose DESIRED_JSON NEW_OPERATION_DIR'})
     if len(steps) > NEXT_STEPS:
         more = len(steps) - NEXT_STEPS
         steps = steps[:NEXT_STEPS] + [{'source': 'more', 'step': '%d more %s under i (diagnostics).' % (
@@ -417,7 +418,9 @@ ACTION_SUMMARY = {
     'repository-refresh': 'Shows the changes first, then records them as a new intent: no Git commit, approval or apply.',
     'propose-from-intent': 'Creates a local proposal for review; nothing is approved or sent.',
     'propose': 'Creates a local proposal for review; nothing is approved or sent.',
-    'repository-entry': 'Reads the repository and lists its policies; it records nothing.',
+    # The same sentence as its effect, so the focused action prints it once. "Writes nothing" is the claim the code proves
+    # (the survey reads the repository and the store and writes neither), and it covers "records nothing".
+    'repository-entry': ACTION_EFFECTS['repository-entry'],
     'diagnostics': 'Shows what diagnostics recorded, including what it could not read; it records nothing.',
     'deployment-record': 'Records a deployment receipt in this store; it sends nothing.',
     'companion': 'Writes one read-only page for this policy to a file you name; it records nothing and opens no browser.',

@@ -385,8 +385,10 @@ class EstateScreensTests(unittest.TestCase):
                                'review_record': {'status': 'recorded', 'artifact_id': 'c' * 64}}],
                  'pagination': {'total_objects': 1}}
         text = ' '.join(' '.join(queue_lines(value, 120)).split())
-        self.assertIn('queue-review-template ownership_unknown NEW_JSON writes the form to fill', text)
-        self.assertIn('queue-amend FILE ' + 'c' * 64, text)
+        # Run 9 (frame 47): each command stands on its own row, so the rows say the sentence and then the commands.
+        self.assertIn("This finding's review: write the form with the first command, then record it with the second "
+                      '(an annotation, never approval). :queue-review-template ownership_unknown NEW_JSON '
+                      ':queue-amend FILE ' + 'c' * 64, text)
 
     def test_review_results_read_as_words(self):
         from intune_iac.workbench_screens import review_lines
@@ -461,13 +463,13 @@ class DeliveryLinesTests(unittest.TestCase):
         joined = '\n'.join(lines)
         self.assertEqual(lines[0], '[DELIVERY]')
         self.assertIn('Operation b6b3679d5d95457ea8645919a1059863 | policy ' + POLICY_ID + ' | journal succeeded verified', joined)
-        expected = ['  [x] 1 Proposal        recorded 2026-10-14 12:24:54 UTC | repository intent bcffdf6f0000 (current)',
+        expected = ['  [x] 1 Proposal        recorded 2026-10-14 12:24:54 UTC | repository intent bcffdf6f (current)',
                     '  [x] 2 Review          1 field change: description | plan sha256 abababababab',
                     '  [x] 3 Approval        exact review digest d1072f310000 supplied at dispatch | window 2026-10-14 12:24:57 UTC to 2026-10-14 12:29:57 UTC',
                     '  [x] 4 Execution       engine succeeded verified | service 200 | recorded 2026-10-14 12:24:58 UTC',
                     '  [x] 5 Readback        desired state observed | second plan no change | visibility settled | 0 mismatches',
                     '  [-] 6 Reconciliation  not needed',
-                    '  [x] 7 Deployment      recorded 2026-10-14 12:25:00 UTC | intent bcffdf6f0000 | verified local modeled deployment | baseline admissible',
+                    '  [x] 7 Deployment      recorded 2026-10-14 12:25:00 UTC | intent bcffdf6f | verified local modeled deployment | baseline admissible',
                     '  [x] 8 Observed after  matches desired at service revision 2 (1 before the change) | observed 2026-10-14 12:25:00 UTC']
         rows = [line for line in lines if line.startswith('  [')]
         self.assertEqual(rows, expected)
@@ -1449,14 +1451,14 @@ class RunEightScreensTests(unittest.TestCase):
         from intune_iac.workbench_screens import queue_lines
         text = '\n'.join(queue_lines(QueueRun7Tests().value('reporting_incomplete', 'ownership_unknown'), 160))
         for finding in ('reporting_incomplete', 'ownership_unknown'):
-            self.assertIn("This finding's review: :queue-review-template %s NEW_JSON" % finding, text)
+            self.assertIn("This finding's review: write the form with the first command", text)
+            self.assertIn('\n    :queue-review-template %s NEW_JSON\n' % finding, text + '\n')
             self.assertIn('review  %s (%s)  ' % (finding.replace('_', ' '), finding), text)
         self.assertNotIn('  Review: :queue-review-template', text)
         self.assertIn('State review required (review_required)', text)
         self.assertIn('Compatibility synthetic windows settings catalog (synthetic_windows_settings_catalog)', text)
         # The same-object line comes before the finding's own route, and the route says it is this finding's.
-        self.assertLess(text.index('Same object details'),
-                        text.index("This finding's review: :queue-review-template ownership_unknown"))
+        self.assertLess(text.index('Same object details'), text.index('    :queue-review-template ownership_unknown'))
 
     # Item 7 (frames 65, 70, 72, 73): each fact once.
     def test_the_approval_close_is_said_once_in_delivery_and_in_the_plan_next(self):
