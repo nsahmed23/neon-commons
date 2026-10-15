@@ -186,12 +186,33 @@ time that never goes backward, never on a bare wall-clock reading
   rollback, a restart or from another process alike. The workbench's operation
   journal also records `approval_refused` with the code; its status stays
   `prepared`, since nothing was dispatched.
-- **Restart and suspend.** The high-water mark is durable, so a restart keeps
-  the floor; a resume after suspend reads a later wall time, which only moves the
-  window toward expiry.
-- **Limits.** A backward step is detected only between readings this operation
-  recorded or this process made. Skew between hosts that never shared a recorded
-  time is not detected, and nothing here claims protection against it.
+- **Restart and the boot session.** `clock.json` (schema `intune-clock-floor/2`) also records, in the same atomic write as
+  the mark, the host's boot identity (`/proc/sys/kernel/random/boot_id`, read fresh at every observation), its clock domain
+  (the time-namespace offset line, where the kernel has one) and `CLOCK_BOOTTIME`. Within the same boot and clock domain the
+  floor includes the mark plus the boot time elapsed since it was recorded, which a wall clock cannot move, so a restart
+  carries the time that passed while no process ran: an approval judged open at T50 is closed at T60 on the wall if the boot
+  clock shows 70 seconds went by. Expiry compares with no added tolerance. A different boot, a different domain, a boot time
+  that went backward or no readable boot source is lost continuity: the carried part is dropped and the mark alone remains.
+  Schema 1 files stay readable and are never lowered. The stored boot time is only a difference within one boot.
+- **Open judgments.** The shared decision (`intune_iac/validity.py`) records every open judgment as a durable row, committed
+  on its own under the locks before the caller proceeds, so a later failure or process death cannot erase it. An artifact
+  found judged open in a session that cannot be verified now (another boot or domain, an unreadable session, another
+  process on a host with no boot source) is held with a distinct message: how much of its time has passed cannot be
+  established; it stays held until the host clock reads at or after its expiry (then it is closed and recorded) or until it
+  is prepared anew. Every deadline armed from an expiry takes the recorded floor's effective time, not the bare wall clock.
+  The broker keeps its own recorded time and open judgment in its journal directory.
+- **A recorded forward blip.** The floor carries the largest time any check recorded plus the boot time since. A wall
+  clock that jumped forward and was recorded therefore holds for the rest of the boot, and restarting does not clear it:
+  correct the host clock, prepare the approval anew, or start a new boot of the host (for example `wsl --shutdown`).
+- **Limits.** A backward step is detected between readings this operation recorded or this process made and, within one
+  boot, across processes. Skew between hosts that never shared a recorded time is not detected, and nothing here claims
+  protection against it. The guarantee assumes the host's boot clock is continuous: under WSL2 a paused virtual machine may
+  not count the paused time in `CLOCK_BOOTTIME` (to be measured on the host, not assumed), and then protection across the pause
+  falls back to the mark. A snapshot restore that brings back both clocks and the records is outside the model, and a
+  host with no boot source degrades to holding any approval judged open by another process. Artifacts first judged by code
+  that predates the boot session have no recorded session; the guarantee starts with their first judgment under it. A source
+  edit's acknowledgment window ends with its call, and a successor's service preimage is bound to the process that read it, so
+  a restart needs a new acknowledgment or a new read.
 
 The workbench store orders observations the same way. Between two of the store's
 own collections from the same modeled service, the later run (local collection

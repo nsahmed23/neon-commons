@@ -209,6 +209,37 @@ def frozen_digests():
         found.add(request['bindings']['implementation_sha256'])
     return found
 
+BOOT_LABEL = 'boot-session-anchor'
+BOOT_DIGEST = 'cfd572ab6a29293e0e955f2ac4570263e54e67906ea65d3301504b16aeb03995'
+BOOT_PROTECTED_FILES = {
+    'protected.py': '186ee85bc5228f71360477442207bf4bb0591ca2338e6b38dd3177b368412e14',
+    'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
+    'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+    'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+    'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
+}
+BOOT_ATMOS_FILES = {
+    'journey_native_atmos.py': '92a3afbdb3a0867d1aba6e8a6eeefdfb83a3beeea00db755a7566d484bfcdec0',
+    'native_atmos.py': '77da0489216ac52e99d0ed2f3a677eec944b4e7c8f7d45a91cae2e282368d62a',
+    'repository.py': '6c444bb93076dac5f31deb249c2b15fe174e5e310d780406ed293d994ba2027a',
+    'protected.py': '186ee85bc5228f71360477442207bf4bb0591ca2338e6b38dd3177b368412e14',
+    'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+    'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+    'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
+}
+BOOT_WORKER_FILES = {
+    'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
+    'protected.py': '186ee85bc5228f71360477442207bf4bb0591ca2338e6b38dd3177b368412e14',
+    'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+    'approval_authority.py': '97d13b0d57b7679b50425c44f2d14562324070f4dff9b2807d591db0ef1a4960',
+    'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371',
+    'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+    'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
+    'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+    'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+    'validity.py': 'c7fa43eb1e90d441f790a8f7c8fa8dedd84885b1adee4e7ab510e4ffb7ed8e20',
+    'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
+}
 
 class InventoryPinTests(unittest.TestCase):
     """Appending an entry is a deliberate release act that updates these literals; nothing else may change."""
@@ -222,7 +253,8 @@ class InventoryPinTests(unittest.TestCase):
              {'label': OWNED_LABEL, 'implementation_sha256': OWNED_DIGEST, 'files': OWNED_PROTECTED_FILES},
              {'label': P3D_LABEL, 'implementation_sha256': P3D_DIGEST, 'files': P3D_PROTECTED_FILES},
              {'label': CENSUS_LABEL, 'implementation_sha256': CENSUS_DIGEST, 'files': CENSUS_PROTECTED_FILES},
-             {'label': TRANSITIONAL_LABEL, 'implementation_sha256': TRANSITIONAL_DIGEST, 'files': TRANSITIONAL_PROTECTED_FILES}])
+             {'label': TRANSITIONAL_LABEL, 'implementation_sha256': TRANSITIONAL_DIGEST, 'files': TRANSITIONAL_PROTECTED_FILES},
+             {'label': BOOT_LABEL, 'implementation_sha256': BOOT_DIGEST, 'files': BOOT_PROTECTED_FILES}])
 
     def test_native_atmos_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
@@ -231,7 +263,8 @@ class InventoryPinTests(unittest.TestCase):
              {'label': CLOCK_LABEL, 'files': CLOCK_ATMOS_FILES},
              {'label': OWNED_LABEL, 'files': OWNED_ATMOS_FILES}, {'label': P3D_LABEL, 'files': P3D_ATMOS_FILES},
              {'label': CENSUS_LABEL, 'files': CENSUS_ATMOS_FILES},
-             {'label': TRANSITIONAL_LABEL, 'files': TRANSITIONAL_ATMOS_FILES}])
+             {'label': TRANSITIONAL_LABEL, 'files': TRANSITIONAL_ATMOS_FILES},
+             {'label': BOOT_LABEL, 'files': BOOT_ATMOS_FILES}])
 
     def test_worker_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
@@ -247,7 +280,8 @@ class InventoryPinTests(unittest.TestCase):
              {'label': CENSUS_LABEL, 'files': CENSUS_WORKER_FILES},
              {'label': TRANSITIONAL_LABEL, 'files': TRANSITIONAL_WORKER_FILES},
              {'label': AUTHZ_C_LABEL, 'files': AUTHZ_C_WORKER_FILES},
-             {'label': AUTHZ_C2_LABEL, 'files': AUTHZ_C2_WORKER_FILES}])
+             {'label': AUTHZ_C2_LABEL, 'files': AUTHZ_C2_WORKER_FILES},
+             {'label': BOOT_LABEL, 'files': BOOT_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         # An entry carries the file set of its own release: the earlier set until clock.py was bound, the current set
