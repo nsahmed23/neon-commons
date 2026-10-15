@@ -13,6 +13,7 @@ import json
 from .workbench_diagnostics import (CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_STEPS, clock_hold, CLOCK_HOLD_WORDS,
                                     clock_times, with_clock_times)
 from .workbench_tui import cell_width, fit, pad, safe_text
+from .graph_projection import DISTINCT_KINDS, KIND_WORDS
 
 WIDE = 96
 LABEL = 16
@@ -1738,13 +1739,13 @@ MAP_WIDTH = MAP_STATE_COLUMN + MAP_WORD_WIDTH
 MAP_RELATION_WIDTH = 10
 # What fits a label column after a kind word, for the kinds whose labels are cut around an ellipsis.
 MAP_DISTINCT_WIDTH = 27
-MAP_DISTINCT_KINDS = ('setting', 'repository', 'source', 'other')
+MAP_DISTINCT_KINDS = DISTINCT_KINDS
 MAP_NO_STATE = {'ascii': '--', 'unicode': '—'}
 # No glyph of the tree is also a mark: the ASCII branch is a bar and a dash, never "+", which is the running mark.
 MAP_GLYPHS = {'ascii': {'branch': '|- ', 'last': '`- ', 'guide': '|  ', 'arrow': ' -> '},
               'unicode': {'branch': '├─ ', 'last': '└─ ', 'guide': '│  ', 'arrow': ' ─→ '}}
-MAP_KIND_WORDS = {'policy': 'policy', 'group': 'group', 'filter': 'filter', 'scope_tag': 'scope tag', 'setting': 'setting',
-                  'repository': 'repository source', 'target': 'assignment target', 'source': 'source', 'other': 'related item'}
+# The one table of kind words, shared with the projection and the page (graph_projection owns it).
+MAP_KIND_WORDS = KIND_WORDS
 # Legends by the width they fit, longest first. Fixed text: it depends on the width alone, never on a state. A tier that
 # cannot name every mark that can appear says where the rest are listed.
 MAP_LEGENDS = (
@@ -1875,7 +1876,7 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
     longer than MAP_LAYER_LIMIT says how many are not drawn (the typed tree below lists them all). The rows are
     MapLines; the header and the pan statement are ordinary text; the legend and the focused node's rows are PinnedRows,
     which the pane keeps in view when the map is taller than it."""
-    from .graph_projection import distinct_labels
+    from .graph_projection import count_words, distinct_labels
     from .io import unique_prefixes
     glyph = MAP_GLYPHS.get(rules, MAP_GLYPHS['ascii'])
     ellipsis = '…' if rules == 'unicode' else '...'
@@ -1886,10 +1887,8 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
     notes = _filter_notes(graph, shorts)
     noted = set()
     nodes = {node['ref']: node for node in graph['nodes']}
-    counts = graph.get('counts') or {'relationships': len(graph['edges']), 'sources': 0}
     # The revision is not drawn: it changes with every state, and a state change must change the mark and the word only.
-    header = '[MAP] one hop | %s, %s' % (
-        _count(counts['relationships'], 'relationship', 'relationships'), _count(counts['sources'], 'source', 'sources'))
+    header = '[MAP] one hop | ' + count_words(graph)
     if graph.get('excluded'):
         header += ' | %s without a target not drawn' % _count(graph['excluded'], 'edge', 'edges')
     lines = word_wrap(header, width)
@@ -1914,7 +1913,7 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
             prefix = (marks(edge['target']) + guide + glyph['last' if last else 'branch']
                       + pad(fit(label, MAP_RELATION_WIDTH, ellipsis), MAP_RELATION_WIDTH) + glyph['arrow'])
             if node['kind'] in MAP_DISTINCT_KINDS:
-                words = MAP_KIND_WORDS.get(node['kind'], node['kind']) if node['kind'] != 'repository' else 'repository'
+                words = MAP_KIND_WORDS.get(node['kind'], node['kind'])
                 shown = ('%s ' % words if words != label else '') + cuts[node['ref']]
             else:
                 shown = _map_label(node, shorts, prefixes)

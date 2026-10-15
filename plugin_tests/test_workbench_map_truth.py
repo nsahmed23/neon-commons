@@ -3,7 +3,7 @@
 The terminal renderer reads part A's fields: a state column that shows a dash where no operation state applies and the
 policy's recorded operation word where one does (expired, prepared, none recorded, never "unknown" for a known word);
 labels that carry their kind word and never print alike when cut; a filter shown on its assignment; the relationships
-the read model listed and the sources the selection added counted apart; at 60x20 the marker gutter outside the pan
+the read model listed and the repositories the selection added counted apart; at 60x20 the marker gutter outside the pan
 window and a one-line legend and the FOCUS row kept in view, with the stated widths those of the drawn rows; keys named
 only where they act; ASCII rows that keep their rail and mean one thing per mark; and the two falsifiers the first
 fixture missed. Cases: frame 21 (expired operation and a repository), the seed-510 fixture, two settings sharing a
@@ -95,7 +95,7 @@ class LabelTests(MapTruth):
             self.assertEqual(len(set(labels)), 2, labels)
             self.assertTrue(all('workplace' in label for label in labels), labels)
 
-    def test_two_sources_under_one_folder_are_told_apart_and_name_their_kind(self):
+    def test_a_file_and_a_repository_under_one_folder_are_told_apart_and_name_their_kind(self):
         folder = '/home/nsahm/work/journey 28 run/stacks/dev/components/'
         value = dict(self.value, relationships=[
             {'relation': 'generated_from', 'target_id': folder + 'privacy-pilot.tf', 'details': {}, 'assertion_class': 'historical_local_adoption'}],
@@ -104,7 +104,8 @@ class LabelTests(MapTruth):
         _, rows = self.rows(self.graph(value))
         generated = next(row for row in rows if 'generated' in row and MARK.search(row))
         repository = next(row for row in rows if 'repository' in row and MARK.search(row))
-        self.assertIn('source ', generated)
+        self.assertIn(' file ', generated)
+        self.assertNotIn('source', generated)
         self.assertNotEqual(generated.split('→')[1].strip(), repository.split('→')[1].strip())
         self.assertIn('pilot.tf', generated)
         self.assertTrue(repository.split('→')[1].strip().startswith('—') is False)
@@ -144,15 +145,15 @@ class FilterTests(MapTruth):
 
 
 class CountTests(MapTruth):
-    def test_the_header_counts_relationships_and_sources_apart_as_the_tree_does(self):
+    def test_the_header_counts_relationships_and_repositories_apart_as_the_tree_does(self):
         lines, _ = self.rows()
         header = next(line for line in lines if line.startswith('[MAP]'))
-        self.assertIn('7 relationships, 1 source', header)
+        self.assertIn('7 relationships, 1 repository', header)
         self.assertNotIn('8 edges', header)
         from intune_iac.workbench_screens import relationship_lines
         self.assertTrue(any('7 edges' in line for line in relationship_lines(self.value, 100, 'unicode')))
         none = dict(self.value, relationships=[], selected_repository=None)
-        self.assertIn('0 relationships, 0 sources', next(line for line in self.rows(self.graph(none))[0] if line.startswith('[MAP]')))
+        self.assertIn('0 relationships, 0 repositories', next(line for line in self.rows(self.graph(none))[0] if line.startswith('[MAP]')))
 
 
 class LegendTests(MapTruth):

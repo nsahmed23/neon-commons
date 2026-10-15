@@ -601,15 +601,15 @@ class TruthTests(Fixture):
         # No other node claims a filter.
         self.assertEqual(len(notes), 2)
 
-    def test_the_counts_name_the_relationships_and_the_sources_apart(self):
+    def test_the_counts_name_the_relationships_and_the_repositories_apart(self):
         summary = section(self.page(), 'summary')
-        self.assertIn('7 relationships, 1 source', summary)
+        self.assertIn('7 relationships, 1 repository', summary)
         self.assertNotIn('8 edges', summary)
         tree_header = [line for line in __import__('intune_iac.workbench_screens', fromlist=['x']).relationship_lines(self.value, 100, 'unicode')
                        if 'edges |' in line][0]
         self.assertIn('7 edges', tree_header)
         one = dict(self.value, relationships=self.value['relationships'][:1], selected_repository=None)
-        self.assertIn('1 relationship, 0 sources', section(self.page(one), 'summary'))
+        self.assertIn('1 relationship, 0 repositories', section(self.page(one), 'summary'))
 
     def test_labels_carry_their_kind_word_and_never_print_alike_when_cut(self):
         prefix = 'device_vendor_msft_policy_config_'
@@ -627,7 +627,7 @@ class TruthTests(Fixture):
         settings = [label for label in labels if label.startswith('setting  ')]
         self.assertEqual(len(settings), 2)
         self.assertTrue(any(label.endswith('workplace') for label in settings))
-        self.assertEqual([label for label in labels if label.startswith('generated  source ')].__len__(), 1)
+        self.assertEqual([label for label in labels if label.startswith('generated  file ')].__len__(), 1)
         self.assertEqual([label for label in labels if label.startswith('repository  ')].__len__(), 1)
         for label in labels:
             self.assertLessEqual(len(label), 80)

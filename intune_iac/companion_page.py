@@ -22,7 +22,7 @@ import hashlib
 import html
 import re
 
-from .graph_projection import STATES, distinct_labels, drawn_layers, traversal_order
+from .graph_projection import DISTINCT_KINDS, STATES, count_words, distinct_labels, drawn_layers, traversal_order
 from .io import AppError, unique_prefixes
 from .workbench_tui import cell_width, fit, safe_text
 
@@ -50,12 +50,10 @@ EDGE_STYLES = {
     'filter': {'dash': '2 4', 'name': 'filter', 'meaning': 'an assignment filter applies to the policy'},
     'setting': {'dash': '10 4 2 4', 'name': 'setting', 'meaning': 'the policy holds the setting at the end'},
     'scope_tag': {'dash': '14 6', 'name': 'scope tag', 'meaning': 'the policy carries the scope tag at the end'},
-    'generated_from': {'dash': '1 3', 'name': 'generated', 'meaning': 'the policy was generated from the source at the end'},
+    'generated_from': {'dash': '1 3', 'name': 'generated', 'meaning': 'the policy was generated from the file at the end'},
     'repository': {'dash': '12 4 2 4 2 4', 'name': 'repository', 'meaning': 'the repository scope the engineer selected'},
     'other': {'dash': '6 6 1 6', 'name': 'other relation', 'meaning': 'a relation the read model named; the detail states it'},
 }
-# The kinds whose labels are cut around an ellipsis so that two of them never print alike (paths, long setting ids).
-DISTINCT_KINDS = ('setting', 'repository', 'source', 'other')
 # What the policy's recorded operation word is marked with, where the eight state words have no mark for it.
 OPERATION_MARKS = {'none recorded': '_', 'expired': '~', 'prepared': 'o'}
 NO_INSPECT = ('This %s has no inspect route; only a policy opens in the Inspector (key 2 in the workbench). '
@@ -634,9 +632,8 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
         note = 'This file was written once; nothing on it reads the workbench again.'
         body_live = ''
     lines = _bounded(tree_lines if tree_lines is not None else _tree(graph))
-    counts = graph['counts']
-    summary = '%s, %s from the selected policy; %s drawn, %s not drawn' % (
-        _count(counts['relationships'], 'relationship', 'relationships'), _count(counts['sources'], 'source', 'sources'),
+    summary = '%s from the selected policy; %s drawn, %s not drawn' % (
+        count_words(graph),
         _count(drawn_edges, 'item', 'items'), _count(len(graph['edges']) - drawn_edges, 'item', 'items'))
     if graph.get('excluded'):
         summary += '; %s without a target not drawn' % _count(graph['excluded'], 'edge', 'edges')

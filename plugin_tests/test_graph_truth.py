@@ -2,7 +2,7 @@
 
 State applies only where an operation can exist; the policy carries the read model's own operation word (none
 recorded, expired, prepared and the rest) beside the existing eight-word state; a filter belongs to the assignment
-that applies it, with its type; the relationships the read model lists and the sources the selection adds are counted
+that applies it, with its type; the relationships the read model lists and the repositories the selection adds are counted
 apart; and every node carries its kind word and a label that never prints like another's when cut. The fields are
 additive: the existing field values are the ones the terminal map reads and do not change.
 Cases: frame 21 (a policy with an expired operation and a repository), the seed-510 fixture (a filter on one
@@ -48,10 +48,10 @@ class StateAppliesTests(Truth):
             self.assertIs(node['state_applies'], node['kind'] == 'policy', node)
         self.assertEqual({node['kind'] for node in graph['nodes'] if not node['state_applies']},
                          {'group', 'filter', 'scope_tag', 'setting', 'repository'})
-        # A generated source is a source, and no operation exists for it either.
+        # The target of a generated edge is a file, and no operation exists for it either.
         value = dict(self.value, relationships=self.value['relationships'] + [
             {'relation': 'generated_from', 'target_id': 'stacks/dev/privacy.tf', 'details': {}, 'assertion_class': 'historical_local_adoption'}])
-        generated = self.node(self.project(value), 'source')
+        generated = self.node(self.project(value), 'file')
         self.assertFalse(generated['state_applies'])
         self.assertIsNone(generated['operation'])
 
@@ -60,6 +60,9 @@ class StateAppliesTests(Truth):
         words = {node['kind']: node['kind_word'] for node in graph['nodes']}
         self.assertEqual(words, {'policy': 'policy', 'group': 'group', 'filter': 'filter', 'scope_tag': 'scope tag',
                                  'setting': 'setting', 'repository': 'repository'})
+        generated = dict(self.value, relationships=self.value['relationships'] + [
+            {'relation': 'generated_from', 'target_id': 'stacks/dev/privacy.tf', 'details': {}, 'assertion_class': 'historical_local_adoption'}])
+        self.assertEqual(self.node(self.project(generated), 'file')['kind_word'], 'file')
 
     def test_the_existing_fields_keep_their_values(self):
         graph = self.project(states={self.object_id: 'expired'}, freshness='fresh')
@@ -154,26 +157,26 @@ class FilterTests(Truth):
 
 
 class CountTests(Truth):
-    def test_the_listed_relationships_and_the_added_sources_are_counted_apart(self):
+    def test_the_listed_relationships_and_the_added_repositories_are_counted_apart(self):
         graph = self.project()
-        self.assertEqual(graph['counts'], {'relationships': 7, 'sources': 1})
+        self.assertEqual(graph['counts'], {'relationships': 7, 'repositories': 1})
         self.assertEqual(graph['counts']['relationships'], len(self.value['relationships']), 'the tree header counts the same list')
         origins = [edge['origin'] for edge in graph['edges']]
         self.assertEqual(origins.count('selection'), 1)
         self.assertEqual(next(edge['type'] for edge in graph['edges'] if edge['origin'] == 'selection'), 'repository')
         self.assertEqual(len(graph['edges']), 8, 'the existing edge list is unchanged')
 
-    def test_a_listed_generated_source_is_a_relationship_and_the_repository_is_the_source(self):
+    def test_a_listed_generated_file_is_a_relationship_and_the_selected_repository_is_counted_apart(self):
         value = dict(self.value, relationships=self.value['relationships'] + [
             {'relation': 'generated_from', 'target_id': 'stacks/dev/privacy.tf', 'details': {}, 'assertion_class': 'historical_local_adoption'}])
         graph = self.project(value)
-        self.assertEqual(graph['counts'], {'relationships': 8, 'sources': 1})
+        self.assertEqual(graph['counts'], {'relationships': 8, 'repositories': 1})
         self.assertEqual(len(graph['edges']), 9)
 
     def test_an_edge_with_no_target_is_still_one_the_read_model_listed(self):
         value = dict(self.value, relationships=self.value['relationships'] + [{'relation': 'setting', 'target_id': None}], selected_repository=None)
         graph = self.project(value)
-        self.assertEqual(graph['counts'], {'relationships': 8, 'sources': 0})
+        self.assertEqual(graph['counts'], {'relationships': 8, 'repositories': 0})
         self.assertEqual(graph['excluded'], 1)
         # Entries that are not edges at all are not counted, as the tree does not count them.
         odd = self.project(dict(value, relationships=value['relationships'] + ['x', 3]))
@@ -199,7 +202,7 @@ class LabelTests(Truth):
             self.assertTrue(identifier.startswith(text.split('…')[0]))
         self.assertEqual({text.split('…')[-1] for text in shown.values()} & {'', ' '}, set())
 
-    def test_two_sources_under_the_same_folder_are_told_apart(self):
+    def test_a_file_and_a_repository_under_the_same_folder_are_told_apart(self):
         folder = '/home/nsahm/work/journey 28 run/stacks/dev/components/'
         value = dict(self.value, relationships=[
             {'relation': 'generated_from', 'target_id': folder + 'privacy-pilot.tf', 'details': {}, 'assertion_class': 'historical_local_adoption'}],
@@ -208,7 +211,7 @@ class LabelTests(Truth):
         graph = self.project(value)
         for width in (20, 34, 48):
             labels = self.labels(graph, width)
-            texts = [labels[node['ref']] for node in graph['nodes'] if node['kind'] in ('source', 'repository')]
+            texts = [labels[node['ref']] for node in graph['nodes'] if node['kind'] in ('file', 'repository')]
             self.assertEqual(len(texts), 2)
             self.assertEqual(len(set(texts)), 2, (width, texts))
             self.assertTrue(all(len(text) <= width for text in texts), (width, texts))

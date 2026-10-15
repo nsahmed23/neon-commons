@@ -974,6 +974,7 @@ plugin_tests/test_workbench_inspector.py
 plugin_tests/test_workbench_map.py
 plugin_tests/test_workbench_map_renderer.py
 plugin_tests/test_workbench_map_truth.py
+plugin_tests/test_workbench_map_vocabulary.py
 plugin_tests/test_workbench_overview.py
 plugin_tests/test_workbench_paging.py
 plugin_tests/test_workbench_provenance.py

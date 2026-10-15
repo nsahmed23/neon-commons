@@ -27,9 +27,16 @@ OTHER_LAYER = 'OTHER RELATIONSHIPS'
 # The kind a relation names. An assignment or exclusion names a group only when the read model gives a group id.
 KIND_OF_RELATION = {'filter': 'filter', 'setting': 'setting', 'scope_tag': 'scope_tag', 'repository': 'repository'}
 # Each kind in words, and the only kind an operation state can apply to: a policy has operations, and a group, a filter,
-# a scope tag, a setting or a source has none, so it reads no state at all (never "unknown", which would claim a gap).
+# a scope tag, a setting, a file or a repository has none, so it reads no state at all (never "unknown", which would
+# claim a gap). This is the one table of kind words: the map, the focus rows, the notices and the page read it, so a word
+# means one thing on every surface. The target of a generated edge is a file; the repository is the one the engineer
+# selected; "source" stays only for the lineage relations the read model names source_*.
 KIND_WORDS = {'policy': 'policy', 'group': 'group', 'filter': 'filter', 'scope_tag': 'scope tag', 'setting': 'setting',
-              'repository': 'repository', 'target': 'assignment target', 'source': 'source', 'other': 'related item'}
+              'repository': 'repository', 'target': 'assignment target', 'file': 'file', 'source': 'source',
+              'other': 'related item'}
+# The kinds whose labels are cut around an ellipsis so that two of them never print alike (paths, long setting ids);
+# each carries its kind word in front.
+DISTINCT_KINDS = ('setting', 'repository', 'file', 'source', 'other')
 KINDS_WITH_OPERATION = ('policy',)
 NONE_RECORDED = 'none recorded'
 FILTER_TYPES = ('include', 'exclude')
@@ -53,7 +60,9 @@ def _kind(edge):
     if relation in ('assignment', 'exclusion'):
         details = edge.get('details') if isinstance(edge.get('details'), dict) else {}
         return 'group' if details.get('group_id') else 'target'
-    return KIND_OF_RELATION.get(relation) or ('source' if relation in ('generated_from',) or relation.startswith('source_') else 'other')
+    if relation == 'generated_from':
+        return 'file'
+    return KIND_OF_RELATION.get(relation) or ('source' if relation.startswith('source_') else 'other')
 
 
 def _edges_of(value):
@@ -169,12 +178,21 @@ def project(value, *, names=None, states=None, freshness=None):
             'layers': [heading for heading, _ in layers if any(row['layer'] == heading for row in projected)],
             'excluded': excluded,
             # What the read model listed (the tree's own count) and what the selection added, apart, so a header cannot
-            # disagree with the tree: the repository the engineer selected is a source, not a listed relationship.
+            # disagree with the tree: the repository the engineer selected is not a listed relationship.
             'counts': {'relationships': sum(isinstance(edge, dict) for edge in value.get('relationships') or []),
-                       'sources': sum(edge['_origin'] == 'selection' for edge in edges)}}
+                       'repositories': sum(edge['_origin'] == 'selection' for edge in edges)}}
     revision = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
                                          allow_nan=False).encode('utf-8')).hexdigest()
     return dict(body, revision=revision)
+
+
+def count_words(graph):
+    """The header's counts in words: the relationships the read model lists and, apart, the repositories the engineer
+    selected. One sentence for the terminal map and the page, so neither can count what the other does not."""
+    counts = graph.get('counts') or {'relationships': len(graph['edges']), 'repositories': 0}
+    relationships, repositories = counts['relationships'], counts['repositories']
+    return '%d %s, %d %s' % (relationships, 'relationship' if relationships == 1 else 'relationships',
+                             repositories, 'repository' if repositories == 1 else 'repositories')
 
 
 def drawn_layers(graph, per_layer=None):
