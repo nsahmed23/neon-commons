@@ -335,8 +335,11 @@ def _next_actions(items, root=None, relative_to=None):
                 show(store['path']), PROGRAM, q(store['path']), q(service['path']) if service else 'SERVICE_ROOT'))
         actions.append('Open the workspace: %s workbench workspace --root %s%s' % (
             PROGRAM, q(store['path']), ' --service-root ' + q(service['path']) if service else ''))
+    if kinds.get('repository') and not stores:
+        # repository-entry reads a store; there is none here to name.
+        actions.append('Create a store first: %s workbench init --root STORE --tenant TENANT_ID' % PROGRAM)
     for repository in kinds.get('repository', []):
-        recorded = [(store, intent) for store in stores for intent in store.get('intents', [])
+        recorded =[(store, intent) for store in stores for intent in store.get('intents', [])
                     if intent.get('repository') and Path(intent['repository']).name == _name(root, repository['path'])]
         if recorded:
             store, intent = recorded[-1]
@@ -358,9 +361,10 @@ def _next_actions(items, root=None, relative_to=None):
     if not items:
         actions = ['Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
                    '--output NEW_OUTPUT_DIR' % PROGRAM,
-                   'Or enter an existing Atmos repository you maintain: %s workbench repository-entry --root STORE --repo '
-                   'REPOSITORY lists its policies and the exact command to record each (create the store first with %s '
-                   'workbench init --root STORE --tenant TENANT_ID)' % (PROGRAM, PROGRAM)]
+                   'Or start from an Atmos repository you maintain, beginning with a store: %s workbench init --root STORE '
+                   '--tenant TENANT_ID' % PROGRAM,
+                   'Then list the policies it holds and the exact command to record each: %s workbench repository-entry '
+                   '--root STORE --repo REPOSITORY' % PROGRAM]
     return actions
 
 
@@ -639,8 +643,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
     lines.append('NEXT')
     for number, action in enumerate(value['next_actions'], 1):
         prefix = '  %d. ' % number
-        for index, part in enumerate(word_wrap(action, width - len(prefix))):
-            lines.append((prefix if index == 0 else ' ' * len(prefix)) + part)
+        lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
     lines.append('MISSING')
     for note in value['missing']:
         for index, part in enumerate(word_wrap(note, width - 4)):
