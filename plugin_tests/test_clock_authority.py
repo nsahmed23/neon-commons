@@ -666,3 +666,54 @@ class WindowAgreementTests(unittest.TestCase):
                         seen.add(view)
                         self.assertEqual(expected[view], executed, (wall - START, mono, recorded, latched, view, executed))
         self.assertEqual(seen, set(expected))
+
+
+class ExcursionDecisionTests(unittest.TestCase):
+    """Why a forward clock excursion that returns is not filtered out (decision of 2026-10-15, advisors Fable and Astra
+    independently): wall and monotonic readings alone cannot tell a faulty excursion from a real correction followed by
+    a backward fault, so the authority keeps the highest reading. Every error is then a hold, never a revival; the cost
+    on a host whose clock steps is a long hold, and the remedy is the host clock."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.clocks = Clocks()
+        inject(self, self.clocks)
+        self.floor = clock.Floor(Path(temp.name) / 'clock.json')
+        self.start = self.clocks.time()
+
+    def test_a_forward_excursion_raises_the_mark_and_a_new_process_still_holds(self):
+        self.floor.observe(self.clocks.time())
+        self.clocks.step(266)
+        self.floor.observe(self.clocks.time())
+        self.assertEqual(self.floor.high_water(), self.start + 266)
+        self.clocks.step(-266)
+        self.clocks.elapse(0.1)
+        self.assertTrue(self.floor.observe(self.clocks.time())['backward'])
+        clock.reset_process_anchor()  # a new process knows only the recorded mark
+        reading = self.floor.peek(self.clocks.time())
+        self.assertTrue(reading['backward'])
+        self.assertGreaterEqual(reading['effective'], self.start + 266)
+
+    def test_an_approval_closed_by_an_excursion_stays_closed_after_the_clock_returns_and_a_restart(self):
+        created, expires = self.start, self.start + 100
+        self.floor.observe(self.clocks.time())
+        self.clocks.elapse(1)
+        self.clocks.step(266)  # 167 s past the expiry, whether this reading is a fault or a correction
+        self.assertEqual(clock.window_state(self.floor.observe(self.clocks.time()), created, expires), 'closed')
+        self.clocks.step(-266)
+        self.clocks.elapse(0.1)
+        self.assertEqual(clock.window_state(self.floor.observe(self.clocks.time()), created, expires), 'closed')
+        clock.reset_process_anchor()
+        self.assertEqual(clock.window_state(self.floor.observe(self.clocks.time()), created, expires), 'closed')
+
+    def test_a_view_reading_keeps_a_window_it_showed_closed_from_opening_for_the_next_binding_reading(self):
+        # Why read-only readings must carry: without it, a window a view showed closed during a forward step would read
+        # open to the execution that follows once the clock returns (the revival the owner's rule forbids).
+        created, expires = self.start, self.start + 300
+        self.floor.observe(self.clocks.time())
+        self.clocks.step(300)
+        self.assertEqual(clock.window_state(self.floor.peek(self.clocks.time()), created, expires), 'closed')
+        self.clocks.step(-300)
+        self.clocks.elapse(0.2)
+        self.assertNotEqual(clock.window_state(self.floor.observe(self.clocks.time()), created, expires), 'open')
