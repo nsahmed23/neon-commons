@@ -690,3 +690,66 @@ class StampedAheadTests(unittest.TestCase):
         self.assertIn('stamped later than the store', capture['next_step'])
         kept = _freshness(dict(base, next_collection_replaces='none'), False)[0][0]
         self.assertIn('collecting again now would not replace it', kept['next_step'])
+
+
+class ClockHoldTests(unittest.TestCase):
+    """A clock hold on the observation's age (clock_moved_backward, clock_floor_invalid): collecting again does not clear
+    it, so no surface offers it as the fix. The read model, the refusal sentence and diagnostics say the real recovery."""
+    setUp = ActionReadModelTests.setUp
+    inspection = ActionReadModelTests.inspection
+    CODES = ('clock_moved_backward', 'clock_floor_invalid')
+
+    def held_inspection(self, *reasons):
+        from unittest import mock
+        real = type(self.store).inspect
+        def held(store, object_id):
+            return dict(real(store, object_id), freshness='stale', freshness_reasons=list(reasons))
+        with mock.patch.object(type(self.store), 'inspect', held):
+            return self.inspection()
+
+    def test_a_held_observation_offers_no_collect_again(self):
+        for code in self.CODES:
+            for reasons in ((code,), ('older_than_window', code), (code, 'stamped_after_now')):
+                value = self.held_inspection(*reasons)
+                stale = next(signal for signal in value['attention']['signals'] if signal['code'] == 'observation_stale')
+                self.assertIn(code, stale['evidence']['freshness_reasons'])
+                self.assertNotIn('collect', {action['kind'] for action in value['actions']}, reasons)
+
+    def test_the_proposal_refusal_names_the_clock_and_collect_again_is_not_offered_for_it(self):
+        from intune_iac.workbench import _actions
+        attention = self.inspection()['attention']
+        service = self.service.root
+        for code in self.CODES:
+            eligibility = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh', 'freshness_reasons': [code]}
+            actions = _actions(self.store, OBJECT, attention, None, service, eligibility=eligibility)
+            self.assertNotIn('collect', {action['kind'] for action in actions}, code)
+            blocked = next(action for action in actions if action['kind'] == 'propose')['blocked']
+            self.assertEqual((blocked['code'], blocked['reason']), ('maintenance_observation_stale', 'not_fresh'))
+            self.assertIn('age cannot be established', blocked['message'])
+        ordinary = {'code': 'maintenance_observation_stale', 'reason': 'not_fresh', 'freshness_reasons': ['older_than_window']}
+        actions = _actions(self.store, OBJECT, attention, None, service, eligibility=ordinary)
+        self.assertIn('collect', {action['kind'] for action in actions})
+
+    def test_the_refusal_sentence_names_the_clock_first(self):
+        from intune_iac.workbench import _reason_words
+        moved = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['older_than_window', 'clock_moved_backward']})
+        self.assertEqual(moved, "the newest observation's age cannot be established (its age cannot be established: this "
+                                "host's clock reads earlier than a time this workspace recorded; older than the freshness "
+                                'window); collecting again does not clear this: correct the host clock, or wait until it '
+                                'reads at or after the time this workspace recorded, then restart the workbench')
+        unreadable = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['clock_floor_invalid']})
+        self.assertEqual(unreadable, "the newest observation's age cannot be established (its age cannot be established: the "
+                                     'time this workspace recorded cannot be read); collecting again does not clear this: '
+                                     "changes stay held until the workspace's recorded time can be read again "
+                                     '(Diagnostics shows where it is kept)')
+        for code in self.CODES:
+            ahead = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['stamped_after_now', code],
+                                   'next_collection_replaces': 'same_service'})
+            self.assertTrue(ahead.startswith("the newest observation's age cannot be established ("), ahead)
+            self.assertNotIn('collect again', ahead.replace('collecting again does not clear this', ''))
+            self.assertNotIn('stamped later', ahead)
+
+    def test_the_refusal_sentence_without_a_hold_is_unchanged(self):
+        from intune_iac.workbench import _reason_words
+        self.assertEqual(_reason_words({'reason': 'not_fresh', 'freshness_reasons': ['older_than_window']}),
+                         'the newest observation is not fresh (older than the freshness window); collect again')

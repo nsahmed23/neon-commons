@@ -324,3 +324,50 @@ class CodesInSentencesTests(unittest.TestCase):
         self.assertEqual(unknown_outcome_words('model_response_lost'),
                          "the modeled service's response was lost (model_response_lost)")
         self.assertEqual(unknown_outcome_words('other_code'), 'other_code')
+
+
+class ClockHoldWordTests(unittest.TestCase):
+    """A clock hold on an observation's age reads as words in every place that words a freshness reason (the codes
+    are the store's; the sentences are written by hand)."""
+    MOVED = "its age cannot be established: this host's clock reads earlier than a time this workspace recorded"
+    UNREADABLE = 'its age cannot be established: the time this workspace recorded cannot be read'
+    CODES = (('clock_moved_backward', MOVED), ('clock_floor_invalid', UNREADABLE))
+
+    def test_every_freshness_word_map_has_both_codes(self):
+        from intune_iac import workbench, workbench_diagnostics, workbench_screens
+        for code, words in self.CODES:
+            self.assertEqual(workbench.FRESHNESS_REASON_WORDS.get(code), words)
+            self.assertEqual(workbench_screens.FRESHNESS_REASON_WORDS.get(code), words)
+            self.assertEqual(workbench_diagnostics.FRESHNESS_WORDS.get(code), words)
+
+    def test_the_observation_state_line_reads_each_code_as_words(self):
+        from intune_iac.workbench_screens import state_lines
+        for code, words in self.CODES:
+            states = {'observation': {'freshness': 'stale', 'freshness_reasons': [code], 'observed_at': '2026-10-14T22:40:01Z'}}
+            lines = text(state_lines(states, 200))
+            self.assertIn('stale (%s)' % words, lines)
+            self.assertNotIn(code, lines)
+
+    def test_diagnostics_evidence_reads_each_code_as_words(self):
+        from intune_iac.workbench_screens import diagnostics_lines
+        for code, words in self.CODES:
+            signal = {'area': 'freshness', 'code': 'observation_stale', 'observed': 'The newest observation is stale.',
+                      'next_step': 'Wait.', 'evidence': {'freshness_reasons': [code]}}
+            lines = text(diagnostics_lines({'name': 'Pilot', 'object_id': POLICY, 'signals': [signal], 'checked': {}}, 200))
+            self.assertIn('freshness reasons: ' + words, lines)
+            self.assertNotIn(code, lines)
+
+    def test_the_diagnostics_sentence_reads_each_code_as_words(self):
+        from intune_iac.workbench_diagnostics import _freshness
+        for code, words in self.CODES:
+            signals, _ = _freshness({'freshness': 'stale', 'observed_at': '2026-10-14T22:40:01Z', 'freshness_reasons': [code],
+                                     'freshness_checked_at': '2026-10-14T22:36:01Z'}, False)
+            self.assertIn(': ' + words + '.', signals[0]['observed'])
+            self.assertNotIn(code, signals[0]['observed'])
+
+    def test_the_refusal_sentence_reads_each_code_as_words(self):
+        from intune_iac.workbench import _reason_words
+        for code, words in self.CODES:
+            sentence = _reason_words({'reason': 'not_fresh', 'freshness_reasons': [code]})
+            self.assertIn(words, sentence)
+            self.assertNotIn(code, sentence)

@@ -434,5 +434,19 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(caught.exception.code, 'maintenance_journal_changed')
 
 
+class ClockHoldNoteTests(unittest.TestCase):
+    """The qualifier on "observed as desired" reads a clock hold as words, never as a raw code."""
+
+    def test_each_clock_hold_reads_as_its_words(self):
+        from intune_iac.workbench_delivery import _stale_note
+        words = {'clock_moved_backward': "its age cannot be established: this host's clock reads earlier than a time this "
+                                         'workspace recorded',
+                 'clock_floor_invalid': 'its age cannot be established: the time this workspace recorded cannot be read'}
+        for code, expected in words.items():
+            note = _stale_note({'observation_freshness': 'stale', 'observation_freshness_reasons': [code]})
+            self.assertIn('now reads stale (%s)' % expected, note)
+            self.assertNotIn(code, note)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -17,6 +17,8 @@ from datetime import datetime, timezone
 import shlex
 import time
 
+from .workbench_diagnostics import CLOCK_HOLD_WORDS
+
 VERSION = 'workbench-delivery/1'
 STAGES = ('proposal', 'review', 'approval', 'execution', 'readback', 'reconciliation', 'deployment_record', 'observed_after')
 MAX_RECEIPTS = 100
@@ -282,7 +284,7 @@ def _stale_note(observed):
     if observed.get('observation_freshness') in (None, 'fresh'):
         return ''
     words = {'stamped_after_now': "stamped after this host's clock", 'older_than_window': 'older than the freshness window',
-             'later_collection_not_complete': 'a later collection did not complete'}
+             'later_collection_not_complete': 'a later collection did not complete', **CLOCK_HOLD_WORDS}
     reasons = '; '.join(words.get(item, str(item)) for item in observed.get('observation_freshness_reasons') or [])
     return (' But the observation that shows it now reads stale (%s); judge it again once a fresh observation exists.'
             % (reasons or 'no reason recorded'))

@@ -62,6 +62,28 @@ def _collection(observed):
 # collection signal itself, so it never reaches the freshness sentence.
 FRESHNESS_WORDS = {'older_than_window': 'older than the freshness window of %(window)s seconds',
                    'stamped_after_now': "stamped later than this host's clock read when it was checked (%(checked)s)"}
+# Holds on the age itself, in words (shared by every surface that words a freshness reason). Collecting again does not
+# clear either: a new observation is judged against the same recorded time. When both are recorded the first is the
+# one named.
+CLOCK_HOLD_WORDS = {'clock_moved_backward': "its age cannot be established: this host's clock reads earlier than a time "
+                                            'this workspace recorded',
+                    'clock_floor_invalid': 'its age cannot be established: the time this workspace recorded cannot be read'}
+CLOCK_HOLD_REASONS = tuple(CLOCK_HOLD_WORDS)
+FRESHNESS_WORDS.update(CLOCK_HOLD_WORDS)
+# The step for each hold: the real recovery, which is never collecting again.
+CLOCK_HOLD_STEPS = {
+    'clock_moved_backward': ('Correct the host clock, or wait until it reads at or after the time this workspace '
+                             'recorded; restart the workbench after correcting the clock. Collecting again does not '
+                             'clear this.'),
+    'clock_floor_invalid': ("The workspace's recorded time (clock.json beside the observation store) cannot be read; "
+                            'changes stay held until it can. Collecting again does not clear this.')}
+
+
+def clock_hold(reasons):
+    """The clock hold among a freshness's recorded reasons, or None; the clock is named first because nothing else
+    clears while it holds."""
+    reasons = reasons if isinstance(reasons, (list, tuple)) else []
+    return next((code for code in CLOCK_HOLD_REASONS if code in reasons), None)
 
 
 def _freshness(observed, failed):
@@ -81,7 +103,11 @@ def _freshness(observed, failed):
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
     step = 'Collect again (:collect) before preparing or judging a change.'
     replaces = observed.get('next_collection_replaces')
-    if 'stamped_after_now' in reasons and replaces == 'same_service':
+    hold = clock_hold(reasons)
+    if hold:
+        # A clock hold outranks every other reason: no collection, and no wait on a stamp, clears it.
+        step = CLOCK_HOLD_STEPS[hold]
+    elif 'stamped_after_now' in reasons and replaces == 'same_service':
         # The store orders its own collections from one service by run, not by stamp (workbench_store).
         step = ('Collect again (:collect) from the modeled service it came from (%s): the store orders its own '
                 'collections by run, so the new one becomes current. Or correct the host clock.'

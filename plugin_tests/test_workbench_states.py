@@ -619,3 +619,48 @@ class AdoptedSummaryTests(unittest.TestCase):
         workspace.selected = None
         workspace._learn(dict(self.RESULT))
         self.assertEqual(workspace.mode_class, 'synthetic')
+
+
+class ClockHoldBandTests(unittest.TestCase):
+    """A clock hold on the observation's age: the band says the age is unknown and never names collecting again, which
+    does not clear it. It outranks a stamp ahead of the clock and the generic stale line."""
+    FORMS = {'clock_moved_backward': ("! Observation age unknown: this host's clock reads earlier than a recorded time. i: details",
+                                      '! Age unknown: clock behind a recorded time. i: details', '! Clock behind. i: details'),
+             'clock_floor_invalid': ('! Observation age unknown: the recorded time cannot be read. i: details',
+                                     '! Age unknown: recorded time unreadable. i: details', '! Time record unreadable. i: details')}
+
+    def signal(self, *reasons, **evidence):
+        return {'area': 'freshness', 'code': 'observation_stale', 'observed': 'Stale.', 'next_step': 'Wait.',
+                'evidence': dict(evidence, freshness_reasons=list(reasons))}
+
+    def test_each_hold_has_its_three_forms(self):
+        from intune_iac.workbench_screens import _band_forms
+        for code, forms in self.FORMS.items():
+            self.assertEqual(tuple(_band_forms(self.signal(code))), forms)
+
+    def test_a_hold_outranks_a_stamp_ahead_and_the_window(self):
+        from intune_iac.workbench_screens import _band_forms
+        for code, forms in self.FORMS.items():
+            for others in (('stamped_after_now',), ('older_than_window',), ('older_than_window', 'stamped_after_now')):
+                for cures in (True, False):
+                    found = _band_forms(self.signal(*others, code, collect_cures=cures))
+                    self.assertEqual(tuple(found), forms, (code, others, cures))
+                    self.assertFalse(any('ollect' in form for form in found), found)
+
+    def test_every_form_fits_its_width_and_never_says_collect(self):
+        from intune_iac.workbench_screens import hazard_rows
+        from intune_iac.workbench_tui import cell_width
+        for code in self.FORMS:
+            for width in (120, 100, 80, 60, 40):
+                rows = hazard_rows({}, [self.signal(code)], width)
+                self.assertTrue(rows and rows[0].startswith('! '), rows)
+                self.assertNotIn('ollect', ' '.join(rows))
+                for row in rows:
+                    self.assertLessEqual(cell_width(row), width, row)
+        self.assertEqual(hazard_rows({}, [self.signal('clock_moved_backward')], 120)[0],
+                         "! Observation age unknown: this host's clock reads earlier than a recorded time. i: details")
+        self.assertEqual(hazard_rows({}, [self.signal('clock_floor_invalid')], 40), [self.FORMS['clock_floor_invalid'][2]])
+
+    def test_without_a_hold_the_stale_lines_are_unchanged(self):
+        from intune_iac.workbench_screens import _band_forms
+        self.assertEqual(_band_forms(self.signal('older_than_window'))[0], '! Observation stale. Next: Collect again (a: actions)')

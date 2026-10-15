@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 
+from .workbench_diagnostics import clock_hold, CLOCK_HOLD_WORDS
 from .workbench_tui import cell_width, fit, pad, safe_text
 
 WIDE = 96
@@ -194,6 +195,15 @@ def _band_forms(primary, prefixes=None):
                 '! Repository %s. Refresh the intent (a: actions)' % short, ('! Repo changed. Refresh (a actions)' if code == 'repository_stale' else '! Consumer changed. Refresh (a actions)')]
     if code == 'repository_unavailable':
         return ['! Repository intent cannot be read. 9: repository, i: details', '! Repository unreadable. 9: repository']
+    hold = clock_hold(evidence.get('freshness_reasons'))
+    if hold == 'clock_moved_backward':
+        # The age cannot be established and collecting again does not clear it, so the band names no collection and
+        # it outranks a stamp ahead and the generic stale line.
+        return ["! Observation age unknown: this host's clock reads earlier than a recorded time. i: details",
+                '! Age unknown: clock behind a recorded time. i: details', '! Clock behind. i: details']
+    if hold == 'clock_floor_invalid':
+        return ['! Observation age unknown: the recorded time cannot be read. i: details',
+                '! Age unknown: recorded time unreadable. i: details', '! Time record unreadable. i: details']
     if 'stamped_after_now' in (evidence.get('freshness_reasons') or []) and evidence.get('collect_cures'):
         # The read model judged that a new collection from this session's service becomes current.
         return ["! Observation stamped after this host's clock. Next: Collect again (a: actions)",
@@ -356,7 +366,7 @@ from .io import readable_time  # noqa: E402  (shared with the engine's sentences
 # Freshness reasons the store records, in plain words.
 FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection did not complete',
                           'older_than_window': 'older than the freshness window',
-                          'stamped_after_now': "stamped after this host's clock"}
+                          'stamped_after_now': "stamped after this host's clock", **CLOCK_HOLD_WORDS}
 # The proposal's own observation check, as part of the observation's state.
 ELIGIBILITY_STATE_WORDS = {
     'service_changed': 'the source has changed since capture (revision %(observed_revision)s, now %(service_revision)s)',

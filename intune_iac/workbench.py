@@ -16,6 +16,7 @@ import signal
 import threading
 
 from .io import AppError, load_json
+from .workbench_diagnostics import CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold
 
 
 def add_parser(commands):
@@ -504,7 +505,13 @@ REPOSITORY_REASONS = (('repository_stale', 'repository_changed'), ('repository_c
 # Freshness reasons the store records, in plain words.
 FRESHNESS_REASON_WORDS = {'later_collection_not_complete': 'a later collection did not complete',
                           'older_than_window': 'older than the freshness window',
-                          'stamped_after_now': "stamped after this host's clock"}
+                          'stamped_after_now': "stamped after this host's clock", **CLOCK_HOLD_WORDS}
+# What a clock hold's refusal says is the way out; collecting again is never it.
+CLOCK_HOLD_RECOVERY = {
+    'clock_moved_backward': ('correct the host clock, or wait until it reads at or after the time this workspace '
+                             'recorded, then restart the workbench'),
+    'clock_floor_invalid': ("changes stay held until the workspace's recorded time can be read again (Diagnostics shows "
+                            'where it is kept)')}
 # Which observation check a proposal fails; collecting again answers all but another tenant.
 RECOLLECT_REASONS = frozenset({'coverage_incomplete', 'last_attempt_incomplete', 'not_fresh', 'source_mismatch',
                                'service_changed', 'policy_changed'})
@@ -517,6 +524,13 @@ def _reason_words(problem):
         return ('the source changed since this observation was captured (revision %s, now %s); collect again'
                 % (problem.get('observed_revision'), problem.get('service_revision')))
     if reason == 'not_fresh':
+        hold = clock_hold(problem.get('freshness_reasons'))
+        if hold:
+            # The clock is named first: nothing else clears while it holds, and a new collection is judged against the
+            # same recorded time. The recorded reasons follow with the clock's own first.
+            recorded = sorted(problem.get('freshness_reasons') or [], key=lambda item: item not in CLOCK_HOLD_REASONS)
+            return ("the newest observation's age cannot be established (%s); collecting again does not clear this: %s"
+                    % ('; '.join(FRESHNESS_REASON_WORDS.get(item, item) for item in recorded), CLOCK_HOLD_RECOVERY[hold]))
         reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]
         if ('stamped_after_now' in (problem.get('freshness_reasons') or [])
                 and problem.get('next_collection_replaces') in ('same_service', 'any_collection')):
@@ -616,8 +630,10 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
     # a new collection from this session's service becomes current (judged once, in _with_collect_cures).
     stamped_ahead = (_stamped_ahead_only((stale.get('evidence') or {}).get('freshness_reasons'))
                      and not (stale.get('evidence') or {}).get('collect_cures'))
+    # A clock hold on the age is not cured by collecting either: a new observation is judged against the same time.
+    held = clock_hold((stale.get('evidence') or {}).get('freshness_reasons')) is not None
     if (any(code in found for code in ('collection_failed', 'collection_not_finished'))
-            or ('observation_stale' in found and not stamped_ahead)):
+            or ('observation_stale' in found and not stamped_ahead and not held)):
         offer('collect', 'Collect again', 'collect', blocked=no_service)
     if any(code in found for code in ('repository_stale', 'repository_consumer_mismatch')):
         offer('repository-refresh', 'Refresh the repository intent',
@@ -631,7 +647,9 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
                      'intent_id': record['intent_id']})
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
-    ahead = (_stamped_ahead_only(eligibility.get('freshness_reasons')) and not _collect_cures(eligibility, service_root)
+    # A stamp ahead that collecting cannot cure, or a clock hold: the proposal's own check does not make collecting the fix.
+    ahead = ((_stamped_ahead_only(eligibility.get('freshness_reasons')) and not _collect_cures(eligibility, service_root))
+             or clock_hold(eligibility.get('freshness_reasons')) is not None
              if isinstance(eligibility, dict) else False)
     if ((blocked or {}).get('reason') in RECOLLECT_REASONS and not ahead
             and not any(action['kind'] == 'collect' for action in actions)):

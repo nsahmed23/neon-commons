@@ -269,5 +269,43 @@ class CollectionAndFreshnessTests(unittest.TestCase):
         self.assertNotIn('None', signals[0]['observed'])
 
 
+class ClockHoldFreshnessTests(unittest.TestCase):
+    """A clock hold on the observation's age: the sentence carries the clock words and the step is the real recovery,
+    which collecting again is not. A hold outranks the stamped-ahead steps."""
+    MOVED = ('Correct the host clock, or wait until it reads at or after the time this workspace recorded; restart the '
+             'workbench after correcting the clock. Collecting again does not clear this.')
+    UNREADABLE = ("The workspace's recorded time (clock.json beside the observation store) cannot be read; changes stay "
+                  'held until it can. Collecting again does not clear this.')
+    BASE = {'freshness': 'stale', 'observed_at': '2026-10-14T22:40:01Z', 'freshness_checked_at': '2026-10-14T22:36:01Z',
+            'snapshot_id': 'b' * 64}
+
+    def signal(self, *reasons, **extra):
+        from intune_iac.workbench_diagnostics import _freshness
+        signals, status = _freshness(dict(self.BASE, freshness_reasons=list(reasons), **extra), False)
+        self.assertEqual(status, 'attention')
+        return signals[0]
+
+    def test_the_step_for_each_hold_is_its_recovery(self):
+        for code, step in (('clock_moved_backward', self.MOVED), ('clock_floor_invalid', self.UNREADABLE)):
+            signal = self.signal(code)
+            self.assertEqual(signal['next_step'], step)
+            self.assertNotIn('Collect again (:collect)', signal['next_step'])
+            self.assertIn('its age cannot be established', signal['observed'])
+            self.assertEqual(signal['evidence']['freshness_reasons'], [code])
+
+    def test_a_hold_outranks_the_stamped_ahead_steps_and_the_window(self):
+        for code, step in (('clock_moved_backward', self.MOVED), ('clock_floor_invalid', self.UNREADABLE)):
+            for kind in ('same_service', 'any_collection', 'none'):
+                signal = self.signal('older_than_window', 'stamped_after_now', code, next_collection_replaces=kind,
+                                     ordering_service_root='/work/service', freshness_window_seconds=3600)
+                self.assertEqual(signal['next_step'], step, kind)
+                self.assertIn('older than the freshness window of 3600 seconds', signal['observed'])
+                self.assertNotIn(code, signal['observed'])
+
+    def test_a_signal_without_a_hold_keeps_its_step(self):
+        self.assertEqual(self.signal('older_than_window', freshness_window_seconds=3600)['next_step'],
+                         'Collect again (:collect) before preparing or judging a change.')
+
+
 if __name__ == '__main__':
     unittest.main()
