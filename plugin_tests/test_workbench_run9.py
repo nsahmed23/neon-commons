@@ -73,7 +73,7 @@ class DeliveryCommandRowTests(CommandRows, unittest.TestCase):
         step = next_step(record={'status': 'available', 'intent_id': CITED})
         rows = self.rows(step, deployment_record={'status': 'available', 'intent_id': CITED})
         self.assert_command_alone(rows, 'deployment-record /w/op %s' % CITED)
-        self.assert_command_alone(rows, 'workbench deployment-record --root /w/store --operation /w/op --intent %s' % CITED)
+        self.assert_command_alone(rows, 'intune-iac workbench deployment-record --root /w/store --operation /w/op --intent %s' % CITED)
         self.assertIn('Record the deployment', text_of(rows))
 
     def test_a_spaced_path_stays_whole_inside_the_command(self):

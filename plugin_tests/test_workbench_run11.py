@@ -42,3 +42,33 @@ class FilesWrittenTests(Proposed):
         base = str(self.root / 'operation one')
         self.assertIn('Input files written: %s, %s' % (shlex.quote(base + '.intent-desired.json'),
                                                        shlex.quote(base + '.intent-context.json')), text)
+
+
+class ShellFormTests(unittest.TestCase):
+    """Item 2 (run11-2): every shell form the workbench prints is complete, starting with the program name."""
+
+    MODULES = ('workbench', 'workbench_screens', 'workbench_tui', 'workbench_delivery', 'workbench_diagnostics',
+               'companion_page')
+    # "workbench COMMAND --flag": the shape of a shell form; the program name must stand in front of it.
+    BARE = r"(?<!intune-iac )(?<![\w./-])workbench (?:[a-z][a-z-]+) --"
+
+    def source(self, module):
+        from pathlib import Path
+        return (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
+
+    def test_no_printed_shell_form_lacks_the_program_name(self):
+        import re
+        for module in self.MODULES:
+            found = [match.group(0) for match in re.finditer(self.BARE, self.source(module))]
+            self.assertEqual(found, [], module)
+
+    def test_the_deployment_record_shell_form_starts_with_the_program(self):
+        from plugin_tests.test_workbench_run9 import next_step
+        step = next_step(record={'status': 'available', 'intent_id': 'i' * 64}, operation='/w/op', store='/w/store')
+        self.assertIn('From a shell:\n  intune-iac workbench deployment-record --root /w/store --operation /w/op --intent '
+                      + 'i' * 64, step)
+
+    def test_the_companion_shell_forms_start_with_the_program(self):
+        from intune_iac.companion_page import COMPANION_SERVE, COMPANION_WRITE
+        self.assertTrue(COMPANION_WRITE.startswith('intune-iac workbench companion '), COMPANION_WRITE)
+        self.assertTrue(COMPANION_SERVE.startswith('intune-iac workbench companion '), COMPANION_SERVE)

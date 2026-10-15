@@ -47,7 +47,7 @@ class TreeCountTests(MapTruth):
         self.assertIn('7 relationships, 1 repository', next(line for line in lines if '| coverage' in line))
 
 
-WRITE_COMMAND = 'workbench companion --root STORE --object ID --out FILE'
+WRITE_COMMAND = 'intune-iac workbench companion --root STORE --object ID --out FILE'
 
 
 class CompanionWordingTests(companion_tests.Fixture):

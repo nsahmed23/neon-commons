@@ -1204,7 +1204,7 @@ class RunEightWorkspaceTests(unittest.TestCase):
         from plugin_tests.test_workbench_screens import delivery_value
         delivery = delivery_value(deployment_record={'status': 'available', 'intent_id': self.CITED})
         delivery['next_action'] = ('Record the deployment: in the workspace, deployment-record /w/op %s (a lists it); from a '
-                                   'shell, workbench deployment-record --root /w/store --operation /w/op --intent %s'
+                                   'shell, intune-iac workbench deployment-record --root /w/store --operation /w/op --intent %s'
                                    % (self.CITED, self.CITED))
         rows = self.banded(5, delivery)._summary_lines(118)
         holding = [row for row in rows if '--intent' in row or row.rstrip().endswith(self.CITED)]

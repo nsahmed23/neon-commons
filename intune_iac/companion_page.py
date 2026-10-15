@@ -34,8 +34,8 @@ CHAR_WIDTH = 7.3
 CENTER_HEADING = 'SELECTED POLICY'
 # The one way the companion command is named wherever it is named (the actions entry, its long text and this page): the
 # product's own flags. The address a --serve run listens on is printed by the product; the engineer never supplies it.
-COMPANION_WRITE = 'workbench companion --root STORE --object ID --out FILE'
-COMPANION_SERVE = 'workbench companion --root STORE --object ID --serve'
+COMPANION_WRITE = 'intune-iac workbench companion --root STORE --object ID --out FILE'
+COMPANION_SERVE = 'intune-iac workbench companion --root STORE --object ID --serve'
 
 # Geometry, in drawing units. One step along a plate is (STEP_X, STEP_Y), the 30 degree isometric axis.
 STEP_X, STEP_Y = 45, 26
