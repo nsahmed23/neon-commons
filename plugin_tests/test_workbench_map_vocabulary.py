@@ -15,6 +15,7 @@ import re
 import unittest
 
 from intune_iac.workbench_tui import cell_width
+from plugin_tests import test_workbench_companion as companion_tests
 from plugin_tests.test_workbench_map import MARK
 from plugin_tests.test_workbench_map_truth import MapTruth
 
@@ -461,6 +462,57 @@ class AsciiTests(MapCase):
             self.assertNotIn('--', legend)
         help_text = ' '.join(' '.join(help_lines(100, map_keys=True)).split())
         self.assertIn('(n/a in ASCII)', help_text)
+
+
+class CompanionEntryTests(companion_tests.Fixture):
+    """Lower weight: the focused companion entry shows its command row, as the focused entry 1 does."""
+
+    def lines(self, focus):
+        from intune_iac.workbench import _inspection, _store
+        from intune_iac.workbench_screens import actions_lines
+        actions = _inspection(_store(self.root), self.object_id, attention=True)['actions']
+        return actions, [line.strip() for line in actions_lines(actions, focus, 116, name='Privacy pilot 3', object_id=self.object_id)]
+
+    def test_the_focused_companion_entry_shows_its_command_and_what_it_needs(self):
+        actions, _ = self.lines(0)
+        last = len(actions) - 1
+        self.assertEqual(actions[last]['kind'], 'companion')
+        _, rows = self.lines(last)
+        self.assertIn('command  companion FILE', rows)
+        self.assertTrue(any(row.startswith('needs  FILE') for row in rows), rows)
+        # Unfocused, it keeps the short form, as every other available entry does.
+        _, others = self.lines(0)
+        self.assertNotIn('command  companion FILE', others)
+        self.assertIn('needs  FILE', others)
+
+    def test_every_focused_available_entry_shows_a_command_row(self):
+        actions, _ = self.lines(0)
+        for index, action in enumerate(actions):
+            if action['available']:
+                _, rows = self.lines(index)
+                self.assertTrue(any(row.startswith('command  ') for row in rows), (action['kind'], rows))
+
+
+class HelpTests(MapCase):
+    """Lower weight: the help says which order the map and the tree use, and what the narrowest strip's letters mean."""
+
+    def text(self, **kw):
+        from intune_iac.workbench_screens import help_lines
+        return ' '.join(' '.join(help_lines(100, **kw)).split())
+
+    def test_the_help_says_which_order_the_map_and_the_tree_use(self):
+        text = self.text(map_keys=True)
+        self.assertIn('the map draws the layers in the order of the tree below (targeting, configuration, source and '
+                      'lineage) and sorts each layer by identifier; the tree lists each group as the read model gives it', text)
+        self.assertNotIn('the map draws the layers', self.text())
+
+    def test_the_help_says_what_t_and_p_mean_in_the_narrowest_strip(self):
+        from intune_iac.workbench_screens import context_strip
+        strip = context_strip('029c33b1-0000-4000-8000-000000000000', 'd665d54b-72e5-5184-9ac0-4486d72ad1ae',
+                              {'name': 'Privacy pilot 3', 'observation': 'fresh'}, 40, 'synthetic')
+        self.assertRegex(strip, r'\| T [0-9a-f]{8} \| P [0-9a-f]{8}')
+        self.assertIn('T stands for TENANT and P for POLICY', self.text())
+        self.assertIn('T stands for TENANT and P for POLICY', self.text(map_keys=True))
 
 
 if __name__ == '__main__':

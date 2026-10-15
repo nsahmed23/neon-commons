@@ -1432,7 +1432,7 @@ HELP_WORDS = (
              'service), CAPTURE (an unverified export), LABORATORY (recorded responses; the source is not '
              'authenticated), LIVE READ-ONLY (an authenticated read), MIXED (more than one of these), READ FAILED '
              '(a read returned no policy) or MODE UNKNOWN (nothing observed yet, or a kind this version does not name).'),
-    ('Context', 'Then the tenant and the selected policy. OBS (observed) fresh means the newest complete observation is '
+    ('Context', 'Then the tenant and the selected policy (in the narrowest windows T stands for TENANT and P for POLICY). OBS (observed) fresh means the newest complete observation is '
                 'inside the freshness window and no later collection of it failed or is pending; source changed '
                 'means the source has a newer revision than the one captured, so a proposal needs a new '
                 'collection; the observation itself stays as captured. '
@@ -1469,6 +1469,8 @@ MAP_NO_STATE = {'ascii': 'n/a', 'unicode': '—'}
 HELP_MAP_KEYS = (
     ('Map', 'on Relationships (3) Up, Down move to the next or previous node; Enter opens the Inspector on the policy, '
             'and says so when a node has no inspect route (only a policy has one)'),
+    ('Order', 'the map draws the layers in the order of the tree below (targeting, configuration, source and lineage) '
+                 'and sorts each layer by identifier; the tree lists each group as the read model gives it'),
     ('Left, Right', 'pan the map when it is wider than the window'),
     ('Home', "follow the focused node's edge to its other end; from the policy, to its first neighbour"),
     ('Marks', 'x verified, + running, . queued, : waiting, ! blocked, # failed, - cancelled, ? unknown, ~ expired, o prepared, '
