@@ -29,11 +29,24 @@ def _safe(value):
     return path.resolve()
 
 
-def _inspect(store, session_path):
+def _not_current(finding):
+    """The named refusal of a new adoption whose evidence was recorded under another implementation."""
+    raise AppError('workbench_adoption_implementation_not_current',
+                   'This journey was recorded under implementation %s, which is not the current implementation %s (relation: %s). '
+                   'A bound file changed after it was recorded (an upgrade), so no new adoption is created from evidence the '
+                   'current implementation cannot verify: no model, collection or artifact was made. The evidence is preserved and '
+                   'readable as history, and an existing complete handoff still verifies. To adopt it, run the journey again under '
+                   'the current implementation and adopt that.'
+                   % ((finding.get('recorded_implementation_sha256') or 'unrecognised')[:12],
+                      (finding.get('current_implementation_sha256') or 'unknown')[:12], finding['relation']))
+
+
+def _inspect(store, session_path, *, new_adoption):
     """Reconstruct the journey as history and rebuild its binding.
 
-    The reconstruction is a reading (implementation='recorded'), so an existing complete handoff keeps verifying after
-    a bound file changes. The relation is returned beside the binding, never inside it."""
+    The reconstruction is a reading (implementation='recorded'). A new or incomplete adoption creates things, so it is
+    refused unless the journey's relation is same; an existing complete handoff only verifies, so it keeps reading
+    evidence recorded under an earlier implementation. The relation is returned beside the binding, never inside it."""
     from . import journey
     session = _safe(session_path)
     before = file_sha(session)
@@ -43,6 +56,8 @@ def _inspect(store, session_path):
     observed = journey._observe(session, state)
     progress = journey._progress(session, state, observed, 'recorded')
     finding = progress['implementation']
+    if new_adoption and finding['relation'] in ('known_earlier', 'unknown'):
+        _not_current(finding)
     if progress['next_state'] != 'complete_simulation' or progress['verified_completed'] != list(journey.STAGES):
         _fail('workbench_adoption_evidence_invalid')
     if observed['raw_capture'].get('synthetic') is not True:
@@ -91,11 +106,26 @@ def _inspect(store, session_path):
 
 
 def preview(store, session_path):
-    """Reconstruct every stage; no model, collection, or artifact is created."""
-    binding, _, _, finding = _inspect(store, session_path)
-    return {'status': 'ready_local_model_handoff', 'binding': binding,
+    """Reconstruct every stage; no model, collection, or artifact is created.
+
+    Ready means a new adoption would proceed: the journey's relation is same. A journey recorded under an earlier
+    implementation still shows its binding and relation, but is reported as history only, as adopt would refuse it."""
+    binding, _, _, finding = _inspect(store, session_path, new_adoption=False)
+    ready = finding['relation'] == 'same'
+    return {'status': 'ready_local_model_handoff' if ready else 'history_verified_not_adoptable', 'binding': binding,
             'binding_sha256': digest(binding), 'implementation': finding, 'cloud_authority': False,
             'execution_authorized': False, 'remote_import_performed': False}
+
+
+def _complete_handoff(output):
+    """Whether output already holds a handoff whose checkpoint says complete. Only chooses which policy applies:
+    everything a complete handoff claims is still verified against the journey, the store and the service."""
+    try:
+        root = _safe(output)
+        checkpoint = root / 'adoption.json'
+        return root.is_dir() and checkpoint.is_file() and load_json(checkpoint).get('status') == 'complete'
+    except (AppError, OSError, AttributeError):
+        return False
 
 
 @contextmanager
@@ -180,7 +210,7 @@ def adopt(store, session_path, output):
     """
     from . import journey
     store._require_v2()
-    binding, capture, expected, finding = _inspect(store, session_path)
+    binding, capture, expected, finding = _inspect(store, session_path, new_adoption=not _complete_handoff(output))
     root = _safe(output)
     protected = [_safe(store.root), _safe(session_path), journey._root(_safe(session_path)),
                  _safe(binding['source']['path']), _safe(binding['context']['path'])]

@@ -264,7 +264,10 @@ class JourneyAdoptionTests(FrozenRootCase):
     def test_frozen_adoption_preview_rebuilds_the_binding_without_writing(self):
         session, store, _ = self.paths()
         preview = self.call('workbench', 'adoption-preview', '--root', store, '--session', session)
-        self.assertEqual(preview['status'], 'ready_local_model_handoff')
+        # P3b: a journey recorded under an earlier implementation previews as history only, as adopt would refuse it as new.
+        self.assertEqual(preview['status'], 'ready_local_model_handoff' if preview['implementation']['relation'] == 'same'
+                         else 'history_verified_not_adoptable')
+        self.assertIn(preview['implementation']['relation'], ('same', 'known_earlier'))
         self.assertFalse(preview['execution_authorized'])
         self.assertFalse(preview['cloud_authority'])
         binding = preview['binding']

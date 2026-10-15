@@ -139,7 +139,7 @@ elif command == 'prepare':
     request = protected.prepare_native_operation(executor, ttl_seconds=300)
     (work / 'request.json').write_bytes(canonical(request))
     protected.approve_synthetic_operation(request, executor=executor)  # control: a fresh request is approvable now
-    out({'operation_id': request['operation_id']})
+    out({'operation_id': request['operation_id'], 'control_approval': 'accepted'})
 elif command == 'refuse':
     work = Path(sys.argv[2])
     executor = protected.SyntheticExecutor(work / 'executor')
@@ -153,9 +153,10 @@ elif command == 'refuse':
     out(result)
 elif command == 'grant_then_upgrade':
     from unittest.mock import patch
+    # One process from preparing to the refusal, so a step of the host clock between processes cannot matter.
     work = Path(sys.argv[2])
-    executor = protected.SyntheticExecutor(work / 'executor')
-    request = json.loads((work / 'request.json').read_text())
+    executor = protected.create_synthetic_executor(work / 'executor', initial_value={'a': 1}, desired_value={'a': 2})
+    request = protected.prepare_native_operation(executor, ttl_seconds=300)
     grant = protected.approve_synthetic_operation(request, executor=executor)  # touches the clock floor, legitimately
     files = protected._implementation_files()
     before = tree_digest(work)
@@ -353,8 +354,8 @@ class TamperedRecordsAreRefusedInHistoryTests(UpgradedFrozenCase):
         source = Path(json.loads(self.session.read_text())['paths']['input'])
         source.write_bytes(source.read_bytes() + b'\n')
         progress = self.recorded()
-        self.assertTrue('error' in progress or progress['invalid_at'] is not None, progress)
-        self.assertNotEqual(progress.get('verified_completed'), list(STAGES))
+        # The inventory receipt is the first to bind the source bytes; it and everything after it stop verifying.
+        self.assertEqual((progress['invalid_at'], progress['verified_completed']), ('inventory', ['discovery', 'target']))
 
 
 class UnknownOutcomeAcrossAnUpgradeTests(UpgradedFrozenCase):
@@ -434,7 +435,6 @@ class ExecutionIsRefusedAcrossAnUpgradeTests(unittest.TestCase):
         self.assertFalse((self.work / 'executor/.operation-lock').exists())
 
     def test_a_grant_obtained_before_the_upgrade_does_not_execute_after_it(self):
-        self.copy.run('prepare', self.work)
         found = self.copy.run('grant_then_upgrade', self.work)
         result = found['execute']
         self.assertEqual(result['status'], 'rejected')
@@ -443,12 +443,10 @@ class ExecutionIsRefusedAcrossAnUpgradeTests(unittest.TestCase):
         self.assertFalse(found['state_dir_created'])
 
     def test_the_request_is_approvable_before_the_change_so_the_refusal_is_the_upgrade(self):
-        # The control inside prepare approves the same request under the unchanged copy; a different request is not
-        # needed to see the refusal change once a bound file does.
-        self.copy.run('prepare', self.work)
-        unchanged = self.copy.run('refuse', self.work)
-        self.assertEqual(unchanged['approve'], 'accepted')
-        self.assertEqual(unchanged['execute']['error']['code'], 'approval_required')
+        # The control inside prepare approves the same request, in the same process, under the unchanged copy: the
+        # request is fresh and valid, so the refusal in the tests above is the upgrade and nothing else.
+        prepared = self.copy.run('prepare', self.work)
+        self.assertEqual(prepared['control_approval'], 'accepted')
 
 
 class NativeAtmosHistoryTests(unittest.TestCase):
