@@ -1,10 +1,10 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "2.0.0",
   "tenant_id": "11111111-1111-4111-8111-111111111111",
   "cloud": "public",
   "engine": "tofu",
-  "engine_version": "1.10.0",
-  "atmos_version": "1.199.0",
+  "engine_version": "1.13.1",
+  "atmos_version": "1.230.1",
   "provider_source": "deploymenttheory/microsoft365",
   "provider_version": "1.0.0",
   "component": "intune-reference",

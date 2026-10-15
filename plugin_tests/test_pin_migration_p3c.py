@@ -552,5 +552,96 @@ class MaintainedRepositoryComponentTests(EngineCase):
         self.assertIn('generated_provider_changed', self.errors(sources, base, any_known_profile=False))
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Step 3: the example context and the golden expected projects, regenerated for the pin change only.
+# ---------------------------------------------------------------------------------------------------------------------
+VARIANTS = ('supported', 'partial', 'missing-page', 'access-denied')
+ACTIVE_VARIANTS = ('supported',)
+PIN_FILES = {'.tool-versions', 'components/terraform/intune-reference/main.tf', 'review/proposed-component.tf.txt'}
+
+
+def legacy_range():
+    return '>= %s, < %s' % (LEGACY_TOFU, minor_ceiling(LEGACY_TOFU))
+
+
+def current_range():
+    return '>= %s, < %s' % (CURRENT_TOFU, minor_ceiling(CURRENT_TOFU))
+
+
+def tree(base):
+    base = Path(base)
+    return {p.relative_to(base).as_posix(): p.read_text(encoding='utf-8') for p in sorted(base.rglob('*')) if p.is_file()}
+
+
+class ExampleContextTests(unittest.TestCase):
+    def test_the_example_context_is_version_2_with_the_current_pins_of_native_pins(self):
+        context = json.loads((ROOT / 'examples/context.json').read_text())
+        self.assertEqual((context['schema_version'], context['engine'], context['engine_version'], context['atmos_version']),
+                         (CONTEXT_V2, 'tofu', CURRENT_TOFU, CURRENT_ATMOS))
+
+    def test_the_example_context_passes_the_wizard_selection_check(self):
+        from intune_iac.wizard import _validate_selection_context
+        _validate_selection_context(json.loads((ROOT / 'examples/context.json').read_text()))
+
+
+class GoldenProjectTests(EngineCase):
+    """The golden projects change for the pin change only: nothing else in them may move."""
+
+    def generate(self, variant, profile):
+        from intune_iac.engine import generate
+        # The example input is copied byte for byte: the golden source receipt records its byte digest.
+        context = with_pins(json.loads((ROOT / 'examples/context.json').read_text()), profile)
+        src, ctx, output = self.stage({}, context)
+        src.write_bytes((ROOT / 'examples' / variant / 'input/export.json').read_bytes())
+        generate(src, ctx, output)
+        return tree(output)
+
+    def test_each_golden_project_is_what_the_current_context_generates_byte_for_byte(self):
+        for variant in VARIANTS:
+            with self.subTest(variant=variant):
+                self.assertEqual(tree(ROOT / 'examples' / variant / 'expected/project'),
+                                 self.generate(variant, CURRENT))
+
+    def test_the_golden_projects_name_the_current_pins_and_not_the_legacy_ones(self):
+        for variant in VARIANTS:
+            expected = tree(ROOT / 'examples' / variant / 'expected/project')
+            with self.subTest(variant=variant):
+                pinned = [name for name in expected if name in PIN_FILES]
+                self.assertTrue(pinned)
+                for name in pinned:
+                    if name == '.tool-versions':
+                        self.assertEqual(expected[name], 'opentofu %s\natmos %s\n' % (CURRENT_TOFU, CURRENT_ATMOS))
+                    else:
+                        self.assertIn('required_version = "%s"' % current_range(), expected[name])
+                joined = '\n'.join(expected.values())
+                for legacy in (LEGACY_TOFU, LEGACY_ATMOS):
+                    self.assertNotIn(legacy, joined)
+
+    def test_the_only_difference_from_the_legacy_projects_is_the_pin_text(self):
+        for variant in VARIANTS:
+            with self.subTest(variant=variant):
+                legacy, current = self.generate(variant, LEGACY), self.generate(variant, CURRENT)
+                self.assertEqual(sorted(legacy), sorted(current))
+                changed = {name for name in legacy if legacy[name] != current[name]}
+                self.assertEqual(changed - {'generated-files.json'}, PIN_FILES & set(legacy))
+                for name in changed - {'generated-files.json'}:
+                    restored = (current[name].replace(current_range(), legacy_range())
+                                .replace('opentofu ' + CURRENT_TOFU, 'opentofu ' + LEGACY_TOFU)
+                                .replace('atmos ' + CURRENT_ATMOS, 'atmos ' + LEGACY_ATMOS))
+                    self.assertEqual(restored, legacy[name], name)
+                self.assertIn('generated-files.json', changed)
+
+    def test_the_azure_integration_project_repeats_the_supported_pins(self):
+        supported = tree(ROOT / 'examples/supported/expected/project')
+        azure = tree(ROOT / 'examples/azure-integration/expected/project')
+        for name in ('.tool-versions', 'components/terraform/intune-reference/main.tf'):
+            self.assertEqual(azure[name], supported[name], name)
+        manifest = json.loads(azure['generated-files.json'])['files']
+        import hashlib
+        for name in ('.tool-versions', 'components/terraform/intune-reference/main.tf'):
+            self.assertEqual(manifest[name], hashlib.sha256(azure[name].encode()).hexdigest(), name)
+
+
 if __name__ == '__main__':
     unittest.main()
