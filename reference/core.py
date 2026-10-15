@@ -19,6 +19,11 @@ from uuid import UUID
 
 PROVIDER = 'deploymenttheory/microsoft365'
 PROVIDER_VERSION = '1.0.0'
+# The context schema version selects the tool pair the generated project names. 1.0.0 is the legacy pair (OpenTofu
+# 1.10.0, Atmos 1.199.0), accepted to reproduce earlier output only; 2.0.0 is the current local qualification
+# (OpenTofu 1.13.1, Atmos 1.230.1). A test compares these literals with native_pins.py. Any other version is refused.
+TOOL_PINS = {'1.0.0': {'engine': '1.10.0', 'atmos': '1.199.0', 'required_version': '>= 1.10.0, < 1.11.0'},
+             '2.0.0': {'engine': '1.13.1', 'atmos': '1.230.1', 'required_version': '>= 1.13.1, < 1.14.0'}}
 RESOURCE = 'microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json'
 ODATA = '#microsoft.graph.'
 KNOWN_TYPES = {ODATA+x for x in [
@@ -393,7 +398,8 @@ def stack_file(normalized: dict) -> str:
 def generate_files(normalized: dict, context: dict) -> dict[str,str]:
     from .validation import schema_errors,provider_settings,capability_errors
     n=copy.deepcopy(normalized);c=context
-    if not isinstance(c,dict) or c.get('schema_version')!='1.0.0' or c.get('selected_policy_id')!=n.get('object_id') or c.get('engine_version')!='1.10.0' or c.get('atmos_version')!='1.199.0':raise ValueError('Unqualified context version or selection')
+    pins=TOOL_PINS.get(c.get('schema_version')) if isinstance(c,dict) and type(c.get('schema_version')) is str else None
+    if pins is None or c.get('selected_policy_id')!=n.get('object_id') or c.get('engine_version')!=pins['engine'] or c.get('atmos_version')!=pins['atmos']:raise ValueError('Unqualified context version or selection')
     if schema_errors('observed-inventory',n):raise ValueError('Normalized output contract violation')
     if n.get('execution_authorized') is not False or n.get('live_qualification')!='not_run' or n.get('offline_mapping_complete')!= (not n.get('blockers')):raise ValueError('Inconsistent normalized guard record')
     if n.get('key')!=stable_key(n['tenant_id'],n['object_id']):raise ValueError('Invalid normalized identity')
@@ -415,7 +421,7 @@ def generate_files(normalized: dict, context: dict) -> dict[str,str]:
     }
     declaration='''# Synthetic source-qualified reference only. No provider or tenant execution.
 terraform {
-  required_version = ">= 1.10.0, < 1.11.0"
+  required_version = "@@REQUIRED_VERSION@@"
   required_providers {
     microsoft365 = { source = "deploymenttheory/microsoft365", version = "1.0.0" }
   }
@@ -450,7 +456,7 @@ output "adoption_object_ids" {
   description = "Provider-returned policy IDs; not proof of endpoint success."
   value = { for k, v in microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.policy : k => v.id }
 }
-'''
+'''.replace('@@REQUIRED_VERSION@@',pins['required_version'])
     if not active:
         files['review/proposed-component.tf.txt']=declaration
         files['review/adoption-input.json']=_json({'key':n['key'],'desired':n['desired']})
@@ -471,7 +477,7 @@ stacks:
   included_paths: ["orgs/**/*"]
   name_pattern: "{tenant}-{stage}"
 '''
-    files['.tool-versions']='opentofu 1.10.0\natmos 1.199.0\n'
+    files['.tool-versions']='opentofu '+pins['engine']+'\natmos '+pins['atmos']+'\n'
     files['stacks/orgs/reference/dev.yaml']=stack_file(n)
     files['.gitignore']='.terraform/\n*.tfstate\n*.tfstate.*\n*.plan\n*.planfile\n*.tfplan\n# Keep .terraform.lock.hcl after independently approved provider initialization.\n'
     address=RESOURCE+'.policy["'+n['key']+'"]'

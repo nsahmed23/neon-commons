@@ -206,7 +206,17 @@ def _is_selection_origin(session_path, saved_context, supplied_context):
 
 
 def _validate_selection_context(context):
+    # The schema version selects the pins: 2.0.0 names the current local qualification, 1.0.0 the legacy pair, which is
+    # accepted so a session made earlier can still select another policy (reproduction only, never upgraded here).
     pinned = {
+        "schema_version": "2.0.0", "cloud": "public", "engine": "tofu",
+        "engine_version": "1.13.1", "atmos_version": "1.230.1",
+        "provider_source": "deploymenttheory/microsoft365", "provider_version": "1.0.0",
+        "component": "intune-reference", "stack": "reference-dev", "authorization": "emit_only",
+        "backend_owner": "external", "api_version": "beta",
+        "target_assurance": "proposed_reference_labels_only",
+    }
+    legacy = {
         "schema_version": "1.0.0", "cloud": "public", "engine": "tofu",
         "engine_version": "1.10.0", "atmos_version": "1.199.0",
         "provider_source": "deploymenttheory/microsoft365", "provider_version": "1.0.0",
@@ -214,7 +224,10 @@ def _validate_selection_context(context):
         "backend_owner": "external", "api_version": "beta",
         "target_assurance": "proposed_reference_labels_only",
     }
-    valid = all(context[k] == expected for k, expected in pinned.items() if k in context)
+    version = context.get("schema_version", pinned["schema_version"])
+    profiles = {pinned["schema_version"]: pinned, legacy["schema_version"]: legacy}
+    selected = profiles.get(version) if type(version) is str else None
+    valid = selected is not None and all(context[k] == expected for k, expected in selected.items() if k in context)
     valid = valid and ("source_is_synthetic" not in context or type(context["source_is_synthetic"]) is bool)
     valid = valid and _optional_context_pattern(context, "repository_revision", r"[0-9a-f]{40}")
     valid = valid and _optional_context_pattern(context, "state_key", r"[A-Za-z0-9_./-]{1,256}")
@@ -234,8 +247,13 @@ def _optional_context_pattern(context, key, pattern):
     return key not in context or isinstance(context[key], str) and bool(re.fullmatch(pattern, context[key]))
 
 
-def _repository_context(repository, input_path):
-    """Reconstruct target intent from live evidence, never saved resolution claims."""
+def _repository_context(repository, input_path, schema_version="2.0.0"):
+    """Reconstruct target intent from live evidence, never saved resolution claims.
+
+    A new context is version 2.0.0 (the current pins, selected by the version; the pin fields stay out). A session
+    whose saved context is version 1.0.0 passes that version so it is compared and rebuilt as it is: a legacy context
+    is reproduction only and is never upgraded by reading it.
+    """
     from .repository import resolve_component
     resolved = resolve_component(repository["root"], repository["stack"], repository["component"])
     if resolved.get("status") != "resolved":
@@ -253,7 +271,7 @@ def _repository_context(repository, input_path):
     if selected not in _policy_ids(input_path):
         raise AppError("policy_not_observed", "Select a policy UUID observed in this capture.")
     return {
-        "schema_version": "1.0.0", "tenant_id": tenant, "cloud": source["cloud"],
+        "schema_version": schema_version, "tenant_id": tenant, "cloud": source["cloud"],
         "tenant_assurance": "source_asserted", "selected_policy_id": selected,
         "stack": resolved["stack"], "component": resolved["component"],
         "implementation": resolved["implementation"], "authorization": "emit_only",
@@ -445,14 +463,16 @@ class _WizardSession:
         if 'repository' not in self.state:
             return True
         try:
-            expected = _repository_context(self.state['repository'], self.state['paths']['input'])
-        except (AppError, OSError, ValueError):
-            self.invalidate()
-            raise
-        try:
             current = load_json(self.state['paths']['context'])
         except (KeyError, AppError, OSError, ValueError):
             current = None
+        legacy = isinstance(current, dict) and current.get('schema_version') == '1.0.0'
+        try:
+            expected = _repository_context(self.state['repository'], self.state['paths']['input'],
+                                           '1.0.0' if legacy else '2.0.0')
+        except (AppError, OSError, ValueError):
+            self.invalidate()
+            raise
         fingerprint = expected['repository_source_fingerprint']
         if current != expected or self.state['repository']['source_fingerprint'] != fingerprint:
             had_context = 'context' in self.state['paths']
@@ -607,6 +627,8 @@ class _WizardSession:
         normalized = self.inspection.get("normalized", {})
         coverage = normalized.get("coverage", []) if isinstance(normalized, dict) else []
         blockers = self.inspection.get("blockers", [])
+        if self.inspection.get("pin_profile") == "legacy_reproduction_only":
+            self.output_fn("Legacy pins: " + str(self.inspection.get("pin_notice")))
         mapping_status = "ready (synthetic, emit-only)" if self.inspection.get("status") == "ready" else "blocked; review-only"
         if self.inspection.get("source_mode") == "plugin_graph_capture" and normalized.get("candidate_mapping_complete") is True:
             mapping_status = "inactive candidate available; execution blocked"

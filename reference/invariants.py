@@ -17,6 +17,13 @@ ROOT = Path(__file__).resolve().parents[1]
 ODATA = '#microsoft.graph.'
 RESOURCE = 'microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json'
 PROVIDER = 'deploymenttheory/microsoft365'
+# Independent of the generator: the tool pair a generated project must name for each context schema version.
+# 1.0.0 is the legacy pair (reproduction only), 2.0.0 the current local qualification; a test compares these literals
+# with native_pins.py.
+TOOL_PROFILES = {
+    '1.0.0': {'tool_versions': 'opentofu 1.10.0\natmos 1.199.0\n', 'required_version': '>= 1.10.0, < 1.11.0'},
+    '2.0.0': {'tool_versions': 'opentofu 1.13.1\natmos 1.230.1\n', 'required_version': '>= 1.13.1, < 1.14.0'},
+}
 SECRET_KEYS = {'clientsecret', 'accesstoken', 'refreshtoken', 'password', 'privatekey',
                'authorization', 'recoverykey', 'secret'}
 
@@ -439,8 +446,10 @@ def _files(files):
     raise ValueError('generated_files_invalid')
 
 
-def _artifacts(files, expected, normalized, partial, raw_digest):
+def _artifacts(files, expected, normalized, partial, raw_digest, pins):
     errors = []
+    if pins is None:
+        errors.append('generated_pin_profile_unknown')
     address = RESOURCE + '.policy["' + expected['key'] + '"]'
     args = ['terraform', 'import', 'intune-reference', '-s', 'reference-dev', address, expected['pid']]
     if any(name.endswith(('.sh', '.ps1', '.bat', '.cmd')) for name in files):
@@ -562,7 +571,7 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
                 errors.append('generated_desired_changed')
             if not _json_equal(atmos, expected_atmos) or not _json_equal(stack, expected_stack):
                 errors.append('generated_stack_guard_changed')
-            if files.get('.tool-versions') != 'opentofu 1.10.0\natmos 1.199.0\n':
+            if pins is None or files.get('.tool-versions') != pins['tool_versions']:
                 errors.append('generated_tool_versions_changed')
         except ImportError:
             errors.append('yaml_parser_unavailable')
@@ -572,16 +581,23 @@ def _artifacts(files, expected, normalized, partial, raw_digest):
         if active:
             errors.append('partial_has_active_infrastructure')
         return errors
-    return errors + component_errors({name: files[name] for name in active}, expected['key'], expected['pid'])
+    return errors + component_errors({name: files[name] for name in active}, expected['key'], expected['pid'],
+                                     required_version=None if pins is None else pins['required_version'],
+                                     any_known_profile=False)
 
 
-def component_errors(sources, key, pid, *, allow_backend=False):
+def component_errors(sources, key, pid, *, allow_backend=False, required_version=None, any_known_profile=True):
     """Structural contract of the reference component, as safe error codes.
 
     One resource keyed by ``var.policies``, the import of exactly this object,
     the qualification guard, and no other input binding. ``sources`` maps
     component file names to text. A maintained repository may add a terraform
     block holding only a backend; ``allow_backend`` accepts exactly that.
+
+    The terraform block must name one required version. ``required_version`` names the exact string a generated
+    project holds under its context profile. Without it, a maintained repository may hold the string of either
+    known profile (``any_known_profile``), because a repository made under the legacy pins stays readable; any other
+    string is refused, and with neither argument nothing is accepted.
     """
     errors = []
     address = RESOURCE + '.policy["' + key + '"]'
@@ -625,7 +641,9 @@ def component_errors(sources, key, pid, *, allow_backend=False):
         terraform = [v for p in parsed for v in p.get('terraform', [])]
         if allow_backend:
             terraform = [v for v in terraform if set(v) != {'backend'}]
-        if len(terraform) != 1 or terraform[0] != {'required_version': '>= 1.10.0, < 1.11.0', 'required_providers': [{'microsoft365': {'source': PROVIDER, 'version': '1.0.0'}}]}:
+        accepted = ([required_version] if required_version is not None else
+                    sorted(profile['required_version'] for profile in TOOL_PROFILES.values()) if any_known_profile else [])
+        if len(terraform) != 1 or terraform[0] != {'required_version': terraform[0].get('required_version'), 'required_providers': [{'microsoft365': {'source': PROVIDER, 'version': '1.0.0'}}]} or terraform[0].get('required_version') not in accepted:
             errors.append('generated_provider_changed')
         variables = [v for p in parsed for v in p.get('variable', [])]
         declared = {name: body for v in variables for name, body in v.items()}
@@ -814,7 +832,7 @@ def _compare(source, normalized, files, context, raw_digest):
         ff = _files(files)
         expected = {'key': key, 'pid': pid, 'tenant': tenant, 'digest': digest,
                     'desired': expected_desired, 'coverage': coverage}
-        errors += _artifacts(ff, expected, normalized, partial, raw_digest)
+        errors += _artifacts(ff, expected, normalized, partial, raw_digest, TOOL_PROFILES.get(context.get('schema_version', '1.0.0')))
         # Controlled canaries are supported explicitly; unsafe roots are also
         # checked for exact string values/unknown key names >= 12 characters.
         markers = set(context.get('forbidden_canaries', []))

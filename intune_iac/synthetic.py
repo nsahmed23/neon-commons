@@ -104,8 +104,8 @@ def generate_estate(seed=42, policy_count=3, case='baseline'):
                                 'id': _uid(seed, f'assignment-{i}', j), 'target': target})
         collections.extend([_collection('settings', oid, settings),
                             _collection('assignments', oid, assignments)])
-        contexts.append({'schema_version': '1.0.0', 'tenant_id': tenant, 'cloud': 'public',
-                         'engine': 'tofu', 'engine_version': '1.10.0', 'atmos_version': '1.199.0',
+        contexts.append({'schema_version': '2.0.0', 'tenant_id': tenant, 'cloud': 'public',
+                         'engine': 'tofu', 'engine_version': '1.13.1', 'atmos_version': '1.230.1',
                          'provider_source': 'deploymenttheory/microsoft365', 'provider_version': '1.0.0',
                          'component': 'intune-reference', 'stack': 'reference-dev',
                          'repository_revision': hashlib.sha1(f'synthetic:{seed}'.encode()).hexdigest(),

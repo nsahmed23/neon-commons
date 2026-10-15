@@ -16,7 +16,7 @@ from urllib.parse import urlsplit
 from jsonschema import Draft202012Validator
 
 from .io import AppError, canonical, digest, parse_json
-from .native_pins import ATMOS_PINS, OPENTOFU_PINS
+from .pin_profiles import CURRENT as CURRENT_PROFILE, LEGACY as LEGACY_PROFILE, tools
 
 # Version 1 names the legacy tool pair (OpenTofu 1.10.0, Atmos 1.199.0) and stays readable for reproduction only: it is
 # labelled legacy_reproduction_only, and nothing here ever writes a version 1 document back as version 2. Version 2
@@ -24,8 +24,7 @@ from .native_pins import ATMOS_PINS, OPENTOFU_PINS
 VERSION_V1 = 'target-evidence/1.0'
 VERSION_V2 = 'target-evidence/2.0'
 VERSION = VERSION_V2
-CURRENT_PROFILE = 'current_local_qualification'
-LEGACY_PROFILE = 'legacy_reproduction_only'
+_CURRENT, _LEGACY = tools(CURRENT_PROFILE), tools(LEGACY_PROFILE)
 MAX_DOCUMENT_BYTES = 65536
 MAX_RESPONSE_BYTES = 1024 * 1024
 GUID_PATTERN = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
@@ -38,19 +37,6 @@ TIMESTAMP = {'type': 'string', 'maxLength': 32, 'pattern': r'^\d{4}-\d{2}-\d{2}T
 STORAGE_RESOURCE = re.compile(
     r'^/subscriptions/([0-9a-f-]{36})/resourceGroups/([A-Za-z0-9_()-][A-Za-z0-9_.()-]{0,89})'
     r'/providers/Microsoft\.Storage/storageAccounts/([a-z0-9]{3,24})$')
-
-
-def _only(pins, profile):
-    matches = [(sha, entry['version']) for sha, entry in pins.items() if entry['profile'] == profile]
-    if len(matches) != 1:
-        raise RuntimeError('native_pins.py must hold exactly one ' + profile + ' entry per tool')
-    return matches[0]
-
-
-CURRENT_ATMOS_SHA256, CURRENT_ATMOS_VERSION = _only(ATMOS_PINS, CURRENT_PROFILE)
-CURRENT_ENGINE_SHA256, CURRENT_ENGINE_VERSION = _only(OPENTOFU_PINS, CURRENT_PROFILE)
-_LEGACY_ATMOS_VERSION = _only(ATMOS_PINS, LEGACY_PROFILE)[1]
-_LEGACY_ENGINE_VERSION = _only(OPENTOFU_PINS, LEGACY_PROFILE)[1]
 
 
 def _object(properties):
@@ -124,10 +110,10 @@ def _toolchain(atmos_version, atmos_sha256, engine_version, engine_sha256):
     })
 
 
-SCHEMA_V1 = _schema(VERSION_V1, _toolchain(_LEGACY_ATMOS_VERSION, SHA, _LEGACY_ENGINE_VERSION, SHA))
+SCHEMA_V1 = _schema(VERSION_V1, _toolchain(_LEGACY['atmos_version'], SHA, _LEGACY['engine_version'], SHA))
 SCHEMA_V2 = _schema(VERSION_V2, _toolchain(
-    CURRENT_ATMOS_VERSION, _constant(CURRENT_ATMOS_SHA256),
-    CURRENT_ENGINE_VERSION, _constant(CURRENT_ENGINE_SHA256)))
+    _CURRENT['atmos_version'], _constant(_CURRENT['atmos_sha256']),
+    _CURRENT['engine_version'], _constant(_CURRENT['engine_sha256'])))
 SCHEMA = SCHEMA_V2
 VALIDATORS = {VERSION_V1: Draft202012Validator(SCHEMA_V1), VERSION_V2: Draft202012Validator(SCHEMA_V2)}
 PROFILES = {VERSION_V1: LEGACY_PROFILE, VERSION_V2: CURRENT_PROFILE}

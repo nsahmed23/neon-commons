@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 from uuid import UUID
 
 from .io import AppError, digest
+from .pin_profiles import context_profile
 
 EXPORTER = {'id':'intune-iac-settings-catalog-graph','version':'1.0.0'}
 ROOT = 'https://graph.microsoft.com/beta/deviceManagement/configurationPolicies'
@@ -226,10 +227,15 @@ def _accounting(source, rows, policy_id, policy, settings, assignments, candidat
     return result
 
 def validate_context(source,context,*,source_is_synthetic=False):
-    required={'schema_version':'1.0.0','tenant_id':source['tenant_id'],'cloud':'public',
+    # The schema version selects the pin profile: 1.0.0 is accepted to reproduce earlier output (legacy pins), 2.0.0
+    # names the current pins. A pin spelled in a context must be the one its own version selects.
+    selected=context_profile(context)
+    if selected is None:
+        raise AppError('invalid_context','Production candidates require the pinned public-cloud, emit-only context.')
+    required={'schema_version':selected['schema_version'],'tenant_id':source['tenant_id'],'cloud':'public',
               'authorization':'emit_only','source_is_synthetic':source_is_synthetic}
     pins={'provider_source':'deploymenttheory/microsoft365','provider_version':'1.0.0',
-          'engine':'tofu','engine_version':'1.10.0','atmos_version':'1.199.0'}
+          'engine':'tofu','engine_version':selected['engine_version'],'atmos_version':selected['atmos_version']}
     allowed=set(required)|set(pins)|{'selected_policy_id','component','stack','implementation',
              'tenant_assurance','target_assurance','repository_source_fingerprint',
              'repository_revision','backend_owner','state_key'}
@@ -381,6 +387,9 @@ def _render(value):
 
 def generate_files(normalized,context):
     n=normalized
+    selected=context_profile(context)
+    if selected is None:
+        raise AppError('invalid_context','Production candidates require the pinned public-cloud, emit-only context.')
     files={'README.md':'# Settings Catalog capture candidate\n\nBounded offline mapping of caller-asserted Graph capture. Provider validity, tenant authenticity, reference evidence and repository ownership remain unqualified. Candidate Terraform has an inactive .tf.txt suffix. No provider, import, plan or apply was run.\n',
            'review/normalized.json':_render(n),
            'BLOCKED.json':_render({'execution_allowed':False,'blockers':n['blockers']}),
@@ -396,7 +405,7 @@ def generate_files(normalized,context):
         files['candidates/target.json']=_render({'schema_version':'1.0.0','component':context['component'],'stack':context['stack'],'tenant_id':n['tenant_id'],'object_id':n['object_id'],'source_authenticity_verified':False,'provider_qualified':False,'execution_authorized':False})
         files[prefix+'main.tf.txt']='''# INACTIVE CANDIDATE: local projection only; provider validity is unqualified.
 terraform {
-  required_version = "= 1.10.0"
+  required_version = "= @@ENGINE_VERSION@@"
   required_providers {
     microsoft365 = { source = "deploymenttheory/microsoft365", version = "= 1.0.0" }
   }
@@ -420,5 +429,5 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
     }
   }
 }
-'''
+'''.replace('@@ENGINE_VERSION@@',selected['engine_version'])
     return files

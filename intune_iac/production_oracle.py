@@ -21,6 +21,10 @@ _GRAPH = 'https://graph.microsoft.com/beta/deviceManagement/configurationPolicie
 _NS = '#microsoft.graph.'
 _DEFINITION = 'device_vendor_msft_policy_config_privacy_letappsaccesslocation'
 _RESOURCE = 'microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json'
+# The context schema version selects the tool pair, spelled here independently of the producer: 1.0.0 is the legacy
+# pair, accepted for reproduction only; 2.0.0 is the current local qualification (a test compares these literals with
+# native_pins.py). A context of any other version is refused.
+_TOOL_PINS = {'1.0.0': ('1.10.0', '1.199.0'), '2.0.0': ('1.13.1', '1.230.1')}
 
 
 def _json_bytes(value):
@@ -291,10 +295,14 @@ def _validate_inputs(source, context):
         raise ValueError('capture_family')
     if not isinstance(context, dict) or not _uuid(source['tenant_id']) or source['cloud'] != 'public':
         raise ValueError('context')
-    required = {'schema_version': '1.0.0', 'tenant_id': source['tenant_id'], 'cloud': 'public',
+    version = context.get('schema_version')
+    if type(version) is not str or version not in _TOOL_PINS:
+        raise ValueError('context')
+    engine_version, atmos_version = _TOOL_PINS[version]
+    required = {'schema_version': version, 'tenant_id': source['tenant_id'], 'cloud': 'public',
                 'source_is_synthetic': False, 'authorization': 'emit_only'}
     pins = {'provider_source': 'deploymenttheory/microsoft365', 'provider_version': '1.0.0',
-            'engine': 'tofu', 'engine_version': '1.10.0', 'atmos_version': '1.199.0'}
+            'engine': 'tofu', 'engine_version': engine_version, 'atmos_version': atmos_version}
     allowed = set(required) | set(pins) | {
         'selected_policy_id', 'component', 'stack', 'implementation', 'tenant_assurance',
         'target_assurance', 'repository_source_fingerprint', 'repository_revision',
@@ -588,7 +596,7 @@ def _check_files(raw, expected, files, context):
                 'condition': '${local.configuration.name == "" && local.configuration.name != ""}',
                 'error_message': 'Inactive candidate requires independent provider and tenant qualification.'}]}]
             hcl_expected = {
-                'terraform': [{'required_version': '= 1.10.0', 'required_providers': [{
+                'terraform': [{'required_version': '= ' + _TOOL_PINS[context['schema_version']][0], 'required_providers': [{
                     'microsoft365': {'source': 'deploymenttheory/microsoft365', 'version': '= 1.0.0'}}]}],
                 'locals': [{'configuration': '${jsondecode(file("${path.module}/configuration.json"))}'}],
                 'resource': [{_RESOURCE: {'policy': attributes}}]}

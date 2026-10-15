@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from .io import AppError, file_sha, load_json, parse_json, read_bytes
+from .pin_profiles import context_pin_report
 
 
 def _prepare(input_path, context_path):
@@ -45,6 +46,7 @@ def inspect_source(input_path, context_path):
         'context_sha256': hashlib.sha256(context_raw).hexdigest(),
         'source_mode': normalized.get('source_mode', 'synthetic' if source['synthetic'] else 'unqualified_capture'),
         'preservation_verified': True, 'execution_authorized': False,
+        **context_pin_report(context),
     }
 
 
@@ -120,7 +122,8 @@ def verify_project(input_path, context_path, output_path):
         if files!=_expected_files(raw,source,context,normalized):raise ValueError('file bytes changed')
         if read_bytes(input_path)!=raw or read_bytes(context_path)!=context_raw:raise ValueError('changed')
         return {'preservation_verified':True,'manifest_sha256':file_sha(output/'generated-files.json'),
-                'output':str(output),'file_count':len(files)+1,'execution_authorized':False}
+                'output':str(output),'file_count':len(files)+1,'execution_authorized':False,
+                **context_pin_report(context)}
     except (ValueError,TypeError,KeyError,OSError,UnicodeError):
         raise AppError('postcondition_failed','Output does not match independently derived source expectations.') from None
 
@@ -165,7 +168,7 @@ def generate(input_path, context_path, output_path):
                 'preservation_verified':True,'offline_mapping_complete':normalized['offline_mapping_complete'],
                 'candidate_mapping_complete':normalized.get('candidate_mapping_complete',normalized['offline_mapping_complete']),
                 'blocker_codes':sorted({b['code'] for b in normalized['blockers']}),
-                'execution_authorized':False}
+                'execution_authorized':False,**context_pin_report(context)}
     except FileExistsError:
         raise AppError('output_conflict', 'Existing output or lock cannot be safely replaced; inspect it or choose a new directory.') from None
     except AppError: raise

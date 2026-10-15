@@ -509,6 +509,7 @@ intune_iac/observation_contract.py
 intune_iac/observation_jobs.py
 intune_iac/observation_reader.py
 intune_iac/output_edit.py
+intune_iac/pin_profiles.py
 intune_iac/production.py
 intune_iac/production_oracle.py
 intune_iac/protected.py
