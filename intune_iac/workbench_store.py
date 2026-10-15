@@ -53,7 +53,8 @@ def _migrate_v1_to_v2(db):
         for row in rows:
             for kind in ('settings','assignments'):
                 db.execute('INSERT INTO collection_coverage VALUES(?,?,?,?,?,?)',(run['run_id'],kind,row['object_id'],'complete',None,0))
-    latest = db.execute("SELECT run_id FROM collection_runs WHERE status='complete' ORDER BY observed_at DESC,run_id DESC LIMIT 1").fetchone()
+    # Every v1 run is the store's own collection: the latest by run order is current, as in v2.
+    latest = db.execute("SELECT run_id FROM collection_runs WHERE status='complete' ORDER BY run_id DESC LIMIT 1").fetchone()
     if latest:
         for row in db.execute('SELECT o.*,d.domain FROM observations o JOIN run_details d USING(run_id) WHERE o.run_id=?',(latest['run_id'],)):
             db.execute('INSERT INTO object_heads VALUES(?,?,?,?,?,?)',(row['object_id'],row['run_id'],row['observation_id'],row['observed_at'],1,row['domain']))
@@ -296,10 +297,13 @@ class WorkbenchStore:
                 db.execute('INSERT OR IGNORE INTO relationships VALUES(?,?,?,?)',(snapshot_id,relation,target,_json(details)))
             # Ordering: the store stamped its own collections, so between two of them from the same modeled service
             # the later run wins (local collection order), even when a clock step stamped the earlier one ahead.
-            # An imported capture carries its source's capture time, which is what orders it against anything else.
+            # An imported capture carries its source's capture time, which is what orders it against anything else,
+            # except that one stamped later than this store's clock at its import gives way to the next own collection.
             db.execute("""INSERT INTO object_heads VALUES(?,?,?,?,?,?) ON CONFLICT(object_id) DO UPDATE SET
                 run_id=excluded.run_id,observation_id=excluded.observation_id,observed_at=excluded.observed_at,present=excluded.present,domain=excluded.domain
                 WHERE (excluded.domain=object_heads.domain AND excluded.domain LIKE 'model:%' AND excluded.run_id>object_heads.run_id)
+                   OR (excluded.domain LIKE 'model:%' AND object_heads.domain NOT LIKE 'model:%' AND excluded.run_id>object_heads.run_id
+                       AND object_heads.observed_at>(SELECT started_at FROM collection_runs WHERE run_id=object_heads.run_id))
                    OR (NOT (excluded.domain=object_heads.domain AND excluded.domain LIKE 'model:%')
                        AND (excluded.observed_at>object_heads.observed_at OR (excluded.observed_at=object_heads.observed_at AND excluded.run_id>object_heads.run_id)))""",
                 (oid,run_id,observation_id,observed_at,1,domain))
@@ -531,6 +535,9 @@ class WorkbenchStore:
         captured = db.execute("""SELECT r.* FROM collection_runs r JOIN run_details d USING(run_id)
             WHERE r.status='complete' AND d.domain NOT LIKE 'model:%' ORDER BY r.observed_at DESC,r.run_id DESC LIMIT 1""").fetchone()
         found = [row for row in (own, captured) if row is not None]
+        if own is not None and captured is not None and captured['observed_at'] > captured['started_at'] and own['run_id'] > captured['run_id']:
+            # A capture stamped later than this store's clock at its import gives way to a later own collection.
+            return attempt, own
         success = max(found, key=lambda row: (row['observed_at'], row['run_id'])) if len(found) == 2 else (found[0] if found else None)
         return attempt, success
 

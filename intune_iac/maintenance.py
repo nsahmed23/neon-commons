@@ -452,7 +452,8 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
         try:
             approval = protected.approve_synthetic_operation(request, executor=executor)
         except AppError as error:
-            if error.code in ('expired_request', 'clock_moved_backward'):
+            if error.code in ('expired_request', 'clock_moved_backward', 'clock_floor_invalid', 'clock_reading_invalid',
+                              'clock_lock_unavailable'):
                 # Audit, before anything is sent: the approval was refused for its window; nothing was dispatched.
                 _event(root, journal, 'approval_refused', code=error.code)
                 _register(root, plan, journal)

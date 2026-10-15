@@ -741,15 +741,17 @@ def _window(request, executor):
     A recorded expiry refuses for good; a backward step means validity cannot be established, so the mutation is held;
     reaching the expiry records it beside the approval before refusing. Returns the effective time.
     """
-    expired=executor.root/'expired.json'
-    if expired.exists():_fail('expired_request')
-    reading=clock.Floor(executor.root/'clock.json').observe(_now())
-    if reading['backward'] or reading['effective']<request['created_at']:_fail('clock_moved_backward')
-    if reading['effective']>=request['expires_at']:
-        try:_exclusive(expired,canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),
-                                         'expires_at':request['expires_at'],'judged_at':reading['effective'],'wall':reading['wall']}))
-        except FileExistsError:pass
-        _fail('expired_request')
+    expired=executor.root/'expired.json';floor=clock.Floor(executor.root/'clock.json')
+    # One locked step: no other process records a later time or the expiry between these reads and writes.
+    with floor.locked():
+        if expired.exists():_fail('expired_request')
+        reading=floor.observe_locked(_now())
+        if reading['backward'] or reading['effective']<request['created_at']:_fail('clock_moved_backward')
+        if reading['effective']>=request['expires_at']:
+            try:_exclusive(expired,canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),
+                                             'expires_at':request['expires_at'],'judged_at':reading['effective'],'wall':reading['wall']}))
+            except FileExistsError:pass
+            _fail('expired_request')
     return reading['effective']
 
 

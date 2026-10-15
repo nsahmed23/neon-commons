@@ -278,3 +278,127 @@ class CaptureClockTests(unittest.TestCase):
         # The import accepts the times (a capture that finished before it started is refused with an AppError).
         store = WorkbenchStore.create(Path(temp.name) / 'store', tenant)
         self.assertIn('run_id', store.import_capture(output))
+
+
+class ReviewFindingTests(unittest.TestCase):
+    """Fable's review of 15e7155 (lanes/review-clock-authority/FABLE-REVIEW.md)."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.base = Path(temp.name)
+        clock.reset_process_anchor()
+        self.addCleanup(clock.reset_process_anchor)
+
+    def test_two_observers_never_lower_the_recorded_time(self):
+        # Finding 1: the read, comparison and write of clock.json are one locked step. Two threads stand for two
+        # processes (no shared process floor): B reads before A writes, and without the lock B would write after A.
+        import threading
+        path = self.base / 'race' / 'clock.json'
+        path.parent.mkdir()
+        clock.Floor(path).observe(START)
+        real_write = clock.write_json
+        a_at_write, b_at_write, a_written = threading.Event(), threading.Event(), threading.Event()
+
+        def ordered_write(target, value):
+            if value['high_water'] == START + 290:
+                a_at_write.set()
+                b_at_write.wait(1)  # without the lock B reaches its write; with it B waits for the lock
+                real_write(target, value)
+                a_written.set()
+            else:
+                b_at_write.set()
+                a_written.wait(5)
+                real_write(target, value)
+
+        with patch.object(clock, 'write_json', side_effect=ordered_write), \
+                patch.object(clock, '_process_floor', side_effect=lambda key, wall: wall):
+            high = threading.Thread(target=clock.Floor(path).observe, args=(START + 290,))
+            high.start()
+            self.assertTrue(a_at_write.wait(5))
+            low = threading.Thread(target=clock.Floor(path).observe, args=(START + 24,))
+            low.start()
+            high.join(10)
+            low.join(10)
+        self.assertEqual(clock.Floor(path).high_water(), START + 290)
+
+    def test_the_recovery_text_names_a_restart(self):
+        # Findings 3 and 6.
+        from intune_iac.workbench_screens import REFUSALS
+        self.assertIn('restart the workbench', REFUSALS['clock_moved_backward'][1])
+        for code in ('clock_floor_invalid', 'clock_reading_invalid'):
+            self.assertIn('Prepare a new proposal', REFUSALS[code][1])
+
+
+class DamagedClockRecordTests(unittest.TestCase):
+    """Finding 4: a damaged clock record fails closed with an audit event and a recovery."""
+    setUp = MaintenanceDispatchTests.setUp
+    patches = MaintenanceDispatchTests.patches
+    execute = MaintenanceDispatchTests.execute
+
+    def test_a_damaged_clock_record_refuses_with_an_audit_event(self):
+        (self.operation / 'executor' / 'clock.json').write_text('not json')
+        error = self.execute()
+        self.assertEqual(error.code, 'clock_floor_invalid')
+        self.assertFalse(error.effects['dispatched'])
+        self.assertEqual(self.patches(), [])
+        journal = maintenance._load(self.operation)[2]
+        self.assertEqual(journal['status'], 'prepared')
+        self.assertEqual((journal['events'][-1]['kind'], journal['events'][-1]['code']),
+                         ('approval_refused', 'clock_floor_invalid'))
+
+
+class FutureCaptureTests(unittest.TestCase):
+    """Finding 2: a capture stamped later than the store's clock at its import gives way to the next own collection."""
+    from plugin_tests import test_workbench_capture_store as _capture_store
+    setUp = _capture_store.CaptureStoreTests.setUp
+    batch = _capture_store.CaptureStoreTests.batch
+    import_batch = _capture_store.CaptureStoreTests.import_batch
+
+    def test_a_future_stamped_capture_gives_way_to_a_later_collection(self):
+        import time
+        now, oid = time.time(), self.ids[0]
+        self.store.collect(self.service, observed_at=now - 900)
+        future = self.batch(observed_at=now + 86400)
+        future['body']['name'] = 'Future capture'
+        self.import_batch(future)
+        self.assertEqual(self.store.inspect(oid)['body']['name'], 'Future capture')
+        later = self.store.collect(self.service, observed_at=now - 600)
+        self.assertEqual(self.store.inspect(oid)['body']['name'], self.bodies[oid]['name'])
+        self.assertEqual(self.store.overview()['last_success']['run_id'], later['run_id'])
+
+    def test_an_older_capture_imported_later_still_keeps_capture_time_order(self):
+        import time
+        now, oid = time.time(), self.ids[0]
+        latest = self.store.collect(self.service, observed_at=now - 300)
+        older = self.batch(observed_at=now - 7200)
+        older['body']['name'] = 'Older capture'
+        self.import_batch(older)
+        self.assertEqual(self.store.inspect(oid)['body']['name'], self.bodies[oid]['name'])
+        self.assertEqual(self.store.overview()['last_success']['run_id'], latest['run_id'])
+
+
+class LegacyMigrationOrderTests(unittest.TestCase):
+    """Finding 5: migrating a v1 store seeds each head from the latest run by run order, as the store now orders its
+    own collections."""
+    from plugin_tests import test_workbench_capture_store as _capture_store
+    setUp = _capture_store.CaptureStoreTests.setUp
+    legacy = _capture_store.CaptureStoreTests.legacy
+
+    def test_migration_seeds_heads_by_run_order(self):
+        import json
+        import sqlite3
+        from intune_iac.io import digest
+        legacy, oid = self.legacy(), self.ids[0]
+        source = json.dumps({'service_kind': 'ModeledService', 'service_root': str(self.service.root), 'service_revision': 1})
+        first, second = dict(self.bodies[oid]), dict(self.bodies[oid], name='Second run body')
+        with sqlite3.connect(legacy.path) as db:
+            for run_id, observed_at, body in ((1, 300, first), (2, 100, second)):  # run 1 stamped ahead by a clock step
+                snapshot = digest({'tenant_id': self.tenant, 'object_id': oid, 'body': body})
+                db.execute('INSERT INTO collection_runs VALUES(?,?,?,?,?,?,?,?,?)',
+                           (run_id, self.tenant, observed_at, observed_at, observed_at + 1, 'complete', 'complete', None, 1))
+                db.execute('INSERT INTO snapshots VALUES(?,?,?,?)', (snapshot, self.tenant, oid, json.dumps(body)))
+                db.execute('INSERT INTO observations VALUES(?,?,?,?,?,?,?)',
+                           (run_id, run_id, snapshot, self.tenant, oid, observed_at, source))
+        legacy.migrate(self.root / 'backup.sqlite3')
+        self.assertEqual(legacy.inspect(oid)['body']['name'], 'Second run body')

@@ -18,7 +18,9 @@ between hosts that never shared a recorded time, and claims nothing about it.
 """
 import json
 import math
+import os
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 from .io import AppError, write_json
@@ -69,12 +71,35 @@ class Floor:
             raise AppError('clock_floor_invalid', 'The recorded time for this operation cannot be read.')
         return seconds
 
+    @contextmanager
+    def locked(self):
+        """Hold the floor's lock (clock.lock beside it), so the read, comparison and write of the high-water mark, and
+        anything a caller decides from them, are one step no other process can interleave with."""
+        try:
+            import fcntl
+        except ImportError as error:
+            raise AppError('clock_lock_unavailable', 'The recorded time cannot be locked on this host.') from error
+        fd = os.open(self.path.with_name(self.path.stem + '.lock'),
+                     os.O_CREAT | os.O_RDWR | getattr(os, 'O_NOFOLLOW', 0), 0o600)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            yield self
+        finally:
+            os.close(fd)
+
     def observe(self, wall, *, persist=True):
-        """Judge one wall-clock reading against the floor; record it when it is the latest seen.
+        """Judge one wall-clock reading against the floor; record it, under the lock, when it is the latest seen.
 
         Returns {'wall', 'floor', 'effective', 'backward'}: effective never goes back; backward is true when the
         reading is earlier than the floor by more than TOLERANCE_SECONDS.
         """
+        if not persist:
+            return self.observe_locked(wall, persist=False)
+        with self.locked():
+            return self.observe_locked(wall)
+
+    def observe_locked(self, wall, *, persist=True):
+        """observe, for a caller that already holds locked(), or that records nothing."""
         if type(wall) not in (int, float) or not math.isfinite(wall) or wall < 0:
             raise AppError('clock_reading_invalid', 'The host clock returned an unusable time.')
         recorded = self.high_water()

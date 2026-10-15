@@ -156,7 +156,9 @@ time that never goes backward, never on a bare wall-clock reading
 - **Time authority.** Wall time is the only persisted, portable timestamp. Beside
   each prepared request, `clock.json` records the latest wall time any check of
   that operation saw (its high-water mark; creation is the first point). It only
-  rises. Within one process, monotonic time carries the latest reading for the
+  rises: its read, comparison and write, and the expiry record below, happen
+  under one lock (`clock.lock` beside it). Within one process, monotonic time
+  carries the latest reading for the
   same operation forward by the elapsed time; it is never persisted or compared
   across processes. The effective time is the greatest of the wall clock, the
   high-water mark and that process floor.
@@ -164,7 +166,10 @@ time that never goes backward, never on a bare wall-clock reading
   two seconds means the true time cannot be established. Approval and every
   check before dispatch refuse with `clock_moved_backward`, and nothing is
   dispatched. Recovery: correct the host clock, or wait until it reads at or
-  after the recorded time, then submit again, or prepare a new request.
+  after the recorded time, then submit again (a long-running workbench carries
+  the high reading forward, so restart it after correcting the clock), or
+  prepare a new request. A damaged time record refuses for good
+  (`clock_floor_invalid`, audited like the others): prepare a new request.
 - **Expiry is recorded.** When the effective time reaches `expires_at`, an
   exclusive `expired.json` is written beside the approval before the refusal
   (`expired_request`). Every later check refuses while it exists, after a clock
@@ -182,7 +187,10 @@ The workbench store orders observations the same way. Between two of the store's
 own collections from the same modeled service, the later run (local collection
 order) is current, even when a clock step stamped the earlier one later. An
 imported capture carries its source's capture time, which orders it against
-anything else. Original timestamps are kept as recorded; age-based freshness,
+anything else, except that a capture stamped later than the store's clock at
+its import gives way to the store's next own collection. Migrating a v1 store
+seeds its heads by the same run order. Original timestamps are kept as
+recorded; age-based freshness,
 a known source change and an incomplete collection stay separate conditions.
 
 ## Durable outcomes and recovery

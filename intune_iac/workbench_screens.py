@@ -1927,8 +1927,20 @@ REFUSALS = {
     'clock_moved_backward': (
         "This host's clock reads earlier than a time this operation already recorded, so whether its approval window is "
         'still open cannot be established. Nothing was dispatched.',
-        'Correct the host clock, or wait until it reads at or after the recorded time, then submit again; a new proposal '
-        'also works.'),
+        'Correct the host clock, or wait until it reads at or after the recorded time, then submit again (restart the '
+        'workbench after correcting the clock); a new proposal also works.'),
+    'clock_floor_invalid': (
+        'The time this operation recorded cannot be read, so its approval window cannot be judged. Nothing was '
+        'dispatched.',
+        'Prepare a new proposal; this one stays refused.'),
+    'clock_reading_invalid': (
+        "This host's clock returned an unusable time, so the approval window cannot be judged. Nothing was "
+        'dispatched.',
+        'Correct the host clock and submit again, or Prepare a new proposal.'),
+    'clock_lock_unavailable': (
+        'The recorded time cannot be locked on this host, so the approval window cannot be judged. Nothing was '
+        'dispatched.',
+        'Run the workbench on a supported Linux host, or Prepare a new proposal there.'),
     'expired_request': (
         'The plan\'s approval window has closed, or the local clock reads outside it.',
         'Prepare a new proposal; v shows the window of the active operation.'),
