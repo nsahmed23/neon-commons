@@ -241,3 +241,43 @@ class RepositoryOwnedChangeTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CapabilityWordsTests(unittest.TestCase):
+    """A capability refusal names the setting and value that the map does not support (journey 28 review S5)."""
+    RESOURCE_ADDRESS = RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = RepositoryOwnedChangeTests.setUp
+    import_intent = RepositoryOwnedChangeTests.import_intent
+
+    def unsupported(self):
+        from intune_iac.workbench_repository import refresh_intent
+        self.import_intent()
+        document = yaml.safe_load((self.repo / STACK).read_text())
+        instance = document['components']['terraform']['intune-reference']['vars']['policies'][KEY]['settings']['settings'][0]['settingInstance']
+        instance['choiceSettingValue']['value'] = instance['settingDefinitionId'] + '_1'
+        (self.repo / STACK).write_text(yaml.safe_dump(document))
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        return instance['settingDefinitionId']
+
+    def test_the_refusal_names_the_setting_and_the_value(self):
+        from intune_iac.io import AppError
+        from intune_iac.workbench_repository import propose_from_intent
+        definition = self.unsupported()
+        with self.assertRaises(AppError) as caught:
+            propose_from_intent(self.store.root, self.service.root, OBJECT, self.root / 'unsupported')
+        message = caught.exception.message
+        self.assertIn(definition, message)
+        self.assertIn(definition + '_1', message)
+        self.assertIn('is not a supported value for this setting', message)
+
+    def test_the_blocked_action_names_them_too(self):
+        from intune_iac.workbench import _inspection
+        definition = self.unsupported()
+        value = _inspection(self.store, OBJECT, attention=True, service_available=True, service_root=self.service.root)
+        blocked = {action['kind']: action for action in value['actions']}['propose-from-intent']['blocked']
+        self.assertIn(definition + '_1', blocked['message'])
+
+    def test_the_findings_keep_the_old_contract(self):
+        from reference.validation import capability_errors, capability_findings
+        self.assertEqual(capability_findings([], 'windows10', 'mdm')[0]['reason'], 'no_settings')
+        self.assertEqual(capability_errors([], 'windows10', 'mdm'), ['unqualified_setting_capability'])

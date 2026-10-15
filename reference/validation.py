@@ -59,12 +59,20 @@ def capability_errors(records: list[dict], platforms: str = 'windows10',
     Mapping qualification is deliberately separate from shape projection.
     Unknown definitions/values are review-only even when they satisfy schemas.
     """
+    return ['unqualified_setting_capability'] if capability_findings(records, platforms, technologies) else []
+
+
+def capability_findings(records: list[dict], platforms: str = 'windows10',
+                        technologies: str = 'mdm') -> list[dict]:
+    """The first setting outside the worked offline mapping, and why: the one rule capability_errors applies, with the
+    specifics a person needs (definition, value, the values the map supports for that definition). [] when all pass.
+    """
     mapping = json.loads((ROOT / 'corrections' / 'contracts' / 'capability-map.json').read_text())
     if not isinstance(records, list) or not records:
-        return ['unqualified_setting_capability']
+        return [{'reason': 'no_settings'}]
     for record in records:
         if schema_errors('observed-setting', record):
-            return ['unqualified_setting_capability']
+            return [{'reason': 'shape'}]
         instance = record['settingInstance']
         value = instance.get('choiceSettingValue', {})
         matched = any(
@@ -79,5 +87,11 @@ def capability_errors(records: list[dict], platforms: str = 'windows10',
             for entry in mapping['entries']
         )
         if not matched:
-            return ['unqualified_setting_capability']
+            permitted = sorted({str(item) for entry in mapping['entries']
+                                if entry['setting_definition_id'] == instance['settingDefinitionId']
+                                and entry['support_status'] == 'supported_offline'
+                                for item in entry['permitted_values']})
+            return [{'reason': 'value_not_supported' if permitted else 'definition_not_supported',
+                     'setting_definition_id': instance['settingDefinitionId'], 'value': value.get('value'),
+                     'supported_values': permitted, 'platforms': platforms, 'technologies': technologies}]
     return []

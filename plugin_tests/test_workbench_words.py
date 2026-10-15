@@ -221,6 +221,7 @@ class ReviewWordTests(unittest.TestCase):
         specific = 'The desired policy uses device_vendor_msft_policy_config_x_1, outside the capability map.'
         lines = text(refusal_lines({'error': {'code': 'workbench_desired_capability', 'message': specific}}, 160))
         self.assertIn(specific, lines)
+        self.assertNotIn('the message above names it', lines)
         # An unknown code shows the engine's message alone.
         lines = text(refusal_lines({'error': {'code': 'x_unknown', 'message': 'Something failed.'}}, 160))
         self.assertIn('Something failed.', lines)

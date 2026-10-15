@@ -1998,8 +1998,8 @@ REFUSALS = {
         'Collect, then prepare a new proposal.'),
     'workbench_desired_capability': (
         'The desired policy uses a setting definition, value, platform or technology outside the supported capability map.',
-        "Change it in the repository's stack input to something the capability map accepts (the message above names "
-        'it), repository-refresh REVISION, then propose again.'),
+        "Change that setting in the repository's stack input to a supported value, then Refresh the repository "
+        'intent (a: actions) and prepare the proposal again.'),
 }
 
 

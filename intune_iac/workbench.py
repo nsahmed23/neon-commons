@@ -483,8 +483,9 @@ def _proposal_blocker(store, object_id, attention, intent, service_root, eligibi
             return {'code': error.code, 'message': error.message}
         # The checks propose_from_intent and propose make on the desired body, in their order.
         if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
-            return {'code': 'workbench_desired_capability', 'message': 'the desired settings include a definition or value '
-                    'outside the supported offline capability map, so the reference component cannot propose them'}
+            from .workbench_repository import capability_explanation
+            return {'code': 'workbench_desired_capability',
+                    'message': '%s The reference component cannot propose it.' % capability_explanation(intent['data']['desired'])}
         try:
             maintenance._desired(copy.deepcopy(intent['data']['desired']))
         except AppError as error:

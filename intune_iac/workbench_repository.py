@@ -236,8 +236,8 @@ def _propose_from_intent(store, store_root, service_root, object_id, output, wri
     intent = latest_intent(store, object_id)
     _usable_intent(intent, code_prefix='workbench')
     if intent['data'].get('consumer', {}).get('status') == 'verified' and capability_problems(intent['data']['desired']):
-        raise AppError('workbench_desired_capability', 'The desired settings include a definition or value outside the '
-                       'supported offline capability map, so the reference component cannot propose them.')
+        raise AppError('workbench_desired_capability', '%s The reference component cannot propose it.'
+                       % capability_explanation(intent['data']['desired']))
     desired_path, context_path = Path(str(output) + '.intent-desired.json'), Path(str(output) + '.intent-context.json')
     if any(path.exists() or path.is_symlink() for path in (output, desired_path, context_path)) or not output.parent.is_dir():
         raise AppError('workbench_fresh_output_required', 'Choose a new operation directory; its sibling input files must not exist.')
@@ -248,6 +248,29 @@ def _propose_from_intent(store, store_root, service_root, object_id, output, wri
                               'repository_intent_id': intent['artifact_id'], 'scope': data['scope']})
     written.append(context_path)
     return maintenance.propose(store_root, service_root, object_id, desired_path, output, context_path=context_path)
+
+
+def capability_explanation(desired):
+    """The capability map's finding for a desired body, in words naming the setting and value; None when it passes."""
+    from reference.validation import capability_findings
+    settings = desired.get('settings', {}).get('settings') if isinstance(desired, dict) else None
+    technologies = desired.get('technologies') if isinstance(desired, dict) else None
+    if not isinstance(settings, list) or not isinstance(technologies, list):
+        return 'The desired settings are not in the shape the capability map reads.'
+    records = [dict(row, **{'@odata.type': '#microsoft.graph.deviceManagementConfigurationSetting'})
+               if isinstance(row, dict) else row for row in settings]
+    findings = capability_findings(records, desired.get('platforms'), ','.join(t for t in technologies if isinstance(t, str)))
+    if not findings:
+        return None
+    finding = findings[0]
+    if finding['reason'] == 'value_not_supported':
+        return ('Setting %s: value %s is not a supported value for this setting in the offline capability map '
+                '(supported: %s).' % (finding['setting_definition_id'], finding['value'],
+                                      ', '.join(finding['supported_values'])))
+    if finding['reason'] == 'definition_not_supported':
+        return ('Setting %s (value %s) is not in the offline capability map for %s, %s.' % (
+            finding['setting_definition_id'], finding['value'], finding['platforms'], finding['technologies']))
+    return 'The desired settings are empty or not in the shape the capability map reads.'
 
 
 def capability_problems(desired):
