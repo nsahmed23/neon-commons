@@ -60,11 +60,28 @@ class BrokerGuard:
         if seal is not _SEAL or not callable(recheck): _fail('broker_host_guard_required')
         self.execution_binding_sha256, self.recheck, self.binding = execution_binding_sha256, recheck, binding
         self.pid = os.getpid()
+        self._deadlines = {}
+
+    def _deadline(self, policy):
+        """This process's monotonic deadline for the policy, armed when the guard first judges it and never moved: a wall
+        clock that steps back after the window has elapsed cannot make the policy current again. The broker has no store
+        of its own to latch an expiry in; the durable judgment is the one recheck makes on every request."""
+        expires = policy['expires_at']
+        if expires not in self._deadlines:
+            self._deadlines[expires] = time.monotonic() + max(0, expires - time.time())
+        return self._deadlines[expires]
+
+    def remaining(self, policy):
+        """Seconds left in the window by the wall clock and by this process's deadline, whichever says less."""
+        return min(policy['expires_at'] - time.time(), self._deadline(policy) - time.monotonic())
+
+    def expired(self, policy):
+        return self.remaining(policy) <= 0
 
     def check(self, policy):
         if self.pid != os.getpid() or self.execution_binding_sha256 != policy['execution_binding_sha256']:
             _fail('broker_guard_binding')
-        if time.time() >= policy['expires_at']: _fail('broker_expired')
+        if self.expired(policy): _fail('broker_expired')
         if policy['profile'] == 'azure_public_pilot':
             ib.require_live_binding(self.binding)
             self.binding.assert_fresh()
@@ -582,7 +599,7 @@ class EgressBroker:
                 db.commit()
         try:
             self.check()
-            timeout = min(10, self.policy['expires_at'] - time.time())
+            timeout = min(10, self.guard.remaining(self.policy))
             if timeout <= 0: _fail('broker_expired')
             forwarded_body = self.credentials.replace(self.policy, route, body, adoption_contract=self.adoption_contract) if route['effect'] == 'oauth' and self.credentials is not None else body
             response = self.upstream.request(host, method, target, {**headers, 'accept-encoding': 'identity'}, forwarded_body, timeout=timeout)
@@ -803,7 +820,7 @@ class UnixBrokerServer:
 
     def serve(self):
         try:
-            while not self.stop.is_set() and time.time() < self.broker.policy['expires_at']:
+            while not self.stop.is_set() and not self.broker.guard.expired(self.broker.policy):
                 try: connection, _ = self.socket.accept()
                 except socket.timeout: continue
                 except OSError:
