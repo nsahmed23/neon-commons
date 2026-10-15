@@ -1496,7 +1496,7 @@ class Workspace:
                 refresh = bool(primary) and primary.get('code') in ('repository_stale', 'repository_consumer_mismatch')
                 lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
                                                        if self.facts.get('object_id') == self.selected else None,
-                                                       band_names_refresh=refresh)
+                                                       band_names_refresh=refresh, band_has_next=bool(primary))
         return lines
 
     def _on_change_path(self, value):

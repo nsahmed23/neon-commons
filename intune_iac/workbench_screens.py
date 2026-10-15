@@ -709,11 +709,13 @@ def lifecycle_next(tab, value, now, eligibility=None):
     return 'v shows every delivery stage of this operation'
 
 
-def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_names_refresh=False):
+def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_names_refresh=False, band_has_next=False):
     """Where this surface sits in a change's path and the next step for the state shown, in one line.
 
     band_names_refresh: the hazard band above already names Refresh as the next step for a changed repository, so this
     line says what follows from it and does not name the same action a second time (run 9, frames 11 to 16, 75, 77).
+    band_has_next: the band carries the screen's Next, so an execution result adds no second one (a plan review keeps
+    its step, which prints the command to run; run 11, frames 19, 38, 54).
     """
     if tab not in (8, 4, 5):
         return []
@@ -725,6 +727,8 @@ def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_nam
     step = lifecycle_next(tab, value, time.time() if now is None else now, eligibility)
     # A step that prints a command ends with it: the sentence comes first and no full stop follows the command.
     head, _, command = step.partition(COMMAND_BREAK)
+    if band_has_next and tab == 5:
+        return word_wrap('Lifecycle: %s.' % path, width)
     lines = word_wrap('Lifecycle: %s. Next: %s%s' % (path, head, '' if command else '.'), width)
     return lines + (word_wrap(command, width) if command else [])
 

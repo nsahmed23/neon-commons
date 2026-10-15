@@ -182,3 +182,36 @@ class ReconcileNextTests(unittest.TestCase):
         band = ' '.join(hazard_rows({'operation': 'outcome_unknown'}, [], 140))
         self.assertIn('Next: Reconcile it (a: actions); it never replays the change', band)
         self.assertTrue(balanced(band), band)
+
+
+class OneNextTests(unittest.TestCase):
+    """Item 6 (frames 19, 38, 54): when the hazard band carries a Next, the lifecycle line adds none."""
+    workspace = states_tests.StateSurfaceTests.workspace
+    BAND = states_tests.RunEightWorkspaceTests.BAND
+    RESULT = {'result': {'operation_id': 'a' * 32, 'status': 'succeeded_verified'}}
+    UNKNOWN = {'operation_id': 'a' * 32, 'status': 'outcome_unknown'}
+    RECONCILED = {'result': {'operation_id': 'a' * 32, 'status': 'reconciled', 'journal_status': 'reconciled'}}
+
+    def banded(self, tab, value, signals=None):
+        workspace = self.workspace(tab, value)
+        workspace.facts = dict(workspace.facts, signals=[self.BAND] if signals is None else signals)
+        return ' '.join(' '.join(workspace._summary_lines(118)).split())
+
+    def test_the_band_carries_a_next_so_the_line_has_none(self):
+        from intune_iac.workbench_screens import hazard_rows
+        self.assertIn('Next:', ' '.join(hazard_rows({}, [self.BAND], 118)))
+        for value in (self.RESULT, self.RECONCILED, self.UNKNOWN):
+            text = self.banded(5, value)
+            self.assertIn('Lifecycle: 9 Repository > 5 Plan > 6 Execution (here) > Delivery (v opens it).', text)
+            self.assertNotIn('Next:', text, value)
+            self.assertNotIn('shows every delivery stage', text, value)
+
+    def test_without_a_band_the_line_keeps_its_next(self):
+        self.assertIn('Next: v shows every delivery stage, including the deployment record.', self.banded(5, self.RESULT, []))
+        self.assertIn('Next: Reconcile it (a: actions); it never replays the change.', self.banded(5, self.UNKNOWN, []))
+
+    def test_a_command_the_band_does_not_carry_stays_on_the_plan_review(self):
+        prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': 4102444800,
+                    'operation_root': '/w/op'}
+        text = self.banded(4, prepared)
+        self.assertIn("execute /w/op DIGEST", text)
