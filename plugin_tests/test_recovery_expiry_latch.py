@@ -32,6 +32,7 @@ from unittest.mock import patch
 
 from intune_iac import clock
 from intune_iac import identity_binding as ib
+from intune_iac import worker_committed_recovery as committed
 from intune_iac import worker_lease_recovery as lease
 from intune_iac import worker_service as service
 from intune_iac.io import AppError, canonical, digest
@@ -316,6 +317,17 @@ class LeaseRecoveryTests(ExecuteLatchTests, RecoveryFixture):
     action = 'release_exact_existing_native_lease'
     approval_schema = 'signed-native-lease-recovery-approval/1'
     profile = 'laboratory_native_lease_recovery'
+
+
+class CommittedStateRecoveryTests(ExecuteLatchTests, RecoveryFixture):
+    module = committed
+    policy_class = 'CommittedRecoveryPolicy'
+    context_class = committed.LaboratoryCommittedRecoveryContext
+    policy_schema = 'committed-state-lease-recovery-policy/1'
+    operation_schema = 'committed-state-lease-recovery-operation/1'
+    action = 'release_exact_original_committed_state_lease'
+    approval_schema = 'signed-committed-state-lease-recovery-approval/1'
+    profile = 'laboratory_committed_state_lease_recovery'
 
 
 if __name__ == '__main__':
