@@ -1392,7 +1392,10 @@ class Workspace:
             rows.extend(refresh_result_lines(value, width))
         elif self.tab == 7 and isinstance(value.get('navigation'), list):
             from .workbench_screens import help_lines
-            rows.extend(help_lines(width, map_keys=self._map_available()))
+            from .workbench_screens import strip_choice
+            facts = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
+            rows.extend(help_lines(width, map_keys=self._map_available(), strip=strip_choice(
+                self.store.tenant_id, self.selected, facts, 10 ** 6, getattr(self, 'mode_class', None))[0]))
         if rows: rows.append('')
         return rows
 
@@ -1591,7 +1594,9 @@ class Workspace:
             pick = lambda forms: next((form for form in forms if cell_width(form) <= width), forms[-1])
             staged_rows = [pick(staged['boundary']), pick(staged.get('mechanics') or ('',))]
         key_rows = self._strip_key_rows(width)
-        available = max(0, height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows))
+        from .workbench_screens import strip_rows
+        status_rows = strip_rows(self._context_strip(width), width)
+        available = max(0, height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows) - (len(status_rows) - 1))
         # One column of space inside each border: text never touches the frame (journey 27 review, Sonnet 23).
         content = inner - 2
         data = self._body_lines(content, RULES[getattr(self, 'rules', 'ascii')][1])
@@ -1626,7 +1631,6 @@ class Workspace:
         shown = [viewport_row(line, self.hscroll, content, MAP_GUTTER, ellipsis)
                  if index in mapped else line
                  for index, line in enumerate(visible)] + pinned
-        status = self._context_strip(width)
         # A view without its own evidence class shows the selected policy's, never a bare "unknown".
         facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
         scope = self._scope(facts)
@@ -1641,9 +1645,9 @@ class Workspace:
         prompt = self._prompt_line(width, ellipsis)
         top, side, bottom = RULES[getattr(self, 'rules', 'ascii')]
         # Content beyond the frame is announced inside the border, not only by the row counter below it.
-        frame = [pad(header, width), pad(labels, width), pad(status, width)] + [pad(row, width) for row in band] + [
+        frame = [pad(header, width), pad(labels, width)] + [pad(row, width) for row in status_rows] + [pad(row, width) for row in band] + [
                  ruled(top[0], top[1], top[2], inner, ' more above: PgUp ' if self.scroll > 0 else None)]
-        band_rows = set(range(3, 3 + len(band)))
+        band_rows = set(range(2 + len(status_rows), 2 + len(status_rows) + len(band)))
         map_rows = {len(frame) + index for index in mapped}
         frame.extend(side + ' ' + pad(line, content) + ' ' + side for line in shown)
         frame.extend(side + ' ' * inner + side for _ in range(available - len(shown)))
@@ -1670,7 +1674,7 @@ class Workspace:
                 # A map row's marks are tinted; each mark is also written as its state word beside it.
                 if i in map_rows:
                     line = paint_marks(line, palette, base)
-                elif line.startswith(side) or i in (2, len(frame) - 2 - len(key_rows)):
+                elif line.startswith(side) or 2 <= i < 2 + len(status_rows) or i == len(frame) - 2 - len(key_rows):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
         else: painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else emphasize(line) if line.startswith(side) else line

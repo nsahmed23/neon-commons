@@ -133,6 +133,21 @@ STRIP_DEFINITIONS = {
     'stale (later collection incomplete)': 'stale = stale, a later collection did not complete'}
 
 
+# What a strip that leaves states out ends with: how many, and the key that shows them in full (Help prints the line).
+STRIP_MORE = '+%d more: ?'
+
+
+def strip_rows(text, width):
+    """The strip as rows: one, or at the narrowest widths, where the mode, the tenant and the policy fill the row, the
+    marker on a row of its own so it is never cut."""
+    if cell_width(safe_text(text)) <= width:
+        return [text]
+    head, separator, marker = text.rpartition(' | +')
+    if separator and re.fullmatch(r'\d+ more: \?', marker):
+        return [head, '+' + marker]
+    return [text]
+
+
 def context_strip(tenant, selected, facts, width, mode_class=None):
     """The strip's text; see strip_choice."""
     return strip_choice(tenant, selected, facts, width, mode_class)[0]
@@ -186,14 +201,19 @@ def strip_choice(tenant, selected, facts, width, mode_class=None):
         # The keys of the state values whose short word the line shows.
         return [str(value) for long, short, value in remaining if str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
 
+    def more(remaining):
+        # A form that leaves states out says how many, and the key that shows them in full: nothing is dropped silently.
+        left = len(states) - len(remaining)
+        return [STRIP_MORE % left] if left else []
+
     def labelled(name, brief, head, remaining):
-        text = ' | '.join(head + [name] + [segment(short, value, brief) for long, short, value in remaining])
+        text = ' | '.join(head + [name] + [segment(short, value, brief) for long, short, value in remaining] + more(remaining))
         return text, (['T'] if head is tight else []) + (short_words(remaining) if brief == 2 else [])
 
     def narrow(remaining):
         # Short labels and the whole short policy id.
         text = ' | '.join(tight + ['P ' + own] + [segment(short, SHORT_STATES.get(str(value), str(value)), 0)
-                                                 for long, short, value in remaining])
+                                                 for long, short, value in remaining] + more(remaining))
         return text, ['T', 'P'] + short_words(remaining)
 
     def keeps_hazard(remaining):
@@ -1582,6 +1602,8 @@ HELP_WORDS = (
                     'clock); stale means stale from any cause (older than the freshness window, or a later collection did '
                     'not complete; 2 Inspector says which). One step before that, age unknown (stamped ahead) reads age '
                     'unknown, and stale (later collection incomplete) reads stale (collection incomplete).'),
+    ('+N more: ?', 'When the line cannot hold every state it ends with this, N counting the states it left out; this '
+                   'help prints the line in full under Context.'),
     ('! line', 'The bold line under it names the most important recorded condition and the key for its response; '
                '+N more: 2 counts the others, which the Inspector lists.'),
     ('STATE', 'The Inspector, the Repository status and the Plan review show the observation, the repository intent '
@@ -1616,10 +1638,11 @@ HELP_MAP_KEYS = (
 )
 
 
-def help_lines(width, map_keys=False):
+def help_lines(width, map_keys=False, strip=None):
     """The one reference: keys first, one per row, then the words the screens use.
 
-    map_keys: add the keys of the relationship map, after Up, Down."""
+    map_keys: add the keys of the relationship map, after Up, Down.
+    strip: the context line in full, printed under Context for the states the narrow line left out (+N more: ?)."""
     lines = ['HELP', 'KEYS']
     for key, text in HELP_KEYS:
         lines += _labelled('  ' + key, text, width, 14)
@@ -1629,6 +1652,8 @@ def help_lines(width, map_keys=False):
     lines += ['', 'WORDS AND RULES']
     for name, text in HELP_WORDS:
         lines += _labelled('  ' + name, text, width, 14)
+        if name == 'Context' and strip:
+            lines += _labelled('  Line now', strip, width, 14)
     return lines
 
 

@@ -532,14 +532,19 @@ class StripKeyTests(MapTruth):
         self.assertNotIn(' = outcome unknown', text)
 
     def test_the_map_screen_defines_them_in_its_pinned_legend_row(self):
-        for size in ((60, 20), (80, 24)):
+        checked = 0
+        for size in ((80, 24), (100, 30)):
             rows, text = self.screen(size, self.BATTERY[1], tab=2)
+            if 'OP unknown' not in rows[2]:
+                continue
+            checked += 1
             self.assertEqual(text.count('unknown = outcome unknown'), 1, rows)
             holder = next(row for row in rows if 'unknown = outcome unknown' in row)
             self.assertTrue(holder.startswith('│'), holder)  # inside the frame, with the map's legend
             self.assertNotIn('unknown = outcome unknown', rows[-1] + rows[-2])
             legend = rows.index(holder)
             self.assertTrue(any('focus' in row for row in rows[legend - 3:legend + 1]), rows[legend - 3:legend + 1])
+        self.assertGreaterEqual(checked, 1)
 
     def test_every_definition_fits_the_window_whole(self):
         from intune_iac.workbench_tui import cell_width
@@ -571,3 +576,73 @@ class ConstrainedStripKeyTests(unittest.TestCase):
         self.assertEqual(len(lines), 5)
         self.assertNotIn('= tenant', '\n'.join(lines))
         self.assertTrue(any(line.startswith('!') for line in lines), lines)
+
+
+class StripMarkerTests(MapTruth):
+    """Item 13: a strip that leaves segments out to fit ends with how many, and the key that shows them in full."""
+    FACTS = {'name': 'Windows Privacy Pilot', 'observation': 'source changed', 'repository': 'current',
+             'operation': 'outcome_unknown'}
+    MARKER = r'\+(\d+) more: \?'
+
+    def strip(self, width, facts=None):
+        from intune_iac.workbench_screens import context_strip
+        return context_strip(TENANT, OBJECT, dict(facts or self.FACTS, object_id=OBJECT), width, 'synthetic')
+
+    def segments(self, text):
+        import re
+        return len(re.findall(r'\b(?:OBS|REPO|OP) ', text))
+
+    def test_a_strip_that_drops_segments_ends_with_the_count_and_the_key(self):
+        import re
+        for width in range(48, 100):
+            text = self.strip(width)
+            marker = re.search(self.MARKER + '$', text)
+            shown = self.segments(text)
+            self.assertEqual(bool(marker), shown < 3, (width, text))
+            if marker:
+                self.assertEqual(int(marker.group(1)), 3 - shown, (width, text))
+                self.assertTrue(text.endswith(' | ' + marker.group(0)), text)
+
+    def test_the_same_wording_at_every_width_that_truncates(self):
+        import re
+        wording = {re.sub(r'\d+', 'N', re.search(self.MARKER, self.strip(width)).group(0))
+                   for width in range(48, 100) if re.search(self.MARKER, self.strip(width))}
+        self.assertEqual(wording, {'+N more: ?'})
+
+    def test_a_strip_that_holds_every_segment_has_no_marker(self):
+        self.assertNotIn('more: ?', self.strip(140))
+        self.assertEqual(self.segments(self.strip(140)), 3)
+
+    def test_nothing_is_dropped_without_the_marker_on_the_screen_at_60x20_and_40x12(self):
+        import re
+        from intune_iac.workbench_tui import cell_width
+        for size in ((60, 20), (40, 12)):
+            ws = self.workspace(size, tab=1, facts=dict(self.FACTS, object_id=self.object_id))
+            rows = self.plain(ws)
+            self.assertTrue(all(cell_width(row) <= size[0] for row in rows), (size, rows))
+            strip_rows = [row for row in rows[2:5] if row.strip().startswith('SYNTHETIC') or 'more: ?' in row]
+            text = ' '.join(row.strip() for row in strip_rows)
+            marker = re.search(self.MARKER, text)
+            self.assertIsNotNone(marker, (size, rows[:6]))
+            self.assertEqual(int(marker.group(1)), 3 - self.segments(text), (size, text))
+
+    def test_the_marker_is_not_cut_off_where_the_identities_fill_the_row(self):
+        # 40 columns: the mode, the tenant and the policy fill the row, so the marker takes the row under it.
+        from intune_iac.workbench_screens import strip_rows
+        text = self.strip(40)
+        rows = strip_rows(text, 40)
+        self.assertEqual(len(rows), 2, rows)
+        self.assertTrue(rows[0].startswith('SYNTHETIC | T '), rows)
+        self.assertRegex(rows[1], r'^\+3 more: \?$')
+
+    def test_the_help_key_prints_the_line_in_full(self):
+        from intune_iac.workbench_screens import help_lines, strip_choice
+        full = strip_choice(TENANT, OBJECT, dict(self.FACTS, object_id=OBJECT), 400, 'synthetic')[0]
+        text = ' '.join(' '.join(help_lines(60, strip=full)).split())
+        self.assertIn(' '.join(full.split()), text)
+        self.assertIn('+N more: ?', text)
+        ws = self.workspace((60, 20), tab=7, facts=dict(self.FACTS, object_id=self.object_id),
+                            value={'navigation': []})
+        shown = ' '.join(' '.join(ws._surface_summary(56)).split())
+        self.assertIn('Line now SYNTHETIC | TENANT 029c33b1 | POLICY Windows Privacy Pilot (d665d54b) | OBS source changed | '
+                      'REPO current | OP outcome unknown', shown)

@@ -178,13 +178,15 @@ class MinimumTests(unittest.TestCase):
         self.assertTrue(footer.endswith(('no automatic approval', 'no auto-approval')), footer)
 
     def test_the_strip_keeps_mode_tenant_and_whole_policy_at_the_minimum_width(self):
-        from intune_iac.workbench_screens import context_strip
+        from intune_iac.workbench_screens import context_strip, strip_rows
         facts = {'name': 'A very long policy name ' * 3, 'observation': 'stale', 'repository': 'stale',
                  'operation': 'outcome_unknown'}
         for mode, word in (('synthetic', 'SYNTHETIC'), ('graph_authenticated_observation', 'LIVE READ-ONLY'),
                            (None, 'MODE UNKNOWN')):
-            line = context_strip(TENANT, POLICY, facts, MINIMUM[0], mode)
-            self.assertLessEqual(cell_width(line), MINIMUM[0], line)
+            # Where the identities fill the row, the marker of the states left out takes the row under it (run 11 item 13).
+            rows = strip_rows(context_strip(TENANT, POLICY, facts, MINIMUM[0], mode), MINIMUM[0])
+            line = rows[0]
+            self.assertTrue(all(cell_width(row) <= MINIMUM[0] for row in rows), rows)
             self.assertTrue(line.startswith(word + ' | '), line)
             self.assertIn('11111111', line); self.assertIn('22222222', line)
             line = context_strip(TENANT, None, {}, MINIMUM[0], mode)

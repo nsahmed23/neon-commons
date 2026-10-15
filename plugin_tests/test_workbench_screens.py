@@ -148,9 +148,10 @@ class FrameTextTests(unittest.TestCase):
         done = dict(facts, operation='succeeded_verified')
         self.assertEqual(context_strip(tenant, policy, done, 90, 'synthetic'),
                          'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OBS fresh | REPO stale | OP verified')
-        # Narrower, the trailing states give way before the mode, tenant or policy.
+        # Narrower, the states give way before the mode, tenant or policy, and the strip says how many it left out
+        # (run 11 item 13): the routine one first, so the repository hazard stays.
         self.assertEqual(context_strip(tenant, policy, done, 80, 'synthetic'),
-                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OBS fresh | REPO stale')
+                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | REPO stale | +2 more: ?')
 
     def test_epoch_times_are_shown_as_utc(self):
         from intune_iac.workbench_screens import utc_time
@@ -1126,10 +1127,14 @@ class NarrowWindowTests(unittest.TestCase):
         from plugin_tests.test_workbench_hazard import POLICY, TENANT
         facts = {'name': 'Windows Privacy Pilot', 'observation': 'fresh', 'eligibility': self.ELIGIBILITY,
                  'repository': 'current', 'operation': 'outcome_unknown'}
+        # Where the operation and the marker both fit, the operation stays and the less severe states are counted.
+        self.assertEqual(context_strip(TENANT, POLICY, facts, 62, 'synthetic'),
+                         'SYNTHETIC | T 11111111 | P 22222222 | OP unknown | +2 more: ?')
+        # Where they do not, the marker wins (nothing is dropped silently); the band still leads with the operation.
         self.assertEqual(context_strip(TENANT, POLICY, facts, 60, 'synthetic'),
-                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OP unknown')
+                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | +3 more: ?')
         self.assertEqual(context_strip(TENANT, POLICY, facts, 48, 'synthetic'),
-                         'SYNTHETIC | T 11111111 | P 22222222 | OP unknown')
+                         'SYNTHETIC | T 11111111 | P 22222222 | +3 more: ?')
 
 
 class HistoryCurrentTests(unittest.TestCase):
