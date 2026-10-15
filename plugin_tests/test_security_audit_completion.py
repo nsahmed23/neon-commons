@@ -59,7 +59,7 @@ class IndependentEnforcementTests(unittest.TestCase):
         from intune_iac.io import canonical, digest
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "executor"
-            executor = api.create_synthetic_executor(root, initial_value={"n": 0}, desired_value={"n": 1})
+            executor = api.create_synthetic_executor(root, initial_value={"n": 0}, desired_value={"n": 1}, engine_version='1.10.0')
             state_path = root / "work/state/terraform.tfstate"
             from intune_iac.io import file_sha
             (root / "work/saved.tfplan").write_bytes(canonical({"schema": "synthetic-saved-plan/1",
@@ -119,7 +119,7 @@ class IndependentEnforcementTests(unittest.TestCase):
         import hashlib
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "executor"
-            create_synthetic_executor(root, initial_value={}, desired_value={"n": 1})
+            create_synthetic_executor(root, initial_value={}, desired_value={"n": 1}, engine_version='1.10.0')
             tool = root / "tool"
             tool.chmod(0o700)
             tool.write_bytes(b"#!/bin/sh\nexit 0\n")
@@ -136,7 +136,7 @@ class IndependentEnforcementTests(unittest.TestCase):
         from intune_iac.io import AppError, digest
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "executor"
-            create_synthetic_executor(root, initial_value={}, desired_value={"n": 1})
+            create_synthetic_executor(root, initial_value={}, desired_value={"n": 1}, engine_version='1.10.0')
             value = {"n": '${file("/not-a-real-secret")}'}
             config_path = root / "work/main.tf.json"
             config = json.loads(config_path.read_text())

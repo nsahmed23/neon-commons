@@ -26,7 +26,7 @@ class ProtectedWorkerTests(unittest.TestCase):
         self.source = self.root / 'source'; self.source.mkdir(mode=0o700)
         (self.source / 'policy.json').write_text('{"setting":"new"}')
         self.executor = protected.create_synthetic_executor(self.root / 'executor',
-            initial_value={'setting': 'old'}, desired_value={'setting': 'new'})
+            initial_value={'setting': 'old'}, desired_value={'setting': 'new'}, engine_version='1.10.0')
         self.context = {
             'schema_version': 'worker-context/1.0', 'evidence_class': 'laboratory_declared_context',
             'repository': 'fixture/repository', 'source_revision': '1' * 40,
@@ -173,7 +173,7 @@ class ProtectedWorkerTests(unittest.TestCase):
         self.assertFalse(self.job_root.exists())
 
     def test_cross_stack_overlapping_ownership_is_reserved_independently_of_backend(self):
-        other = protected.create_synthetic_executor(self.root / 'other-executor', initial_value=0, desired_value=1)
+        other = protected.create_synthetic_executor(self.root / 'other-executor', initial_value=0, desired_value=1, engine_version='1.10.0')
         context = copy.deepcopy(self.context); context['run_id'] = 'another-run'; context['stack'] = 'other-stack'
         context['ownership'].append('another-policy')
         self.policy['executors'].append({'root': str(other.root), 'manifest_sha256': digest(other.manifest),

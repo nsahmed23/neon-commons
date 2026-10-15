@@ -16,7 +16,7 @@ class ProtectedCompletionTests(unittest.TestCase):
         self.api = importlib.import_module('intune_iac.protected')
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.base = Path(self.tmp.name)
-        self.executor = self.api.create_synthetic_executor(self.base / 'fixture', initial_value={}, desired_value={'policies': {'id': 'hash'}})
+        self.executor = self.api.create_synthetic_executor(self.base / 'fixture', initial_value={}, desired_value={'policies': {'id': 'hash'}}, engine_version='1.10.0')
         self.receipts = self.base / 'receipts'
 
     def prepared(self):
@@ -49,7 +49,7 @@ class ProtectedCompletionTests(unittest.TestCase):
         for field in ['saved.tfplan', 'main.tf.json', 'worker.py']:
             with self.subTest(field=field):
                 root = self.base / ('fixture-' + field)
-                executor = self.api.create_synthetic_executor(root, initial_value={}, desired_value={'x': 1})
+                executor = self.api.create_synthetic_executor(root, initial_value={}, desired_value={'x': 1}, engine_version='1.10.0')
                 request = self.api.prepare_native_operation(executor)
                 grant = self.api.approve_synthetic_operation(request, executor=executor)
                 location = root / ('work/' + field if field != 'worker.py' else field)
@@ -69,7 +69,7 @@ class ProtectedCompletionTests(unittest.TestCase):
             reopened = self.api.execute_native_operation(request,self.receipts,executor=self.executor,approval=grant)
         self.assertEqual((reopened['status'], reopened['error']['code']), ('rejected', 'expired_request'))
         # The replay block, on a fresh fixture: one success, then every further attempt is rejected.
-        fresh = self.api.create_synthetic_executor(self.base / 'fixture-two', initial_value={}, desired_value={'policies': {'id': 'hash'}})
+        fresh = self.api.create_synthetic_executor(self.base / 'fixture-two', initial_value={}, desired_value={'policies': {'id': 'hash'}}, engine_version='1.10.0')
         request = self.api.prepare_native_operation(fresh)
         grant = self.api.approve_synthetic_operation(request, executor=fresh)
         result = self.api.execute_native_operation(request,self.base / 'receipts-two',executor=fresh,approval=grant)
@@ -158,7 +158,7 @@ class ExecutableTrustRegressionTests(unittest.TestCase):
         from intune_iac.io import digest
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)/'fixture'
-            p.create_synthetic_executor(root,initial_value={},desired_value={'x':1})
+            p.create_synthetic_executor(root,initial_value={},desired_value={'x':1}, engine_version='1.10.0')
             tool=root/'tool';tool.chmod(0o700);tool.write_bytes(b'#!/bin/sh\nexit 0\n')
             manifest=json.loads((root/'executor.json').read_text());manifest['executable_sha256']=p._sha(tool)
             (root/'executor.json').write_text(json.dumps(manifest))
@@ -261,8 +261,8 @@ class ProcessBoundaryTests(unittest.TestCase):
 
     def test_values_cannot_become_terraform_expressions_even_on_resume(self):
         for value in ({'x':'${file("/etc/passwd")}'},['%{ for x in [] }']):
-            with self.assertRaises(ValueError):self.api.create_synthetic_executor(self.root/'bad',initial_value={},desired_value=value)
-        executor=self.api.create_synthetic_executor(self.root/'f',initial_value={},desired_value={})
+            with self.assertRaises(ValueError):self.api.create_synthetic_executor(self.root/'bad',initial_value={},desired_value=value, engine_version='1.10.0')
+        executor=self.api.create_synthetic_executor(self.root/'f',initial_value={},desired_value={}, engine_version='1.10.0')
         from intune_iac.io import digest
         config=json.loads((executor.root/'work/main.tf.json').read_text());config['output']['fixture']['value']={'x':'${file("/etc/passwd")}'}
         (executor.root/'work/main.tf.json').write_text(json.dumps(config))
@@ -291,7 +291,7 @@ class StateLineageRegressionTests(unittest.TestCase):
     def test_state_replacement_with_desired_value_cannot_claim_success(self):
         from intune_iac import protected as p
         with tempfile.TemporaryDirectory() as d:
-            root=Path(d);executor=p.create_synthetic_executor(root/'f',initial_value={},desired_value={'x':1})
+            root=Path(d);executor=p.create_synthetic_executor(root/'f',initial_value={},desired_value={'x':1}, engine_version='1.10.0')
             request=p.prepare_native_operation(executor);approval=p.approve_synthetic_operation(request,executor=executor)
             original=p._run
             def replacement(executor,command):
@@ -308,7 +308,7 @@ class CrossJournalReplayRegressionTests(unittest.TestCase):
     def test_consumed_request_cannot_gain_new_approval_in_another_journal(self):
         from intune_iac import protected as p
         with tempfile.TemporaryDirectory() as d:
-            root=Path(d);e=p.create_synthetic_executor(root/'f',initial_value={},desired_value={})
+            root=Path(d);e=p.create_synthetic_executor(root/'f',initial_value={},desired_value={}, engine_version='1.10.0')
             req=p.prepare_native_operation(e);approval=p.approve_synthetic_operation(req,executor=e)
             original=p._run
             # Native no-op may leave its backend state byte-identical.
@@ -321,7 +321,7 @@ class ReviewBindingRegressionTests(unittest.TestCase):
     def test_rewritten_preparation_cannot_mislabel_change_as_noop(self):
         from intune_iac import protected as p
         with tempfile.TemporaryDirectory() as d:
-            root=Path(d);e=p.create_synthetic_executor(root/'f',initial_value={},desired_value={'x':1})
+            root=Path(d);e=p.create_synthetic_executor(root/'f',initial_value={},desired_value={'x':1}, engine_version='1.10.0')
             request=p.prepare_native_operation(e)
             request['review']['status']='no_change';request['review']['generic_review_status']='no_change'
             (e.root/'preparation.json').write_text(json.dumps(request))
@@ -353,7 +353,7 @@ class SyntheticSemanticBindingRegressionTests(unittest.TestCase):
         from intune_iac import protected as p
         from intune_iac.io import canonical,digest
         with tempfile.TemporaryDirectory() as d:
-            root=Path(d);e=p.create_synthetic_executor(root/'f',initial_value={},desired_value={'x':1})
+            root=Path(d);e=p.create_synthetic_executor(root/'f',initial_value={},desired_value={'x':1}, engine_version='1.10.0')
             request=p.prepare_native_operation(e);path=e.root/'work/plan.json';document=json.loads(path.read_text())
             change=document['output_changes']['fixture'];change['before']=change['after'];change['actions']=['no-op']
             document['prior_state']['values']['outputs']['fixture']['value']=change['after']

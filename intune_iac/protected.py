@@ -207,13 +207,15 @@ class NativeLocalExecutor(SyntheticExecutor):
     mode='native_local_opentofu_only'
 
 
-def _create(root, initial_value, desired_value, executable, mode, engine_version=None):
+def _create(root, initial_value, desired_value, executable, mode, engine_version):
     if sys.platform!='linux': _fail('unsupported_platform')
-    if engine_version is not None and mode!='synthetic_local_process_only': _fail('unqualified_engine_version')
-    if engine_version is not None and (type(engine_version) is not str or engine_version not in ENGINE_VERSIONS): _fail('unqualified_engine_version')
+    # A modeled executor names the engine version of the profile of the project it executes: the caller says which, there is
+    # no default (a silent legacy default made every new operation read as reproduction). A native one takes it from its binary.
+    if mode=='synthetic_local_process_only' and (type(engine_version) is not str or engine_version not in ENGINE_VERSIONS): _fail('unqualified_engine_version')
+    if mode!='synthetic_local_process_only' and engine_version is not None: _fail('unqualified_engine_version')
     initial_value,desired_value=_json_snapshot(initial_value),_json_snapshot(desired_value)
     executable=_path(executable); executable_sha=_sha(executable)
-    version = _native_profile(executable,executable_sha)['version'] if mode=='native_local_opentofu_only' else (engine_version or _LEGACY_ENGINE)
+    version = _native_profile(executable,executable_sha)['version'] if mode=='native_local_opentofu_only' else engine_version
     root=_path(root); root.mkdir(mode=0o700)
     (root/'work').mkdir(mode=0o700); (root/'work/state').mkdir(mode=0o700); (root/'home').mkdir(mode=0o700)
     # Copy the qualified executable into the private target to pin subsequent opens.
@@ -250,15 +252,16 @@ def _create(root, initial_value, desired_value, executable, mode, engine_version
     return SyntheticExecutor(root) if mode=='synthetic_local_process_only' else NativeLocalExecutor(root)
 
 
-def create_synthetic_executor(root, *, initial_value, desired_value, engine_version=None):
-    """A modeled executor. engine_version names the profile of the project it executes (see pin_profiles.py); omitted it is
-    the legacy version, as every executor made before the migration."""
+def create_synthetic_executor(root, *, initial_value, desired_value, engine_version):
+    """A modeled executor. engine_version names the profile of the project it executes (see pin_profiles.py) and is required:
+    omitted or unknown it is refused before anything is written. The legacy version is passed explicitly where a legacy
+    project is reproduced; an executor made before the migration records none and is still read as legacy."""
     return _create(root,initial_value,desired_value,Path(sys.executable).resolve(),'synthetic_local_process_only',engine_version)
 
 
 def create_native_local_executor(root, *, executable, initial_value, desired_value):
     """Create disposable local fixture using the package's exact Linux AMD64 pin."""
-    return _create(root,initial_value,desired_value,executable,'native_local_opentofu_only')
+    return _create(root,initial_value,desired_value,executable,'native_local_opentofu_only',None)
 
 
 def _environment(executor):

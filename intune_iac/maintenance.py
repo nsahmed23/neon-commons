@@ -311,7 +311,8 @@ def _propose(store_root, service_root, object_id, desired_path, output, *, conte
         expected = copy.deepcopy(before); expected['objects'][object_id] = copy.deepcopy(desired)
         root.mkdir(mode=0o700); progress['created'] = True; sync_directory(root.parent)
         write_json(root / 'desired.json', desired)
-        executor = protected.create_synthetic_executor(root / 'executor', initial_value=before, desired_value=expected)
+        executor = protected.create_synthetic_executor(root / 'executor', initial_value=before, desired_value=expected,
+                                                       engine_version='1.10.0')
         request = protected.prepare_native_operation(executor)
         plan = {'schema_version': VERSION, 'operation_id': uuid4().hex,
             'operation_root': str(root), 'store_root': str(store_root), 'service_root': str(service_root),

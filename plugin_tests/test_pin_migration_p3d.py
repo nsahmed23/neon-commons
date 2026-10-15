@@ -244,20 +244,20 @@ class PlanReviewTests(unittest.TestCase):
 # Item 1d: the modeled executor names the engine version of the profile of the project it executes.
 # ---------------------------------------------------------------------------------------------------------------------
 class ModeledExecutorTests(unittest.TestCase):
-    def executor(self, **keywords):
+    def executor(self, engine_version):
         from intune_iac import protected
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         root = Path(temporary.name) / 'executor'
-        return protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2}, **keywords), root
+        return protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2}, engine_version=engine_version), root
 
     def plan_version(self, executor, root):
         from intune_iac import protected
         protected.prepare_native_operation(executor)
         return json.loads((root / 'work/plan.json').read_text())['terraform_version']
 
-    def test_an_executor_made_without_a_version_is_the_legacy_one_with_the_frozen_manifest_shape(self):
-        executor, root = self.executor()
+    def test_an_executor_made_for_the_legacy_version_has_the_frozen_manifest_shape(self):
+        executor, root = self.executor(engine_version=LEGACY_TOFU)
         self.assertEqual(self.plan_version(executor, root), LEGACY_TOFU)
         self.assertEqual(json.loads((root / 'work/main.tf.json').read_text())['terraform']['required_version'], '= ' + LEGACY_TOFU)
         self.assertNotIn('engine_version', json.loads((root / 'executor.json').read_text()))
@@ -676,6 +676,62 @@ class DocumentsStateBothProfilesTests(unittest.TestCase):
 def native_pins_sha(profile):
     from intune_iac import native_pins
     return [sha for sha, entry in native_pins.OPENTOFU_PINS.items() if entry['profile'] == profile][0]
+
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Round 3, item 1: no silent legacy executor. The engine version is a required argument and every caller passes one.
+# ---------------------------------------------------------------------------------------------------------------------
+class NoSilentLegacyExecutorTests(unittest.TestCase):
+    def test_the_engine_version_has_no_default(self):
+        import inspect
+        from intune_iac import protected
+        parameter = inspect.signature(protected.create_synthetic_executor).parameters['engine_version']
+        self.assertIs(parameter.default, inspect.Parameter.empty)
+        self.assertEqual(parameter.kind, inspect.Parameter.KEYWORD_ONLY)
+
+    def test_an_omitted_none_or_unknown_version_is_refused_before_anything_is_written(self):
+        from intune_iac import protected
+        from intune_iac.io import AppError
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / 'executor'
+            create = protected.create_synthetic_executor  # a bare name: the call below is the deliberate omission
+            with self.assertRaises(TypeError):
+                create(root, initial_value={}, desired_value={})
+            self.assertFalse(root.exists())
+            for version in (None, '1.13.2', '', 1.13, LEGACY_TOFU + ' '):
+                with self.subTest(version=version):
+                    with self.assertRaises(AppError) as raised:
+                        protected.create_synthetic_executor(root, initial_value={}, desired_value={}, engine_version=version)
+                    self.assertEqual(raised.exception.code, 'unqualified_engine_version')
+                    self.assertFalse(root.exists())
+
+    def test_either_profile_version_is_accepted_when_it_is_passed(self):
+        from intune_iac import protected
+        for version in (CURRENT_TOFU, LEGACY_TOFU):
+            with self.subTest(version=version), tempfile.TemporaryDirectory() as temporary:
+                executor = protected.create_synthetic_executor(Path(temporary) / 'executor', initial_value={}, desired_value={},
+                                                               engine_version=version)
+                self.assertEqual(protected._engine_version(executor), version)
+
+    def test_no_call_in_the_product_the_scripts_the_reference_or_the_tests_omits_the_engine_version(self):
+        import ast
+        calls = 0
+        for directory in ('intune_iac', 'scripts', 'reference', 'plugin_tests', 'evaluations', 'tools', 'labs'):
+            for path in sorted((ROOT / directory).rglob('*.py')):
+                tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+                for node in ast.walk(tree):
+                    if not isinstance(node, ast.Call):
+                        continue
+                    name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, 'id', None)
+                    if name != 'create_synthetic_executor':
+                        continue
+                    calls += 1
+                    keywords = {keyword.arg for keyword in node.keywords}
+                    # **keywords is a pass-through (the helper of the modeled executor tests); it is checked where it is built.
+                    self.assertTrue('engine_version' in keywords or None in keywords,
+                                    '%s:%d calls create_synthetic_executor without engine_version' % (path.relative_to(ROOT), node.lineno))
+        self.assertGreater(calls, 20)  # the walk found the callers; an empty walk proves nothing
 
 
 if __name__ == '__main__':

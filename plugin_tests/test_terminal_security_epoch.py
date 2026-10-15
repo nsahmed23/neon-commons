@@ -210,7 +210,7 @@ class LaunchAndPresentationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory); marker = root / 'startup-executed'
             startup = root / 'startup.sh'; startup.write_text('printf attack > ' + str(marker) + '\n')
-            executor = protected.create_synthetic_executor(root / 'executor', initial_value={}, desired_value={})
+            executor = protected.create_synthetic_executor(root / 'executor', initial_value={}, desired_value={}, engine_version='1.10.0')
             hostile = {'BASH_ENV': str(startup), 'ENV': str(startup), 'PYTHONSTARTUP': str(startup),
                        'PYTHONPATH': str(root), 'LD_PRELOAD': '/nonexistent',
                        'BASH_FUNC_printf%%': '() { exit 91; }', 'TF_CLI_ARGS': '-destroy'}

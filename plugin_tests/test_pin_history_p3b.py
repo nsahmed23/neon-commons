@@ -135,7 +135,7 @@ elif command == 'forge':
     out({'forged_with': new})
 elif command == 'prepare':
     work = Path(sys.argv[2])
-    executor = protected.create_synthetic_executor(work / 'executor', initial_value={'a': 1}, desired_value={'a': 2})
+    executor = protected.create_synthetic_executor(work / 'executor', initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.10.0')
     request = protected.prepare_native_operation(executor, ttl_seconds=300)
     (work / 'request.json').write_bytes(canonical(request))
     protected.approve_synthetic_operation(request, executor=executor)  # control: a fresh request is approvable now
@@ -155,7 +155,7 @@ elif command == 'grant_then_upgrade':
     from unittest.mock import patch
     # One process from preparing to the refusal, so a step of the host clock between processes cannot matter.
     work = Path(sys.argv[2])
-    executor = protected.create_synthetic_executor(work / 'executor', initial_value={'a': 1}, desired_value={'a': 2})
+    executor = protected.create_synthetic_executor(work / 'executor', initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.10.0')
     request = protected.prepare_native_operation(executor, ttl_seconds=300)
     grant = protected.approve_synthetic_operation(request, executor=executor)  # touches the clock floor, legitimately
     files = protected._implementation_files()
@@ -692,7 +692,7 @@ class ApprovalChecksTheImplementationFirstTests(unittest.TestCase):
     def refused(self, approve, make_executor):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / 'executor'
-            synthetic = protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2})
+            synthetic = protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.10.0')
             request = protected.prepare_native_operation(synthetic)
             write_json(root / 'consumed.json', {'present': True})
             executor = synthetic if make_executor is None else object.__new__(make_executor)
@@ -716,7 +716,7 @@ class ApprovalChecksTheImplementationFirstTests(unittest.TestCase):
     def test_with_the_same_implementation_a_consumed_approval_is_still_reported_as_consumed(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / 'executor'
-            executor = protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2})
+            executor = protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2}, engine_version='1.10.0')
             request = protected.prepare_native_operation(executor)
             write_json(root / 'consumed.json', {'present': True})
             with self.assertRaises(AppError) as raised:
