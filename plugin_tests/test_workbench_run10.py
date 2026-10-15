@@ -564,6 +564,51 @@ class KeyNamesTests(unittest.TestCase):
         self.assertEqual(self.unexplained(text), [], text)
 
 
+class OneEffectTests(companion_tests.Fixture):
+    """Item 12: a focused entry says its effect once: its long text adds to the summary and does not repeat it."""
+
+    def shingles(self, text):
+        words = re.findall(r"[a-z']+", text.lower())
+        return {' '.join(words[index:index + 3]) for index in range(len(words) - 2)}
+
+    def test_no_long_text_repeats_three_words_of_its_summary(self):
+        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        checked = 0
+        for kind, summary in ACTION_SUMMARY.items():
+            effects = ACTION_EFFECTS[kind]
+            if effects == summary:
+                continue
+            checked += 1
+            self.assertEqual(sorted(self.shingles(summary) & self.shingles(effects)), [], kind)
+        self.assertGreaterEqual(checked, 6)
+
+    def test_the_three_named_actions_keep_what_each_claims_in_one_place(self):
+        from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
+        for kind, claims in (('collect', ('collection run', 'changes no policy')),
+                             ('deployment-record', ('records a deployment receipt', 'sends nothing')),
+                             ('companion', ('records nothing', 'opens no browser'))):
+            for claim in claims:
+                self.assertEqual([name for name, table in (('summary', ACTION_SUMMARY), ('effects', ACTION_EFFECTS))
+                                  if claim in table[kind].lower()], ['summary'], (kind, claim))
+
+    def test_the_long_text_still_says_what_only_it_says(self):
+        from intune_iac.workbench import ACTION_EFFECTS
+        self.assertIn('denied or partial result', ACTION_EFFECTS['collect'])
+        self.assertIn('context bytes its plan bound', ACTION_EFFECTS['deployment-record'])
+        self.assertIn('not platform qualified', ACTION_EFFECTS['deployment-record'])
+        self.assertIn('secret address', ACTION_EFFECTS['companion'])
+        self.assertIn('can approve or run nothing', ACTION_EFFECTS['companion'])
+
+    def test_the_focused_entry_prints_each_claim_once(self):
+        from intune_iac.workbench import _inspection, _store
+        from intune_iac.workbench_screens import actions_lines
+        actions = _inspection(_store(self.root), self.object_id, attention=True)['actions']
+        last = len(actions) - 1
+        text = ' '.join(' '.join(line.strip() for line in actions_lines(actions, last, 116)).split()).lower()
+        for claim in ('records nothing', 'opens no browser', 'opens a browser'):
+            self.assertLessEqual(text.count(claim), 1, claim)
+
+
 class StripOperationTests(unittest.TestCase):
     """Item 10: an operation the strip shows and the screen does not discuss is named once in the body."""
     surface = states_tests.RefusalCauseTests.workspace

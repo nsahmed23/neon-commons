@@ -50,7 +50,8 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertEqual(first['command'], 'reconcile ' + shlex.quote(str(operation)))
         self.assertTrue(first['available'])
         self.assertEqual(first['binding']['operation_id'], review['operation_id'])
-        self.assertIn('never replays', first['effects'])
+        # One effect description (PKG-PRES-RUN10 item 12): the summary says it never replays; the long text adds the rest.
+        self.assertIn('never replays', first['summary'])
         self.assertIn('records', first['effects'])
 
     def verified_change(self):
@@ -73,8 +74,9 @@ class ActionReadModelTests(unittest.TestCase):
         self.assertEqual(action['command'], 'deployment-record %s %s' % (shlex.quote(str(operation)), intent['artifact_id']))
         self.assertEqual((action['binding']['operation_id'], action['binding']['intent_id']),
                          (review['operation_id'], intent['artifact_id']))
-        self.assertIn('sends nothing', action['effects'])
-        self.assertIn('records a deployment receipt', action['effects'])
+        self.assertIn('sends nothing', action['summary'])
+        self.assertIn('Records a deployment receipt', action['summary'])
+        self.assertIn('verified local modeled baseline', action['effects'])
         record_local_deployment(self.store, operation, intent['artifact_id'])
         self.assertNotIn('deployment-record', self.actions())
 
@@ -287,8 +289,9 @@ class ActionReadModelTests(unittest.TestCase):
         from intune_iac.workbench import ACTION_EFFECTS
         self.assertIn('before', ACTION_EFFECTS['propose-from-intent'])
         self.assertIn('stay', ACTION_EFFECTS['propose-from-intent'])
-        for kind in ('propose-from-intent', 'propose', 'reconcile'):
+        for kind in ('propose-from-intent', 'propose'):
             self.assertIn('records the operation in this store', ACTION_EFFECTS[kind])
+        self.assertIn('updates the operation in this store', ACTION_EFFECTS['reconcile'])
 
     def test_the_binding_names_the_evidence_mode(self):
         self.import_intent()

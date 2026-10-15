@@ -385,13 +385,11 @@ def _next_actions(value, attention, service_available):
 # local evidence, so "reads" never stands for "changes nothing".
 ACTION_EFFECTS = {
     'reconcile': 'Reads the modeled service on its own, then records a reconciliation receipt and a journal entry for '
-                 'this operation and records the operation in this store. It never replays the write.',
-    'collect': 'Reads the configured modeled service and records a new collection run in the store, including a denied '
-               'or partial result.',
+                 'this operation and updates the operation in this store.',
+    'collect': 'A denied or partial result is recorded as a run too, kept in the store.',
     'repository-refresh': 'Shows the source difference first (Repository surface) and binds the command to it. Then reads '
-                          "the repository's current files and records them as a new intent, refusing if they changed since "
-                          'the difference was shown; the earlier intent is kept. It is not a Git commit, an approval or an '
-                          'apply.',
+                          "the repository's current files and keeps them as the new intent, refusing if they changed since "
+                          'the difference was shown; the earlier intent is kept.',
     'propose-from-intent': 'Checks the recorded intent, then writes two input files beside a new operation directory '
                            'before checking the observation; if that check refuses, the two files stay. Otherwise it '
                            'writes the directory and records the operation in this store.',
@@ -399,15 +397,12 @@ ACTION_EFFECTS = {
                'operation in this store.',
     'repository-entry': 'Reads the repository and lists its policies with the exact command to record each. It writes '
                         'nothing.',
-    'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why. It '
-                   'records nothing.',
+    'diagnostics': 'Shows the diagnostics records for this policy, including what could not be read and why.',
     'deployment-record': 'Rechecks the operation, its engine receipt, its one verified readback and the context bytes '
-                         'its plan bound against the cited repository intent, then records a deployment receipt in '
-                         "this store: a verified local modeled baseline for that intent, not platform qualified. It "
-                         'sends nothing to the service.',
-    'companion': 'Reads this policy and its relationships and writes only the file you name: an isometric page that shows '
-                 'one snapshot and does not update itself. It records nothing in the store, can approve or run nothing and '
-                 'never opens a browser; the notice names the path. From a shell the same command is ' + COMPANION_WRITE +
+                         'its plan bound against the cited repository intent first. The receipt is a verified local '
+                         'modeled baseline for that intent, not platform qualified.',
+    'companion': 'The page reads this policy and its relationships, shows one snapshot and does not update itself, and '
+                 'can approve or run nothing; the notice names the path. From a shell the same command is ' + COMPANION_WRITE +
                  '; with --serve instead of --out FILE it serves the page on this machine only, and the product prints its '
                  'secret address (anyone on the same machine who has it can read the page).',
 }

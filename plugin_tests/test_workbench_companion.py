@@ -263,8 +263,10 @@ class ActionsMenuTests(Fixture):
         self.assertTrue(offered['needs'])
         self.assertIn('FILE', offered['needs'][0])
         self.assertIn('read-only', offered['summary'].lower())
-        self.assertIn('browser', offered['effects'])
-        self.assertIn('writes only the file', offered['effects'])
+        # One effect description (PKG-PRES-RUN10 item 12): the summary says what it writes and that it opens no browser.
+        self.assertIn('browser', offered['summary'])
+        self.assertIn('file you name', offered['summary'])
+        self.assertIn('secret address', offered['effects'])
         self.assertEqual(offered['binding']['object_id'], self.object_id)
         self.assertEqual(sum(action['kind'] == 'companion' for action in actions), 1)
 
