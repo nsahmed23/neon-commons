@@ -479,3 +479,21 @@ class WindowViewTests(unittest.TestCase):
         self.assertIn("Approval window: held: this host's clock reads earlier than a time this operation recorded", lines)
         lines = text(ReviewWordTests.workspace(self, 4, dict(value, status='outcome_unknown'))._surface_summary(160))
         self.assertNotIn('Approval window', lines)
+
+
+class OrderingFactTests(unittest.TestCase):
+    """The store states what a later collection would do to each object's current observation."""
+    from plugin_tests import test_workbench_capture_store as _capture_store
+    setUp = _capture_store.CaptureStoreTests.setUp
+    batch = _capture_store.CaptureStoreTests.batch
+    import_batch = _capture_store.CaptureStoreTests.import_batch
+
+    def test_captures_say_whether_a_later_collection_replaces_them(self):
+        import time
+        now, oid = time.time(), self.ids[0]
+        self.import_batch(self.batch(observed_at=now + 86400))
+        self.assertEqual(self.store.inspect(oid)['next_collection_replaces'], 'any_collection')
+        self.assertIsNone(self.store.inspect(oid)['ordering_service_root'])
+        other = self.ids[1]
+        self.import_batch(self.batch(oid=other, observed_at=now - 7200))
+        self.assertEqual(self.store.inspect(other)['next_collection_replaces'], 'none')

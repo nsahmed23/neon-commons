@@ -378,6 +378,29 @@ ACTION_SUMMARY = {
 }
 
 
+def _collect_cures(facts, service_root):
+    """Whether collecting now from this session's service makes a new observation current, from the store's own
+    ordering fact (next_collection_replaces); the one judgement the band, the actions and the refusals read."""
+    kind = facts.get('next_collection_replaces') if isinstance(facts, dict) else None
+    if service_root is None or kind not in ('same_service', 'any_collection'):
+        return False
+    if kind == 'any_collection':
+        return True
+    return str(Path(str(facts.get('ordering_service_root'))).absolute()) == str(Path(str(service_root)).absolute())
+
+
+def _with_collect_cures(attention, service_root):
+    """A copy of the attention whose stale-observation signal says whether collecting now cures it."""
+    signals = []
+    for signal in attention.get('signals') or []:
+        if isinstance(signal, dict) and signal.get('code') == 'observation_stale':
+            evidence = dict(signal.get('evidence') or {})
+            evidence['collect_cures'] = _collect_cures(evidence, service_root)
+            signal = dict(signal, evidence=evidence)
+        signals.append(signal)
+    return dict(attention, signals=signals)
+
+
 def _stamped_ahead_only(reasons):
     """Whether staleness comes only from a stamp ahead of this host's clock, which collecting again cannot cure."""
     return isinstance(reasons, list) and bool(reasons) and set(reasons) == {'stamped_after_now'}
@@ -494,8 +517,14 @@ def _reason_words(problem):
                 % (problem.get('observed_revision'), problem.get('service_revision')))
     if reason == 'not_fresh':
         reasons = [FRESHNESS_REASON_WORDS.get(item, item) for item in problem.get('freshness_reasons') or []]
+        if ('stamped_after_now' in (problem.get('freshness_reasons') or [])
+                and problem.get('next_collection_replaces') in ('same_service', 'any_collection')):
+            # The store orders its own collections by run, and a capture stamped ahead of its import gives way.
+            return ('the newest observation is not fresh (%s): it is stamped later than this host\'s clock, and a new '
+                    'collection%s becomes current; collect again' % ('; '.join(reasons), ' from the service it came from'
+                    if problem.get('next_collection_replaces') == 'same_service' else ''))
         if 'stamped_after_now' in (problem.get('freshness_reasons') or []):
-            # The store keeps the newest observation by its stamp, so a new collection would not replace this one.
+            # An imported capture is ordered by its capture time, so a new collection would not replace this one.
             return ('the newest observation is not fresh (%s): it reads stale until this host\'s clock passes its time, '
                     'and collecting again now would not replace it' % '; '.join(reasons))
         return 'the newest observation is not fresh (%s); collect again' % ('; '.join(reasons) or 'no reason recorded')
@@ -582,8 +611,10 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
     no_service = None if service_root else {'code': 'service_required', 'message': 'needs --service-root (a modeled '
                                             'service); a headless or scheduled collector can collect instead'}
     stale = found.get('observation_stale') or {}
-    stamped_ahead = _stamped_ahead_only((stale.get('evidence') or {}).get('freshness_reasons'))
-    # An observation stamped ahead of the clock stays the newest whatever is collected now, so collect is not offered.
+    # Staleness only from a stamp ahead of the clock is cured by collecting only where the store's ordering fact says
+    # a new collection from this session's service becomes current (judged once, in _with_collect_cures).
+    stamped_ahead = (_stamped_ahead_only((stale.get('evidence') or {}).get('freshness_reasons'))
+                     and not (stale.get('evidence') or {}).get('collect_cures'))
     if (any(code in found for code in ('collection_failed', 'collection_not_finished'))
             or ('observation_stale' in found and not stamped_ahead)):
         offer('collect', 'Collect again', 'collect', blocked=no_service)
@@ -599,7 +630,8 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               extra={'operation_id': record['operation_id'], 'operation_root': record['operation_root'],
                      'intent_id': record['intent_id']})
     blocked = _proposal_blocker(store, object_id, attention, intent, service_root, eligibility)
-    ahead = _stamped_ahead_only(eligibility.get('freshness_reasons')) if isinstance(eligibility, dict) else False
+    ahead = (_stamped_ahead_only(eligibility.get('freshness_reasons')) and not _collect_cures(eligibility, service_root)
+             if isinstance(eligibility, dict) else False)
     if ((blocked or {}).get('reason') in RECOLLECT_REASONS and not ahead
             and not any(action['kind'] == 'collect' for action in actions)):
         # The proposal's own check names collecting again as the fix, even when nothing recorded says so yet.
@@ -634,8 +666,8 @@ def _inspection(store, object_id, *, attention=False, service_available=False, s
     scope = intent['data']['scope'] if intent else None
     writer = ownership(store, object_id, scope)
     if attention:
-        found = _attention(store, object_id)
         service = None if service_root is None else str(service_root)
+        found = _with_collect_cures(_attention(store, object_id), service)
         eligibility = _eligibility(store, object_id, service, observation=value)
         states = _states(value, intent, found, eligibility)
         # Shortened identities on every surface use these, never an assumed-unique first eight characters.

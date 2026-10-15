@@ -80,13 +80,24 @@ def _freshness(observed, failed):
                 if observed.get('observed_at') else
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
     step = 'Collect again (:collect) before preparing or judging a change.'
-    if 'stamped_after_now' in reasons:
-        # The newest observation is kept by its stamp, so collecting again would not replace it.
+    replaces = observed.get('next_collection_replaces')
+    if 'stamped_after_now' in reasons and replaces == 'same_service':
+        # The store orders its own collections from one service by run, not by stamp (workbench_store).
+        step = ('Collect again (:collect) from the modeled service it came from (%s): the store orders its own '
+                'collections by run, so the new one becomes current. Or correct the host clock.'
+                % observed.get('ordering_service_root'))
+    elif 'stamped_after_now' in reasons and replaces == 'any_collection':
+        step = ('Collect again (:collect): this capture was stamped later than the store\'s clock when it was '
+                'imported, so the next collection becomes current. Or correct the host clock.')
+    elif 'stamped_after_now' in reasons:
+        # An imported capture is ordered by its capture time, so a new collection would not replace it.
         step = ("It stays stale until this host's clock passes %s; collecting again now would not replace it as the "
                 'newest. Wait, or correct the host clock.' % readable_time(observed.get('observed_at')))
     return [_signal('freshness', 'observation_stale', sentence, step,
                     {'snapshot_id': observed.get('snapshot_id'), 'observed_at': observed.get('observed_at'),
-                     'freshness_checked_at': observed.get('freshness_checked_at'), 'freshness_reasons': reasons})], 'attention'
+                     'freshness_checked_at': observed.get('freshness_checked_at'), 'freshness_reasons': reasons,
+                     'next_collection_replaces': replaces,
+                     'ordering_service_root': observed.get('ordering_service_root')})], 'attention'
 
 
 def _operation_records(store, object_id):

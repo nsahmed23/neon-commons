@@ -248,6 +248,8 @@ def proposal_eligibility(store_root, service_root, object_id, *, observation=Non
     latest = observation.get('last_attempt') if isinstance(observation.get('last_attempt'), dict) else {}
     return {'code': problem, 'reason': reason, 'observed_revision': observation.get('source', {}).get('service_revision'),
             'service_revision': snapshot['revision'], 'freshness_reasons': list(observation.get('freshness_reasons') or []),
+            'next_collection_replaces': observation.get('next_collection_replaces'),
+            'ordering_service_root': observation.get('ordering_service_root'),
             'last_attempt_status': latest.get('status')}
 
 

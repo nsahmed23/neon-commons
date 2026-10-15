@@ -622,7 +622,19 @@ class WorkbenchStore:
         # Each condition that makes the observation stale is kept by name, so a reader can say which held.
         reasons = ((['later_collection_not_complete'] if last_good else []) + (['older_than_window'] if age>max_age_seconds else [])
                    + (['stamped_after_now'] if row['observed_at']>now else []))
+        # What a later collection would do to this current observation, by the ordering rule of _publish: from the
+        # same modeled service it becomes current (same_service); a capture stamped later than this store's clock
+        # at its import gives way to any own collection (any_collection); otherwise an imported capture is
+        # ordered by its capture time (none). Consumers judge staleness cures from this, never from a stamp.
+        domain = row['domain'] if self.schema_version == 2 else None
+        if domain and domain.startswith('model:'):
+            replaces, ordering_root = 'same_service', domain[len('model:'):]
+        elif domain and object_success is not None and row['observed_at'] > object_success['started_at']:
+            replaces, ordering_root = 'any_collection', None
+        else:
+            replaces, ordering_root = 'none', None
         obj.update(last_attempt=self._run(object_attempt,db),last_success=self._run(object_success,db),
+            next_collection_replaces=replaces,ordering_service_root=ordering_root,
             retained_last_good=last_good,age_seconds=age,
             freshness='stale' if reasons else 'fresh',freshness_reasons=reasons,freshness_window_seconds=max_age_seconds,
             freshness_checked_at=_iso(now),health=health)

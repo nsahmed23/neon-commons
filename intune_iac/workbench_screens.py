@@ -172,8 +172,12 @@ def _band_forms(primary, prefixes=None):
                 '! Repository %s. Refresh the intent (a: actions)' % short, ('! Repo changed. Refresh (a actions)' if code == 'repository_stale' else '! Consumer changed. Refresh (a actions)')]
     if code == 'repository_unavailable':
         return ['! Repository intent cannot be read. 9: repository, i: details', '! Repository unreadable. 9: repository']
+    if 'stamped_after_now' in (evidence.get('freshness_reasons') or []) and evidence.get('collect_cures'):
+        # The read model judged that a new collection from this session's service becomes current.
+        return ["! Observation stamped after this host's clock. Next: Collect again (a: actions)",
+                '! Stamped ahead of the clock. Collect again (a: actions)', '! Stamped ahead. Collect (a actions)']
     if 'stamped_after_now' in (evidence.get('freshness_reasons') or []):
-        # Collecting again would not replace an observation stamped ahead of this host's clock as the newest.
+        # Not cured by collecting now from this session's service (an imported capture keeps its capture time).
         return ["! Observation stamped after this host's clock; stale until the clock passes it. i: details",
                 '! Observation stamped ahead of the clock. i: details', '! Stamped ahead of clock. i: details']
     return ['! Observation stale. Next: Collect again (a: actions)', '! Observation stale. Collect (a actions)']

@@ -623,3 +623,70 @@ class IdentityPrefixTests(unittest.TestCase):
         from intune_iac.workbench import _inspection
         value = _inspection(self.store, self.twin, attention=True)
         self.assertEqual(value['identity_prefixes'][self.twin], self.twin[:self.length])
+
+
+class StampedAheadTests(unittest.TestCase):
+    """An observation stamped ahead of the clock: whether collecting now cures it is one engine fact, read the same way
+    by the band, the actions, the proposal refusal and diagnostics (TASK-13 section 4)."""
+    setUp = ActionReadModelTests.setUp
+    inspection = ActionReadModelTests.inspection
+
+    def stamp_ahead(self):
+        import time
+        self.store.collect(self.service, observed_at=time.time() + 900)
+
+    def test_the_store_states_what_a_later_collection_would_do(self):
+        self.stamp_ahead()
+        observed = self.store.inspect(OBJECT)
+        self.assertIn('stamped_after_now', observed['freshness_reasons'])
+        self.assertEqual(observed['next_collection_replaces'], 'same_service')
+        self.assertEqual(observed['ordering_service_root'], str(self.service.root))
+
+    def test_collect_is_offered_when_it_cures_and_a_new_collection_becomes_current(self):
+        self.stamp_ahead()
+        value = self.inspection()
+        stale = next(signal for signal in value['attention']['signals'] if signal['code'] == 'observation_stale')
+        self.assertTrue(stale['evidence']['collect_cures'])
+        actions = {action['kind']: action for action in value['actions']}
+        self.assertTrue(actions['collect']['available'])
+        self.store.collect(self.service)
+        self.assertEqual(self.store.inspect(OBJECT)['freshness'], 'fresh')
+
+    def test_collect_is_not_offered_from_another_service(self):
+        from intune_iac.modeled_service import ModeledService
+        from intune_iac.workbench import _inspection
+        self.stamp_ahead()
+        capture = json.loads((repository_tests.ROOT / 'examples/supported/input/export.json').read_text())
+        other = ModeledService.create(self.root / 'other service', capture, [OBJECT])
+        value = _inspection(self.store, OBJECT, attention=True, service_available=True, service_root=other.root)
+        stale = next(signal for signal in value['attention']['signals'] if signal['code'] == 'observation_stale')
+        self.assertFalse(stale['evidence']['collect_cures'])
+        self.assertNotIn('collect', {action['kind'] for action in value['actions']})
+
+    def test_the_band_says_collect_again_only_when_it_cures(self):
+        from intune_iac.workbench_screens import _band_forms
+        cured = _band_forms({'code': 'observation_stale', 'evidence': {'freshness_reasons': ['stamped_after_now'],
+                                                                       'collect_cures': True}})
+        self.assertEqual(cured[0], "! Observation stamped after this host's clock. Next: Collect again (a: actions)")
+        self.assertTrue(all(len(form) <= 40 for form in cured[-1:]))
+        stuck = _band_forms({'code': 'observation_stale', 'evidence': {'freshness_reasons': ['stamped_after_now'],
+                                                                       'collect_cures': False}})
+        self.assertIn('stale until the clock passes it', stuck[0])
+
+    def test_the_refusal_and_diagnostics_words_follow_the_fact(self):
+        from intune_iac.workbench import _reason_words
+        from intune_iac.workbench_diagnostics import _freshness
+        text = _reason_words({'reason': 'not_fresh', 'freshness_reasons': ['stamped_after_now'],
+                              'next_collection_replaces': 'same_service'})
+        self.assertIn('a new collection from the service it came from becomes current; collect again', text)
+        self.assertNotIn('would not replace', text)
+        base = {'observed_at': '2026-10-14T22:40:01Z', 'freshness': 'stale', 'freshness_reasons': ['stamped_after_now'],
+                'freshness_checked_at': '2026-10-14T22:36:01Z', 'snapshot_id': 'b' * 64}
+        same = _freshness(dict(base, next_collection_replaces='same_service', ordering_service_root='/work/service'),
+                          False)[0][0]
+        self.assertIn('Collect again (:collect) from the modeled service it came from (/work/service)', same['next_step'])
+        self.assertEqual(same['evidence']['next_collection_replaces'], 'same_service')
+        capture = _freshness(dict(base, next_collection_replaces='any_collection'), False)[0][0]
+        self.assertIn('stamped later than the store', capture['next_step'])
+        kept = _freshness(dict(base, next_collection_replaces='none'), False)[0][0]
+        self.assertIn('collecting again now would not replace it', kept['next_step'])
