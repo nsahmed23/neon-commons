@@ -72,3 +72,41 @@ class ShellFormTests(unittest.TestCase):
         from intune_iac.companion_page import COMPANION_SERVE, COMPANION_WRITE
         self.assertTrue(COMPANION_WRITE.startswith('intune-iac workbench companion '), COMPANION_WRITE)
         self.assertTrue(COMPANION_SERVE.startswith('intune-iac workbench companion '), COMPANION_SERVE)
+
+
+class RepositoryVerdictTests(Proposed):
+    """Item 3 (run11-3): the repository's no-change verdict names the two sides the code compares.
+
+    workbench_repository.intent_freshness compares the recorded intent's desired body with the repository's value
+    now at the intent pointer (field_changes(data['desired'], desired_now)). No observation takes part.
+    """
+
+    def status(self):
+        from intune_iac.workbench_repository import intent_freshness
+        intent = self.import_intent()
+        (self.repo / 'components/terraform/intune-reference/override.tf').write_text('output "x" {\n  value = 1\n}\n')
+        fresh = intent_freshness(intent['data'])
+        self.assertEqual((fresh['status'], fresh['field_changes']['status']), ('stale', 'no_change'))
+        return {'freshness': fresh, 'scope': intent['data']['scope'], 'repository_intent_id': intent['artifact_id']}
+
+    def rows(self, width=118):
+        from intune_iac.workbench_screens import repository_lines
+        return repository_lines(self.status(), width)
+
+    def test_the_heading_and_the_verdict_name_the_recorded_intent_and_the_repository(self):
+        rows = self.rows()
+        text = ' '.join(' '.join(rows).split())
+        self.assertIn('RECORDED INTENT AGAINST THE REPOSITORY NOW', rows)
+        self.assertIn("NO CONFIGURATION CHANGE The recorded intent's desired body equals the repository's body now at the "
+                      "intent pointer, under the execution plan's equality.", text)
+        self.assertIn('The observation is not part of this comparison.', text)
+
+    def test_a_repository_verdict_never_speaks_of_the_observed_body_or_sits_under_the_old_heading(self):
+        rows = self.rows()
+        self.assertNotIn('DESIRED POLICY AT THE INTENT POINTER', rows)
+        self.assertNotIn('observed body', ' '.join(rows))
+
+    def test_the_plan_review_keeps_its_desired_against_observed_verdict(self):
+        from intune_iac.workbench_screens import change_lines
+        text = ' '.join(change_lines({'status': 'no_change', 'changes': []}, 118))
+        self.assertIn('The desired body equals the observed body under the execution plan', text)

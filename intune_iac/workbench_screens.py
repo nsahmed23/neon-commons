@@ -957,16 +957,22 @@ def baseline_words(baseline):
     return text
 
 
-def change_lines(changes, width, before_label='BEFORE (observed)', after_label='AFTER (desired)', remainder=None):
+PLAN_SAME = 'The desired body equals the observed body under the execution plan\'s equality.'
+# What repository status compares (workbench_repository.intent_freshness): the recorded intent against the repository now.
+REPOSITORY_SAME = ('The recorded intent\'s desired body equals the repository\'s body now at the intent pointer, under the '
+                   'execution plan\'s equality. The observation is not part of this comparison.')
+
+
+def change_lines(changes, width, before_label='BEFORE (observed)', after_label='AFTER (desired)', remainder=None,
+                 same=PLAN_SAME):
     """A field-change list as a table (wide) or stacked before and after rows (narrow).
 
     A comparison cut at its limit says so. ``remainder`` names where the complete bodies are, for callers whose
-    result holds them; without it nothing beyond the cut is claimed.
+    result holds them; without it nothing beyond the cut is claimed. ``same`` names the two sides when they are equal.
     """
     status = changes.get('status') if isinstance(changes, dict) else None
     if status == 'no_change':
-        return ['NO CONFIGURATION CHANGE'] + word_wrap(
-            'The desired body equals the observed body under the execution plan\'s equality.', width)
+        return ['NO CONFIGURATION CHANGE'] + word_wrap(same, width)
     if status != 'changed':
         lines = ['CHANGE COMPARISON UNKNOWN']
         for blocker in (changes.get('blockers', []) if isinstance(changes, dict) else []):
@@ -3290,8 +3296,10 @@ def repository_lines(status, width, prefixes=None, next_step=True):
             for path in sources.get(kind, []):
                 lines += word_wrap('  ' + label + str(path), width)
         if isinstance(freshness.get('field_changes'), dict):
-            lines.append('DESIRED POLICY AT THE INTENT POINTER')
-            lines += change_lines(freshness['field_changes'], width, 'BEFORE (recorded intent)', 'AFTER (repository now)')
+            # The comparison the code makes: the recorded intent's desired body against the repository's value now.
+            lines.append('RECORDED INTENT AGAINST THE REPOSITORY NOW')
+            lines += change_lines(freshness['field_changes'], width, 'BEFORE (recorded intent)', 'AFTER (repository now)',
+                                  same=REPOSITORY_SAME)
         elif freshness.get('pointer_present') is False:
             lines += word_wrap('The intent pointer no longer resolves in the repository.', width)
     elif state == 'unavailable':
