@@ -85,8 +85,8 @@ class OneWordOneMeaningTests(MapTruth):
             header = next(line for line in self.rows(graph)[0] if line.startswith('[MAP]'))
             self.assertEqual(header, '[MAP] one hop | %d relationship%s, %d repositor%s' % (
                 relationships, '' if relationships == 1 else 's', repositories, 'y' if repositories == 1 else 'ies'))
-            tree = next(line for line in relationship_lines(value, 100, 'unicode') if ' edges |' in line or ' edge |' in line)
-            self.assertTrue(tree.startswith('%d edge' % relationships), (tree, header))
+            tree = next(line for line in relationship_lines(value, 100, 'unicode') if '| coverage' in line)
+            self.assertTrue(tree.startswith(header.replace('[MAP] one hop | ', '') + ' | coverage'), (tree, header))
 
     def test_frame_21s_policy_reads_seven_relationships_and_one_repository(self):
         header = next(line for line in self.rows(self.graph(states={self.object_id: 'expired'}, freshness='fresh'))[0]

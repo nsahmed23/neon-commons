@@ -1662,8 +1662,10 @@ def relationship_lines(value, width, rules='ascii'):
     lines = ['[TYPED RELATIONSHIPS]']
     edges = [edge for edge in value.get('relationships') or [] if isinstance(edge, dict)]
     lines += word_wrap('%s (%s)' % (value.get('name', '(no name)'), value.get('object_id', 'unknown')), width)
-    lines += word_wrap('%d edges | coverage %s | observed %s' % (
-        len(edges), value.get('coverage', 'unknown'), readable_time(value.get('observed_at')) or 'unknown'), width)
+    # The same words as the map's header: a selected repository is listed in the tree but is not a relationship.
+    from .graph_projection import count_phrase, counts_of
+    lines += word_wrap('%s | coverage %s | observed %s' % (
+        count_phrase(counts_of(value)), value.get('coverage', 'unknown'), readable_time(value.get('observed_at')) or 'unknown'), width)
     if not edges:
         lines.append('No typed relationships in this result.')
     repository = value.get('selected_repository')

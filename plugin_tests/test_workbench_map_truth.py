@@ -151,7 +151,8 @@ class CountTests(MapTruth):
         self.assertIn('7 relationships, 1 repository', header)
         self.assertNotIn('8 edges', header)
         from intune_iac.workbench_screens import relationship_lines
-        self.assertTrue(any('7 edges' in line for line in relationship_lines(self.value, 100, 'unicode')))
+        self.assertTrue(any(line.startswith('7 relationships, 1 repository | coverage')
+                            for line in relationship_lines(self.value, 100, 'unicode')))
         none = dict(self.value, relationships=[], selected_repository=None)
         self.assertIn('0 relationships, 0 repositories', next(line for line in self.rows(self.graph(none))[0] if line.startswith('[MAP]')))
 

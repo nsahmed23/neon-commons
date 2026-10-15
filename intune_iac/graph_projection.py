@@ -179,20 +179,32 @@ def project(value, *, names=None, states=None, freshness=None):
             'excluded': excluded,
             # What the read model listed (the tree's own count) and what the selection added, apart, so a header cannot
             # disagree with the tree: the repository the engineer selected is not a listed relationship.
-            'counts': {'relationships': sum(isinstance(edge, dict) for edge in value.get('relationships') or []),
-                       'repositories': sum(edge['_origin'] == 'selection' for edge in edges)}}
+            'counts': counts_of(value)}
     revision = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
                                          allow_nan=False).encode('utf-8')).hexdigest()
     return dict(body, revision=revision)
 
 
-def count_words(graph):
-    """The header's counts in words: the relationships the read model lists and, apart, the repositories the engineer
-    selected. One sentence for the terminal map and the page, so neither can count what the other does not."""
-    counts = graph.get('counts') or {'relationships': len(graph['edges']), 'repositories': 0}
+def counts_of(value):
+    """What the read model listed and what the selection added, apart: the relationships it lists and the repository
+    the engineer selected (a selected repository with a scope is one, never a listed relationship). The one place that
+    counts, for the graph, the map's header and the typed tree's header."""
+    repository = value.get('selected_repository')
+    return {'relationships': sum(isinstance(edge, dict) for edge in value.get('relationships') or []),
+            'repositories': 1 if isinstance(repository, dict) and isinstance(repository.get('scope'), dict) else 0}
+
+
+def count_phrase(counts):
+    """Counts in words: `7 relationships, 1 repository`."""
     relationships, repositories = counts['relationships'], counts['repositories']
     return '%d %s, %d %s' % (relationships, 'relationship' if relationships == 1 else 'relationships',
                              repositories, 'repository' if repositories == 1 else 'repositories')
+
+
+def count_words(graph):
+    """The header's counts in words: the relationships the read model lists and, apart, the repositories the engineer
+    selected. One sentence for the terminal map, the typed tree and the page, so none can count what another does not."""
+    return count_phrase(graph.get('counts') or {'relationships': len(graph['edges']), 'repositories': 0})
 
 
 def drawn_layers(graph, per_layer=None):

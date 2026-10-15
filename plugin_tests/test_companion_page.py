@@ -606,8 +606,8 @@ class TruthTests(Fixture):
         self.assertIn('7 relationships, 1 repository', summary)
         self.assertNotIn('8 edges', summary)
         tree_header = [line for line in __import__('intune_iac.workbench_screens', fromlist=['x']).relationship_lines(self.value, 100, 'unicode')
-                       if 'edges |' in line][0]
-        self.assertIn('7 edges', tree_header)
+                       if '| coverage' in line][0]
+        self.assertIn('7 relationships, 1 repository', tree_header)
         one = dict(self.value, relationships=self.value['relationships'][:1], selected_repository=None)
         self.assertIn('1 relationship, 0 repositories', section(self.page(one), 'summary'))
 
