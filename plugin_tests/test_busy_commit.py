@@ -44,6 +44,28 @@ def reading(database):
         connection.close()
 
 
+@contextmanager
+def busy_after_open_commit(database, nth=1):
+    """Install the busy reader at the moment the shared section has committed its open judgment (the nth time) and is about
+    to hand the caller its own transaction: the caller's work is then active, and only its commit meets the reader. A reader
+    installed before the section is entered fails the open judgment's own commit instead, which is a different (earlier)
+    refusal and never reaches the caller's commit."""
+    real, state = validity._sync, {'calls': 0, 'reader': None}
+
+    def after_the_open_commit(root):
+        real(root)
+        state['calls'] += 1
+        if state['calls'] == nth and state['reader'] is None:
+            state['reader'] = reading(database)
+            state['reader'].__enter__()
+    try:
+        with patch.object(validity, '_sync', side_effect=after_the_open_commit):
+            yield
+    finally:
+        if state['reader'] is not None:
+            state['reader'].__exit__(None, None, None)
+
+
 class Harness(unittest.TestCase):
     def test_a_reader_with_an_open_statement_makes_a_zero_timeout_commit_fail_busy_and_leaves_the_transaction_open(self):
         import tempfile
@@ -104,6 +126,41 @@ class ApprovalAuthorityBusyTests(BusyAssertions, unittest.TestCase):
         self.assertGreaterEqual(section.call_count, 2)
         self.assertEqual(len(self.consumed()), 1)
 
+    def test_consumption_that_cannot_commit_in_the_callers_own_transaction_is_refused_with_nothing_consumed(self):
+        # The busy reader arrives after the open judgment's commit, while the consumption's transaction is active, so it is
+        # the consumption's own commit that fails and must be a refusal.
+        signed = self.signed
+        authorization = self.authorize(signed)
+        with busy_after_open_commit(self.database(), nth=3):  # the sections are: two checks on entry, then the consumption
+            with self.assertRaises(AppError) as raised:
+                with authorization:
+                    self.fail('the approval was consumed although the commit failed')
+        self.assertEqual(raised.exception.code, 'approval_consumption_not_durable')
+        self.assertEqual(self.consumed(), [])
+        self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
+        self.assert_rolled_back(self.authority.root)
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(0,)])
+        with self.entered_sections() as section:
+            with self.authorize(signed):  # the retry authenticates again and consumes inside the full section
+                pass
+        self.assertGreaterEqual(section.call_count, 2)
+        self.assertEqual(len(self.consumed()), 1)
+
+    def test_a_dispatch_marker_that_cannot_commit_in_the_callers_own_transaction_is_refused_and_recorded_nowhere(self):
+        with self.assertRaises(RuntimeError):
+            with self.authorize(self.signed) as permit:
+                with busy_after_open_commit(self.database(), nth=3):  # the sections are: two checks, then the dispatch marker
+                    with self.assertRaises(AppError) as raised:
+                        permit.mark_dispatch()
+                self.assertEqual(raised.exception.code, 'approval_dispatch_not_durable')
+                self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
+                self.assert_rolled_back(self.authority.root)
+                with self.entered_sections() as section:
+                    permit.mark_dispatch()
+                self.assertGreaterEqual(section.call_count, 1)
+                self.assertEqual(len(rows(self.authority, 'SELECT * FROM executions')), 1)
+                raise RuntimeError('stop')
+
     def test_a_dispatch_marker_that_cannot_commit_is_refused_and_a_retry_reenters_the_section(self):
         with self.assertRaises(RuntimeError):
             with self.authorize(self.signed) as permit:
@@ -153,6 +210,34 @@ class AdoptionBusyTests(BusyAssertions, adoption_tests.AdoptionFixture):
             self.assertEqual(self.run_job(signed)['status'], 'modeled-dispatch')
         self.assertGreaterEqual(section.call_count, 2)  # the verification judgment and the final consumption
         self.assertEqual(self.job_row(), ('running', 0, 1))
+
+    def test_consumption_that_cannot_commit_in_the_callers_own_transaction_is_refused_after_the_baseline_observation(self):
+        # The second section (the consumption) commits its open judgment; the busy reader arrives then. The baseline
+        # observation before it has happened, and nothing is consumed, transcribed or dispatched.
+        signed = self.receipt()
+        self.clocks.wall = self.start + 10
+        with busy_after_open_commit(self.policy.database, nth=2):
+            error = self.refused(lambda: self.run_job(signed))
+        self.assertEqual(error.code, 'service_store_unavailable')
+        self.assert_nothing_happened()
+        self.assertEqual(self.observations, ['baseline'])  # only the read-only observation that precedes the commit
+        self.assert_rolled_back(self.policy.root)
+        self.assert_anchors_are_this_readings()
+        with self.entered_sections() as section:
+            self.assertEqual(self.run_job(signed)['status'], 'modeled-dispatch')
+        self.assertGreaterEqual(section.call_count, 2)
+        self.assertEqual(self.job_row(), ('running', 0, 1))
+
+    def test_a_verification_dispatch_marker_that_cannot_commit_in_the_callers_own_transaction_is_refused(self):
+        self.ready()
+        with busy_after_open_commit(self.policy.database):
+            error = self.refused(self.verify)
+        self.assertEqual(error.code, 'service_store_unavailable')
+        self.assertEqual(self.phase(), (0, 'not_started'))
+        self.assert_rolled_back(self.policy.root)
+        with self.entered_sections():
+            self.assertEqual(self.verify()['status'], 'modeled-dispatch')
+        self.assertEqual(self.phase(), (1, 'running'))
 
     def test_a_verification_dispatch_marker_that_cannot_commit_is_refused_and_a_retry_reenters_the_section(self):
         self.ready()
