@@ -191,5 +191,73 @@ class ViewportCutTests(MapTruth):
         self.assertIn('Left/Right pan: showing 1-56 of 75, states at 63.', text)
 
 
+class KeyLineTests(MapTruth):
+    """Item 3: as the width shrinks the key line gives up b back before a actions and Enter."""
+    FIRST_WORD = {'?': 'help', 'a': 'actions', ':': 'command', 'Up/Down': 'move', 'Home': 'edge', 'Left/Right': 'pan',
+                  'Enter': 'inspect', 'b': 'back', 'q': 'exit'}
+
+    def keys_named(self, line):
+        return {self.FIRST_WORD[part.split(' ')[0]] for part in line.split(' | ')}
+
+    def test_back_goes_before_actions_and_enter_at_every_width(self):
+        from intune_iac.workbench_tui import help_line
+        for inspect in (True, False):
+            for pan in (True, False):
+                for width in range(60, 141):
+                    line = help_line(width, map_keys=True, inspect=inspect, pan=pan)
+                    named = self.keys_named(line)
+                    place = (width, inspect, pan, line)
+                    if 'back' in named:
+                        self.assertIn('actions', named, place)
+                        self.assertEqual('inspect' in named, inspect, place)
+                    self.assertEqual('pan' in named, pan, place)
+
+    def test_a_narrower_width_only_ever_gives_up_keys(self):
+        from intune_iac.workbench_tui import help_line
+        for inspect in (True, False):
+            for pan in (True, False):
+                previous = None
+                for width in range(140, 59, -1):
+                    named = self.keys_named(help_line(width, map_keys=True, inspect=inspect, pan=pan))
+                    if previous is not None:
+                        self.assertLessEqual(named, previous, (width, inspect, pan))
+                    previous = named
+
+    def test_at_60_columns_the_line_names_actions_enter_and_left_right_where_they_work(self):
+        from intune_iac.workbench_tui import help_line
+        line = help_line(60, map_keys=True)
+        self.assertLessEqual(len(line), 60)
+        for key in ('a actions', 'Enter inspect', 'Left/Right', 'q exit', '? help'):
+            self.assertIn(key, line)
+        self.assertNotIn('b back', line)
+        no_route = help_line(60, map_keys=True, inspect=False)
+        self.assertNotIn('Enter', no_route)
+        self.assertIn('a actions', no_route)
+        self.assertIn('Left/Right', no_route)
+        no_pan = help_line(60, map_keys=True, pan=False)
+        self.assertNotIn('Left/Right', no_pan)
+        self.assertIn('a actions', no_pan)
+        self.assertIn('Enter inspect', no_pan)
+
+    def test_the_60x20_frame_names_the_keys_that_work_for_the_focused_node(self):
+        ws = self.workspace((60, 20))
+        last = self.plain(ws)[-1]
+        for key in ('a actions', 'Enter inspect', 'Left/Right'):
+            self.assertIn(key, last)
+        # Focus on a node with no inspect route: Enter is no longer named, the others stay.
+        ws.map_focus, ws.follow_focus = ws._map_nodes()[1], True
+        last = self.plain(ws)[-1]
+        self.assertNotIn('Enter', last)
+        for key in ('a actions', 'Left/Right'):
+            self.assertIn(key, last)
+        self.assertFalse(ws._map_focus_inspectable())
+
+    def test_a_hazard_key_still_leads_and_the_wide_line_is_unchanged(self):
+        from intune_iac.workbench_tui import MAP_HELP_LINES, help_line
+        self.assertEqual(help_line(140, map_keys=True), MAP_HELP_LINES[0])
+        self.assertIn('a actions', help_line(100, lead=('a actions',), map_keys=True))
+        self.assertTrue(help_line(60, lead=('a actions',), map_keys=True).startswith('? help | a actions'))
+
+
 if __name__ == '__main__':
     unittest.main()

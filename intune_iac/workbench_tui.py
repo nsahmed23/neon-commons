@@ -314,16 +314,21 @@ def page_filters(page_command):
     return limit, {key: value for key, value in zip(keys, parts[3:]) if value != '-'}
 
 
-# The key line while a relationship map is shown: the map's own keys, by the width that holds them. Every form but the
-# last names Left/Right, the keys of the pane's horizontal viewport.
+# The key line while a relationship map is shown: the map's own keys, by the width that holds them, ranked by what a
+# reader loses least. As the width shrinks a form only ever gives up keys, never swaps one for another: ": command", then
+# "Home edge", then the words after Up/Down and Left/Right, then "b back" (the numbered tabs, named in the strip, and
+# "q exit" still leave the surface), then Up/Down, Left/Right, Enter. "a actions" (the only route to the companion and
+# the other actions) and Enter outlast "b back". help_line removes the keys with no work behind them from every form
+# (Enter without an inspect route, Left/Right without a pan), so a key is named only where it works.
 MAP_HELP_LINES = ('? help | a actions | : command | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
                   '? help | a actions | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
-                  '? help | Up/Down node | Home edge | Left/Right pan | Enter inspect | b back | q exit',
-                  '? help | Up/Down node | Left/Right pan | Enter inspect | b back | q exit',
-                  '? help | Up/Down | Left/Right pan | Enter inspect | b back | q exit',
-                  '? help | Up/Down | Left/Right | b back | q exit',
-                  '? help | Left/Right | b back | q exit',
-                  '? help | b back | q exit')
+                  '? help | a actions | Up/Down node | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | a actions | Up/Down | Left/Right pan | Enter inspect | b back | q exit',
+                  '? help | a actions | Up/Down | Left/Right | Enter inspect | q exit',
+                  '? help | a actions | Left/Right | Enter inspect | q exit',
+                  '? help | a actions | Enter inspect | q exit',
+                  '? help | a actions | q exit',
+                  '? help | q exit')
 
 
 def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan=True):
