@@ -105,6 +105,31 @@ def _record_expiry_of(job, receipt):
     except (AppError, OSError): pass
 
 
+def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, expired_code):
+    """Record the reached expiry of a recovery approval whose verification just refused it on the bare clock.
+
+    The verification of a recovery approval (lease, committed-state, adoption and adoption-plan lease recovery) judges
+    the window on the bare wall clock ahead of everything else, and the original job's store is the only durable home
+    these approvals have. The receipt is authenticated again with the clock pinned to its own issue time, so that only
+    the window is left out; if it authenticates, its window is judged in the shared section and a reached expiry is
+    recorded. A receipt that does not authenticate records nothing, so such input cannot grow the store or move the
+    recorded time. Whatever this section refuses is the same closed window the caller is about to report."""
+    try:
+        payload = recovery_policy._verified(manifest, signed, signed['payload']['issued_at'])
+    except (AppError, OSError, KeyError, TypeError): return
+    _record_expiry(store, payload, digest(manifest), None, table=RECOVERY_EXPIRED_TABLE, fail=fail, expired_code=expired_code)
+
+
+def _window_open(store, payload, manifest_sha256, deadline, *, fail, expired_code):
+    """The recovery approval's window judged once more, read-only, after its dispatch reservation committed and before
+    the lease request is sent: the refusal the bare-clock check used to make there, now on the recorded time and this
+    process's monotonic deadline (see _watch). It can only refuse; the reservation section is what authorizes."""
+    with store.connection() as db:
+        latched = _latched(db, payload, RECOVERY_EXPIRED_TABLE)
+    _watch(store, payload, manifest_sha256, deadline, latched, fail=fail, expired_code=expired_code,
+           table=RECOVERY_EXPIRED_TABLE)
+
+
 _AUTHORIZATIONS = 'service_authorizations'
 _AUTHORIZATIONS_SQL = ('CREATE TABLE IF NOT EXISTS ' + _AUTHORIZATIONS + ' (operation_id TEXT NOT NULL, phase TEXT NOT NULL, '
     'authorizations INTEGER NOT NULL, last_authorized_at INTEGER NOT NULL, PRIMARY KEY(operation_id, phase))')

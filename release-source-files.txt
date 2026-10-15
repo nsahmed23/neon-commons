@@ -915,6 +915,7 @@ plugin_tests/test_qualification_tools_r4.py
 plugin_tests/test_queue_reporting_scope_r4.py
 plugin_tests/test_readiness.py
 plugin_tests/test_reconciliation.py
+plugin_tests/test_recovery_expiry_latch.py
 plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
 plugin_tests/test_release_transfer_r4.py
