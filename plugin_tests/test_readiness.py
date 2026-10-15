@@ -17,12 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 TENANT = '11111111-1111-4111-8111-111111111111'
 OTHER_TENANT = '44444444-4444-4444-8444-444444444444'
 FAKE_SECRET = 'FAKE-SECRET-VALUE-8f3a91c2d47e5b60a1c9'
-OPERATIONS = ('inspect', 'prepare', 'adopt', 'change')
+OPERATIONS = ('inspect', 'discover', 'adopt', 'change')
 ROW_IDS = ('mode_goal', 'tools_host', 'repository', 'integration_service', 'iac_target', 'backend',
            'execution_route', 'secret_input')
 NEEDS = {
     'inspect': {'mode_goal', 'tools_host'},
-    'prepare': {'mode_goal', 'tools_host', 'integration_service', 'secret_input'},
+    'discover': {'mode_goal', 'tools_host', 'integration_service', 'secret_input'},
     'adopt': {'mode_goal', 'tools_host', 'repository', 'integration_service', 'iac_target', 'backend', 'secret_input'},
     'change': set(ROW_IDS),
 }
@@ -198,7 +198,7 @@ class ReadinessTests(unittest.TestCase):
 
     def test_an_unsupported_host_profile_names_the_gap_and_has_no_native_route(self):
         value = self.full(host=host_report(unsupported=('protected_worker', 'graph_observer')))
-        for operation in ('prepare', 'adopt', 'change'):
+        for operation in ('discover', 'adopt', 'change'):
             row = rows_of(value, operation)['tools_host']
             self.assertEqual(row['state'], 'missing', operation)
             self.assertIn('linux', ' '.join(row['missing']))
@@ -207,7 +207,7 @@ class ReadinessTests(unittest.TestCase):
 
     def test_a_live_looking_context_with_no_authentication(self):
         value = self.full(context_item())
-        for operation in ('prepare', 'adopt', 'change'):
+        for operation in ('discover', 'adopt', 'change'):
             row = rows_of(value, operation)['integration_service']
             self.assertTrue(row['needed'])
             self.assertEqual(row['state'], 'missing', operation)
@@ -223,14 +223,14 @@ class ReadinessTests(unittest.TestCase):
 
     def test_the_same_with_a_source_asserted_identity(self):
         value = self.full(context_item(), export_item())
-        row = rows_of(value, 'prepare')['integration_service']
+        row = rows_of(value, 'discover')['integration_service']
         self.assertEqual(row['state'], 'missing')
         self.assertEqual(row['detected']['identity_evidence'], ['no_live_connection', 'source_asserted_not_authenticated'])
         self.assertIn('asserted by a file', ' '.join(row['missing']))
-        self.assertNotEqual(value['operations']['prepare']['status'], 'ready')
+        self.assertNotEqual(value['operations']['discover']['status'], 'ready')
 
     def test_no_tenant_at_all_asks_the_engineer_for_a_context(self):
-        row = rows_of(self.full(), 'prepare')['integration_service']
+        row = rows_of(self.full(), 'discover')['integration_service']
         self.assertEqual(row['state'], 'missing')
         self.assertEqual(row['owner_role'], 'engineer')
         self.assertIn('context JSON', row['next_action'])
@@ -239,7 +239,7 @@ class ReadinessTests(unittest.TestCase):
     def test_a_sign_in_word_the_product_never_produces_is_not_trusted(self):
         item = context_item(); item['states'] = states('authenticated')
         value = self.full(item)
-        for operation in ('prepare', 'adopt', 'change'):
+        for operation in ('discover', 'adopt', 'change'):
             self.assertEqual(rows_of(value, operation)['integration_service']['state'], 'unknown', operation)
 
     # the inspect operation and truthfulness
@@ -307,9 +307,9 @@ class ReadinessTests(unittest.TestCase):
         backend = rows_of(value, 'adopt')['backend']
         self.assertEqual(backend['state'], 'unknown')
         self.assertIn('target authenticate', backend['next_action'])
-        prepare = rows_of(value, 'prepare')['secret_input']
-        self.assertIn('--token-env', prepare['next_action'])
-        self.assertIn('never on a command line', prepare['next_action'])
+        discover = rows_of(value, 'discover')['secret_input']
+        self.assertIn('--token-env', discover['next_action'])
+        self.assertIn('never on a command line', discover['next_action'])
 
     def test_blockers_name_the_row_the_command_and_the_role(self):
         value = self.full(repository_item(), context_item())
@@ -321,9 +321,9 @@ class ReadinessTests(unittest.TestCase):
             self.assertIn(item['owner_role'], ('engineer', 'administrator', 'organization'))
         self.assertIn('integration_service', value['operations']['adopt']['blocking'])
 
-    def test_prepare_depends_on_the_platform_for_read_only_capture(self):
+    def test_discover_depends_on_the_platform_for_read_only_capture(self):
         value = self.full(doctor=doctor_report(production_capture='unavailable_on_platform'))
-        row = rows_of(value, 'prepare')['mode_goal']
+        row = rows_of(value, 'discover')['mode_goal']
         self.assertEqual(row['state'], 'missing')
         self.assertIn('POSIX', row['next_action'])
 

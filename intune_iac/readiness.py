@@ -11,8 +11,9 @@ Operations, mapped from the four goals of the owner's setup guide (12.3, mode an
 
   inspect  offline sample or capture: the product's start, inspect, wizard and simulated journey.
            Needs no service credential.
-  prepare  read-only discovery of the live service: explicit read-only capture (capture, target
-           collect). It prepares evidence; it changes nothing.
+  discover read-only discovery of the live service: explicit read-only capture (capture, target
+           collect). It gathers evidence; it changes nothing. It is called discover, not prepare,
+           because the product already uses preparation for offline work and for adoption preparation.
   adopt    adoption preparation: the state-only native import prepared and reviewed with the
            adoption commands. Preparing does not need an execution route; approving the import
            later does.
@@ -30,20 +31,20 @@ import re
 
 VERSION = 'workbench-readiness/1'
 PROGRAM = 'intune-iac'
-OPERATIONS = ('inspect', 'prepare', 'adopt', 'change')
+OPERATIONS = ('inspect', 'discover', 'adopt', 'change')
 ROWS = (('mode_goal', 'Mode and goal'), ('tools_host', 'Tools and host'), ('repository', 'Repository'),
         ('integration_service', 'Integration and service'), ('iac_target', 'IaC target'), ('backend', 'Backend'),
         ('execution_route', 'Execution route'), ('secret_input', 'Exceptional secret input'))
 NEEDS = {
     'inspect': frozenset({'mode_goal', 'tools_host'}),
-    'prepare': frozenset({'mode_goal', 'tools_host', 'integration_service', 'secret_input'}),
+    'discover': frozenset({'mode_goal', 'tools_host', 'integration_service', 'secret_input'}),
     'adopt': frozenset({'mode_goal', 'tools_host', 'repository', 'integration_service', 'iac_target', 'backend',
                         'secret_input'}),
     'change': frozenset(row for row, _ in ROWS),
 }
 # Host profiles and executables each operation needs; inspect needs neither (Python packages only).
-PROFILES = {'inspect': (), 'prepare': ('graph_observer',), 'adopt': ('protected_worker',), 'change': ('protected_worker',)}
-EXECUTABLES = {'inspect': (), 'prepare': (), 'adopt': ('atmos', 'tofu'), 'change': ('atmos', 'tofu')}
+PROFILES = {'inspect': (), 'discover': ('graph_observer',), 'adopt': ('protected_worker',), 'change': ('protected_worker',)}
+EXECUTABLES = {'inspect': (), 'discover': (), 'adopt': ('atmos', 'tofu'), 'change': ('atmos', 'tofu')}
 KNOWN_EVIDENCE = ('no_live_connection', 'source_asserted_not_authenticated', 'modeled_service_no_authentication')
 IDENTITY_KINDS = ('context', 'export', 'store', 'modeled_service')
 NOT_NEEDED = 'Not needed for this operation.'
@@ -146,7 +147,7 @@ def _mode_goal(operation, f):
                 detected['connection'] = f['connection']
         else:
             state, missing, action = 'unknown', ['Neither a survey nor the doctor result was provided.'], 'Run: %s start DIRECTORY' % PROGRAM
-    elif operation == 'prepare':
+    elif operation == 'discover':
         route = capabilities.get('production_capture')
         if route == 'explicit_read_only_credentials_required':
             state, detected = 'ready', {'goal': 'read-only discovery', 'route': 'explicit read-only capture, credentials required'}
@@ -165,7 +166,7 @@ def _mode_goal(operation, f):
         role = 'organization'
         if capabilities.get('cloud_apply') == 'unavailable':
             state, missing = 'missing', ['The doctor result reports cloud_apply as unavailable.']
-            action = ('The product has no route yet for an approved managed change to the cloud; inspect, prepare and adopt '
+            action = ('The product has no route yet for an approved managed change to the cloud; inspect, discover and adopt '
                       'preparation remain available.')
         else:
             state, missing, action = 'unknown', ['The doctor result does not establish a managed change route.'], 'Run: %s doctor' % PROGRAM
@@ -327,7 +328,7 @@ def _service_row(operation, f):
         action = ('Provide a bounded context JSON (tenant, cloud, stack and component; examples/context.json shows the shape), '
                   'then run: %s start DIRECTORY' % PROGRAM)
         role = 'engineer'
-    elif operation == 'prepare':
+    elif operation == 'discover':
         action = ('%s capture --tenant TENANT_ID --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME (reads the named '
                   'variable; an explicit read token is the only live route today)' % PROGRAM)
         role = 'administrator'
@@ -358,7 +359,7 @@ def _execution_row(operation, f):
     else:
         state = 'unknown'
     action = ('No route yet: the product cannot read a repository workflow or a CI identity, and reports cloud_apply as '
-              'unavailable. You can inspect and prepare now; a managed change needs an execution route and approvals from your '
+              'unavailable. You can inspect and discover now; a managed change needs an execution route and approvals from your '
               'organization.')
     return _row(operation, 'execution_route', 'Execution route', state, {}, missing, action, 'organization')
 
@@ -367,7 +368,7 @@ def _secret_row(operation, f):
     missing = ['This check does not read environment variables or credential stores, so it cannot say whether a token is present.',
                'There is no insecure-storage detection, expiry, renewal or revocation display, and no secure-reference adapter '
                '(for example 1Password) yet.']
-    if operation == 'prepare':
+    if operation == 'discover':
         action = ('Provide the read token only to the one %s capture command, through the environment variable named by '
                   '--token-env, from your approved secret manager; never on a command line (the flag takes the name, not the value).'
                   % PROGRAM)
