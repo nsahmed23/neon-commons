@@ -958,6 +958,7 @@ plugin_tests/test_windows_directory_r4.py
 plugin_tests/test_windows_observation_r4.py
 plugin_tests/test_windows_observer_jobs_r4.py
 plugin_tests/test_windows_repository_r4.py
+plugin_tests/test_windows_source_edit_expiry.py
 plugin_tests/test_windows_source_edit_r4.py
 plugin_tests/test_windows_source_qualifier_r4.py
 plugin_tests/test_windows_source_r4.py

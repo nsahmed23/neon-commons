@@ -100,6 +100,17 @@ def _proposal(path,expected,api):
         return body,payload
 
 
+class _Window:
+    """The acknowledged expiry, judged on the wall clock and on this call's own monotonic deadline.
+
+    The deadline is armed when the acknowledgment is accepted and never moved, so a wall clock that stands still or steps
+    back while real time passes cannot carry the edit across the expiry the operator acknowledged. The acknowledgment is
+    a local statement with a caller-supplied expiry, not an authenticated artefact: a new acknowledgment is a new
+    operation, so there is no durable record to latch beyond the append-only source journal that refuses a replay."""
+    def __init__(self,expires_at):self.expires_at=expires_at;self.deadline=time.monotonic()+max(0,expires_at-time.time())
+    def closed(self):return time.time()>=self.expires_at or time.monotonic()>=self.deadline
+
+
 def _acknowledge(store,proposal,expected,expires_at,acknowledged,api):
     if type(store) is not WindowsWorkbenchStore or proposal.get('tenant_id')!=store.tenant_id:_fail('windows_source_edit_wrong_store')
     if acknowledged is not True:_fail('windows_source_edit_ack_required')
@@ -218,7 +229,7 @@ def _fault(error,root,intent,phase):
 
 
 def _apply(store,path,expected,expires_at,acknowledged,api):
-    proposal,payload=_proposal(path,expected,api);ack=_acknowledge(store,proposal,expected,expires_at,acknowledged,api)
+    proposal,payload=_proposal(path,expected,api);ack=_acknowledge(store,proposal,expected,expires_at,acknowledged,api);window=_Window(expires_at)
     binding=proposal['native_source_binding'];root=binding['root'];identifier=ack['operation_id']
     relative=PureWindowsPath(*proposal['authoritative_source']['path'].split('/'));parent=str(PureWindowsPath(root)/relative.parent);original=relative.name
     stage=PREFIX+identifier+'.candidate';backup=PREFIX+identifier+'.backup'
@@ -251,10 +262,10 @@ def _apply(store,path,expected,expires_at,acknowledged,api):
                             'metadata':metadata,'before_sha256':intent['before_sha256'],'after_sha256':intent['after_sha256']}
                         _publish_journal(root,identifier,'ready',ready,api)
                         phase='ready_recorded'
-                        if time.time()>=expires_at:_fail('windows_source_edit_ack_expired')
+                        if window.closed():_fail('windows_source_edit_ack_expired')
                         pin.revalidate();phase='original_rename_dispatched';api.rename_new(old,root_handle,backup)
                         phase='original_backed_up';api.flush_file(old);api.flush_namespace(root_handle)
-                        if time.time()>=expires_at:_fail('windows_source_edit_ack_expired')
+                        if window.closed():_fail('windows_source_edit_ack_expired')
                         phase='candidate_rename_dispatched';api.rename_new(candidate,root_handle,original)
                         phase='candidate_published';api.flush_file(candidate);api.flush_namespace(root_handle)
                         if (ws._bound_file(api,old,pin)!=before or api.read(old)!=payload['source.before.yaml'] or
@@ -331,7 +342,7 @@ def _inspect(store,root,identifier,api):
 def inspect_source_edit(store,root,identifier):return _inspect(store,root,identifier,_NativeAPI())
 
 
-def _dispatch_recovery(intent,ready,proposal,direction,expires_at,api,mark):
+def _dispatch_recovery(intent,ready,proposal,direction,window,api,mark):
     """Hold the exact root and all present transition files through mutation."""
     root=intent['root'];parent,original,stage,backup=_paths(intent)
     with ExitStack() as guards:
@@ -363,7 +374,7 @@ def _dispatch_recovery(intent,ready,proposal,direction,expires_at,api,mark):
                 if _sha(raw)!=sha:_fail('windows_source_edit_dependency_changed')
                 dependencies.append({'path':relative,'sha256':sha})
         def rename(label,name,phase):
-            if time.time()>=expires_at:_fail('windows_source_edit_ack_expired')
+            if window.closed():_fail('windows_source_edit_ack_expired')
             root_pin.revalidate();pin.revalidate();handle=handles[label];fact=facts[label]
             if ws._bound_file(api,handle,pin)!=fact['identity'] or _sha(api.read(handle))!=fact['sha256'] or api.edit_metadata(handle,pin._sid)!=fact['metadata']:_fail('windows_source_edit_source_changed')
             mark(phase);api.rename_new(handle,parent_handle,name);api.flush_file(handle);api.flush_namespace(parent_handle)
@@ -390,7 +401,7 @@ def _recover(store,root,identifier,direction,expires_at,acknowledged,api):
             if closed['status']=='recorded':_fail('windows_source_edit_already_closed')
             proposal,payload=_proposal(intent['proposal_path'],intent['proposal_sha256'],api)
             if proposal['native_source_binding']['root']!=root or proposal['native_source_binding']['root_identity']!=intent['root_identity']:_fail('windows_source_edit_recovery_binding')
-            acknowledgment=_acknowledge(store,proposal,intent['proposal_sha256'],expires_at,acknowledged,api)
+            acknowledgment=_acknowledge(store,proposal,intent['proposal_sha256'],expires_at,acknowledged,api);window=_Window(expires_at)
             parent,original,stage,backup=_paths(intent);evidence=_existing_state(root,parent,original,stage,backup,api)
             state=_classification(intent,ready,evidence)
             if direction=='complete' and state not in ('original_before_candidate_ready','original_backed_up_candidate_ready','candidate_applied'):_fail('windows_source_edit_completion_not_established')
@@ -400,11 +411,11 @@ def _recover(store,root,identifier,direction,expires_at,acknowledged,api):
                 'intent_sha256':digest(intent),'direction':direction,'observed_state':state,'acknowledgment':acknowledgment,
                 'original_dispatch_uncertainty_preserved':True,'automatic_retry_permitted':False}
             phase='recovery_intent_pending';ws._create_file(root,PREFIX+digest({'parent_operation_id':identifier,'acknowledgment_id':acknowledgment['operation_id']})+'.recovery.json',canonical(recovery)+b'\n',api)
-            if time.time()>=expires_at:_fail('windows_source_edit_ack_expired')
+            if window.closed():_fail('windows_source_edit_ack_expired')
             def mark(value):
                 nonlocal phase
                 phase=value
-            final,dependencies=_dispatch_recovery(intent,ready,proposal,direction,expires_at,api,mark)
+            final,dependencies=_dispatch_recovery(intent,ready,proposal,direction,window,api,mark)
             evidence=_existing_state(root,parent,original,stage,backup,api)
             final_state=_classification(intent,ready,evidence)
             if (final=='source_applied' and final_state!='candidate_applied') or (final!='source_applied' and final_state not in ('original_before_no_candidate','original_before_candidate_ready','original_before_candidate_unqualified','original_restored')):_fail('windows_source_edit_recovery_readback')
