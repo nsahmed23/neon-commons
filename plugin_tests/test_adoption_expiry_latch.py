@@ -149,7 +149,9 @@ class AdoptionFixture(unittest.TestCase):
         self.expires = self.start + LIFETIME
         self.manifest = {'schema_version': adoption.VERSION, 'operation_id': str(uuid.uuid4()),
                          'verification_operation_id': str(uuid.uuid4()), 'profile': 'native_docker_laboratory_protocol',
-                         'action': 'native_state_only_import', 'prepared_at': self.start, 'expires_at': self.expires}
+                         'action': 'native_state_only_import', 'prepared_at': self.start, 'expires_at': self.expires,
+                         'implementation_files': {'fixture/controller.py': 'a' * 64}}
+        self.controller_files = dict(self.manifest['implementation_files'])  # what the controller is now
         adoption._tables(self.policy)
         self.job_root = self.root / 'jobs' / 'adoption-job'
         self.job_root.mkdir(mode=0o700)
@@ -171,6 +173,7 @@ class AdoptionFixture(unittest.TestCase):
                         patch.object(adoption, '_backend_observation', self.observe),
                         patch.object(adoption.AdoptionJob, '_dispatch', self.dispatch),
                         patch.object(service, '_scopes', return_value=['scope']),
+                        patch.object(service, 'implementation_binding', side_effect=lambda: dict(self.controller_files)),
                         patch.object(service, '_controller_identity', return_value='controller-start')):
             patcher.start()
             self.addCleanup(patcher.stop)

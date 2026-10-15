@@ -539,16 +539,27 @@ class AdoptionJob:
             'approved_controller_runtime_re_attested': False,
             'policy_matches_reviewed': service._bounded_private_json(self.root / 'policy-binding.json') == {'policy_sha256': self.policy.sha256}}
     def attach(self): return self.status()
-    def cancel(self):
+    def _implementation_current(self):
+        """Whether the controller now is the one this job was prepared under; None when the inventory cannot be read."""
+        try: return self.manifest.get('implementation_files') == service.implementation_binding()
+        except AppError: return None
+    def cancel(self, *, administrative=False):
+        """A job prepared under an earlier controller is refused here; an explicit administrative cancel stays available,
+        makes no host call and records in its event that it was administrative and whether the controller is current."""
         self._check(expiry=False)
+        current = self._implementation_current()
+        if not current and not administrative: _fail('adoption_implementation_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE id=?", (self.identifier,))
             db.execute('DELETE FROM ownership WHERE job=? AND EXISTS(SELECT 1 FROM jobs WHERE id=? AND dispatches=0)', (self.identifier, self.identifier))
-            self.policy.event(db, self.identifier, 'adoption_cancel_requested', {'dispatch_replayed': False}); db.execute('COMMIT')
+            self.policy.event(db, self.identifier, 'adoption_cancel_requested', {'dispatch_replayed': False,
+                **({'administrative': True, 'implementation_current': current} if administrative else {})}); db.execute('COMMIT')
         return self.status()
     def recover(self):
+        """Recovery calls the host and writes state, so the current-implementation gate runs before any transaction."""
         self._check(expiry=False)
+        if not self._implementation_current(): _fail('adoption_implementation_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT controller_pid,controller_start,status,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone()

@@ -317,8 +317,16 @@ class WorkerJob:
                 'profile': self.manifest['profile'], 'reopening_dispatches': False,
                 'retry_authorized': False, 'production_authorized': False}
 
-    def cancel(self):
+    def _implementation_current(self):
+        return self.manifest['implementation_files'] == _implementation()
+
+    def cancel(self, *, administrative=False):
+        """Stop a job. A job prepared under an earlier implementation is refused here (its record no longer matches the
+        code that would act on it); an explicit administrative cancel stays available. It calls nothing but the worker
+        store, and records in its event that it was administrative and whether the implementation is current."""
         self._attestation()
+        current = self._implementation_current()
+        if not current and not administrative: _fail('worker_implementation_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT status,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone()
@@ -326,7 +334,8 @@ class WorkerJob:
                 next_status = 'cancelled_before_dispatch' if row[1] == 0 else row[0]
                 db.execute('UPDATE jobs SET cancel_requested=1,status=? WHERE id=?', (next_status, self.identifier))
                 if row[1] == 0: db.execute('DELETE FROM ownership WHERE job_id=?', (self.identifier,))
-                self.policy.event(db, self.identifier, 'cancellation_requested', {'before_dispatch': row[1] == 0})
+                self.policy.event(db, self.identifier, 'cancellation_requested', {'before_dispatch': row[1] == 0,
+                                  **({'administrative': True, 'implementation_current': current} if administrative else {})})
             db.execute('COMMIT')
         protected._sync(self.policy.authority_root)
         return self.status()

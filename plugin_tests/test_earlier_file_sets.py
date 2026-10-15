@@ -68,17 +68,18 @@ class WorkerJobOnAnEarlierFileSetTests(unittest.TestCase):
         status = self.job().status()
         self.assertEqual((status['mutation_attempts'], status['approval_consumed']), (0, False))
 
-    def test_reconcile_never_dispatches_and_cancel_is_a_restriction_that_calls_nothing(self):
+    def test_reconcile_never_dispatches_and_cancel_is_administrative_only(self):
         # reconcile reads history (recorded mode) but needs a dispatched job; this one never was.
         self.prepared_under_the_earlier_set()
-        with patch.object(protected, 'inspect_executor', forbidden('inspect_executor')), \
-                patch.object(worker.WorkerJob, '_apply', forbidden('_apply')):
+        with patch.object(protected, 'inspect_executor', forbidden('inspect_executor')),                 patch.object(worker.WorkerJob, '_apply', forbidden('_apply')):
             with self.assertRaises(AppError) as raised:
                 self.job().reconcile()
             self.assertEqual(raised.exception.code, 'worker_reconciliation_not_required')
-            # Cancel only stops a job: it is not gated by the implementation (before or after an upgrade) and it
-            # calls no backend. It records a cancellation and, before dispatch, releases ownership.
-            self.assertTrue(self.job().cancel()['cancellation_requested'])
+            with self.assertRaises(AppError) as raised:  # a normal cancel from a stale record is refused too
+                self.job().cancel()
+            self.assertEqual(raised.exception.code, 'worker_implementation_changed')
+            # The explicit administrative cancel calls no backend (test_earlier_set_cancel_recover covers its event).
+            self.assertTrue(self.job().cancel(administrative=True)['cancellation_requested'])
         with self.assertRaises(AppError):
             self.job().run(self.receipt())
         self.assertEqual(self.job().status()['mutation_attempts'], 0)

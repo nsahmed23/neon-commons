@@ -40,7 +40,9 @@ class RecoveryFixture(unittest.TestCase):
         self.expires = self.start + LIFETIME
         self.manifest.update(operation_id=str(uuid.uuid4()), prepared_at=self.start, expires_at=self.expires,
                              identity_binding_sha256='i' * 64, host_spec={}, original_facts={},
+                             implementation_files={'fixture/controller.py': 'a' * 64},
                              recovery_binding={'binding': 'modeled'})
+        self.controller_files = dict(self.manifest['implementation_files'])  # what the controller is now
         adoption._tables(self.policy)  # the original adoption job prepared the store, expiry table included
         bridge._tables(self.policy)
         self.job_root = self.root / 'jobs' / 'plan-job'
@@ -67,6 +69,7 @@ class RecoveryFixture(unittest.TestCase):
                         patch.object(bridge.service, '_host_spec',
                                      return_value=types.SimpleNamespace(job_root=self.native, broker_root=self.proxy)),
                         patch.object(bridge.service, '_scopes', return_value=['scope']),
+                        patch.object(bridge.service, 'implementation_binding', side_effect=lambda: dict(self.controller_files)),
                         patch.object(bridge.service, '_controller_identity', return_value='controller-start'),
                         patch.object(bridge.RecoveryPlanJob, '_dispatch', self.dispatch)):
             patcher.start()

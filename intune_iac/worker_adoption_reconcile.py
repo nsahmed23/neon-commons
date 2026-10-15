@@ -582,13 +582,23 @@ class RecoveryPlanJob:
         return {'operation_id':self.identifier,'manifest_sha256':self.sha256,'original_operation_id':self.original.identifier,'status':row[0],'cancel_requested':bool(row[1]),'dispatches':row[2],
             'outcome':parse_json(row[3]) if row[3] else None,'original':self.original.status(),'import_replay_authorized':False,'graph_mutation_authorized':False,'production_approved':False}
     def attach(self):return self.status()
-    def cancel(self):
-        self._check(expiry=False)
+    def _implementation_current(self):
+        try:return self.manifest.get('implementation_files')==service.implementation_binding()
+        except AppError:return None
+    def cancel(self,*,administrative=False):
+        """A plan prepared under an earlier controller is refused here; an explicit administrative cancel stays available,
+        makes no host call and records in its event that it was administrative and whether the controller is current."""
+        self._check(expiry=False);current=self._implementation_current()
+        if not current and not administrative:_fail('adoption_recovery_runtime_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE');db.execute("UPDATE adoption_recovery_plans SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE operation_id=?",(self.identifier,))
-            self.policy.event(db,self.original.identifier,'adoption_recovery_plan_cancel_requested',{'operation_id':self.identifier,'ownership_released':False});db.execute('COMMIT')
+            self.policy.event(db,self.original.identifier,'adoption_recovery_plan_cancel_requested',{'operation_id':self.identifier,'ownership_released':False,
+                **({'administrative':True,'implementation_current':current} if administrative else {})});db.execute('COMMIT')
         return self.status()
     def recover(self):
+        """Recovery calls the host and writes state, so the current-implementation gate runs before any transaction."""
+        self._check(expiry=False)
+        if not self._implementation_current():_fail('adoption_recovery_runtime_changed')
         self.cancel()
         with self.policy.connection() as db:row=db.execute('SELECT controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
         if row[0] is not None and service._controller_identity(row[0])==row[1]:_fail('adoption_recovery_controller_active')

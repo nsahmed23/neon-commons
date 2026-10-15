@@ -843,6 +843,7 @@ plugin_tests/test_completion_cli.py
 plugin_tests/test_dependencies.py
 plugin_tests/test_doctor_adoption_r4.py
 plugin_tests/test_earlier_file_sets.py
+plugin_tests/test_earlier_set_cancel_recover.py
 plugin_tests/test_edge_input_audit.py
 plugin_tests/test_edge_workflow_audit.py
 plugin_tests/test_engine.py
