@@ -21,6 +21,7 @@ from unittest.mock import patch
 from intune_iac import windows_source_edit as subject
 from intune_iac.io import AppError
 from plugin_tests import test_windows_source_edit_r4 as base
+from plugin_tests.test_clock_authority import Clocks
 
 
 class SourceEditWindowTests(unittest.TestCase):
@@ -67,6 +68,58 @@ class SourceEditWindowTests(unittest.TestCase):
         with patch.object(subject.ws, '_create_file', create), self.monotonic_jumps_when(lambda: bool(recorded)), \
                 self.assertRaises(AppError) as caught:
             subject._recover(self.store, self.root, self.operation(), 'complete', time.time() + 600, True, self.api)
+        self.assertEqual(caught.exception.code, 'windows_source_edit_ack_expired')
+        self.assertEqual(self.api.renames, 1)
+
+    def injected(self):
+        clocks = Clocks(time.time())
+        for name, function in (('time', clocks.time), ('monotonic', clocks.monotonic)):
+            patcher = patch.object(subject.time, name, side_effect=function)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        return clocks
+
+    def rolled_back_after_accepting(self, clocks, seconds=100):
+        """The acknowledgment is accepted, and then the wall clock steps back before anything else is done."""
+        real = subject._acknowledge
+
+        def acknowledge_then_step_back(*args, **kwargs):
+            result = real(*args, **kwargs)
+            clocks.step(-seconds)
+            return result
+        return patch.object(subject, '_acknowledge', side_effect=acknowledge_then_step_back)
+
+    def test_a_wall_step_between_accepting_the_acknowledgment_and_arming_the_window_does_not_extend_the_edit(self):
+        clocks = self.injected()
+        expires = clocks.time() + 10  # accepted with ten seconds left
+        candidate_prepared = lambda: any(event[0] == 'clone-metadata' for event in self.api.events)
+        real = clocks.monotonic
+        with self.rolled_back_after_accepting(clocks), \
+                patch.object(subject.time, 'monotonic', side_effect=lambda: real() + (11 if candidate_prepared() else 0)), \
+                self.assertRaises(AppError) as caught:
+            self.apply(expires=expires)  # eleven real seconds pass before the first rename
+        self.assertEqual(caught.exception.code, 'windows_source_edit_ack_expired')
+        self.assertEqual(self.api.renames, 0)
+        self.assertEqual((self.real / 'stacks/defaults.yaml').read_bytes(), self.before)
+
+    def test_the_same_holds_for_a_recovery_acknowledgment(self):
+        self.api.fail_after = 1
+        with self.assertRaises(AppError):
+            self.apply()  # the first rename's acknowledgment is lost: the backup exists and the candidate is ready
+        operation = self.operation()
+        clocks = self.injected()
+        recorded = []
+        real_create, real = subject.ws._create_file, clocks.monotonic
+
+        def create(parent, name, data, api):
+            result = real_create(parent, name, data, api)
+            if name.endswith('.recovery.json'):
+                recorded.append(name)
+            return result
+        with self.rolled_back_after_accepting(clocks), patch.object(subject.ws, '_create_file', create), \
+                patch.object(subject.time, 'monotonic', side_effect=lambda: real() + (11 if recorded else 0)), \
+                self.assertRaises(AppError) as caught:
+            subject._recover(self.store, self.root, operation, 'complete', clocks.time() + 10, True, self.api)
         self.assertEqual(caught.exception.code, 'windows_source_edit_ack_expired')
         self.assertEqual(self.api.renames, 1)
 

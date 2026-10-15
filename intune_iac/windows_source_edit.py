@@ -103,24 +103,32 @@ def _proposal(path,expected,api):
 class _Window:
     """The acknowledged expiry, judged on the wall clock and on this call's own monotonic deadline.
 
-    The deadline is armed when the acknowledgment is accepted and never moved, so a wall clock that stands still or steps
-    back while real time passes cannot carry the edit across the expiry the operator acknowledged. The acknowledgment is
+    The deadline is built from the one wall and monotonic snapshot taken as part of accepting the acknowledgment (see
+    _accept) and never moved, and the wall clock is not read again to compute it, so a wall clock that stands still or
+    steps back while real time passes cannot carry the edit across the expiry the operator acknowledged. The acknowledgment is
     a local statement with a caller-supplied expiry, not an authenticated artefact: a new acknowledgment is a new
     operation, so there is no durable record to latch beyond the append-only source journal that refuses a replay."""
-    def __init__(self,expires_at):self.expires_at=expires_at;self.deadline=time.monotonic()+max(0,expires_at-time.time())
+    def __init__(self,expires_at,now):self.expires_at=expires_at;self.deadline=now[1]+max(0,expires_at-now[0])
     def closed(self):return time.time()>=self.expires_at or time.monotonic()>=self.deadline
 
 
-def _acknowledge(store,proposal,expected,expires_at,acknowledged,api):
+def _accept(store,proposal,expected,expires_at,acknowledged,api):
+    """Accept the acknowledgment and build its window from one wall and monotonic snapshot taken first."""
+    now=(time.time(),time.monotonic())
+    return _acknowledge(store,proposal,expected,expires_at,acknowledged,api,now),_Window(expires_at,now)
+
+
+def _acknowledge(store,proposal,expected,expires_at,acknowledged,api,now=None):
+    wall=time.time() if now is None else now[0]
     if type(store) is not WindowsWorkbenchStore or proposal.get('tenant_id')!=store.tenant_id:_fail('windows_source_edit_wrong_store')
     if acknowledged is not True:_fail('windows_source_edit_ack_required')
-    if type(expires_at) not in (int,float) or not time.time()<expires_at<=time.time()+3600:_fail('windows_source_edit_ack_expired')
+    if type(expires_at) not in (int,float) or not wall<expires_at<=wall+3600:_fail('windows_source_edit_ack_expired')
     sid=api.current_sid();binding=proposal['native_source_binding']
     if binding['root_identity'].get('owner_sid')!=sid:_fail('windows_source_edit_actor_mismatch')
     identifier=digest({'proposal_sha256':expected,'tenant_id':store.tenant_id,'object_id':proposal['object_id'],'actor_sid':sid,'operation':'local_source_edit','expires_at':expires_at})
     return {'schema_version':'workbench-local-source-ack/1','operation_id':identifier,'operation':'local_source_edit',
         'proposal_sha256':expected,'tenant_id':store.tenant_id,'object_id':proposal['object_id'],'actor_sid':sid,
-        'expires_at':expires_at,'acknowledged_at':time.time(),'root_identity':binding['root_identity'],
+        'expires_at':expires_at,'acknowledged_at':wall,'root_identity':binding['root_identity'],
         'source_file_identity':binding['source_file_identity'],'authoritative_source':proposal['authoritative_source'],
         'protected_plan_approval':False,'organizational_approval':False,'cloud_authority':False}
 
@@ -229,7 +237,7 @@ def _fault(error,root,intent,phase):
 
 
 def _apply(store,path,expected,expires_at,acknowledged,api):
-    proposal,payload=_proposal(path,expected,api);ack=_acknowledge(store,proposal,expected,expires_at,acknowledged,api);window=_Window(expires_at)
+    proposal,payload=_proposal(path,expected,api);ack,window=_accept(store,proposal,expected,expires_at,acknowledged,api)
     binding=proposal['native_source_binding'];root=binding['root'];identifier=ack['operation_id']
     relative=PureWindowsPath(*proposal['authoritative_source']['path'].split('/'));parent=str(PureWindowsPath(root)/relative.parent);original=relative.name
     stage=PREFIX+identifier+'.candidate';backup=PREFIX+identifier+'.backup'
@@ -401,7 +409,7 @@ def _recover(store,root,identifier,direction,expires_at,acknowledged,api):
             if closed['status']=='recorded':_fail('windows_source_edit_already_closed')
             proposal,payload=_proposal(intent['proposal_path'],intent['proposal_sha256'],api)
             if proposal['native_source_binding']['root']!=root or proposal['native_source_binding']['root_identity']!=intent['root_identity']:_fail('windows_source_edit_recovery_binding')
-            acknowledgment=_acknowledge(store,proposal,intent['proposal_sha256'],expires_at,acknowledged,api);window=_Window(expires_at)
+            acknowledgment,window=_accept(store,proposal,intent['proposal_sha256'],expires_at,acknowledged,api)
             parent,original,stage,backup=_paths(intent);evidence=_existing_state(root,parent,original,stage,backup,api)
             state=_classification(intent,ready,evidence)
             if direction=='complete' and state not in ('original_before_candidate_ready','original_backed_up_candidate_ready','candidate_applied'):_fail('windows_source_edit_completion_not_established')
