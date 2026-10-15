@@ -1089,5 +1089,78 @@ class JourneyExecutorProfileTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 'legacy_profile_not_executable')  # the legacy context is refused first
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Round 5: the engine gate runs once, before any durable state; nothing that can refuse on the profile runs after it.
+# ---------------------------------------------------------------------------------------------------------------------
+class EngineGateRunsBeforeAnyStateTests(unittest.TestCase):
+    def prepared(self):
+        from intune_iac import protected
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        executor = protected.create_synthetic_executor(folder / 'executor', initial_value={'a': 1}, desired_value={'a': 2},
+                                                       engine_version=CURRENT_TOFU)
+        request = protected.prepare_native_operation(executor)
+        grant = protected.approve_synthetic_operation(request, executor=executor)
+        return protected, folder, executor, request, grant
+
+    def test_the_gate_is_called_once_and_when_it_is_called_no_durable_state_exists(self):
+        from unittest.mock import patch
+        protected, folder, executor, request, grant = self.prepared()
+        facts = []
+        real = protected._engine_gate
+
+        def spy(subject, expected=None):
+            facts.append({'state_dir': (folder / 'state').exists(), 'lock': (folder / 'executor/.operation-lock').exists(),
+                          'consumed': (folder / 'executor/consumed.json').exists()})
+            return real(subject, expected)
+        with patch.object(protected, '_engine_gate', spy):
+            result = protected.execute_native_operation(request, folder / 'state', executor=executor, approval=grant,
+                                                        expected_engine_version=CURRENT_TOFU)
+        self.assertEqual(result['status'], 'succeeded_verified', result)
+        self.assertEqual(facts, [{'state_dir': False, 'lock': False, 'consumed': False}])
+
+    def test_a_refusal_by_the_gate_on_any_call_leaves_no_state_authorization_or_lock(self):
+        from unittest.mock import patch
+        from intune_iac.io import AppError
+        protected, folder, executor, request, grant = self.prepared()
+        calls = []
+        real = protected._engine_gate
+
+        def fail_from_the_second_call(subject, expected=None):
+            calls.append(1)
+            if len(calls) >= 2:  # the call that used to come after consumed.json and the authorized event
+                raise AppError('engine_profile_mismatch', 'forced')
+            return real(subject, expected)
+        with patch.object(protected, '_engine_gate', fail_from_the_second_call):
+            result = protected.execute_native_operation(request, folder / 'state', executor=executor, approval=grant,
+                                                        expected_engine_version=CURRENT_TOFU)
+        # Either the gate is only called once (and the operation runs), or a later refusal leaves nothing written.
+        self.assertEqual(len(calls), 1, 'a check that can refuse on the profile still runs after the first gate')
+        self.assertEqual(result['status'], 'succeeded_verified', result)
+
+    def test_a_refusal_at_the_one_gate_writes_nothing_and_dispatches_nothing(self):
+        protected, folder, executor, request, grant = self.prepared()
+        result = protected.execute_native_operation(request, folder / 'state', executor=executor, approval=grant,
+                                                    expected_engine_version=LEGACY_TOFU)
+        self.assertEqual((result['status'], result['error']['code']), ('rejected', 'engine_profile_mismatch'))
+        self.assertFalse((folder / 'state').exists())
+        self.assertFalse((folder / 'executor/.operation-lock').exists())
+        self.assertFalse((folder / 'executor/consumed.json').exists())
+        self.assertEqual(json.loads((folder / 'executor/work/state/terraform.tfstate').read_text())['outputs']['fixture']['value'],
+                         {'a': 1})
+
+    def test_the_wording_says_a_legacy_operation_can_be_approved_as_a_record_and_is_never_executed(self):
+        from intune_iac import protected
+        message = protected.LegacyProfileNotExecutable(LEGACY_TOFU).message
+        doc = protected.LegacyProfileNotExecutable.__doc__
+        for text in (message, doc):
+            self.assertNotIn('never approved', text)
+            self.assertIn('never executed', text)
+        self.assertIn('historical record', message)
+        self.assertIn('new proposal', message)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -755,14 +755,15 @@ class ImplementationChanged(AppError):
 
 class LegacyProfileNotExecutable(AppError):
     """The operation names the legacy engine (OpenTofu 1.10.0, legacy_reproduction_only), or is a pre-migration one that
-    names none. It can be read, reviewed and kept as history; it is never approved or executed. Raised before anything is
-    written, so nothing was dispatched."""
+    names none. It can be read, reviewed and approved as a historical record; it is never executed. Raised before anything
+    is written, so nothing was dispatched."""
     def __init__(self, version=None):
         named = 'OpenTofu ' + version if version else 'a pre-migration engine'
         super().__init__('legacy_profile_not_executable',
                          'This operation names %s, the legacy profile (legacy_reproduction_only), which is kept to reproduce earlier '
-                         'output and is never approved or executed; nothing was dispatched. Prepare a new proposal under the current '
-                         'pins (OpenTofu %s); the earlier record stays readable as history.' % (named, _CURRENT_ENGINE))
+                         'output. It can be read, reviewed and approved as a historical record and is never executed; nothing was '
+                         'dispatched. Prepare a new proposal under the current pins (OpenTofu %s); the earlier record stays '
+                         'readable as history.' % (named, _CURRENT_ENGINE))
 
 
 def _engine_gate(executor, expected=None):
@@ -772,6 +773,9 @@ def _engine_gate(executor, expected=None):
     if version==_LEGACY_ENGINE:raise LegacyProfileNotExecutable(version)
     if expected is not None and expected!=version:
         raise AppError('engine_profile_mismatch','This operation requires OpenTofu %s but its executor was made for OpenTofu %s; nothing was dispatched. Prepare a new proposal under the current pins.' % (expected,version))
+    # The identity that passed: the engine version and the executable digest held by the validated executor. It is returned as
+    # an immutable value; dispatch runs on that same executor object, which pins the executable and the configuration to it.
+    return (version,executor.manifest['executable_sha256'])
 
 
 _PURPOSES=('current','recorded')
@@ -928,8 +932,11 @@ def execute_native_operation(request, state_dir, *, executor, approval, expected
     try:
         request=_validate_request(request,executor,implementation='current')
         if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
-        # Before the state directory, the lock, the journal or the consumed marker: nothing is written for a legacy executor.
-        _engine_gate(executor,expected_engine_version)
+        # The one engine and profile gate, on the validated executor and before the state directory, the lock, the journal
+        # and the consumed marker: a refusal writes nothing. The executor's files are validated again now, so the identity
+        # held here is the one that passed, and no check that can refuse on the profile runs after state is written.
+        executor._validate()
+        engine_identity=_engine_gate(executor,expected_engine_version)
         result.update(operation_id=request['operation_id'],assurance=executor.mode)
         if type(approval)is not _LocalGrant or approval.seal is not _SECRET or approval.consumed or approval.request_sha256!=digest(request) or approval.expires_at<=_window(request,executor):_fail('approval_required')
         directory=_path(state_dir)
@@ -944,7 +951,6 @@ def execute_native_operation(request, state_dir, *, executor, approval, expected
         _exclusive(executor.root/'consumed.json',canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),'action':request['action']}))
         _event(journal,'authorized',{'request_sha256':digest(request),'scope':'local_fixture_only'})
         _validate_request(request,executor,implementation='current');_owner(lock,owner)
-        _engine_gate(executor,expected_engine_version)  # the binding is checked again immediately before dispatch
         _event(journal,'dispatch_started',{'binding_sha256':request['binding_sha256']})
         # A persisted started event is an uncertainty boundary even if dispatch fails.
         dispatched=True
