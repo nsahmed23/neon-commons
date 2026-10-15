@@ -157,8 +157,7 @@ class ApprovalLatchTests(SuccessorFixture):
         with patch.object(successor, '_completion',
                           side_effect=lambda *args: self.clocks.elapse(LIFETIME) or self.transfer['recovery_completion']):
             self.assertEqual(self.refused(lambda: self.execute(signed)).code, EXPIRED)
-        self.assertEqual(self.rows('SELECT job FROM ownership'), [(self.original_id,)])
-        self.assertEqual(self.rows('SELECT id FROM jobs'), [(self.original_id,)])
+        self.assert_nothing_happened()  # not even the successor directory exists: effects start after the judgment
         self.assertEqual(len(self.latched()), 1)
 
     def test_a_refusal_for_the_transfers_own_window_still_records_the_approvals_expiry(self):

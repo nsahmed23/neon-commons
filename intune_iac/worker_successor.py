@@ -332,17 +332,14 @@ def _execute_transfer(transfer, signed, original_job, successor_manifest, recove
     if any(policy.root == Path(path) or policy.root in Path(path).parents or Path(path) in policy.root.parents
            for path in (spec.source_root, spec.control_root, spec.job_root, spec.broker_root)):
         _fail('successor_authority_overlap')
-    root.mkdir(mode=0o700, exist_ok=False)
-    for name, value in [('manifest.json', manifest), ('policy-binding.json', {'policy_sha256': policy.sha256}),
-                        ('successor-transfer.json', transfer), ('successor-transfer-approval.json', signed)]:
-        protected._exclusive(root / name, canonical(value))
-    # Recheck sealed observations after signature verification and preparation.
+    # Recheck sealed observations after signature verification and preparation, before any effect.
     if (_completion(recovery_completion, original_job, manifest) != transfer['recovery_completion']
             or _service_preimage(service_preimage, manifest) != transfer['service_preimage']):
         _fail('successor_preimage_changed')
     policy.check()
-    # The window is judged again, and ownership transferred, in one critical section: nothing can latch the expiry
-    # between the judgment and the transfer, and an expiry reached since the verification is refused here.
+    # The final judgment is the dispatch-start judgment: the window is judged in the critical section, and the successor's
+    # directory and artifacts are created only after it judged the window open, while its lock is held. Nothing refuses
+    # for expiry after the first effect.
     with _critical(policy, payload, transfer, deadline) as db:
         if _original(original_job, db) != transfer['original']:
             _fail('successor_original_changed')
@@ -352,6 +349,10 @@ def _execute_transfer(transfer, signed, original_job, successor_manifest, recove
             _fail('successor_signer_revoked')
         if db.execute('SELECT COUNT(*) FROM jobs').fetchone()[0] >= 10000:
             _fail('successor_store_capacity')
+        root.mkdir(mode=0o700, exist_ok=False)
+        for name, value in [('manifest.json', manifest), ('policy-binding.json', {'policy_sha256': policy.sha256}),
+                            ('successor-transfer.json', transfer), ('successor-transfer-approval.json', signed)]:
+            protected._exclusive(root / name, canonical(value))
         db.execute('CREATE TABLE IF NOT EXISTS successor_transfers (original_operation TEXT NOT NULL, '
                    'successor_operation TEXT UNIQUE NOT NULL, transfer_id TEXT PRIMARY KEY, issuer TEXT NOT NULL, '
                    'nonce TEXT NOT NULL, transfer_sha256 TEXT NOT NULL, recovery_completion_sha256 TEXT NOT NULL, '
