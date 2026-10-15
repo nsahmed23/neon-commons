@@ -34,8 +34,16 @@ def _fail(code):
     raise AppError(code, 'The protected worker job could not establish its required contract.') from None
 
 
+# The files the worker implementation digest binds, in the order a job manifest records them. This module owns the list
+# (it is bound by it); the history module only keeps the sets of earlier releases. validity.py holds the approval
+# judgment and clock.py the recorded time it relies on.
+WORKER_COMPONENTS = ('protected_worker.py', 'protected.py', 'provider_execution.py', 'approval_authority.py',
+                     'provider_journey.py', 'azure_backend.py', 'execution.py', 'io.py', 'native_pins.py',
+                     'validity.py', 'clock.py')
+
+
 def _implementation():
-    return {name: pe._sha(Path(__file__).with_name(name)) for name in history.WORKER_COMPONENTS}
+    return {name: pe._sha(Path(__file__).with_name(name)) for name in WORKER_COMPONENTS}
 
 
 def _context(value):

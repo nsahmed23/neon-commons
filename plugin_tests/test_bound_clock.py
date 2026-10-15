@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 from intune_iac import implementation_history as history
 from intune_iac import journey_native_atmos as jna
+from intune_iac import protected
 from intune_iac.io import AppError, digest
 from plugin_tests import test_journey_native_atmos as atmos_base
 from plugin_tests import test_pin_history_p3b as p3b
@@ -23,14 +24,14 @@ PACKAGE = Path(jna.__file__).parent
 
 class ComponentSetTests(unittest.TestCase):
     def test_clock_is_bound_by_both_sets_and_the_earlier_sets_are_kept(self):
-        self.assertIn('clock.py', history.PROTECTED_COMPONENTS)
-        self.assertIn('clock.py', history.NATIVE_ATMOS_COMPONENTS)
+        self.assertIn('clock.py', protected.PROTECTED_COMPONENTS)
+        self.assertIn('clock.py', jna.NATIVE_ATMOS_COMPONENTS)
         self.assertNotIn('clock.py', history.PROTECTED_COMPONENTS_EARLIER)
         self.assertNotIn('clock.py', history.NATIVE_ATMOS_COMPONENTS_EARLIER)
         self.assertEqual(history.PROTECTED_COMPONENTS_EARLIER, ('protected.py', 'execution.py', 'io.py', 'native_pins.py'))
 
-    def test_the_native_atmos_receipt_reads_the_shared_list(self):
-        self.assertEqual(tuple(jna._implementation()), tuple(history.NATIVE_ATMOS_COMPONENTS))
+    def test_the_native_atmos_receipt_reads_its_own_list(self):
+        self.assertEqual(tuple(jna._implementation()), tuple(jna.NATIVE_ATMOS_COMPONENTS))
 
     def test_the_protected_digest_is_taken_over_the_files_of_the_set_it_is_given(self):
         for entry in history.PROTECTED_INVENTORY:
@@ -73,7 +74,7 @@ class NativeAtmosDigestChangesWithClockTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         copy = Path(directory.name)
-        for name in set(history.NATIVE_ATMOS_COMPONENTS) | {'clock.py'}:
+        for name in set(jna.NATIVE_ATMOS_COMPONENTS) | {'clock.py'}:
             shutil.copyfile(PACKAGE / name, copy / name)
         with open(copy / 'clock.py', 'ab') as stream:
             stream.write(b'\n')

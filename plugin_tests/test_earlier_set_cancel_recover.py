@@ -47,7 +47,8 @@ class WorkerCancelTests(unittest.TestCase):
             connection.close()
 
     def prepare_under_the_earlier_set(self):
-        earlier = dict(history.WORKER_INVENTORY[-2]['files'])
+        earlier = dict(next(e for e in reversed(history.WORKER_INVENTORY)
+                            if set(e['files']) == set(history.WORKER_COMPONENTS_EARLIER))['files'])
         self.assertNotEqual(set(earlier), set(worker._implementation()))
         with patch.object(worker, '_implementation', return_value=dict(earlier)):
             self.prepare()

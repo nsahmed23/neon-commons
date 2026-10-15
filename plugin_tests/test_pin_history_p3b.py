@@ -193,7 +193,7 @@ class PackageCopy:
                 stream.write(b'\n')
 
     def current_digest(self):
-        files = [sha256((self.root / 'intune_iac' / name).read_bytes()) for name in history.PROTECTED_COMPONENTS]
+        files = [sha256((self.root / 'intune_iac' / name).read_bytes()) for name in protected.PROTECTED_COMPONENTS]
         return digest(files)
 
     def append(self, name):
@@ -259,7 +259,7 @@ class FrozenJourneyAcrossAnUpgradeTests(UpgradedFrozenCase):
         self.assertEqual(found['recorded_implementation_sha256'], FROZEN_DIGEST)
         self.assertEqual(found['current_implementation_sha256'], self.copy.current_digest())
         self.assertNotEqual(found['recorded_implementation_sha256'], found['current_implementation_sha256'])
-        self.assertEqual(found['bound_components'], list(history.PROTECTED_COMPONENTS))
+        self.assertEqual(found['bound_components'], list(protected.PROTECTED_COMPONENTS))
         self.assertIn('claim', found['recorded_implementation_basis'])
         self.assertFalse(found['current_implementation_eligible'])
         self.unchanged('journey/')
@@ -489,7 +489,7 @@ class NativeAtmosHistoryTests(unittest.TestCase):
         self.assertEqual(found['relation'], 'known_earlier')
         self.assertEqual(found['recorded_implementation_sha256'], digest(self.earlier))
         self.assertEqual(found['current_implementation_sha256'], digest(self.current_files))
-        self.assertEqual(found['bound_components'], list(history.NATIVE_ATMOS_COMPONENTS))
+        self.assertEqual(found['bound_components'], list(self.current_files))  # the consumer's own current set
 
     def test_an_altered_inventory_with_its_evidence_hash_recomputed_is_refused_as_unknown(self):
         self.rewrite(lambda e: e['implementation'].update({'io.py': 'd' * 64}))

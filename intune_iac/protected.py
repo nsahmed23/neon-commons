@@ -607,13 +607,19 @@ def inspect_executor(executor):
     return dict(state,mode=executor.mode,desired_value_sha256=executor.manifest['desired_value_sha256'],execution_authorized=False)
 
 
+# The files the protected implementation digest binds. This module owns the list (it is bound by it): the history
+# module, which no digest binds, only keeps the sets of earlier releases. clock.py holds the recorded time every
+# approval window relies on.
+PROTECTED_COMPONENTS=('protected.py','execution.py','io.py','native_pins.py','clock.py')
+
+
 def _implementation_files():
-    """Per-file sha256 of the files the implementation digest binds (history.PROTECTED_COMPONENTS)."""
-    return {name:_sha(Path(__file__).with_name(name)) for name in history.PROTECTED_COMPONENTS}
+    """Per-file sha256 of the files the implementation digest binds (PROTECTED_COMPONENTS)."""
+    return {name:_sha(Path(__file__).with_name(name)) for name in PROTECTED_COMPONENTS}
 
 
 def _implementation_sha256():
-    return history.protected_digest(_implementation_files())
+    files=_implementation_files();return digest([files[name] for name in PROTECTED_COMPONENTS])
 
 
 def _bindings(executor):
@@ -737,7 +743,7 @@ def implementation_relation(request):
     The digest is the record's own claim; the result says so. Reading it authorizes nothing."""
     bindings=request.get('bindings') if type(request)is dict else None
     recorded=bindings.get('implementation_sha256') if type(bindings)is dict else None
-    return history.protected_relation(recorded,_implementation_sha256())
+    return history.protected_relation(recorded,_implementation_sha256(),PROTECTED_COMPONENTS)
 
 
 def _implementation_gate(request, implementation):
@@ -748,7 +754,7 @@ def _implementation_gate(request, implementation):
     claimed=request['bindings']['implementation_sha256'];current=_implementation_sha256()
     if implementation=='current':
         if claimed!=current:raise ImplementationChanged(claimed,current)
-    elif history.protected_relation(claimed,current)['relation']==history.UNKNOWN:
+    elif history.protected_relation(claimed,current,PROTECTED_COMPONENTS)['relation']==history.UNKNOWN:
         raise AppError('implementation_unknown','The implementation this record names is neither the current one nor in the inventory of released implementations, so it cannot be read as history.')
     return request
 

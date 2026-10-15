@@ -23,14 +23,14 @@ SAME = 'same'
 KNOWN_EARLIER = 'known_earlier'
 UNKNOWN = 'unknown'
 
-# The files protected._bindings digests, in its order. protected.py relies on the recorded time in clock.py for every
-# approval window, so clock.py is bound too; entries registered before that carry the earlier four and stay readable.
+# The file sets of earlier releases only. The CURRENT set of each implementation digest is owned by the module that is
+# bound by it (protected.PROTECTED_COMPONENTS, protected_worker.WORKER_COMPONENTS, journey_native_atmos.
+# NATIVE_ATMOS_COMPONENTS): this module is not itself bound by any digest, so it must not be able to say what is bound.
+# Entries registered before clock.py (protected, native Atmos) or validity.py and clock.py (worker) were bound carry the
+# earlier sets below, and stay readable as history.
 PROTECTED_COMPONENTS_EARLIER = ('protected.py', 'execution.py', 'io.py', 'native_pins.py')
-PROTECTED_COMPONENTS = PROTECTED_COMPONENTS_EARLIER + ('clock.py',)
-# The files journey_native_atmos._implementation records (it reads this list), likewise with clock.py bound.
 NATIVE_ATMOS_COMPONENTS_EARLIER = ('journey_native_atmos.py', 'native_atmos.py', 'repository.py',
                                    'protected.py', 'io.py', 'native_pins.py')
-NATIVE_ATMOS_COMPONENTS = NATIVE_ATMOS_COMPONENTS_EARLIER + ('clock.py',)
 
 # Append only. Never edit or remove an entry: a record made under it would stop reading as history.
 PROTECTED_INVENTORY = (
@@ -49,6 +49,13 @@ PROTECTED_INVENTORY = (
     {'label': 'clock-bound',
      'implementation_sha256': '34918858c5211a7af70e02ce0bffe6471e693464d81f44e9d32c4216fbdf5dce',
      'files': {'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636',
+               'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
+    {'label': 'components-owned-by-consumers',
+     'implementation_sha256': 'f0043f3b6e5911420224d350fd66089363aca5894eaf3fbb7d97d95846f8045d',
+     'files': {'protected.py': '188e226067ecc86ffb45158ecc0463127dda533c3dc5f7af829d84c46f0454c5',
                'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
                'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
@@ -78,15 +85,19 @@ NATIVE_ATMOS_INVENTORY = (
                'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
                'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
+    {'label': 'components-owned-by-consumers',
+     'files': {'journey_native_atmos.py': '92a3afbdb3a0867d1aba6e8a6eeefdfb83a3beeea00db755a7566d484bfcdec0',
+               'native_atmos.py': '77da0489216ac52e99d0ed2f3a677eec944b4e7c8f7d45a91cae2e282368d62a',
+               'repository.py': '6c444bb93076dac5f31deb249c2b15fe174e5e310d780406ed293d994ba2027a',
+               'protected.py': '188e226067ecc86ffb45158ecc0463127dda533c3dc5f7af829d84c46f0454c5',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
 )
 
-# The files protected_worker._implementation records in a job manifest, in its order (it reads this list). The first
-# nine were the whole set until the approval judgment moved into validity.py, which relies on the recorded time in
-# clock.py: both are bound now, so a changed judgment changes the digest and the execution gate refuses. Entries
-# registered before that carry the nine; they stay readable as history (see _file_set_relation).
+# The nine files protected_worker._implementation recorded in a job manifest until validity.py and clock.py were bound.
 WORKER_COMPONENTS_EARLIER = ('protected_worker.py', 'protected.py', 'provider_execution.py', 'approval_authority.py',
                              'provider_journey.py', 'azure_backend.py', 'execution.py', 'io.py', 'native_pins.py')
-WORKER_COMPONENTS = WORKER_COMPONENTS_EARLIER + ('validity.py', 'clock.py')
 
 WORKER_INVENTORY = (
     {'label': 'ce27913-pre-pin-migration',
@@ -161,6 +172,18 @@ WORKER_INVENTORY = (
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
                'validity.py': '29897140f49ad33e1c687aa22771d2f73bc667b472078b8910a1f530e9076b89',
                'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
+    {'label': 'adoption-expiry-latch-r3',
+     'files': {'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
+               'protected.py': '188e226067ecc86ffb45158ecc0463127dda533c3dc5f7af829d84c46f0454c5',
+               'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+               'approval_authority.py': 'bc39975ff1bd83cb466e7e0987252c7e60469e09a3d528adc8aeeb6c1a45e7a1',
+               'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371',
+               'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+               'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'validity.py': 'd7bafb7503c3ac00d8232ec3308565d26d6eb0470e62e9a4804de54250917f68',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
 )
 
 _HEX = re.compile(r'[0-9a-f]{64}\Z')
@@ -170,20 +193,19 @@ RECORD_CLAIM = 'the digest is the record\'s own claim; it was not verified again
 
 
 def protected_digest(files):
-    """The combined value protected._bindings records for a per-file mapping: the digest of the files of the set the
-    mapping carries (an entry made before clock.py was bound carries the earlier four, and keeps its digest)."""
-    names = PROTECTED_COMPONENTS_EARLIER if set(files) == set(PROTECTED_COMPONENTS_EARLIER) else PROTECTED_COMPONENTS
-    return digest([files[name] for name in names])
+    """The combined value protected records for a per-file mapping, in the mapping's own order (protected owns the current
+    order; an inventory entry carries the order of its release). Used for the inventory's historical digests."""
+    return digest([files[name] for name in files])
 
 
-def _result(inventory, components, relation, label, recorded, current):
+def _result(inventory, components, relation, label, recorded, current):  # components: the consumer's current set
     return {'relation': relation, 'inventory': inventory, 'inventory_label': label,
             'recorded_implementation_sha256': recorded, 'current_implementation_sha256': current,
             'bound_components': list(components), 'recorded_implementation_basis': RECORD_CLAIM,
             'recognition_limit': RECOGNITION_LIMIT}
 
 
-def protected_relation(recorded_sha256, current_sha256):
+def protected_relation(recorded_sha256, current_sha256, components=()):
     """Relation of a protected request's recorded implementation digest to the current one.
 
     same: they are equal. known_earlier: the recorded digest is in PROTECTED_INVENTORY. unknown: neither, or not a
@@ -195,13 +217,14 @@ def protected_relation(recorded_sha256, current_sha256):
     else:
         entry = next((e for e in PROTECTED_INVENTORY if valid and e['implementation_sha256'] == recorded_sha256), None)
         relation, label = (KNOWN_EARLIER, entry['label']) if entry else (UNKNOWN, None)
-    return _result('protected_operation', PROTECTED_COMPONENTS, relation, label,
+    return _result('protected_operation', components, relation, label,
                    recorded_sha256 if valid else None, current_sha256)
 
 
-def _file_set_relation(name, components, inventory, recorded_files, current_files):
+def _file_set_relation(name, inventory, recorded_files, current_files):
     # A record names the file set of the release that made it: the current set, or the set an inventory entry carries
     # (an entry is never rewritten, so a release made before the set grew keeps its own).
+    components = list(current_files) if type(current_files) is dict else []  # the consumer's own current set
     sets = [set(components)] + [set(entry['files']) for entry in inventory]
     valid = (type(recorded_files) is dict and set(recorded_files) in sets
              and all(type(v) is str and _HEX.match(v) for v in recorded_files.values()))
@@ -217,10 +240,10 @@ def _file_set_relation(name, components, inventory, recorded_files, current_file
 
 def native_atmos_relation(recorded_files, current_files):
     """Relation of a native Atmos receipt's recorded file inventory to the current one (the digest of the mapping)."""
-    return _file_set_relation('native_atmos', NATIVE_ATMOS_COMPONENTS, NATIVE_ATMOS_INVENTORY, recorded_files, current_files)
+    return _file_set_relation('native_atmos', NATIVE_ATMOS_INVENTORY, recorded_files, current_files)
 
 
 def worker_relation(recorded_files, current_files):
     """Relation of a worker job's recorded implementation file set to the current one. A job may be read as history
     only under a released worker implementation registered in WORKER_INVENTORY."""
-    return _file_set_relation('worker', WORKER_COMPONENTS, WORKER_INVENTORY, recorded_files, current_files)
+    return _file_set_relation('worker', WORKER_INVENTORY, recorded_files, current_files)

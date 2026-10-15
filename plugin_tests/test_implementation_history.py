@@ -78,6 +78,19 @@ ADOPTION_LATCH_LABEL = 'adoption-expiry-latch'
 ADOPTION_LATCH_WORKER_FILES = dict(AUTHZ_R3_WORKER_FILES, **{
     'approval_authority.py': 'bc39975ff1bd83cb466e7e0987252c7e60469e09a3d528adc8aeeb6c1a45e7a1'})
 
+OWNED_LABEL = 'components-owned-by-consumers'
+OWNED_DIGEST = 'f0043f3b6e5911420224d350fd66089363aca5894eaf3fbb7d97d95846f8045d'
+OWNED_PROTECTED_FILES = dict(CLOCK_PROTECTED_FILES, **{
+    'protected.py': '188e226067ecc86ffb45158ecc0463127dda533c3dc5f7af829d84c46f0454c5'})
+OWNED_ATMOS_FILES = dict(CLOCK_ATMOS_FILES, **{
+    'journey_native_atmos.py': '92a3afbdb3a0867d1aba6e8a6eeefdfb83a3beeea00db755a7566d484bfcdec0',
+    'protected.py': '188e226067ecc86ffb45158ecc0463127dda533c3dc5f7af829d84c46f0454c5'})
+ADOPTION_LATCH_R3_LABEL = 'adoption-expiry-latch-r3'
+ADOPTION_LATCH_R3_WORKER_FILES = dict(ADOPTION_LATCH_R2_WORKER_FILES, **{
+    'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
+    'protected.py': '188e226067ecc86ffb45158ecc0463127dda533c3dc5f7af829d84c46f0454c5',
+    'validity.py': 'd7bafb7503c3ac00d8232ec3308565d26d6eb0470e62e9a4804de54250917f68'})
+
 
 def frozen_digests():
     """Every implementation digest the P3a fixtures recorded, read from the frozen files."""
@@ -97,13 +110,15 @@ class InventoryPinTests(unittest.TestCase):
             [dict(entry) for entry in history.PROTECTED_INVENTORY],
             [{'label': LABEL, 'implementation_sha256': FROZEN_DIGEST, 'files': FROZEN_PROTECTED_FILES},
              {'label': P3B_LABEL, 'implementation_sha256': P3B_DIGEST, 'files': P3B_PROTECTED_FILES},
-             {'label': CLOCK_LABEL, 'implementation_sha256': CLOCK_DIGEST, 'files': CLOCK_PROTECTED_FILES}])
+             {'label': CLOCK_LABEL, 'implementation_sha256': CLOCK_DIGEST, 'files': CLOCK_PROTECTED_FILES},
+             {'label': OWNED_LABEL, 'implementation_sha256': OWNED_DIGEST, 'files': OWNED_PROTECTED_FILES}])
 
     def test_native_atmos_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
             [dict(entry) for entry in history.NATIVE_ATMOS_INVENTORY],
             [{'label': LABEL, 'files': FROZEN_ATMOS_FILES}, {'label': P3B_LABEL, 'files': P3B_ATMOS_FILES},
-             {'label': CLOCK_LABEL, 'files': CLOCK_ATMOS_FILES}])
+             {'label': CLOCK_LABEL, 'files': CLOCK_ATMOS_FILES},
+             {'label': OWNED_LABEL, 'files': OWNED_ATMOS_FILES}])
 
     def test_worker_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
@@ -113,37 +128,43 @@ class InventoryPinTests(unittest.TestCase):
              {'label': AUTHZ_R2_LABEL, 'files': AUTHZ_R2_WORKER_FILES},
              {'label': AUTHZ_R3_LABEL, 'files': AUTHZ_R3_WORKER_FILES},
              {'label': ADOPTION_LATCH_LABEL, 'files': ADOPTION_LATCH_WORKER_FILES},
-             {'label': ADOPTION_LATCH_R2_LABEL, 'files': ADOPTION_LATCH_R2_WORKER_FILES}])
+             {'label': ADOPTION_LATCH_R2_LABEL, 'files': ADOPTION_LATCH_R2_WORKER_FILES},
+             {'label': ADOPTION_LATCH_R3_LABEL, 'files': ADOPTION_LATCH_R3_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         # An entry carries the file set of its own release: the earlier set until clock.py was bound, the current set
         # since. No entry is ever rewritten, so earlier ones keep the earlier set.
+        from intune_iac import journey_native_atmos, protected
         for inventory, earlier, components in (
-                (history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS_EARLIER, history.PROTECTED_COMPONENTS),
-                (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS_EARLIER, history.NATIVE_ATMOS_COMPONENTS)):
+                (history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS_EARLIER, protected.PROTECTED_COMPONENTS),
+                (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS_EARLIER, journey_native_atmos.NATIVE_ATMOS_COMPONENTS)):
             for entry in inventory:
                 self.assertIn(set(entry['files']), (set(earlier), set(components)), entry['label'])
             self.assertEqual(set(inventory[-1]['files']), set(components))
-            self.assertTrue(all(set(entry['files']) == set(earlier) for entry in inventory[:-1]))
+            kinds = [set(entry['files']) == set(components) for entry in inventory]
+            self.assertEqual(kinds, sorted(kinds))  # earlier-set entries precede current-set entries, never the reverse
         # A worker entry carries the file set of its own release: the nine files until validity.py and clock.py were
-        # bound, the current set since. No entry is ever rewritten, so earlier ones keep the nine.
-        sets = (set(history.WORKER_COMPONENTS_EARLIER), set(history.WORKER_COMPONENTS))
+        # bound, the current set (owned by protected_worker) since. No entry is ever rewritten.
+        from intune_iac import protected_worker
+        sets = (set(history.WORKER_COMPONENTS_EARLIER), set(protected_worker.WORKER_COMPONENTS))
         for entry in history.WORKER_INVENTORY:
             self.assertIn(set(entry['files']), sets, entry['label'])
-        self.assertEqual(set(history.WORKER_INVENTORY[-1]['files']), set(history.WORKER_COMPONENTS))
-        self.assertTrue(all(set(entry['files']) == set(history.WORKER_COMPONENTS_EARLIER)
-                            for entry in history.WORKER_INVENTORY[:-1]))
+        self.assertEqual(set(history.WORKER_INVENTORY[-1]['files']), set(protected_worker.WORKER_COMPONENTS))
+        kinds = [set(entry['files']) == set(protected_worker.WORKER_COMPONENTS) for entry in history.WORKER_INVENTORY]
+        self.assertEqual(kinds, sorted(kinds))  # earlier-set entries precede current-set entries, never the reverse
 
     def test_component_sets_are_the_bound_file_sets(self):
         self.assertEqual(history.PROTECTED_COMPONENTS_EARLIER, ('protected.py', 'execution.py', 'io.py', 'native_pins.py'))
-        self.assertEqual(history.PROTECTED_COMPONENTS, ('protected.py', 'execution.py', 'io.py', 'native_pins.py', 'clock.py'))
+        from intune_iac import journey_native_atmos, protected
+        self.assertEqual(protected.PROTECTED_COMPONENTS, ('protected.py', 'execution.py', 'io.py', 'native_pins.py', 'clock.py'))
         self.assertEqual(history.NATIVE_ATMOS_COMPONENTS_EARLIER, ('journey_native_atmos.py', 'native_atmos.py', 'repository.py',
                                                                   'protected.py', 'io.py', 'native_pins.py'))
-        self.assertEqual(history.NATIVE_ATMOS_COMPONENTS, history.NATIVE_ATMOS_COMPONENTS_EARLIER + ('clock.py',))
+        self.assertEqual(journey_native_atmos.NATIVE_ATMOS_COMPONENTS, history.NATIVE_ATMOS_COMPONENTS_EARLIER + ('clock.py',))
 
     def test_each_protected_entry_digest_is_the_digest_of_its_listed_files(self):
+        from intune_iac import protected
         for entry in history.PROTECTED_INVENTORY:
-            self.assertIn(set(entry['files']), (set(history.PROTECTED_COMPONENTS_EARLIER), set(history.PROTECTED_COMPONENTS)),
+            self.assertIn(set(entry['files']), (set(history.PROTECTED_COMPONENTS_EARLIER), set(protected.PROTECTED_COMPONENTS)),
                           entry['label'])
             self.assertEqual(history.protected_digest(entry['files']), entry['implementation_sha256'], entry['label'])
 
@@ -186,10 +207,11 @@ class RelationTests(unittest.TestCase):
         self.assertEqual((result['relation'], result['inventory_label']), ('unknown', None))
 
     def test_result_names_both_digests_the_bound_components_and_the_claim(self):
-        result = history.protected_relation(FROZEN_DIGEST, 'a' * 64)
+        from intune_iac import protected
+        result = history.protected_relation(FROZEN_DIGEST, 'a' * 64, protected.PROTECTED_COMPONENTS)
         self.assertEqual(result['inventory'], 'protected_operation')
         self.assertEqual(result['current_implementation_sha256'], 'a' * 64)
-        self.assertEqual(result['bound_components'], list(history.PROTECTED_COMPONENTS))
+        self.assertEqual(result['bound_components'], list(protected.PROTECTED_COMPONENTS))
         self.assertIn('claim', result['recorded_implementation_basis'])
         self.assertIn('not authentication', result['recognition_limit'])
 
@@ -203,7 +225,7 @@ class RelationTests(unittest.TestCase):
         earlier = history.native_atmos_relation(FROZEN_ATMOS_FILES, current)
         self.assertEqual((earlier['relation'], earlier['inventory_label']), ('known_earlier', LABEL))
         self.assertEqual(earlier['recorded_implementation_sha256'], digest(FROZEN_ATMOS_FILES))
-        self.assertEqual(earlier['bound_components'], list(history.NATIVE_ATMOS_COMPONENTS))
+        self.assertEqual(earlier['bound_components'], list(current))  # the consumer's own current set
         altered = dict(FROZEN_ATMOS_FILES, **{'io.py': 'd' * 64})
         self.assertEqual(history.native_atmos_relation(altered, current)['relation'], 'unknown')
 
@@ -217,7 +239,7 @@ class RelationTests(unittest.TestCase):
 class WorkerInventoryTests(unittest.TestCase):
     def test_worker_component_set_is_the_set_protected_worker_binds(self):
         from intune_iac import protected_worker
-        self.assertEqual(history.WORKER_COMPONENTS, tuple(protected_worker._implementation()))
+        self.assertEqual(protected_worker.WORKER_COMPONENTS, tuple(protected_worker._implementation()))
 
     def test_first_worker_entry_is_the_pinned_release_and_is_listed_under_the_same_label(self):
         first = dict(history.WORKER_INVENTORY[0])
@@ -230,7 +252,7 @@ class WorkerInventoryTests(unittest.TestCase):
         self.assertEqual(history.worker_relation(current, current)['relation'], 'same')
         earlier = history.worker_relation(FROZEN_WORKER_FILES, current)
         self.assertEqual((earlier['relation'], earlier['inventory_label']), ('known_earlier', LABEL))
-        self.assertEqual(earlier['bound_components'], list(history.WORKER_COMPONENTS))
+        self.assertEqual(earlier['bound_components'], list(current))  # the consumer's own current set
         drifted = dict(FROZEN_WORKER_FILES, **{'provider_execution.py': 'd' * 64})
         self.assertEqual(history.worker_relation(drifted, current)['relation'], 'unknown')
         for value in (None, {}, dict(FROZEN_WORKER_FILES, extra='e' * 64)):

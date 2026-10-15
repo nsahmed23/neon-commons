@@ -11,7 +11,6 @@ import os
 import re
 import stat
 
-from . import implementation_history as history
 from .implementation_history import UNKNOWN, native_atmos_relation
 from .io import AppError, digest, load_json, parse_json, read_bytes, write_json
 from .native_atmos import ATMOS_SHA256, ATMOS_VERSION, expected_logical_stack, resolve_native_atmos
@@ -24,9 +23,15 @@ HEX = re.compile(r'[0-9a-f]{64}\Z')
 def _fail(code='journey_native_atmos_evidence_invalid'):
     raise AppError(code, 'Native Atmos evidence is missing, changed, or inconsistent; rerun the Atmos stage.')
 
+# The files the native-Atmos receipt inventory binds. This module owns the list (it is bound by it); the history module
+# only keeps the sets of earlier releases. clock.py holds the recorded time every approval window relies on.
+NATIVE_ATMOS_COMPONENTS = ('journey_native_atmos.py', 'native_atmos.py', 'repository.py', 'protected.py', 'io.py',
+                           'native_pins.py', 'clock.py')
+
+
 def _implementation():
     root = Path(__file__).resolve().parent
-    return {name: hashlib.sha256(read_bytes(root/name)).hexdigest() for name in history.NATIVE_ATMOS_COMPONENTS}
+    return {name: hashlib.sha256(read_bytes(root/name)).hexdigest() for name in NATIVE_ATMOS_COMPONENTS}
 
 def _tool(executable):
     path = Path(executable).absolute()

@@ -25,6 +25,11 @@ from plugin_tests import test_protected_worker_r4 as worker_base
 PACKAGE = Path(worker.__file__).parent
 
 
+def last_entry_with(inventory, earlier):
+    """The newest inventory entry that still carries the earlier file set (before the current set was bound)."""
+    return next(entry for entry in reversed(inventory) if set(entry['files']) == set(earlier))
+
+
 def forbidden(name):
     def call(*args, **kwargs):
         raise AssertionError(name + ' was called for a record bound to an earlier file set')
@@ -39,7 +44,7 @@ class WorkerJobOnAnEarlierFileSetTests(unittest.TestCase):
     state = worker_base.ProtectedWorkerTests.state
 
     def prepared_under_the_earlier_set(self):
-        earlier = dict(history.WORKER_INVENTORY[-2]['files'])  # the release before validity.py and clock.py were bound
+        earlier = dict(last_entry_with(history.WORKER_INVENTORY, history.WORKER_COMPONENTS_EARLIER)['files'])
         self.assertNotEqual(set(earlier), set(worker._implementation()))
         with patch.object(worker, '_implementation', return_value=dict(earlier)):
             self.prepare()
@@ -91,7 +96,7 @@ class ProtectedRequestOnAnEarlierFileSetTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.work = Path(temporary.name)
         self.executor = protected.create_synthetic_executor(self.work / 'executor', initial_value={'a': 1}, desired_value={'a': 2})
-        self.earlier = history.PROTECTED_INVENTORY[-2]['implementation_sha256']  # before clock.py was bound
+        self.earlier = last_entry_with(history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS_EARLIER)['implementation_sha256']
         self.assertNotEqual(self.earlier, protected._implementation_sha256())
         with patch.object(protected, '_implementation_sha256', return_value=self.earlier):
             self.request = protected.prepare_native_operation(self.executor, ttl_seconds=300)
@@ -121,7 +126,7 @@ class NativeAtmosReceiptOnAnEarlierFileSetTests(unittest.TestCase):
     reconstruct = atmos_base.NativeAtmosReceiptTests.reconstruct
 
     def setUp(self):
-        self.earlier = dict(history.NATIVE_ATMOS_INVENTORY[-2]['files'])  # before clock.py was bound
+        self.earlier = dict(last_entry_with(history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS_EARLIER)['files'])
         self.assertNotEqual(set(self.earlier), set(jna._implementation()))
         with patch.object(jna, '_implementation', return_value=dict(self.earlier)):
             atmos_base.NativeAtmosReceiptTests.setUp(self)

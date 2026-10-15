@@ -22,14 +22,14 @@ PACKAGE = Path(worker.__file__).parent
 
 class ComponentListTests(unittest.TestCase):
     def test_the_judgment_and_the_recorded_time_are_bound(self):
-        self.assertIn('validity.py', history.WORKER_COMPONENTS)
-        self.assertIn('clock.py', history.WORKER_COMPONENTS)
-        self.assertIn('approval_authority.py', history.WORKER_COMPONENTS)
+        self.assertIn('validity.py', worker.WORKER_COMPONENTS)
+        self.assertIn('clock.py', worker.WORKER_COMPONENTS)
+        self.assertIn('approval_authority.py', worker.WORKER_COMPONENTS)
 
-    def test_the_worker_reads_the_one_component_list(self):
-        self.assertEqual(tuple(worker._implementation()), tuple(history.WORKER_COMPONENTS))
-        longer = tuple(history.WORKER_COMPONENTS) + ('native_atmos.py',)  # a name only the shared list could add
-        with patch.object(history, 'WORKER_COMPONENTS', longer):
+    def test_the_worker_reads_its_own_component_list(self):
+        self.assertEqual(tuple(worker._implementation()), tuple(worker.WORKER_COMPONENTS))
+        longer = tuple(worker.WORKER_COMPONENTS) + ('native_atmos.py',)  # a name only the worker's own list could add
+        with patch.object(worker, 'WORKER_COMPONENTS', longer):
             self.assertEqual(tuple(worker._implementation()), longer)
 
     def test_records_made_under_the_earlier_file_set_stay_readable_as_history(self):
@@ -63,7 +63,7 @@ class ChangedJudgmentIsRefusedTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         copy = Path(directory.name)
-        for bound in history.WORKER_COMPONENTS:
+        for bound in worker.WORKER_COMPONENTS:
             shutil.copyfile(PACKAGE / bound, copy / bound)
         with open(copy / name, 'ab') as stream:
             stream.write(b'\n')
