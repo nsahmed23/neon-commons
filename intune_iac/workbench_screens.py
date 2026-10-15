@@ -1691,9 +1691,11 @@ def relationship_lines(value, width, rules='ascii'):
             guide = '  ' + ('    ' if last else tree[2])
             label = RELATION_LABELS.get(edge.get('relation'), str(edge.get('relation')).replace('_', ' '))
             # A label longer than its column keeps every letter and a gap before the target.
-            text = (pad(label, 13) if cell_width(label) < 13 else label + '  ') + _edge_target(edge) + ('' if shared else '  [' + safe_text(str(edge.get('assertion_class', 'unknown'))) + ']')
-            for number, part in enumerate(word_wrap(text, width - len(connector))):
-                lines.append((connector if number == 0 else guide) + part)
+            lead = pad(label, 13) if cell_width(label) < 13 else label + '  '
+            text = _edge_target(edge) + ('' if shared else '  [' + safe_text(str(edge.get('assertion_class', 'unknown'))) + ']')
+            # A wrapped part continues the target, so it starts under the target's column, not under the label's.
+            for number, part in enumerate(word_wrap(text, width - len(connector) - cell_width(lead)) or ['']):
+                lines.append((connector + lead if number == 0 else guide + ' ' * cell_width(lead)) + part)
     ownership = value.get('ownership_evidence') if isinstance(value.get('ownership_evidence'), dict) else {}
     lines.append('OWNERSHIP')
     reason = ownership.get('reason')
@@ -1983,7 +1985,7 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
                 noted.add(edge['target'])
                 # The rail of the layer and of the branch carries on past the node's row, so the note stays attached to it.
                 lines.append(_map_row('   ' + guide + ('   ' if last else glyph['guide']) + ' ' * (MAP_RELATION_WIDTH + cell_width(glyph['arrow']))
-                                      + '    ' + notes[edge['target']]))
+                                      + '    ' + '(' + notes[edge['target']] + ')'))
         if cut:
             lines.append(_map_row('   ' + guide + glyph['last'] + '%d more not drawn; the tree below lists them' % cut))
     lines.extend(PinnedRow(row) for row in _map_legend(width, rules))

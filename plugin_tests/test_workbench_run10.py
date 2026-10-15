@@ -2,6 +2,8 @@
 
 Item 1: the typed tree's header counts as the map's header does, from one function.
 Item 2: the companion entry, its long text and the page name the command one way, in the product's own flags.
+Item 3: at 60x20 the key line names the way to move the focus and the legend defines the no-state word.
+Item 4: the typed tree's wrapped identifier sits under its column; a filter note reads as part of its row.
 Items are added below in the order of the brief; each class names its item.
 Temporary directories only.
 """
@@ -9,7 +11,7 @@ import re
 import unittest
 
 from plugin_tests import test_workbench_companion as companion_tests
-from plugin_tests.test_workbench_map_truth import MapTruth
+from plugin_tests.test_workbench_map_truth import MARK, MapTruth
 
 GENERATED = {'relation': 'generated_from', 'target_id': '/home/nsahm/work/journey 29/generated/22222222-2222-4222-8222-222222222222.tf',
              'details': {}, 'assertion_class': 'historical_local_adoption'}
@@ -118,3 +120,55 @@ class NarrowMapTests(MapTruth):
             legend = next(row for row in rows if '> focus * selected' in row)
             self.assertIn('%s means no state' % word, legend, rules)
             self.assertIn('? help', legend)
+
+
+class FilterBlockTests(MapTruth):
+    """Item 4: a wrapped identifier sits under the column it continues; a filter note reads as part of the row above."""
+
+    CONNECTORS = ('├', '└', '|-', '`-')
+
+    def tree(self, width, rules):
+        from intune_iac.workbench_screens import relationship_lines
+        return relationship_lines(self.value, width, rules)
+
+    def continuations(self, lines):
+        """(row above, continuation) pairs: a continuation has the rail but no connector of its own."""
+        found = []
+        for above, line in zip(lines, lines[1:]):
+            if (above.startswith('  ') and any(mark in above[:9] for mark in self.CONNECTORS) and line.startswith('  ')
+                    and not any(mark in line[:9] for mark in self.CONNECTORS) and line.strip(' │|')):
+                found.append((above, line))
+        return found
+
+    def test_a_wrapped_identifier_is_indented_under_the_column_it_continues(self):
+        for rules in ('unicode', 'ascii'):
+            seen = 0
+            for width in (60, 80, 100):
+                for above, line in self.continuations(self.tree(width, rules)):
+                    seen += 1
+                    target = above.index('Unresolved') if 'Unresolved' in above else None
+                    if target is None:
+                        continue
+                    start = len(line) - len(line.lstrip(' │|'))
+                    self.assertEqual(start, target, (rules, width, above, line))
+            self.assertGreater(seen, 2, rules)
+
+    def test_the_wrap_keeps_every_identifier_whole(self):
+        identifier = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+        for rules in ('unicode', 'ascii'):
+            wide = identifier.findall(' '.join(self.tree(200, rules)))
+            self.assertGreater(len(wide), 5)
+            for width in (60, 100):
+                self.assertEqual(identifier.findall(' '.join(self.tree(width, rules))), wide, (rules, width))
+
+    def test_a_filter_note_reads_as_part_of_the_row_above(self):
+        for rules in ('unicode', 'ascii'):
+            _, rows = self.rows(self.graph(freshness='fresh'), rules=rules)
+            text = [row.rstrip() for row in rows]
+            notes = [row for row in text if 'applies to b564fc9a' in row or '+ filter 5aa36291 include' in row]
+            self.assertEqual(len(notes), 2, rules)
+            for note in notes:
+                body = note.lstrip(' │|').rstrip()
+                self.assertTrue(body.startswith('(') and body.endswith(')'), (rules, note))
+            index = next(i for i, row in enumerate(text) if 'filter 5aa36291' in row and MARK.search(row))
+            self.assertIn('(applies to b564fc9a)', text[index + 1], rules)
