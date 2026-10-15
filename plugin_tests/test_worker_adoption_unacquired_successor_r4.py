@@ -1,5 +1,5 @@
 """Separate /3 signatures and modeled same-authority edges; no live authority."""
-import copy,json,sqlite3,types,unittest
+import copy,json,sqlite3,time,types,unittest
 from pathlib import Path
 from unittest.mock import patch
 from intune_iac import worker_adoption_reconcile as bridge
@@ -120,10 +120,10 @@ class UnacquiredAtomicConsumption(UnacquiredFixture):
         if failure:self.db.execute("CREATE TRIGGER refuse_observation_edge BEFORE INSERT ON adoption_plan_observation_successors BEGIN SELECT RAISE(ABORT,'injected observation edge-record failure');END")
         self.db.commit();native=self.root/'native';native.mkdir(mode=0o700);proxy=self.root/'proxy';proxy.mkdir(mode=0o700)
         subject=object.__new__(bridge.RecoveryPlanJob);subject.root=self.root/'observed';subject.identifier='observed';subject.sha256=sha;subject.manifest=manifest;subject.original=self.original
-        subject.policy=types.SimpleNamespace(connection=lambda:sqlite3.connect(self.root/'authority.sqlite3'),event=lambda *args:None)
+        subject.policy=types.SimpleNamespace(root=self.root,connection=lambda:sqlite3.connect(self.root/'authority.sqlite3'),event=lambda *args:None)
         subject._check=lambda:None;calls=[];subject._dispatch=lambda *args:calls.append('injected-host') or {'status':'injected-no-native'}
         runtime=object.__new__(bridge.RecoveryPlanRuntime);phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None))
-        payload={'issuer':'fixture','key_id':'key','nonce':'new-observation-nonce'};facts={'fresh_observation':{'identity_binding_sha256':'identity'}}
+        payload={'issuer':'fixture','key_id':'key','nonce':'new-observation-nonce','expires_at':int(time.time())+600};facts={'fresh_observation':{'identity_binding_sha256':'identity'}}
         with patch.object(bridge.RecoveryPlanRuntime,'check',return_value=None),patch.object(bridge,'_completion',return_value=facts),patch.object(bridge,'_binding',return_value=manifest['recovery_binding']),patch.object(bridge,'_verify',return_value=payload),patch.object(bridge.service,'_host_spec',return_value=types.SimpleNamespace(job_root=native,broker_root=proxy)),patch.object(bridge,'_original_row',return_value=None),patch.object(bridge,'_phase_from_binding',return_value=phase),patch.object(bridge,'_held_phase',return_value=None),patch.object(bridge.service,'_scopes',return_value=['scope']),patch.object(bridge.service,'_controller_identity',return_value='fixture-start'):
             if failure:
                 with self.assertRaises(sqlite3.DatabaseError):subject.run({'payload':'injected'},runtime=runtime,completion={})

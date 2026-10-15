@@ -591,12 +591,13 @@ class RecoveryPlanJob:
         if threading.current_thread() is not threading.main_thread() or type(runtime) is not RecoveryPlanRuntime:_fail('adoption_recovery_runtime_required')
         runtime.check(self.manifest);facts=_completion(self.original,completion)
         if _binding(facts,original=self.original)!=self.manifest['recovery_binding'] or facts['fresh_observation']['identity_binding_sha256']!=self.manifest['identity_binding_sha256']:_fail('adoption_recovery_precondition_changed')
-        payload=_verify(self.policy,self.manifest,receipt);raw=canonical(receipt);spec=service._host_spec(self.manifest['host_spec'])
+        payload=_verify(self.policy,self.manifest,receipt);deadline=adoption._deadline(payload);raw=canonical(receipt);spec=service._host_spec(self.manifest['host_spec'])
         for directory in (spec.job_root,spec.broker_root):
             if list(_private(directory,directory=True).iterdir()):_fail('adoption_recovery_fresh_host_required')
         phase=_phase_from_binding(self.original,self.manifest['recovery_binding']) if _is_phase(self.manifest) else None
-        with self.policy.connection() as db:
-            db.execute('BEGIN IMMEDIATE');row=db.execute('SELECT status,cancelled,dispatches FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
+        # The window is judged again, and the approval consumed, in one critical section (worker_adoption._critical).
+        with adoption._critical(self.policy,payload,self.sha256,deadline,fail=_fail,expired_code='adoption_recovery_signature_expired') as db:
+            row=db.execute('SELECT status,cancelled,dispatches FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
             if row!=('prepared',0,0):_fail('adoption_recovery_plan_not_replayable')
             _original_row(db,self.original,self.manifest['original_facts'])
             if _is_phase(self.manifest):_phase_transaction(db,self.original,self.manifest,phase=phase,current_id=self.identifier)

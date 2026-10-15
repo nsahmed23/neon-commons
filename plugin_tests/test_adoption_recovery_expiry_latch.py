@@ -211,6 +211,48 @@ class RunLatchTests(RecoveryFixture):
         self.assertEqual(self.refused(lambda: self.run_job(signed)).code, EXPIRED)
         self.assert_nothing_consumed()
 
+    def spec_that(self, action):
+        """_host_spec runs right after _verify and before the consumption: a stand-in for the time that gap takes."""
+        def spec(*args):
+            action()
+            return types.SimpleNamespace(job_root=self.native, broker_root=self.proxy)
+        return patch.object(bridge.service, '_host_spec', side_effect=spec)
+
+    def test_an_expiry_reached_between_verification_and_consumption_is_refused_with_nothing_consumed(self):
+        signed = self.receipt()
+        self.clocks.wall = self.start + 10
+        with self.spec_that(lambda: self.clocks.elapse(LIFETIME)):
+            self.assertEqual(self.refused(lambda: self.run_job(signed)).code, EXPIRED)
+        self.assert_nothing_consumed()
+        self.assertEqual(len(self.latched()), 1)
+
+    def test_an_expiry_latched_by_another_process_between_verification_and_consumption_refuses_the_consumption(self):
+        signed = self.receipt()
+        paused, release, queue = FORK.Event(), FORK.Event(), FORK.Queue()
+
+        def process_a():
+            self.clocks.wall = self.start + 10  # this process reads a time inside the window throughout
+
+            def pause():
+                paused.set()
+                release.wait(BOUND)
+            try:
+                with self.spec_that(pause):
+                    self.run_job(signed)
+                queue.put(('ok', None))
+            except AppError as error:
+                queue.put(('refused', error.code))
+        process = FORK.Process(target=process_a, daemon=True)
+        process.start()
+        self.addCleanup(lambda: process.is_alive() and process.terminate())
+        self.assertTrue(paused.wait(BOUND))
+        self.clocks.elapse(LIFETIME + 1)  # process B reaches the expiry and latches it
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, EXPIRED)
+        release.set()
+        self.assertEqual(queue.get(timeout=BOUND), ('refused', EXPIRED))
+        process.join(BOUND)
+        self.assert_nothing_consumed()
+
     def test_an_open_window_consumes_and_dispatches_once(self):
         self.clocks.wall = self.start + 10
         self.assertEqual(self.run_job(self.receipt())['status'], 'modeled-dispatch')
