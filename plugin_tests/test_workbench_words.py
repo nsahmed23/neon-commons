@@ -307,3 +307,20 @@ class RunThreeWordsTests(unittest.TestCase):
                               'blocked': {'code': 'workbench_desired_capability', 'message': message}}]}
         lines = text(actions_lines(value['actions'], 0, 200))
         self.assertIn('device_vendor_msft_policy_config_x_1', lines)
+
+
+class CodesInSentencesTests(unittest.TestCase):
+    """Journey 28 run 3, review R7: a known code reads as words inside a sentence; the code stays in brackets."""
+
+    def test_a_refused_approval_in_the_history(self):
+        from intune_iac.workbench_screens import _event_text
+        text = _event_text({'kind': 'approval_refused', 'fields': {'code': 'expired_request'}})
+        self.assertEqual(text, 'the approval window had closed (expired_request); nothing was dispatched')
+        self.assertEqual(_event_text({'kind': 'approval_refused', 'fields': {'code': 'x_unknown'}}),
+                         'x_unknown; nothing was dispatched')
+
+    def test_an_unknown_outcome_names_the_error_in_words(self):
+        from intune_iac.workbench_diagnostics import unknown_outcome_words
+        self.assertEqual(unknown_outcome_words('model_response_lost'),
+                         "the modeled service's response was lost (model_response_lost)")
+        self.assertEqual(unknown_outcome_words('other_code'), 'other_code')

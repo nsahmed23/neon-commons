@@ -1793,6 +1793,12 @@ EVENT_LABELS = {'prepared': 'prepared', 'dispatch_started': 'dispatch started', 
                 'uncertain': 'outcome unknown', 'reconciled': 'reconciled', 'approval_refused': 'approval refused'}
 
 
+# Refused approvals in the journal history, in words (the code stays beside them).
+APPROVAL_REFUSED_WORDS = {'expired_request': 'the approval window had closed',
+                          'clock_moved_backward': "this host's clock read earlier than a recorded time",
+                          'approval_digest_mismatch': 'the digest did not match the review'}
+
+
 def _event_text(event):
     """What one journal event recorded, from its own fields."""
     fields = event.get('fields') if isinstance(event.get('fields'), dict) else {}
@@ -1817,7 +1823,9 @@ def _event_text(event):
         return "reconcile's readback: %s, after %s" % (_as_words(fields.get('classification')),
                                                       _as_words(fields.get('previous_status')))
     if kind == 'approval_refused':
-        return '%s; nothing was dispatched' % fields.get('code')
+        code = fields.get('code')
+        return '%s; nothing was dispatched' % ('%s (%s)' % (APPROVAL_REFUSED_WORDS[code], code)
+                                               if code in APPROVAL_REFUSED_WORDS else code)
     return 'r shows what it recorded'
 
 

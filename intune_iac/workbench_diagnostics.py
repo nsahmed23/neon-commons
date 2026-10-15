@@ -111,6 +111,12 @@ def _operation_records(store, object_id):
     return records, False
 
 
+def unknown_outcome_words(code):
+    """An unknown outcome's recorded error in words where they are known, the code kept in brackets."""
+    from .workbench_screens import EXECUTION_ERROR_WORDS
+    return '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code) if code in EXECUTION_ERROR_WORDS else str(code)
+
+
 def _newest_operation(records):
     """The policy's newest operation as its records and journal say: store status, journal status, readback.
 
@@ -179,7 +185,8 @@ def _operations(store, object_id, newest=None):
         if journal_status == 'outcome_unknown':
             uncertain = [event for event in events if event['kind'] == 'uncertain']
             code = uncertain[-1].get('error_code') if uncertain else 'no error recorded'
-            observed = ('Operation %s was dispatched and its outcome is unknown: %s.' % (record['operation_id'], code)
+            observed = ('Operation %s was dispatched and its outcome is unknown: %s.' % (record['operation_id'],
+                                                                                      unknown_outcome_words(code))
                         if status != 'prepared' else
                         'Operation %s started dispatch (its journal records dispatch_started), but the result was never '
                         'registered: the store still says prepared.' % record['operation_id'])
