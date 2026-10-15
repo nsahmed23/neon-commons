@@ -29,7 +29,7 @@ NEXT_REVIEW = ('Review the proposed change and the cited sources; this result is
                'schedule or authorize a deployment.')
 NEXT_COVERAGE = 'Collect the missing data and run the simulation again before relying on this result.'
 _COVERAGE_PREFIXES = ('missing_group:', 'missing_filter:', 'filter_unsupported:', 'membership_incomplete:',
-                      'context_device_not_in_universe', 'user_not_in_snapshot')
+                      'context_device_not_in_universe', 'user_not_in_snapshot', 'too_many_uncertain_assignments')
 
 
 @dataclass(frozen=True)
@@ -366,7 +366,7 @@ def simulate(snapshot, revision, profile):
                 f'Policy {_label(rec_a or rec_b)}, in unique devices: targeted after '
                 f'{_range(len(sets["after"]["dl"]), len(sets["after"]["du"]))}; newly targeted {_range(*added)}; '
                 f'no longer targeted {_range(*removed)}; retained {_range(*retained)}. Counts are inside the captured universe'
-                + (f'; source {source}' if source else '') + (f'; reasons: {", ".join(reason_codes[:8])}' if reason_codes else '') + '.',
+                + (f'; source {source}' if source else '') + (f'; reasons: {", ".join(reason_codes)}' if reason_codes else '') + '.',
                 refs)
         for unit, lk, uk in (('unique_devices', 'dl', 'du'), ('user_device_contexts', 'cl', 'cb')):
             values = _delta(sets['before'][lk], sets['before'][uk], sets['after'][lk], sets['after'][uk])

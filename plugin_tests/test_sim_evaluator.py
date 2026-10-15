@@ -476,5 +476,27 @@ class RingCompleteness(unittest.TestCase):
         self.assertNotIn('ring_membership_incomplete:r1', out['coverage']['unresolved_reasons'])
 
 
+class ReasonsReachCoverage(unittest.TestCase):
+    """Fable finding 4: a give-up on enumeration is a coverage gap, and no reason is cut from the message."""
+
+    def test_too_many_uncertain_assignments_is_an_unresolved_reason_and_a_coverage_gap(self):
+        doc = s.snapshot_doc(
+            devices=[s.device('a')], groups=[s.group('g1'), s.group('g2')],
+            memberships=[s.member('g1', 'a', certainty='possible'), s.member('g2', 'a', certainty='possible')])
+        result, out = simulate(doc, add(s.policy('p', [s.include('g1'), s.include('g2')], settings=[])),
+                               profile({'max_uncertain_assignments': 1}))
+        self.assertEqual(after_sets(result, 'p'), (frozenset(), devs('a')))
+        self.assertIn('too_many_uncertain_assignments', out['coverage']['unresolved_reasons'])
+        self.assertIn('coverage_gap:too_many_uncertain_assignments', finding_ids(out))
+
+    def test_every_reason_code_stays_in_the_blast_radius_message(self):
+        names = [f'missing{i}' for i in range(10)]
+        rows = [s.include('gA', 'include', n) for n in names]
+        result, out = simulate(world(), add(s.policy('p', rows, settings=[])))
+        message = [f for f in out['findings'] if f['id'] == 'blast_radius:' + s.uid('policy/p')][0]['message']
+        for name in names:
+            self.assertIn('missing_filter:' + s.uid('filter/' + name), message)
+
+
 if __name__ == '__main__':
     unittest.main()
