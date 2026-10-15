@@ -526,6 +526,7 @@ intune_iac/service_cli.py
 intune_iac/sim_cli.py
 intune_iac/sim_eval.py
 intune_iac/sim_filters.py
+intune_iac/sim_fixture.py
 intune_iac/sim_model.py
 intune_iac/sim_profile.py
 intune_iac/sim_render.py
@@ -926,6 +927,7 @@ plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
+plugin_tests/test_sim_benchmark.py
 plugin_tests/test_sim_cases.py
 plugin_tests/test_sim_evaluator.py
 plugin_tests/test_sim_filters.py
