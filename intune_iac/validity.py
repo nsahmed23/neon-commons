@@ -91,16 +91,6 @@ def peek(root, expires_at, deadline, latched):
     return judge(reading, expires_at, deadline, latched), reading
 
 
-def peek(root, expires_at, deadline, latched):
-    """The judgment for a periodic check, without the critical section: it takes no lock, begins no transaction and
-    persists nothing. Returns (state, reading). The reading is clock.Floor.peek: the effective time from the recorded
-    high-water mark and this process's carried time (this process's anchor is updated, which is fine for a permit
-    that belongs to the running process). The caller reads whether an expiry record exists with a plain SELECT and
-    passes it as latched. A CLOSED state is then recorded through critical, and a HELD state is refused, by the caller."""
-    reading = clock.Floor(Path(root) / 'clock.json').peek(time.time())
-    return judge(reading, expires_at, deadline, latched), reading
-
-
 def hold(reading):
     """The refusal for a backward step: the approval is held, not judged, and it says how to recover."""
     return AppError('clock_moved_backward',

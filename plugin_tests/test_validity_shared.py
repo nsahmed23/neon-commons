@@ -172,6 +172,16 @@ class ToyStoreTests(unittest.TestCase):
         self.assertEqual(validity.judge(reading, 200, time.monotonic() + 100, False), 'open')
 
 
+class ModuleShapeTests(unittest.TestCase):
+    def test_every_top_level_function_is_defined_once(self):
+        """A second definition silently replaces the first: a later correction made to only one would not take effect."""
+        import ast
+        names = [node.name for node in ast.parse(Path(validity.__file__).read_text()).body
+                 if isinstance(node, (ast.FunctionDef, ast.ClassDef))]
+        self.assertEqual([name for name in set(names) if names.count(name) > 1], [])
+        self.assertEqual(names.count('peek'), 1)
+
+
 class ApprovalAuthorityIsTheFirstConsumerTests(unittest.TestCase):
     setUp_base = authority_tests.ApprovalAuthorityTests.setUp
 
