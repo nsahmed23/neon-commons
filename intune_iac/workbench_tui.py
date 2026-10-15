@@ -176,15 +176,15 @@ def operation_list(records):
 STAGED_BOUNDARY = {
     'repository-refresh': ('STAGED refresh: records a new intent only; no Git commit, approval or apply.',
                            'STAGED refresh: no Git commit, approval or apply.',
-                           'STAGED refresh: no commit, approval or apply.', 'Refresh: no commit, approval or apply.'),
+                           'STAGED refresh: no commit, approval or apply.', 'New intent only; no commit/approve/apply'),
     'reconcile': ('STAGED reconcile: checks the outcome and records it; it never repeats the change.',
                   'STAGED reconcile: never repeats the change.', 'Reconcile: never repeats the change.'),
     'collect': ('STAGED collect: reads the modeled service and records the result; it changes no policy.',
                 'STAGED collect: reads and records only.', 'Collect: reads and records only.'),
     'propose-from-intent': ('STAGED proposal: a local proposal for review; nothing is approved or sent.',
-                            'STAGED proposal: nothing approved or sent.', 'Proposal: nothing approved or sent.'),
+                            'STAGED proposal: nothing approved or sent.', 'Local proposal; nothing approved or sent'),
     'propose': ('STAGED proposal: a local proposal for review; nothing is approved or sent.',
-                'STAGED proposal: nothing approved or sent.', 'Proposal: nothing approved or sent.'),
+                'STAGED proposal: nothing approved or sent.', 'Local proposal; nothing approved or sent'),
     'deployment-record': ('STAGED deployment record: a receipt in this store; nothing is sent.',
                           'STAGED record: a local receipt; nothing sent.', 'Record: local receipt; nothing sent.'),
     'repository-entry': ('STAGED repository survey: reads the repository; it records nothing.',
@@ -197,10 +197,12 @@ STAGED_NAMES = {'reconcile': 'reconcile', 'collect': 'collect', 'repository-refr
                 'propose-from-intent': 'proposal', 'propose': 'proposal', 'repository-entry': 'repository survey',
                 'diagnostics': 'diagnostics', 'deployment-record': 'deployment record'}
 # The longest that fits is shown, so narrow terminals get every key and no cut-off word.
+# a actions stays down to 48 columns: it is the route to every guided action (journey 27 review, Sonnet 19).
 HELP_LINES = ('? help | a actions | : command | / search | e details | r raw record | b back | q exit',
-              '? help | : command | / search | e details | r raw record | b back | q exit',
-              '? help | : command | e details | r raw | b back | q exit',
-              '? help | : command | e details | b back | q exit',
+              '? help | a actions | : command | / search | e details | r raw | b back | q exit',
+              '? help | a actions | : command | e details | r raw | b back | q exit',
+              '? help | a actions | : command | e details | b back | q exit',
+              '? help | a actions | : command | b back | q exit',
               '? help | : command | b back | q exit')
 # Read-only views that b (back) may return to; nothing that prepares, approves, executes or records is ever re-sent.
 VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'history', 'history-recent', 'views',
@@ -239,6 +241,11 @@ def fit(value, width, ellipsis='...'):
 
 # Inside a layer the same key returns to the summary, so its label says so.
 LAYER_KEYS = {'details': (('e details', 'e summary'),), 'raw': (('r raw record', 'r summary'), ('r raw', 'r summary'))}
+# Inside typed details or the raw record the key that returns to the summary comes before a actions.
+LAYER_HELP_LINES = ('? help | : command | / search | e details | r raw record | b back | q exit',
+                    '? help | : command | e details | r raw | b back | q exit',
+                    '? help | : command | e details | b back | q exit',
+                    '? help | : command | b back | q exit')
 ACTION_KEY_LINES = ('? help | Up/Down choose | Enter stages | Esc closes | q exit', '? help | Enter stages | Esc closes | q exit',
                     'Enter stages | Esc closes | q exit')
 # While a command or a search is typed, only the editing keys apply: q, ? and the digits are typed, not obeyed.
@@ -271,7 +278,7 @@ def help_line(width, layer='summary', lead=()):
     if layer in ('actions', 'filters'):
         lines = ACTION_KEY_LINES if layer == 'actions' else FILTER_KEY_LINES
         return next((line for line in lines if cell_width(line) <= width), lines[-1])
-    lines = list(HELP_LINES)
+    lines = list(LAYER_HELP_LINES if layer in LAYER_KEYS else HELP_LINES)
     for old, new in LAYER_KEYS.get(layer, ()):
         lines = [line.replace(old, new) for line in lines]
     if lead:
@@ -280,6 +287,28 @@ def help_line(width, layer='summary', lead=()):
             return line.replace('? help | ', '? help | ' + ''.join(key + ' | ' for key in missing), 1) if missing else line
         lines = [led(line) for line in lines] + ['? help | ' + ' | '.join(lead) + ' | b back | q exit']
     return next((line for line in lines if cell_width(line) <= width), lines[-1])
+
+
+def _cells_from_end(text, cells):
+    """The longest end of text that fits the cells."""
+    kept, used = [], 0
+    for char in reversed(text):
+        size = 2 if unicodedata.east_asian_width(char) in ('W', 'F') else 1
+        if used + size > cells:
+            break
+        kept.append(char); used += size
+    return ''.join(reversed(kept))
+
+
+def _cells_from_start(text, cells):
+    """The longest start of text that fits the cells."""
+    kept, used = [], 0
+    for char in text:
+        size = 2 if unicodedata.east_asian_width(char) in ('W', 'F') else 1
+        if used + size > cells:
+            break
+        kept.append(char); used += size
+    return ''.join(kept)
 
 
 def typing_line(width, mode, submit='Enter'):
@@ -1278,7 +1307,9 @@ class Workspace:
         # The primary hazard is chrome, not body: layers, scrolling and narrow windows never move it out of view.
         selected = getattr(self, 'selected', None)
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
-        band = hazard_rows(known, known.get('signals') or [], width) if selected else []
+        # While a command is typed the band's keys are typed, not obeyed: it names the response without them.
+        band = hazard_rows(known, known.get('signals') or [], width, routes=not self.mode,
+                           here=self.tab == 1) if selected else []
         staged = getattr(self, 'staged', None) if self.mode == 'command' else None
         staged_rows = None
         if isinstance(staged, dict) and staged.get('boundary'):
@@ -1287,6 +1318,9 @@ class Workspace:
             staged_rows = [pick(staged['boundary']), pick(staged.get('mechanics') or ('',))]
         available = max(0, height - 8 - len(band) - (1 if staged_rows else 0))
         data = self._body_lines(inner, RULES[getattr(self, 'rules', 'ascii')][1])
+        # A row wider than the frame is wrapped at a space, never clipped mid-word (journey 27 frame 11).
+        from .workbench_screens import word_wrap
+        data = [part for line in data for part in (word_wrap(line, inner) if cell_width(line) > inner else [line])]
         self.scroll = max(0, min(self.scroll, max(0, len(data) - available)))
         visible = data[self.scroll:self.scroll + available]
         status = self._context_strip(width)
@@ -1342,18 +1376,37 @@ class Workspace:
         return value.get('evidence_class') or facts.get('evidence_class') or estate or 'evidence class not stated'
 
     def _prompt_line(self, width, ellipsis):
-        """The command bar with its cursor while a command is typed, otherwise the notice."""
+        """The command bar with its cursor while a command is typed, otherwise the notice.
+
+        A command longer than the bar keeps its verb in view and marks each cut with an ellipsis, so the command
+        Enter will submit is always named (journey 27 review, Sonnet 1 and 9)."""
         if not self.mode:
             return fit(self.notice, width, ellipsis)
         prefix = '/' if self.mode == 'search' else ':'
-        before_cursor = safe_text(self.buffer[:self.cursor])
-        after_cursor = safe_text(self.buffer[self.cursor:])
-        tail, used = [], 0
-        for char in reversed(before_cursor):
-            cells = 2 if unicodedata.east_asian_width(char) in ('W', 'F') else 1
-            if used + cells > max(1, width - 5): break
-            tail.append(char); used += cells
-        return prefix + ''.join(reversed(tail)) + '|' + after_cursor
+        before, after = safe_text(self.buffer[:self.cursor]), safe_text(self.buffer[self.cursor:])
+        room, mark = max(1, width - cell_width(prefix) - 1), cell_width(ellipsis)
+        if cell_width(before) + cell_width(after) <= room:
+            return prefix + before + '|' + after
+
+        def cut_after(budget):
+            return after if cell_width(after) <= budget else _cells_from_start(after, max(0, budget - mark)) + ellipsis
+
+        if cell_width(before) + min(cell_width(after), room // 3) <= room:
+            # What precedes the cursor fits whole: only what follows it is cut, at the right.
+            return prefix + before + '|' + cut_after(room - cell_width(before))
+        shown_after = cut_after(min(cell_width(after), room // 3))
+        budget = room - cell_width(shown_after)
+        verb = before.split(' ', 1)[0] + ' ' if ' ' in before else ''
+        head = verb + ellipsis if verb and cell_width(verb) + mark <= budget // 2 else ellipsis
+        rest = before[len(verb):] if head != ellipsis else before
+        return prefix + head + _cells_from_end(rest, max(0, budget - cell_width(head))) + '|' + shown_after
+
+    def _draw_constrained_prompt(self, width, ellipsis):
+        """The prompt row below the minimum: a view's name says the surface is hidden, never that it is shown."""
+        notice = str(getattr(self, 'notice', ''))
+        if not self.mode and notice.startswith('Viewing '):
+            return fit(notice[len('Viewing '):].rstrip('.') + ' hidden; enlarge to see it', width, ellipsis)
+        return self._prompt_line(width, ellipsis)
 
     def _draw_constrained(self, width, height):
         """Below MIN_SIZE: what the window is too small for, the session, the primary hazard and the prompt, by
@@ -1363,7 +1416,7 @@ class Workspace:
         selected = getattr(self, 'selected', None)
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
         lines, band_rows = constrained_rows(self.store.tenant_id, selected, known, getattr(self, 'mode_class', None), width,
-                                            height, '%dx%d' % MIN_SIZE, self._prompt_line(width, ellipsis),
+                                            height, '%dx%d' % MIN_SIZE, self._draw_constrained_prompt(width, ellipsis),
                                             typing=bool(self.mode))
         frame = [pad(safe_text(line), width) for line in lines] + [' ' * width] * (height - len(lines))
         if self.color:

@@ -185,26 +185,48 @@ def hazard_band(facts, signals, width):
     return rows[0] if rows else None
 
 
-def hazard_rows(facts, signals, width, *, routes=True):
+# Key routes in the band's wording; dropped where no surface or key can take them (below the minimum, while typing).
+BAND_ROUTES = ((' (a: actions)', ''), (' (a actions)', ''), (' 9: difference.', ''), ('; i: details', ''),
+               ('. i: details', '.'), (' i: details', ''))
+
+
+def _without_routes(text):
+    for route, replacement in BAND_ROUTES:
+        text = text.replace(route, replacement)
+    return text
+
+
+def hazard_rows(facts, signals, width, *, routes=True, here=False):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
     for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
-    # routes=False where no surface can be shown (the constrained state): the count names no key there.
-    notes = (['+%d more: 2' % others if routes else '+%d more' % others] if others else []) + (
-        ['not re-read after %s: 2 re-reads' % facts['unverified']]
-        if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
+    # routes=False where no key can be taken (below the minimum, or while a command is typed): the band names the
+    # response without its key, and the count names no surface. here: the Inspector, which lists them below.
+    reread = (['not re-read after %s: 2 re-reads' % facts['unverified']]
+              if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
+    counts = ([['+%d more' % others]] if not routes else [['+%d more below' % others]] if here else
+              [['+%d more: 2 Inspector' % others], ['+%d more: 2' % others]]) if others else [[]]
     forms = _band_forms(primary, facts.get('identity_prefixes'))
-    suffix = '  ' + ' | '.join(notes) if notes else ''
-    for form in forms:
-        if cell_width(form + suffix) <= width:
-            return [form + suffix]
+    if not routes:
+        forms = [_without_routes(form) for form in forms]
+        reread = [_without_routes(note).replace(': 2 re-reads', '') for note in reread]
+    for count in counts:
+        notes = count + reread
+        suffix = '  ' + ' | '.join(notes) if notes else ''
+        for form in forms:
+            if cell_width(form + suffix) <= width:
+                return [form + suffix]
+    notes = counts[-1] + reread
     rows = next(([form] for form in forms if cell_width(form) <= width), None)
     if rows is None:
-        condition, response = forms[-1].rsplit('. ', 1)
-        rows = word_wrap(condition + '.', width) + word_wrap(response, width)
+        if '. ' in forms[-1]:
+            condition, response = forms[-1].rsplit('. ', 1)
+            rows = word_wrap(condition + '.', width) + word_wrap(response, width)
+        else:
+            rows = word_wrap(forms[-1], width)
     return rows + _pack(notes, width)
 
 
@@ -328,7 +350,7 @@ def state_lines(states, width, heading='STATE', prefixes=None):
                  + (' (%s)' % '; '.join(reasons) if reasons and freshness != 'fresh' else ''))
     if eligibility.get('reason') in ELIGIBILITY_STATE_WORDS:
         parts.append(ELIGIBILITY_STATE_WORDS[eligibility['reason']] % eligibility)
-    lines = ['', heading] + _labelled('  Observation', '; '.join(parts), width, 15)
+    lines = [''] + word_wrap(heading, width) + _labelled('  Observation', '; '.join(parts), width, 15)
     intent = states.get('intent') if isinstance(states.get('intent'), dict) else {}
     if intent.get('status') in (None, 'none'):
         text = 'none recorded; repository-entry REPOSITORY finds where this policy is maintained'

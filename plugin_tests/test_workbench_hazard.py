@@ -319,14 +319,14 @@ class FrameTests(unittest.TestCase):
         first = next(row for row in self.frame(MINIMUM) if '! ' in row[:8])
         self.assertIn('(a actions)', first)  # the hazard and its response on one row at the minimum width
 
-    def staged_frame(self, size):
+    def staged_frame(self, size, signals=()):
         from intune_iac.workbench_tui import Workspace
         workspace = Workspace.__new__(Workspace)
         out = io.StringIO()
         workspace.__dict__.update(
             stdout=out, tab=8, value={'object_id': POLICY, 'evidence_class': 'synthetic'}, scroll=0, mode=None,
             notice='', rules='unicode', color=False, theme='dark', selected=POLICY, layer='summary', submission_key='enter',
-            facts={'object_id': POLICY, 'name': 'Windows Privacy Pilot', 'signals': []}, staged=None,
+            facts={'object_id': POLICY, 'name': 'Windows Privacy Pilot', 'signals': list(signals)}, staged=None,
             store=type('S', (), {'tenant_id': TENANT})(), mode_class='synthetic', last_command='repository-status')
         workspace._terminal_size = lambda: size
         workspace._data_lines = lambda width: ['body line %d' % index for index in range(60)]
@@ -362,7 +362,7 @@ class FrameTests(unittest.TestCase):
         for size, boundary in (((120, 40), 'STAGED refresh: records a new intent only; no Git commit, approval or apply.'),
                                ((80, 24), 'STAGED refresh: records a new intent only; no Git commit, approval or apply.'),
                                ((48, 20), 'STAGED refresh: no commit, approval or apply.'),
-                               (MINIMUM, 'Refresh: no commit, approval or apply.')):
+                               (MINIMUM, 'New intent only; no commit/approve/apply')):
             workspace, rows = self.staged_frame(size)
             index = next(i for i, row in enumerate(rows) if row.rstrip() == boundary)
             self.assertIn('Esc cancels', rows[index + 1], (size, rows[index + 1]))
@@ -441,3 +441,97 @@ class SharedPrefixTests(unittest.TestCase):
         self.assertEqual(unique_prefixes([POLICY, twin, TENANT]),
                          {POLICY: '22222222-2', twin: '22222222-3', TENANT: '11111111'})
         self.assertEqual(unique_prefixes(['abcdefgh'], others=['abcdefghij']), {'abcdefgh': 'abcdefgh'})
+
+
+class ReviewFixTests(unittest.TestCase):
+    """Journey 27 run 2's reviews (logs/journey-27/FRAME-REVIEW-run2.md, Sonnet 1, 9, 10, 11, 18, 19, 20; Gemini 1, 2, 5,
+    7 to 10): no route the screen cannot take, the command bar keeps its verb, every row fits."""
+
+    def test_below_the_minimum_the_band_names_the_response_without_a_key(self):
+        from intune_iac.workbench_screens import constrained_rows
+        for width, height in ((39, 12), (40, 11), (36, 10)):
+            lines, band = constrained_rows(TENANT, POLICY, {'signals': [UNKNOWN]}, 'synthetic', width, height, '40x12',
+                                           'Viewing Inspector.')
+            text = ' '.join(lines[index] for index in band)
+            self.assertIn('Reconcile', text, (width, height))
+            self.assertNotIn('(a actions)', text)
+            self.assertNotIn('a: actions', text)
+
+    def test_while_a_command_is_typed_the_band_offers_no_key(self):
+        workspace, rows = FrameTests.staged_frame(self, (120, 40), signals=[CHANGED])
+        # Band rows are drawn bold; the words are what the test reads.
+        plain = [row.replace('\x1b[1m', '').replace('\x1b[22m', '').rstrip() for row in rows]
+        band = [row for row in plain if row.startswith('! ')]
+        self.assertEqual(band, ['! Repository changed since its intent. Next: Refresh the repository intent'])
+
+    def test_below_the_minimum_a_view_notice_says_the_surface_is_hidden(self):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        out = io.StringIO()
+        workspace.__dict__.update(stdout=out, mode=None, buffer='', cursor=0, notice='Viewing Inspector.', rules='unicode',
+                                  color=False, theme='dark', selected=POLICY, mode_class='synthetic',
+                                  facts={'object_id': POLICY, 'signals': [UNKNOWN]}, store=type('S', (), {'tenant_id': TENANT})())
+        workspace._terminal_size = lambda: (39, 12)
+        workspace.draw()
+        self.assertIn('Inspector hidden; enlarge to see it', out.getvalue())
+        self.assertNotIn('Viewing Inspector', out.getvalue())
+
+    def test_the_command_bar_keeps_the_verb_and_marks_what_it_cuts(self):
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        path = "/work/journey 27 Z\u00fcrich's \"pilot\"/operation-22222222-6d64398f5dcb"
+        workspace.__dict__.update(mode='command', buffer="reconcile '%s'" % path, notice='')
+        workspace.cursor = len(workspace.buffer)
+        line = workspace._prompt_line(40, '\u2026')
+        self.assertTrue(line.startswith(':reconcile \u2026'), line)
+        self.assertTrue(line.endswith("'|"), line)
+        self.assertLessEqual(cell_width(line), 40)
+        workspace.buffer, workspace.cursor = 'repository-refresh  ' + 'c' * 64, len('repository-refresh ')
+        line = workspace._prompt_line(60, '\u2026')
+        self.assertTrue(line.startswith(':repository-refresh |'), line)
+        self.assertTrue(line.endswith('\u2026'), line)
+        self.assertLessEqual(cell_width(line), 60)
+        workspace.buffer, workspace.cursor = 'help', 4
+        self.assertEqual(workspace._prompt_line(60, '\u2026'), ':help|')
+
+    def test_the_key_line_keeps_a_actions_down_to_48_columns(self):
+        from intune_iac.workbench_tui import help_line
+        for width in (120, 80, 60, 48):
+            line = help_line(width)
+            self.assertIn('a actions', line, width)
+            self.assertLessEqual(cell_width(line), width)
+        self.assertIn('q exit', help_line(40))
+
+    def test_the_count_says_where_the_other_findings_are(self):
+        from intune_iac.workbench_screens import hazard_rows
+        self.assertIn('+1 more below', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120, here=True)))
+        self.assertIn('+1 more: 2 Inspector', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120)))
+        narrow = hazard_rows({}, [UNKNOWN, STALE], 48)
+        self.assertTrue(any('+1 more' in row for row in narrow), narrow)
+        self.assertTrue(all(cell_width(row) <= 48 for row in narrow), narrow)
+
+    def test_the_40_column_boundaries_say_what_the_action_does(self):
+        from intune_iac.workbench_tui import STAGED_BOUNDARY
+        self.assertEqual(STAGED_BOUNDARY['repository-refresh'][-1], 'New intent only; no commit/approve/apply')
+        self.assertEqual(STAGED_BOUNDARY['propose-from-intent'][-1], 'Local proposal; nothing approved or sent')
+        for forms in STAGED_BOUNDARY.values():
+            self.assertLessEqual(cell_width(forms[-1]), 40, forms[-1])
+
+    def test_a_heading_wider_than_the_frame_wraps_and_no_body_row_is_clipped(self):
+        from intune_iac.workbench_screens import state_lines
+        lines = state_lines({}, 38, 'STATE (from the last read of this policy)')
+        self.assertTrue(all(cell_width(line) <= 38 for line in lines), lines)
+        self.assertIn('policy)', ' '.join(lines))
+        from intune_iac.workbench_tui import Workspace
+        workspace = Workspace.__new__(Workspace)
+        out = io.StringIO()
+        workspace.__dict__.update(
+            stdout=out, tab=1, value={'object_id': POLICY, 'evidence_class': 'synthetic'}, scroll=0, mode=None, notice='',
+            rules='unicode', color=False, theme='dark', selected=POLICY, layer='summary', submission_key='enter',
+            facts={'object_id': POLICY, 'signals': []}, staged=None, store=type('S', (), {'tenant_id': TENANT})(),
+            mode_class='synthetic', last_command='inspect')
+        workspace._terminal_size = lambda: (60, 30)
+        workspace._data_lines = lambda width: ['alpha ' * 30]
+        workspace.draw()
+        rows = out.getvalue().replace('\x1b[H', '').replace('\x1b[J', '').split('\r\n')
+        self.assertEqual(sum(row.count('alpha') for row in rows), 30)
