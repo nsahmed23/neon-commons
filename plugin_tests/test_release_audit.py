@@ -50,6 +50,7 @@ class ReleaseAuditTests(unittest.TestCase):
             with zipfile.ZipFile(output / f'Intune_IaC_Plugin_{builder.__version__}_Source.zip') as archive:
                 names = set(archive.namelist())
                 self.assertEqual(names, {'intune-iac-source/README.md',
+                                         'intune-iac-source/BUILD-IDENTITY.json',
                                          'intune-iac-source/release-source-files.txt',
                                          'intune-iac-source/SHA256SUMS'})
                 self.assertFalse(any(b'private-canary' in archive.read(name) for name in names))

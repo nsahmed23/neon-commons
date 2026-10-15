@@ -5,17 +5,63 @@ import contextlib
 import hashlib
 import json
 import os
+import re
 import stat
+import subprocess
 import sys
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from intune_iac import __version__
+from intune_iac import build_identity
 
 EXCLUDE={'.git','__pycache__','.venv','.intune-iac','.superpowers','dist','build'}
 SOURCE_INVENTORY = 'release-source-files.txt'
+
+
+def git_state():
+    """The checkout's commit, tree and whether tracked files differ from them; nulls when that cannot be established.
+
+    Only a checkout whose own top level is ROOT is described: a temporary tree that happens to sit inside another
+    repository must not take that repository's commit.
+    """
+    environment = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+    def git(*args):
+        try:
+            result = subprocess.run(['git', '-C', str(ROOT), *args], capture_output=True, text=True, timeout=60, env=environment)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return result.stdout.strip() if result.returncode == 0 else None
+    unknown = {'commit': None, 'tree': None, 'dirty': None}
+    top = git('rev-parse', '--show-toplevel')
+    if top is None or Path(top).resolve() != ROOT.resolve():
+        return unknown
+    commit, tree, status = git('rev-parse', 'HEAD'), git('rev-parse', 'HEAD^{tree}'), git('status', '--porcelain', '--untracked-files=no')
+    if not all(isinstance(value, str) and re.fullmatch(r'[0-9a-f]{40}', value) for value in (commit, tree)) or status is None:
+        return unknown
+    return {'commit': commit, 'tree': tree, 'dirty': bool(status)}
+
+
+def build_time():
+    """UTC build time in whole seconds; SOURCE_DATE_EPOCH, when set, makes a rebuild name the same moment."""
+    epoch = os.environ.get('SOURCE_DATE_EPOCH')
+    moment = datetime.fromtimestamp(int(epoch) if epoch else datetime.now(timezone.utc).timestamp(), timezone.utc)
+    return moment.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def with_identity(content, identity):
+    """The archive members plus BUILD-IDENTITY.json, and the content digest the record holds.
+
+    The record is added before SHA256SUMS is written, so SHA256SUMS lists it and any edit of it is caught.
+    """
+    if build_identity.IDENTITY_FILE in content:
+        raise ValueError('The build identity file name is reserved.')
+    digest = build_identity.content_digest({name: hashlib.sha256(data).hexdigest() for name, data in content.items()})
+    record = dict(identity, schema_version=build_identity.SCHEMA, file_count=len(content), content_sha256=digest)
+    return dict(content, **{build_identity.IDENTITY_FILE: (json.dumps(record, indent=2, sort_keys=True) + '\n').encode()}), digest
 
 
 def safe_name(name):
@@ -187,6 +233,9 @@ def write_archive(destination,names,prefix):
         raise ValueError('Archive destination must not be a symlink.')
     for name in names:
         safe_name(name)
+        # The generated build identity record has no file in the checkout; with_identity is its only producer.
+        if name == build_identity.IDENTITY_FILE and isinstance(names, dict):
+            continue
         if not allowed(ROOT / name):
             raise ValueError('Release member changed or is unsafe: ' + name)
     if isinstance(names, dict):
@@ -246,10 +295,22 @@ def main():
     if any(path.exists() or path.is_symlink() for path in targets):
         raise ValueError('Release outputs already exist; use a fresh output directory.')
     out.mkdir(parents=True,exist_ok=True)
-    receipts=[write_archive(out/f'Intune_IaC_Plugin_{__version__}.zip',
-                            {name: snapshot[name] for name in runtime},'intune-iac'),
-              write_archive(out/f'Intune_IaC_Plugin_{__version__}_Source.zip',snapshot,'intune-iac-source')]
-    receipt={'version':__version__,'archives':receipts,
+    build=dict(git_state(),built_at=build_time())
+    def identity(kind,companion):
+        return dict(build,archive_kind=kind,product_version=__version__,companion=companion)
+    # Each archive names the other: the runtime archive by the source content digest (known before either is
+    # written), the source archive by the runtime archive's own digest (the runtime archive is written first).
+    source_digest=build_identity.content_digest({name:hashlib.sha256(data).hexdigest() for name,data in snapshot.items()})
+    runtime_content,runtime_digest=with_identity({name: snapshot[name] for name in runtime},
+        identity('runtime',{'archive_kind':'source','content_sha256':source_digest}))
+    runtime_receipt=dict(write_archive(out/f'Intune_IaC_Plugin_{__version__}.zip',runtime_content,'intune-iac'),
+                         content_sha256=runtime_digest)
+    source_content,source_digest=with_identity(snapshot,identity('source',
+        {'archive_kind':'runtime','archive_sha256':runtime_receipt['sha256']}))
+    source_receipt=dict(write_archive(out/f'Intune_IaC_Plugin_{__version__}_Source.zip',source_content,'intune-iac-source'),
+                        content_sha256=source_digest)
+    receipts=[runtime_receipt,source_receipt]
+    receipt={'version':__version__,'build':build,'archives':receipts,
              'source_inventory_sha256':hashlib.sha256(inventory_bytes).hexdigest(),
              'source_selection':'Explicit reviewed file inventory; unlisted local files are excluded. Contents are not automatically classified for secrets.',
              'runtime_excludes':['tests','golden output projects','historical research','upstream clones','model weights']}

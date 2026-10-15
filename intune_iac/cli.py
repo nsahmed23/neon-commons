@@ -120,7 +120,10 @@ def doctor(executables=True):
         dependencies[package] = {'available':importlib.util.find_spec(module) is not None, 'version':version}
     ready = all(v['available'] for v in dependencies.values())
     provider_platform = host['profiles']['protected_worker']['status'] == 'IMPLEMENTED'
+    from .build_identity import report as build_report
     return {'version':__version__,'status':'ready' if ready else 'missing_dependencies', 'host_capabilities': host,
+            # Which release build this copy came from, so a problem report names it; a checkout has none.
+            'build': build_report(),
             'status_scope':'Runtime package dependencies only; route prerequisites are reported separately in host_capabilities.',
             'python':platform.python_version(),'dependencies':dependencies,
             'capabilities':{'wizard':'available' if ready else 'missing_dependencies',

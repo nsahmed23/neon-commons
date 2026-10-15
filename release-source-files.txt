@@ -477,6 +477,7 @@ intune_iac/artifact_vault.py
 intune_iac/atmos.py
 intune_iac/azure_backend.py
 intune_iac/blob_lease.py
+intune_iac/build_identity.py
 intune_iac/capture.py
 intune_iac/capture_adapter.py
 intune_iac/catalog.py
@@ -985,6 +986,7 @@ plugin_tests/test_reconciliation.py
 plugin_tests/test_recovery_expiry_latch.py
 plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
+plugin_tests/test_release_candidate.py
 plugin_tests/test_release_transfer_r4.py
 plugin_tests/test_repository.py
 plugin_tests/test_repository_entry.py
