@@ -291,3 +291,85 @@ class AdoptionSummaryTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class AdoptedServiceTests(unittest.TestCase):
+    """After adopt, reopening the store needs no --service-root: the latest adoption record names the modeled service
+    (owner directive inbox/PRODUCT-TASK-12.md, section 4)."""
+    setUp = WorkbenchAdoptionTests.setUp
+    process = WorkbenchAdoptionTests.process
+    call = WorkbenchAdoptionTests.call
+    complete = WorkbenchAdoptionTests.complete
+    adopt = WorkbenchAdoptionTests.adopt
+
+    def terminal(self, commands, **kwargs):
+        from intune_iac.workbench import run_terminal
+        lines, pending = [], iter(commands)
+
+        def read(prompt):
+            try:
+                return next(pending)
+            except StopIteration:
+                raise EOFError
+        run_terminal(self.store_root, input_fn=read, output_fn=lines.append, **kwargs)
+        documents, decoder, text, index = [], json.JSONDecoder(), '\n'.join(lines), 0
+        while index < len(text):
+            if text[index] == '{':
+                value, index = decoder.raw_decode(text, index)
+                documents.append(value)
+            else:
+                index += 1
+        return documents
+
+    @staticmethod
+    def origins(documents):
+        return [document['modeled_service'] for document in documents if 'modeled_service' in document]
+
+    def test_a_reopened_store_uses_the_adopted_service_without_a_flag(self):
+        self.complete()
+        adopted = self.adopt()
+        latest = self.store.latest_artifact('adoption')
+        self.assertEqual(latest['data']['maintenance_service_root'], str(self.handoff / 'service'))
+        self.assertIn(latest['artifact_id'], [row['artifact_id'] for row in adopted['adoptions']])
+        before = len(self.store.collection_history())
+        documents = self.terminal(['overview', 'collect'])
+        self.assertEqual(self.origins(documents)[0], {'root': str(self.handoff / 'service'), 'source': 'adoption',
+                                                      'artifact_id': latest['artifact_id']})
+        self.assertFalse(any((document.get('error') or {}).get('code') == 'service_required' for document in documents))
+        self.assertEqual(len(self.store.collection_history()), before + 1)
+
+    def test_an_explicit_service_root_wins_and_says_so(self):
+        self.complete()
+        self.adopt()
+        other = self.root / 'other service'
+        from intune_iac.modeled_service import ModeledService
+        ModeledService.create(other, self.estate['capture'], self.ids)
+        documents = self.terminal(['overview'], service_root=other)
+        self.assertEqual(self.origins(documents)[0], {'root': str(other), 'source': 'command line'})
+
+    def test_without_an_adoption_the_store_names_no_service(self):
+        self.assertIsNone(self.store.latest_artifact('adoption'))
+        self.assertEqual(self.origins(self.terminal(['overview']))[0], None)
+
+    def test_a_missing_adopted_service_is_reported_not_used(self):
+        import shutil
+        self.complete()
+        self.adopt()
+        shutil.rmtree(self.handoff / 'service')
+        documents = self.terminal(['overview', 'collect'])
+        self.assertEqual(self.origins(documents)[0]['problem'], 'service_unavailable')
+        self.assertTrue(any((document.get('error') or {}).get('code') == 'service_required' for document in documents))
+
+    def test_the_estate_surface_says_which_service_and_why(self):
+        from intune_iac.workbench_screens import service_words
+        self.assertEqual(service_words({'root': '/work/handoff/service', 'source': 'adoption', 'artifact_id': 'a' * 64}),
+                         'Modeled service: /work/handoff/service (from the latest adoption record aaaaaaaaaaaa; '
+                         '--service-root chooses another)')
+        self.assertEqual(service_words({'root': '/work/service', 'source': 'command line'}),
+                         'Modeled service: /work/service (--service-root)')
+        self.assertEqual(service_words(None),
+                         'Modeled service: none yet. Adopt a completed journey (:adopt), or start with --service-root.')
+        self.assertEqual(service_words({'root': '/gone', 'source': 'adoption', 'artifact_id': 'b' * 64,
+                                        'problem': 'service_unavailable'}),
+                         'Modeled service: unavailable. The latest adoption record bbbbbbbbbbbb names /gone, which '
+                         'cannot be opened for this tenant; start with --service-root.')

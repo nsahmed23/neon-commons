@@ -921,6 +921,29 @@ def run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, resu
             signal.signal(signal.SIGINT, previous)
 
 
+def _adopted_service(store):
+    """The modeled service named by the store's latest adoption record: None without an adoption, and a problem
+    when that service cannot be opened for this tenant (never an older adoption's service instead).
+
+    After adopt, the normal journey continues against the handoff's modeled service; reopening the store must not
+    need --service-root to find it again (owner directive inbox/PRODUCT-TASK-12.md, section 4).
+    """
+    from .modeled_service import ModeledService
+    row = store.latest_artifact('adoption')
+    if row is None:
+        return None
+    data = row['data'] if isinstance(row.get('data'), dict) else {}
+    candidate = data.get('maintenance_service_root')
+    origin = {'root': candidate if isinstance(candidate, str) else None, 'source': 'adoption',
+              'artifact_id': row['artifact_id']}
+    try:
+        if not isinstance(candidate, str) or ModeledService(candidate).snapshot()['current']['tenant_id'] != store.tenant_id:
+            return dict(origin, problem='service_unavailable')
+    except (AppError, OSError, KeyError, TypeError, ValueError):
+        return dict(origin, problem='service_unavailable')
+    return origin
+
+
 def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None, _store_capability=None):
     """Accessible line terminal; no shell invocation, animation, or hidden approval.
 
@@ -943,6 +966,12 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         from .windows_workspace_binding import admit_store
         store = admit_store(root, _store_capability)
     selected = None
+    # Which modeled service this session uses, and why: --service-root, else the latest adoption record's.
+    service_origin = None if service_root is None else {'root': str(service_root), 'source': 'command line'}
+    if service_root is None and _store_capability is None:
+        service_origin = _adopted_service(store)
+        if service_origin is not None and not service_origin.get('problem'):
+            service_root = service_origin['root']
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
     def show_page(specification=None):
         target = page if specification is None else specification
@@ -950,14 +979,14 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             return store.recent_history_page(target['object_id'], limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'views':
             from .workbench_views import views
-            return views(store, limit=target['limit'], offset=target['offset'], query=target['query'],
-                         ownership_filter=target.get('ownership'), coverage_filter=target.get('coverage'),
-                         health_filter=target.get('health'))
+            return dict(views(store, limit=target['limit'], offset=target['offset'], query=target['query'],
+                              ownership_filter=target.get('ownership'), coverage_filter=target.get('coverage'),
+                              health_filter=target.get('health')), modeled_service=service_origin)
         if target['kind'] == 'search': return _search(store, target['query'], limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'dictionary': return _dictionary(store, target['query'], limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'health': return _health(store, limit=target['limit'], offset=target['offset'])
         if target['kind'] == 'queue': return _queue(store, limit=target['limit'], offset=target['offset'])
-        return store.overview(limit=target['limit'], offset=target['offset'])
+        return dict(store.overview(limit=target['limit'], offset=target['offset']), modeled_service=service_origin)
     def set_page(kind, limit=10, offset=0, query=''):
         candidate = {'kind': kind, 'limit': limit, 'offset': offset, 'query': query}
         result = show_page(candidate)
@@ -1125,6 +1154,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 from .workbench_adoption import adopt
                 result = adopt(store, *values)
                 service_root = result['service_root']
+                latest = store.latest_artifact('adoption')
+                service_origin = {'root': service_root, 'source': 'adoption',
+                                  'artifact_id': None if latest is None else latest['artifact_id']}
                 selected = None
             elif name == 'device-evidence-import' and len(values) == 1:
                 from .workbench_health import import_device_evidence

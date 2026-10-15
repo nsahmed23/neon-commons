@@ -2361,3 +2361,16 @@ def change_words(change, prefixes=None):
     """A plan change ("<object id>:description_changed") in words, its identity shortened: "description changed (22222222)"."""
     identity, _, kind = change.rpartition(':')
     return '%s (%s)' % (_as_words(kind), short_id(identity, prefixes)) if identity else _as_words(change)
+
+
+def service_words(origin):
+    """Which modeled service the session uses and why, for the Estate surface."""
+    if not isinstance(origin, dict):
+        return 'Modeled service: none yet. Adopt a completed journey (:adopt), or start with --service-root.'
+    if origin.get('problem'):
+        return ('Modeled service: unavailable. The latest adoption record %s names %s, which cannot be opened for this '
+                'tenant; start with --service-root.' % (str(origin.get('artifact_id'))[:12], safe_text(str(origin.get('root')))))
+    if origin.get('source') == 'adoption':
+        return 'Modeled service: %s (from the latest adoption record %s; --service-root chooses another)' % (
+            safe_text(str(origin['root'])), str(origin.get('artifact_id'))[:12])
+    return 'Modeled service: %s (--service-root)' % safe_text(str(origin.get('root')))

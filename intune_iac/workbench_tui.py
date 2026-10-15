@@ -1238,6 +1238,9 @@ class Workspace:
             lines = (list(wrap('[SELECT] Exact identity / name / ownership / coverage / health', width))
                      + list(wrap('> focus, * pinned selection | Settings Catalog policies; :families shows every family '
                                  'with its support disposition.', width)))
+            if 'modeled_service' in self.value:
+                from .workbench_screens import service_words
+                lines.extend(wrap(service_words(self.value.get('modeled_service')), width))
             if isinstance(self.value.get('filters'), dict):
                 from .workbench_screens import filter_words
                 lines.extend(wrap(filter_words(self.value['filters']), width))

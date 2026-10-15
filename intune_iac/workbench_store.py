@@ -1080,6 +1080,15 @@ class WorkbenchStore:
                 (self.tenant_id,artifact_id,kind,kind)).fetchone()
         return None if row is None else self._artifact(row)
 
+    def latest_artifact(self, kind):
+        """The most recent artifact of one kind for this tenant, or None; independent of how many exist."""
+        if type(kind) is not str or kind not in _ARTIFACT_KINDS: _fail('workbench_artifact_invalid')
+        if self.schema_version == 1: return None
+        with self._connection() as db:
+            row = db.execute('SELECT * FROM artifacts WHERE tenant_id=? AND kind=? ORDER BY sequence DESC LIMIT 1',
+                             (self.tenant_id, kind)).fetchone()
+            return None if row is None else self._artifact(row)
+
     def artifacts(self, kind=None, object_id=None, *, limit=None, offset=0):
         if kind is not None and (type(kind) is not str or kind not in _ARTIFACT_KINDS):_fail('workbench_artifact_invalid')
         if object_id is not None:_identity(object_id)
