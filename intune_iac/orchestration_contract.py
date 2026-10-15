@@ -59,6 +59,10 @@ class ContractFault(ValueError):
         self.code, self.detail, self.extra = code, detail, extra
 
 
+class InvalidRoot(ValueError):
+    """A configured evidence root is not a plain absolute directory path."""
+
+
 def _unsafe(char):
     category = unicodedata.category(char)
     return category in _UNSAFE or (category.startswith('Z') and char != ' ')
@@ -107,12 +111,12 @@ def _segments(path):
 def normalize_roots(roots):
     """[(drive, segments, name)]. Each root is also listed in its other spelling, because the controller records
     Windows paths and the product may run under WSL: C:/a/b and /mnt/c/a/b name one directory. A root that is not a
-    plain absolute path, or that has no directory below the drive, raises ValueError."""
+    plain absolute path, or that has no directory below the drive, raises InvalidRoot."""
     out = []
     for root in roots or ():
         parsed = _segments(root)
         if parsed is None or not parsed[1]:
-            raise ValueError('an evidence root must be an absolute directory path below a drive or "/"')
+            raise InvalidRoot('an evidence root must be an absolute directory path below a drive or "/"')
         drive, segments = parsed
         name = segments[-1]
         out.append((drive, segments, name))

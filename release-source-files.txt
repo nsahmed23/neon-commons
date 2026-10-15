@@ -485,6 +485,7 @@ intune_iac/companion.py
 intune_iac/companion_live.py
 intune_iac/companion_page.py
 intune_iac/engine.py
+intune_iac/engineering_view.py
 intune_iac/entry.py
 intune_iac/execution.py
 intune_iac/families.py
@@ -511,6 +512,7 @@ intune_iac/observation_jobs.py
 intune_iac/observation_reader.py
 intune_iac/orchestration_contract.py
 intune_iac/orchestration_export.py
+intune_iac/orchestration_reducer.py
 intune_iac/output_edit.py
 intune_iac/pin_profiles.py
 intune_iac/production.py
@@ -866,6 +868,7 @@ plugin_tests/test_earlier_set_cancel_recover.py
 plugin_tests/test_edge_input_audit.py
 plugin_tests/test_edge_workflow_audit.py
 plugin_tests/test_engine.py
+plugin_tests/test_engineering_view.py
 plugin_tests/test_enterprise_cli.py
 plugin_tests/test_entry.py
 plugin_tests/test_evidence_snapshot_r4.py

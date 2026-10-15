@@ -32,7 +32,7 @@ class ExportUnreadable(ValueError):
     """The records path cannot be read as an export at all (missing, not a directory, a link, no events file)."""
 
 
-def _open_regular(path):
+def open_regular(path):
     flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_BINARY', 0)
     try:
         descriptor = os.open(path, flags)
@@ -53,7 +53,7 @@ def _read_header(directory):
     if not os.path.lexists(path):
         return None, 'there is no header.json', None
     try:
-        with _open_regular(path) as handle:
+        with open_regular(path) as handle:
             raw = handle.read(MAX_HEADER_BYTES + 1)
     except ExportUnreadable:
         return None, 'header.json cannot be read', {'code': 'invalid_header', 'detail': 'header.json is not a readable file'}
@@ -67,7 +67,7 @@ def _read_header(directory):
         return None, 'header.json is not JSON', {'code': 'invalid_header', 'detail': 'header.json is not JSON'}
 
 
-def _lines(handle):
+def iter_lines(handle):
     """(number, bytes, problem). problem is None for a usable line. A line longer than MAX_LINE_BYTES has its remainder
     skipped unread, and reading stops after MAX_LINES lines."""
     number = 0
@@ -126,10 +126,10 @@ def read_export(directory, roots=()):
     by_seq = {}      # sequence -> event id that holds it
     conflicted, duplicates, rejected, lines = set(), 0, 0, 0
     last_seq = 0
-    with _open_regular(events_path) as handle:
+    with open_regular(events_path) as handle:
         if os.fstat(handle.fileno()).st_size > MAX_FILE_BYTES:
             raise ExportUnreadable('events.jsonl is too large')
-        for number, raw, problem in _lines(handle):
+        for number, raw, problem in iter_lines(handle):
             lines = number
             if problem:
                 faults.append({'code': 'invalid_line', 'line': number, 'detail': problem})

@@ -97,6 +97,11 @@ def parser():
     start.add_argument('--json',action='store_true',help='Print the survey as JSON instead of the readable screen')
     from .readiness import OPERATIONS as goals
     start.add_argument('--goal',choices=goals,help='Also show what one goal needs and what is missing, from facts start can gather offline')
+    engineering=commands.add_parser('engineering',help='Show engineering orchestration records from a loopctl export (read-only, offline)')
+    engineering.add_argument('--records',help='Directory written by loopctl export (header.json and events.jsonl); without it the command says nothing is configured')
+    engineering.add_argument('--controller-log',help='Controller log (JSON lines); its dispatch lines are counted, never modelled')
+    engineering.add_argument('--evidence-root',action='append',default=[],help='Absolute directory under which evidence paths are shown; repeat as needed (none: no path is shown)')
+    engineering.add_argument('--json',action='store_true',help='Print the view as JSON instead of text')
     _paths(commands.add_parser('inspect',help='Inspect one policy without writing output'))
     _paths(commands.add_parser('verify',help='Recheck an existing project against source-derived expectations'),True)
     gen=commands.add_parser('generate',help='Generate an owned local project and execution receipts')
@@ -166,6 +171,9 @@ def execute(args):
         value=survey(args.directory,relative_to=os.getcwd())
         if args.goal:value['readiness']=goal_readiness(value,args.goal)
         return value
+    if args.command=='engineering':
+        from .engineering_view import command
+        return command(args)
     if args.command=='workbench':
         from .workbench import command
         return command(args)
@@ -326,6 +334,11 @@ def main(argv=None):
             print('\n'.join(text_lines(args)));sys.stdout.flush()
             return 0
         result=execute(args)
+        if args.command=='engineering' and not args.json:
+            # A person reads the engineering view; --json keeps the data form. Read-only, so the exit is 0.
+            from .engineering_view import lines_for
+            print('\n'.join(lines_for(result)));sys.stdout.flush()
+            return 0
         if (getattr(args,'workbench_command',None)=='workspace' and isinstance(result,dict)
                 and result.get('status')=='interrupted' and sys.stdout.isatty()):
             # A person reads this after Ctrl-C: sentences with the exact next step; a pipe keeps the JSON.
